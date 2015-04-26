@@ -258,8 +258,9 @@ public:
     void updateNewRigidBodyVelocity(const unsigned int part, Vec U);
 
     /*!
-     * \brief Copy data from PETSc Vec for specified stucture indices to
-     * raw array. A defauly empty implementation is provided.
+     * \brief Copy data from distributed PETSc Vec for specified stucture indices
+     * to an array defined on a single processor. A default empty implementation
+     * is provided.
      *
      * \param b PETSc Vec to copy from.
      *
@@ -268,14 +269,22 @@ public:
      * \param struct_ids Vector of structure indices.
      *
      * \param data_depth Depth of the data stored at each Lagrangian node.
+     *
+     * \param array_rank Rank of the processor on which the array is located.
+     *
      * \note The size of \em array is assummed to be sum of nodes
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
-    virtual void copyVecToArray(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    virtual void copyVecToArray(Vec b,
+                                double* array,
+                                const std::vector<unsigned>& struct_ids,
+                                const int data_depth,
+                                const int array_rank);
 
     /*!
-     * \brief Copy data from raw array for specified stucture indices to PETSc
-     * Vec. A default empty implementation is provided.
+     * \brief Copy data from array defined on a single processor for specified
+     * stucture indices to distributed PETScVec. A default empty implementation
+     * is provided.
      *
      * \param b PETSc Vec to copy from.
      *
@@ -284,10 +293,17 @@ public:
      * \param struct_ids Vector of structure indices.
      *
      * \param data_depth Depth of the data stored at each Lagrangian node.
+     *
+     * \param array_rank Rank of the processor on which the array is located.
+     *
      * \note The size of \em array is assummed to be sum of nodes
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
-    virtual void copyArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    virtual void copyArrayToVec(Vec b,
+                                double* array,
+                                const std::vector<unsigned>& struct_ids,
+                                const int data_depth,
+                                const int array_rank);
 
     /*!
      * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
@@ -312,7 +328,7 @@ public:
     void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
 
     /*!
-     * \brief Generate dense mobility matrix for the prototypical structures
+     * \brief Construct dense mobility matrix for the prototypical structures
      * identified by their indices. A default empty implementation is provided
      * in this class. The derived class provides the actual implementation.
      *
@@ -331,6 +347,9 @@ public:
      *
      * \param domain_extents NDIM vector of domain length.
      *
+     * \param initial_time Boolean to indicate if the mobility matrix is to be
+     * generated for the initial position of the structures.
+     *
      * \param rho Fluid density
      *
      * \param mu Fluid viscosity.
@@ -338,17 +357,21 @@ public:
      * \param scale Scale for improving the conditioning number of dense mobility
      * matrix. The matrix is scaled as:
      * \f$  = \alpha * mobility_mat + \beta * identity_mat. \f$
+     *
+     * \param managing_rank Rank of the processor managing this dense matrix.
      */
-    virtual void generateMobilityMatrix(const std::string& mat_name,
-                                        MobilityMatrixType mat_type,
-                                        double* mobility_mat,
-                                        const std::vector<unsigned>& prototype_struct_ids,
-                                        const double* grid_dx,
-                                        const double* domain_extents,
-                                        double rho,
-                                        double mu,
-                                        const std::pair<double, double>& scale,
-                                        double f_periodic_corr = 0.0);
+    virtual void constructMobilityMatrix(const std::string& mat_name,
+                                         MobilityMatrixType mat_type,
+                                         double* mobility_mat,
+                                         const std::vector<unsigned>& prototype_struct_ids,
+                                         const double* grid_dx,
+                                         const double* domain_extents,
+                                         const bool initial_time,
+                                         double rho,
+                                         double mu,
+                                         const std::pair<double, double>& scale,
+                                         double f_periodic_corr,
+                                         const int managing_rank);
 
     /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:

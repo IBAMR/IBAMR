@@ -860,7 +860,11 @@ void CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, 
     return;
 } // computeNetRigidGeneralizedForce
 
-void CIBMethod::copyVecToArray(Vec b, double* array, const std::vector<unsigned int>& struct_ids, const int data_depth)
+void CIBMethod::copyVecToArray(Vec b,
+                               double* array,
+                               const std::vector<unsigned int>& struct_ids,
+                               const int data_depth,
+                               const int array_rank)
 {
     if (struct_ids.empty()) return;
     const unsigned num_structs = (unsigned)struct_ids.size();
@@ -888,15 +892,17 @@ void CIBMethod::copyVecToArray(Vec b, double* array, const std::vector<unsigned 
     d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
 
     // Wrap the raw data in a PETSc Vec
-    Vec array_vec;
-    VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/ 1, total_nodes * data_depth, array, &array_vec);
-
-    // Scatter values from distributed Vec to sequential Vec.
     PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
+
+    // Create index sets to define global index mapping.
     std::vector<PetscInt> vec_indices, array_indices;
     vec_indices.reserve(size);
     array_indices.reserve(size);
-
     for (PetscInt j = 0; j < total_nodes; ++j)
     {
         PetscInt petsc_idx = map[j];
@@ -906,29 +912,31 @@ void CIBMethod::copyVecToArray(Vec b, double* array, const std::vector<unsigned 
             vec_indices.push_back(petsc_idx * data_depth + d);
         }
     }
-
     IS is_vec;
     IS is_array;
-
     ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
     ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
 
+    // Scatter values
     VecScatter ctx;
     VecScatterCreate(b, is_vec, array_vec, is_array, &ctx);
-
     VecScatterBegin(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
     VecScatterEnd(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
 
+    // Cleanup temporary objects.
     VecScatterDestroy(&ctx);
     ISDestroy(&is_vec);
     ISDestroy(&is_array);
-
     VecDestroy(&array_vec);
 
     return;
 } // copyVecToArray
 
-void CIBMethod::copyArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth)
+void CIBMethod::copyArrayToVec(Vec b,
+                               double* array,
+                               const std::vector<unsigned>& struct_ids,
+                               const int data_depth,
+                               const int array_rank)
 {
     if (struct_ids.empty()) return;
     const unsigned num_structs = (unsigned)struct_ids.size();
@@ -955,16 +963,18 @@ void CIBMethod::copyArrayToVec(Vec b, double* array, const std::vector<unsigned>
     const int struct_ln = getStructuresLevelNumber();
     d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
 
-    // Wrap the raw data in a PETSc Vec
-    Vec array_vec;
-    VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/ 1, total_nodes * data_depth, array, &array_vec);
-
-    // Scatter values from sequential Vec to distributed Vec.
+    // Wrap the array in a PETSc Vec
     PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
+
+    // Create index sets to define global index mapping.
     std::vector<PetscInt> vec_indices, array_indices;
     vec_indices.reserve(size);
     array_indices.reserve(size);
-
     for (PetscInt j = 0; j < total_nodes; ++j)
     {
         PetscInt petsc_idx = map[j];
@@ -974,19 +984,18 @@ void CIBMethod::copyArrayToVec(Vec b, double* array, const std::vector<unsigned>
             vec_indices.push_back(petsc_idx * data_depth + d);
         }
     }
-
     IS is_vec;
     IS is_array;
-
     ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
     ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
 
+    // Scatter values
     VecScatter ctx;
     VecScatterCreate(array_vec, is_array, b, is_vec, &ctx);
-
     VecScatterBegin(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
     VecScatterEnd(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
 
+    // Destroy temporary objects
     VecScatterDestroy(&ctx);
     ISDestroy(&is_vec);
     ISDestroy(&is_array);
@@ -997,63 +1006,84 @@ void CIBMethod::copyArrayToVec(Vec b, double* array, const std::vector<unsigned>
     return;
 } // copyArrayToVec
 
-void CIBMethod::generateMobilityMatrix(const std::string& /*mat_name*/,
-                                       MobilityMatrixType mat_type,
-                                       double* mobility_mat,
-                                       const std::vector<unsigned>& prototype_struct_ids,
-                                       const double* grid_dx,
-                                       const double* domain_extents,
-                                       double rho,
-                                       double mu,
-                                       const std::pair<double, double>& scale,
-                                       double f_periodic_corr)
+void CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
+                                        MobilityMatrixType mat_type,
+                                        double* mobility_mat,
+                                        const std::vector<unsigned>& prototype_struct_ids,
+                                        const double* grid_dx,
+                                        const double* domain_extents,
+                                        const bool initial_time,
+                                        double rho,
+                                        double mu,
+                                        const std::pair<double, double>& scale,
+                                        double f_periodic_corr,
+                                        const int managing_proc)
 {
     const double dt = d_new_time - d_current_time;
     const int struct_ln = getStructuresLevelNumber();
     const char* ib_kernel = d_l_data_manager->getDefaultInterpKernelFunction().c_str();
+    const int rank = SAMRAI_MPI::getRank();
 
-    // Get the position of nodes
+    // Get the size of matrix
     unsigned num_nodes = 0;
     for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
     {
         num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
     }
     const int size = num_nodes * NDIM;
-    std::vector<double> XW(size);
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
-    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-    Vec X = (*X_half_data)[struct_ln]->getVec();
-    copyVecToArray(X, &XW[0], prototype_struct_ids, /*depth*/ NDIM);
 
-    // Generate mobility matrix
-    if (mat_type == RPY)
+    // Get the position data
+    double* XW = NULL;
+    if (rank == managing_proc) XW = new double[size];
+    Vec X;
+    if (initial_time)
     {
-        getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat);
-    }
-    else if (mat_type == EMPIRICAL)
-    {
-        getEmpiricalMobilityMatrix(ib_kernel, mu, rho, dt, grid_dx[0], &XW[0], num_nodes, 0, f_periodic_corr,
-                                   domain_extents[0], mobility_mat);
+        X = d_l_data_manager->getLData("X0", struct_ln)->getVec();
     }
     else
     {
-        TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+        std::vector<Pointer<LData> >* X_half_data;
+        bool* X_half_needs_ghost_fill;
+        getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+        X = (*X_half_data)[struct_ln]->getVec();
+    }
+    copyVecToArray(X, XW, prototype_struct_ids, /*depth*/ NDIM, managing_proc);
+
+    // Generate mobility matrix
+    if (rank == managing_proc)
+    {
+        if (mat_type == RPY)
+        {
+            getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat);
+        }
+        else if (mat_type == EMPIRICAL)
+        {
+            getEmpiricalMobilityMatrix(ib_kernel, mu, rho, dt, grid_dx[0], &XW[0], num_nodes, 0, f_periodic_corr,
+                                       domain_extents[0], mobility_mat);
+        }
+        else
+        {
+            TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+        }
     }
 
     // Regularize the mobility matrix
     Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-    copyVecToArray(W, &XW[0], prototype_struct_ids, /*depth*/ NDIM);
-    for (int i = 0; i < size; ++i)
+    copyVecToArray(W, XW, prototype_struct_ids, /*depth*/ NDIM, managing_proc);
+    if (rank == managing_proc)
     {
-        for (int j = 0; j < size; ++j)
+        for (int i = 0; i < size; ++i)
         {
-            mobility_mat[i * size + j] *= scale.first;
-            if (i == j)
+            for (int j = 0; j < size; ++j)
             {
-                mobility_mat[i * size + j] += scale.second * XW[i];
+                mobility_mat[i * size + j] *= scale.first;
+                if (i == j)
+                {
+                    mobility_mat[i * size + j] += scale.second * XW[i];
+                }
             }
         }
+        delete[] XW;
     }
 
     return;

@@ -248,7 +248,8 @@ void CIBStrategy::updateNewRigidBodyVelocity(const unsigned int part, Vec U)
 void CIBStrategy::copyVecToArray(Vec /*b*/,
                                  double* /*array*/,
                                  const std::vector<unsigned>& /*struct_ids*/,
-                                 const int /*data_depth*/)
+                                 const int /*data_depth*/,
+                                 const int /*array_rank*/)
 {
     // intentionally left-blank
     return;
@@ -257,7 +258,8 @@ void CIBStrategy::copyVecToArray(Vec /*b*/,
 void CIBStrategy::copyArrayToVec(Vec /*b*/,
                                  double* /*array*/,
                                  const std::vector<unsigned>& /*struct_ids*/,
-                                 const int /*data_depth*/)
+                                 const int /*data_depth*/,
+                                 const int /*array_rank*/)
 {
     // intentionally left-blank
     return;
@@ -332,20 +334,22 @@ void CIBStrategy::getNewRigidBodyVelocity(const unsigned int part, RigidDOFVecto
     return;
 } // getNewRigidBodyVelocity
 
-void CIBStrategy::generateMobilityMatrix(const std::string& /*mat_name*/,
-                                         MobilityMatrixType /*mat_type*/,
-                                         double* /*mobility_mat*/,
-                                         const std::vector<unsigned>& /*prototype_struct_ids*/,
-                                         const double* /*grid_dx*/,
-                                         const double* /*domain_extents*/,
-                                         double /*rho*/,
-                                         double /*mu*/,
-                                         const std::pair<double, double>& /*scale*/,
-                                         double /*f_periodic_corr*/)
+void CIBStrategy::constructMobilityMatrix(const std::string& /*mat_name*/,
+                                          MobilityMatrixType /*mat_type*/,
+                                          double* /*mobility_mat*/,
+                                          const std::vector<unsigned>& /*prototype_struct_ids*/,
+                                          const double* /*grid_dx*/,
+                                          const double* /*domain_extents*/,
+                                          const bool /*initial_time*/,
+                                          double /*rho*/,
+                                          double /*mu*/,
+                                          const std::pair<double, double>& /*scale*/,
+                                          double /*f_periodic_corr*/,
+                                          const int /*managing_rank*/)
 {
     // intentionally left blank.
     return;
-}
+} // constructMobilityMatrix
 
 //////////////////////////////////////////////////////////////////////////////
 

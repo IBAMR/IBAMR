@@ -312,51 +312,39 @@ public:
     /*!
      * \brief Copy PETSc Vec to raw array for specified structures.
      */
-    void copyVecToArray(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    void copyVecToArray(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
      * \brief Copy raw array to PETSc Vec for specified structures.
      */
-    void copyArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    void copyArrayToVec(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
+    // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
      * \brief Generate dense mobility matrix for the prototypical structures
      * identified by their indices.
-     *
-     * \param mat_name Matrix handle.
-     *
-     * \param mat_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
-     *
-     * \param mobility_mat Pointer to matrix representation. The matrix is
-     * stored in column-major(FORTRAN) order.
-     *
-     * \param prototype_struct_ids Indices of the structures as registered
-     * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
-     * will formed for multiple structures.
-     *
-     * \param grid_dx NDIM vector of grid spacing at structure level.
-     *
-     * \param domain_extents NDIM vector of domain length.
-     *
-     * \param rho Fluid density
-     *
-     * \param mu Fluid viscosity.
-     *
-     * \param scale Scale for improving the conditioning number of dense mobility
-     * matrix. The matrix is scaled as:
-     * \f$  = \alpha * mobility_mat + \beta * identity_mat. \f$
      */
-    void generateMobilityMatrix(const std::string& mat_name,
-                                MobilityMatrixType mat_type,
-                                double* mobility_mat,
-                                const std::vector<unsigned>& prototype_struct_ids,
-                                const double* grid_dx,
-                                const double* domain_extents,
-                                double rho,
-                                double mu,
-                                const std::pair<double, double>& scale,
-                                double f_periodic_corr = 0.0);
+    void constructMobilityMatrix(const std::string& mat_name,
+                                 MobilityMatrixType mat_type,
+                                 double* mobility_mat,
+                                 const std::vector<unsigned>& prototype_struct_ids,
+                                 const double* grid_dx,
+                                 const double* domain_extents,
+                                 const bool initial_time,
+                                 double rho,
+                                 double mu,
+                                 const std::pair<double, double>& scale,
+                                 double f_periodic_corr,
+                                 const int managing_rank);
 
     //////////////////////////////////////////////////////////////////////////////
 

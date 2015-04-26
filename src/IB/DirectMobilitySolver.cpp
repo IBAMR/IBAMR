@@ -144,7 +144,7 @@ DirectMobilitySolver::~DirectMobilitySolver()
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         delete[] it->second;
-        if (d_ipiv[it->first]) delete[] d_ipiv[it->first];
+        delete[] d_ipiv[it->first];
     }
 
     d_is_initialized = false;
@@ -156,11 +156,12 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                                const unsigned prototype_struct_id,
                                                MobilityMatrixType mat_type,
                                                MobilityMatrixInverseType inv_type,
+                                               const int managing_proc,
                                                const std::string& filename,
                                                std::pair<double, double> scale)
 {
-    registerMobilityMat(mat_name, std::vector<unsigned int>(1, prototype_struct_id), mat_type, inv_type, filename,
-                        scale);
+    registerMobilityMat(mat_name, std::vector<unsigned int>(1, prototype_struct_id), mat_type, inv_type, managing_proc,
+                        filename, scale);
 
     return;
 } // registerMobilityMat
@@ -169,6 +170,7 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                                const std::vector<unsigned>& prototype_struct_ids,
                                                MobilityMatrixType mat_type,
                                                MobilityMatrixInverseType inv_type,
+                                               const int managing_proc,
                                                const std::string& filename,
                                                std::pair<double, double> scale)
 {
@@ -184,26 +186,33 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     TBOX_ASSERT(inv_type != UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE);
 #endif
 
-    // Fill-in various maps.
-    d_managed_mat_prototype_id_map[mat_name] = prototype_struct_ids;
     unsigned int num_nodes = 0;
     for (unsigned k = 0; k < prototype_struct_ids.size(); ++k)
     {
         num_nodes += d_cib_strategy->getNumberOfNodes(prototype_struct_ids[k]);
     }
-    const int size = num_nodes * NDIM;
-    d_managed_mat_map[mat_name] = new double[size * size];
+
+    // Fill-in various maps.
+    d_managed_mat_prototype_id_map[mat_name] = prototype_struct_ids;
+    d_managed_mat_proc_map[mat_name] = managing_proc;
     d_managed_mat_nodes_map[mat_name] = num_nodes;
     d_managed_mat_type_map[mat_name] = mat_type;
     d_managed_mat_inv_type_map[mat_name] = inv_type;
     d_managed_mat_filename_map[mat_name] = filename;
     d_managed_mat_scale_map[mat_name] = scale;
-
-    // For LAPACK LU calls
+    d_managed_mat_map[mat_name] = NULL;
     d_ipiv[mat_name] = NULL;
-    if (inv_type == LAPACK_LU)
+
+    // Allocate the actual matrix
+    const int size = num_nodes * NDIM;
+    const int rank = SAMRAI_MPI::getRank();
+    if (rank == managing_proc)
     {
-        d_ipiv[mat_name] = new int[size];
+        d_managed_mat_map[mat_name] = new double[size * size];
+        if (inv_type == LAPACK_LU)
+        {
+            d_ipiv[mat_name] = new int[size];
+        }
     }
 
     return;
@@ -234,6 +243,25 @@ void DirectMobilitySolver::registerStructIDsWithMobilityMat(const std::string& m
     return;
 } // registerStructIDsWithMobilityMat
 
+void DirectMobilitySolver::getFrictionMat(const std::string& mat_name,
+                                          double** fm,
+                                          int* size,
+                                          int* managing_proc,
+                                          MobilityMatrixInverseType* inv_method)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_is_initialized);
+#endif
+
+    *fm = d_managed_mat_map[mat_name];
+    *size = d_managed_mat_nodes_map[mat_name] * NDIM;
+    *managing_proc = d_managed_mat_proc_map[mat_name];
+    *inv_method = d_managed_mat_inv_type_map[mat_name];
+
+    return;
+} // getFrictionMat
+
 void DirectMobilitySolver::setStokesSpecifications(const StokesSpecifications& stokes_spec)
 {
     d_rho = stokes_spec.getRho();
@@ -259,7 +287,6 @@ void DirectMobilitySolver::setTimeInterval(double current_time, double new_time)
 
 bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
 {
-    // Return if no work needs to be done on this processor.
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
 
@@ -269,20 +296,26 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
+    const int rank = SAMRAI_MPI::getRank();
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
         std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
+        const int managing_proc = d_managed_mat_proc_map[mat_name];
 
+        static const int data_depth = NDIM;
+        const int size = d_managed_mat_nodes_map[mat_name] * data_depth;
         for (unsigned k = 0; k < struct_ids.size(); ++k)
         {
-            static const int data_depth = NDIM;
-            std::vector<double> rhs(d_managed_mat_nodes_map[mat_name] * data_depth);
-            d_cib_strategy->copyVecToArray(b, &rhs[0], struct_ids[k], data_depth);
-            computeSolution(mat_name, &rhs[0]);
-            d_cib_strategy->copyArrayToVec(x, &rhs[0], struct_ids[k], data_depth);
+            double* rhs = NULL;
+            if (rank == managing_proc) rhs = new double[size];
+            d_cib_strategy->copyVecToArray(b, rhs, struct_ids[k], data_depth, managing_proc);
+            if (rank == managing_proc) computeSolution(mat_name, rhs);
+            d_cib_strategy->copyArrayToVec(x, rhs, struct_ids[k], data_depth, managing_proc);
+            delete[] rhs;
         }
     }
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
     IBAMR_TIMER_STOP(t_solve_system);
 
@@ -300,6 +333,7 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     int file_counter = 0;
     static bool recreate_mobility_matrices = true;
     static std::vector<bool> read_files(managed_mats, false);
+    bool initial_time = !d_recompute_mob_mat;
 
     if (recreate_mobility_matrices)
     {
@@ -330,6 +364,7 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             MobilityMatrixType mat_type = d_managed_mat_type_map[mat_name];
             const std::vector<unsigned>& struct_ids = d_managed_mat_prototype_id_map[mat_name];
             const std::pair<double, double>& scale = d_managed_mat_scale_map[mat_name];
+            const int managing_proc = d_managed_mat_proc_map[mat_name];
 
             if (mat_type == FILE && !read_files[file_counter])
             {
@@ -339,8 +374,9 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             }
             else
             {
-                d_cib_strategy->generateMobilityMatrix(mat_name, mat_type, mobility_mat, struct_ids, dx, domain_extents,
-                                                       d_rho, d_mu, scale, d_f_periodic_corr);
+                d_cib_strategy->constructMobilityMatrix(mat_name, mat_type, mobility_mat, struct_ids, dx,
+                                                        domain_extents, initial_time, d_rho, d_mu, scale,
+                                                        d_f_periodic_corr, managing_proc);
             }
             ++file_counter;
         }
@@ -393,7 +429,6 @@ void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 
     // Other parameters
     d_f_periodic_corr = input_db->getDoubleWithDefault("f_periodic_correction", d_f_periodic_corr);
-    d_L = input_db->getDoubleWithDefault("length_domain", d_L);
     d_recompute_mob_mat = input_db->getBoolWithDefault("recompute_mob_mat_perstep", d_recompute_mob_mat);
 
     return;
@@ -401,13 +436,15 @@ void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 
 void DirectMobilitySolver::generateFrictionMatrix()
 {
-
+    int rank = SAMRAI_MPI::getRank();
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
-        const std::string& key = it->first;
-        MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[key];
-        double* managed_mat = d_managed_mat_map[key];
-        int mat_size = d_managed_mat_nodes_map[key] * NDIM;
+        const std::string& mat_name = it->first;
+        if (rank != d_managed_mat_proc_map[mat_name]) continue;
+
+        MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+        double* managed_mat = d_managed_mat_map[mat_name];
+        int mat_size = d_managed_mat_nodes_map[mat_name] * NDIM;
 
         if (inv_type == LAPACK_CHOLESKY)
         {
@@ -416,19 +453,19 @@ void DirectMobilitySolver::generateFrictionMatrix()
             if (err)
             {
                 TBOX_ERROR("DirectMobilityMatrix::generateFrictionMatrix() Matrix inversion "
-                           << "failed for matrix handle " << key << " with error code " << err
+                           << "failed for matrix handle " << mat_name << " with error code " << err
                            << " using LAPACK CHOLESKY." << std::endl);
             }
         }
         else if (inv_type == LAPACK_LU)
         {
             int err = 0;
-            dgetrf_(mat_size, mat_size, managed_mat, mat_size, d_ipiv[key], err);
+            dgetrf_(mat_size, mat_size, managed_mat, mat_size, d_ipiv[mat_name], err);
             if (err)
             {
                 TBOX_ERROR("DirectMobilityMatrix::generateFrictionMatrix() Matrix inversion "
-                           << "failed for matrix handle " << key << " with error code " << err << " using LAPACK LU."
-                           << std::endl);
+                           << "failed for matrix handle " << mat_name << " with error code " << err
+                           << " using LAPACK LU." << std::endl);
             }
         }
         else if (inv_type == LAPACK_SVD)
@@ -452,7 +489,7 @@ void DirectMobilitySolver::generateFrictionMatrix()
             if (err)
             {
                 TBOX_ERROR("DirectMobilityMatrix::generateFrictionMatrix() Matrix inversion "
-                           << "failed for matrix handle " << key << " with error code " << err
+                           << "failed for matrix handle " << mat_name << " with error code " << err
                            << " using LAPACK SVD at first stage." << std::endl);
             }
 
@@ -467,7 +504,7 @@ void DirectMobilitySolver::generateFrictionMatrix()
             if (err)
             {
                 TBOX_ERROR("DirectMobilityMatrix::generateFrictionMatrix() Matrix inversion "
-                           << "failed for matrix handle " << key << " with error code " << err
+                           << "failed for matrix handle " << mat_name << " with error code " << err
                            << " using LAPACK SVD at second stage." << std::endl);
             }
 
@@ -506,7 +543,7 @@ void DirectMobilitySolver::generateFrictionMatrix()
             }
 
             plog << "DirectMobilityMatrix::generateFrictionMatrix(): " << counter
-                 << " eigenvalues for dense mobility matrix with handle " << key
+                 << " eigenvalues for dense mobility matrix with handle " << mat_name
                  << "have been changed. Number of zero eigenvalues placed are " << counter_zero << std::endl;
         }
         else

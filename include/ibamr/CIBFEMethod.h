@@ -284,13 +284,21 @@ public:
     /*!
      * \brief Copy PETSc Vec to raw array for specified structures.
      */
-    void copyVecToArray(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    void copyVecToArray(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
      * \brief Copy raw array to PETSc Vec for specified structures.
      */
-    void copyArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth);
+    void copyArrayToVec(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
     // \see CIBStrategy::setRigidBodyVelocity()
     /*!

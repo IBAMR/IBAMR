@@ -101,14 +101,14 @@ public:
          *
          * \param scale Scale for improving the conditioning number of dense mobility
          * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
-     *
-         * \note Different processors can register different structure prototypes
-         * with dense mobility matrix
+         *
+         * \param managing_proc MPI processor that manages this mobility matrix.
          */
     void registerMobilityMat(const std::string& mat_name,
                              const unsigned prototype_struct_id,
                              MobilityMatrixType mat_type,
                              MobilityMatrixInverseType inv_type,
+                             const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
 
@@ -128,11 +128,14 @@ public:
      *
      * \param scale Scale for improving the conditioning number of dense mobility
      * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
+     *
+     * \param managing_proc MPI processor that manages this mobility matrix.
      */
     void registerMobilityMat(const std::string& mat_name,
                              const std::vector<unsigned>& prototype_struct_ids,
                              MobilityMatrixType mat_type,
                              MobilityMatrixInverseType inv_type,
+                             const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
 
@@ -145,6 +148,26 @@ public:
      */
     void registerStructIDsWithMobilityMat(const std::string& mat_name,
                                           const std::vector<std::vector<unsigned> >& struct_ids);
+
+    /*!
+     * \brief Get access to friction (inverse of mobility) matrix.
+     *
+     * \param mat_name Matrix handle.
+     *
+     * \param fm Linear (fortran-style column major) array holding the matrix.
+     *
+     * \param size Column or row size of the square mobility matrix.
+     *
+     * \param managing_proc Rank of the processor managing the friction
+     *  matrix.
+     *
+     *  \param inv_method Type of factorization used to invert the mobility matrix.
+     */
+    void getFrictionMat(const std::string& mat_name,
+                        double** fm,
+                        int* size,
+                        int* managing_proc,
+                        MobilityMatrixInverseType* inv_method);
 
     /*!
      * \brief Initialize the solver.
@@ -228,6 +251,7 @@ private:
 
     // Structure(s) stuff.
     std::map<std::string, double*> d_managed_mat_map;
+    std::map<std::string, int> d_managed_mat_proc_map;
     std::map<std::string, std::vector<unsigned> > d_managed_mat_prototype_id_map;
     std::map<std::string, std::vector<std::vector<unsigned> > > d_managed_mat_actual_id_map;
     std::map<std::string, MobilityMatrixType> d_managed_mat_type_map;
@@ -237,9 +261,8 @@ private:
     std::map<std::string, std::string> d_managed_mat_filename_map;
 
     // System physical parameters.
-    double d_mu;  // fluid viscosity
-    double d_rho; // fluid density
-    double d_L;   // length of domain used in 2D steady stokes empirical fitting
+    double d_mu;
+    double d_rho;
 
     // Parameters used in this class.
     std::string d_kernel_name;

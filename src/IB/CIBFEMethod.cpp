@@ -720,18 +720,26 @@ void CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L
 
 } // computeNetRigidGeneralizedForce
 
-void CIBFEMethod::copyVecToArray(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth)
+void CIBFEMethod::copyVecToArray(Vec b,
+                                 double* array,
+                                 const std::vector<unsigned>& struct_ids,
+                                 const int data_depth,
+                                 const int array_rank)
 {
     if (struct_ids.empty()) return;
 
     // Wrap the raw data in a PETSc Vec
-    Vec array_vec;
     PetscInt total_nodes = 0;
     for (unsigned k = 0; k < struct_ids.size(); ++k)
     {
         total_nodes += getNumberOfNodes(struct_ids[k]);
     }
-    VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/ 1, total_nodes * data_depth, array, &array_vec);
+    PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
 
     // Get the components of PETScMultiVec.
     Vec* vb;
@@ -771,18 +779,26 @@ void CIBFEMethod::copyVecToArray(Vec b, double* array, const std::vector<unsigne
     return;
 } // copyVecToArray
 
-void CIBFEMethod::copyArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int data_depth)
+void CIBFEMethod::copyArrayToVec(Vec b,
+                                 double* array,
+                                 const std::vector<unsigned>& struct_ids,
+                                 const int data_depth,
+                                 const int array_rank)
 {
     if (struct_ids.empty()) return;
 
     // Wrap the raw data in a PETSc Vec
-    Vec array_vec;
     PetscInt total_nodes = 0;
     for (unsigned k = 0; k < struct_ids.size(); ++k)
     {
         total_nodes += getNumberOfNodes(struct_ids[k]);
     }
-    VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/ 1, total_nodes * data_depth, array, &array_vec);
+    PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
 
     // Get the components of PETScMultiVec.
     Vec* vb;
