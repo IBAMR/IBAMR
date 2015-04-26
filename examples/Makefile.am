@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIBFE
+SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
@@ -16,5 +16,6 @@ examples:
 	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
