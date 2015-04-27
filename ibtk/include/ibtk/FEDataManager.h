@@ -118,8 +118,8 @@ public:
         }
 
         InterpSpec(const std::string& kernel_fcn,
-                   const libMeshEnums::QuadratureType& quad_type,
-                   const libMeshEnums::Order& quad_order,
+                   const libMesh::QuadratureType& quad_type,
+                   const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_consistent_mass_matrix)
@@ -130,8 +130,8 @@ public:
         }
 
         std::string kernel_fcn;
-        libMeshEnums::QuadratureType quad_type;
-        libMeshEnums::Order quad_order;
+        libMesh::QuadratureType quad_type;
+        libMesh::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
         bool use_consistent_mass_matrix;
@@ -149,8 +149,8 @@ public:
         }
 
         SpreadSpec(const std::string& kernel_fcn,
-                   const libMeshEnums::QuadratureType& quad_type,
-                   const libMeshEnums::Order& quad_order,
+                   const libMesh::QuadratureType& quad_type,
+                   const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density)
             : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
@@ -159,8 +159,8 @@ public:
         }
 
         std::string kernel_fcn;
-        libMeshEnums::QuadratureType quad_type;
-        libMeshEnums::Order quad_order;
+        libMesh::QuadratureType quad_type;
+        libMesh::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
     };
@@ -397,8 +397,8 @@ public:
      */
     std::pair<libMesh::LinearSolver<double>*, libMesh::SparseMatrix<double>*>
     buildL2ProjectionSolver(const std::string& system_name,
-                            libMeshEnums::QuadratureType quad_type = QGAUSS,
-                            libMeshEnums::Order quad_order = FIFTH);
+                            libMesh::QuadratureType quad_type = libMesh::QGAUSS,
+                            libMesh::Order quad_order = libMesh::FIFTH);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
@@ -412,8 +412,8 @@ public:
                              libMesh::NumericVector<double>& F,
                              const std::string& system_name,
                              bool consistent_mass_matrix = true,
-                             libMeshEnums::QuadratureType quad_type = QGAUSS,
-                             libMeshEnums::Order quad_order = FIFTH,
+                             libMesh::QuadratureType quad_type = libMesh::QGAUSS,
+                             libMesh::Order quad_order = libMesh::FIFTH,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);
 
@@ -426,8 +426,8 @@ public:
      * false otherwise.
      */
     static bool updateQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
-                                     libMeshEnums::QuadratureType quad_type,
-                                     libMeshEnums::Order quad_order,
+                                     libMesh::QuadratureType quad_type,
+                                     libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
                                      double point_density,
                                      libMesh::Elem* elem,
@@ -731,8 +731,8 @@ private:
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
-    std::map<std::string, libMeshEnums::QuadratureType> d_L2_proj_quad_type;
-    std::map<std::string, libMeshEnums::Order> d_L2_proj_quad_order;
+    std::map<std::string, libMesh::QuadratureType> d_L2_proj_quad_type;
+    std::map<std::string, libMesh::Order> d_L2_proj_quad_order;
 };
 } // namespace IBTK
 
