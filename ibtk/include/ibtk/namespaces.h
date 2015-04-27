@@ -85,6 +85,16 @@ using namespace SAMRAI::solv;
 using namespace SAMRAI::tbox;
 using namespace SAMRAI::xfer;
 
+/*!
+ * Defines "using" declarations for all libMesh namespaces.  This header file may
+ * be included in application codes, but it MUST NOT be included in any other
+ * header (.h) or inline (-inl.h) file in the library.
+ */
+namespace libMesh
+{
+}
+using namespace libMesh;
+
 //////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_namespaces
