@@ -442,7 +442,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
     t_vals.resize(0);
     switch (elem->type())
     {
-    case libMeshEnums::EDGE2:
+    case libMesh::EDGE2:
     {
         // Linear interpolation:
         //
@@ -493,7 +493,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
         }
         break;
     }
-    case libMeshEnums::EDGE3:
+    case libMesh::EDGE3:
     {
         // Quadratic interpolation:
         //
@@ -567,7 +567,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_edge():"
-                   << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
@@ -584,7 +584,7 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
     t_vals.resize(0);
     switch (elem->type())
     {
-    case libMeshEnums::TRI3:
+    case libMesh::TRI3:
     {
         // Linear interpolation:
         //
@@ -656,7 +656,7 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
         }
         break;
     }
-    case libMeshEnums::QUAD4:
+    case libMesh::QUAD4:
     {
         const libMesh::Point& p00 = *elem->get_node(0);
         const libMesh::Point& p10 = *elem->get_node(1);
@@ -770,7 +770,7 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_face():"
-                   << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }

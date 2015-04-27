@@ -195,12 +195,12 @@ private:
      * Static function for setting up implicit formulation composite Jacobian.
      */
     static PetscErrorCode
-    compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure, void* p_ctx);
+    compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
 
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
-    PetscErrorCode compositeIBJacobianSetup(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
+    PetscErrorCode compositeIBJacobianSetup(SNES snes, Vec x, Mat A, Mat B);
 
     /*!
      * Static function for implicit formulation composite Jacobian.

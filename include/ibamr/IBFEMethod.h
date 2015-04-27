@@ -227,8 +227,8 @@ public:
         PK1StressFcnData(PK1StressFcnPtr fcn = NULL,
                          const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
                          void* ctx = NULL,
-                         libMeshEnums::QuadratureType quad_type = INVALID_Q_RULE,
-                         libMeshEnums::Order quad_order = INVALID_ORDER)
+                         libMesh::QuadratureType quad_type = libMesh::INVALID_Q_RULE,
+                         libMesh::Order quad_order = libMesh::INVALID_ORDER)
             : fcn(fcn), systems(systems), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
         {
         }
@@ -236,8 +236,8 @@ public:
         PK1StressFcnPtr fcn;
         std::vector<unsigned int> systems;
         void* ctx;
-        libMeshEnums::QuadratureType quad_type;
-        libMeshEnums::Order quad_order;
+        libMesh::QuadratureType quad_type;
+        libMesh::Order quad_order;
     };
 
     /*!
@@ -252,8 +252,8 @@ public:
     void registerPK1StressFunction(PK1StressFcnPtr fcn,
                                    const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
                                    void* ctx = NULL,
-                                   libMeshEnums::QuadratureType quad_type = INVALID_Q_RULE,
-                                   libMeshEnums::Order quad_order = INVALID_ORDER,
+                                   libMesh::QuadratureType quad_type = libMesh::INVALID_Q_RULE,
+                                   libMesh::Order quad_order = libMesh::INVALID_ORDER,
                                    unsigned int part = 0);
 
     /*!
@@ -652,10 +652,10 @@ protected:
     IBTK::FEDataManager::SpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
-    libMeshEnums::FEFamily d_fe_family;
-    libMeshEnums::Order d_fe_order;
-    libMeshEnums::QuadratureType d_quad_type;
-    libMeshEnums::Order d_quad_order;
+    libMesh::FEFamily d_fe_family;
+    libMesh::Order d_fe_order;
+    libMesh::QuadratureType d_quad_type;
+    libMesh::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
 
     /*

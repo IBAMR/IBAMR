@@ -383,7 +383,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
     }
 
     return;
-} //~ConstraintIBMethod
+}
 
 void ConstraintIBMethod::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {

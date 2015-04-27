@@ -533,7 +533,7 @@ void PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
         // Create a LinearOperator wrapper to correspond to the PETSc Mat used
         // by the KSP.
         Mat petsc_mat;
-        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, NULL, NULL);
+        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, NULL);
         IBTK_CHKERRQ(ierr);
         d_A = boost::make_shared<PETScMatLOWrapper>(d_object_name + "::Mat Wrapper", petsc_mat);
         d_A->setHomogeneousBc(d_homogeneous_bc);
@@ -620,7 +620,9 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-        ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER);
+        ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
         IBTK_CHKERRQ(ierr);
     }
     return;
