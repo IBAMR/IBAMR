@@ -274,8 +274,8 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
             min_ghost_width,
             IntVector(DIM, std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                     LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] = new FEDataManager(
-            name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
+        s_data_manager_instances[name] =
+            new FEDataManager(name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -1269,7 +1269,8 @@ void FEDataManager::restrictData(const int f_data_idx,
             Box box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
                                                  patch_upper),
                     IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                 patch_upper),BLOCK_ID);
+                                                 patch_upper),
+                    BLOCK_ID);
             box.grow(IntVector::getOne(DIM));
             box = box * patch_box;
 

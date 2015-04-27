@@ -284,13 +284,16 @@ void HierarchyMathOps::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
 
     auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
-    d_hier_cc_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true));
+    d_hier_cc_data_ops =
+        BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true));
 
     auto fc_var = boost::make_shared<FaceVariable<double> >(DIM, "fc_var");
-    d_hier_fc_data_ops = BOOST_CAST<HierarchyFaceDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true));
+    d_hier_fc_data_ops =
+        BOOST_CAST<HierarchyFaceDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true));
 
     auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
-    d_hier_sc_data_ops = BOOST_CAST<HierarchySideDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true));
+    d_hier_sc_data_ops =
+        BOOST_CAST<HierarchySideDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true));
 
     // Reset the communications operators.
     resetCoarsenOperators();
