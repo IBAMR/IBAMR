@@ -398,8 +398,9 @@ protected:
         IBEulerianForceFunction& operator=(const IBEulerianForceFunction& that);
 
         const IBHierarchyIntegrator* const d_ib_solver;
-        friend class IBHierarchyIntegrator;
     };
+
+    friend class IBEulerianForceFunction;
 
     /*!
      * \brief A class to communicate the Eulerian fluid source-sink distribution
@@ -471,8 +472,9 @@ protected:
         IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that);
 
         const IBHierarchyIntegrator* const d_ib_solver;
-        friend class IBHierarchyIntegrator;
     };
+
+    friend class IBEulerianSourceFunction;
 
 private:
     /*!

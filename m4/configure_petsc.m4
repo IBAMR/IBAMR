@@ -13,7 +13,7 @@ AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding
 AC_SUBST(PETSC_DIR,$PETSC_DIR)
 AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
 
-AC_MSG_NOTICE([using PETSC_DIR: ${PETSC_ARCH}])
+AC_MSG_NOTICE([using PETSC_DIR: ${PETSC_DIR}])
 AC_MSG_NOTICE([using PETSC_ARCH: ${PETSC_ARCH}])
 
 PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
@@ -23,7 +23,7 @@ PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH
 CPPFLAGS_PREPEND($PETSC_CC_INCLUDES)
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
-AC_MSG_CHECKING([for PETSc version 3.3 or 3.4])
+AC_MSG_CHECKING([for PETSc version 3.5])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <petscversion.h>
 
@@ -32,14 +32,14 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
   (!PETSC_VERSION_LT(MAJOR,MINOR,SUBMINOR))
 #endif
 ]], [[
-#if (PETSC_VERSION_GE(3,3,0) && PETSC_VERSION_LT(3,5,0))
+#if ((PETSC_VERSION_GE(3,5,0) && PETSC_VERSION_LT(3,6,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
 ]])],[PETSC_VERSION_VALID=yes],[PETSC_VERSION_VALID=no])
 AC_MSG_RESULT([${PETSC_VERSION_VALID}])
 if test "$PETSC_VERSION_VALID" = no; then
-  AC_MSG_ERROR([invalid PETSc version detected: please use PETSc 3.3 or 3.4])
+  AC_MSG_ERROR([invalid PETSc version detected: please use PETSc 3.5])
 fi
 
 LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
