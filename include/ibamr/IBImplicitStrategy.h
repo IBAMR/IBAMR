@@ -149,11 +149,11 @@ public:
     /*!
      * Construct the IB interpolation operator.
      */
-    virtual void constructInterpOperator(Mat& J,
-                                         void (*spread_fnc)(const double, double*),
-                                         const int stencil_width,
-                                         const std::vector<int>& num_dofs_per_proc,
-                                         const int dof_index_idx) = 0;
+    virtual void constructInterpOp(Mat& J,
+                                   void (*spread_fnc)(const double, double*),
+                                   const int stencil_width,
+                                   const std::vector<int>& num_dofs_per_proc,
+                                   const int dof_index_idx) = 0;
 
 protected:
 private:

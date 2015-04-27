@@ -839,12 +839,12 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(ln + 1);
         Pointer<PatchLevel<NDIM> > coarse_level = d_hierarchy->getPatchLevel(ln);
 
-        PETScMatUtilities::constructPatchLevelProlongationOp(d_mat_prolongation[ln], d_u_dof_index_idx,
-                                                             d_num_dofs_per_proc[ln + 1], d_num_dofs_per_proc[ln],
-                                                             fine_level, coarse_level, d_u_app_ordering[ln]);
+        PETScMatUtilities::constructProlongationOp(d_mat_prolongation[ln], d_u_dof_index_idx,
+                                                   d_num_dofs_per_proc[ln + 1], d_num_dofs_per_proc[ln], fine_level,
+                                                   coarse_level, d_u_app_ordering[ln]);
 
         // Get the scaling for restriction operator R = P^T.
-        PETScMatUtilities::constructRestrictionScalingMat(d_mat_prolongation[ln], d_mat_scale_restriction[ln]);
+        PETScMatUtilities::constructRestrictionScalingOp(d_mat_prolongation[ln], d_mat_scale_restriction[ln]);
     }
 
     // Compute SAJ operator for various patch levels.

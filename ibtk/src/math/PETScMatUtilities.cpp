@@ -183,15 +183,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                         PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
-    // Set some general matrix options.
+    // Set block size.
     ierr = MatSetBlockSize(mat, depth);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
@@ -329,14 +323,6 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
                         PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
-
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
@@ -544,14 +530,6 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                         PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
-
     // Set the matrix coefficients.
     for (int k = 0; k < m_local / NDIM; ++k)
     {
@@ -618,14 +596,14 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     return;
 } // constructPatchLevelSCInterpOp
 
-void PETScMatUtilities::constructPatchLevelProlongationOp(Mat& mat,
-                                                          int dof_index_idx,
-                                                          const std::vector<int>& num_fine_dofs_per_proc,
-                                                          const std::vector<int>& num_coarse_dofs_per_proc,
-                                                          Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                          Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                          const AO& coarse_level_ao,
-                                                          const int coarse_ao_offset)
+void PETScMatUtilities::constructProlongationOp(Mat& mat,
+                                                int dof_index_idx,
+                                                const std::vector<int>& num_fine_dofs_per_proc,
+                                                const std::vector<int>& num_coarse_dofs_per_proc,
+                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                const AO& coarse_level_ao,
+                                                const int coarse_ao_offset)
 {
     // Determine the data-centering type.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -635,13 +613,13 @@ void PETScMatUtilities::constructPatchLevelProlongationOp(Mat& mat,
     Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
-        constructPatchLevelProlongationOp_cell(mat, dof_index_idx, num_fine_dofs_per_proc, num_coarse_dofs_per_proc,
-                                               fine_patch_level, coarse_patch_level, coarse_level_ao, coarse_ao_offset);
+        constructProlongationOp_cell(mat, dof_index_idx, num_fine_dofs_per_proc, num_coarse_dofs_per_proc,
+                                     fine_patch_level, coarse_patch_level, coarse_level_ao, coarse_ao_offset);
     }
     else if (dof_index_sc_var)
     {
-        constructPatchLevelProlongationOp_side(mat, dof_index_idx, num_fine_dofs_per_proc, num_coarse_dofs_per_proc,
-                                               fine_patch_level, coarse_patch_level, coarse_level_ao, coarse_ao_offset);
+        constructProlongationOp_side(mat, dof_index_idx, num_fine_dofs_per_proc, num_coarse_dofs_per_proc,
+                                     fine_patch_level, coarse_patch_level, coarse_level_ao, coarse_ao_offset);
     }
     else
     {
@@ -651,12 +629,13 @@ void PETScMatUtilities::constructPatchLevelProlongationOp(Mat& mat,
 
 } // constructPatchLevelProlongationOp
 
-void PETScMatUtilities::constructRestrictionScalingMat(Mat& P, Vec& L)
+void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
 {
     // Note that enteries of P are positive, so we will use column norm-1 function
     // of PETSc which appears to be faster than row sum call from the documentation.
-    // We might have a column of all zeros for pressure DOFs. Therefore,
-    // care should be taken for this case.
+    // We might have a column of all zeros for some DOFs (say pressure for combined
+    // u-p vec, if we are only prolongating u). Therefore, care should be taken for
+    // this case.
 
     int ierr;
     PetscInt M, N;
@@ -669,7 +648,7 @@ void PETScMatUtilities::constructRestrictionScalingMat(Mat& P, Vec& L)
     for (int k = 0; k < N; ++k)
     {
         const double sum = column_sum_inv[k];
-        if (sum > MathUtilities<double>::equalEps(sum, 0.0))
+        if (!MathUtilities<double>::equalEps(sum, 0.0))
         {
             column_sum_inv[k] = 1.0 / sum;
         }
@@ -711,20 +690,20 @@ void PETScMatUtilities::constructRestrictionScalingMat(Mat& P, Vec& L)
     IBTK_CHKERRQ(ierr);
 
     return;
-} // constructRestrictionScalingMat
+} // constructRestrictionScalingOp
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
-                                                               int dof_index_idx,
-                                                               const std::vector<int>& num_fine_dofs_per_proc,
-                                                               const std::vector<int>& num_coarse_dofs_per_proc,
-                                                               Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                               Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                               const AO& coarse_level_ao,
-                                                               const int coarse_ao_offset)
+void PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
+                                                     int dof_index_idx,
+                                                     const std::vector<int>& num_fine_dofs_per_proc,
+                                                     const std::vector<int>& num_coarse_dofs_per_proc,
+                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                     const AO& coarse_level_ao,
+                                                     const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -784,7 +763,7 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
             const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
             for (unsigned d = 0; d < depth; ++d)
             {
-                samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(i_coarse, coarse_domain_lower, coarse_num_cells,
+                samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(i_coarse, coarse_domain_lower, coarse_num_cells,
                                                                         d, coarse_ao_offset);
             }
             AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
@@ -809,14 +788,6 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
                         PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
-
     // Determine matrix-coefficients
     for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
     {
@@ -833,7 +804,7 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
 
             for (unsigned d = 0; d < depth; ++d)
             {
-                samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(i_coarse, coarse_domain_lower, coarse_num_cells,
+                samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(i_coarse, coarse_domain_lower, coarse_num_cells,
                                                                         d, coarse_ao_offset);
             }
             AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
@@ -855,16 +826,16 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
     IBTK_CHKERRQ(ierr);
     return;
 
-} // constructPatchLevelProlongationOp_cell
+} // constructProlongationOp_cell
 
-void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
-                                                               int dof_index_idx,
-                                                               const std::vector<int>& num_fine_dofs_per_proc,
-                                                               const std::vector<int>& num_coarse_dofs_per_proc,
-                                                               Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                               Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                               const AO& coarse_level_ao,
-                                                               const int coarse_ao_offset)
+void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
+                                                     int dof_index_idx,
+                                                     const std::vector<int>& num_fine_dofs_per_proc,
+                                                     const std::vector<int>& num_coarse_dofs_per_proc,
+                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                     const AO& coarse_level_ao,
+                                                     const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -956,9 +927,9 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
                 const CellIndex<NDIM> I_U = I_L + offset;
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(
+                    samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
                         I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
-                    samrai_petsc_map[depth + d] = IndexUtilities::getIntegerMapping(
+                    samrai_petsc_map[depth + d] = IndexUtilities::mapIndexToInteger(
                         I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
                 }
                 AOApplicationToPetsc(coarse_level_ao, 2 * depth, &samrai_petsc_map[0]);
@@ -991,14 +962,6 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
     ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
                         PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
-
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
 
     // Determine the matrix-coefficients
     for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
@@ -1039,9 +1002,9 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
                 const CellIndex<NDIM> I_U = I_L + offset;
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(
+                    samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
                         I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
-                    samrai_petsc_map[depth + d] = IndexUtilities::getIntegerMapping(
+                    samrai_petsc_map[depth + d] = IndexUtilities::mapIndexToInteger(
                         I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
                 }
                 AOApplicationToPetsc(coarse_level_ao, 2 * depth, &samrai_petsc_map[0]);
@@ -1051,11 +1014,13 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
                     int row = (*fine_dof_data)(i_s, d);
                     int col[2] = { samrai_petsc_map[d], samrai_petsc_map[depth + d] };
 
-                    // To avoid calling refine(), the term in the bracket is same as:
-                    // [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
-                    double w_L = 1.0 - ((double)i(axis) / (double)fine_coarse_ratio(axis) - I_L(axis));
-                    double col_val[2] = { w_L, 1.0 - w_L };
+                    // w_L = 1 - [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
+                    double w_L = 1.0 -
+                                 (static_cast<double>(i(axis)) -
+                                  static_cast<double>(IndexUtilities::refine(I_L, fine_coarse_ratio)(axis))) /
+                                     static_cast<double>(fine_coarse_ratio(axis));
 
+                    double col_val[2] = { w_L, 1.0 - w_L };
                     ierr = MatSetValues(mat, 1, &row, 2, col, col_val, INSERT_VALUES);
                 }
             }
@@ -1070,7 +1035,7 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 
     return;
 
-} // constructPatchLevelProlongationOp_side
+} // constructProlongationOp_side
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

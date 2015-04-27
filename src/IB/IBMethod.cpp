@@ -893,11 +893,11 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
     return;
 } // spreadLinearizedForce
 
-void IBMethod::constructInterpOperator(Mat& J,
-                                       void (*spread_fnc)(const double, double*),
-                                       const int stencil_width,
-                                       const std::vector<int>& num_dofs_per_proc,
-                                       const int dof_index_idx)
+void IBMethod::constructInterpOp(Mat& J,
+                                 void (*spread_fnc)(const double, double*),
+                                 const int stencil_width,
+                                 const std::vector<int>& num_dofs_per_proc,
+                                 const int dof_index_idx)
 {
     int ierr;
     if (J)

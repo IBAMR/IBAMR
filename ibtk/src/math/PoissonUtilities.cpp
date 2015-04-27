@@ -81,11 +81,9 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );
@@ -177,8 +175,8 @@ void PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-        array_ops.scale(
-            off_diagonal.getArrayData(axis), 1.0 / (dx[axis] * dx[axis]), off_diagonal.getArrayData(axis), side_box);
+        array_ops.scale(off_diagonal.getArrayData(axis), 1.0 / (dx[axis] * dx[axis]), off_diagonal.getArrayData(axis),
+                        side_box);
     }
 
     // Compute all diagonal matrix coefficients for all cells, including those
@@ -450,12 +448,9 @@ void PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                     touches_regular_bdry,
-                                                                     touches_periodic_bdry,
-                                                                     dx,
-                                                                     shifted_patch_x_lower.data(),
-                                                                     shifted_patch_x_upper.data()));
+            patch->setPatchGeometry(
+                new CartesianPatchGeometry<NDIM>(ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx,
+                                                 shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -651,7 +646,7 @@ void PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_d
 {
     const int depth = rhs_data.getDepth();
 #if !defined(NDEBUG)
-    TBOX_ASSERT((int)bc_coefs.size() == depth);
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == depth);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
     OutersideData<NDIM, double> D_data(patch_box, depth);
@@ -748,7 +743,7 @@ void PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_d
                                                    bool homogeneous_bc)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
 #endif
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
     {
@@ -818,12 +813,9 @@ void PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_d
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                     touches_regular_bdry,
-                                                                     touches_periodic_bdry,
-                                                                     dx,
-                                                                     shifted_patch_x_lower.data(),
-                                                                     shifted_patch_x_upper.data()));
+            patch->setPatchGeometry(
+                new CartesianPatchGeometry<NDIM>(ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx,
+                                                 shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -978,15 +970,14 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs
     }
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-	
+
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
     const int n_bdry_boxes = type1_cf_bdry.size();
     const IntVector<NDIM> ghost_width_to_fill(1);
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-		const BoundaryBox<NDIM>  trimmed_bdry_box =
-			PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
@@ -998,22 +989,22 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs
         {
             for (Box<NDIM>::Iterator bc(bc_fill_box); bc; bc++)
             {
-				Index<NDIM> i_s_bdry = bc();
-				CellIndex<NDIM> i_c_intr(i_s_bdry);
-				CellIndex<NDIM> i_c_bdry(i_s_bdry);
-				if (is_lower)
-				{
-					i_c_intr(bdry_normal_axis) += 1;
-					i_s_bdry(bdry_normal_axis) += 1;
-				}
-				if (is_upper) i_c_intr(bdry_normal_axis) -= 1;
-				const double& D = D_data.getArrayData(bdry_normal_axis, bdry_side)(i_s_bdry, d);
-				rhs_data(i_c_intr, d) -= (D / h) * sol_data(i_c_bdry, d) / h;
+                Index<NDIM> i_s_bdry = bc();
+                CellIndex<NDIM> i_c_intr(i_s_bdry);
+                CellIndex<NDIM> i_c_bdry(i_s_bdry);
+                if (is_lower)
+                {
+                    i_c_intr(bdry_normal_axis) += 1;
+                    i_s_bdry(bdry_normal_axis) += 1;
+                }
+                if (is_upper) i_c_intr(bdry_normal_axis) -= 1;
+                const double& D = D_data.getArrayData(bdry_normal_axis, bdry_side)(i_s_bdry, d);
+                rhs_data(i_c_intr, d) -= (D / h) * sol_data(i_c_bdry, d) / h;
             }
         }
     }
     return;
-}// adjustRHSAtCoarseFineBoundary
+} // adjustRHSAtCoarseFineBoundary
 
 void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
                                                      const SideData<NDIM, double>& sol_data,
@@ -1040,8 +1031,7 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-		const BoundaryBox<NDIM>  trimmed_bdry_box =
-		PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
@@ -1060,21 +1050,21 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs
                     SideIndex<NDIM> i_s_intr(bc(), axis, SideIndex<NDIM>::Lower);
                     SideIndex<NDIM> i_s_bdry(bc(), axis, SideIndex<NDIM>::Lower);
                     if (is_lower)
-					{
-						i_s_intr(bdry_normal_axis) += 1;
-					}
+                    {
+                        i_s_intr(bdry_normal_axis) += 1;
+                    }
                     if (is_upper)
-					{
-						i_s_intr(bdry_normal_axis) -= axis == bdry_normal_axis ? 0: 1;
-						i_s_bdry(axis) += axis == bdry_normal_axis ? 1: 0;
-					}
+                    {
+                        i_s_intr(bdry_normal_axis) -= axis == bdry_normal_axis ? 0 : 1;
+                        i_s_bdry(axis) += axis == bdry_normal_axis ? 1 : 0;
+                    }
                     rhs_data(i_s_intr, d) -= (D / h) * sol_data(i_s_bdry, d) / h;
                 }
             }
         }
     }
     return;
-}// adjustRHSAtCoarseFineBoundary
+} // adjustRHSAtCoarseFineBoundary
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

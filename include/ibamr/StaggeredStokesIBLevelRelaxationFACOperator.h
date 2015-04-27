@@ -69,7 +69,7 @@ class array;
 namespace IBAMR
 {
 class StaggeredStokesPETScLevelSolver;
-}// namespace IBAMR
+} // namespace IBAMR
 namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
@@ -103,7 +103,7 @@ namespace IBAMR
 /*!
  * \brief Class StaggeredStokesIBLevelRelaxationFACOperator is a concrete
  * FACPreconditionerStrategy class that implements the operations required by
- * smoothers for staggered-grid (MAC) discretizations of the implicit 
+ * smoothers for staggered-grid (MAC) discretizations of the implicit
  * incompressible Stokes-IB equations.
  *
  * Sample parameters for initialization from database (and their default
@@ -130,28 +130,28 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesIBLevelRelaxationFACOperator(const std::string& object_name,
-                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                             const std::string& default_options_prefix);
+                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
     ~StaggeredStokesIBLevelRelaxationFACOperator();
 
-	/*!
-	 * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
-	 * StaggeredStokesIBLevelRelaxationFACOperator FAC strategy.
-	 */
-	static SAMRAI::tbox::Pointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
-																		SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-																		const std::string& default_options_prefix)
-	{
-		SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_operator =
-			new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::StaggeredStokesIBLevelRelaxationFACOperator",
-															input_db,
-															default_options_prefix);
-		return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
-	} // allocate_solver
+    /*!
+     * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
+     * StaggeredStokesIBLevelRelaxationFACOperator FAC strategy.
+     */
+    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_operator =
+            new StaggeredStokesIBLevelRelaxationFACOperator(
+                object_name + "::StaggeredStokesIBLevelRelaxationFACOperator", input_db, default_options_prefix);
+        return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -160,11 +160,10 @@ public:
      */
     virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
-	/*!
-	 * \brief Set if velocity and pressure have nullspace.
-	 */
-	virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace,
-											const bool has_pressure_nullspace);
+    /*!
+     * \brief Set if velocity and pressure have nullspace.
+     */
+    virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -268,17 +267,17 @@ public:
      */
     void setRestrictionMethods(const std::string& U_restriction_method, const std::string& P_restriction_method);
 
-	/*!
-	 * \brief Set the IB-force Jacobian at the finest patch level (where the
-	 * structure resides).
-	 */
-	void setIBForceJacobian(Mat& A);
+    /*!
+     * \brief Set the IB-force Jacobian at the finest patch level (where the
+     * structure resides).
+     */
+    void setIBForceJacobian(Mat& A);
 
-	/*!
-	 * \brief Set the IB-interpolation operator at the finest patch level (where the
-	 * structure resides).
-	 */
-	void setIBInterpOp(Mat& J);
+    /*!
+     * \brief Set the IB-interpolation operator at the finest patch level (where the
+     * structure resides).
+     */
+    void setIBInterpOp(Mat& J);
 
     //\}
 
@@ -345,26 +344,26 @@ public:
                          int coarsest_level_num,
                          int finest_level_num);
 
-	/*!
-	 * \brief Perform a given number of relaxations on the error.
-	 *
-	 * \param error error vector
-	 * \param residual residual vector
-	 * \param level_num level number
-	 * \param num_sweeps number of sweeps to perform
-	 * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are
-	 *being
-	 *performed
-	 * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are
-	 *being
-	 *performed
-	 */
-	void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-					 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-					 int level_num,
-					 int num_sweeps,
-					 bool performing_pre_sweeps,
-					 bool performing_post_sweeps);
+    /*!
+     * \brief Perform a given number of relaxations on the error.
+     *
+     * \param error error vector
+     * \param residual residual vector
+     * \param level_num level number
+     * \param num_sweeps number of sweeps to perform
+     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are
+     *being
+     *performed
+     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are
+     *being
+     *performed
+     */
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                     int level_num,
+                     int num_sweeps,
+                     bool performing_pre_sweeps,
+                     bool performing_post_sweeps);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -405,33 +404,32 @@ public:
     //\}
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    StaggeredStokesIBLevelRelaxationFACOperator();
 
-	/*!
-	 * \brief Default constructor.
-	 *
-	 * \note This constructor is not implemented and should not be used.
-	 */
-	StaggeredStokesIBLevelRelaxationFACOperator();
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    StaggeredStokesIBLevelRelaxationFACOperator(const StaggeredStokesIBLevelRelaxationFACOperator& from);
 
-	/*!
-	 * \brief Copy constructor.
-	 *
-	 * \note This constructor is not implemented and should not be used.
-	 *
-	 * \param from The value to copy to this object.
-	 */
-	StaggeredStokesIBLevelRelaxationFACOperator(const StaggeredStokesIBLevelRelaxationFACOperator& from);
-
-	/*!
-	 * \brief Assignment operator.
-	 *
-	 * \note This operator is not implemented and should not be used.
-	 *
-	 * \param that The value to assign to this object.
-	 *
-	 * \return A reference to this object.
-	 */
-	StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that);
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that);
 
     /*!
      * \name Methods for executing, caching, and resetting communication
@@ -540,21 +538,20 @@ private:
     double d_coarse_solver_rel_residual_tol;
     double d_coarse_solver_abs_residual_tol;
     int d_coarse_solver_max_iterations;
-	SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
-	/*
-	 * Level solvers and solver parameters.
-	 */
-	std::string d_level_solver_type, d_level_solver_default_options_prefix;
-	double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-	int d_level_solver_max_iterations;
-	std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> >
-		d_level_solvers;
-	SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+    /*
+     * Level solvers and solver parameters.
+     */
+    std::string d_level_solver_type, d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
+    int d_level_solver_max_iterations;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> > d_level_solvers;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
-	// Nullspace info.
-	bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    // Nullspace info.
+    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
 
     //\}
 
@@ -634,41 +631,40 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 
     /*
-	 * Application ordering of u from MAC DOFs on various patch levels.
-	 */
-	std::vector<AO> d_u_app_ordering;
+         * Application ordering of u from MAC DOFs on various patch levels.
+         */
+    std::vector<AO> d_u_app_ordering;
 
-	/*
-	 * Eulerian data for storing u and p DOFs indexing.
-	 */
-	std::vector<std::vector<int> > d_num_dofs_per_proc;
-	int d_u_dof_index_idx, d_p_dof_index_idx;
-	SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
-	SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    /*
+     * Eulerian data for storing u and p DOFs indexing.
+     */
+    std::vector<std::vector<int> > d_num_dofs_per_proc;
+    int d_u_dof_index_idx, d_p_dof_index_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
 
-	/*
-	 * Jacobian of the elasticity force at the finest patch level.
-	 */
-	Mat d_mat_A;
+    /*
+     * Jacobian of the elasticity force at the finest patch level.
+     */
+    Mat d_mat_A;
 
-	/*
-	 * IB interpolation operator J for the finest patch level.
-	 */
-	Mat d_mat_J;
+    /*
+     * IB interpolation operator J for the finest patch level.
+     */
+    Mat d_mat_J;
 
-	/*
-	 * Data structures for elasticity and prolongation operator respresentation 
-	 * on various patch levels.
-	 */
-	std::vector<Mat> d_mat_SAJ, d_mat_prolongation;
-	std::vector<Vec> d_mat_scale_restriction;
+    /*
+     * Data structures for elasticity and prolongation operator respresentation
+     * on various patch levels.
+     */
+    std::vector<Mat> d_mat_SAJ, d_mat_prolongation;
+    std::vector<Vec> d_mat_scale_restriction;
 
-	/*
-	 * Mappings from patch indices to patch operators.
-	 */
-	std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-	std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
-
+    /*
+     * Mappings from patch indices to patch operators.
+     */
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK
 

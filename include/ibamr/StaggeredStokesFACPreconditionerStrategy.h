@@ -61,7 +61,7 @@
 namespace IBAMR
 {
 class StaggeredStokesSolver;
-}// namespace IBAMR
+} // namespace IBAMR
 namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
@@ -133,11 +133,10 @@ public:
      */
     virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
-	/*!
-     * \brief Set if velocity and pressure have nullspace.
-	 */
-	virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace,
-											const bool has_pressure_nullspace);
+    /*!
+ * \brief Set if velocity and pressure have nullspace.
+     */
+    virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -470,13 +469,13 @@ protected:
     double d_coarse_solver_rel_residual_tol;
     double d_coarse_solver_abs_residual_tol;
     int d_coarse_solver_max_iterations;
-	SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
-	/*
-	 * Nullspace info.
-	 */
-	bool d_has_velocity_nullspace, d_has_pressure_nullspace;
+    /*
+     * Nullspace info.
+     */
+    bool d_has_velocity_nullspace, d_has_pressure_nullspace;
 
     //\}
 
