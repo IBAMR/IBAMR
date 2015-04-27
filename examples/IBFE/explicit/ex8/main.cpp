@@ -470,9 +470,9 @@ int main(int argc, char* argv[])
         IBFEMethod::PK1StressFcnData beam_PK1_dev_stress_data(beam_PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData beam_PK1_dil_stress_data(beam_PK1_dil_stress_function);
         beam_PK1_dev_stress_data.quad_order =
-            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "FIFTH"));
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "FIFTH"));
         beam_PK1_dil_stress_data.quad_order =
-            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "THIRD"));
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "THIRD"));
         ib_method_ops->registerLagSurfaceForceFunction(beam_tether_force_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);

@@ -140,8 +140,8 @@ public:
         TBOX_ASSERT(system_data.size() == 1);
         TBOX_ASSERT(ctx);
         int f0_system_num = *static_cast<int*>(ctx);
-        NumericVector<double>* f0_vec = system_data[0];
-        VectorValue<double> f0;
+        libMesh::NumericVector<double>* f0_vec = system_data[0];
+        libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
@@ -170,8 +170,8 @@ public:
         TBOX_ASSERT(system_data.size() == 1);
         TBOX_ASSERT(ctx);
         int f0_system_num = *static_cast<int*>(ctx);
-        NumericVector<double>* f0_vec = system_data[0];
-        VectorValue<double> f0;
+        libMesh::NumericVector<double>* f0_vec = system_data[0];
+        libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
@@ -199,13 +199,13 @@ public:
         TBOX_ASSERT(system_data.size() == 1);
         TBOX_ASSERT(ctx);
         int f0_system_num = *static_cast<int*>(ctx);
-        NumericVector<double>* f0_vec = system_data[0];
-        VectorValue<double> f0;
+        libMesh::NumericVector<double>* f0_vec = system_data[0];
+        libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
         }
-        VectorValue<double> f = FF * f0;
+        libMesh::VectorValue<double> f = FF * f0;
         lambda = f.size() / f0.size();
         return;
     } // material_axis_stretch_fcn
@@ -224,8 +224,8 @@ public:
      * Register a scalar-valued variable for reconstruction.
      */
     virtual void registerScalarVariable(const std::string& var_name,
-                                        libMeshEnums::FEFamily var_fe_family,
-                                        libMeshEnums::Order var_fe_order,
+                                        libMesh::FEFamily var_fe_family,
+                                        libMesh::Order var_fe_order,
                                         IBTK::ScalarMeshFcnPtr var_fcn,
                                         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                         void* var_fcn_ctx = NULL);
@@ -234,8 +234,8 @@ public:
      * Register a vector-valued variable for reconstruction.
      */
     virtual void registerVectorVariable(const std::string& var_name,
-                                        libMeshEnums::FEFamily var_fe_family,
-                                        libMeshEnums::Order var_fe_order,
+                                        libMesh::FEFamily var_fe_family,
+                                        libMesh::Order var_fe_order,
                                         IBTK::VectorMeshFcnPtr var_fcn,
                                         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                         void* var_fcn_ctx = NULL,
@@ -245,8 +245,8 @@ public:
      * Register a tensor-valued variable for reconstruction.
      */
     virtual void registerTensorVariable(const std::string& var_name,
-                                        libMeshEnums::FEFamily var_fe_family,
-                                        libMeshEnums::Order var_fe_order,
+                                        libMesh::FEFamily var_fe_family,
+                                        libMesh::Order var_fe_order,
                                         IBTK::TensorMeshFcnPtr var_fcn,
                                         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                         void* var_fcn_ctx = NULL,
@@ -342,7 +342,8 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > > d_scalar_interp_vars;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_scalar_interp_fill_transactions;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
+        d_scalar_interp_fill_transactions;
     std::vector<IBTK::FEDataManager::InterpSpec> d_scalar_interp_specs;
 
     /*!

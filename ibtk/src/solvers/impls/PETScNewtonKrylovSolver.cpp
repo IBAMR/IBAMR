@@ -226,6 +226,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     {
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<double> >(&b, false));
     }
+    Vec residual;
 
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -233,7 +234,9 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     IBTK_CHKERRQ(ierr);
     ierr = SNESGetLinearSolveIterations(d_petsc_snes, &d_current_linear_iterations);
     IBTK_CHKERRQ(ierr);
-    ierr = SNESGetFunctionNorm(d_petsc_snes, &d_current_residual_norm);
+    ierr = SNESGetFunction(d_petsc_snes, &residual, NULL, NULL);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecNorm(residual, NORM_2, &d_current_residual_norm);
     IBTK_CHKERRQ(ierr);
 
     // Determine the convergence reason.
@@ -542,7 +545,7 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
     else
     {
         // Create a JacobianOperator wrapper to correspond to the SNES Jacobian.
-        PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
+        PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
         void* petsc_snes_jac_ctx;
         ierr = SNESGetJacobian(d_petsc_snes, NULL, NULL, &petsc_snes_form_jac, &petsc_snes_jac_ctx);
         IBTK_CHKERRQ(ierr);
@@ -645,9 +648,8 @@ PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x
 
 PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
                                                             Vec x,
-                                                            Mat* A,
-                                                            Mat* /*B*/,
-                                                            MatStructure* /*mat_structure*/,
+                                                            Mat A,
+                                                            Mat /*B*/,
                                                             void* p_ctx)
 {
     int ierr;
@@ -664,11 +666,11 @@ PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
         IBTK_CHKERRQ(ierr);
         ierr = SNESGetFunction(snes, &f, NULL, NULL);
         IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetBase(*A, u, f);
+        ierr = MatMFFDSetBase(A, u, f);
         IBTK_CHKERRQ(ierr);
-        ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY);
+        ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
-        ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);
+        ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);

@@ -67,8 +67,8 @@ public:
      * class.
      */
     void registerScalarVariable(const std::string& var_name,
-                                libMeshEnums::FEFamily var_fe_family,
-                                libMeshEnums::Order var_fe_order,
+                                libMesh::FEFamily var_fe_family,
+                                libMesh::Order var_fe_order,
                                 IBTK::ScalarMeshFcnPtr var_fcn,
                                 std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                 void* var_fcn_ctx = NULL);
@@ -81,8 +81,8 @@ public:
      * class.
      */
     void registerVectorVariable(const std::string& var_name,
-                                libMeshEnums::FEFamily var_fe_family,
-                                libMeshEnums::Order var_fe_order,
+                                libMesh::FEFamily var_fe_family,
+                                libMesh::Order var_fe_order,
                                 IBTK::VectorMeshFcnPtr var_fcn,
                                 std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                 void* var_fcn_ctx = NULL,
@@ -96,8 +96,8 @@ public:
      * class.
      */
     void registerTensorVariable(const std::string& var_name,
-                                libMeshEnums::FEFamily var_fe_family,
-                                libMeshEnums::Order var_fe_order,
+                                libMesh::FEFamily var_fe_family,
+                                libMesh::Order var_fe_order,
                                 IBTK::TensorMeshFcnPtr var_fcn,
                                 std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
                                 void* var_fcn_ctx = NULL,

@@ -93,8 +93,8 @@ IBFEPostProcessor::~IBFEPostProcessor()
 } // ~IBFEPostProcessor
 
 void IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
-                                               libMeshEnums::FEFamily var_fe_family,
-                                               libMeshEnums::Order var_fe_order,
+                                               libMesh::FEFamily var_fe_family,
+                                               libMesh::Order var_fe_order,
                                                ScalarMeshFcnPtr var_fcn,
                                                std::vector<unsigned int> var_fcn_systems,
                                                void* var_fcn_ctx)
@@ -112,8 +112,8 @@ void IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
 } // registerScalarVariable
 
 void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
-                                               libMeshEnums::FEFamily var_fe_family,
-                                               libMeshEnums::Order var_fe_order,
+                                               libMesh::FEFamily var_fe_family,
+                                               libMesh::Order var_fe_order,
                                                VectorMeshFcnPtr var_fcn,
                                                std::vector<unsigned int> var_fcn_systems,
                                                void* var_fcn_ctx,
@@ -138,8 +138,8 @@ void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
 } // registerVectorVariable
 
 void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
-                                               libMeshEnums::FEFamily var_fe_family,
-                                               libMeshEnums::Order var_fe_order,
+                                               libMesh::FEFamily var_fe_family,
+                                               libMesh::Order var_fe_order,
                                                TensorMeshFcnPtr var_fcn,
                                                std::vector<unsigned int> var_fcn_systems,
                                                void* var_fcn_ctx,
@@ -167,9 +167,9 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
 } // registerTensorVariable
 
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                                   libMeshEnums::FEFamily var_fe_family,
-                                                                   libMeshEnums::Order var_fe_order,
-                                                                   Pointer<hier::Variable > var,
+                                                                   libMesh::FEFamily var_fe_family,
+                                                                   libMesh::Order var_fe_order,
+                                                                   Pointer<hier::Variable> var,
                                                                    Pointer<VariableContext> ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
@@ -179,9 +179,9 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::st
 } //
 
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                                   libMeshEnums::FEFamily var_fe_family,
-                                                                   libMeshEnums::Order var_fe_order,
-                                                                   Pointer<hier::Variable > var,
+                                                                   libMesh::FEFamily var_fe_family,
+                                                                   libMesh::Order var_fe_order,
+                                                                   Pointer<hier::Variable> var,
                                                                    Pointer<VariableContext> ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
                                                                    const FEDataManager::InterpSpec& interp_spec)

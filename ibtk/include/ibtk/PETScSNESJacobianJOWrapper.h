@@ -65,7 +65,7 @@ public:
      */
     PETScSNESJacobianJOWrapper(const std::string& object_name,
                                const SNES& petsc_snes,
-                               PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*),
+                               PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
                                void* petsc_snes_jac_ctx);
 
     /*!
@@ -87,7 +87,7 @@ public:
      * \brief Get the function pointer to the PETSc SNES Jacobian "wrapped" by
      * this object.
      */
-    PetscErrorCode (*getPETScSNESFormJacobian())(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
+    PetscErrorCode (*getPETScSNESFormJacobian())(SNES, Vec, Mat, Mat, void*);
 
     /*!
      * \brief Get the PETSc SNES Jacobian context object "wrapped" by this
@@ -249,7 +249,7 @@ private:
 
     const SNES d_petsc_snes;
     Mat d_petsc_snes_jac;
-    PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
+    PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
     void* const d_petsc_snes_jac_ctx;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
