@@ -49,6 +49,7 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
@@ -200,6 +201,7 @@ int main(int argc, char* argv[])
         const double R = 0.5;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
+#ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
             for (int k = 0; k < num_circum_nodes; ++k)
             {
@@ -213,6 +215,10 @@ int main(int argc, char* argv[])
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
         }
         else
         {
