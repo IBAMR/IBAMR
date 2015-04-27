@@ -426,12 +426,12 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                         const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
 
                         Box<NDIM> face_bdry_box = FaceGeometry<NDIM>::toFaceBox(bdry_box, axis);
-                        array_ops.addScalar(
-                            wgt_fc_data->getArrayData(axis), wgt_fc_data->getArrayData(axis), extra_vol, face_bdry_box);
+                        array_ops.addScalar(wgt_fc_data->getArrayData(axis), wgt_fc_data->getArrayData(axis), extra_vol,
+                                            face_bdry_box);
 
                         Box<NDIM> side_bdry_box = SideGeometry<NDIM>::toSideBox(bdry_box, axis);
-                        array_ops.addScalar(
-                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
+                        array_ops.addScalar(wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol,
+                                            side_bdry_box);
                     }
                 }
             }
@@ -622,18 +622,10 @@ void HierarchyMathOps::curl(const int dst_idx,
         d_hier_cc_data_ops->setToScalar(dst_idx, 0.0, false);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            grad(d_sc_idx,
-                 d_sc_var,
+            grad(d_sc_idx, d_sc_var,
                  true, // synch coarse-fine boundary
-                 1.0,
-                 src_idx,
-                 src_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
-                 0.0,
-                 0.0,
-                 -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
-                 d);
+                 1.0, src_idx, src_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+                 Pointer<SideVariable<NDIM, double> >(NULL), d);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
@@ -659,19 +651,8 @@ void HierarchyMathOps::curl(const int dst_idx,
                     const double alpha = (d == 0) ? -1.0 : 1.0;
                     const double beta = (d == 0) ? 0.0 : 1.0;
 
-                    S_TO_C_INTERP_SPECIAL_FC(direction,
-                                             W,
-                                             W_ghosts,
-                                             alpha,
-                                             g0,
-                                             g1,
-                                             g_ghosts,
-                                             beta,
-                                             W,
-                                             W_ghosts,
-                                             patch_box.lower(0),
-                                             patch_box.upper(0),
-                                             patch_box.lower(1),
+                    S_TO_C_INTERP_SPECIAL_FC(direction, W, W_ghosts, alpha, g0, g1, g_ghosts, beta, W, W_ghosts,
+                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
                                              patch_box.upper(1));
 #endif
 #if (NDIM == 3)
@@ -704,23 +685,10 @@ void HierarchyMathOps::curl(const int dst_idx,
                         direction = 1;
                     }
 
-                    S_TO_C_INTERP_SPECIAL_FC(direction,
-                                             dst_data->getPointer(dst_depth),
-                                             W_ghosts,
-                                             alpha0,
-                                             g0,
-                                             g1,
-                                             g2,
-                                             g_ghosts,
-                                             beta,
-                                             dst_data->getPointer(dst_depth),
-                                             W_ghosts,
-                                             patch_box.lower(0),
-                                             patch_box.upper(0),
-                                             patch_box.lower(1),
-                                             patch_box.upper(1),
-                                             patch_box.lower(2),
-                                             patch_box.upper(2));
+                    S_TO_C_INTERP_SPECIAL_FC(direction, dst_data->getPointer(dst_depth), W_ghosts, alpha0, g0, g1, g2,
+                                             g_ghosts, beta, dst_data->getPointer(dst_depth), W_ghosts,
+                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                             patch_box.upper(1), patch_box.lower(2), patch_box.upper(2));
 
                     static const double alpha1 = -1.0;
 
@@ -740,23 +708,10 @@ void HierarchyMathOps::curl(const int dst_idx,
                         direction = 0;
                     }
 
-                    S_TO_C_INTERP_SPECIAL_FC(direction,
-                                             dst_data->getPointer(dst_depth),
-                                             W_ghosts,
-                                             alpha1,
-                                             g0,
-                                             g1,
-                                             g2,
-                                             g_ghosts,
-                                             beta,
-                                             dst_data->getPointer(dst_depth),
-                                             W_ghosts,
-                                             patch_box.lower(0),
-                                             patch_box.upper(0),
-                                             patch_box.lower(1),
-                                             patch_box.upper(1),
-                                             patch_box.lower(2),
-                                             patch_box.upper(2));
+                    S_TO_C_INTERP_SPECIAL_FC(direction, dst_data->getPointer(dst_depth), W_ghosts, alpha1, g0, g1, g2,
+                                             g_ghosts, beta, dst_data->getPointer(dst_depth), W_ghosts,
+                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                             patch_box.upper(1), patch_box.lower(2), patch_box.upper(2));
 #endif
                 }
             }
@@ -1134,27 +1089,13 @@ void HierarchyMathOps::div(const int dst_idx,
             d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_sc_idx);
         }
 
-        interp(d_sc_idx,
-               d_sc_var,
+        interp(d_sc_idx, d_sc_var,
                true, // synch coarse-fine boundary
-               src1_idx,
-               src1_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
-               0.0);
+               src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0);
 
-        div(dst_idx,
-            dst_var,
-            alpha,
-            d_sc_idx,
-            d_sc_var,
-            Pointer<HierarchyGhostCellInterpolation>(NULL),
-            0.0,
+        div(dst_idx, dst_var, alpha, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
             false, // don't re-synch cf boundary
-            beta,
-            src2_idx,
-            src2_var,
-            dst_depth,
-            src2_depth);
+            beta, src2_idx, src2_var, dst_depth, src2_depth);
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -1318,18 +1259,10 @@ void HierarchyMathOps::grad(const int dst_idx,
             d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_sc_idx);
         }
 
-        grad(d_sc_idx,
-             d_sc_var,
+        grad(d_sc_idx, d_sc_var,
              true, // synch coarse-fine boundary
-             alpha,
-             src1_idx,
-             src1_var,
-             Pointer<HierarchyGhostCellInterpolation>(NULL),
-             0.0,
-             0.0,
-             -1,
-             Pointer<SideVariable<NDIM, double> >(NULL),
-             src1_depth);
+             alpha, src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+             Pointer<SideVariable<NDIM, double> >(NULL), src1_depth);
 
         if (beta != 0.0)
         {
@@ -1342,12 +1275,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                 d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
             }
 
-            interp(cc_idx,
-                   cc_var,
-                   d_sc_idx,
-                   d_sc_var,
-                   Pointer<HierarchyGhostCellInterpolation>(NULL),
-                   0.0,
+            interp(cc_idx, cc_var, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                    false); // don't re-synch cf boundary
 
             d_hier_cc_data_ops->linearSum(dst_idx,   // dst
@@ -1366,12 +1294,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
         else
         {
-            interp(dst_idx,
-                   dst_var,
-                   d_sc_idx,
-                   d_sc_var,
-                   Pointer<HierarchyGhostCellInterpolation>(NULL),
-                   0.0,
+            interp(dst_idx, dst_var, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                    false); // don't re-synch cf boundary
         }
 
@@ -1520,19 +1443,10 @@ void HierarchyMathOps::grad(const int dst_idx,
         d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_fc_idx);
     }
 
-    grad(d_fc_idx,
-         d_fc_var,
+    grad(d_fc_idx, d_fc_var,
          true, // synch coarse-fine boundary
-         alpha_idx,
-         alpha_var,
-         src1_idx,
-         src1_var,
-         Pointer<HierarchyGhostCellInterpolation>(NULL),
-         0.0,
-         0.0,
-         -1,
-         Pointer<FaceVariable<NDIM, double> >(NULL),
-         src1_depth);
+         alpha_idx, alpha_var, src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+         Pointer<FaceVariable<NDIM, double> >(NULL), src1_depth);
 
     if (beta != 0.0)
     {
@@ -1545,12 +1459,7 @@ void HierarchyMathOps::grad(const int dst_idx,
             d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
         }
 
-        interp(cc_idx,
-               cc_var,
-               d_fc_idx,
-               d_fc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
-               0.0,
+        interp(cc_idx, cc_var, d_fc_idx, d_fc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                false); // don't re-synch cf boundary
 
         d_hier_cc_data_ops->linearSum(dst_idx,   // dst
@@ -1569,12 +1478,7 @@ void HierarchyMathOps::grad(const int dst_idx,
     }
     else
     {
-        interp(dst_idx,
-               dst_var,
-               d_fc_idx,
-               d_fc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
-               0.0,
+        interp(dst_idx, dst_var, d_fc_idx, d_fc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                false); // don't re-synch cf boundary
     }
 
@@ -1606,19 +1510,10 @@ void HierarchyMathOps::grad(const int dst_idx,
         d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_sc_idx);
     }
 
-    grad(d_sc_idx,
-         d_sc_var,
+    grad(d_sc_idx, d_sc_var,
          true, // synch coarse-fine boundary
-         alpha_idx,
-         alpha_var,
-         src1_idx,
-         src1_var,
-         Pointer<HierarchyGhostCellInterpolation>(NULL),
-         0.0,
-         0.0,
-         -1,
-         Pointer<SideVariable<NDIM, double> >(NULL),
-         src1_depth);
+         alpha_idx, alpha_var, src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+         Pointer<SideVariable<NDIM, double> >(NULL), src1_depth);
 
     if (beta != 0.0)
     {
@@ -1631,12 +1526,7 @@ void HierarchyMathOps::grad(const int dst_idx,
             d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
         }
 
-        interp(cc_idx,
-               cc_var,
-               d_sc_idx,
-               d_sc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
-               0.0,
+        interp(cc_idx, cc_var, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                false); // don't re-synch cf boundary
 
         d_hier_cc_data_ops->linearSum(dst_idx,   // dst
@@ -1655,12 +1545,7 @@ void HierarchyMathOps::grad(const int dst_idx,
     }
     else
     {
-        interp(dst_idx,
-               dst_var,
-               d_sc_idx,
-               d_sc_var,
-               Pointer<HierarchyGhostCellInterpolation>(NULL),
-               0.0,
+        interp(dst_idx, dst_var, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                false); // don't re-synch cf boundary
     }
 
@@ -2127,8 +2012,8 @@ void HierarchyMathOps::laplace(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.laplace(
-                dst_data, alpha, beta, src1_data, gamma, src2_data, patch, dst_depth, src1_depth, src2_depth);
+            d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, patch, dst_depth, src1_depth,
+                                     src2_depth);
         }
     }
     else
@@ -2143,83 +2028,37 @@ void HierarchyMathOps::laplace(const int dst_idx,
         // result in sc_var.
         if (alpha_idx == -1)
         {
-            grad(d_sc_idx,
-                 d_sc_var,
+            grad(d_sc_idx, d_sc_var,
                  true, // synch coarse-fine boundary
-                 alpha,
-                 src1_idx,
-                 src1_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
-                 0.0,
-                 0.0,
-                 -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
-                 src1_depth);
+                 alpha, src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+                 Pointer<SideVariable<NDIM, double> >(NULL), src1_depth);
         }
         else
         {
-            grad(d_sc_idx,
-                 d_sc_var,
+            grad(d_sc_idx, d_sc_var,
                  true, // synch coarse-fine boundary
-                 alpha_idx,
-                 alpha_var,
-                 src1_idx,
-                 src1_var,
-                 Pointer<HierarchyGhostCellInterpolation>(NULL),
-                 0.0,
-                 0.0,
-                 -1,
-                 Pointer<SideVariable<NDIM, double> >(NULL),
-                 src1_depth);
+                 alpha_idx, alpha_var, src1_idx, src1_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0, 0.0, -1,
+                 Pointer<SideVariable<NDIM, double> >(NULL), src1_depth);
         }
 
         // Take the divergence of the flux.
         if (MathUtilities<double>::equalEps(beta, 0.0) && MathUtilities<double>::equalEps(gamma, 0.0))
         {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
-                0.0,
+            div(dst_idx, dst_var, 1.0, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                 false, // don't re-synch coarse-fine boundary
-                0.0,
-                -1,
-                Pointer<CellVariable<NDIM, double> >(NULL),
-                dst_depth);
+                0.0, -1, Pointer<CellVariable<NDIM, double> >(NULL), dst_depth);
         }
         else if (MathUtilities<double>::equalEps(beta, 0.0))
         {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
-                0.0,
+            div(dst_idx, dst_var, 1.0, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                 false, // don't re-synch coarse-fine boundary
-                gamma,
-                src2_idx,
-                src2_var,
-                dst_depth,
-                src2_depth);
+                gamma, src2_idx, src2_var, dst_depth, src2_depth);
         }
         else if (MathUtilities<double>::equalEps(gamma, 0.0))
         {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
-                0.0,
+            div(dst_idx, dst_var, 1.0, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                 false, // don't re-synch coarse-fine boundary
-                beta,
-                src1_idx,
-                src1_var,
-                dst_depth,
-                src1_depth);
+                beta, src1_idx, src1_var, dst_depth, src1_depth);
         }
         else
         {
@@ -2233,22 +2072,12 @@ void HierarchyMathOps::laplace(const int dst_idx,
                 d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
             }
 
-            div(cc_idx,
-                cc_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(NULL),
-                0.0,
+            div(cc_idx, cc_var, 1.0, d_sc_idx, d_sc_var, Pointer<HierarchyGhostCellInterpolation>(NULL), 0.0,
                 false, // don't re-synch coarse-fine boundary
-                beta,
-                src1_idx,
-                src1_var,
-                cc_depth,
-                src1_depth);
+                beta, src1_idx, src1_var, cc_depth, src1_depth);
 
-            pointwiseMultiply(
-                dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
+            pointwiseMultiply(dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth,
+                              cc_depth);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
@@ -2269,18 +2098,8 @@ void HierarchyMathOps::laplace(const int dst_idx,
     // Take care of the case where beta is spatially varying.
     if (beta_idx != -1)
     {
-        pointwiseMultiply(dst_idx,
-                          dst_var,
-                          beta_idx,
-                          beta_var,
-                          src1_idx,
-                          src1_var,
-                          1.0,
-                          dst_idx,
-                          dst_var,
-                          dst_depth,
-                          src1_depth,
-                          dst_depth);
+        pointwiseMultiply(dst_idx, dst_var, beta_idx, beta_var, src1_idx, src1_var, 1.0, dst_idx, dst_var, dst_depth,
+                          src1_depth, dst_depth);
     }
     return;
 } // laplace
@@ -2506,8 +2325,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth);
         }
     }
     return;
@@ -2541,16 +2360,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<CellData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth);
         }
     }
     return;
@@ -2587,17 +2398,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<CellData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
             Pointer<CellData<NDIM, double> > beta_data = patch->getPatchData(beta_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta_data,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth,
-                                               beta_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth, beta_depth);
         }
     }
     return;
@@ -2628,8 +2430,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<FaceData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth);
         }
     }
     return;
@@ -2663,16 +2465,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<FaceData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth);
         }
     }
     return;
@@ -2709,17 +2503,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<FaceData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
             Pointer<FaceData<NDIM, double> > beta_data = patch->getPatchData(beta_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta_data,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth,
-                                               beta_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth, beta_depth);
         }
     }
     return;
@@ -2750,8 +2535,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<NodeData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth);
         }
     }
     return;
@@ -2785,16 +2570,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<NodeData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth);
         }
     }
     return;
@@ -2831,17 +2608,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<NodeData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
             Pointer<NodeData<NDIM, double> > beta_data = patch->getPatchData(beta_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta_data,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth,
-                                               beta_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth, beta_depth);
         }
     }
     return;
@@ -2872,8 +2640,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth);
         }
     }
     return;
@@ -2907,16 +2675,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<SideData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth);
         }
     }
     return;
@@ -2953,17 +2713,8 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
             Pointer<SideData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
             Pointer<SideData<NDIM, double> > beta_data = patch->getPatchData(beta_idx);
 
-            d_patch_math_ops.pointwiseMultiply(dst_data,
-                                               alpha_data,
-                                               src1_data,
-                                               beta_data,
-                                               src2_data,
-                                               patch,
-                                               dst_depth,
-                                               src1_depth,
-                                               src2_depth,
-                                               alpha_depth,
-                                               beta_depth);
+            d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
+                                               src1_depth, src2_depth, alpha_depth, beta_depth);
         }
     }
     return;
