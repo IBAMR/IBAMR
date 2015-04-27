@@ -38,8 +38,10 @@
 // Headers for basic SAMRAI objects
 #include <SAMRAI/mesh/BergerRigoutsos.h>
 #include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/geom/CartesianPatchGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -153,7 +155,7 @@ double compute_deformed_length(node_set& nodes, EquationSystems* equation_system
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
-    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    AutoPtr<NumericVector<Number>> X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
 
@@ -197,7 +199,7 @@ double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
-    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    AutoPtr<NumericVector<Number>> X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
 
@@ -228,7 +230,7 @@ double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems
     return 0.5 * abs(A2);
 }
 
-double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, const int U_idx, const int wgt_sc_idx)
+double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy> hierarchy, const int U_idx, const int wgt_sc_idx)
 {
     double Q_in = 0.0;
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -237,11 +239,11 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            auto pgeom = patch->getPatchGeometry();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             if (pgeom->getTouchesRegularBoundary())
             {
-                auto U_data = BOOST_CAST<SideData<double> >(patch->getPatchData(U_idx));
-                auto wgt_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(wgt_sc_idx));
+                auto U_data = BOOST_CAST<SideData<double>>(patch->getPatchData(U_idx));
+                auto wgt_sc_data = BOOST_CAST<SideData<double>>(patch->getPatchData(wgt_sc_idx));
                 const Box& patch_box = patch->getBox();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();
@@ -263,7 +265,7 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
                     Box side_box = patch_box;
                     side_box.setLower(axis, patch_box.lower(axis));
                     side_box.setUpper(axis, patch_box.lower(axis));
-                    for (auto b(side_box); b; b++)
+                    for (auto b = side_box.begin(), e = side_box.end(); b != e; ++b)
                     {
                         const Index& i = *b;
                         for (int d = 0; d < NDIM; ++d)
@@ -284,7 +286,8 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
             }
         }
     }
-    SAMRAI_MPI::sumReduction(&Q_in, 1);
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&Q_in, 1, MPI_SUM);
     return Q_in;
 }
 
@@ -436,27 +439,24 @@ int main(int argc, char* argv[])
         auto navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        auto ib_method_ops = boost::make_shared<IBFEMethod>("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           meshes,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto ib_method_ops = boost::make_shared<IBFEMethod>(
+            "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
@@ -530,7 +530,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -604,8 +604,9 @@ int main(int argc, char* argv[])
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            J_dil_min = SAMRAI_MPI::minReduction(J_dil_min);
-            J_dil_max = SAMRAI_MPI::maxReduction(J_dil_max);
+            SAMRAI_MPI comm(MPI_COMM_WORLD);
+            comm.AllReduce(&J_dil_min, 1, MPI_MIN);
+            comm.AllReduce(&J_dil_max, 1, MPI_MAX);
 
             pout << "J_min = " << J_dil_min << "\n"
                  << "J_max = " << J_dil_max << "\n";
@@ -671,11 +672,6 @@ int main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();

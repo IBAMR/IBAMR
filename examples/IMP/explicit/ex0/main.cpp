@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/elem.h>
@@ -205,30 +206,28 @@ int main(int argc, char* argv[])
         auto navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        auto ib_method_ops = boost::make_shared<IMPMethod>("IMPMethod", app_initializer->getComponentDatabase("IMPMethod"));
-        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto ib_method_ops =
+            boost::make_shared<IMPMethod>("IMPMethod", app_initializer->getComponentDatabase("IMPMethod"));
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IMP solver.
-        auto ib_initializer = boost::make_shared<IMPInitializer>("IMPInitializer",
-                               app_initializer->getComponentDatabase("IMPInitializer"),
-                               patch_hierarchy,
-                               gridding_algorithm);
+        auto ib_initializer = boost::make_shared<IMPInitializer>(
+            "IMPInitializer", app_initializer->getComponentDatabase("IMPInitializer"), patch_hierarchy,
+            gridding_algorithm);
         ib_initializer->registerMesh(&mesh);
         ib_method_ops->registerPK1StressTensorFunction(PK1_stress_function);
         ib_method_ops->registerLInitStrategy(ib_initializer);
@@ -268,8 +267,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
+        auto silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -302,6 +301,7 @@ int main(int argc, char* argv[])
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
+        SAMRAI_MPI comm(MPI_COMM_WORLD);
         if (comm.getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
@@ -359,11 +359,6 @@ int main(int argc, char* argv[])
         {
             volume_stream.close();
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();

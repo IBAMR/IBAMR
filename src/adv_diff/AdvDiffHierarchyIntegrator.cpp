@@ -89,7 +89,6 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 

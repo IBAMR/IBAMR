@@ -169,8 +169,8 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
                                                                    libMesh::FEFamily var_fe_family,
                                                                    libMesh::Order var_fe_order,
-                                                                   Pointer<hier::Variable> var,
-                                                                   Pointer<VariableContext> ctx,
+                                                                   const boost::shared_ptr<hier::Variable>& var,
+                                                                   const boost::shared_ptr<VariableContext>& ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
     registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, ghost_fill_transaction,
@@ -181,8 +181,8 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::st
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
                                                                    libMesh::FEFamily var_fe_family,
                                                                    libMesh::Order var_fe_order,
-                                                                   Pointer<hier::Variable> var,
-                                                                   Pointer<VariableContext> ctx,
+                                                                   const boost::shared_ptr<hier::Variable>& var,
+                                                                   const boost::shared_ptr<VariableContext>& ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
                                                                    const FEDataManager::InterpSpec& interp_spec)
 {

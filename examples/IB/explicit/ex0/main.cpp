@@ -139,19 +139,19 @@ int main(int argc, char* argv[])
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
             navier_stokes_integrator);
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
-            DIM, DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>(
             "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy"));
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            DIM, "StandardTagAndInitialize", time_integrator.get(),
+            "StandardTagAndInitialize", time_integrator.get(),
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator =
             boost::make_shared<BergerRigoutsos>(DIM, app_initializer->getComponentDatabase("BergerRigoutsos"));
         auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
             DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
         auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
-            patch_hierarchy, patch_hierarchy, "GriddingAlgorithm",
-            app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IB solver.
         auto ib_initializer = boost::make_shared<IBStandardInitializer>(
