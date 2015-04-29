@@ -94,7 +94,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(const boost
 
     // Set the boundary conditions.
     const IntVector& gcw = Q_data->getGhostCellWidth();
-    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+    for (unsigned int n = 0; n < physical_codim1_boxes.size(); ++n)
     {
         const BoundaryBox& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();

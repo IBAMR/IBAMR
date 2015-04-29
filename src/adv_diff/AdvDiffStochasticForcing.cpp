@@ -87,7 +87,7 @@ namespace
 {
 void genrandn(ArrayData<double>& data, const Box& box)
 {
-    for (int depth = 0; depth < data.getDepth(); ++depth)
+    for (unsigned int depth = 0; depth < data.getDepth(); ++depth)
     {
         for (auto i = box.begin(), e = box.end(); i != e; ++i)
         {
@@ -146,7 +146,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     d_F_sc_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::F_sc", C_depth);
     static const IntVector ghosts_sc = IntVector::getZero(DIM);
     d_F_sc_idx = var_db->registerVariableAndContext(d_F_sc_var, d_context, ghosts_sc);
-    for (int k = 0; k < d_num_rand_vals; ++k)
+    for (unsigned int k = 0; k < d_num_rand_vals; ++k)
         d_F_sc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_F_sc_var, d_F_sc_idx));
     return;
 }
@@ -185,7 +185,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             if (!level->checkAllocated(d_C_half_cc_idx)) level->allocatePatchData(d_C_half_cc_idx);
             if (!level->checkAllocated(d_C_new_cc_idx)) level->allocatePatchData(d_C_new_cc_idx);
             if (!level->checkAllocated(d_F_sc_idx)) level->allocatePatchData(d_F_sc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_F_sc_idxs[k])) level->allocatePatchData(d_F_sc_idxs[k]);
         }
 
@@ -251,7 +251,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Generate random components.
         if (cycle_num == 0)
         {
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
@@ -276,7 +276,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         auto hier_sc_data_ops = hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
                                                                            /*get_unique*/ true);
         hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
-        for (int k = 0; k < d_num_rand_vals; ++k)
+        for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
 
         // Modify the flux values (if necessary).
@@ -302,7 +302,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 const std::vector<BoundaryBox> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
-                for (int n = 0; n < n_physical_codim1_boxes; ++n)
+                for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
                     const IntVector gcw_to_fill = IntVector::getOne(DIM);

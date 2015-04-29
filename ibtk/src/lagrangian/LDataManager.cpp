@@ -2419,7 +2419,7 @@ void LDataManager::getFromRestart()
         auto lstruct_activation = level_db->getIntegerVector("lstruct_activation");
         auto lstruct_names = level_db->getStringVector("lstruct_names");
         const auto n_lstructs = lstruct_ids.size();
-        for (auto k = 0; k < n_lstructs; ++k)
+        for (unsigned int k = 0; k < n_lstructs; ++k)
         {
             d_strct_id_to_strct_name_map[level_number][lstruct_ids[k]] = lstruct_names[k];
             d_strct_id_to_lag_idx_range_map[level_number][lstruct_ids[k]] =

@@ -430,7 +430,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
 
     // Set the boundary condition coefficients and then set the ghost cell
     // values.
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();
@@ -530,7 +530,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
     }
     const IntVector gcw_to_fill = IntVector::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
-    for (int n = 0; n < n_physical_codim2_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim2_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim2_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();

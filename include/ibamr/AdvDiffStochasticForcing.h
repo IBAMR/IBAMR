@@ -181,7 +181,7 @@ private:
      * Weighting data.
      */
     double d_std;
-    int d_num_rand_vals;
+    unsigned int d_num_rand_vals;
     std::vector<std::vector<double> > d_weights;
 
     /*!

@@ -3069,7 +3069,7 @@ void IBStandardInitializer::getFromInput(const boost::shared_ptr<Database>& db)
         const auto num_strcts = db->getArraySize("structure_names");
         std::vector<std::string> structure_names(num_strcts);
         structure_names = db->getStringVector("structure_names");
-        for (auto n = 0; n < num_strcts; ++n)
+        for (unsigned int n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))

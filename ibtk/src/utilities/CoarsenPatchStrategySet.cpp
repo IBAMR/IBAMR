@@ -61,12 +61,12 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     return;
 }
 
-IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
+IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth(const Dimension& dim) const
 {
-    IntVector width = IntVector::getZero(DIM);
+    IntVector width = IntVector::getZero(dim);
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth(DIM));
+        width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth(dim));
     }
     return width;
 }

@@ -304,7 +304,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         // override all other boundary conditions, we set those values last.
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
@@ -398,7 +398,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         // boundary conditions, we set those values last.
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();

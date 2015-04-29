@@ -285,7 +285,7 @@ void IBStandardSourceGen::putToRestart(const boost::shared_ptr<Database>& db) co
     }
 
     db->putIntegerVector("d_n_src", d_n_src);
-    for (auto ln = 0; ln < d_n_src.size(); ++ln)
+    for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
@@ -344,7 +344,7 @@ void IBStandardSourceGen::getFromRestart()
     d_num_perimeter_nodes.resize(d_n_src.size());
     d_Q_src.resize(d_n_src.size());
     d_P_src.resize(d_n_src.size());
-    for (auto ln = 0; ln < d_n_src.size(); ++ln)
+    for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         d_source_names[ln].resize(d_n_src[ln]);
         d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());

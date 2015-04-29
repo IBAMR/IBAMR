@@ -290,7 +290,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     const std::vector<BoundaryBox> physical_codim2_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const auto n_physical_codim2_boxes = physical_codim2_boxes.size();
-    for (auto n = 0; n < n_physical_codim2_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim2_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim2_boxes[n];
         const Box bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
@@ -303,7 +303,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     const std::vector<BoundaryBox> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (auto n = 0; n < n_physical_codim1_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim1_boxes[n];
         const Box bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
@@ -682,7 +682,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         var_db->mapIndexToVariable(patch_data_idx, var);
         auto sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(var);
         if (!sc_var) continue;
-        
+
         auto patch_data = BOOST_CAST<SideData<double> >(patch.getPatchData(patch_data_idx));
         const Box& ghost_box = patch_data->getGhostBox();
 

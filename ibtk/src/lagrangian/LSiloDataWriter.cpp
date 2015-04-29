@@ -2124,23 +2124,23 @@ void LSiloDataWriter::getFromRestart()
         if (d_nclouds[ln] > 0)
         {
             d_cloud_names[ln] = db->getStringVector("d_cloud_names" + ln_string);
-            TBOX_ASSERT(d_cloud_names[ln].size() == d_nclouds[ln]);
+            TBOX_ASSERT(d_cloud_names[ln].size() == static_cast<unsigned int>(d_nclouds[ln]));
 
             d_cloud_nmarks[ln] = db->getIntegerVector("d_cloud_nmarks");
-            TBOX_ASSERT(d_cloud_nmarks[ln].size() == d_nclouds[ln]);
+            TBOX_ASSERT(d_cloud_nmarks[ln].size() == static_cast<unsigned int>(d_nclouds[ln]));
 
             d_cloud_first_lag_idx[ln] = db->getIntegerVector("d_cloud_first_lag_idx" + ln_string);
-            TBOX_ASSERT(d_cloud_first_lag_idx[ln].size() == d_nclouds[ln]);
+            TBOX_ASSERT(d_cloud_first_lag_idx[ln].size() == static_cast<unsigned int>(d_nclouds[ln]));
         }
 
         d_nblocks[ln] = db->getInteger("d_nblocks" + ln_string);
         if (d_nblocks[ln] > 0)
         {
             d_block_names[ln] = db->getStringVector("d_block_names" + ln_string);
-            TBOX_ASSERT(d_block_names[ln].size() == d_nblocks[ln]);
+            TBOX_ASSERT(d_block_names[ln].size() == static_cast<unsigned int>(d_nblocks[ln]));
 
             std::vector<int> flattened_block_nelems = db->getIntegerVector("flattened_block_nelems" + ln_string);
-            TBOX_ASSERT(flattened_block_nelems.size() == NDIM * d_nblocks[ln]);
+            TBOX_ASSERT(flattened_block_nelems.size() == static_cast<unsigned int>(NDIM * d_nblocks[ln]));
             d_block_nelems[ln].resize(d_nblocks[ln], IntVector(DIM));
             for (unsigned int l = 0; l < d_block_nelems[ln].size(); ++l)
             {
@@ -2151,7 +2151,7 @@ void LSiloDataWriter::getFromRestart()
             }
 
             std::vector<int> flattened_block_periodic = db->getIntegerVector("flattened_block_periodic" + ln_string);
-            TBOX_ASSERT(flattened_block_periodic.size() == NDIM * d_nblocks[ln]);
+            TBOX_ASSERT(flattened_block_periodic.size() == static_cast<unsigned int>(NDIM * d_nblocks[ln]));
             d_block_periodic[ln].resize(d_nblocks[ln], IntVector(DIM));
             for (unsigned int l = 0; l < d_block_periodic[ln].size(); ++l)
             {
@@ -2162,14 +2162,14 @@ void LSiloDataWriter::getFromRestart()
             }
 
             d_block_first_lag_idx[ln] = db->getIntegerVector("d_block_first_lag_idx" + ln_string);
-            TBOX_ASSERT(d_block_first_lag_idx[ln].size() == d_nblocks[ln]);
+            TBOX_ASSERT(d_block_first_lag_idx[ln].size() == static_cast<unsigned int>(d_nblocks[ln]));
         }
 
         d_nmbs[ln] = db->getInteger("d_nmbs" + ln_string);
         if (d_nmbs[ln] > 0)
         {
             d_mb_names[ln] = db->getStringVector("d_mb_names" + ln_string);
-            TBOX_ASSERT(d_mb_names[ln].size() == d_nmbs[ln]);
+            TBOX_ASSERT(d_mb_names[ln].size() == static_cast<unsigned int>(d_nmbs[ln]));
 
             d_mb_nblocks.resize(d_nmbs[ln]);
             d_mb_nelems.resize(d_nmbs[ln]);
@@ -2186,7 +2186,7 @@ void LSiloDataWriter::getFromRestart()
                 {
                     std::vector<int> flattened_mb_nelems =
                         db->getIntegerVector("flattened_mb_nelems" + ln_string + mb_string);
-                    TBOX_ASSERT(flattened_mb_nelems.size() == NDIM * d_mb_nblocks[ln][mb]);
+                    TBOX_ASSERT(flattened_mb_nelems.size() == static_cast<unsigned int>(NDIM * d_mb_nblocks[ln][mb]));
                     d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
                     for (unsigned int l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
                     {
@@ -2198,7 +2198,7 @@ void LSiloDataWriter::getFromRestart()
 
                     std::vector<int> flattened_mb_periodic =
                         db->getIntegerVector("flattened_mb_periodic" + ln_string + mb_string);
-                    TBOX_ASSERT(flattened_mb_periodic.size() == NDIM * d_mb_nblocks[ln][mb]);
+                    TBOX_ASSERT(flattened_mb_periodic.size() == static_cast<unsigned int>(NDIM * d_mb_nblocks[ln][mb]));
                     d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
                     for (unsigned int l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
                     {
@@ -2217,7 +2217,7 @@ void LSiloDataWriter::getFromRestart()
         if (d_nucd_meshes[ln] > 0)
         {
             d_ucd_mesh_names[ln] = db->getStringVector("d_ucd_mesh_names" + ln_string);
-            TBOX_ASSERT(d_ucd_mesh_names[ln].size() == d_nucd_meshes[ln]);
+            TBOX_ASSERT(d_ucd_mesh_names[ln].size() == static_cast<unsigned int>(d_nucd_meshes[ln]));
 
             d_ucd_mesh_vertices[ln].resize(d_nucd_meshes[ln]);
             d_ucd_mesh_edge_maps[ln].resize(d_nucd_meshes[ln]);
@@ -2233,7 +2233,7 @@ void LSiloDataWriter::getFromRestart()
 
                 std::vector<int> ucd_mesh_edge_maps_vector =
                     db->getIntegerVector("ucd_mesh_edge_maps_vector" + ln_string + mesh_string);
-                for (int l = 0; l < ucd_mesh_edge_maps_vector.size() / 3; ++l)
+                for (unsigned int l = 0; l < ucd_mesh_edge_maps_vector.size() / 3; ++l)
                 {
                     const int idx1 = ucd_mesh_edge_maps_vector[3 * l];
                     const std::pair<int, int> e(ucd_mesh_edge_maps_vector[3 * l + 1],

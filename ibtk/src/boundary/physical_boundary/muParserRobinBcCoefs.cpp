@@ -91,7 +91,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 
     // Read in user-provided constants.
     std::vector<std::string> db_key_names = input_db->getAllKeys();
-    for (int k = 0; k < db_key_names.size(); ++k)
+    for (unsigned int k = 0; k < db_key_names.size(); ++k)
     {
         const std::string& name = db_key_names[k];
         if (input_db->isDouble(name))

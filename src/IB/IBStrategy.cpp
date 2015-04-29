@@ -126,9 +126,9 @@ void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, const boost::share
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = getMinimumGhostCellWidth().max();
-    for (int i = 0; i < tag_buffer.size(); ++i)
+    for (unsigned int i = 0; i < tag_buffer.size(); ++i)
     {
         tag_buffer[i] = std::max(tag_buffer[i], gcw);
     }

@@ -363,12 +363,12 @@ const IntVector& IBFEMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 }
 
-void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<PatchHierarchy>& hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw = d_fe_data_managers[part]->getGhostCellWidth().max();

@@ -295,7 +295,7 @@ void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = d_ghosts.max();
     for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
     {
@@ -1366,7 +1366,7 @@ void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putStringVector("instrument_names", instrument_names);
     db->putDoubleVector("d_total_flow_volume", d_total_flow_volume);
     db->putIntegerVector("d_n_src", d_n_src);
-    for (int ln = 0; ln < d_n_src.size(); ++ln)
+    for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
@@ -1794,7 +1794,7 @@ void IBMethod::getFromRestart()
     d_P_src.resize(d_n_src.size());
     d_Q_src.resize(d_n_src.size());
     d_n_src.resize(d_n_src.size(), 0);
-    for (int ln = 0; ln < d_n_src.size(); ++ln)
+    for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         d_X_src[ln].resize(d_n_src[ln], Point::Constant(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());

@@ -84,7 +84,7 @@ public:
      * operations.  This is needed to determine the correct coarsening data
      * dependencies.
      */
-    SAMRAI::hier::IntVector getCoarsenOpStencilWidth() const;
+    SAMRAI::hier::IntVector getCoarsenOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is

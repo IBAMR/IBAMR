@@ -397,7 +397,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     {
         const std::vector<BoundaryBox>& cf_bdry_codim1_boxes =
             d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 1);
-        for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim1_boxes[k]);
         }
@@ -406,7 +406,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     {
         const std::vector<BoundaryBox>& cf_bdry_codim2_boxes =
             d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 2);
-        for (int k = 0; k < cf_bdry_codim2_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim2_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim2_boxes[k]);
         }
@@ -415,7 +415,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     {
         const std::vector<BoundaryBox>& cf_bdry_codim3_boxes =
             d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 3);
-        for (int k = 0; k < cf_bdry_codim3_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim3_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim3_boxes[k]);
         }
@@ -606,7 +606,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
         auto pgeom_fine = BOOST_CAST<CartesianPatchGeometry>(fine.getPatchGeometry());
         const Box& patch_box_fine = fine.getBox();
         const Box& patch_box_crse = coarse.getBox();
-        for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
             const BoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
             const Box bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
@@ -651,7 +651,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     {
         const std::vector<BoundaryBox>& cf_bdry_codim1_boxes =
             d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
-        for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim1_boxes[k]);
         }
@@ -660,7 +660,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     {
         const std::vector<BoundaryBox>& cf_bdry_codim2_boxes =
             d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 2);
-        for (int k = 0; k < cf_bdry_codim2_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim2_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim2_boxes[k]);
         }
@@ -669,7 +669,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     {
         const std::vector<BoundaryBox>& cf_bdry_codim3_boxes =
             d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 3);
-        for (int k = 0; k < cf_bdry_codim3_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim3_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(&cf_bdry_codim3_boxes[k]);
         }
@@ -678,7 +678,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
 #endif
 
     // Get the patch data.
-    for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
+    for (auto it = d_patch_data_indices.begin(), e = d_patch_data_indices.end(); it != e; ++it)
     {
         const int& patch_data_index = *it;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
@@ -694,7 +694,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
         // (located on the *coarse* side of the coarse-fine interface).
         const BoxContainer& domain_boxes = *d_domain_boxes[patch_level_num];
         const IntVector& periodic_shift = d_periodic_shift[patch_level_num];
-        for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
+        for (unsigned int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {
             const BoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
             const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
@@ -773,7 +773,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
         const Box& patch_box = patch.getBox();
-        for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
+        for (unsigned int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {
             const BoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
             const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);

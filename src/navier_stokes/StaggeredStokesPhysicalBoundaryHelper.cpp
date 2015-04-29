@@ -115,7 +115,7 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                 const std::vector<BoundaryBox>& physical_codim1_boxes =
                     d_physical_codim1_boxes[ln].find(patch_id)->second;
                 const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
-                for (int n = 0; n < n_physical_codim1_boxes; ++n)
+                for (unsigned int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);

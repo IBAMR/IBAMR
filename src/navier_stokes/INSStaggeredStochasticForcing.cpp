@@ -165,7 +165,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
 
 void genrandn(ArrayData<double>& data, const Box& box)
 {
-    for (int depth = 0; depth < data.getDepth(); ++depth)
+    for (unsigned int depth = 0; depth < data.getDepth(); ++depth)
     {
         for (auto i = box.begin(), e = box.end(); i != e; ++i)
         {
@@ -223,20 +223,20 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
     d_W_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::W_cc", NDIM);
     static const IntVector ghosts_cc = IntVector::getOne(DIM);
     d_W_cc_idx = var_db->registerVariableAndContext(d_W_cc_var, d_context, ghosts_cc);
-    for (int k = 0; k < d_num_rand_vals; ++k)
+    for (unsigned int k = 0; k < d_num_rand_vals; ++k)
         d_W_cc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_cc_var, d_W_cc_idx));
 #if (NDIM == 2)
     d_W_nc_var = boost::make_shared<NodeVariable<double> >(DIM, d_object_name + "::W_nc", 2);
     static const IntVector ghosts_nc = IntVector::getZero(DIM);
     d_W_nc_idx = var_db->registerVariableAndContext(d_W_nc_var, d_context, ghosts_nc);
-    for (int k = 0; k < d_num_rand_vals; ++k)
+    for (unsigned int k = 0; k < d_num_rand_vals; ++k)
         d_W_nc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_nc_var, d_W_nc_idx));
 #endif
 #if (NDIM == 3)
     d_W_ec_var = boost::make_shared<EdgeVariable<double> >(DIM, d_object_name + "::W_ec", 2);
     static const IntVector ghosts_ec = IntVector::getZero(DIM);
     d_W_ec_idx = var_db->registerVariableAndContext(d_W_ec_var, d_context, ghosts_ec);
-    for (int k = 0; k < d_num_rand_vals; ++k)
+    for (unsigned int k = 0; k < d_num_rand_vals; ++k)
         d_W_ec_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_ec_var, d_W_ec_idx));
 #endif
     return;
@@ -273,16 +273,16 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         {
             auto level = hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_cc_idxs[k])) level->allocatePatchData(d_W_cc_idxs[k]);
 #if (NDIM == 2)
             if (!level->checkAllocated(d_W_nc_idx)) level->allocatePatchData(d_W_nc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_nc_idxs[k])) level->allocatePatchData(d_W_nc_idxs[k]);
 #endif
 #if (NDIM == 3)
             if (!level->checkAllocated(d_W_ec_idx)) level->allocatePatchData(d_W_ec_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_ec_idxs[k])) level->allocatePatchData(d_W_ec_idxs[k]);
 #endif
         }
@@ -290,7 +290,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Generate random components.
         if (cycle_num == 0)
         {
-            for (int k = 0; k < d_num_rand_vals; ++k)
+            for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
@@ -324,20 +324,20 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         auto hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy,
                                                                            /*get_unique*/ true);
         hier_cc_data_ops->setToScalar(d_W_cc_idx, 0.0);
-        for (int k = 0; k < d_num_rand_vals; ++k)
+        for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             hier_cc_data_ops->axpy(d_W_cc_idx, weights[k], d_W_cc_idxs[k], d_W_cc_idx);
 #if (NDIM == 2)
         auto hier_nc_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_nc_var, hierarchy,
                                                                            /*get_unique*/ true);
         hier_nc_data_ops->setToScalar(d_W_nc_idx, 0.0);
-        for (int k = 0; k < d_num_rand_vals; ++k)
+        for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             hier_nc_data_ops->axpy(d_W_nc_idx, weights[k], d_W_nc_idxs[k], d_W_nc_idx);
 #endif
 #if (NDIM == 3)
         auto hier_ec_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_ec_var, hierarchy,
                                                                            /*get_unique*/ true);
         hier_ec_data_ops->setToScalar(d_W_ec_idx, 0.0);
-        for (int k = 0; k < d_num_rand_vals; ++k)
+        for (unsigned int k = 0; k < d_num_rand_vals; ++k)
             hier_ec_data_ops->axpy(d_W_ec_idx, weights[k], d_W_ec_idxs[k], d_W_ec_idx);
 #endif
 

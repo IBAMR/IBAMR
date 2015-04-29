@@ -225,7 +225,7 @@ void HierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<Patch
         HierarchyIntegrator* integrator = hier_integrators.front();
         integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
         integrator->setupTagBuffer();
-        for (int i = 0; i < std::min(d_tag_buffer.size(), integrator->d_tag_buffer.size()); ++i)
+        for (unsigned int i = 0; i < std::min(d_tag_buffer.size(), integrator->d_tag_buffer.size()); ++i)
         {
             d_tag_buffer[i] = std::max(d_tag_buffer[i], integrator->d_tag_buffer[i]);
         }
@@ -235,7 +235,7 @@ void HierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<Patch
     }
     plog << d_object_name << "::initializePatchHierarchy(): "
          << "tag_buffer =";
-    for (int i = 0; i < d_tag_buffer.size(); ++i) plog << " " << d_tag_buffer[i];
+    for (unsigned int i = 0; i < d_tag_buffer.size(); ++i) plog << " " << d_tag_buffer[i];
     plog << "\n";
 
     // Initialize the patch hierarchy.
@@ -1354,7 +1354,7 @@ void HierarchyIntegrator::setupTagBuffer()
     const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
     std::vector<int> new_tag_buffer(std::max(finest_hier_ln, 1));
     new_tag_buffer[0] = 0;
-    for (int i = 0; i < finest_hier_ln; ++i)
+    for (unsigned int i = 0; static_cast<int>(i) < finest_hier_ln; ++i)
     {
         if (i < d_tag_buffer.size())
             new_tag_buffer[i] = d_tag_buffer[i];

@@ -81,7 +81,7 @@ CellNoCornersFillPattern::~CellNoCornersFillPattern()
 
 boost::shared_ptr<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
-                                                                         const Box& dst_patch_box,
+                                                                         const Box& /*dst_patch_box*/,
                                                                          const Box& src_mask,
                                                                          const Box& fill_box,
                                                                          const bool overwrite_interior,

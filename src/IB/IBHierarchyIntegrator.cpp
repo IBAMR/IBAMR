@@ -339,7 +339,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_pt
     const int tsize = static_cast<int>(d_tag_buffer.size());
     d_tag_buffer.resize(finest_hier_ln);
     for (auto i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
-    for (auto i = std::max(tsize, 1); i < d_tag_buffer.size(); ++i)
+    for (unsigned int i = std::max(tsize, 1); i < d_tag_buffer.size(); ++i)
     {
         d_tag_buffer[i] = d_tag_buffer[i - 1];
     }

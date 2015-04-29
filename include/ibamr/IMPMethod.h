@@ -161,7 +161,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

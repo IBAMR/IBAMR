@@ -877,7 +877,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
                                                                        const int tag_indx,
                                                                        const bool /*uses_richardson_extrapolation_too*/)
 {
-    const int error_level_number = patch.getPatchLevelNumber();
+    const unsigned int error_level_number = patch.getPatchLevelNumber();
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -900,7 +900,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
     //
     // Loop over criteria provided and check to make sure we are in the
     // specified time interval.  If so, apply appropriate tagging for the level.
-    for (int ncrit = 0; ncrit < d_refinement_criteria.size(); ++ncrit)
+    for (unsigned int ncrit = 0; ncrit < d_refinement_criteria.size(); ++ncrit)
     {
         std::string ref = d_refinement_criteria[ncrit];
         const IntVector& tagghost = tags->getGhostCellWidth();
@@ -1054,7 +1054,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::putToRestart(const boost::sha
     {
         db->putStringVector("d_refinement_criteria", d_refinement_criteria);
     }
-    for (int i = 0; i < d_refinement_criteria.size(); ++i)
+    for (unsigned int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {
@@ -1169,7 +1169,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
         }
 
         // Set the boundary conditions.
-        for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+        for (unsigned int n = 0; n < physical_codim1_boxes.size(); ++n)
         {
             const BoundaryBox& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
@@ -1267,7 +1267,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(const boost::sha
         int def_key_cnt = 0;
         boost::shared_ptr<Database> error_db;
 
-        for (int i = 0; i < refinement_keys.size(); ++i)
+        for (unsigned int i = 0; i < refinement_keys.size(); ++i)
         {
             std::string error_key = refinement_keys[i];
             error_db.reset();
@@ -1365,7 +1365,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(const boost::sha
         }
 
         // Check that input is found for each string identifier in key list.
-        for (int k0 = 0; k0 < d_refinement_criteria.size(); ++k0)
+        for (unsigned int k0 = 0; k0 < d_refinement_criteria.size(); ++k0)
         {
             std::string use_key = d_refinement_criteria[k0];
             bool key_found = false;
@@ -1417,7 +1417,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
     {
         d_refinement_criteria = db->getStringVector("d_refinement_criteria");
     }
-    for (int i = 0; i < d_refinement_criteria.size(); ++i)
+    for (unsigned int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {

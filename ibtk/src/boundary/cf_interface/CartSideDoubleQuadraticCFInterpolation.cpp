@@ -282,7 +282,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         auto pgeom_fine = BOOST_CAST<CartesianPatchGeometry>(fine.getPatchGeometry());
         const Box& patch_box_fine = fine.getBox();
         const Box& patch_box_crse = coarse.getBox();
-        for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+        for (unsigned int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
             const BoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
             const Box bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
@@ -473,7 +473,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
         const Box& patch_box = patch.getBox();
-        for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
+        for (unsigned int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {
             const BoundaryBox& bdry_box = cf_bdry_codim1_boxes[k];
             const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
