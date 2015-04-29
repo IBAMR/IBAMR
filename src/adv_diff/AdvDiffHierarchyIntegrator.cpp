@@ -212,8 +212,9 @@ void AdvDiffHierarchyIntegrator::registerAdvectionVelocity(const boost::shared_p
     return;
 }
 
-void AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(const boost::shared_ptr<FaceVariable<double>>& u_var,
-                                                                      const bool is_div_free)
+void AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(
+    const boost::shared_ptr<FaceVariable<double>>& u_var,
+    const bool is_div_free)
 {
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     d_u_is_div_free[u_var] = is_div_free;
@@ -409,7 +410,8 @@ double AdvDiffHierarchyIntegrator::getDiffusionCoefficient(const boost::shared_p
     return d_Q_diffusion_coef.find(Q_var)->second;
 }
 
-void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(const boost::shared_ptr<SideVariable<double>>& D_var)
+void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(
+    const boost::shared_ptr<SideVariable<double>>& D_var)
 {
     TBOX_ASSERT(D_var);
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) ==
@@ -486,7 +488,8 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(const boost::shared_
     return d_Q_diffusion_coef_variable.find(Q_var)->second;
 }
 
-bool AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(const boost::shared_ptr<CellVariable<double>>& Q_var) const
+bool AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(
+    const boost::shared_ptr<CellVariable<double>>& Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_is_diffusion_coef_variable.find(Q_var)->second;

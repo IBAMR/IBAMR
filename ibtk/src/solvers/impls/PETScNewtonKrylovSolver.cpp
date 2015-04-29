@@ -649,11 +649,7 @@ PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x
     PetscFunctionReturn(0);
 }
 
-PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
-                                                            Vec x,
-                                                            Mat A,
-                                                            Mat /*B*/,
-                                                            void* p_ctx)
+PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/, void* p_ctx)
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);

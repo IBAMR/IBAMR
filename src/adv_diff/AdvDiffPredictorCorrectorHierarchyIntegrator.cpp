@@ -604,11 +604,11 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     return;
 }
 
-void
-AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                            const double new_time,
-                                                                            const bool skip_synchronize_new_state_data,
-                                                                            const int num_cycles)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
                                                               num_cycles);
@@ -634,7 +634,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                auto u_fc_new_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_new_idx));
+                auto u_fc_new_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(u_new_idx));
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -746,7 +746,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 for (auto p = level->begin(); p != level->end(); ++p)
                 {
                     auto patch = *p;
-                    auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
+                    auto F_data = BOOST_CAST<CellData<double>>(patch->getPatchData(F_idx));
                     F_data->fillAll(0.0);
                 }
             }
@@ -767,7 +767,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 for (auto p = level->begin(); p != level->end(); ++p)
                 {
                     auto patch = *p;
-                    auto D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(D_idx));
+                    auto D_data = BOOST_CAST<SideData<double>>(patch->getPatchData(D_idx));
                     D_data->fillAll(0.0);
                 }
             }

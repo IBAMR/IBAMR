@@ -892,7 +892,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
             const Index finer_i =
                 IndexUtilities::getCellIndex(X, domain_x_lower, domain_x_upper, finer_dx.data(),
                                              finer_domain_box_level_lower, finer_domain_box_level_upper);
-            if (level_boxes.contains(i, BLOCK_ID) && (ln == finest_ln || !finer_level_boxes.contains(finer_i, BLOCK_ID)))
+            if (level_boxes.contains(i, BLOCK_ID) &&
+                (ln == finest_ln || !finer_level_boxes.contains(finer_i, BLOCK_ID)))
             {
                 WebCentroid c;
                 c.meter_num = l;

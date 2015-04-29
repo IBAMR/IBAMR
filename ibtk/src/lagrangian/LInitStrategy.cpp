@@ -80,14 +80,14 @@ LInitStrategy::~LInitStrategy()
     return;
 }
 
-void LInitStrategy::initializeStructureIndexingOnPatchLevel(
-    std::map<int, std::string>& /*strct_id_to_strct_name_map*/,
-    std::map<int, std::pair<int, int> >& /*strct_id_to_lag_idx_range_map*/,
-    const int /*level_number*/,
-    const double /*init_data_time*/,
-    const bool /*can_be_refined*/,
-    const bool /*initial_time*/,
-    LDataManager* const /*l_data_manager*/)
+void LInitStrategy::initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& /*strct_id_to_strct_name_map*/,
+                                                            std::map<int, std::pair<int, int> >&
+                                                            /*strct_id_to_lag_idx_range_map*/,
+                                                            const int /*level_number*/,
+                                                            const double /*init_data_time*/,
+                                                            const bool /*can_be_refined*/,
+                                                            const bool /*initial_time*/,
+                                                            LDataManager* const /*l_data_manager*/)
 {
     TBOX_WARNING("LInitStrategy::initializeStructureIndexingOnPatchLevel()\n"
                  << "  default implementation employed, no indexing data provided.\n");

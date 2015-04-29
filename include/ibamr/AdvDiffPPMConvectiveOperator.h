@@ -86,7 +86,7 @@ public:
      * \brief Class constructor.
      */
     AdvDiffPPMConvectiveOperator(const std::string& object_name,
-                                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                  const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                  ConvectiveDifferencingType difference_form,
                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
@@ -101,7 +101,7 @@ public:
      */
     static boost::shared_ptr<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                      const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                       const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs)
@@ -196,10 +196,10 @@ private:
 
     // Data communication algorithms, operators, and schedules.
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_coarsen_scheds;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_ghostfill_scheds;
     const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type;
 
@@ -208,10 +208,10 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Q_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Q_var;
     unsigned int d_Q_data_depth;
     int d_Q_scratch_idx;
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_q_extrap_var, d_q_flux_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_q_extrap_var, d_q_flux_var;
     int d_q_extrap_idx, d_q_flux_idx;
 };
 } // namespace IBAMR

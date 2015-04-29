@@ -117,8 +117,9 @@ public:
             : d_dst_data_idx(data_idx), d_src_data_idx(data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef ? std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(1, robin_bc_coef) :
-                                               std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>()),
+              d_robin_bc_coefs(robin_bc_coef ?
+                                   std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(1, robin_bc_coef) :
+                                   std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>()),
               d_fill_pattern(fill_pattern ? fill_pattern :
                                             boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
@@ -165,8 +166,9 @@ public:
             : d_dst_data_idx(dst_data_idx), d_src_data_idx(src_data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef ? std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(1, robin_bc_coef) :
-                                               std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>()),
+              d_robin_bc_coefs(robin_bc_coef ?
+                                   std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(1, robin_bc_coef) :
+                                   std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>()),
               d_fill_pattern(fill_pattern ? fill_pattern :
                                             boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
@@ -359,17 +361,17 @@ private:
     // Cached communications algorithms and schedules.
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
     boost::shared_ptr<SAMRAI::xfer::CoarsenPatchStrategy> d_coarsen_strategy;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_coarsen_scheds;
 
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_refine_alg;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_refine_strategy;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_refine_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
-    std::vector<boost::shared_ptr<CoarseFineBoundaryRefinePatchStrategy> > d_cf_bdry_ops;
-    std::vector<boost::shared_ptr<CartExtrapPhysBdryOp> > d_extrap_bc_ops;
-    std::vector<boost::shared_ptr<CartCellRobinPhysBdryOp> > d_cc_robin_bc_ops;
-    std::vector<boost::shared_ptr<CartSideRobinPhysBdryOp> > d_sc_robin_bc_ops;
+    std::vector<boost::shared_ptr<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
+    std::vector<boost::shared_ptr<CartExtrapPhysBdryOp>> d_extrap_bc_ops;
+    std::vector<boost::shared_ptr<CartCellRobinPhysBdryOp>> d_cc_robin_bc_ops;
+    std::vector<boost::shared_ptr<CartSideRobinPhysBdryOp>> d_sc_robin_bc_ops;
 };
 } // namespace IBTK
 

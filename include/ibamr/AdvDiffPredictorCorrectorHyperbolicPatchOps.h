@@ -87,11 +87,12 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps(const std::string& object_name,
-                                                const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                                                const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
-                                                const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom,
-                                                bool register_for_restart = true);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(
+        const std::string& object_name,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+        const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
+        const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom,
+        bool register_for_restart = true);
 
     /*!
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch

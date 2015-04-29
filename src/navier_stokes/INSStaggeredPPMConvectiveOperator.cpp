@@ -491,7 +491,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
     auto context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredPPMConvectiveOperator::U";
-    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
+    d_U_var = BOOST_CAST<SideVariable<double>>(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);

@@ -80,8 +80,10 @@ IntVector RefinePatchStrategySet::getRefineOpStencilWidth(const Dimension& dim) 
     return width;
 }
 
-void
-RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
+void RefinePatchStrategySet::preprocessRefine(Patch& fine,
+                                              const Patch& coarse,
+                                              const Box& fine_box,
+                                              const IntVector& ratio)
 {
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
@@ -90,8 +92,10 @@ RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const
     return;
 }
 
-void
-RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
+void RefinePatchStrategySet::postprocessRefine(Patch& fine,
+                                               const Patch& coarse,
+                                               const Box& fine_box,
+                                               const IntVector& ratio)
 {
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {

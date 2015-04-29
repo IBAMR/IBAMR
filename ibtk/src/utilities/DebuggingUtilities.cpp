@@ -375,7 +375,8 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (auto it = FaceGeometry::begin(patch_box, face), e = FaceGeometry::end(patch_box, face); it != e; ++it)
+                            for (auto it = FaceGeometry::begin(patch_box, face), e = FaceGeometry::end(patch_box, face);
+                                 it != e; ++it)
                             {
                                 const FaceIndex& i = *it;
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
@@ -496,7 +497,8 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (auto it = SideGeometry::begin(patch_box, side), e = SideGeometry::end(patch_box, side); it != e; ++it)
+                            for (auto it = SideGeometry::begin(patch_box, side), e = SideGeometry::end(patch_box, side);
+                                 it != e; ++it)
                             {
                                 const SideIndex& i = *it;
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));

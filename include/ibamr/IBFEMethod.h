@@ -408,7 +408,8 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer,
+                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -497,7 +498,8 @@ public:
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy, int workload_data_idx);
+    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                 int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
@@ -635,11 +637,11 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
     bool d_fe_data_initialized;
 

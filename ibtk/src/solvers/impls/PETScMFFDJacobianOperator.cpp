@@ -86,7 +86,8 @@ void PETScMFFDJacobianOperator::setOperator(const boost::shared_ptr<GeneralOpera
     return;
 }
 
-void PETScMFFDJacobianOperator::setNewtonKrylovSolver(const boost::shared_ptr<PETScNewtonKrylovSolver>& nonlinear_solver)
+void PETScMFFDJacobianOperator::setNewtonKrylovSolver(
+    const boost::shared_ptr<PETScNewtonKrylovSolver>& nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
     return;

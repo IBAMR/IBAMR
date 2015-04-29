@@ -252,14 +252,14 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     auto context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredCenteredConvectiveOperator::U";
-    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
+    d_U_var = BOOST_CAST<SideVariable<double>>(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_var = boost::make_shared<SideVariable<double> >(DIM, U_var_name);
+        d_U_var = boost::make_shared<SideVariable<double>>(DIM, U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -323,8 +323,8 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            auto N_data = BOOST_CAST<SideData<double> >(patch->getPatchData(N_idx));
-            auto U_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_U_scratch_idx));
+            auto N_data = BOOST_CAST<SideData<double>>(patch->getPatchData(N_idx));
+            auto U_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_scratch_idx));
 
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();

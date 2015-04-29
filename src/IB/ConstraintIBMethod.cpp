@@ -467,7 +467,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
     {
         auto wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&wgt_sc, NullDeleter()));
+        wgt_sc_active->copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>&(&wgt_sc, NullDeleter()));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
@@ -538,9 +538,9 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
-    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
+    auto cc_var = boost::make_shared<CellVariable<double>>(DIM, "cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
+    auto sc_var = boost::make_shared<SideVariable<double>>(DIM, "sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
@@ -610,7 +610,8 @@ void ConstraintIBMethod::putToRestart(const boost::shared_ptr<Database>& db) con
 
         std::ostringstream incrementedangleidentifier;
         incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->putDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->putDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0],
+                            3);
     }
 
     return;
@@ -756,7 +757,8 @@ void ConstraintIBMethod::getFromRestart()
 
         std::ostringstream incrementedangleidentifier;
         incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->getDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->getDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0],
+                            3);
     }
 
     return;
@@ -806,7 +808,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present and new position of the structures.
-        const boost::shared_ptr<LData>& ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
+        const boost::shared_ptr<LData> &ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -899,7 +901,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present position of the structures.
-        const boost::shared_ptr<LData>& ptr_x_lag_data_current, ptr_x_lag_data_new;
+        const boost::shared_ptr<LData> &ptr_x_lag_data_current, ptr_x_lag_data_new;
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -1757,7 +1759,7 @@ void ConstraintIBMethod::applyProjection()
     // Compute div U before applying the projection operator.
     const bool U_current_cf_bdry_synch = true;
     getHierarchyMathOps()->div(d_Div_u_scratch_idx, d_Div_u_var, +1.0, d_u_fluidSolve_idx,
-                               const boost::shared_ptr<SideVariable<double>>& (d_u_fluidSolve_var), d_no_fill_op,
+                               const boost::shared_ptr<SideVariable<double>>&(d_u_fluidSolve_var), d_no_fill_op,
                                d_FuRMoRP_new_time, U_current_cf_bdry_synch);
 
     if (d_do_log)
@@ -1833,7 +1835,7 @@ void ConstraintIBMethod::applyProjection()
         // Compute div U before applying the projection operator.
         const bool U_current_cf_bdry_synch = true;
         getHierarchyMathOps()->div(d_Div_u_scratch_idx, d_Div_u_var, +1.0, d_u_fluidSolve_idx,
-                                   const boost::shared_ptr<SideVariable<double>>& (d_u_fluidSolve_var), d_no_fill_op,
+                                   const boost::shared_ptr<SideVariable<double>>&(d_u_fluidSolve_var), d_no_fill_op,
                                    d_FuRMoRP_new_time, U_current_cf_bdry_synch);
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -2084,13 +2086,13 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_from, NullDeleter()));
+    u_to.copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>&(&u_from, NullDeleter()));
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
-    InterpolationTransactionComponent component(copy_to_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(NDIM, NULL), NULL);
+    InterpolationTransactionComponent component(
+        copy_to_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+        CONSISTENT_TYPE_2_BDRY, std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(NDIM, NULL), NULL);
     transaction_comps.push_back(component);
 
     auto hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
@@ -2148,8 +2150,8 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
-    u_ins.add(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_ins, NullDeleter()),
-              const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_cib, NullDeleter()));
+    u_ins.add(const boost::shared_ptr<SAMRAIVectorReal<double>>&(&u_ins, NullDeleter()),
+              const boost::shared_ptr<SAMRAIVectorReal<double>>&(&u_cib, NullDeleter()));
 
     return;
 }
@@ -2185,7 +2187,8 @@ void ConstraintIBMethod::calculateDrag()
 
         const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data =
+            *d_l_data_U_correction[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -2268,7 +2271,8 @@ void ConstraintIBMethod::calculateTorque()
 
         const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data =
+            *d_l_data_U_correction[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& X_data = *d_X_new_data[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
@@ -2376,7 +2380,8 @@ void ConstraintIBMethod::calculatePower()
 
         const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data =
+            *d_l_data_U_correction[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();

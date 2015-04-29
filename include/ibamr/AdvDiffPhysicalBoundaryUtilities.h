@@ -71,13 +71,14 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& Q_data,
-                                              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& u_ADV_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                              const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                              const double fill_time,
-                                              const bool inflow_boundaries_only,
-                                              const bool homogeneous_bc);
+    static void
+    setPhysicalBoundaryConditions(const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& Q_data,
+                                  const boost::shared_ptr<SAMRAI::pdat::FaceData<double>>& u_ADV_data,
+                                  const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                  const double fill_time,
+                                  const bool inflow_boundaries_only,
+                                  const bool homogeneous_bc);
 
 private:
     /*!

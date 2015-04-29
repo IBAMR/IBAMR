@@ -726,7 +726,8 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
 
     // Setup specialized transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>()););
+    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(),
+                                              boost::make_shared<CartSideDoubleCubicCoarsen>()););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = boost::make_shared<CartSideDoubleQuadraticCFInterpolation>();

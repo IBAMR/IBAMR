@@ -136,9 +136,10 @@ public:
     /*!
      * \brief Static function to construct a PETScNewtonKrylovSolver.
      */
-    static boost::shared_ptr<NewtonKrylovSolver> allocate_solver(const std::string& object_name,
-                                                                 const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                                                                 const std::string& default_options_prefix)
+    static boost::shared_ptr<NewtonKrylovSolver>
+    allocate_solver(const std::string& object_name,
+                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                    const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScNewtonKrylovSolver>(object_name, input_db, default_options_prefix);
     }
@@ -363,8 +364,7 @@ private:
     /*!
      * \brief Setup F'[x].
      */
-    static PetscErrorCode
-    FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
+    static PetscErrorCode FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
 
     /*!
      * \brief Compute the matrix vector product y = Ax.

@@ -129,8 +129,8 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        auto x_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(comp));
-        auto y_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(comp));
+        auto x_sc_var = BOOST_CAST<SideVariable<double>>(x.getComponentVariable(comp));
+        auto y_sc_var = BOOST_CAST<SideVariable<double>>(y.getComponentVariable(comp));
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
@@ -168,8 +168,8 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        auto x_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(comp));
-        auto y_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(comp));
+        auto x_sc_var = BOOST_CAST<SideVariable<double>>(x.getComponentVariable(comp));
+        auto y_sc_var = BOOST_CAST<SideVariable<double>>(y.getComponentVariable(comp));
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);

@@ -168,8 +168,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& U_vec,
-                          const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& P_vec);
+    void correctNullspace(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& U_vec,
+                          const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -181,7 +181,7 @@ protected:
     // Hierarchy data.
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double>> d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;
     boost::shared_ptr<IBTK::HierarchyMathOps> d_hier_math_ops;
 

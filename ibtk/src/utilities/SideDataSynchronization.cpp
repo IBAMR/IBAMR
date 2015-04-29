@@ -114,7 +114,8 @@ void SideDataSynchronization::initializeOperatorState(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>()));
+    IBTK_DO_ONCE(d_grid_geom->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(),
+                                                 boost::make_shared<CartSideDoubleCubicCoarsen>()));
 
     // Setup cached coarsen algorithms and schedules.
     auto var_db = VariableDatabase::getDatabase();

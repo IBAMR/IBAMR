@@ -303,12 +303,12 @@ void IBStandardForceGen::computeLagrangianForce(const boost::shared_ptr<LData>& 
     return;
 }
 
-void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& d_nnz,
-    std::vector<int>& o_nnz,
-    const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
-    const int level_number,
-    LDataManager* const l_data_manager)
+void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
+                                                                        std::vector<int>& o_nnz,
+                                                                        const boost::shared_ptr<PatchHierarchy>&
+                                                                        /*hierarchy*/,
+                                                                        const int level_number,
+                                                                        LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 

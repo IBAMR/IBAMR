@@ -139,7 +139,8 @@ CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)
     {
-        auto p_pc = boost::dynamic_pointer_cast<LinearSolver>(allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
+        auto p_pc = boost::dynamic_pointer_cast<LinearSolver>(
+            allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
         p_solver->setPreconditioner(p_pc);
     }
     return solver;

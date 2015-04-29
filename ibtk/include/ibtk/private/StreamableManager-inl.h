@@ -61,7 +61,8 @@ inline size_t StreamableManager::getDataStreamSize(const std::vector<boost::shar
     return size;
 }
 
-inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream, const boost::shared_ptr<Streamable>& data_item)
+inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
+                                          const boost::shared_ptr<Streamable>& data_item)
 {
     const int streamable_id = data_item->getStreamableClassID();
     stream.pack(&streamable_id, 1);

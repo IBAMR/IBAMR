@@ -226,9 +226,8 @@ void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
     return;
 }
 
-void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
-                                                                 const IntVector& ratio,
-                                                                 const IntVector& /*ghost_width_to_fill*/)
+void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch, const IntVector& ratio, const IntVector&
+                                                                 /*ghost_width_to_fill*/)
 {
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(!d_consistent_type_2_bdry);

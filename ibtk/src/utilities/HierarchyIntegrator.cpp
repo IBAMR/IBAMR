@@ -254,7 +254,8 @@ void HierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<Patch
         bool done = false;
         while (!done && (d_hierarchy->levelCanBeRefined(level_number)))
         {
-            d_gridding_alg->makeFinerLevel(d_tag_buffer[level_number], initial_time, d_integrator_step, d_integrator_time);
+            d_gridding_alg->makeFinerLevel(d_tag_buffer[level_number], initial_time, d_integrator_step,
+                                           d_integrator_time);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -588,9 +589,9 @@ void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_tim
     return;
 }
 
-void
-HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                  void* ctx)
+void HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(
+    PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -604,9 +605,9 @@ void HierarchyIntegrator::registerIntegrateHierarchyCallback(IntegrateHierarchyC
     return;
 }
 
-void
-HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                   void* ctx)
+void HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
+    PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -656,7 +657,8 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
         std::vector<boost::shared_ptr<RefinePatchStrategy> > fill_after_regrid_prolong_patch_strategies;
-        auto fill_after_regrid_extrap_bc_op = boost::make_shared<CartExtrapPhysBdryOp>(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
+        auto fill_after_regrid_extrap_bc_op =
+            boost::make_shared<CartExtrapPhysBdryOp>(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
         fill_after_regrid_prolong_patch_strategies.push_back(fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
         {
@@ -873,8 +875,10 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
     return true;
 }
 
-void
-HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_time, int coarsest_ln, int finest_ln) const
+void HierarchyIntegrator::allocatePatchData(const int data_idx,
+                                            const double data_time,
+                                            int coarsest_ln,
+                                            int finest_ln) const
 {
     if (data_idx < 0) return;
     if (coarsest_ln == -1) coarsest_ln = 0;
@@ -1203,7 +1207,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 }
 
 void HierarchyIntegrator::registerVariable(int& idx,
-                                           const boost::shared_ptr<Variable> &variable,
+                                           const boost::shared_ptr<Variable>& variable,
                                            const IntVector& ghosts,
                                            const boost::shared_ptr<VariableContext>& ctx)
 {

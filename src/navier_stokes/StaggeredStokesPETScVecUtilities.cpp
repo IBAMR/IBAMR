@@ -341,10 +341,11 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     return;
 }
 
-void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
-                                                                         const int u_dof_index_idx,
-                                                                         const int p_dof_index_idx,
-                                                                         const boost::shared_ptr<PatchLevel>& patch_level)
+void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(
+    std::vector<int>& num_dofs_per_proc,
+    const int u_dof_index_idx,
+    const int p_dof_index_idx,
+    const boost::shared_ptr<PatchLevel>& patch_level)
 {
     static const int ID_OWNER_RANK_DEPTH = 0;
     static const int ID_LOCAL_VALUE_DEPTH = 1;

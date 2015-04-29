@@ -91,54 +91,58 @@ public:
      * cell-centered Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void constructPatchLevelCCLaplaceOp(Mat& mat,
-                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                               double data_time,
-                                               const std::vector<int>& num_dofs_per_proc,
-                                               int dof_index_idx,
-                                               const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
+    static void
+    constructPatchLevelCCLaplaceOp(Mat& mat,
+                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                   const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                   double data_time,
+                                   const std::vector<int>& num_dofs_per_proc,
+                                   int dof_index_idx,
+                                   const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * cell-centered complex Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void constructPatchLevelCCComplexLaplaceOp(Mat& mat,
-                                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-                                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                      const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
-                                                      double data_time,
-                                                      const std::vector<int>& num_dofs_per_proc,
-                                                      int dof_index_idx,
-                                                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
+    static void
+    constructPatchLevelCCComplexLaplaceOp(Mat& mat,
+                                          const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+                                          const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+                                          const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
+                                          double data_time,
+                                          const std::vector<int>& num_dofs_per_proc,
+                                          int dof_index_idx,
+                                          const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * cell-centered complex Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void constructPatchLevelCCComplexLaplaceOp(Mat& mat,
-                                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-                                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                                      double data_time,
-                                                      const std::vector<int>& num_dofs_per_proc,
-                                                      int dof_index_idx,
-                                                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
+    static void constructPatchLevelCCComplexLaplaceOp(
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered Laplacian of a side-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void constructPatchLevelSCLaplaceOp(Mat& mat,
-                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                               double data_time,
-                                               const std::vector<int>& num_dofs_per_proc,
-                                               int dof_index_idx,
-                                               const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
+    static void
+    constructPatchLevelSCLaplaceOp(Mat& mat,
+                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                   const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                   double data_time,
+                                   const std::vector<int>& num_dofs_per_proc,
+                                   int dof_index_idx,
+                                   const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the

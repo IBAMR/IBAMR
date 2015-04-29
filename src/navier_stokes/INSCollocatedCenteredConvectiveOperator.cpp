@@ -326,40 +326,40 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     auto context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedCenteredConvectiveOperator::U";
-    d_U_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(U_var_name));
+    d_U_var = BOOST_CAST<CellVariable<double>>(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_var = boost::make_shared<CellVariable<double> >(DIM, U_var_name, NDIM);
+        d_U_var = boost::make_shared<CellVariable<double>>(DIM, U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
-    d_u_extrap_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_extrap_var_name));
+    d_u_extrap_var = BOOST_CAST<FaceVariable<double>>(var_db->getVariable(u_extrap_var_name));
     if (d_u_extrap_var)
     {
         d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
     }
     else
     {
-        d_u_extrap_var = boost::make_shared<FaceVariable<double> >(DIM, u_extrap_var_name, NDIM);
+        d_u_extrap_var = boost::make_shared<FaceVariable<double>>(DIM, u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
-    d_u_flux_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_flux_var_name));
+    d_u_flux_var = BOOST_CAST<FaceVariable<double>>(var_db->getVariable(u_flux_var_name));
     if (d_u_flux_var)
     {
         d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
     }
     else
     {
-        d_u_flux_var = boost::make_shared<FaceVariable<double> >(DIM, u_flux_var_name, NDIM);
+        d_u_flux_var = boost::make_shared<FaceVariable<double>>(DIM, u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_u_flux_idx >= 0);
@@ -412,13 +412,13 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            auto U_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_U_scratch_idx));
+            auto U_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_U_scratch_idx));
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
-            auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
+            auto u_ADV_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_idx));
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-            auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
+            auto u_extrap_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_extrap_idx));
             const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 
@@ -445,7 +445,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
+                auto u_flux_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -496,14 +496,14 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
-            auto N_data = BOOST_CAST<CellData<double> >(patch->getPatchData(N_idx));
+            auto N_data = BOOST_CAST<CellData<double>>(patch->getPatchData(N_idx));
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
+                auto u_ADV_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
+                auto u_extrap_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_extrap_idx));
                 const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -529,7 +529,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == CONSERVATIVE)
             {
-                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
+                auto u_flux_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -550,7 +550,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
+                auto u_flux_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -617,7 +617,8 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy.get());
+        d_ghostfill_scheds[ln] =
+            d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy.get());
     }
 
     // Allocate scratch data.

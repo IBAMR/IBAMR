@@ -511,8 +511,9 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     return;
 }
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                  const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
+void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

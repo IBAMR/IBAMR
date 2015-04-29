@@ -489,7 +489,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 {
                     mat_vals[j] = matrix_coefs(i, j);
                 }
-                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, &stencil_indices[0],
+                                            &mat_vals[0]);
             }
         }
     }
@@ -695,7 +696,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
             for (unsigned int k = 0; k < d_depth; ++k)
             {
-                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, stencil_indices, &mat_vals[0]);
+                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, stencil_indices,
+                                            &mat_vals[0]);
             }
         }
     }

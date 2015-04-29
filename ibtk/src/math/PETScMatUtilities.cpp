@@ -90,8 +90,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const int dof_index_idx,
                                                        const boost::shared_ptr<PatchLevel>& patch_level)
 {
-    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef), data_time,
-                                   num_dofs_per_proc, dof_index_idx, patch_level);
+    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef),
+                                   data_time, num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }
 
@@ -105,18 +105,19 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const boost::shared_ptr<PatchLevel>& patch_level)
 {
     constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag,
-                                          std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time, num_dofs_per_proc,
-                                          dof_index_idx, patch_level);
+                                          std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time,
+                                          num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }
 
-void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
-                                                       const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                       double data_time,
-                                                       const std::vector<int>& num_dofs_per_proc,
-                                                       const int dof_index_idx,
-                                                       const boost::shared_ptr<PatchLevel>& patch_level)
+void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     if (mat)
@@ -152,7 +153,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
@@ -213,7 +214,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
@@ -252,14 +253,15 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     return;
 }
 
-void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
-                                                              const PoissonSpecifications& poisson_spec_real,
-                                                              const PoissonSpecifications& poisson_spec_imag,
-                                                              const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                              double data_time,
-                                                              const std::vector<int>& num_dofs_per_proc,
-                                                              const int dof_index_idx,
-                                                              const boost::shared_ptr<PatchLevel>& patch_level)
+void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
+    const PoissonSpecifications& poisson_spec_imag,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     if (mat)
@@ -295,7 +297,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
@@ -353,7 +355,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                              poisson_spec_imag, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         std::vector<double> mat_vals_real(2 * stencil_sz), mat_vals_imag(2 * stencil_sz);
         std::vector<int> mat_cols_real(2 * stencil_sz), mat_cols_imag(2 * stencil_sz);
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
@@ -421,13 +423,14 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     return;
 }
 
-void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
-                                                       const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                       double data_time,
-                                                       const std::vector<int>& num_dofs_per_proc,
-                                                       const int dof_index_idx,
-                                                       const boost::shared_ptr<PatchLevel>& patch_level)
+void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    const boost::shared_ptr<PatchLevel>& patch_level)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 
@@ -463,7 +466,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -516,7 +519,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -613,7 +616,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = VecGetArray(X_vec, &X_arr);
     IBTK_CHKERRQ(ierr);
     std::vector<GlobalId> patch_id(n_local_points);
-    std::vector<std::vector<Box> > stencil_box(n_local_points, std::vector<Box>(NDIM, Box(DIM)));
+    std::vector<std::vector<Box>> stencil_box(n_local_points, std::vector<Box>(NDIM, Box(DIM)));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
     for (int k = 0; k < n_local_points; ++k)
     {
@@ -645,7 +648,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         }
         patch_id[k] = overlap_boxes.begin()->getGlobalId();
         auto patch = patch_level->getPatch(patch_id[k]);
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
         // Compute the stencil box and setup the nonzero structure.
@@ -709,7 +712,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
         // Look-up the local patch that we have associated with this IB point.
         auto patch = patch_level->getPatch(patch_id[k]);
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
         // Construct the interpolation weights for this IB point.

@@ -104,13 +104,14 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u_dst_idx,
-                                                                     const int u_src_idx,
-                                                                     const int indicator_idx,
-                                                                     const boost::shared_ptr<RefineOperator>& refine_op,
-                                                                     const boost::shared_ptr<CoarsenOperator>& coarsen_op,
-                                                                     const double fill_time,
-                                                                     RefinePatchStrategy* const phys_bdry_op)
+CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
+    const int u_dst_idx,
+    const int u_src_idx,
+    const int indicator_idx,
+    const boost::shared_ptr<RefineOperator>& refine_op,
+    const boost::shared_ptr<CoarsenOperator>& coarsen_op,
+    const double fill_time,
+    RefinePatchStrategy* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx), d_fill_time(fill_time),
       d_phys_bdry_op(phys_bdry_op), d_refine_op(refine_op), d_coarsen_op(coarsen_op)
 {

@@ -137,11 +137,12 @@ public:
      *
      * \note Elements indices must be global PETSc indices.
      */
-    void computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
-                                                        std::vector<int>& o_nnz,
-                                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                        int level_number,
-                                                        IBTK::LDataManager* l_data_manager);
+    void
+    computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
+                                                   std::vector<int>& o_nnz,
+                                                   const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                                   int level_number,
+                                                   IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -218,7 +219,7 @@ private:
     struct TargetPointData
     {
         std::vector<int> petsc_node_idxs;
-        std::vector<const double*> kappa, eta;
+        std::vector<const double *> kappa, eta;
         std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;

@@ -108,12 +108,12 @@ void IBLagrangianForceStrategy::computeLagrangianForce(const boost::shared_ptr<L
     return;
 }
 
-void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& /*d_nnz*/,
-    std::vector<int>& /*o_nnz*/,
-    const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
-    const int /*level_number*/,
-    LDataManager* const /*l_data_manager*/)
+void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& /*d_nnz*/,
+                                                                               std::vector<int>& /*o_nnz*/,
+                                                                               const boost::shared_ptr<PatchHierarchy>&
+                                                                               /*hierarchy*/,
+                                                                               const int /*level_number*/,
+                                                                               LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);

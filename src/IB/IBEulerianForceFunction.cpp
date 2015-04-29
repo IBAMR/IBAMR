@@ -78,14 +78,14 @@ bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
     return true;
 }
 
-void
-IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                                        const boost::shared_ptr<Variable>& var,
-                                                                        const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                        const double data_time,
-                                                                        const bool initial_time,
-                                                                        const int coarsest_ln_in,
-                                                                        const int finest_ln_in)
+void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
+    const int data_idx,
+    const boost::shared_ptr<Variable>& var,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const double data_time,
+    const bool initial_time,
+    const int coarsest_ln_in,
+    const int finest_ln_in)
 {
     if (initial_time)
     {

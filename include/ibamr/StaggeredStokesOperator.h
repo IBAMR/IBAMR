@@ -216,7 +216,7 @@ protected:
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_b;
 
 private:
     /*!

@@ -80,13 +80,14 @@ public:
      * \brief At Dirichlet boundaries, set values to enforce normal velocity
      * boundary conditions at the boundary.
      */
-    void enforceNormalVelocityBoundaryConditions(int u_data_idx,
-                                                 int p_data_idx,
-                                                 const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
-                                                 double fill_time,
-                                                 bool homogeneous_bc,
-                                                 int coarsest_ln = -1,
-                                                 int finest_ln = -1) const;
+    void enforceNormalVelocityBoundaryConditions(
+        int u_data_idx,
+        int p_data_idx,
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
+        double fill_time,
+        bool homogeneous_bc,
+        int coarsest_ln = -1,
+        int finest_ln = -1) const;
 #if 0
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to

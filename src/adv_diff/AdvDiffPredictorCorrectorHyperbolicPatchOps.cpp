@@ -324,13 +324,13 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     return;
 }
 
-void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
-                                                                         double current_time,
-                                                                         double /*dt*/,
-                                                                         bool /*first_step*/,
-                                                                         bool /*last_step*/,
-                                                                         bool /*regrid_advance*/)
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
+    const boost::shared_ptr<PatchLevel>& level,
+    double current_time,
+    double /*dt*/,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     if (!d_compute_init_velocity) return;
 
@@ -348,13 +348,13 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const b
     return;
 }
 
-void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
-                                                                          double current_time,
-                                                                          double dt,
-                                                                          bool /*first_step*/,
-                                                                          bool /*last_step*/,
-                                                                          bool /*regrid_advance*/)
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
+    const boost::shared_ptr<PatchLevel>& level,
+    double current_time,
+    double dt,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     if (!d_compute_final_velocity) return;
 

@@ -147,7 +147,8 @@ public:
      * Register an advection-diffusion solver with this incompressible
      * Navier-Stokes solver.
      */
-    void registerAdvDiffHierarchyIntegrator(const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator);
+    void
+    registerAdvDiffHierarchyIntegrator(const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator);
 
     /*!
      * Set the problem coefficients used by the solver.
@@ -164,7 +165,8 @@ public:
      * Supply a physical boundary conditions specificaion for the velocity
      * field.
      */
-    void registerPhysicalBoundaryConditions(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
+    void registerPhysicalBoundaryConditions(
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * Get a vector of pointers to the velocity boundary condition specification
@@ -172,7 +174,8 @@ public:
      *
      * \note Implementations may return a vector of NULL pointers.
      */
-    virtual const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& getVelocityBoundaryConditions() const;
+    virtual const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>&
+    getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
@@ -233,7 +236,7 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > getAdvectionVelocityVariable() const;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
@@ -439,7 +442,7 @@ protected:
      * capability for quantities transported by the fluid velocity field.
      */
     boost::shared_ptr<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_U_adv_diff_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_U_adv_diff_var;
 
     /*!
      * The maximum CFL number.
@@ -503,7 +506,7 @@ protected:
      */
     boost::shared_ptr<IBTK::CartGridFunction> d_U_init, d_P_init;
     boost::shared_ptr<SAMRAI::solv::LocationIndexRobinBcCoefs> d_default_bc_coefs;
-    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> > d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
     boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_P_bc_coef, d_Phi_bc_coef;
     boost::shared_ptr<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;

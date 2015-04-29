@@ -88,12 +88,13 @@ public:
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
      */
-    static void computeCCMatrixCoefficients(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                            SAMRAI::pdat::CellData<double>& matrix_coefficients,
-                                            const std::vector<SAMRAI::hier::Index>& stencil,
-                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                            double data_time);
+    static void
+    computeCCMatrixCoefficients(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                                SAMRAI::pdat::CellData<double>& matrix_coefficients,
+                                const std::vector<SAMRAI::hier::Index>& stencil,
+                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
@@ -111,24 +112,26 @@ public:
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the complex Laplacian.
      */
-    static void computeCCComplexMatrixCoefficients(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                                   SAMRAI::pdat::CellData<double>& matrix_coefficients,
-                                                   const std::vector<SAMRAI::hier::Index>& stencil,
-                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                   const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                                   double data_time);
+    static void computeCCComplexMatrixCoefficients(
+        const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+        SAMRAI::pdat::CellData<double>& matrix_coefficients,
+        const std::vector<SAMRAI::hier::Index>& stencil,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+        double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the Laplacian.
      */
-    static void computeSCMatrixCoefficients(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                            SAMRAI::pdat::SideData<double>& matrix_coefficients,
-                                            const std::vector<SAMRAI::hier::Index>& stencil,
-                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                            double data_time);
+    static void
+    computeSCMatrixCoefficients(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                                SAMRAI::pdat::SideData<double>& matrix_coefficients,
+                                const std::vector<SAMRAI::hier::Index>& stencil,
+                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                double data_time);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -147,12 +150,13 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
      */
-    static void adjustCCBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                           SAMRAI::pdat::CellData<double>& rhs_data,
-                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                           double data_time,
-                                           bool homogeneous_bc);
+    static void
+    adjustCCBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                               SAMRAI::pdat::CellData<double>& rhs_data,
+                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                               const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                               double data_time,
+                               bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -172,25 +176,27 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * complex Laplacian.
      */
-    static void adjustCCComplexBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                                  SAMRAI::pdat::CellData<double>& rhs_data,
-                                                  const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-                                                  const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                                  double data_time,
-                                                  bool homogeneous_bc);
+    static void
+    adjustCCComplexBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                                      SAMRAI::pdat::CellData<double>& rhs_data,
+                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+                                      const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+                                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                                      double data_time,
+                                      bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a side-centered discretization of the
      * Laplacian.
      */
-    static void adjustSCBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
-                                           SAMRAI::pdat::SideData<double>& rhs_data,
-                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
-                                           double data_time,
-                                           bool homogeneous_bc);
+    static void
+    adjustSCBoundaryRhsEntries(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                               SAMRAI::pdat::SideData<double>& rhs_data,
+                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                               const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                               double data_time,
+                               bool homogeneous_bc);
 
 protected:
 private:

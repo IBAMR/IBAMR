@@ -121,9 +121,10 @@ public:
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.
      */
-    typedef boost::shared_ptr<PoissonSolver>(*SolverMaker)(const std::string& solver_object_name,
-                                                           const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
-                                                           const std::string& solver_default_options_prefix);
+    typedef boost::shared_ptr<PoissonSolver> (*SolverMaker)(
+        const std::string& solver_object_name,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
+        const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.

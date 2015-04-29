@@ -135,8 +135,9 @@ public:
      * integrator object, nor can they initialize hierarchy-dependent
      * communications schedules associated with the integrator.
      */
-    virtual void initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                               const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg) = 0;
+    virtual void
+    initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                  const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg) = 0;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -398,13 +399,14 @@ public:
      * Callback function specification to enable further specialization of
      * applyGradientDetector().
      */
-    typedef void (*ApplyGradientDetectorCallbackFcnPtr)(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                        int level_number,
-                                                        double error_data_time,
-                                                        int tag_index,
-                                                        bool initial_time,
-                                                        bool uses_richardson_extrapolation_too,
-                                                        void* ctx);
+    typedef void (*ApplyGradientDetectorCallbackFcnPtr)(
+        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too,
+        void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -628,9 +630,10 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void resetHierarchyConfigurationSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                        int coarsest_level,
-                                                        int finest_level);
+    virtual void
+    resetHierarchyConfigurationSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                           int coarsest_level,
+                                           int finest_level);
 
     /*!
      * Virtual method to perform implementation-specific cell tagging
@@ -675,12 +678,13 @@ protected:
     /*!
      * Execute any user-specified applyGradientDetector callback functions.
      */
-    virtual void executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                          int level_number,
-                                                          double error_data_time,
-                                                          int tag_index,
-                                                          bool initial_time,
-                                                          bool uses_richardson_extrapolation_too);
+    virtual void
+    executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                             int level_number,
+                                             double error_data_time,
+                                             int tag_index,
+                                             bool initial_time,
+                                             bool uses_richardson_extrapolation_too);
 
     /*!
      * Register a state variable with the integrator.  When a refine operator is

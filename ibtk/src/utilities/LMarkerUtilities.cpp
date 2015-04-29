@@ -462,7 +462,8 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
     return;
 }
 
-void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, const boost::shared_ptr<PatchHierarchy>& hierarchy)
+void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx,
+                                                      const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -496,7 +497,9 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, const 
             auto patch = *p;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             auto mark_scratch_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_scratch_idx));
-            for (auto it = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ true), e = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ false); it != e; ++it)
+            for (auto it = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ true),
+                      e = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ false);
+                 it != e; ++it)
             {
                 const Index& i = it.getIndex();
                 if (!mark_current_data->isElement(i))

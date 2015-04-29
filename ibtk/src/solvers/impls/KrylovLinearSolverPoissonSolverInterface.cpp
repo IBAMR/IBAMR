@@ -95,7 +95,8 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(const boost::sh
     return;
 }
 
-void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);

@@ -634,8 +634,9 @@ void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
     return;
 }
 
-void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
+void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

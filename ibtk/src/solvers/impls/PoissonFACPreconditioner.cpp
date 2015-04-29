@@ -56,10 +56,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_name,
-                                                   const boost::shared_ptr<PoissonFACPreconditionerStrategy>& fac_strategy,
-                                                   const boost::shared_ptr<Database>& input_db,
-                                                   const std::string& default_options_prefix)
+PoissonFACPreconditioner::PoissonFACPreconditioner(
+    const std::string& object_name,
+    const boost::shared_ptr<PoissonFACPreconditionerStrategy>& fac_strategy,
+    const boost::shared_ptr<Database>& input_db,
+    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);

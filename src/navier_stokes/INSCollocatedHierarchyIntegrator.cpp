@@ -487,8 +487,9 @@ boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSu
     return d_pressure_solver;
 }
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -782,8 +783,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(const boost
     return;
 }
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -1420,13 +1422,14 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                      const int level_number,
-                                                                      const double init_data_time,
-                                                                      const bool /*can_be_refined*/,
-                                                                      const bool initial_time,
-                                                                      const boost::shared_ptr<PatchLevel>& old_level,
-                                                                      const bool /*allocate_data*/)
+void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool /*can_be_refined*/,
+    const bool initial_time,
+    const boost::shared_ptr<PatchLevel>& old_level,
+    const bool /*allocate_data*/)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));

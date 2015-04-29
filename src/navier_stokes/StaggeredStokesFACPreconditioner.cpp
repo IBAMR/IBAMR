@@ -81,8 +81,9 @@ void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const Po
     return;
 }
 
-void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
-                                                          const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
+void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+    const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     auto p_fac_strategy = boost::dynamic_pointer_cast<StaggeredStokesFACPreconditionerStrategy>(d_fac_strategy);

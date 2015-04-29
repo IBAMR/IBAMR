@@ -128,11 +128,9 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     const boost::shared_ptr<Database>& input_db,
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
-      d_default_U_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef")),
+      d_default_U_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef")),
       d_U_bc_coefs(NDIM, d_default_U_bc_coef),
-      d_default_P_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef")),
+      d_default_P_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef")),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_gcw(ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
@@ -217,15 +215,16 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
     return;
 }
 
-void
-StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+void StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(
+    const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
 }
 
-void StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy> >& U_bc_coefs,
-                                                                  const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
+void StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy> >& U_bc_coefs,
+    const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -617,8 +616,10 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
 
     // Get the transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBAMR_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>());
-                  geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartCellDoubleCubicCoarsen>()););
+    IBAMR_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(),
+                                               boost::make_shared<CartSideDoubleCubicCoarsen>());
+                  geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(),
+                                               boost::make_shared<CartCellDoubleCubicCoarsen>()););
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
 
@@ -697,14 +698,14 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), NULL, dst_ln - 1,
                                                             d_hierarchy, d_prolongation_refine_patch_strategy.get());
 
-        d_ghostfill_nocoarse_refine_schedules[dst_ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op.get());
+        d_ghostfill_nocoarse_refine_schedules[dst_ln] = d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+            d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op.get());
 
         d_synch_refine_schedules[dst_ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln));
     }
 
-    d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
-        d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op.get());
+    d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] = d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+        d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op.get());
 
     d_synch_refine_schedules[d_coarsest_ln] =
         d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln));

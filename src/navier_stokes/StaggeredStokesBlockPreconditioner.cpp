@@ -94,7 +94,8 @@ bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
     return d_needs_velocity_solver;
 }
 
-void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(const boost::shared_ptr<PoissonSolver>& velocity_solver)
+void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(
+    const boost::shared_ptr<PoissonSolver>& velocity_solver)
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
                   {
@@ -117,7 +118,8 @@ bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
     return d_needs_pressure_solver;
 }
 
-void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(const boost::shared_ptr<PoissonSolver>& pressure_solver)
+void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(
+    const boost::shared_ptr<PoissonSolver>& pressure_solver)
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
                   {
@@ -135,8 +137,9 @@ void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const 
     return;
 }
 
-void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
-                                                            const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
+void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+    const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
@@ -186,8 +189,8 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBlockPreconditioner::correctNullspace(const boost::shared_ptr<SAMRAIVectorReal<double> >& U_vec,
-                                                          const boost::shared_ptr<SAMRAIVectorReal<double> >& P_vec)
+void StaggeredStokesBlockPreconditioner::correctNullspace(const boost::shared_ptr<SAMRAIVectorReal<double>>& U_vec,
+                                                          const boost::shared_ptr<SAMRAIVectorReal<double>>& P_vec)
 {
     auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
     if (p_velocity_solver)
@@ -211,7 +214,8 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(const boost::shared_pt
         {
             const int P_idx = P_vec->getComponentDescriptorIndex(0);
             const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-            auto p_pressure_data_ops = boost::dynamic_pointer_cast<HierarchyCellDataOpsReal<double> >(d_pressure_data_ops);
+            auto p_pressure_data_ops =
+                boost::dynamic_pointer_cast<HierarchyCellDataOpsReal<double>>(d_pressure_data_ops);
             const double P_mean = (1.0 / volume) * p_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }

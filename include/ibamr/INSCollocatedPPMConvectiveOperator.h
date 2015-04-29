@@ -88,10 +88,11 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSCollocatedPPMConvectiveOperator(const std::string& object_name,
-                                       const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                                       ConvectiveDifferencingType difference_form,
-                                       const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
+    INSCollocatedPPMConvectiveOperator(
+        const std::string& object_name,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+        ConvectiveDifferencingType difference_form,
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -197,10 +198,10 @@ private:
 
     // Data communication algorithms, operators, and schedules.
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_coarsen_scheds;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_ghostfill_scheds;
     std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.
@@ -208,9 +209,9 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_U_var;
     int d_U_scratch_idx;
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_u_extrap_var, d_u_flux_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_u_extrap_var, d_u_flux_var;
     int d_u_extrap_idx, d_u_flux_idx;
 };
 } // namespace IBAMR

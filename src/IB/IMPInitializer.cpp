@@ -241,7 +241,7 @@ bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const boo
 {
     return !d_meshes[level_number].empty();
 }
-    
+
 unsigned int IMPInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                                 const int level_number,
                                                                 const double /*init_data_time*/,

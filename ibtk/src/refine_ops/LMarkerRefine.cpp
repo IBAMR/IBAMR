@@ -128,7 +128,8 @@ void LMarkerRefine::refine(Patch& fine,
         const Box& fine_box = *bl;
         const Box coarse_box = Box::coarsen(fine_box, ratio);
         const Box fill_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
-        for (LMarkerSetData::SetIterator it(*src_mark_data, /*begin*/ true), e(*src_mark_data, /*begin*/ false); it != e; ++it)
+        for (LMarkerSetData::SetIterator it(*src_mark_data, /*begin*/ true), e(*src_mark_data, /*begin*/ false);
+             it != e; ++it)
         {
             const Index& coarse_i = it.getIndex();
             if (coarse_box.contains(coarse_i))

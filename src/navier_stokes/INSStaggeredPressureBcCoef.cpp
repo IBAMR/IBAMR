@@ -70,10 +70,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(const INSStaggeredHierarchyIntegrator* fluid_solver,
-                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                       const TractionBcType traction_bc_type,
-                                                       const bool homogeneous_bc)
+INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
+    const INSStaggeredHierarchyIntegrator* fluid_solver,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    const TractionBcType traction_bc_type,
+    const bool homogeneous_bc)
     : d_fluid_solver(fluid_solver), d_bc_coefs(NDIM)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -196,9 +197,9 @@ void INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                            const boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                            const boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>& acoef_data,
+                                            const boost::shared_ptr<ArrayData<double>>& bcoef_data,
+                                            const boost::shared_ptr<ArrayData<double>>& gcoef_data,
                                             const boost::shared_ptr<Variable>& variable,
                                             const Patch& patch,
                                             const BoundaryBox& bdry_box,
@@ -217,12 +218,12 @@ void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    boost::shared_ptr<SideData<double> > u_target_data;
+    boost::shared_ptr<SideData<double>> u_target_data;
     if (d_u_target_data_idx >= 0)
-        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_u_target_data_idx));
+        u_target_data = BOOST_CAST<SideData<double>>(patch.getPatchData(d_u_target_data_idx));
     else if (d_target_data_idx >= 0)
-        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_target_data_idx));
-    auto u_current_data = BOOST_CAST<SideData<double> >(
+        u_target_data = BOOST_CAST<SideData<double>>(patch.getPatchData(d_target_data_idx));
+    auto u_current_data = BOOST_CAST<SideData<double>>(
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
     const Box ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)

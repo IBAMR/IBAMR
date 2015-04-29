@@ -104,7 +104,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef boost::shared_ptr<ConvectiveOperator>(*OperatorMaker)(
+    typedef boost::shared_ptr<ConvectiveOperator> (*OperatorMaker)(
         const std::string& operator_object_name,
         const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
         ConvectiveDifferencingType difference_form,

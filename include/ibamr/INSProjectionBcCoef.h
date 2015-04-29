@@ -93,7 +93,8 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    INSProjectionBcCoef(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs, bool homogeneous_bc = false);
+    INSProjectionBcCoef(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
+                        bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -177,9 +178,9 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
-                    const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
-                    const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
+    void setBcCoefs(const boost::shared_ptr<SAMRAI::pdat::ArrayData<double>>& acoef_data,
+                    const boost::shared_ptr<SAMRAI::pdat::ArrayData<double>>& bcoef_data,
+                    const boost::shared_ptr<SAMRAI::pdat::ArrayData<double>>& gcoef_data,
                     const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,

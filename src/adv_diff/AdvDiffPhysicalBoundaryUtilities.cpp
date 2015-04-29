@@ -63,13 +63,14 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(const boost::shared_ptr<CellData<double> >& Q_data,
-                                                                     const boost::shared_ptr<FaceData<double> >& u_ADV_data,
-                                                                     const boost::shared_ptr<Patch>& patch,
-                                                                     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                                     const double fill_time,
-                                                                     const bool inflow_boundaries_only,
-                                                                     const bool homogeneous_bc)
+void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
+    const boost::shared_ptr<CellData<double>>& Q_data,
+    const boost::shared_ptr<FaceData<double>>& u_ADV_data,
+    const boost::shared_ptr<Patch>& patch,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    const double fill_time,
+    const bool inflow_boundaries_only,
+    const bool homogeneous_bc)
 {
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     if (!pgeom->getTouchesRegularBoundary()) return;
@@ -113,11 +114,11 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(const boost
                 bc_coef_box.setUpper(d, std::min(bc_coef_box.upper(d), patch_box.upper(d)));
             }
         }
-        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        auto acoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
         ;
-        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        auto bcoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
         ;
-        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        auto gcoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
         ;
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {

@@ -161,7 +161,8 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer,
+                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -244,7 +245,8 @@ public:
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy, int workload_data_idx);
+    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                 int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch

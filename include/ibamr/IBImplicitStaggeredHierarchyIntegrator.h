@@ -90,11 +90,12 @@ public:
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
      */
-    IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
-                                           const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                                           const boost::shared_ptr<IBImplicitStrategy>& ib_method_ops,
-                                           const boost::shared_ptr<INSStaggeredHierarchyIntegrator>& ins_hier_integrator,
-                                           bool register_for_restart = true);
+    IBImplicitStaggeredHierarchyIntegrator(
+        const std::string& object_name,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+        const boost::shared_ptr<IBImplicitStrategy>& ib_method_ops,
+        const boost::shared_ptr<INSStaggeredHierarchyIntegrator>& ins_hier_integrator,
+        bool register_for_restart = true);
 
     /*!
      * The destructor for class IBImplicitStaggeredHierarchyIntegrator
@@ -194,8 +195,7 @@ private:
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
-    static PetscErrorCode
-    compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
+    static PetscErrorCode compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
 
     /*!
      * Static function for setting up implicit formulation composite Jacobian.

@@ -48,7 +48,7 @@ namespace IBAMR
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-    class ConstraintIBKinematics : public SAMRAI::tbox::Serializable
+class ConstraintIBKinematics : public SAMRAI::tbox::Serializable
 {
 public:
     class StructureParameters
@@ -57,7 +57,8 @@ public:
         /*!
          * \brief Constructor.
          */
-        StructureParameters(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db, IBTK::LDataManager* l_data_manager);
+        StructureParameters(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                            IBTK::LDataManager* l_data_manager);
 
         /*!
          * \brief Lagrangian point to tag on this structure.
@@ -152,8 +153,10 @@ public:
     /*!
      * \brief Constructor.
      */
-    ConstraintIBKinematics(const std::string& object_name, boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                           IBTK::LDataManager* l_data_manager, bool register_for_restart = true);
+    ConstraintIBKinematics(const std::string& object_name,
+                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                           IBTK::LDataManager* l_data_manager,
+                           bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
@@ -180,9 +183,10 @@ public:
      *
      * \param tagged_pt_position Coordinates of the tagged point of the structure.
      */
-    virtual void setKinematicsVelocity(
-        const double time, const std::vector<double>& incremented_angle_from_reference_axis,
-        const std::vector<double>& center_of_mass, const std::vector<double>& tagged_pt_position) = 0;
+    virtual void setKinematicsVelocity(const double time,
+                                       const std::vector<double>& incremented_angle_from_reference_axis,
+                                       const std::vector<double>& center_of_mass,
+                                       const std::vector<double>& tagged_pt_position) = 0;
 
     /*!
      * \brief Get the kinematics velocity for the structure on the specified level.

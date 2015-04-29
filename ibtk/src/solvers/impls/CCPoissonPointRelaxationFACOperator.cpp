@@ -672,7 +672,8 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
 
     // Setup specialized transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartCellDoubleCubicCoarsen>()););
+    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(),
+                                              boost::make_shared<CartCellDoubleCubicCoarsen>()););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = boost::make_shared<CartCellDoubleQuadraticCFInterpolation>();
@@ -843,7 +844,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     boost::shared_ptr<CellData<double>> C_data;
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
-        C_data = BOOST_CAST<CellData<double> >(patch->getPatchData(poisson_spec.getCPatchDataId()));
+        C_data = BOOST_CAST<CellData<double>>(patch->getPatchData(poisson_spec.getCPatchDataId()));
         if (!C_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
@@ -863,7 +864,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     boost::shared_ptr<SideData<double>> D_data;
     if (!poisson_spec.dIsConstant())
     {
-        D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(poisson_spec.getDPatchDataId()));
+        D_data = BOOST_CAST<SideData<double>>(patch->getPatchData(poisson_spec.getDPatchDataId()));
         if (!D_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
@@ -896,12 +897,12 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     return;
 }
 
-void
-CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
-                                                                       const boost::shared_ptr<CellData<double>>& C_data,
-                                                                       const boost::shared_ptr<SideData<double>>& D_data,
-                                                                       const boost::shared_ptr<Patch>& patch,
-                                                                       const IntVector& ghost_cell_width)
+void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
+    Mat& A,
+    const boost::shared_ptr<CellData<double>>& C_data,
+    const boost::shared_ptr<SideData<double>>& D_data,
+    const boost::shared_ptr<Patch>& patch,
+    const IntVector& ghost_cell_width)
 {
     int ierr;
 

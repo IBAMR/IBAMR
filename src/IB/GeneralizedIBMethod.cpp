@@ -122,8 +122,8 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
     return;
 }
 
-void
-GeneralizedIBMethod::registerIBKirchhoffRodForceGen(const boost::shared_ptr<IBKirchhoffRodForceGen>& ib_force_and_torque_fcn)
+void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(
+    const boost::shared_ptr<IBKirchhoffRodForceGen>& ib_force_and_torque_fcn)
 {
     TBOX_ASSERT(ib_force_and_torque_fcn);
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
@@ -257,11 +257,11 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
     return;
 }
 
-void
-GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
-                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                         const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-                                         const double data_time)
+void GeneralizedIBMethod::interpolateVelocity(
+    const int u_data_idx,
+    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+    const double data_time)
 {
     // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);

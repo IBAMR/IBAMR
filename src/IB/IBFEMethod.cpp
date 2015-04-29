@@ -261,8 +261,9 @@ void IBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFc
     return;
 }
 
-void
-IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
+void IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
+                                                          void* ctx,
+                                                          const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
@@ -821,15 +822,15 @@ void IBFEMethod::initializeFEData()
     return;
 }
 
-void
-IBFEMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
-                                     int /*u_data_idx*/,
-                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
-                                     int /*integrator_step*/,
-                                     double /*init_data_time*/,
-                                     bool /*initial_time*/)
+void IBFEMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                          const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
+                                          int /*u_data_idx*/,
+                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                          const std::vector<boost::shared_ptr<RefineSchedule> >&
+                                          /*u_ghost_fill_scheds*/,
+                                          int /*integrator_step*/,
+                                          double /*init_data_time*/,
+                                          bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -845,7 +846,8 @@ IBFEMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hi
     return;
 }
 
-void IBFEMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
+void IBFEMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
+                                      int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -858,7 +860,8 @@ void IBFEMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBal
     return;
 }
 
-void IBFEMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
+void IBFEMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                         int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1819,7 +1822,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     side_elem->point(k) = X_node_cache[k];
                 }
                 Box box(IndexUtilities::getCellIndex(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
-                        IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper), BLOCK_ID);
+                        IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper),
+                        BLOCK_ID);
                 box.grow(IntVector::getOne(DIM));
                 box = box * patch_box;
 

@@ -91,20 +91,22 @@ public:
     /*!
      * \return The number of global nodes on the patch level.
      */
-    virtual unsigned int computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                            int level_number,
-                                                            double init_data_time,
-                                                            bool can_be_refined,
-                                                            bool initial_time) = 0;
+    virtual unsigned int
+    computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       int level_number,
+                                       double init_data_time,
+                                       bool can_be_refined,
+                                       bool initial_time) = 0;
 
     /*!
      * \return The number of local nodes on the patch level.
      */
-    virtual unsigned int computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                           int level_number,
-                                                           double init_data_time,
-                                                           bool can_be_refined,
-                                                           bool initial_time) = 0;
+    virtual unsigned int
+    computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                      int level_number,
+                                      double init_data_time,
+                                      bool can_be_refined,
+                                      bool initial_time) = 0;
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -147,16 +149,17 @@ public:
      * \note A default empty implementation is provided when support for massive
      * boundaries is not required.
      */
-    virtual unsigned int initializeMassDataOnPatchLevel(unsigned int global_index_offset,
-                                                        unsigned int local_index_offset,
-                                                        const boost::shared_ptr<LData>& M_data,
-                                                        const boost::shared_ptr<LData>& K_data,
-                                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                        int level_number,
-                                                        double init_data_time,
-                                                        bool can_be_refined,
-                                                        bool initial_time,
-                                                        LDataManager* l_data_manager);
+    virtual unsigned int
+    initializeMassDataOnPatchLevel(unsigned int global_index_offset,
+                                   unsigned int local_index_offset,
+                                   const boost::shared_ptr<LData>& M_data,
+                                   const boost::shared_ptr<LData>& K_data,
+                                   const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                   int level_number,
+                                   double init_data_time,
+                                   bool can_be_refined,
+                                   bool initial_time,
+                                   LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LData needed to specify director vectors required
@@ -167,15 +170,16 @@ public:
      * \note A default empty implementation is provided when support for
      * directors is not required.
      */
-    virtual unsigned int initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
-                                                            unsigned int local_index_offset,
-                                                            const boost::shared_ptr<LData>& D_data,
-                                                            const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
-                                                            int level_number,
-                                                            double init_data_time,
-                                                            bool can_be_refined,
-                                                            bool initial_time,
-                                                            LDataManager* l_data_manager);
+    virtual unsigned int
+    initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
+                                       unsigned int local_index_offset,
+                                       const boost::shared_ptr<LData>& D_data,
+                                       const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       int level_number,
+                                       double init_data_time,
+                                       bool can_be_refined,
+                                       bool initial_time,
+                                       LDataManager* l_data_manager);
 
     /*!
      * \brief Provide cell tagging for the initial configuration of the

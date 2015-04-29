@@ -83,15 +83,16 @@ public:
     /*!
      * Allocate a new KrylovLinearSolver object of the specified type.
      */
-    boost::shared_ptr<KrylovLinearSolver> allocateSolver(const std::string& solver_type,
-                                                         const std::string& solver_object_name,
-                                                         const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
-                                                         const std::string& solver_default_options_prefix) const;
+    boost::shared_ptr<KrylovLinearSolver>
+    allocateSolver(const std::string& solver_type,
+                   const std::string& solver_object_name,
+                   const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
+                   const std::string& solver_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct KrylovLinearSolvers.
      */
-    typedef boost::shared_ptr<KrylovLinearSolver>(*SolverMaker)(
+    typedef boost::shared_ptr<KrylovLinearSolver> (*SolverMaker)(
         const std::string& solver_object_name,
         const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
         const std::string& solver_default_options_prefix);

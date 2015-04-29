@@ -68,9 +68,10 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
-                                                             const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                             const bool homogeneous_bc)
+INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
+    const int comp_idx,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_bc_coefs(NDIM)
 {
     setPhysicalBcCoefs(bc_coefs);
@@ -84,7 +85,8 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     return;
 }
 
-void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
+void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
@@ -136,9 +138,9 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSIntermediateVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                               const boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                               const boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSIntermediateVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>& acoef_data,
+                                               const boost::shared_ptr<ArrayData<double>>& bcoef_data,
+                                               const boost::shared_ptr<ArrayData<double>>& gcoef_data,
                                                const boost::shared_ptr<Variable>& variable,
                                                const Patch& patch,
                                                const BoundaryBox& bdry_box,

@@ -173,7 +173,9 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(const std::string& object_name, const boost::shared_ptr<Database>& input_db, bool register_for_restart)
+IMPMethod::IMPMethod(const std::string& object_name,
+                     const boost::shared_ptr<Database>& input_db,
+                     bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -403,7 +405,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     auto u_sc_var = BOOST_CAST<SideVariable<double> >(u_var);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data, *X_data;
+    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -543,7 +545,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -600,7 +602,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -654,7 +656,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<boost::shared_ptr<LData> > *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -712,7 +714,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> >* X_data, *F_data;
+    std::vector<boost::shared_ptr<LData> > *X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -954,7 +956,8 @@ void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, 
     return;
 }
 
-void IMPMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
+void IMPMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
+                                     int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -963,7 +966,8 @@ void IMPMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBala
     return;
 }
 
-void IMPMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
+void IMPMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                        int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;

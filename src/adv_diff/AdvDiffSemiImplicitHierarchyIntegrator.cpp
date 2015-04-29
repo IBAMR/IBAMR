@@ -111,9 +111,10 @@ static const int CELLG = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(const std::string& object_name,
-                                                                               const boost::shared_ptr<Database>& input_db,
-                                                                               bool register_for_restart)
+AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
+    const std::string& object_name,
+    const boost::shared_ptr<Database>& input_db,
+    bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
     TBOX_ASSERT(!object_name.empty());
@@ -232,7 +233,8 @@ boost::shared_ptr<Database> AdvDiffSemiImplicitHierarchyIntegrator::getDefaultCo
     return d_default_convective_op_input_db;
 }
 
-void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(const boost::shared_ptr<CellVariable<double>>& Q_var)
+void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
+    const boost::shared_ptr<CellVariable<double>>& Q_var)
 {
     AdvDiffHierarchyIntegrator::registerTransportedQuantity(Q_var);
 
@@ -278,16 +280,17 @@ TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTim
     return d_Q_init_convective_time_stepping_type.find(Q_var)->second;
 }
 
-void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(const boost::shared_ptr<CellVariable<double>>& Q_var,
-                                                                       const std::string& op_type)
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(
+    const boost::shared_ptr<CellVariable<double>>& Q_var,
+    const std::string& op_type)
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_convective_op_type[Q_var] = op_type;
     return;
 }
 
-const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(const boost::shared_ptr<CellVariable<double>>& Q_var) const
+const std::string& AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(
+    const boost::shared_ptr<CellVariable<double>>& Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_convective_op_type.find(Q_var)->second;
@@ -309,8 +312,9 @@ boost::shared_ptr<Database> AdvDiffSemiImplicitHierarchyIntegrator::getConvectiv
     return d_Q_convective_op_input_db.find(Q_var)->second;
 }
 
-void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(const boost::shared_ptr<CellVariable<double>>& Q_var,
-                                                                   const boost::shared_ptr<ConvectiveOperator>& convective_op)
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(
+    const boost::shared_ptr<CellVariable<double>>& Q_var,
+    const boost::shared_ptr<ConvectiveOperator>& convective_op)
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     TBOX_ASSERT(!d_integrator_is_initialized);

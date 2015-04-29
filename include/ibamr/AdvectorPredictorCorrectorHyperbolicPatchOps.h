@@ -178,39 +178,39 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    void registerAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var);
+    void registerAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>& u_var);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
-    void setAdvectionVelocityIsDivergenceFree(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var,
+    void setAdvectionVelocityIsDivergenceFree(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>& u_var,
                                               bool is_div_free);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular advection velocity.
      */
-    void setAdvectionVelocityFunction(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var,
+    void setAdvectionVelocityFunction(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>& u_var,
                                       const boost::shared_ptr<IBTK::CartGridFunction>& u_fcn);
 
     /*!
      * Register a cell-centered source term.
      */
-    void registerSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var);
+    void registerSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& F_var);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular source term.
      */
-    void setSourceTermFunction(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var,
+    void setSourceTermFunction(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& F_var,
                                const boost::shared_ptr<IBTK::CartGridFunction>& F_fcn);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
+    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -219,8 +219,8 @@ public:
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
-                              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var);
+    void setAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
+                              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>& u_var);
 
     /*!
      * Set the cell-centered source term to be used with a particular
@@ -229,35 +229,35 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
-                       const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var);
+    void setSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
+                       const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& F_var);
 
     /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setConvectiveDifferencingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setConvectiveDifferencingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditions(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setInitialConditions(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                               const boost::shared_ptr<IBTK::CartGridFunction>& Q_init);
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                             const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                             std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> Q_bc_coef);
 
     /*!
@@ -411,8 +411,8 @@ protected:
      * \brief Get a pointer to the requested flux integral patch data on the
      * specified patch.
      */
-    boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getFluxIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    boost::shared_ptr<SAMRAI::pdat::FaceData<double>>
+    getFluxIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                         SAMRAI::hier::Patch& patch,
                         const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
@@ -420,8 +420,8 @@ protected:
      * \brief Get a pointer to the requested q integral patch data on the
      * specified patch.
      */
-    boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getQIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    boost::shared_ptr<SAMRAI::pdat::FaceData<double>>
+    getQIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                      SAMRAI::hier::Patch& patch,
                      const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
@@ -429,8 +429,8 @@ protected:
      * \brief Get a pointer to the requested u integral patch data on the
      * specified patch.
      */
-    boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getUIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    boost::shared_ptr<SAMRAI::pdat::FaceData<double>>
+    getUIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                      SAMRAI::hier::Patch& patch,
                      const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
@@ -449,39 +449,36 @@ protected:
     /*
      * Advection velocity data.
      */
-    std::set<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_u_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >, bool> d_u_is_div_free;
-    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
-        d_u_fcn;
+    std::set<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>> d_u_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>, bool> d_u_is_div_free;
+    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>, boost::shared_ptr<IBTK::CartGridFunction>> d_u_fcn;
     bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 
     /*
      * Source term data.
      */
-    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_F_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
-        d_F_fcn;
+    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>> d_F_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, boost::shared_ptr<IBTK::CartGridFunction>> d_F_fcn;
 
     /*
      * Transported quantities.
      */
-    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-            boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_Q_u_map;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-            boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_F_map;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
-        d_Q_init;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> >
-        d_Q_bc_coef;
+    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>> d_Q_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>> d_Q_u_map;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>> d_Q_F_map;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, ConvectiveDifferencingType> d_Q_difference_form;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, boost::shared_ptr<IBTK::CartGridFunction>> d_Q_init;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>> d_Q_bc_coef;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_flux_integral_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>> d_flux_integral_var;
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
@@ -491,10 +488,10 @@ protected:
      * These values must also be maintained in the case in which the advection
      * velocity is not discretely divergence free.
      */
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_q_integral_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_u_integral_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>> d_q_integral_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>>> d_u_integral_var;
 
     /*
      * Boolean indicating whether or not to overwrite tag data (default is

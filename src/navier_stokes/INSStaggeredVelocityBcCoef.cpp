@@ -77,11 +77,12 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(const unsigned int comp_idx,
-                                                       const INSStaggeredHierarchyIntegrator* fluid_solver,
-                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                       const TractionBcType traction_bc_type,
-                                                       const bool homogeneous_bc)
+INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
+    const unsigned int comp_idx,
+    const INSStaggeredHierarchyIntegrator* fluid_solver,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    const TractionBcType traction_bc_type,
+    const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -204,9 +205,9 @@ void INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                            const boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                            const boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>& acoef_data,
+                                            const boost::shared_ptr<ArrayData<double>>& bcoef_data,
+                                            const boost::shared_ptr<ArrayData<double>>& gcoef_data,
                                             const boost::shared_ptr<Variable>& variable,
                                             const Patch& patch,
                                             const BoundaryBox& bdry_box,
@@ -228,11 +229,11 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    boost::shared_ptr<SideData<double> > u_target_data;
+    boost::shared_ptr<SideData<double>> u_target_data;
     if (d_u_target_data_idx >= 0)
-        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_u_target_data_idx));
+        u_target_data = BOOST_CAST<SideData<double>>(patch.getPatchData(d_u_target_data_idx));
     else if (d_target_data_idx >= 0)
-        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_target_data_idx));
+        u_target_data = BOOST_CAST<SideData<double>>(patch.getPatchData(d_target_data_idx));
 
     // Where appropriate, update boundary condition coefficients.
     //

@@ -231,10 +231,10 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
         {
             const int& patch_data_index = *cit;
-            d_refine_op->refine(
-                fine, coarse, patch_data_index, patch_data_index,
-                CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))), // should this be SideOverlap???
-                ratio);
+            d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index,
+                                CellOverlap(BoxContainer(fine_box),
+                                            Transformation(IntVector::getZero(DIM))), // should this be SideOverlap???
+                                ratio);
         }
         return;
     }

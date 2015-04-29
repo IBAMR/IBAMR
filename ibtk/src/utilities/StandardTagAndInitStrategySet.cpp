@@ -166,12 +166,12 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::sh
     return;
 }
 
-void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                     const int level_number,
-                                                                     const boost::shared_ptr<PatchLevel>& coarser_level,
-                                                                     const double coarsen_data_time,
-                                                                     const bool before_advance)
+void StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const int level_number,
+    const boost::shared_ptr<PatchLevel>& coarser_level,
+    const double coarsen_data_time,
+    const bool before_advance)
 {
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {

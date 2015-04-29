@@ -169,8 +169,9 @@ public:
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    void
-    resetTimeDependentData(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level, double new_time, bool can_be_refined);
+    void resetTimeDependentData(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
+                                double new_time,
+                                bool can_be_refined);
 
     /*!
      * Reset data on the patch level by destroying all patch data other than

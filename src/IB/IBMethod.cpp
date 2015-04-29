@@ -138,7 +138,9 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(const std::string& object_name, const boost::shared_ptr<Database>& input_db, bool register_for_restart)
+IBMethod::IBMethod(const std::string& object_name,
+                   const boost::shared_ptr<Database>& input_db,
+                   bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -579,7 +581,7 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
                                    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> >* U_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> > *U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -596,7 +598,7 @@ void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                              const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> >* U_jac_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> > *U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -651,7 +653,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_current_data, *U_new_data;
+    std::vector<boost::shared_ptr<LData> > *U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -678,8 +680,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> >* F_data, *X_data, *U_data;
-    bool* F_needs_ghost_fill, *X_needs_ghost_fill;
+    std::vector<boost::shared_ptr<LData> > *F_data, *X_data, *U_data;
+    bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityData(&U_data, data_time);
@@ -718,8 +720,8 @@ void IBMethod::spreadForce(const int f_data_idx,
                            const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> >* F_data, *X_LE_data;
-    bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<boost::shared_ptr<LData> > *F_data, *X_LE_data;
+    bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_data,
@@ -737,8 +739,8 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> >* F_jac_data, *X_LE_data;
-    bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<boost::shared_ptr<LData> > *F_jac_data, *X_LE_data;
+    bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_jac_data,
@@ -1161,7 +1163,8 @@ void IBMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>&
     return;
 }
 
-void IBMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
+void IBMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
+                                    int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1170,7 +1173,8 @@ void IBMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalan
     return;
 }
 
-void IBMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
+void IBMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                       int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;

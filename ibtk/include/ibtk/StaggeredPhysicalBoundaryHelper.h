@@ -105,8 +105,8 @@ public:
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
      * boundaries on a single patch.
      */
-    void copyDataAtDirichletBoundaries(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& u_out_data,
-                                       const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& u_in_data,
+    void copyDataAtDirichletBoundaries(const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& u_out_data,
+                                       const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& u_in_data,
                                        const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
@@ -118,7 +118,7 @@ public:
     /*!
      * \brief Setup a masking function on a single patch.
      */
-    void setupMaskingFunction(const boost::shared_ptr<SAMRAI::pdat::SideData<int> >& u_data,
+    void setupMaskingFunction(const boost::shared_ptr<SAMRAI::pdat::SideData<int>>& u_data,
                               const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
@@ -131,7 +131,8 @@ public:
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries in the specified coordinate axis.
      */
-    bool patchTouchesDirichletBoundaryAxis(const boost::shared_ptr<SAMRAI::hier::Patch>& patch, const unsigned int axis) const;
+    bool patchTouchesDirichletBoundaryAxis(const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                                           const unsigned int axis) const;
 
     /*!
      * \brief Cache boundary coefficient data.
@@ -159,8 +160,8 @@ protected:
      * Cached hierarchy-related information.
      */
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
-    std::vector<std::map<int, std::vector<SAMRAI::hier::BoundaryBox> > > d_physical_codim1_boxes;
-    std::vector<std::map<int, std::vector<boost::shared_ptr<SAMRAI::pdat::ArrayData<int> > > > > d_dirichlet_bdry_locs;
+    std::vector<std::map<int, std::vector<SAMRAI::hier::BoundaryBox>>> d_physical_codim1_boxes;
+    std::vector<std::map<int, std::vector<boost::shared_ptr<SAMRAI::pdat::ArrayData<int>>>>> d_dirichlet_bdry_locs;
 
 private:
     /*!

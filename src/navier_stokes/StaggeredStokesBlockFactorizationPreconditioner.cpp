@@ -118,7 +118,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string U_var_name = d_object_name + "::U";
-    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
+    d_U_var = BOOST_CAST<SideVariable<double>>(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_F_U_mod_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -130,7 +130,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
 
     const std::string P_var_name = d_object_name + "::P";
-    d_P_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(P_var_name));
+    d_P_var = BOOST_CAST<CellVariable<double>>(var_db->getVariable(P_var_name));
     if (d_P_var)
     {
         d_P_scratch_idx = var_db->mapVariableAndContextToIndex(d_P_var, context);

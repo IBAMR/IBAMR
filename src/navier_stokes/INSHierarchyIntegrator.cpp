@@ -379,7 +379,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                const boost::shared_ptr<Variable>& Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
-      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL), d_default_bc_coefs(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coefs")),
+      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
+      d_default_bc_coefs(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coefs")),
       d_bc_coefs(NDIM), d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
 {
     // Set some default values.

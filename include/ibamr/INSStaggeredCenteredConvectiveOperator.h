@@ -75,10 +75,11 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredCenteredConvectiveOperator(const std::string& object_name,
-                                           const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                                           ConvectiveDifferencingType difference_form,
-                                           const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
+    INSStaggeredCenteredConvectiveOperator(
+        const std::string& object_name,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+        ConvectiveDifferencingType difference_form,
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -197,7 +198,7 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_U_var;
     int d_U_scratch_idx;
 };
 } // namespace IBAMR

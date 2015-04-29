@@ -81,11 +81,12 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(const unsigned int comp_idx,
-                                                         const INSCollocatedHierarchyIntegrator* fluid_solver,
-                                                         const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
-                                                         const TractionBcType traction_bc_type,
-                                                         const bool homogeneous_bc)
+INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(
+    const unsigned int comp_idx,
+    const INSCollocatedHierarchyIntegrator* fluid_solver,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+    const TractionBcType traction_bc_type,
+    const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -156,7 +157,8 @@ void INSCollocatedVelocityBcCoef::clearTargetPressurePatchDataIndex()
     return;
 }
 
-void INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
+void INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
@@ -208,9 +210,9 @@ void INSCollocatedVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSCollocatedVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                             const boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                             const boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSCollocatedVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>& acoef_data,
+                                             const boost::shared_ptr<ArrayData<double>>& bcoef_data,
+                                             const boost::shared_ptr<ArrayData<double>>& gcoef_data,
                                              const boost::shared_ptr<Variable>& variable,
                                              const Patch& patch,
                                              const BoundaryBox& bdry_box,

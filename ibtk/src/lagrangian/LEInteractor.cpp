@@ -2280,7 +2280,8 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     }
     else
     {
-        for (typename LIndexSetData<T>::SetIterator it(*idx_data, /*begin*/ true), e(*idx_data, /*begin*/ false); it != e; ++it)
+        for (typename LIndexSetData<T>::SetIterator it(*idx_data, /*begin*/ true), e(*idx_data, /*begin*/ false);
+             it != e; ++it)
         {
             const auto& i = it.getIndex();
             if (!box.contains(i)) continue;

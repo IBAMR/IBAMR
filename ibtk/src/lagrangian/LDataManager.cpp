@@ -737,7 +737,8 @@ void LDataManager::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWrit
     return;
 }
 
-void LDataManager::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_idx)
+void LDataManager::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
+                                        int workload_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1398,7 +1399,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         for (int k = 0; k < num_ghost_nodes; ++k)
         {
             ghost_nodes[k] =
-                 boost::shared_ptr<LNode>(&(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k], NullDeleter());
+                boost::shared_ptr<LNode>(&(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k], NullDeleter());
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
@@ -2463,9 +2464,9 @@ void LDataManager::getFromRestart()
         // Rebuild the application ordering.
         int n_local_lag_indices = static_cast<int>(d_local_lag_indices[level_number].size());
         int ierr = AOCreateMapping(PETSC_COMM_WORLD, n_local_lag_indices,
-                               n_local_lag_indices > 0 ? &d_local_lag_indices[level_number][0] : NULL,
-                               n_local_lag_indices > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
-                               &d_ao[level_number]);
+                                   n_local_lag_indices > 0 ? &d_local_lag_indices[level_number][0] : NULL,
+                                   n_local_lag_indices > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
+                                   &d_ao[level_number]);
         IBTK_CHKERRQ(ierr);
     }
     return;
