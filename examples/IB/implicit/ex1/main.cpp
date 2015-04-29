@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBImplicitStaggeredHierarchyIntegrator.h>
@@ -56,7 +57,7 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                  const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -117,24 +118,23 @@ int main(int argc, char* argv[])
         auto navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        auto ib_method_ops = boost::make_shared<IBMethod("IBMethod", app_initializer->getComponentDatabase>("IBMethod"));
-        auto time_integrator = boost::make_shared<IBImplicitStaggeredHierarchyIntegrator>("IBHierarchyIntegrator",
-                                                       app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                                       ib_method_ops,
-                                                       navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto ib_method_ops =
+            boost::make_shared<IBMethod>("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        auto time_integrator = boost::make_shared<IBImplicitStaggeredHierarchyIntegrator>(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IB solver.
         auto ib_initializer = boost::make_shared<IBStandardInitializer>(
@@ -195,8 +195,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
+        auto silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -285,11 +285,6 @@ int main(int argc, char* argv[])
                             loop_time, postproc_data_dump_dirname);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();
@@ -297,7 +292,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                  const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -310,9 +305,10 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
-    auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
+    auto hier_db = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     auto var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
@@ -320,7 +316,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
                                                            navier_stokes_integrator->getCurrentContext()));
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"));
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();

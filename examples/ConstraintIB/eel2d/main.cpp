@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -323,6 +323,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");

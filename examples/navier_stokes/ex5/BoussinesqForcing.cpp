@@ -101,9 +101,9 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_cc_data_ops->linearSum(T_scratch_idx, 0.5, T_current_idx, 0.5, T_new_idx);
         }
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent ghost_fill_component(T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false,
-                                                               "CONSERVATIVE_COARSEN", "LINEAR", false,
-                                                               d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_T_var));
+        InterpolationTransactionComponent ghost_fill_component(
+            T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false,
+            d_adv_diff_hier_integrator->getPhysicalBcCoefs(BOOST_CAST<CellVariable<double> >(d_T_var)));
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_fill_component, hierarchy);
         ghost_fill_op.fillData(data_time);
@@ -139,10 +139,11 @@ void BoussinesqForcing::setDataOnPatch(const int data_idx,
     auto T_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_T_var, ctx));
     const Box& patch_box = patch->getBox();
     const int axis = NDIM - 1;
-    for (auto it(SideGeometry::toSideBox(patch_box, axis)); it; it++)
+    for (auto it = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); it != e; ++it)
     {
-        SideIndex s_i(it(), axis, 0);
-        (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));
+        const SideIndex& s_i = *it;
+        (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(CellIndex(s_i.toCell(SideIndex::Upper))) +
+                                           (*T_scratch_data)(CellIndex(s_i.toCell(SideIndex::Lower))));
     }
     return;
 }

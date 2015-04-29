@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -95,7 +96,7 @@ void PK1_dil_stress_function(TensorValue<double>& PP,
 using namespace ModelData;
 
 // Function prototypes
-void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                  const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -169,8 +170,9 @@ int main(int argc, char* argv[])
                                           static_cast<int>(ceil(1.0 / ds)), 0.95, 1.05, 0.0, 1, 0.0, 1,
                                           Utility::string_to_enum<ElemType>(elem_type));
 #endif
+        const MeshBase::const_element_iterator begin_el = mesh.elements_begin();
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (auto el = mesh.elements_begin(); el != end_el; ++el)
+        for (auto el = begin_el; el != end_el; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -199,7 +201,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -218,27 +220,24 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        auto ib_method_ops = boost::make_shared<IBFEMethod>("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto ib_method_ops = boost::make_shared<IBFEMethod>(
+            "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
@@ -303,7 +302,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -398,18 +397,13 @@ int main(int argc, char* argv[])
                             postproc_data_dump_dirname);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();
     return 0;
 }
 
-void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                  const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -423,9 +417,10 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
-    auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
+    auto hier_db = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     auto var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
@@ -433,7 +428,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
                                                            navier_stokes_integrator->getCurrentContext()));
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"));
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();

@@ -579,20 +579,14 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
     return ierr;
 }
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_SAMRAI(SNES snes,
-                                                                                       Vec x,
-                                                                                       Mat A,
-                                                                                       Mat B,
-                                                                                       void* ctx)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
-    return ib_integrator->compositeIBJacobianSetup(snes, x, A, B, mat_structure);
+    return ib_integrator->compositeIBJacobianSetup(snes, x, A, B);
 }
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(SNES /*snes*/,
-                                                                                Vec x,
-                                                                                Mat A,
-                                                                                Mat /*B*/)
+PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);

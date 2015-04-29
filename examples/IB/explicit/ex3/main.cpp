@@ -336,9 +336,9 @@ void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
     plog << "simulation time is " << loop_time << endl;
 
     // Write Cartesian data.
-    SAMRAI_MPI comm(MPI_COMM_WORLD);
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
     auto hier_db = boost::make_shared<HDFDatabase>("hier_db");

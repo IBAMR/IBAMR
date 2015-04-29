@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GeneralizedIBMethod.h>
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -181,7 +182,7 @@ int main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
+                                               time_integrator.get(),
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
         auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
@@ -340,11 +341,6 @@ int main(int argc, char* argv[])
                             loop_time, postproc_data_dump_dirname);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();
@@ -365,6 +361,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
@@ -375,7 +372,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
                                                            navier_stokes_integrator->getCurrentContext()));
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"));
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();

@@ -146,7 +146,7 @@ private:
      * Map from local nodes to element patches.
      */
     typedef std::vector<boost::shared_ptr<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
-    typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
+    typedef boost::tuple<const libMesh::Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
     struct ElemPatchItemComp : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {
         inline bool operator()(const ElemPatchItem& lhs, const ElemPatchItem& rhs)

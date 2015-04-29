@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -121,10 +122,9 @@ int main(int argc, char* argv[])
             main_db->getStringWithDefault("adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
         {
-            auto predictor =
-                boost::make_shared<AdvectorExplicitPredictorPatchOps>(
-                    "AdvectorExplicitPredictorPatchOps",
-                    app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
+            auto predictor = boost::make_shared<AdvectorExplicitPredictorPatchOps>(
+                "AdvectorExplicitPredictorPatchOps",
+                app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = boost::make_shared<AdvDiffPredictorCorrectorHierarchyIntegrator>(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
@@ -141,34 +141,28 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift(IntVector::getOne(DIM)).min() > 0;
-        auto patch_hierarchy =
-            boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            "StandardTagAndInitialize",
-            time_integrator,
+            "StandardTagAndInitialize", time_integrator.get(),
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,
-            "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                                  error_detector,
-                                                  box_generator,
-                                                  load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Setup the advected and diffused quantity.
-        auto T_var = boost::make_shared<CellVariable<double> >(DIM, "T");
+        auto T_var = boost::make_shared<CellVariable<double>>(DIM, "T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
-            T_var,
-            new muParserCartGridFunction(
-                "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        const boost::shared_ptr<RobinBcCoefStrategy>& T_bc_coef = NULL;
+            T_var, boost::make_shared<muParserCartGridFunction>(
+                       "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
+        boost::shared_ptr<RobinBcCoefStrategy> T_bc_coef;
         if (!periodic_domain)
         {
             T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
@@ -178,9 +172,9 @@ int main(int argc, char* argv[])
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
 
         // Set up the fluid solver.
-        time_integrator->registerBodyForceFunction(boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA"));
+        time_integrator->registerBodyForceFunction(
+            boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA")));
         vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -198,7 +192,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -269,11 +263,6 @@ int main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
         }
-
-        // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete T_bc_coef;
-
     }
 
     SAMRAIManager::shutdown();

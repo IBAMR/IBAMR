@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -109,7 +110,7 @@ namespace ModelData
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
-MeshFunction* U_fcn;
+boost::shared_ptr<MeshFunction> U_fcn;
 void tether_force_function(VectorValue<double>& F,
                            const TensorValue<double>& /*FF*/,
                            const libMesh::Point& X,
@@ -132,7 +133,7 @@ using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
-void postprocess_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                       const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -260,7 +261,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -279,27 +280,24 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        auto ib_method_ops = boost::make_shared<IBFEMethod>("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto ib_method_ops = boost::make_shared<IBFEMethod>(
+            "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerLagBodyForceFunction(tether_force_function);
@@ -357,7 +355,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -395,6 +393,7 @@ int main(int argc, char* argv[])
 
         // Open streams to save lift and drag coefficients and the norms of the
         // velocity.
+        SAMRAI_MPI comm(MPI_COMM_WORLD);
         if (comm.getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
@@ -424,7 +423,7 @@ int main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-            AutoPtr<NumericVector<double> > U_vec = U_system.current_local_solution->clone();
+            AutoPtr<NumericVector<double>> U_vec = U_system.current_local_solution->clone();
             *U_vec = *U_system.solution;
             U_vec->close();
             DofMap& U_dof_map = U_system.get_dof_map();
@@ -440,7 +439,7 @@ int main(int argc, char* argv[])
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            delete U_fcn;
+            U_fcn.reset();
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
@@ -493,18 +492,13 @@ int main(int argc, char* argv[])
             U_L2_norm_stream.close();
             U_max_norm_stream.close();
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();
     return 0;
 }
 
-void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarchy*/,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy>& /*patch_hierarchy*/,
                       const boost::shared_ptr<INSHierarchyIntegrator>& /*navier_stokes_integrator*/,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -521,16 +515,16 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> F_dof_indices(NDIM);
         AutoPtr<FEBase> fe(FEBase::build(dim, F_dof_map.variable_type(0)));
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
         boost::multi_array<double, 2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (auto t !=  = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -539,20 +533,21 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
                 F_dof_map.dof_indices(elem, F_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices[0].size();
+            const auto n_basis = F_dof_indices[0].size();
             get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
-            for (int qp = 0; qp < n_qp; ++qp)
+            for (auto qp = 0; qp < n_qp; ++qp)
             {
-                for (int k = 0; k < n_basis; ++k)
+                for (auto k = 0; k < n_basis; ++k)
                 {
-                    for (int d = 0; d < NDIM; ++d)
+                    for (auto d = 0; d < NDIM; ++d)
                     {
                         F_integral[d] += F_node[k][d] * phi[k][qp] * JxW[qp];
                     }
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(F_integral, NDIM);
+        SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(F_integral, NDIM, MPI_SUM);
         static const double rho = 1.0;
         static const double U_max = 1.0;
         static const double D = 1.0;
@@ -570,11 +565,11 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
         NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
         U_vec->localize(*U_ghost_vec);
         DofMap& U_dof_map = U_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> U_dof_indices(NDIM);
         AutoPtr<FEBase> fe(FEBase::build(dim, U_dof_map.variable_type(0)));
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
         VectorValue<double> U_qp;
         boost::multi_array<double, 2> U_node;
@@ -601,9 +596,10 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&U_L1_norm, 1);
-        SAMRAI_MPI::sumReduction(&U_L2_norm, 1);
-        SAMRAI_MPI::maxReduction(&U_max_norm, 1);
+        SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&U_L1_norm, 1, MPI_SUM);
+        comm.AllReduce(&U_L2_norm, 1, MPI_SUM);
+        comm.AllReduce(&U_max_norm, 1, MPI_MAX);
         U_L2_norm = sqrt(U_L2_norm);
         if (comm.getRank() == 0)
         {

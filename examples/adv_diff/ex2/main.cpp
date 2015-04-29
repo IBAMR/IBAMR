@@ -40,6 +40,7 @@
 #include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
 #include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -93,7 +94,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& time_integrator;
+        boost::shared_ptr<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
@@ -115,25 +116,24 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize", time_integrator.get(),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Set up the advected and diffused quantity.
         auto C_var = boost::make_shared<CellVariable<double> >(DIM, "U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        const boost::shared_ptr<RobinBcCoefStrategy> C_bc_coef = boost::make_shared<muParserRobinBcCoefs>& (
+        const boost::shared_ptr<RobinBcCoefStrategy> C_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
             "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
         auto C_exact_soln = boost::make_shared<muParserCartGridFunction>(
@@ -142,19 +142,19 @@ int main(int argc, char* argv[])
         auto u_adv_var = boost::make_shared<FaceVariable<double> >(DIM, "u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(
-            u_adv_var, new muParserCartGridFunction(
+            u_adv_var, boost::make_shared<muParserCartGridFunction>(
                            "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
         auto F_var = boost::make_shared<CellVariable<double> >(DIM, "F");
         time_integrator->registerSourceTerm(F_var);
         time_integrator->setSourceTermFunction(
-            F_var, new muParserCartGridFunction(
+            F_var, boost::make_shared<muParserCartGridFunction>(
                        "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
         time_integrator->setSourceTerm(C_var, F_var);
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -263,10 +263,6 @@ int main(int argc, char* argv[])
             time_integrator->setupPlotData();
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
-
-        // Cleanup boundary condition specification objects (when necessary).
-        delete C_bc_coef;
-
     }
 
     SAMRAIManager::shutdown();
