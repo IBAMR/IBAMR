@@ -173,6 +173,19 @@ public:
      */
     static void constructRestrictionScalingOp(Mat& P, Vec& L);
 
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * additive Schwarz method.
+     */
+    static void constructPatchLevelASMSubdomains(IS** is_overlap,
+                                                 IS** is_nonoverlap,
+                                                 int& n_domains,
+                                                 const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                                 const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
     //\}
 
 protected:
@@ -228,6 +241,33 @@ private:
                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
                                              const AO& coarse_level_ao,
                                              const int coarse_ao_offset);
+
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * additive Schwarz method for a cc-variable.
+     */
+    static void
+    constructPatchLevelASMSubdomains_cell(IS** is_overlap,
+                                          IS** is_nonoverlap,
+                                          int& n_subdomains,
+                                          const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                          const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                          const std::vector<int>& num_dofs_per_proc,
+                                          int dof_index_idx,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * additive Schwarz method for a sc-variable.
+     */
+    static void
+    constructPatchLevelASMSubdomains_side(IS** is_overlap,
+                                          IS** is_nonoverlap,
+                                          int& n_subdomains,
+                                          const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                          const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                          const std::vector<int>& num_dofs_per_proc,
+                                          int dof_index_idx,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
 } // namespace IBTK
 

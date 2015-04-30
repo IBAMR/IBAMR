@@ -54,6 +54,9 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "RefineAlgorithm.h"
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
 #include "boost/array.hpp"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -61,9 +64,6 @@
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -692,6 +692,41 @@ void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
     return;
 } // constructRestrictionScalingOp
 
+void PETScMatUtilities::constructPatchLevelASMSubdomains(IS** is_overlap,
+                                                         IS** is_nonoverlap,
+                                                         int& n_subdomains,
+                                                         const IntVector<NDIM>& box_size,
+                                                         const IntVector<NDIM>& overlap_size,
+                                                         const std::vector<int>& num_dofs_per_proc,
+                                                         int dof_index_idx,
+                                                         Pointer<PatchLevel<NDIM> > patch_level)
+{
+    // Determine the data-centering type.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > dof_index_var;
+    var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+    Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
+    Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+    if (dof_index_cc_var)
+    {
+        constructPatchLevelASMSubdomains_cell(is_overlap, is_nonoverlap, n_subdomains, box_size, overlap_size,
+                                              num_dofs_per_proc, dof_index_idx, patch_level);
+    }
+    else if (dof_index_sc_var)
+    {
+        constructPatchLevelASMSubdomains_side(is_overlap, is_nonoverlap, n_subdomains, box_size, overlap_size,
+                                              num_dofs_per_proc, dof_index_idx, patch_level);
+    }
+    else
+    {
+        TBOX_ERROR("PETScVecUtilities::constructPatchLevelASMSubdomains():\n"
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+    }
+
+    return;
+
+} // constructPatchLevelASMSubdomains
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1036,6 +1071,255 @@ void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
     return;
 
 } // constructProlongationOp_side
+
+void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
+                                                              IS** is_nonoverlap,
+                                                              int& n_subdomains,
+                                                              const IntVector<NDIM>& box_size,
+                                                              const IntVector<NDIM>& overlap_size,
+                                                              const std::vector<int>& num_dofs_per_proc,
+                                                              int dof_index_idx,
+                                                              Pointer<PatchLevel<NDIM> > patch_level)
+{
+    // Determine the DOF index range on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int dofs_local = num_dofs_per_proc[mpi_rank];
+    const int dof_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int dof_upper = dof_lower + dofs_local;
+
+    // Determine the total nonoverlapping subdomains on this processor.
+    n_subdomains = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM>& patch_lower = patch_box.lower();
+        const IntVector<NDIM>& patch_upper = patch_box.upper();
+
+        // Compute number of nonoverlapping subdomains
+        IntVector<NDIM> cells = 1;
+        cells += patch_upper - patch_lower;
+        IntVector<NDIM> subdomains = cells / box_size;
+        int n_patch_subdomains = 1;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            // If box size is bigger than patch size, we still account for it.
+            if (subdomains(d) == 0)
+            {
+                subdomains(d) = 1;
+            }
+            n_patch_subdomains *= subdomains(d);
+        }
+        n_subdomains += n_patch_subdomains;
+    }
+    *is_overlap = new IS[n_subdomains];
+    *is_nonoverlap = new IS[n_subdomains];
+
+    // Fill in the IS'es
+    int counter = 0;
+    bool there_is_overlap = overlap_size.min();
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM>& patch_lower = patch_box.lower();
+        const IntVector<NDIM>& patch_upper = patch_box.upper();
+        Pointer<CellData<NDIM, int> > dof_data = patch->getPatchData(dof_index_idx);
+        const int data_depth = dof_data->getDepth();
+
+        // Compute number of nonoverlapping subdomains
+        IntVector<NDIM> cells = 1;
+        cells += patch_upper - patch_lower;
+        IntVector<NDIM> subdomains = cells / box_size;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (subdomains(d) == 0)
+            {
+                subdomains(d) = 1;
+            }
+        }
+
+#if (NDIM == 2)
+        const int Nx = subdomains(0);
+        const int Ny = subdomains(1);
+
+        int j_lower = patch_lower(1);
+        for (int J = 1; J <= Ny; ++J)
+        {
+            const int height = (cells(1) / box_size(1) ? box_size(1) : 0) + (J == Ny ? cells(1) % box_size(1) : 0);
+
+            int i_lower = patch_lower(0);
+            for (int I = 1; I <= Nx; ++I)
+            {
+                const int width = (cells(0) / box_size(0) ? box_size(0) : 0) + (I == Nx ? cells(0) % box_size(0) : 0);
+
+                // Create a box to iterate over for the nonoverlapping subdomain
+                IntVector<NDIM> box_lower(i_lower, j_lower);
+                IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1);
+                Box<NDIM> box_local(box_lower, box_upper);
+
+                std::vector<int> box_local_dofs;
+                box_local_dofs.reserve(height * width * data_depth);
+                for (Box<NDIM>::Iterator b(box_local); b; b++)
+                {
+                    const CellIndex<NDIM>& i = b();
+                    for (int d = 0; d < data_depth; ++d)
+                    {
+                        const int dof_idx = (*dof_data)(i, d);
+#if !defined(NDEBUG)
+                        TBOX_ASSERT(dof_idx >= dof_lower && dof_idx < dof_upper);
+#endif
+                        box_local_dofs.push_back(dof_idx);
+                    }
+                }
+                const int n_idx = static_cast<int>(box_local_dofs.size());
+                ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
+                                &is_nonoverlap[0][counter]);
+
+                // Fill IS'es for overlap subdomain
+                if (!there_is_overlap)
+                {
+                    PetscObjectReference((PetscObject)is_nonoverlap[0][counter]);
+                    is_overlap[0][counter] = is_nonoverlap[0][counter];
+                }
+                else
+                {
+                    // Create a box to iterate over overlapping subdomain
+                    const int gcwx = overlap_size(0);
+                    const int gcwy = overlap_size(1);
+                    IntVector<NDIM> box_lower(i_lower - gcwx, j_lower - gcwy);
+                    IntVector<NDIM> box_upper(i_lower + width + gcwx - 1, j_lower + height + gcwy - 1);
+                    Box<NDIM> box_overlap(box_lower, box_upper);
+
+                    std::vector<int> box_overlap_dofs;
+                    const int max_size = (height + 2 * gcwx) * (width + 2 * gcwy) * data_depth;
+                    box_overlap_dofs.reserve(max_size);
+                    for (Box<NDIM>::Iterator b(box_overlap); b; b++)
+                    {
+                        const CellIndex<NDIM>& i = b();
+                        for (int d = 0; d < data_depth; ++d)
+                        {
+                            const int dof_idx = (*dof_data)(i, d);
+
+                            // If keep only the DOFs that are inside the
+                            // physical domain. Some of the DOFs will be on
+                            // other processors.
+                            if (dof_idx >= 0)
+                            {
+                                box_local_dofs.push_back(dof_idx);
+                            }
+                        }
+                    }
+                    const int n_idx = static_cast<int>(box_overlap_dofs.size());
+                    ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
+                                    &is_overlap[0][counter]);
+                }
+                ++counter;
+                i_lower += width;
+            }
+            j_lower += height;
+        }
+
+#elif(NDIM == 3)
+
+        const int Nx = subdomains(0);
+        const int Ny = subdomains(1);
+        const int Nz = subdomains(2);
+
+        int k_lower = patch_lower(2);
+        for (int K = 1; K <= Nz; ++K)
+        {
+            const int depth = (cells(2) / box_size(2) ? box_size(2) : 0) + (K == Nz ? cells(2) % box_size(2) : 0);
+
+            int j_lower = patch_lower(1);
+            for (int J = 1; J <= Ny; ++J)
+            {
+                const int height = (cells(1) / box_size(1) ? box_size(1) : 0) + (J == Ny ? cells(1) % box_size(1) : 0);
+
+                int i_lower = patch_lower(0);
+                for (int I = 1; I <= Nx; ++I)
+                {
+                    const int width =
+                        (cells(0) / box_size(0) ? box_size(0) : 0) + (I == Nx ? cells(0) % box_size(0) : 0);
+
+                    // Create a box to iterate over for the nonoverlapping subdomain
+                    IntVector<NDIM> box_lower(i_lower, j_lower, k_lower);
+                    IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1, k_lower + depth - 1);
+                    Box<NDIM> box_local(box_lower, box_upper);
+
+                    std::vector<int> box_local_dofs;
+                    box_local_dofs.reserve(height * width * depth * data_depth);
+                    for (Box<NDIM>::Iterator b(box_local); b; b++)
+                    {
+                        const CellIndex<NDIM>& i = b();
+                        for (int d = 0; d < data_depth; ++d)
+                        {
+                            const int dof_idx = (*dof_data)(i, d);
+#if !defined(NDEBUG)
+                            TBOX_ASSERT(dof_idx >= dof_lower && dof_idx < dof_upper);
+#endif
+                            box_local_dofs.push_back(dof_idx);
+                        }
+                    }
+                    const int n_idx = static_cast<int>(box_local_dofs.size());
+                    ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
+                                    &is_nonoverlap[0][counter]);
+
+                    // Fill IS'es for overlap subdomain
+                    if (!there_is_overlap)
+                    {
+                        PetscObjectReference((PetscObject)is_nonoverlap[0][counter]);
+                        is_overlap[0][counter] = is_nonoverlap[0][counter];
+                    }
+                    else
+                    {
+                        // Create a box to iterate over overlapping subdomain
+                        const int gcwx = overlap_size(0);
+                        const int gcwy = overlap_size(1);
+                        const int gcwz = overlap_size(2);
+                        IntVector<NDIM> box_lower(i_lower - gcwx, j_lower - gcwy, k_lower - gcwz);
+                        IntVector<NDIM> box_upper(i_lower + width + gcwx - 1, j_lower + height + gcwy - 1,
+                                                  k_lower + depth + gcwz - 1);
+                        Box<NDIM> box_overlap(box_lower, box_upper);
+
+                        std::vector<int> box_overlap_dofs;
+                        const int max_size = (height + 2 * gcwx) * (width + 2 * gcwy) * (depth + 2 * gcwz) * data_depth;
+                        box_overlap_dofs.reserve(max_size);
+                        for (Box<NDIM>::Iterator b(box_overlap); b; b++)
+                        {
+                            const CellIndex<NDIM>& i = b();
+                            for (int d = 0; d < data_depth; ++d)
+                            {
+                                const int dof_idx = (*dof_data)(i, d);
+
+                                // If keep only the DOFs that are inside the
+                                // physical domain. Some of the DOFs will be on
+                                // other processors.
+                                if (dof_idx >= 0)
+                                {
+                                    box_local_dofs.push_back(dof_idx);
+                                }
+                            }
+                        }
+                        const int n_idx = static_cast<int>(box_overlap_dofs.size());
+                        ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
+                                        &is_overlap[0][counter]);
+                    }
+                    ++counter;
+                    i_lower += width;
+                }
+                j_lower += height;
+            }
+            k_lower += depth;
+        }
+#endif
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter == n_subdomains);
+#endif
+    return;
+} // constructPatchLevelASMSubdomains_cell
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
