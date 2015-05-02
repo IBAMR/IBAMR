@@ -46,20 +46,17 @@ namespace IBTK
 template <class T>
 inline typename LSetData<T>::DataIterator LSetData<T>::begin(const SAMRAI::hier::Box& box) const
 {
-    typename LSetData<T>::DataIterator it;
+    typename LSetData<T>::DataIterator it(*this);
     it.d_box = box * this->getGhostBox();
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> iter_begin(*this, /*begin*/ true);
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> iter_end(*this, /*begin*/ false);
-    it.d_index_it = iter_begin;
-    if (it.d_index_it != iter_end)
+    if (it.d_index_it != it.d_index_end)
     {
         it.d_node_set = &(*it.d_index_it);
-        while (it.d_index_it != iter_end && !it.d_box.contains(it.d_index_it.getIndex()))
+        while (it.d_index_it != it.d_index_end && !it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_index_it++;
         }
 
-        if (it.d_index_it != iter_end && it.d_box.contains(it.d_index_it.getIndex()))
+        if (it.d_index_it != it.d_index_end && it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_node_set = &(*it.d_index_it);
             TBOX_ASSERT(!it.d_node_set->empty());
@@ -67,20 +64,22 @@ inline typename LSetData<T>::DataIterator LSetData<T>::begin(const SAMRAI::hier:
         }
         else
         {
-            it = end(box);
+            it = end(it.d_box);
         }
     }
     else
     {
-        it = end(box);
+        it = end(it.d_box);
     }
     return it;
 }
 
 template <class T>
-inline typename LSetData<T>::DataIterator LSetData<T>::end(const SAMRAI::hier::Box& /*box*/) const
+inline typename LSetData<T>::DataIterator LSetData<T>::end(const SAMRAI::hier::Box& box) const
 {
-    typename LSetData<T>::DataIterator it;
+    typename LSetData<T>::DataIterator it(*this);
+    it.d_box = box * this->getGhostBox();
+    it.d_index_it = it.d_index_end;
     it.d_node_set = NULL;
     return it;
 }

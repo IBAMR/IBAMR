@@ -376,7 +376,7 @@ int main(int argc, char* argv[])
 }
 
 void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
-                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& /*navier_stokes_integrator*/,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,

@@ -102,7 +102,7 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
     ++d_node_it;
     if (d_node_it != d_node_set->end()) return *this;
     d_node_set = NULL;
-    d_index_it++;
+    ++d_index_it;
     while ((d_index_it != d_index_end) && !d_box.contains(d_index_it.getIndex()))
     {
         ++d_index_it;
