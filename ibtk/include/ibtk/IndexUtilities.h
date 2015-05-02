@@ -36,7 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <functional>
+#include <vector>
 
+#include "Box.h"
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -129,6 +131,24 @@ public:
                                  const SAMRAI::hier::Index<NDIM>& num_cells,
                                  const int depth,
                                  const int offset = 0);
+
+    /*!
+     * \brief Partition a patch box into subdomains of size \em box_size
+     * and into equal number of overlapping subdomains whose overlap region
+     * is defined by \em overlap_size.
+     *
+     * \param n_subdomains Total number of subdomains the patch box got
+     * partitioned into.
+     *
+     * \note The overlap boxes are obtained from nonoverlap_boxes by growing
+     * them suitably.
+     */
+    static void partitionPatchBox(const SAMRAI::hier::Box<NDIM>& patch_box,
+                                  const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                  int& n_subdomains,
+                                  std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+                                  std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes);
 
 private:
     /*!

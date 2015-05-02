@@ -111,6 +111,142 @@ inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 } // getIntegerMapping
 
+inline void IndexUtilities::partitionPatchBox(const SAMRAI::hier::Box<NDIM>& patch_box,
+                                              const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                              const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                              int& n_subdomains,
+                                              std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+                                              std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes)
+{
+    // Determine if there is an overlap
+    const bool there_is_overlap = overlap_size.max();
+
+    // Compute number of nonoverlapping subdomains
+    const SAMRAI::hier::IntVector<NDIM>& patch_lower = patch_box.lower();
+    const SAMRAI::hier::IntVector<NDIM>& patch_upper = patch_box.upper();
+    SAMRAI::hier::IntVector<NDIM> cells = 1;
+    cells += patch_upper - patch_lower;
+    SAMRAI::hier::IntVector<NDIM> subdomains = cells / box_size;
+    n_subdomains = 1;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        // If box size is bigger than patch size, we still account for it.
+        if (subdomains(d) == 0)
+        {
+            subdomains(d) = 1;
+        }
+        n_subdomains *= subdomains(d);
+    }
+
+    // Resize vectors
+    nonoverlap_boxes.resize(n_subdomains);
+    overlap_boxes.resize(n_subdomains);
+
+    int counter = 0;
+#if (NDIM == 2)
+
+    const int Nx = subdomains(0);
+    const int Ny = subdomains(1);
+
+    int j_lower = patch_lower(1);
+    for (int J = 0; J < Ny; ++J)
+    {
+        const int height = (cells(1) / box_size(1) ? box_size(1) : 0) + (J == (Ny - 1) ? cells(1) % box_size(1) : 0);
+
+        int i_lower = patch_lower(0);
+        for (int I = 0; I < Nx; ++I)
+        {
+            const int width = (cells(0) / box_size(0) ? box_size(0) : 0) + (I == (Nx - 1) ? cells(0) % box_size(0) : 0);
+
+            // Create a box for nonoverlapping subdomain
+            SAMRAI::hier::IntVector<NDIM> box_lower(i_lower, j_lower);
+            SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1);
+            SAMRAI::hier::Box<NDIM> box_local(box_lower, box_upper);
+            nonoverlap_boxes[counter] = box_local;
+
+            if (!there_is_overlap)
+            {
+                overlap_boxes[counter] = box_local;
+            }
+            else
+            {
+                // Create a box for overlapping subdomain
+                const int gcwx = overlap_size(0);
+                const int gcwy = overlap_size(1);
+                SAMRAI::hier::IntVector<NDIM> box_lower(i_lower - gcwx, j_lower - gcwy);
+                SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width + gcwx - 1, j_lower + height + gcwy - 1);
+                SAMRAI::hier::Box<NDIM> box_overlap(box_lower, box_upper);
+
+                overlap_boxes[counter] = box_overlap;
+            }
+            ++counter;
+            i_lower += width;
+        }
+        j_lower += height;
+    }
+#elif(NDIM == 3)
+
+    const int Nx = subdomains(0);
+    const int Ny = subdomains(1);
+    const int Nz = subdomains(2);
+
+    int k_lower = patch_lower(2);
+    for (int K = 0; K < Nz; ++K)
+    {
+        const int depth = (cells(2) / box_size(2) ? box_size(2) : 0) + (K == (Nz - 1) ? cells(2) % box_size(2) : 0);
+
+        int j_lower = patch_lower(1);
+        for (int J = 0; J < Ny; ++J)
+        {
+            const int height =
+                (cells(1) / box_size(1) ? box_size(1) : 0) + (J == (Ny - 1) ? cells(1) % box_size(1) : 0);
+
+            int i_lower = patch_lower(0);
+            for (int I = 0; I < Nx; ++I)
+            {
+                const int width =
+                    (cells(0) / box_size(0) ? box_size(0) : 0) + (I == (Nx - 1) ? cells(0) % box_size(0) : 0);
+
+                // Create a box for nonoverlapping subdomain
+                SAMRAI::hier::IntVector<NDIM> box_lower(i_lower, j_lower, k_lower);
+                SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1, k_lower + depth - 1);
+                SAMRAI::hier::Box<NDIM> box_local(box_lower, box_upper);
+                nonoverlap_boxes[counter] = box_local;
+
+                if (!there_is_overlap)
+                {
+                    overlap_boxes[counter] = box_local;
+                }
+                else
+                {
+                    // Create a box for overlapping subdomain
+                    const int gcwx = overlap_size(0);
+                    const int gcwy = overlap_size(1);
+                    const int gcwz = overlap_size(2);
+                    SAMRAI::hier::IntVector<NDIM> box_lower(i_lower - gcwx, j_lower - gcwy, k_lower - gcwz);
+                    SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width + gcwx - 1, j_lower + height + gcwy - 1,
+                                                            k_lower + depth + gcwz - 1);
+                    SAMRAI::hier::Box<NDIM> box_overlap(box_lower, box_upper);
+
+                    overlap_boxes[counter] = box_overlap;
+                }
+                ++counter;
+                i_lower += width;
+            }
+            j_lower += height;
+        }
+        k_lower += depth;
+    }
+
+#endif
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter == n_subdomains);
+#endif
+
+    return;
+} // partitionPatchBox
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
