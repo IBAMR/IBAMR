@@ -729,6 +729,15 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(IS** is_overlap,
                                                          Pointer<PatchLevel<NDIM> > patch_level,
                                                          Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
+    if (*is_overlap)
+    {
+        PetscFree(*is_overlap);
+    }
+    if (*is_nonoverlap)
+    {
+        PetscFree(*is_nonoverlap);
+    }
+
     // Determine the data-centering type.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > dof_index_var;
@@ -750,6 +759,44 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(IS** is_overlap,
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelASMSubdomains():\n"
                    << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
+
+    // Sort the overlap subdomains
+    for (int i = 0; i < n_subdomains; ++i)
+    {
+        ISSort(is_overlap[0][i]);
+    }
+
+    // Debugging code...
+    pout << "\n\nNo of subdomains are == " << n_subdomains << "\n" << std::endl;
+    int total_length = 0;
+    for (int i = 0; i < n_subdomains; ++i)
+    {
+        int length;
+        ISGetSize(is_nonoverlap[0][i], &length);
+        total_length += length;
+    }
+
+    int counter = 0;
+    IS is_total;
+    std::vector<int> total_indices(total_length);
+    for (int i = 0; i < n_subdomains; ++i)
+    {
+        int length;
+        ISGetSize(is_nonoverlap[0][i], &length);
+
+        const PetscInt* indices;
+        ISGetIndices(is_nonoverlap[0][i], &indices);
+
+        for (int j = 0; j < length; ++j) total_indices[counter + j] = indices[j];
+
+        ISRestoreIndices(is_nonoverlap[0][i], &indices);
+        counter += length;
+    }
+
+    ISCreateGeneral(PETSC_COMM_SELF, total_length, &total_indices[0], PETSC_COPY_VALUES, &is_total);
+    ISSort(is_total);
+    ISView(is_total, PETSC_VIEWER_STDOUT_WORLD);
+    ISDestroy(&is_total);
 
     return;
 
@@ -1121,7 +1168,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
 
     // Subdomains on this processor
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<Box<NDIM> > > nonoverlap_boxes(n_local_patches), overlap_boxes(n_local_patches);
+    std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
 
     // Determine the total nonoverlapping subdomains on this processor.
     int patch_counter = 0;
@@ -1132,19 +1179,20 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
         const Box<NDIM>& patch_box = patch->getBox();
 
         int n_patch_subdomains;
-        IndexUtilities::partitionPatchBox(patch_box, box_size, overlap_size, n_patch_subdomains,
-                                          nonoverlap_boxes[patch_counter], overlap_boxes[patch_counter]);
+        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter],
+                                          n_patch_subdomains, patch_box, box_size, overlap_size);
 
         n_subdomains += n_patch_subdomains;
     }
-    is_overlap[0] = new IS[n_subdomains];
-    is_nonoverlap[0] = new IS[n_subdomains];
+    PetscMalloc(n_subdomains * sizeof(IS), is_overlap);
+    PetscMalloc(n_subdomains * sizeof(IS), is_nonoverlap);
 
     // Fill in the IS'es
     int is_counter = 0;
     patch_counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, patch_counter++)
     {
+        pout << "\n\nPATCH COUNTER  IS = " << patch_counter << std::endl;
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         Pointer<CellData<NDIM, int> > dof_data = patch->getPatchData(dof_index_idx);
         const int data_depth = dof_data->getDepth();
@@ -1153,6 +1201,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
 #endif
 
         int n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
+        pout << "\n\n No. of PATCH subdomains are = " << n_patch_subdomains << std::endl;
         for (int i = 0; i < n_patch_subdomains; ++i)
         {
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][i];
@@ -1174,6 +1223,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
                 }
             }
             const int n_idx = static_cast<int>(box_local_dofs.size());
+            pout << "\nNo. of nonoverlapping DOFS are = " << n_idx << "\n" << std::endl;
             ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
                             &is_nonoverlap[0][is_counter]);
 
@@ -1208,6 +1258,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(IS** is_overlap,
                     }
                 }
                 const int n_idx = static_cast<int>(box_overlap_dofs.size());
+                pout << "\nNo. of overlapping DOFS are = " << n_idx << "\n" << std::endl;
                 ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
                                 &is_overlap[0][is_counter]);
             }
@@ -1243,7 +1294,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(IS** is_overlap,
 
     // Subdomains on this processor
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<Box<NDIM> > > nonoverlap_boxes(n_local_patches), overlap_boxes(n_local_patches);
+    std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
 
     // Determine the total nonoverlapping subdomains on this processor.
     int patch_counter = 0;
@@ -1254,8 +1305,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(IS** is_overlap,
         const Box<NDIM>& patch_box = patch->getBox();
 
         int n_patch_subdomains;
-        IndexUtilities::partitionPatchBox(patch_box, box_size, overlap_size, n_patch_subdomains,
-                                          nonoverlap_boxes[patch_counter], overlap_boxes[patch_counter]);
+        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter],
+                                          n_patch_subdomains, patch_box, box_size, overlap_size);
 
         n_subdomains += n_patch_subdomains;
     }

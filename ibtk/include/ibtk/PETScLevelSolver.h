@@ -108,12 +108,12 @@ public:
      * \brief Set the options prefix used by this PETSc solver object.
      */
     void setOptionsPrefix(const std::string& options_prefix);
-	
-	/*!
-	 * \brief Get the PETSc KSP object.
-	 */
-	const KSP& getPETScKSP() const;
-	
+
+    /*!
+     * \brief Get the PETSc KSP object.
+     */
+    const KSP& getPETScKSP() const;
+
     /*!
      * \name Linear solver functionality.
      */
@@ -225,18 +225,18 @@ public:
      */
     void deallocateSolverState();
 
-	/*!
-	 * \brief Add an additional linear operator to the existing operator.
-	 * \NOTE this function should be called prior to initializing the solver
-	 * state.
-	 *
-	 * \param op PETSc Mat to add to the existing matrix.
-	 *
-	 * \param nonzero_pattern Matstructure indicating the nonzero pattern of 
-	 * \a op relative to the existing matrix.
-	 *
-	 */
-	void addLinearOperator(Mat& op, MatStructure nonzero_pattern);
+    /*!
+     * \brief Add an additional linear operator to the existing operator.
+     * \NOTE this function should be called prior to initializing the solver
+     * state.
+     *
+     * \param op PETSc Mat to add to the existing matrix.
+     *
+     * \param nonzero_pattern Matstructure indicating the nonzero pattern of
+     * \a op relative to the existing matrix.
+     *
+     */
+    void addLinearOperator(Mat& op, MatStructure nonzero_pattern);
 
     //\}
 
@@ -299,12 +299,21 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type;
+    std::string d_ksp_type, d_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc, d_petsc_extern_mat;
     MatStructure d_petsc_ksp_ops_flag, d_extern_mat_nz_pattern;
     MatNullSpace d_petsc_nullsp;
+
+    std::string d_sub_ksp_type, d_sub_pc_type;
+    double d_sub_abs_residual_tol, d_sub_rel_residual_tol;
+    int d_sub_max_iterations;
+    bool d_sub_initial_guess_nonzero;
+    IS* d_overlap_is, *d_nonoverlap_is;
+    int d_num_subdomains;
+    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
+
     Vec d_petsc_x, d_petsc_b;
     //\}
 

@@ -111,12 +111,12 @@ inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 } // getIntegerMapping
 
-inline void IndexUtilities::partitionPatchBox(const SAMRAI::hier::Box<NDIM>& patch_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                              const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                              int& n_subdomains,
+inline void IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
                                               std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
-                                              std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes)
+                                              int& n_subdomains,
+                                              const SAMRAI::hier::Box<NDIM>& patch_box,
+                                              const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                              const SAMRAI::hier::IntVector<NDIM>& overlap_size)
 {
     // Determine if there is an overlap
     const bool there_is_overlap = overlap_size.max();

@@ -72,12 +72,6 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-// Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_name,
@@ -99,7 +93,8 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
-    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, CELLG);
+    const int gcw = d_overlap_size.max();
+    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, gcw);
     return;
 } // CCPoissonPETScLevelSolver
 
@@ -136,6 +131,13 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
                                                       d_num_dofs_per_proc, d_dof_index_idx, d_level);
     d_petsc_pc = d_petsc_mat;
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    if (d_pc_type == "asm")
+    {
+        PETScMatUtilities::constructPatchLevelASMSubdomains(&d_overlap_is, &d_nonoverlap_is, d_num_subdomains,
+                                                            d_box_size, d_overlap_size, d_num_dofs_per_proc,
+                                                            d_dof_index_idx, d_level, d_cf_boundary);
+    }
+
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, d_level);
     return;
