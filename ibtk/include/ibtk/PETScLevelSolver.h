@@ -302,7 +302,8 @@ protected:
     std::string d_ksp_type, d_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
-    Mat d_petsc_mat, d_petsc_pc, d_petsc_extern_mat;
+    Mat d_petsc_mat, d_petsc_pc;
+    Mat d_petsc_extern_mat;
     MatStructure d_petsc_ksp_ops_flag, d_extern_mat_nz_pattern;
     MatNullSpace d_petsc_nullsp;
 

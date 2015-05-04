@@ -507,7 +507,9 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const d
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(d_schur_solver, "ib_schur_");
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(d_schur_solver, schur, schur, SAME_PRECONDITIONER);
+    ierr = KSPSetOperators(d_schur_solver, schur, schur);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(d_schur_solver, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
     PC schur_pc;
     ierr = KSPGetPC(d_schur_solver, &schur_pc);
@@ -837,7 +839,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES 
     IBTK_CHKERRQ(ierr);
 
     return ierr;
-} // compositeIBFunction
+} // IBFunction_position
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x, Vec f)
 {
@@ -886,38 +888,30 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES 
     return ierr;
 } // IBFunction_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes,
-                                                                              Vec x,
-                                                                              Mat* A,
-                                                                              Mat* B,
-                                                                              MatStructure* mat_structure,
-                                                                              void* ctx)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
     PetscErrorCode ierr = 1;
     if (ib_integrator->d_solve_for_position)
     {
-        ierr = ib_integrator->IBJacobianSetup_position(snes, x, A, B, mat_structure);
+        ierr = ib_integrator->IBJacobianSetup_position(snes, x, A, B);
     }
     else
     {
-        ierr = ib_integrator->IBJacobianSetup_velocity(snes, x, A, B, mat_structure);
+        ierr = ib_integrator->IBJacobianSetup_velocity(snes, x, A, B);
     }
 
     return ierr;
 } // IBJacobianSetup_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/,
-                                                                                Vec x,
-                                                                                Mat* A,
-                                                                                Mat* /*B*/,
-                                                                                MatStructure* /*mat_structure*/)
+PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
-    ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
 
     Vec* component_sol_vecs;
@@ -929,16 +923,13 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(
     return ierr;
 } // IBJacobianSetup_position
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/,
-                                                                                Vec x,
-                                                                                Mat* A,
-                                                                                Mat* /*B*/,
-                                                                                MatStructure* /*mat_structure*/)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
-    ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
 
     // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it as

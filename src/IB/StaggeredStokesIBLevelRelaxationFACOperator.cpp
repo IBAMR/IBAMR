@@ -612,7 +612,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRe
         const KSP& level_ksp =
             (ln == d_coarsest_ln) ? d_coarse_solver->getPETScKSP() : d_level_solvers[ln]->getPETScKSP();
         Mat A;
-        ierr = KSPGetOperators(level_ksp, &A, PETSC_NULL, PETSC_NULL);
+        ierr = KSPGetOperators(level_ksp, &A, PETSC_NULL);
         IBTK_CHKERRQ(ierr);
         ierr = MatMult(A, solution_vec, residual_vec);
         IBTK_CHKERRQ(ierr);

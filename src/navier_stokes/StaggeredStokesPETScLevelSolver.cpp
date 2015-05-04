@@ -165,7 +165,6 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
         ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_extern_mat, d_extern_mat_nz_pattern);
     }
     d_petsc_pc = d_petsc_mat;
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)

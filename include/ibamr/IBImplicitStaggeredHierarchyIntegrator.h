@@ -318,18 +318,17 @@ private:
     /*!
      * Static function for setting up implicit formulation Jacobian.
      */
-    static PetscErrorCode
-    IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure, void* p_ctx);
+    static PetscErrorCode IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
 
     /*!
      * Static function for setting up implicit formulation Jacobian that solves for u, p, and X.
      */
-    PetscErrorCode IBJacobianSetup_position(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
+    PetscErrorCode IBJacobianSetup_position(SNES snes, Vec x, Mat A, Mat B);
 
     /*!
      * Static function for setting up implicit formulation Jacobian that solves for u and p.
      */
-    PetscErrorCode IBJacobianSetup_velocity(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
+    PetscErrorCode IBJacobianSetup_velocity(SNES snes, Vec x, Mat A, Mat B);
 
     /*!
      * Static function for implicit formulation Jacobian.
