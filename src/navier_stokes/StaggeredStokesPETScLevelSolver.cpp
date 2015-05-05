@@ -255,6 +255,7 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
     const int u_idx = x.getComponentDescriptorIndex(0);
+    const int p_idx = x.getComponentDescriptorIndex(1);
     const int f_idx = b.getComponentDescriptorIndex(0);
     const int h_idx = b.getComponentDescriptorIndex(1);
     Pointer<SideVariable<NDIM, double> > f_var = b.getComponentVariable(0);
@@ -276,11 +277,13 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         f_adj_data->copy(*f_data);
         h_adj_data->copy(*h_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
+        // TODO: should we be using target data idx's here?
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx,
+                                                                  d_homogeneous_bc);
         if (at_physical_bdry)
         {
             PoissonUtilities::adjustRHSAtPhysicalBoundary(*f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs,
                                                           d_solution_time, d_homogeneous_bc);
-
             d_bc_helper->enforceNormalVelocityBoundaryConditions(f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time,
                                                                  d_homogeneous_bc, d_level_num, d_level_num);
         }
