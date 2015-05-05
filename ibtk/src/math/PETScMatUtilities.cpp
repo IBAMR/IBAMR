@@ -87,6 +87,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
 bool inline box_intersects_cf_bdry(const Box<NDIM>& given_box, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool intersects = false;
@@ -111,6 +113,10 @@ bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >
 
     return contains_idx;
 } // is_cf_bdry_idx
+
+static const int LOWER = 0;
+static const int UPPER = 1;
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -1282,8 +1288,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 touches_cf_bdry[axis].resizeArray(2);
-                touches_cf_bdry[axis][/*lower*/ 0] = false;
-                touches_cf_bdry[axis][/*upper*/ 1] = false;
+                touches_cf_bdry[axis][LOWER] = false;
+                touches_cf_bdry[axis][UPPER] = false;
             }
             for (int k = 0; k < n_cf_codim1_boxes; ++k)
             {
@@ -1294,8 +1300,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 const bool is_upper = (location_index % 2) != 0;
                 const bool is_lower = !is_upper;
 
-                touches_cf_bdry[bdry_normal_axis][/*lower*/ 0] = is_lower;
-                touches_cf_bdry[bdry_normal_axis][/*upper*/ 1] = is_upper;
+                touches_cf_bdry[bdry_normal_axis][LOWER] = is_lower;
+                touches_cf_bdry[bdry_normal_axis][UPPER] = is_upper;
 
                 if (is_upper)
                 {
@@ -1321,17 +1327,16 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
 
             // Determine if we need to include the upper DOFs for this subdomain
             bool check_upper_dofs[NDIM] = { false };
-            static const int upperside = 1;
             if (patch_touches_physical_bdry || patch_touches_cf_bdry)
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    if (touches_physical_bdry[axis][upperside])
+                    if (touches_physical_bdry[axis][UPPER])
                     {
                         check_upper_dofs[axis] = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
                     }
 
-                    if (touches_cf_bdry[axis][upperside])
+                    if (touches_cf_bdry[axis][UPPER])
                     {
                         bool box_on_cf_bdry = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
                         if (!box_on_cf_bdry) continue;
