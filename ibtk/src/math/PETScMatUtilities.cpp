@@ -97,20 +97,17 @@ bool inline box_intersects_cf_bdry(const Box<NDIM>& given_box, const std::vector
     {
         intersects = intersects || (given_box * cf_bdry_boxes[k]).size();
     }
-
     return intersects;
-
 } // box_intersects_cf_bdry
 
 bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool contains_idx = false;
     int n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
-    for (int k = 0; k < n_cf_bdry_boxes; ++k)
+    for (int k = 0; !contains_idx || k < n_cf_bdry_boxes; ++k)
     {
         contains_idx = contains_idx || cf_bdry_boxes[k].contains(idx);
     }
-
     return contains_idx;
 } // is_cf_bdry_idx
 
@@ -1164,8 +1161,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                 const CellIndex<NDIM>& i = b();
                 for (int d = 0; d < data_depth; ++d)
                 {
-                    const int dof_idx = (*dof_data)(i, d);
-                    box_local_dofs.push_back(dof_idx);
+                    box_local_dofs.push_back((*dof_data)(i, d));
                 }
             }
             std::sort(box_local_dofs.begin(), box_local_dofs.end());
@@ -1297,13 +1293,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 const Box<NDIM>& bdry_box = cf_bdry_box.getBox();
                 const unsigned int location_index = cf_bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
-                const bool is_upper = (location_index % 2) != 0;
-                const bool is_lower = !is_upper;
-
-                touches_cf_bdry[bdry_normal_axis][LOWER] = is_lower;
-                touches_cf_bdry[bdry_normal_axis][UPPER] = is_upper;
-
-                if (is_upper)
+                touches_cf_bdry[bdry_normal_axis][location_index % 2] = true;
+                if (location_index % 2 == UPPER)
                 {
                     upper_side_cf_bdry_box[bdry_normal_axis].push_back(bdry_box);
                 }
@@ -1325,40 +1316,23 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
             std::vector<int> box_local_dofs;
             box_local_dofs.reserve(box_local_dofs_size);
 
-            // Determine if we need to include the upper DOFs for this subdomain
-            bool check_upper_dofs[NDIM] = { false };
-            if (patch_touches_physical_bdry || patch_touches_cf_bdry)
-            {
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    if (touches_physical_bdry[axis][UPPER])
-                    {
-                        check_upper_dofs[axis] = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
-                    }
-
-                    if (touches_cf_bdry[axis][UPPER])
-                    {
-                        bool box_on_cf_bdry = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
-                        if (!box_on_cf_bdry) continue;
-                        check_upper_dofs[axis] =
-                            box_intersects_cf_bdry(side_box_local[axis], upper_side_cf_bdry_box[axis]);
-                    }
-                }
-            }
-
             // Get the local DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                const Box<NDIM>& box_to_iterate = check_upper_dofs[axis] ? side_box_local[axis] : box_local;
-                for (Box<NDIM>::Iterator b(box_to_iterate); b; b++)
+                for (Box<NDIM>::Iterator b(side_box_local[axis]); b; b++)
                 {
                     const CellIndex<NDIM>& i = b();
-                    if (patch_touches_cf_bdry && check_upper_dofs[axis] &&
-                        !is_cf_bdry_idx(i, upper_side_cf_bdry_box[axis]))
-                        continue;
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                    const int dof_idx = (*dof_data)(i_s);
-                    box_local_dofs.push_back(dof_idx);
+                    const bool at_upper_bdry = (i(axis) == side_patch_box[axis].upper(axis));
+                    const bool at_upper_physical_bdry =
+                        at_upper_bdry && patch_touches_physical_bdry && touches_physical_bdry[axis][UPPER];
+                    const bool at_upper_cf_bdry = at_upper_bdry && patch_touches_cf_bdry &&
+                                                  touches_cf_bdry[axis][UPPER] &&
+                                                  is_cf_bdry_idx(i, upper_side_cf_bdry_box[axis]);
+                    if (!at_upper_bdry || at_upper_physical_bdry || at_upper_cf_bdry)
+                    {
+                        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                        box_local_dofs.push_back((*dof_data)(i_s));
+                    }
                 }
             }
             std::sort(box_local_dofs.begin(), box_local_dofs.end());
