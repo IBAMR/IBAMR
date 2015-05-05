@@ -697,7 +697,6 @@ void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
     ierr = VecGetOwnershipRange(L, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
     num_elems = iupper - ilower;
-
     if (num_elems != 0)
     {
         std::vector<PetscScalar> L_vals(num_elems);
@@ -710,12 +709,12 @@ void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
         ierr = VecSetValues(L, num_elems, &L_idxs[0], &L_vals[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
-    // Assemble the diagonal matrix
+
+    // Assemble the diagonal matrix.
     ierr = VecAssemblyBegin(L);
     IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(L);
     IBTK_CHKERRQ(ierr);
-
     return;
 } // constructRestrictionScalingOp
 
@@ -763,40 +762,6 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_ove
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelASMSubdomains():\n"
                    << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
-
-    // Debugging code...
-    size_t n_subdomains = is_overlap.size();
-    TBOX_ASSERT(n_subdomains == is_nonoverlap.size());
-    pout << "\n\nNo of subdomains are == " << n_subdomains << "\n" << std::endl;
-    int total_length = 0;
-    for (size_t i = 0; i < n_subdomains; ++i)
-    {
-        int length;
-        ISGetSize(is_nonoverlap[i], &length);
-        total_length += length;
-    }
-
-    int counter = 0;
-    IS is_total;
-    std::vector<int> total_indices(total_length);
-    for (size_t i = 0; i < n_subdomains; ++i)
-    {
-        int length;
-        ISGetSize(is_nonoverlap[i], &length);
-
-        const PetscInt* indices;
-        ISGetIndices(is_nonoverlap[i], &indices);
-
-        for (int j = 0; j < length; ++j) total_indices[counter + j] = indices[j];
-
-        ISRestoreIndices(is_nonoverlap[i], &indices);
-        counter += length;
-    }
-
-    ISCreateGeneral(PETSC_COMM_SELF, total_length, &total_indices[0], PETSC_COPY_VALUES, &is_total);
-    ISSort(is_total);
-    ISView(is_total, PETSC_VIEWER_STDOUT_WORLD);
-    ISDestroy(&is_total);
     return;
 } // constructPatchLevelASMSubdomains
 
@@ -1140,9 +1105,7 @@ void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-
     return;
-
 } // constructProlongationOp_side
 
 void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
@@ -1157,7 +1120,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
     // Check if there is an overlap.
     const bool there_is_overlap = overlap_size.max();
 
-    // Determine the total overlapping and nonoverlapping subdomains on this processor.
+    // Determine the total subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
@@ -1176,7 +1139,6 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
     patch_counter = 0, subdomain_counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
     {
-        pout << "\n\nPATCH COUNTER  IS = " << patch_counter << std::endl;
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         Pointer<CellData<NDIM, int> > dof_data = patch->getPatchData(dof_index_idx);
         const int data_depth = dof_data->getDepth();
@@ -1184,9 +1146,9 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
         TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
 #endif
         size_t n_patch_subdomains = overlap_boxes[patch_counter].size();
-        pout << "\n\n No. of PATCH subdomains are = " << n_patch_subdomains << std::endl;
         for (size_t i = 0; i < n_patch_subdomains; ++i, ++subdomain_counter)
         {
+            // The nonoverlapping subdomains.
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][i];
             const int box_local_size = box_local.size();
             std::vector<int> box_local_dofs;
@@ -1202,10 +1164,10 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
             }
             std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_idx = static_cast<int>(box_local_dofs.size());
-            pout << "\nNo. of nonoverlapping DOFS are = " << n_idx << "\n" << std::endl;
             ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
                             &is_nonoverlap[subdomain_counter]);
 
+            // The overlapping subdomains.
             if (!there_is_overlap)
             {
                 PetscObjectReference(reinterpret_cast<PetscObject>(is_nonoverlap[subdomain_counter]));
@@ -1222,10 +1184,10 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                     const CellIndex<NDIM>& i = b();
                     for (int d = 0; d < data_depth; ++d)
                     {
-                        // We keep only those DOFs that are inside the
-                        // physical domain and away from c-f interface. Some
-                        // of the DOFs will be on other processors.
-                        // cc-DOFs can never lie on boundaries.
+                        // We keep only those DOFs that are inside the physical
+                        // domain and away from c-f interface. Some of the DOFs
+                        // will be on other processors.  Cell-centered DOFs can
+                        // never lie on boundaries.
                         const int dof_idx = (*dof_data)(i, d);
                         if (dof_idx >= 0)
                         {
@@ -1235,9 +1197,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                 }
                 std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
                 box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end() ), box_overlap_dofs.end());
-
                 const int n_idx = static_cast<int>(box_overlap_dofs.size());
-                pout << "\nNo. of overlapping DOFS are = " << n_idx << "\n" << std::endl;
                 ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
                                 &is_overlap[subdomain_counter]);
             }

@@ -72,6 +72,13 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+// Number of ghosts cells used for each variable quantity.
+static const int CELLG = 1;
+static const int NOGHOST = 0;
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_name,
@@ -93,7 +100,7 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
-    const int gcw = d_overlap_size.max();
+    const int gcw = std::max(d_overlap_size.max(), CELLG);
     d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, gcw);
     return;
 } // CCPoissonPETScLevelSolver
