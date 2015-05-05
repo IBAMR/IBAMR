@@ -180,9 +180,8 @@ public:
      * additive Schwarz method.
      */
     static void
-    constructPatchLevelASMSubdomains(IS** is_overlap,
-                                     IS** is_nonoverlap,
-                                     int& n_domains,
+    constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                     std::vector<IS>& is_nonoverlap,
                                      const SAMRAI::hier::IntVector<NDIM>& box_size,
                                      const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                      const std::vector<int>& num_dofs_per_proc,
@@ -251,9 +250,8 @@ private:
      * additive Schwarz method for a cc-variable.
      */
     static void
-    constructPatchLevelASMSubdomains_cell(IS** is_overlap,
-                                          IS** is_nonoverlap,
-                                          int& n_subdomains,
+    constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
+                                          std::vector<IS>& is_nonoverlap,
                                           const SAMRAI::hier::IntVector<NDIM>& box_size,
                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                           const std::vector<int>& num_dofs_per_proc,
@@ -265,9 +263,8 @@ private:
      * additive Schwarz method for a sc-variable.
      */
     static void
-    constructPatchLevelASMSubdomains_side(IS** is_overlap,
-                                          IS** is_nonoverlap,
-                                          int& n_subdomains,
+    constructPatchLevelASMSubdomains_side(std::vector<IS>& is_overlap,
+                                          std::vector<IS>& is_nonoverlap,
                                           const SAMRAI::hier::IntVector<NDIM>& box_size,
                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                           const std::vector<int>& num_dofs_per_proc,

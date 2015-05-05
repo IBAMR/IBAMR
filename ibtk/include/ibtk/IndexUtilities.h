@@ -145,7 +145,6 @@ public:
      */
     static void partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
                                   std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
-                                  int& n_subdomains,
                                   const SAMRAI::hier::Box<NDIM>& patch_box,
                                   const SAMRAI::hier::IntVector<NDIM>& box_size,
                                   const SAMRAI::hier::IntVector<NDIM>& overlap_size);

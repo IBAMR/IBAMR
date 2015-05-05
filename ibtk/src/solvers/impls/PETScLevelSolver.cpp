@@ -82,18 +82,10 @@ PETScLevelSolver::PETScLevelSolver()
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
-    d_sub_max_iterations = 10000;
-    d_sub_abs_residual_tol = 1.0e-50;
-    d_sub_rel_residual_tol = 1.0e-5;
     d_ksp_type = KSPGMRES;
-    d_sub_ksp_type = KSPGMRES;
     d_pc_type = PCILU;
-    d_sub_pc_type = PCILU;
     d_initial_guess_nonzero = true;
-    d_sub_initial_guess_nonzero = true;
     d_enable_logging = false;
-    d_overlap_is = NULL;
-    d_nonoverlap_is = NULL;
     d_box_size = 2;
     d_overlap_size = 1;
 
@@ -114,11 +106,17 @@ PETScLevelSolver::~PETScLevelSolver()
                                  << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
     }
 
-    PetscFree(d_nonoverlap_is);
-    d_nonoverlap_is = NULL;
-    PetscFree(d_overlap_is);
-    d_overlap_is = NULL;
-
+    int ierr;
+    for (size_t i = 0; i < d_nonoverlap_is.size(); ++i)
+    {
+        ierr = ISDestroy(&d_nonoverlap_is[i]);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (size_t i = 0; i < d_overlap_is.size(); ++i)
+    {
+        ierr = ISDestroy(&d_overlap_is[i]);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // ~PETScLevelSolver
 
@@ -280,86 +278,33 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
     IBTK_CHKERRQ(ierr);
-
-    // Setup the preconditioner
     PC ksp_pc;
     ierr = KSPGetPC(d_petsc_ksp, &ksp_pc);
     IBTK_CHKERRQ(ierr);
-    if (d_pc_type == "asm")
-    {
-        ierr = PCSetType(ksp_pc, d_pc_type.c_str());
-        IBTK_CHKERRQ(ierr);
-        ierr = PCASMSetLocalSubdomains(ksp_pc, d_num_subdomains, d_overlap_is, d_nonoverlap_is);
-        IBTK_CHKERRQ(ierr);
-
-        // Call KSPSetUp() to set the block Jacobi data structures (including
-        // creation of an internal KSP context for each block).
-        // Note: KSPSetUp() MUST be called before PCASMGetSubKSP().
-        ierr = KSPSetUp(d_petsc_ksp);
-        IBTK_CHKERRQ(ierr);
-
-        // Extract the array of KSP contexts for the local blocks.
-        KSP* subksp;
-        PC subpc;
-        PetscInt nlocal, first;
-        ierr = PCASMGetSubKSP(ksp_pc, &nlocal, &first, &subksp);
-        IBTK_CHKERRQ(ierr);
-
-        // Loop over the local blocks, setting various KSP options
-        // for each block.
-        for (int i = 0; i < nlocal; i++)
-        {
-            ierr = KSPGetPC(subksp[i], &subpc);
-            IBTK_CHKERRQ(ierr);
-            ierr = PCSetType(subpc, d_sub_pc_type.c_str());
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetType(subksp[i], d_sub_ksp_type.c_str());
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetTolerances(subksp[i], d_sub_rel_residual_tol, d_sub_abs_residual_tol, PETSC_DEFAULT,
-                                    d_sub_max_iterations);
-            IBTK_CHKERRQ(ierr);
-            PetscBool sub_initial_guess_nonzero = d_sub_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE;
-            ierr = KSPSetInitialGuessNonzero(subksp[i], sub_initial_guess_nonzero);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
-    else
-    {
-        ierr = PCSetType(ksp_pc, d_pc_type.c_str());
-        IBTK_CHKERRQ(ierr);
-    }
-
-    // Command line options always take precedence.
-    // Note: Make sure for ASM, pc_type in the input file and command line are the same.
-    if (d_options_prefix != "")
-    {
-        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str());
-        IBTK_CHKERRQ(ierr);
-    }
+    PCType pc_type = d_pc_type.c_str();
+    ierr = PCSetType(ksp_pc, pc_type);
+    IBTK_CHKERRQ(ierr);
     ierr = KSPSetFromOptions(d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    if (d_pc_type == "asm")
-    {
-        PetscBool isasm;
-        ierr = PetscObjectTypeCompare((PetscObject)ksp_pc, PCASM, &isasm);
-        IBTK_CHKERRQ(ierr);
 
-        if (!isasm)
-        {
-            TBOX_ERROR("PETScLevelSolver::initializeSolverState() "
-                       << "PCASM already set for the KSP. Cannot change it from command line. Set a different PCTYPE "
-                          "in the input file." << std::endl);
-        }
-    }
-
-    // Reset class data structures
+    // Reset class data structure to correspond to command-line options.
     ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
-    PCType pc_type;
+    IBTK_CHKERRQ(ierr);
     ierr = PCGetType(ksp_pc, &pc_type);
+    IBTK_CHKERRQ(ierr);
     d_pc_type = pc_type;
 
-    // Set the nullspace,
+    // Set the nullspace.
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullspace();
+
+    // Setup the preconditioner.
+    if (d_pc_type == "asm")
+    {
+        int num_subdomains = static_cast<int>(d_overlap_is.size());
+        TBOX_ASSERT(num_subdomains > 0);
+        ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, &d_overlap_is[0], &d_nonoverlap_is[0]);
+        IBTK_CHKERRQ(ierr);
+    }
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;
@@ -403,12 +348,6 @@ void PETScLevelSolver::deallocateSolverState()
     d_petsc_x = NULL;
     d_petsc_b = NULL;
 
-    // Deallocate IS'es
-    PetscFree(d_nonoverlap_is);
-    d_nonoverlap_is = NULL;
-    PetscFree(d_overlap_is);
-    d_overlap_is = NULL;
-
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
@@ -416,16 +355,13 @@ void PETScLevelSolver::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void PETScLevelSolver::addLinearOperator(Mat& op, MatStructure nonzero_pattern)
+void PETScLevelSolver::addLinearOperator(Mat& op)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_is_initialized);
     TBOX_ASSERT(op);
 #endif
-
     d_petsc_extern_mat = op;
-    d_extern_mat_nz_pattern = nonzero_pattern;
-
     return;
 } // addLinearOperator
 
@@ -438,30 +374,13 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
     {
         if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
-
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
-        if (input_db->keyExists("sub_max_iterations"))
-            d_sub_max_iterations = input_db->getInteger("sub_max_iterations");
-
         if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
-        if (input_db->keyExists("sub_abs_residual_tol"))
-            d_sub_abs_residual_tol = input_db->getDouble("sub_abs_residual_tol");
-
         if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
-        if (input_db->keyExists("sub_rel_residual_tol"))
-            d_sub_rel_residual_tol = input_db->getDouble("sub_rel_residual_tol");
-
         if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
-        if (input_db->keyExists("sub_ksp_type")) d_sub_ksp_type = input_db->getString("sub_ksp_type");
-
         if (input_db->keyExists("pc_type")) d_pc_type = input_db->getString("pc_type");
-        if (input_db->keyExists("sub_pc_type")) d_sub_pc_type = input_db->getString("sub_pc_type");
-
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("sub_initial_guess_nonzero"))
-            d_sub_initial_guess_nonzero = input_db->getBool("sub_initial_guess_nonzero");
-
         if (input_db->keyExists("subdomain_box_size"))
             input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
         if (input_db->keyExists("subdomain_overlap_size"))
