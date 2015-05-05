@@ -1112,7 +1112,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                                                               std::vector<IS>& is_nonoverlap,
                                                               const IntVector<NDIM>& box_size,
                                                               const IntVector<NDIM>& overlap_size,
-                                                              const std::vector<int>& num_dofs_per_proc,
+                                                              const std::vector<int>& /*num_dofs_per_proc*/,
                                                               int dof_index_idx,
                                                               Pointer<PatchLevel<NDIM> > patch_level,
                                                               Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
@@ -1211,7 +1211,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                                                               std::vector<IS>& is_nonoverlap,
                                                               const IntVector<NDIM>& box_size,
                                                               const IntVector<NDIM>& overlap_size,
-                                                              const std::vector<int>& num_dofs_per_proc,
+                                                              const std::vector<int>& /*num_dofs_per_proc*/,
                                                               int dof_index_idx,
                                                               Pointer<PatchLevel<NDIM> > patch_level,
                                                               Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
