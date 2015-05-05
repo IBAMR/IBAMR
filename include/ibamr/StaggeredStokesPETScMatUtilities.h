@@ -47,6 +47,8 @@ namespace hier
 {
 template <int DIM>
 class PatchLevel;
+template <int DIM>
+class CoarseFineBoundary;
 } // namespace hier
 namespace solv
 {
@@ -86,6 +88,20 @@ public:
                                                int p_dof_index_idx,
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * additive Schwarz method.
+     */
+    static void
+    constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                     std::vector<IS>& is_nonoverlap,
+                                     const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                     const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                     const std::vector<int>& num_dofs_per_proc,
+                                     int u_dof_index_idx,
+                                     int p_dof_index_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
     //\}
 
 protected:

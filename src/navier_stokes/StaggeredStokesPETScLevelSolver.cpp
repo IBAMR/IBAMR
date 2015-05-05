@@ -101,7 +101,8 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
-    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
+    const int u_gcw = std::max(d_overlap_size.max(), SIDEG);
+    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, u_gcw);
     d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
@@ -109,7 +110,8 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
-    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
+    const int p_gcw = std::max(d_overlap_size.max(), CELLG);
+    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, p_gcw);
 
     // Construct the nullspace variable/index.
     d_u_nullspace_var = new SideVariable<NDIM, double>(object_name + "::u_nullspace_var");
@@ -166,6 +168,9 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
         IBTK_CHKERRQ(ierr);
     }
     d_petsc_pc = d_petsc_mat;
+    StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
+        d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx,
+        d_p_dof_index_idx, d_level, d_cf_boundary);
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)

@@ -89,17 +89,6 @@ namespace IBTK
 
 namespace
 {
-bool inline box_intersects_cf_bdry(const Box<NDIM>& given_box, const std::vector<Box<NDIM> >& cf_bdry_boxes)
-{
-    bool intersects = false;
-    int n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
-    for (int k = 0; k < n_cf_bdry_boxes; ++k)
-    {
-        intersects = intersects || (given_box * cf_bdry_boxes[k]).size();
-    }
-    return intersects;
-} // box_intersects_cf_bdry
-
 bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool contains_idx = false;
