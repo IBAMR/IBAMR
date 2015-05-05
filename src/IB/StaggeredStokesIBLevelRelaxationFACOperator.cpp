@@ -893,7 +893,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        d_coarse_solver->addLinearOperator(d_mat_SAJ[d_coarsest_ln], DIFFERENT_NONZERO_PATTERN);
+        d_coarse_solver->addLinearOperator(d_mat_SAJ[d_coarsest_ln]);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
@@ -918,7 +918,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         level_solver->setPhysicalBoundaryHelper(d_bc_helper);
         level_solver->setHomogeneousBc(true);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        level_solver->addLinearOperator(d_mat_SAJ[ln], DIFFERENT_NONZERO_PATTERN);
+        level_solver->addLinearOperator(d_mat_SAJ[ln]);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }

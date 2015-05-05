@@ -130,12 +130,8 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time,
                                                       d_num_dofs_per_proc, d_dof_index_idx, d_level);
     d_petsc_pc = d_petsc_mat;
-    if (d_pc_type == "asm")
-    {
-        PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size,
-                                                            d_num_dofs_per_proc, d_dof_index_idx, d_level,
-                                                            d_cf_boundary);
-    }
+    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size,
+                                                        d_num_dofs_per_proc, d_dof_index_idx, d_level, d_cf_boundary);
 
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, d_level);

@@ -162,7 +162,8 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                      d_p_dof_index_idx, d_level);
     if (d_petsc_extern_mat)
     {
-        ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_extern_mat, d_extern_mat_nz_pattern);
+        ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_extern_mat, DIFFERENT_NONZERO_PATTERN);
+        IBTK_CHKERRQ(ierr);
     }
     d_petsc_pc = d_petsc_mat;
 
