@@ -1120,7 +1120,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
     // Check if there is an overlap.
     const bool there_is_overlap = overlap_size.max();
 
-    // Determine the total subdomains associated with this processor.
+    // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
@@ -1185,8 +1185,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                     for (int d = 0; d < data_depth; ++d)
                     {
                         // We keep only those DOFs that are inside the physical
-                        // domain and away from c-f interface. Some of the DOFs
-                        // will be on other processors.  Cell-centered DOFs can
+                        // domain and away from c-f interface.  Some of the DOFs
+                        // may be on other processors.  Cell-centered DOFs can
                         // never lie on boundaries.
                         const int dof_idx = (*dof_data)(i, d);
                         if (dof_idx >= 0)
@@ -1196,7 +1196,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                     }
                 }
                 std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
-                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end() ), box_overlap_dofs.end());
+                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
+                                       box_overlap_dofs.end());
                 const int n_idx = static_cast<int>(box_overlap_dofs.size());
                 ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
                                 &is_overlap[subdomain_counter]);
@@ -1215,43 +1216,28 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                                                               Pointer<PatchLevel<NDIM> > patch_level,
                                                               Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
-    TBOX_ERROR("unimplemented\n");
-#if 0
-    // Determine the DOF index range on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const int dofs_local = num_dofs_per_proc[mpi_rank];
-    const int dof_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
-    const int dof_upper = dof_lower + dofs_local;
-
-    // If there is an overlap
+    // Check if there is an overlap
     const bool there_is_overlap = overlap_size.max();
 
-    // Subdomains on this processor
+    // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
-
-    // Determine the total number of subdomains on this processor.
-    int patch_counter = 0;
-    n_subdomains = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, patch_counter++)
+    int patch_counter = 0, subdomain_counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-
-        int n_patch_subdomains;
-        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter],
-                                          n_patch_subdomains, patch_box, box_size, overlap_size);
-
-        n_subdomains += n_patch_subdomains;
+        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box,
+                                          box_size, overlap_size);
+        subdomain_counter += overlap_boxes[patch_counter].size();
     }
-    is_overlap[0] = new IS[n_subdomains];
-    is_nonoverlap[0] = new IS[n_subdomains];
+    is_overlap.resize(subdomain_counter);
+    is_nonoverlap.resize(subdomain_counter);
 
     // Fill in the IS'es
     const int level_num = patch_level->getLevelNumber();
-    int is_counter = 0;
-    patch_counter = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, patch_counter++)
+    subdomain_counter = 0, patch_counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
@@ -1267,23 +1253,23 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
         TBOX_ASSERT(dof_data->getGhostCellWidth().min() >= overlap_size.max());
 #endif
 
-        // If patch touches regular boundary
-        Array<Array<bool> > touches_regular_bdry(NDIM);
+        // Check if the patch touches physical boundary.
+        Array<Array<bool> > touches_physical_bdry(NDIM);
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        const bool patch_touches_reg_bdry = pgeom->intersectsPhysicalBoundary();
-        if (patch_touches_reg_bdry)
+        const bool patch_touches_physical_bdry = pgeom->intersectsPhysicalBoundary();
+        if (patch_touches_physical_bdry)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                touches_regular_bdry[axis].resizeArray(2);
+                touches_physical_bdry[axis].resizeArray(2);
                 for (int upperlower = 0; upperlower < 2; ++upperlower)
                 {
-                    touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
+                    touches_physical_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
                 }
             }
         }
 
-        // If patch touches c-f interface
+        // Check if the patch touches the c-f interface on the upper side of the patch.
         Array<Array<bool> > touches_cf_bdry(NDIM);
         Array<std::vector<Box<NDIM> > > upper_side_cf_bdry_box(NDIM);
         const Array<BoundaryBox<NDIM> >& cf_codim1_boxes =
@@ -1296,8 +1282,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 touches_cf_bdry[axis].resizeArray(2);
-                touches_cf_bdry[axis][0] = false;
-                touches_cf_bdry[axis][1] = false;
+                touches_cf_bdry[axis][/*lower*/ 0] = false;
+                touches_cf_bdry[axis][/*upper*/ 1] = false;
             }
             for (int k = 0; k < n_cf_codim1_boxes; ++k)
             {
@@ -1308,8 +1294,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 const bool is_upper = (location_index % 2) != 0;
                 const bool is_lower = !is_upper;
 
-                touches_cf_bdry[bdry_normal_axis][0] = is_lower;
-                touches_cf_bdry[bdry_normal_axis][1] = is_upper;
+                touches_cf_bdry[bdry_normal_axis][/*lower*/ 0] = is_lower;
+                touches_cf_bdry[bdry_normal_axis][/*upper*/ 1] = is_upper;
 
                 if (is_upper)
                 {
@@ -1319,9 +1305,9 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
         }
 
         int n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
-        for (int i = 0; i < n_patch_subdomains; ++i)
+        for (int i = 0; i < n_patch_subdomains; ++i, ++subdomain_counter)
         {
-            // Get subdomain
+            // The nonoverlapping subdomains.
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][i];
             Box<NDIM> side_box_local[NDIM];
             int box_local_dofs_size = 0;
@@ -1336,18 +1322,18 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
             // Determine if we need to include the upper DOFs for this subdomain
             bool check_upper_dofs[NDIM] = { false };
             static const int upperside = 1;
-            if (patch_touches_cf_bdry || patch_touches_reg_bdry)
+            if (patch_touches_physical_bdry || patch_touches_cf_bdry)
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    if (touches_regular_bdry[axis][upperside])
+                    if (touches_physical_bdry[axis][upperside])
                     {
-                        check_upper_dofs[axis] = side_box_local[axis].upper()(axis) == side_patch_box[axis].upper(axis);
+                        check_upper_dofs[axis] = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
                     }
 
                     if (touches_cf_bdry[axis][upperside])
                     {
-                        bool box_on_cf_bdry = side_box_local[axis].upper()(axis) == side_patch_box[axis].upper(axis);
+                        bool box_on_cf_bdry = side_box_local[axis].upper(axis) == side_patch_box[axis].upper(axis);
                         if (!box_on_cf_bdry) continue;
                         check_upper_dofs[axis] =
                             box_intersects_cf_bdry(side_box_local[axis], upper_side_cf_bdry_box[axis]);
@@ -1355,34 +1341,31 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 }
             }
 
-            // Get the local DOFs
+            // Get the local DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM>& box_to_iterate = check_upper_dofs[axis] ? side_box_local[axis] : box_local;
-
                 for (Box<NDIM>::Iterator b(box_to_iterate); b; b++)
                 {
                     const CellIndex<NDIM>& i = b();
                     if (patch_touches_cf_bdry && check_upper_dofs[axis] &&
                         !is_cf_bdry_idx(i, upper_side_cf_bdry_box[axis]))
                         continue;
-
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const int dof_idx = (*dof_data)(i_s);
-#if !defined(NDEBUG)
-                    TBOX_ASSERT(dof_idx >= dof_lower && dof_idx < dof_upper);
-#endif
                     box_local_dofs.push_back(dof_idx);
                 }
             }
+            std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_idx = static_cast<int>(box_local_dofs.size());
             ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
-                            &is_nonoverlap[0][is_counter]);
+                            &is_nonoverlap[subdomain_counter]);
 
+            // The overlapping subdomains.
             if (!there_is_overlap)
             {
-                PetscObjectReference((PetscObject)is_nonoverlap[0][is_counter]);
-                is_overlap[0][is_counter] = is_nonoverlap[0][is_counter];
+                PetscObjectReference(reinterpret_cast<PetscObject>(is_nonoverlap[subdomain_counter]));
+                is_overlap[subdomain_counter] = is_nonoverlap[subdomain_counter];
             }
             else
             {
@@ -1407,25 +1390,22 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
 
                         // We keep only those DOFs that are inside the
                         // physical domain and on physical and c-f boundaries.
-                        // Some of the DOFs will be on other processors.
+                        // Some of the DOFs may be on other processors.
                         if (dof_idx >= 0)
                         {
                             box_overlap_dofs.push_back(dof_idx);
                         }
                     }
                 }
+                std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
+                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
+                                       box_overlap_dofs.end());
                 const int n_idx = static_cast<int>(box_overlap_dofs.size());
                 ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
-                                &is_overlap[0][is_counter]);
+                                &is_overlap[subdomain_counter]);
             }
-            ++is_counter;
         }
     }
-
-#if !defined(NDEBUG)
-    TBOX_ASSERT(is_counter == n_subdomains);
-#endif
-#endif
     return;
 } // constructPatchLevelASMSubdomains_side
 

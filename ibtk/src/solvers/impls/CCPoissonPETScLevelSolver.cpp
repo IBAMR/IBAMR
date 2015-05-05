@@ -76,7 +76,6 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
-static const int NOGHOST = 0;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -140,9 +139,9 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size,
                                                         d_num_dofs_per_proc, d_dof_index_idx, d_level, d_cf_boundary);
 
+    // Setup SAMRAI communication objects.
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, d_level);
-
     return;
 } // initializeSolverStateSpecialized
 

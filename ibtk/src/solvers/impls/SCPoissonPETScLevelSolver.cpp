@@ -99,7 +99,8 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
-    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, SIDEG);
+    const int gcw = std::max(d_overlap_size.max(), SIDEG);
+    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, gcw);
     return;
 } // SCPoissonPETScLevelSolver
 
@@ -135,10 +136,12 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time,
                                                       d_num_dofs_per_proc, d_dof_index_idx, d_level);
     d_petsc_pc = d_petsc_mat;
+    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size,
+                                                        d_num_dofs_per_proc, d_dof_index_idx, d_level, d_cf_boundary);
 
+    // Setup SAMRAI communication objects.
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, d_level);
-
     return;
 } // initializeSolverStateSpecialized
 
