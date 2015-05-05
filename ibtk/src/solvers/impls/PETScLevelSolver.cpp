@@ -284,6 +284,11 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     PCType pc_type = d_pc_type.c_str();
     ierr = PCSetType(ksp_pc, pc_type);
     IBTK_CHKERRQ(ierr);
+    if (d_options_prefix != "")
+    {
+        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str());
+        IBTK_CHKERRQ(ierr);
+    }
     ierr = KSPSetFromOptions(d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
 
