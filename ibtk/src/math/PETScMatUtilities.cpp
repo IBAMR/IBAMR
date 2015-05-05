@@ -764,16 +764,6 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_ove
                    << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
 
-    // Sort the subdomains.
-    for (size_t i = 0; i < is_overlap.size(); ++i)
-    {
-        ISSort(is_overlap[i]);
-    }
-    for (size_t i = 0; i < is_nonoverlap.size(); ++i)
-    {
-        ISSort(is_nonoverlap[i]);
-    }
-
     // Debugging code...
     size_t n_subdomains = is_overlap.size();
     TBOX_ASSERT(n_subdomains == is_nonoverlap.size());
@@ -807,9 +797,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_ove
     ISSort(is_total);
     ISView(is_total, PETSC_VIEWER_STDOUT_WORLD);
     ISDestroy(&is_total);
-
     return;
-
 } // constructPatchLevelASMSubdomains
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -1212,6 +1200,7 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                     box_local_dofs.push_back(dof_idx);
                 }
             }
+            std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_idx = static_cast<int>(box_local_dofs.size());
             pout << "\nNo. of nonoverlapping DOFS are = " << n_idx << "\n" << std::endl;
             ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
@@ -1244,6 +1233,9 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                         }
                     }
                 }
+                std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
+                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end() ), box_overlap_dofs.end());
+
                 const int n_idx = static_cast<int>(box_overlap_dofs.size());
                 pout << "\nNo. of overlapping DOFS are = " << n_idx << "\n" << std::endl;
                 ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
