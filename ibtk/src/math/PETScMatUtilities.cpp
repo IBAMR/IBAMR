@@ -198,9 +198,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr =
-        MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, n_local ? PETSC_DEFAULT : 0,
-                     n_local ? &d_nnz[0] : NULL, n_local ? PETSC_DEFAULT : 0, n_local ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        n_local ? &d_nnz[0] : NULL, 0, n_local ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set block size.
@@ -340,9 +339,8 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr =
-        MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, n_local ? PETSC_DEFAULT : 0,
-                     n_local ? &d_nnz[0] : NULL, n_local ? PETSC_DEFAULT : 0, n_local ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        n_local ? &d_nnz[0] : NULL, 0, n_local ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients to correspond to the standard finite
@@ -547,9 +545,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr =
-        MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, m_local ? PETSC_DEFAULT : 0,
-                     m_local ? &d_nnz[0] : NULL, m_local ? PETSC_DEFAULT : 0, m_local ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        m_local ? &d_nnz[0] : NULL, 0, m_local ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients.
@@ -852,9 +849,8 @@ void PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr =
-        MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, m_local ? PETSC_DEFAULT : 0,
-                     m_local ? &d_nnz[0] : NULL, m_local ? PETSC_DEFAULT : 0, m_local ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        m_local ? &d_nnz[0] : NULL, 0, m_local ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
     // Determine matrix-coefficients
@@ -1028,9 +1024,8 @@ void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr =
-        MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, m_local ? PETSC_DEFAULT : 0,
-                     m_local ? &d_nnz[0] : NULL, m_local ? PETSC_DEFAULT : 0, m_local ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        m_local ? &d_nnz[0] : NULL, 0, m_local ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
     // Determine the matrix-coefficients

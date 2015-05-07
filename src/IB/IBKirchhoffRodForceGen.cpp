@@ -226,8 +226,8 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<ND
     // entries.
     {
         ierr = MatCreateBAIJ(PETSC_COMM_WORLD, 3 * 3, 3 * 3 * local_sz, 3 * 3 * num_local_nodes, PETSC_DETERMINE,
-                             PETSC_DETERMINE, local_sz ? PETSC_DEFAULT : 0, local_sz ? &next_d_nz[0] : NULL,
-                             local_sz ? PETSC_DEFAULT : 0, local_sz ? &next_o_nz[0] : NULL, &D_next_mat);
+                             PETSC_DETERMINE, 0, local_sz ? &next_d_nz[0] : NULL, 0, local_sz ? &next_o_nz[0] : NULL,
+                             &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
         Eigen::Matrix<double, 3 * 3, 3 * 3, Eigen::RowMajor> curr_vals(
@@ -260,8 +260,8 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<ND
 
     {
         ierr = MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * local_sz, NDIM * num_local_nodes, PETSC_DETERMINE,
-                             PETSC_DETERMINE, local_sz ? PETSC_DEFAULT : 0, local_sz ? &next_d_nz[0] : NULL,
-                             local_sz ? PETSC_DEFAULT : 0, local_sz ? &next_o_nz[0] : NULL, &X_next_mat);
+                             PETSC_DETERMINE, 0, local_sz ? &next_d_nz[0] : NULL, 0, local_sz ? &next_o_nz[0] : NULL,
+                             &X_next_mat);
         IBTK_CHKERRQ(ierr);
 
         Matrix curr_vals(Matrix::Zero());

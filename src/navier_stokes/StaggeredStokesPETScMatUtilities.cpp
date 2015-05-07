@@ -239,8 +239,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, nlocal ? PETSC_DEFAULT : 0,
-                        nlocal ? &d_nnz[0] : NULL, nlocal ? PETSC_DEFAULT : 0, nlocal ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, 0,
+                        nlocal ? &d_nnz[0] : NULL, 0, nlocal ? &o_nnz[0] : NULL, &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.

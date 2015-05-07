@@ -169,7 +169,7 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, size ? PETSC_DEFAULT : 0, size ? &nnz[0] : NULL, &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.

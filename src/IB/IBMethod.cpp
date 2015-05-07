@@ -813,10 +813,9 @@ void IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type)
                                                                        d_l_data_manager);
         if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
         {
-            ierr =
-                MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE,
-                              PETSC_DETERMINE, num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &d_nnz[0] : NULL,
-                              num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &o_nnz[0] : NULL, &A);
+            ierr = MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * num_local_nodes, NDIM * num_local_nodes,
+                                 PETSC_DETERMINE, PETSC_DETERMINE, 0, num_local_nodes ? &d_nnz[0] : NULL, 0,
+                                 num_local_nodes ? &o_nnz[0] : NULL, &A);
             IBTK_CHKERRQ(ierr);
         }
         else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
@@ -831,8 +830,7 @@ void IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type)
                 }
             }
             ierr = MatCreateAIJ(PETSC_COMM_WORLD, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE,
-                                PETSC_DETERMINE, num_local_nodes ? PETSC_DEFAULT : 0,
-                                num_local_nodes ? &d_nnz_unblocked[0] : NULL, num_local_nodes ? PETSC_DEFAULT : 0,
+                                PETSC_DETERMINE, 0, num_local_nodes ? &d_nnz_unblocked[0] : NULL, 0,
                                 num_local_nodes ? &o_nnz_unblocked[0] : NULL, &A);
             IBTK_CHKERRQ(ierr);
         }
