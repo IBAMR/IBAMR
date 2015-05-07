@@ -613,12 +613,12 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(
-            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
+                              &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatShellSetOperation(
-        d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
+    ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT,
+                                reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
     IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
@@ -724,8 +724,8 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         }
 
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(
-            d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0], &d_petsc_nullsp);
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0],
+                                  &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
@@ -758,9 +758,8 @@ void PETScKrylovLinearSolver::deallocateNullspaceData()
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
         d_petsc_nullspace_constant_vec = NULL;
         d_nullspace_constant_vec->resetLevels(
-            0,
-            std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
-                     d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
+            0, std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
+                        d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
         d_nullspace_constant_vec.setNull();

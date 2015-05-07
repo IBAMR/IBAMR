@@ -857,7 +857,7 @@ void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, size ? PETSC_DEFAULT : 0, size ? &nnz[0] : NULL, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -985,7 +985,7 @@ void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, size ? PETSC_DEFAULT : 0, size ? &nnz[0] : NULL, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.

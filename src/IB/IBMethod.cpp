@@ -617,7 +617,7 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<Pointer<LData> >* U_data, *X_LE_data;
+    std::vector<Pointer<LData> > *U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -641,7 +641,7 @@ void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
+    std::vector<Pointer<LData> > *U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -708,7 +708,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data;
+    std::vector<Pointer<LData> > *U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -741,8 +741,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_data, *X_data, *U_data;
-    bool* F_needs_ghost_fill, *X_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_data, *X_data, *U_data;
+    bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityData(&U_data, data_time);
@@ -809,35 +809,39 @@ void IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type)
         // Build the Jacobian matrix.
         const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
         std::vector<int> d_nnz, o_nnz;
-        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
+        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln,
+                                                                       d_l_data_manager);
         if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
         {
-            ierr = MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE, PETSC_DETERMINE,
-                                 num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &d_nnz[0] : NULL,
-                                 num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &o_nnz[0] : NULL, &A);
+            ierr =
+                MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE,
+                              PETSC_DETERMINE, num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &d_nnz[0] : NULL,
+                              num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &o_nnz[0] : NULL, &A);
             IBTK_CHKERRQ(ierr);
         }
         else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
         {
-            std::vector<int> d_nnz_unblocked(NDIM*d_nnz.size()), o_nnz_unblocked(NDIM*o_nnz.size());
+            std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
             for (unsigned int k = 0; k < d_nnz.size(); ++k)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_nnz_unblocked[NDIM*k+d] = NDIM*d_nnz[k];
-                    o_nnz_unblocked[NDIM*k+d] = NDIM*o_nnz[k];
+                    d_nnz_unblocked[NDIM * k + d] = NDIM * d_nnz[k];
+                    o_nnz_unblocked[NDIM * k + d] = NDIM * o_nnz[k];
                 }
             }
-            ierr = MatCreateAIJ(PETSC_COMM_WORLD, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE, PETSC_DETERMINE,
-                                 num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &d_nnz_unblocked[0] : NULL,
-                                 num_local_nodes ? PETSC_DEFAULT : 0, num_local_nodes ? &o_nnz_unblocked[0] : NULL, &A);
+            ierr = MatCreateAIJ(PETSC_COMM_WORLD, NDIM * num_local_nodes, NDIM * num_local_nodes, PETSC_DETERMINE,
+                                PETSC_DETERMINE, num_local_nodes ? PETSC_DEFAULT : 0,
+                                num_local_nodes ? &d_nnz_unblocked[0] : NULL, num_local_nodes ? PETSC_DEFAULT : 0,
+                                num_local_nodes ? &o_nnz_unblocked[0] : NULL, &A);
             IBTK_CHKERRQ(ierr);
         }
         else
         {
             TBOX_ERROR(d_object_name + "::getLagrangianForceJacobian()."
-                       << "Matrix of the type " << mat_type << " given. Supported types are " << MATSHELL << "/" << MATMFFD
-                       << " , " << MATBAIJ << "/" << MATMPIBAIJ << " , " << MATAIJ << "/" << MATMPIAIJ << std::endl);
+                       << "Matrix of the type " << mat_type << " given. Supported types are " << MATSHELL << "/"
+                       << MATMFFD << " , " << MATBAIJ << "/" << MATMPIBAIJ << " , " << MATAIJ << "/" << MATMPIAIJ
+                       << std::endl);
         }
         ierr = MatSetBlockSize(A, NDIM);
         IBTK_CHKERRQ(ierr);
@@ -853,8 +857,8 @@ void IBMethod::spreadForce(const int f_data_idx,
                            const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<Pointer<LData> >* F_data, *X_LE_data;
-    bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_data, *X_LE_data;
+    bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_data,
@@ -872,8 +876,8 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
-    bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_jac_data, *X_LE_data;
+    bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_jac_data,
