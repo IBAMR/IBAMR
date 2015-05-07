@@ -342,8 +342,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
                                                                    std::vector<int>& o_nnz,
                                                                    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                                    const int level_number,
-                                                                   LDataManager* const l_data_manager,
-																   const bool is_blocked_matrix)
+                                                                   LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -500,29 +499,13 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
     ierr = VecGetArray(o_nnz_vec, &o_nnz_vec_arr);
     IBTK_CHKERRQ(ierr);
 
-	if (is_blocked_matrix)
-	{
-		d_nnz.resize(num_local_nodes);
-		o_nnz.resize(num_local_nodes);
-		for (int k = 0; k < num_local_nodes; ++k)
-		{
-			d_nnz[k] = static_cast<int>(d_nnz_vec_arr[k]);
-			o_nnz[k] = static_cast<int>(o_nnz_vec_arr[k]);
-		}
-	}
-	else
-	{
-		d_nnz.resize(num_local_nodes*NDIM);
-		o_nnz.resize(num_local_nodes*NDIM);
-		for (int k = 0; k < num_local_nodes; ++k)
-		{
-			for (int d = 0; d < NDIM; ++d)
-			{
-				d_nnz[k*NDIM + d] = NDIM*static_cast<int>(d_nnz_vec_arr[k]);
-				o_nnz[k*NDIM + d] = NDIM*static_cast<int>(o_nnz_vec_arr[k]);
-			}
-		}
-	}
+    d_nnz.resize(num_local_nodes);
+    o_nnz.resize(num_local_nodes);
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        d_nnz[k] = static_cast<int>(d_nnz_vec_arr[k]);
+        o_nnz[k] = static_cast<int>(o_nnz_vec_arr[k]);
+    }
 
     ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);
     IBTK_CHKERRQ(ierr);
@@ -545,8 +528,7 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 														const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 														const int level_number,
 														const double /*data_time*/,
-														LDataManager* const l_data_manager,
-														const bool is_blocked_matrix)
+														LDataManager* const l_data_manager)
 {
 	if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -565,8 +547,7 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 	ierr = VecGhostUpdateEnd(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
 	IBTK_CHKERRQ(ierr);
 
-	{ // Spring forces.
-
+    { // Spring forces.
 		const std::vector<int>& lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
 		const std::vector<int>& lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
 		const std::vector<int>& petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
@@ -644,20 +625,10 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 			}
 
 			// Accumulate the off-diagonal parts of the matrix.
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatSetValues(J_mat, NDIM, master, NDIM, slave, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, slave, NDIM, master, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
+			ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
 
 			// Negate dF_dX to obtain the Jacobian of the force applied by the
 			// spring to the "master" node with respect to the position of the
@@ -665,25 +636,14 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 			dF_dX *= -1.0;
 
 			// Accumulate the diagonal parts of the matrix.
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatSetValues(J_mat, NDIM, master, NDIM, master, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, slave, NDIM, slave, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-		}
+			ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
 	}
 
 	{ // Beam forces.
-
 		const std::vector<int>& petsc_global_mastr_node_idxs = d_beam_data[level_number].petsc_global_mastr_node_idxs;
 		const std::vector<int>& petsc_global_next_node_idxs = d_beam_data[level_number].petsc_global_next_node_idxs;
 		const std::vector<int>& petsc_global_prev_node_idxs = d_beam_data[level_number].petsc_global_prev_node_idxs;
@@ -707,75 +667,38 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 			{
 				dF_dX(alpha, alpha) = -1.0 * bend * X_coef;
 			}
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, prev, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, next, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, next, NDIM, prev, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, next, NDIM, next, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
+			ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
 
 			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
 			{
 				dF_dX(alpha, alpha) = +2.0 * bend * X_coef;
 			}
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, master, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, next, NDIM, master, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, master, NDIM, prev, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-				ierr = MatSetValues(J_mat, NDIM, master, NDIM, next, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
+			ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
 
 			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
 			{
 				dF_dX(alpha, alpha) = -4.0 * bend * X_coef;
 			}
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx,	dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatSetValues(J_mat, NDIM, master, NDIM, master, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
+			ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
 		}
 	}
 
 	{ // Target point forces.
-
 		const std::vector<int>& petsc_global_node_idxs = d_target_point_data[level_number].petsc_global_node_idxs;
 		const std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
 		const std::vector<const double*>& eta = d_target_point_data[level_number].eta;
@@ -789,21 +712,8 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 			{
 				dF_dX(alpha, alpha) = -X_coef * K - U_coef * E;
 			}
-			if (is_blocked_matrix)
-			{
-				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				int node[NDIM];
-				for (int d = 0; d < NDIM; ++d)
-				{
-					node[d] = petsc_global_node_idx*NDIM + d;
-				}
-				ierr = MatSetValues(J_mat, NDIM, node, NDIM, node, dF_dX.data(), ADD_VALUES);
-				IBTK_CHKERRQ(ierr);
-			}
+            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(), ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
 		}
 	}
 

@@ -123,8 +123,7 @@ public:
                                                    std::vector<int>& o_nnz,
                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                                    int level_number,
-                                                   IBTK::LDataManager* l_data_manager,
-												   const bool is_blocked_matrix=true);
+                                                   IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -142,8 +141,7 @@ public:
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                         int level_number,
                                         double data_time,
-                                        IBTK::LDataManager* l_data_manager,
-										const bool is_blocked_matrix=true);
+                                        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the potential energy with respect to the present structure
