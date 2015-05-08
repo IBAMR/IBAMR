@@ -102,12 +102,12 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
 {
 	// Set some default values for the level solvers.
 	d_level_solver_type = StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER;
-	d_level_solver_default_options_prefix = default_options_prefix + "level_";
+	d_level_solver_default_options_prefix = default_options_prefix;
 	d_level_solver_rel_residual_tol = 1.0e-5;
 	d_level_solver_abs_residual_tol = 1.0e-50;
 	d_level_solver_max_iterations = 1;
 	d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
-	
+
 	// Get values from the input database.
 	if (input_db)
 	{
@@ -123,10 +123,10 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
 			d_level_solver_db = input_db->getDatabase("level_solver_db");
 		}
 	}
-	
+
 	// Configure the coarse level solver.
 	setCoarseSolverType(d_coarse_solver_type);
-	
+
 	// Setup Timers.
 	IBAMR_DO_ONCE(
 				 t_smooth_error = TimerManager::getManager()->getTimer(
@@ -144,7 +144,7 @@ StaggeredStokesLevelRelaxationFACOperator::~StaggeredStokesLevelRelaxationFACOpe
 void StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
 {
 	StaggeredStokesFACPreconditionerStrategy::setSmootherType(level_solver_type);
-	
+
 	if (d_level_solver_type != level_solver_type)
 	{
 		d_level_solvers.clear();
@@ -162,7 +162,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
                                                           bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
-	
+
 	IBAMR_TIMER_START(t_smooth_error);
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
@@ -170,7 +170,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
     const int P_scratch_idx = d_cell_scratch_idx;
-	
+
 	Pointer<SAMRAIVectorReal<NDIM, double> > e_level = getLevelSAMRAIVectorReal(error, level_num);
 	Pointer<SAMRAIVectorReal<NDIM, double> > r_level = getLevelSAMRAIVectorReal(residual, level_num);
 
@@ -181,7 +181,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-			
+
             Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
@@ -259,7 +259,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
         }
-		
+
         // Smooth the error on the level.
 		Pointer<StaggeredStokesSolver> level_solver = d_level_solvers[level_num];
 		level_solver->setSolutionTime(d_solution_time);
@@ -272,10 +272,10 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 		if (p_level_solver)
 		{
 			bool initial_guess_nonzero = true;
-			
+
 			PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
 			PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
-			
+
 			if (p_petsc_solver || p_petsc_level_solver)
 			{
 				const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
@@ -285,7 +285,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 			}
 			p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
 		}
-		
+
 		level_solver->solveSystem(*e_level, *r_level);
     }
 
@@ -309,11 +309,11 @@ void StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecializ
 		if (!level_solver)
 		{
 			std::ostringstream level_solver_stream;
-			level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
+			level_solver_stream << d_level_solver_default_options_prefix;
 			level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
 				d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db,level_solver_stream.str());
 		}
-		
+
 		level_solver->setSolutionTime(d_solution_time);
 		level_solver->setTimeInterval(d_current_time, d_new_time);
 		level_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
@@ -324,9 +324,9 @@ void StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecializ
 		level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
 											*getLevelSAMRAIVectorReal(*d_rhs, ln));
 	}
-	
+
 	// Nullify any fill pattern spec objects which maybe set by the base class.
-	// However, we are NOT doing that with this class. 
+	// However, we are NOT doing that with this class.
 
     // Get overlap information for setting patch boundary conditions.
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
