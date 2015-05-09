@@ -28660,7 +28660,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hypre; using PETSc hypre library" >&5
 $as_echo "$as_me: PETSc appears to provide hypre; using PETSc hypre library" >&6;}
   PETSC_BUNDLES_HYPRE=yes
@@ -30554,9 +30554,9 @@ $as_echo "$as_me: using PETSC_DIR: ${PETSC_DIR}" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: using PETSC_ARCH: ${PETSC_ARCH}" >&5
 $as_echo "$as_me: using PETSC_ARCH: ${PETSC_ARCH}" >&6;}
 
-PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
 
 CPPFLAGS="$PETSC_CC_INCLUDES $CPPFLAGS"
 

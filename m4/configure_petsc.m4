@@ -16,9 +16,9 @@ AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
 AC_MSG_NOTICE([using PETSC_DIR: ${PETSC_DIR}])
 AC_MSG_NOTICE([using PETSC_ARCH: ${PETSC_ARCH}])
 
-PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
-PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
-PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
+PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
+PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
+PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^[ \t]*//'`
 
 CPPFLAGS_PREPEND($PETSC_CC_INCLUDES)
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
