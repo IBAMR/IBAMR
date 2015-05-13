@@ -704,16 +704,12 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
 
 double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
-    double dt = d_dt_max;
+    double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
-    }
-    if (!initial_time && d_dt_growth_factor >= 1.0)
-    {
-        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
