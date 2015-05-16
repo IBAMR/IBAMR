@@ -183,6 +183,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -287,6 +288,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
 	$(top_builddir)/src/math/fortran/curl2d.f \
 	$(top_builddir)/src/math/fortran/div2d.f \
@@ -317,6 +319,7 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/boundary/physical_boundary/libIBTK2d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
+	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LDataManager.$(OBJEXT) \
@@ -425,6 +428,7 @@ am_libIBTK2d_a_OBJECTS = $(am__objects_2) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.$(OBJEXT) \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT) \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT) \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/curl2d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/div2d.$(OBJEXT) \
@@ -458,6 +462,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -562,6 +567,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
 	$(top_builddir)/src/math/fortran/curl3d.f \
 	$(top_builddir)/src/math/fortran/div3d.f \
@@ -591,6 +597,7 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/boundary/physical_boundary/libIBTK3d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
+	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LDataManager.$(OBJEXT) \
@@ -699,6 +706,7 @@ am_libIBTK3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT) \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.$(OBJEXT) \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.$(OBJEXT) \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/curl3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/div3d.$(OBJEXT) \
@@ -1144,6 +1152,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/CartSideDoubleCubicCoarsen.h \
 	../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 	../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
+	../include/ibtk/CartSideDoubleRT0Coarsen.h \
 	../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
 	../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 	../include/ibtk/CartSideRobinPhysBdryOp.h \
@@ -1277,6 +1286,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -1380,6 +1390,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
 $(top_builddir)/src/math/fortran/curl2d.f \
 $(top_builddir)/src/math/fortran/div2d.f \
@@ -1401,6 +1412,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
 $(top_builddir)/src/math/fortran/curl3d.f \
 $(top_builddir)/src/math/fortran/div3d.f \
@@ -1561,6 +1573,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT):  \
+	../src/coarsen_ops/$(am__dirstamp) \
+	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT):  \
@@ -1941,6 +1956,9 @@ $(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp):
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT):  \
+	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2049,6 +2067,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT):  \
+	../src/coarsen_ops/$(am__dirstamp) \
+	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT):  \
@@ -2369,6 +2390,9 @@ $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.$(OBJEXT):  \
+	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2466,9 +2490,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/physical_boundary/$(DEPDIR)/libIBTK3d_a-muParserRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@
@@ -2908,6 +2934,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; fi`
+
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
 
 ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
@@ -4560,6 +4600,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; fi`
+
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
 
 ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp

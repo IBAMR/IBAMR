@@ -48,6 +48,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 ../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 ../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 ../src/coarsen_ops/LMarkerCoarsen.cpp \
 ../src/lagrangian/LData.cpp \
 ../src/lagrangian/LDataManager.cpp \
@@ -179,6 +180,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/CartSideDoubleCubicCoarsen.h \
 ../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 ../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
+../include/ibtk/CartSideDoubleRT0Coarsen.h \
 ../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
 ../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 ../include/ibtk/CartSideRobinPhysBdryOp.h \
@@ -319,6 +321,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
 $(top_builddir)/src/math/fortran/curl2d.f \
 $(top_builddir)/src/math/fortran/div2d.f \
@@ -340,6 +343,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
 $(top_builddir)/src/math/fortran/curl3d.f \
 $(top_builddir)/src/math/fortran/div3d.f \
