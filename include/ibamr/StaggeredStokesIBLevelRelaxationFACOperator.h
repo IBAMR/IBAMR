@@ -282,6 +282,37 @@ public:
     //\}
 
     /*!
+     * \name Functions for accessing the level operators and solvers.
+     */
+    //\{
+
+    /*!
+     * \brief Get the Staggered Stokes IB level solver.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> getStaggeredStokesIBLevelSolver(const int ln) const;
+
+    /*!
+     * \brief Get the Galerkin elasticity level operator.
+     */
+    Mat getGalerkinElasticityLevelOp(const int ln) const;
+
+    /*!
+     * \brief Get the prolongation level operator. The prolongation 
+     * operator prolongs data from level \em ln to level \em ln + 1.
+     */
+    Mat getProlongationOp(const int ln) const;
+
+    /*!
+     * \brief Get the scaling for level restriction operator. The restriction
+     * operator restricts data from level \em ln + 1 to level \em ln. 
+     * Restriction op is defined to be the scaled adjoint of prolongation 
+     * operator, i.e., R = L P^T. 
+     */
+    Vec getRestrictionScalingOp(const int ln) const;
+
+    //\}
+
+    /*!
      * \name Partial implementation of FACPreconditionerStrategy interface.
      */
     //\{
@@ -646,19 +677,19 @@ private:
     /*
      * Jacobian of the elasticity force at the finest patch level.
      */
-    Mat d_mat_A;
+    Mat d_A_mat;
 
     /*
      * IB interpolation operator J for the finest patch level.
      */
-    Mat d_mat_J;
+    Mat d_J_mat;
 
     /*
      * Data structures for elasticity and prolongation operator respresentation
      * on various patch levels.
      */
-    std::vector<Mat> d_mat_SAJ, d_mat_prolongation;
-    std::vector<Vec> d_mat_scale_restriction;
+    std::vector<Mat> d_SAJ_mat, d_prolongation_mat;
+    std::vector<Vec> d_scale_restriction_mat;
 
     /*
      * Mappings from patch indices to patch operators.

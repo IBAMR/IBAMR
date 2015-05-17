@@ -431,7 +431,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
     TBOX_ASSERT(A);
 #endif
 
-    d_mat_A = A;
+    d_A_mat = A;
     return;
 } // setIBForceJacobian
 
@@ -447,9 +447,42 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
     TBOX_ASSERT(J);
 #endif
 
-    d_mat_J = J;
+    d_J_mat = J;
     return;
 } // setIBInterpOp
+
+Pointer<StaggeredStokesPETScLevelSolver>
+StaggeredStokesIBLevelRelaxationFACOperator::getStaggeredStokesIBLevelSolver(const int ln) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln <= d_finest_ln);
+#endif
+    return d_level_solvers[ln];
+} // getStaggeredStokesIBLevelSolver
+
+Mat StaggeredStokesIBLevelRelaxationFACOperator::getGalerkinElasticityLevelOp(const int ln) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln <= d_finest_ln);
+#endif
+    return d_SAJ_mat[ln];
+} // getGalerkinElasticityLevelOp
+
+Mat StaggeredStokesIBLevelRelaxationFACOperator::getProlongationOp(const int ln) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
+#endif
+    return d_prolongation_mat[ln];
+} // getProlongationOp
+
+Vec StaggeredStokesIBLevelRelaxationFACOperator::getRestrictionScalingOp(const int ln) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
+#endif
+    return d_scale_restriction_mat[ln];
+} // getRestrictionScalingOp
 
 void StaggeredStokesIBLevelRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
                                                                    SAMRAIVectorReal<NDIM, double>& dst,
@@ -830,8 +863,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
     }
 
     // Construct prolongation matrix and scaling for restriction matrix for various levels.
-    d_mat_prolongation.resize(d_finest_ln + 1);
-    d_mat_scale_restriction.resize(d_finest_ln + 1);
+    d_prolongation_mat.resize(d_finest_ln + 1);
+    d_scale_restriction_mat.resize(d_finest_ln + 1);
     for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
          --ln)
     {
@@ -839,21 +872,21 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(ln + 1);
         Pointer<PatchLevel<NDIM> > coarse_level = d_hierarchy->getPatchLevel(ln);
 
-        PETScMatUtilities::constructProlongationOp(d_mat_prolongation[ln], d_u_dof_index_idx,
+        PETScMatUtilities::constructProlongationOp(d_prolongation_mat[ln], d_u_dof_index_idx,
                                                    d_num_dofs_per_proc[ln + 1], d_num_dofs_per_proc[ln], fine_level,
                                                    coarse_level, d_u_app_ordering[ln]);
 
         // Get the scaling for restriction operator R = P^T.
-        PETScMatUtilities::constructRestrictionScalingOp(d_mat_prolongation[ln], d_mat_scale_restriction[ln]);
+        PETScMatUtilities::constructRestrictionScalingOp(d_prolongation_mat[ln], d_scale_restriction_mat[ln]);
     }
 
     // Compute SAJ operator for various patch levels.
-    d_mat_SAJ.resize(d_finest_ln + 1);
+    d_SAJ_mat.resize(d_finest_ln + 1);
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
     {
         if (ln == d_finest_ln)
         {
-            ierr = MatPtAP(d_mat_A, d_mat_J, MAT_INITIAL_MATRIX, 1.0, &d_mat_SAJ[ln]);
+            ierr = MatPtAP(d_A_mat, d_J_mat, MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
 
             // Compute the scale for the spreading operator.
@@ -864,14 +897,14 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
             double spread_scale = -0.25 * (d_new_time - d_current_time);
             for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d) / dx0[d];
 
-            ierr = MatScale(d_mat_SAJ[ln], spread_scale);
+            ierr = MatScale(d_SAJ_mat[ln], spread_scale);
             IBTK_CHKERRQ(ierr);
         }
         else
         {
-            ierr = MatPtAP(d_mat_SAJ[ln + 1], d_mat_prolongation[ln], MAT_INITIAL_MATRIX, 1.0, &d_mat_SAJ[ln]);
+            ierr = MatPtAP(d_SAJ_mat[ln + 1], d_prolongation_mat[ln], MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
-            ierr = MatDiagonalScale(d_mat_SAJ[ln], d_mat_scale_restriction[ln], PETSC_NULL);
+            ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_restriction_mat[ln], PETSC_NULL);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -893,7 +926,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        d_coarse_solver->addLinearOperator(d_mat_SAJ[d_coarsest_ln]);
+        d_coarse_solver->addLinearOperator(d_SAJ_mat[d_coarsest_ln]);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
@@ -918,7 +951,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         level_solver->setPhysicalBoundaryHelper(d_bc_helper);
         level_solver->setHomogeneousBc(true);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        level_solver->addLinearOperator(d_mat_SAJ[ln]);
+        level_solver->addLinearOperator(d_SAJ_mat[ln]);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
@@ -1127,21 +1160,21 @@ void StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
     for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
          --ln)
     {
-        ierr = MatDestroy(&d_mat_prolongation[ln]);
+        ierr = MatDestroy(&d_prolongation_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_mat_prolongation[ln] = PETSC_NULL;
+        d_prolongation_mat[ln] = PETSC_NULL;
 
-        ierr = VecDestroy(&d_mat_scale_restriction[ln]);
+        ierr = VecDestroy(&d_scale_restriction_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_mat_scale_restriction[ln] = PETSC_NULL;
+        d_scale_restriction_mat[ln] = PETSC_NULL;
     }
 
     // Deallocate SAJ mat.
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
     {
-        ierr = MatDestroy(&d_mat_SAJ[ln]);
+        ierr = MatDestroy(&d_SAJ_mat[ln]);
         IBTK_CHKERRQ(ierr);
-        d_mat_SAJ[ln] = PETSC_NULL;
+        d_SAJ_mat[ln] = PETSC_NULL;
     }
 
     // Deallocate DOF index data.
