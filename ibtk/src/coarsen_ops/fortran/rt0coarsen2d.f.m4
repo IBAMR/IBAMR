@@ -96,9 +96,10 @@ c
 c
 c     Coarsen data.
 c
+      w0 = 0.d0
+      w1 = 1.d0
       w_fac = 0.d0              ! lazy lazy lazy!
       do j = 0,ratio_to_coarser(1)-1
-         w1 = 1.d0/dble(ratio_to_coarser(1))
          do i = -ratio_to_coarser(0)+1,ratio_to_coarser(0)-1
             w0 = (1.d0 - dabs(dble(i)))/dble(ratio_to_coarser(0))
             w_fac = w_fac + w0*w1
@@ -109,7 +110,6 @@ c
       do j_c = coarse_box_lower(1),coarse_box_upper(1)
          j_f = j_c*ratio_to_coarser(1)
          do j = 0,ratio_to_coarser(1)-1
-            w1 = 1.d0/dble(ratio_to_coarser(1))
             do i_c = coarse_box_lower(0),coarse_box_upper(0)+1
                i_f = i_c*ratio_to_coarser(0)
                U_crse0(i_c,j_c) = 0.d0
@@ -122,11 +122,12 @@ c
          enddo
       enddo
 
+      w0 = 1.d0
+      w1 = 0.d0
       w_fac = 0.d0              ! lazy lazy lazy lazy!
       do j = -ratio_to_coarser(1)+1,ratio_to_coarser(1)-1
          w1 = (1.d0 - abs(dble(j)))/dble(ratio_to_coarser(1))
          do i = 0,ratio_to_coarser(0)-1
-            w0 = 1.d0/dble(ratio_to_coarser(0))
             w_fac = w_fac + w0*w1
          enddo
       enddo
@@ -140,7 +141,6 @@ c
                i_f = i_c*ratio_to_coarser(0)
                U_crse1(i_c,j_c) = 0.d0
                do i = 0,ratio_to_coarser(0)-1
-                  w0 = 1.d0/dble(ratio_to_coarser(0))
                   U_crse1(i_c,j_c) = U_crse1(i_c,j_c) +
      &                 w0*w1*w_fac*U_fine1(i_f+i,j_f+j)
                enddo
