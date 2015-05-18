@@ -181,7 +181,7 @@ c
       w_fac = 0.d0              ! lazy lazy lazy lazy!
       do k = -ratio_to_coarser(2)+1,ratio_to_coarser(2)-1
          w2 = 1.d0 - dabs(dble(k))/dble(ratio_to_coarser(2))
-         do j = -ratio_to_coarser(1)+1,ratio_to_coarser(1)-1
+         do j = 0,ratio_to_coarser(1)-1
             do i = 0,ratio_to_coarser(0)-1
                w_fac = w_fac + w0*w1*w2
             enddo
@@ -195,7 +195,7 @@ c
             w2 = 1.d0 - dabs(dble(k))/dble(ratio_to_coarser(2))
             do j_c = coarse_box_lower(1),coarse_box_upper(1)
                j_f = j_c*ratio_to_coarser(1)
-               do j = -ratio_to_coarser(1)+1,ratio_to_coarser(1)-1
+               do j = 0,ratio_to_coarser(1)-1
                   do i_c = coarse_box_lower(0),coarse_box_upper(0)
                      i_f = i_c*ratio_to_coarser(0)
                      U_crse2(i_c,j_c,k_c) = 0.d0
