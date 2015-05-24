@@ -76,7 +76,7 @@
 // matrix-free [matApply()] while the other uses matrix version
 // of SAJ operator [matApply2(): by default], to evaluate the IB
 // part of the equation on the finest grid level. This can be
-// switched in the initizationSolverState() routine. The SAJ PETSc
+// switched in the initializeSolver() routine. The SAJ PETSc
 // Mat passed to this class should be for the finest grid level.
 
 class StokesIBSolver : public IBAMR::StaggeredStokesSolver
@@ -864,7 +864,7 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
                                          Mat& SAJ_fine,
                                          std::vector<std::vector<int> > num_dofs_per_proc,
                                          Pointer<SideVariable<NDIM, double> > u_var,
-                                         Pointer<CellVariable<NDIM, double> > p_var,
+                                         Pointer<CellVariable<NDIM, double> > /*p_var*/,
                                          const int u_idx,
                                          const int p_idx,
                                          const int u_dof_index_idx,
