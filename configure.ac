@@ -135,6 +135,7 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/Stokes-IB/Makefile
   tests/Stokes-IB/test0/Makefile
+  tests/Stokes-IB/test1/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

@@ -1,0 +1,29 @@
+This is a test case for Stokes-IB solver that uses StaggeredStokesIBLevelRelaxationFACOperator
+as a preconditioner. Four levels (can be changed from input file MAX_LEVELS) are taken in the
+system, that span the entire computational domain. The refinement ratio between the levels is 2
+(can be changed in the input file via REF_RATIO). This is to make a classical Cartesian-based
+geometric MG solver. The ratio in shell2d_64 subdatabase of IBStandardDatabase can be used to crank
+up or down the relative stiffness between implicit and explicit solvers.
+
+Some of the command lines for PETSc solvers are:
+
+// Level solvers
+(*) -stokes_ib_pc_level_pc_asm_local_type <multiplicative/additive>: ASM type on levels > 0.
+(*) -stokes_ib_pc_level_sub_ksp_type <preonly/richardson>: preonly is by default.
+(*) -stokes_ib_pc_level_sub_pc_type <lu/ilu/svd>: ilu is by default, we would like lu.
+(*) -stokes_ib_pc_level_pc_asm_type <none/restrict/basic/interpolate>: restrict is by default.
+(*) -stokes_ib_pc_level_sub_pc_factor_nonzeros_along_diagonal: making lu work in the case of nullspace.
+
+
+// Coarsest level solver
+(*) -stokes_ib_pc_level_0_pc_asm_local_type <multiplicative/additive> ASM type on level 0.
+(*) -stokes_ib_pc_level_0_sub_ksp_type <preonly/richardson> preonly is by default.
+(*) -stokes_ib_pc_level_0_sub_pc_type <lu/ilu/svd>: ilu is by default, we would like lu. 
+(*) -stokes_ib_pc_level_0_sub_pc_factor_nonzeros_along_diagonal:  making lu work in the case of nullspace.
+(*) -stokes_ib_pc_level_0_pc_asm_type <none/restrict/basic/interpolate>: restrict is by default.
+
+=================
+A sample commmand line:
+
+./main2d input2d.shell -ib_ksp_monitor_true_residual -ib_snes_type ksponly -stokes_ib_pc_level_pc_asm_local_type additive -stokes_ib_pc_level_sub_pc_type lu -stokes_ib_pc_level_pc_asm_type interpolate  -stokes_ib_pc_level_0_pc_asm_local_type additive -stokes_ib_pc_level_0_sub_pc_type svd -stokes_ib_pc_level_sub_pc_factor_nonzeros_along_diagonal
+
