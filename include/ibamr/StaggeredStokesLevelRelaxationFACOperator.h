@@ -85,38 +85,39 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesLevelRelaxationFACOperator(const std::string& object_name,
-											  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-											  const std::string& default_options_prefix);
+                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                              const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
     ~StaggeredStokesLevelRelaxationFACOperator();
-	
-	/*!
-	 * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
-	 * StaggeredStokesLevelRelaxationFACOperator FAC strategy.
-	 */
-	static SAMRAI::tbox::Pointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
-																SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-																const std::string& default_options_prefix)
-	{
-		SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-			new StaggeredStokesLevelRelaxationFACOperator(
-			object_name + "::StaggeredStokesLevelRelaxationFACOperator", input_db, default_options_prefix);
-		return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
-	} // allocate_solver
+
+    /*!
+     * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
+     * StaggeredStokesLevelRelaxationFACOperator FAC strategy.
+     */
+    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
+            new StaggeredStokesLevelRelaxationFACOperator(object_name + "::StaggeredStokesLevelRelaxationFACOperator",
+                                                          input_db, default_options_prefix);
+        return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
-	
-	/*!
-	 * \brief Specify the smoother type.
-	 */
-	void setSmootherType(const std::string& level_solver_type);
-	
+
+    /*!
+     * \brief Specify the smoother type.
+     */
+    void setSmootherType(const std::string& level_solver_type);
+
     /*!
      * \brief Perform a given number of relaxations on the error.
      *
@@ -182,15 +183,15 @@ private:
      */
     StaggeredStokesLevelRelaxationFACOperator& operator=(const StaggeredStokesLevelRelaxationFACOperator& that);
 
-	/*
-	 * Level solvers and solver parameters.
-	 */
-	std::string d_level_solver_type, d_level_solver_default_options_prefix;
-	double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
-	int d_level_solver_max_iterations;
-	std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
-	SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
-	
+    /*
+     * Level solvers and solver parameters.
+     */
+    std::string d_level_solver_type, d_level_solver_default_options_prefix;
+    double d_level_solver_abs_residual_tol, d_level_solver_rel_residual_tol;
+    int d_level_solver_max_iterations;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+
     /*
      * Mappings from patch indices to patch operators.
      */
