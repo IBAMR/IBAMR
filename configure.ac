@@ -133,6 +133,8 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   src/tools/Makefile
   tests/Makefile
+  tests/Stokes/Makefile
+  tests/Stokes/test0/Makefile
   tests/Stokes-IB/Makefile
   tests/Stokes-IB/test0/Makefile
   tests/Stokes-IB/test1/Makefile
