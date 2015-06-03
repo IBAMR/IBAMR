@@ -1695,7 +1695,7 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
     if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
+        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
         const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
         switch (type)
         {
