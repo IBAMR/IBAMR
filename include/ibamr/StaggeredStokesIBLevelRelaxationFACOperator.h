@@ -297,16 +297,16 @@ public:
     Mat getGalerkinElasticityLevelOp(const int ln) const;
 
     /*!
-     * \brief Get the prolongation level operator. The prolongation 
+     * \brief Get the prolongation level operator. The prolongation
      * operator prolongs data from level \em ln to level \em ln + 1.
      */
     Mat getProlongationOp(const int ln) const;
 
     /*!
      * \brief Get the scaling for level restriction operator. The restriction
-     * operator restricts data from level \em ln + 1 to level \em ln. 
-     * Restriction op is defined to be the scaled adjoint of prolongation 
-     * operator, i.e., R = L P^T. 
+     * operator restricts data from level \em ln + 1 to level \em ln.
+     * Restriction op is defined to be the scaled adjoint of prolongation
+     * operator, i.e., R = L P^T.
      */
     Vec getRestrictionScalingOp(const int ln) const;
 
@@ -662,8 +662,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 
     /*
-         * Application ordering of u from MAC DOFs on various patch levels.
-         */
+     * Application ordering of u from MAC DOFs on various patch levels.
+     */
     std::vector<AO> d_u_app_ordering;
 
     /*

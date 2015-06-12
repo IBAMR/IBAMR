@@ -6,7 +6,7 @@
 // -stokes_ib_pc_level_pc_asm_type BASIC
 
 // physical parameters
-MU  = 1.0e-2                            // the viscosity
+MU  = 1.0                           // the viscosity
 RHO = 0.0
 
 // grid spacing parameters
@@ -32,7 +32,7 @@ CONVECTIVE_OP_TYPE  = "CENTERED"          // convective differencing discretizat
 CONVECTIVE_FORM     = "CONSERVATIVE"      // how to compute the convective terms
 NORMALIZE_PRESSURE  = TRUE                // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                 // maximum CFL number
-DT                  = 0.001             // maximum timestep size
+DT                  = 0.005             // maximum timestep size
 ERROR_ON_DT_CHANGE  = TRUE                // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                  // size of tag buffer used by grid generation algorithm
@@ -100,44 +100,41 @@ IBHierarchyIntegrator {
    eliminate_eulerian_vars    = FALSE
    stokes_ib_precond_db
    {
-		num_pre_sweeps  = 0
-		num_post_sweeps = 1
-		//U_prolongation_method = "LINEAR_REFINE"
-		//P_prolongation_method = "LINEAR_REFINE"
-		//U_restriction_method  = "CONSERVATIVE_COARSEN"
-		//P_restriction_method  = "CONSERVATIVE_COARSEN"
+	num_pre_sweeps  = 1
+	num_post_sweeps = 1
+	//U_prolongation_method = "LINEAR_REFINE"
+	//P_prolongation_method = "LINEAR_REFINE"
+	//U_restriction_method  = "CONSERVATIVE_COARSEN"
+	//P_restriction_method  = "CONSERVATIVE_COARSEN"
 
-		level_solver_type   = "PETSC_LEVEL_SOLVER"
-		level_solver_rel_residual_tol = 1.0e-12
-		level_solver_abs_residual_tol = 1.0e-50
-		level_solver_max_iterations = 5
-		level_solver_db
-		{
-			initial_guess_nonzero = TRUE
-			ksp_type              = "fgmres"
-			pc_type               = "asm"
-
-            subdomain_box_size      = N, N
-            subdomain_overlap_size  = 2, 2
-
-		}
-
-		coarse_solver_type  = "PETSC_LEVEL_SOLVER"
-		coarse_solver_rel_residual_tol = 1.0e-12
-		coarse_solver_abs_residual_tol = 1.0e-50
-		coarse_solver_max_iterations = 1000
-		coarse_solver_db
-		{
-			initial_guess_nonzero = TRUE
-			ksp_type              = "fgmres"
-			pc_type               = "asm"
+	level_solver_type   = "PETSC_LEVEL_SOLVER"
+	level_solver_rel_residual_tol = 1.0e-12
+	level_solver_abs_residual_tol = 1.0e-50
+	level_solver_max_iterations = 2
+	level_solver_db
+	{
+	    initial_guess_nonzero = TRUE
+	    ksp_type              = "richardson"
+	    pc_type               = "asm"
 
             subdomain_box_size      = N, N
-            subdomain_overlap_size  = 2, 2
-		}
+            subdomain_overlap_size  = 0, 0
 	}
 
+	coarse_solver_type  = "PETSC_LEVEL_SOLVER"
+	coarse_solver_rel_residual_tol = 1.0e-12
+	coarse_solver_abs_residual_tol = 1.0e-50
+	coarse_solver_max_iterations = 1000
+	coarse_solver_db
+	{
+	     initial_guess_nonzero = TRUE
+	     ksp_type              = "fgmres"
+	     pc_type               = "asm"
 
+             subdomain_box_size      = N, N
+             subdomain_overlap_size  = 0, 0
+	}
+    }
 }
 
 IBMethod {
@@ -147,7 +144,7 @@ IBMethod {
 
 
 IBStandardInitializer {
-   posn_shift = 0.0, 0.0
+   posn_shift      = 0.0, 0.0
    max_levels      = MAX_LEVELS
    structure_names = "shell2d_64"
 
@@ -155,7 +152,7 @@ IBStandardInitializer {
       ratio = 500.0
       alpha_explicit = 3.93
       level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = ratio*alpha_explicit/DT
+      uniform_spring_stiffness = ratio*alpha_explicit/DT 
    }
 }
 
@@ -245,12 +242,12 @@ StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
     RefineBoxes {
 
-		level_0 = [(0,0), (N - 1, N - 1)]
-		level_1 = [(0,0), (RR^1*N - 1, RR^1*N - 1)]
-		level_2 = [(0,0), (RR^2*N - 1, RR^2*N - 1)]
-		level_3 = [(0,0), (RR^3*N - 1, RR^3*N - 1)]
-		level_4 = [(0,0), (RR^4*N - 1, RR^4*N - 1)]
-		level_5 = [(0,0), (RR^5*N - 1, RR^5*N - 1)]
+	level_0 = [(0,0), (N - 1, N - 1)]
+	level_1 = [(0,0), (RR^1*N - 1, RR^1*N - 1)]
+	level_2 = [(0,0), (RR^2*N - 1, RR^2*N - 1)]
+	level_3 = [(0,0), (RR^3*N - 1, RR^3*N - 1)]
+	level_4 = [(0,0), (RR^4*N - 1, RR^4*N - 1)]
+	level_5 = [(0,0), (RR^5*N - 1, RR^5*N - 1)]
         level_6 = [(0,0), (RR^6*N - 1, RR^6*N - 1)]
         level_7 = [(0,0), (RR^7*N - 1, RR^7*N - 1)]
     }

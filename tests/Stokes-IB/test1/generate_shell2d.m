@@ -1,78 +1,63 @@
-function generate_shell2d(N)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Problem parameters
-w = 0.0625;
-beta  = 0.25;
-alpha = 0.25^2/beta;
-
-A = pi*alpha*beta;      % area of ellipse
-R = sqrt(A/pi);         % radius of disc with equivalent area as the ellipse
-perim = 2*pi*R;         % perimeter of the equivalent disc
-
-dx = 1/N;               % eulerian mesh width  
-dx_64 = 1/64;
-
-num_node_circum = (dx_64/dx)*ceil(perim/(dx_64/3)/4)*4;
-ds = perim/num_node_circum;
-
-num_node_radial = (dx_64/dx)*ceil(w/(dx_64/3)/4)*4+1;
-dr = w/num_node_radial;
-
-num_node = num_node_radial*num_node_circum;
-
-kappa = 1.0/w;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Step 1: Write out the vertex information
+%
+% initialize the IB points for a thick ring of points and write 
+% down the corresponding vertex and spring files
+%
+function [X,ds, ds2]  = generate_shell2d(N)
+%% geometric parameters for the circle
+  %
+  xc = 0.5;      % center of the circle
+  yc = 0.5;      %
+  r  = 0.25;     % radius of the circle
+  w  = 0.0625;   % width of the band
+  
+  % define the number of points in each direction
+  %  these formula are for r=1/4, w=1/16 and give spacing
+  %  of ds~2dx/3
+  %
+  M1 = 19/8*N;
+  M2 = 3/32*N + 1;
+  
+  % define ds based on the circumfrential direction
+  %
+  ds  = 2*pi*r/M1
+  ds2 = w/(M2-1);
+  theta = (linspace(0,2*pi,M1+1))';
+  theta = theta(1:end-1);
+  
+  % build the data strcutres
+  X  = [];
+  for k = 1:M2
+    
+    rk = r+ds2*(k-1);
+    Xk = [xc + rk*cos(theta), yc + rk*sin(theta)];
+    X = [X; Xk];
+  end
+  
+  num_nodes = size(X,1);
+  num_nodes_ring = num_nodes/M2;
+  num_springs = size(X,1);
+  
+%% Step 1: Write out the vertex information
 vertex_fid = fopen(['shell2d_' num2str(N) '.vertex'], 'w');
+fprintf(vertex_fid, '%d\n', num_nodes);
 
-% first line is the number of vertices in the file
-fprintf(vertex_fid, '%d\n', num_node);
+for node = 1: num_nodes
+     fprintf(vertex_fid, '%1.16e %1.16e\n', X(node,1), X(node,2));
+end 
 
-% remaining lines are the initial coordinates of each vertex
-for k = 0:num_node_radial-1
-  for l = 0:num_node_circum-1
-    theta = 2.0*pi*l/num_node_circum;
-    r = k*w/(num_node_radial-1);
-    X(1) = 0.5 + (alpha + r)*cos(theta);
-    X(2) = 0.5 + (beta  + r)*sin(theta);
-    fprintf(vertex_fid, '%1.16e %1.16e\n', X(1), X(2));
-  end %for
-end %for
-
-fclose(vertex_fid);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Step 2: Write out the link information (including connectivity and
-% material parameters).
+%% Step 2: Write out the spring information
 spring_fid = fopen(['shell2d_' num2str(N) '.spring'], 'w');
+fprintf(spring_fid, '%d\n', num_springs);
 
-% first line is the number of edges in the file
-fprintf(spring_fid, '%d\n', num_node_circum*num_node_radial);
-
-% remaining lines are the edges in the mesh
-for k = 0:num_node_radial-1
-  for l = 0:num_node_circum-1
-    current_idx = l;
-    next_idx    = current_idx+1;
-    if (l == num_node_circum-1)
-      next_idx = 0;
-    end %if
-    current_idx = current_idx + k*num_node_circum;
-    next_idx    = next_idx    + k*num_node_circum;
-    
-    %K = kappa*dr/ds;
-    K = 10*3.93/0.001;
-    rest_length = 0.0;
-    
-    fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', current_idx, next_idx, ...
-            K, rest_length);
-  end %for
-end %for 
-
-fclose(spring_fid);
-
+rest_length = 0.0;
+Kappa = 0.0;
+for ring = 1: M2
+    lag_begin = (ring - 1)*num_nodes_ring;
+    lag_end   = lag_begin + (num_nodes_ring - 1);
+    for node = lag_begin: lag_end - 1
+       fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', node, node + 1, ...
+            Kappa, rest_length);
+    end 
+    fprintf(spring_fid, '%6d %6d %1.16e %1.16e\n', lag_end, lag_begin, ...
+        Kappa, rest_length);
+end
