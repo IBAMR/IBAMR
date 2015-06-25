@@ -812,9 +812,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES 
     d_ib_implicit_ops->computeLagrangianForce(half_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        plog << "Spreading being done from " << d_object_name
-             << "::compositeIBFunction() that solves for X^n+1 along with fluid variables.\n";
+        plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << "Spreading being done from " << d_object_name << "::IBFunction_position().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
@@ -872,9 +871,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES 
     d_ib_implicit_ops->computeLagrangianForce(half_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        plog << "Spreading being done from " << d_object_name
-             << "::compositeIBFunction() that solves for only fluid variables.\n";
+        plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << "Spreading being done from " << d_object_name << "::IBFunction_velocity().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
@@ -888,8 +886,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES 
     return ierr;
 } // IBFunction_velocity
 
-PetscErrorCode
-IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
+PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
@@ -923,8 +920,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(
     return ierr;
 } // IBJacobianSetup_position
 
-PetscErrorCode
-IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
+PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
@@ -1007,9 +1003,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        plog << "Spreading being done from " << d_object_name
-             << "::compositeIBJacobianApply() that solves for X^n+1 along with fluid variables.\n";
+        plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << "Spreading being done from " << d_object_name << "::IBJacobianApply_position().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
@@ -1065,9 +1060,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        plog << "Spreading being done from " << d_object_name
-             << "::compositeIBJacobianApply() that solves for X^n+1 along with fluid variables.\n";
+        plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << "Spreading being done from " << d_object_name << "::IBJacobianApply_velocity().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
@@ -1099,7 +1093,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, V
     }
     IBTK_CHKERRQ(ierr);
     return ierr;
-} // compositeIBPCApply_SAMRAI
+} // IBPCApply_SAMRAI
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 {
