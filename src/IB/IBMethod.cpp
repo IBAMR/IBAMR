@@ -542,22 +542,26 @@ void IBMethod::setLinearizedPosition(Vec& X_vec)
     ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     *X_jac_needs_ghost_fill = true;
-    if (!d_force_jac)
+
+    if (d_force_jac)
     {
-        int n_local, n_global;
-        ierr = VecGetLocalSize(X_vec, &n_local);
+        ierr = MatDestroy(&d_force_jac);
         IBTK_CHKERRQ(ierr);
-        ierr = VecGetSize(X_vec, &n_global);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetFromOptions(d_force_jac);
-        IBTK_CHKERRQ(ierr);
+        d_force_jac = NULL;
     }
+    int n_local, n_global;
+    ierr = VecGetLocalSize(X_vec, &n_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetSize(X_vec, &n_global);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetFromOptions(d_force_jac);
+    IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
@@ -617,7 +621,7 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<Pointer<LData> > *U_data, *X_LE_data;
+    std::vector<Pointer<LData> >* U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -641,7 +645,7 @@ void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<Pointer<LData> > *U_jac_data, *X_LE_data;
+    std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -708,7 +712,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_current_data, *U_new_data;
+    std::vector<Pointer<LData> >* U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -741,8 +745,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > *F_data, *X_data, *U_data;
-    bool *F_needs_ghost_fill, *X_needs_ghost_fill;
+    std::vector<Pointer<LData> >* F_data, *X_data, *U_data;
+    bool* F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityData(&U_data, data_time);
@@ -855,8 +859,8 @@ void IBMethod::spreadForce(const int f_data_idx,
                            const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<Pointer<LData> > *F_data, *X_LE_data;
-    bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> >* F_data, *X_LE_data;
+    bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_data,
@@ -874,8 +878,8 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<Pointer<LData> > *F_jac_data, *X_LE_data;
-    bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
+    bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_jac_data,
