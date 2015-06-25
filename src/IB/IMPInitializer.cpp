@@ -431,7 +431,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<N
         // locations will be within the index space of the given patch, but on
         // the finer levels of the AMR patch hierarchy.
         const int max_levels = d_gridding_alg->getMaxLevels();
-        const bool can_be_refined = level_number + 2 < max_levels;
+        const bool can_be_refined = level_can_be_refined(level_number, max_levels);
         for (int ln = level_number + 1; ln < max_levels; ++ln)
         {
             std::vector<std::pair<int, int> > patch_vertices;
