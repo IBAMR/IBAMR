@@ -85,7 +85,7 @@ public:
     typedef SAMRAI::pdat::CellIterator<NDIM> CellIterator;
 
     /*!
-     * Thhis iterator iterates over the LSet elements within the IndexData patch
+     * This iterator iterates over the LSet elements within the IndexData patch
      * data object.
      */
     typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > SetIterator;
