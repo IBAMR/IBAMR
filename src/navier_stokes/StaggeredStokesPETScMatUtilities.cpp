@@ -128,7 +128,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             up_stencil[axis][side](axis) = (side == 0 ? -1 : 0);
         }
     }
-    static const int pu_stencil_sz = 4;
+    static const int pu_stencil_sz = 2 * NDIM;
     boost::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
