@@ -168,9 +168,12 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const MeshBase::const_element_iterator el_end = mesh->active_elements_end();
 
     // Count the number of material points.
-    d_num_vertex[level_number].resize(d_num_vertex[level_number].size() + 1, 0);
-    d_vertex_offset[level_number].resize(d_vertex_offset[level_number].size() + 1,
-                                         mesh_idx == 0 ? 0 : d_num_vertex[level_number][mesh_idx - 1]);
+    d_num_vertex[level_number].push_back(0);
+    d_vertex_offset[level_number].push_back(0);
+    if (mesh_idx > 0)
+    {
+        d_vertex_offset[level_number][mesh_idx] = d_vertex_offset[level_number][mesh_idx - 1] + d_num_vertex[level_number][mesh_idx - 1];
+    }
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
