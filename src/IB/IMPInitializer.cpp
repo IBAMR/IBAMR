@@ -168,9 +168,12 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const MeshBase::const_element_iterator el_end = mesh->active_elements_end();
 
     // Count the number of material points.
-    d_num_vertex[level_number].resize(d_num_vertex[level_number].size() + 1, 0);
-    d_vertex_offset[level_number].resize(d_vertex_offset[level_number].size() + 1,
-                                         mesh_idx == 0 ? 0 : d_num_vertex[level_number][mesh_idx - 1]);
+    d_num_vertex[level_number].push_back(0);
+    d_vertex_offset[level_number].push_back(0);
+    if (mesh_idx > 0)
+    {
+        d_vertex_offset[level_number][mesh_idx] = d_vertex_offset[level_number][mesh_idx - 1] + d_num_vertex[level_number][mesh_idx - 1];
+    }
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -430,7 +433,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<N
         // locations will be within the index space of the given patch, but on
         // the finer levels of the AMR patch hierarchy.
         const int max_levels = d_gridding_alg->getMaxLevels();
-        const bool can_be_refined = level_number + 2 < max_levels;
+        const bool can_be_refined = level_can_be_refined(level_number, max_levels);
         for (int ln = level_number + 1; ln < max_levels; ++ln)
         {
             std::vector<std::pair<int, int> > patch_vertices;

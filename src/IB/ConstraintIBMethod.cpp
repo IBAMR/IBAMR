@@ -2154,7 +2154,7 @@ void ConstraintIBMethod::interpolateFluidSolveVelocity()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         F_data[ln] = d_l_data_U_interp[ln];
-        X_data[ln] = d_X_half_data[ln];
+        X_data[ln] = d_l_data_X_half_Euler[ln];
     }
 
     d_l_data_manager->interp(d_u_fluidSolve_cib_idx, F_data, X_data);
@@ -2174,7 +2174,7 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         F_data[ln] = d_l_data_U_correction[ln];
-        X_data[ln] = d_X_half_data[ln];
+        X_data[ln] = d_l_data_X_half_Euler[ln];
     }
 
     // Since we do not want to mess up the boundary values of u_ins, we zero-out the scratch variable,
