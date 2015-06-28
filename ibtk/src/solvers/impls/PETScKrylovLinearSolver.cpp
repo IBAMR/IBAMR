@@ -727,7 +727,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0],
                                   &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_solver_has_attached_nullspace = true;
     }
@@ -736,7 +736,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         static const PetscBool has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, NULL, &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
     }
     return;

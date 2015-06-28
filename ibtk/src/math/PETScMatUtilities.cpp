@@ -683,7 +683,7 @@ void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
         ierr = VecDestroy(&L);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatGetVecs(P, &L, PETSC_NULL);
+    ierr = MatCreateVecs(P, &L, PETSC_NULL);
     IBTK_CHKERRQ(ierr);
     PetscInt ilower, iupper, num_elems;
     ierr = VecGetOwnershipRange(L, &ilower, &iupper);
