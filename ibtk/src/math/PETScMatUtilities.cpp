@@ -1207,9 +1207,6 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                                                               Pointer<PatchLevel<NDIM> > patch_level,
                                                               Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
-    // Check if there is an overlap
-    const bool there_is_overlap = overlap_size.max();
-
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
@@ -1291,10 +1288,10 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
         }
 
         int n_patch_subdomains = static_cast<int>(nonoverlap_boxes[patch_counter].size());
-        for (int i = 0; i < n_patch_subdomains; ++i, ++subdomain_counter)
+        for (int k = 0; k < n_patch_subdomains; ++k, ++subdomain_counter)
         {
             // The nonoverlapping subdomains.
-            const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][i];
+            const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][k];
             Box<NDIM> side_box_local[NDIM];
             int box_local_dofs_size = 0;
             for (int axis = 0; axis < NDIM; ++axis)
@@ -1311,13 +1308,14 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 for (Box<NDIM>::Iterator b(side_box_local[axis]); b; b++)
                 {
                     const CellIndex<NDIM>& i = b();
-                    const bool at_upper_bdry = (i(axis) == side_patch_box[axis].upper(axis));
+                    const bool at_upper_subdomain_bdry = (i(axis) == side_box_local[axis].upper(axis));
+                    const bool at_upper_patch_bdry = (i(axis) == side_patch_box[axis].upper(axis));
                     const bool at_upper_physical_bdry =
-                        at_upper_bdry && patch_touches_physical_bdry && touches_physical_bdry[axis][UPPER];
-                    const bool at_upper_cf_bdry = at_upper_bdry && patch_touches_cf_bdry &&
+                        at_upper_patch_bdry && patch_touches_physical_bdry && touches_physical_bdry[axis][UPPER];
+                    const bool at_upper_cf_bdry = at_upper_patch_bdry && patch_touches_cf_bdry &&
                                                   touches_cf_bdry[axis][UPPER] &&
                                                   is_cf_bdry_idx(i, upper_side_cf_bdry_box[axis]);
-                    if (!at_upper_bdry || at_upper_physical_bdry || at_upper_cf_bdry)
+                    if (!at_upper_subdomain_bdry || at_upper_physical_bdry || at_upper_cf_bdry)
                     {
                         const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                         box_local_dofs.push_back((*dof_data)(i_s));
@@ -1325,53 +1323,45 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                 }
             }
             std::sort(box_local_dofs.begin(), box_local_dofs.end());
-            const int n_idx = static_cast<int>(box_local_dofs.size());
-            ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES,
+            const int n_local = static_cast<int>(box_local_dofs.size());
+            ISCreateGeneral(PETSC_COMM_SELF, n_local, &box_local_dofs[0], PETSC_COPY_VALUES,
                             &is_nonoverlap[subdomain_counter]);
 
             // The overlapping subdomains.
-            if (!there_is_overlap)
+            const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][k];
+            Box<NDIM> side_box_overlap[NDIM];
+            int box_overlap_dofs_size = 0;
+            for (int axis = 0; axis < NDIM; ++axis)
             {
-                PetscObjectReference(reinterpret_cast<PetscObject>(is_nonoverlap[subdomain_counter]));
-                is_overlap[subdomain_counter] = is_nonoverlap[subdomain_counter];
+                side_box_overlap[axis] = SideGeometry<NDIM>::toSideBox(box_overlap, axis);
+                box_overlap_dofs_size += side_box_overlap[axis].size();
             }
-            else
+            std::vector<int> box_overlap_dofs;
+            box_overlap_dofs.reserve(box_overlap_dofs_size);
+
+            for (int axis = 0; axis < NDIM; ++axis)
             {
-                const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][i];
-                Box<NDIM> side_box_overlap[NDIM];
-                int box_overlap_dofs_size = 0;
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (Box<NDIM>::Iterator b(side_box_overlap[axis]); b; b++)
                 {
-                    side_box_overlap[axis] = SideGeometry<NDIM>::toSideBox(box_overlap, axis);
-                    box_overlap_dofs_size += side_box_overlap[axis].size();
-                }
-                std::vector<int> box_overlap_dofs;
-                box_overlap_dofs.reserve(box_overlap_dofs_size);
+                    const CellIndex<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const int dof_idx = (*dof_data)(i_s);
 
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    for (Box<NDIM>::Iterator b(side_box_overlap[axis]); b; b++)
+                    // We keep only those DOFs that are inside the
+                    // physical domain and on physical and c-f boundaries.
+                    // Some of the DOFs may be on other processors.
+                    if (dof_idx >= 0)
                     {
-                        const CellIndex<NDIM>& i = b();
-                        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                        const int dof_idx = (*dof_data)(i_s);
-
-                        // We keep only those DOFs that are inside the
-                        // physical domain and on physical and c-f boundaries.
-                        // Some of the DOFs may be on other processors.
-                        if (dof_idx >= 0)
-                        {
-                            box_overlap_dofs.push_back(dof_idx);
-                        }
+                        box_overlap_dofs.push_back(dof_idx);
                     }
                 }
-                std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
-                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
-                                       box_overlap_dofs.end());
-                const int n_idx = static_cast<int>(box_overlap_dofs.size());
-                ISCreateGeneral(PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES,
-                                &is_overlap[subdomain_counter]);
             }
+            std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
+            box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
+                                   box_overlap_dofs.end());
+            const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+            ISCreateGeneral(PETSC_COMM_SELF, n_overlap, &box_overlap_dofs[0], PETSC_COPY_VALUES,
+                            &is_overlap[subdomain_counter]);
         }
     }
     return;
