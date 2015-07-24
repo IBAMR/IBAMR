@@ -139,14 +139,14 @@ private:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
-    const PeriodicBoundaries* d_periodic_boundaries;
-    libMeshEnums::Order d_interp_order, d_quad_order;
+    const libMesh::PeriodicBoundaries* d_periodic_boundaries;
+    libMesh::Order d_interp_order, d_quad_order;
 
     /*
      * Map from local nodes to element patches.
      */
     typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
-    typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
+    typedef boost::tuple<const libMesh::Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
     struct ElemPatchItemComp : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {
         inline bool operator()(const ElemPatchItem& lhs, const ElemPatchItem& rhs)

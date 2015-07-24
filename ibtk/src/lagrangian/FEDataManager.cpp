@@ -289,8 +289,7 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
 void FEDataManager::freeAllManagers()
 {
     for (std::map<std::string, FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end();
-         ++it)
+         it != s_data_manager_instances.end(); ++it)
     {
         if (it->second)
         {
@@ -384,8 +383,7 @@ void FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_ghost_dofs.clear();
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+         it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
@@ -423,8 +421,8 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
         AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
-        sol_ghost_vec->init(
-            sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
+        sol_ghost_vec->init(sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true,
+                            GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
     }
     NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
@@ -809,10 +807,10 @@ void FEDataManager::prolongData(const int f_data_idx,
                 }
                 elem->point(k) = X_node_cache[k];
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper),
+                          IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1301,10 +1299,10 @@ void FEDataManager::restrictData(const int f_data_idx,
                 }
                 elem->point(k) = X_node_cache[k];
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper),
+                          IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1490,8 +1488,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
-                                     cit != dof_indices.end();
-                                     ++cit)
+                                     cit != dof_indices.end(); ++cit)
                                 {
                                     const unsigned int k = *cit;
                                     M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
@@ -1694,8 +1691,8 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
-        solver->solve(
-            *M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+        solver->solve(*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol,
+                      max_it_set ? runtime_max_it : max_its);
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
@@ -1731,20 +1728,20 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
     if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
+        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
         const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
         switch (type)
         {
-            case QGAUSS:
-                order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-                break;
-            case QGRID:
-                order = static_cast<Order>(npts);
-                break;
-            default:
-                TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
-                            << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                            "or QGRID\n");
+        case QGAUSS:
+            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+            break;
+        case QGRID:
+            order = static_cast<Order>(npts);
+            break;
+        default:
+            TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
+                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
+                          "or QGRID\n");
         }
     }
     bool qrule_needs_reinit = false;
@@ -1766,7 +1763,8 @@ bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature,
+                                spec.point_density, elem, X_node, dx_min);
 }
 
 bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
@@ -1775,7 +1773,8 @@ bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature,
+                                spec.point_density, elem, X_node, dx_min);
 }
 
 void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
@@ -1948,8 +1947,8 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                       patch_lower, patch_upper);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
                 }
             }
@@ -2071,26 +2070,22 @@ FEDataManager::FEDataManager(const std::string& object_name,
 FEDataManager::~FEDataManager()
 {
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+         it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end();
-         ++it)
+         it != d_L2_proj_solver.end(); ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end();
-         ++it)
+         it != d_L2_proj_matrix.end(); ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end();
-         ++it)
+         it != d_L2_proj_matrix_diag.end(); ++it)
     {
         delete it->second;
     }
@@ -2180,8 +2175,8 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                       patch_lower, patch_upper);
                     if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
             }
@@ -2409,8 +2404,8 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
                 for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                       patch_lower, patch_upper);
                     if (ghost_box.contains(i))
                     {
                         local_elems.insert(elem);

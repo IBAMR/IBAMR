@@ -592,7 +592,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
         // the finer levels of the AMR patch hierarchy.
-        const bool can_be_refined = level_number + 2 < d_max_levels;
+        const bool can_be_refined = level_can_be_refined(level_number, d_max_levels);
         for (int ln = level_number + 1; ln < d_max_levels; ++ln)
         {
             std::vector<std::pair<int, int> > patch_vertices;

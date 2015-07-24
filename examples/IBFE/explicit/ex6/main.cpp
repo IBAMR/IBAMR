@@ -48,6 +48,7 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
@@ -202,6 +203,7 @@ int main(int argc, char* argv[])
         const double R = 0.05;
         if (block_elem_type == "TRI3" || block_elem_type == "TRI6")
         {
+#ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
             for (int k = 0; k < num_circum_nodes; ++k)
             {
@@ -216,6 +218,10 @@ int main(int argc, char* argv[])
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
             block_mesh.prepare_for_use();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
         }
         else
         {
@@ -233,13 +239,7 @@ int main(int argc, char* argv[])
 
         Mesh beam_mesh(NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
-        MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(0.4 / ds),
-                                            ceil(0.02 / ds),
-                                            0.2,
-                                            0.6,
-                                            0.19,
-                                            0.21,
+        MeshTools::Generation::build_square(beam_mesh, ceil(0.4 / ds), ceil(0.02 / ds), 0.2, 0.6, 0.19, 0.21,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         beam_mesh.prepare_for_use();
 
@@ -274,31 +274,23 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           meshes,
+            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
@@ -396,10 +388,10 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                block_exodus_io->write_timestep(
-                    block_exodus_filename, *block_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                beam_exodus_io->write_timestep(
-                    beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                block_exodus_io->write_timestep(block_exodus_filename, *block_equation_systems,
+                                                iteration_num / viz_dump_interval + 1, loop_time);
+                beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                               iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -450,12 +442,10 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    block_exodus_io->write_timestep(block_exodus_filename,
-                                                    *block_equation_systems,
-                                                    iteration_num / viz_dump_interval + 1,
-                                                    loop_time);
-                    beam_exodus_io->write_timestep(
-                        beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    block_exodus_io->write_timestep(block_exodus_filename, *block_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1, loop_time);
+                    beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                                   iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -471,14 +461,8 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 beam_mesh,
-                                 beam_equation_systems,
-                                 block_mesh,
-                                 block_equation_systems,
-                                 iteration_num,
-                                 loop_time,
+                postprocess_data(patch_hierarchy, navier_stokes_integrator, beam_mesh, beam_equation_systems,
+                                 block_mesh, block_equation_systems, iteration_num, loop_time,
                                  postproc_data_dump_dirname);
             }
         }

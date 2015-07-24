@@ -45,6 +45,7 @@
 #include <libmesh/elem.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -136,6 +137,7 @@ int main(int argc, char* argv[])
         const double R = 0.2;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
+#ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
             for (int k = 0; k < num_circum_nodes; ++k)
             {
@@ -149,6 +151,10 @@ int main(int argc, char* argv[])
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
         }
         else
         {
@@ -201,34 +207,26 @@ int main(int argc, char* argv[])
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<IMPMethod> ib_method_ops =
             new IMPMethod("IMPMethod", app_initializer->getComponentDatabase("IMPMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector, box_generator, load_balancer);
 
         // Configure the IMP solver.
         Pointer<IMPInitializer> ib_initializer =
-            new IMPInitializer("IMPInitializer",
-                               app_initializer->getComponentDatabase("IMPInitializer"),
-                               patch_hierarchy,
-                               gridding_algorithm);
+            new IMPInitializer("IMPInitializer", app_initializer->getComponentDatabase("IMPInitializer"),
+                               patch_hierarchy, gridding_algorithm);
         ib_initializer->registerMesh(&mesh);
         ib_method_ops->registerPK1StressTensorFunction(PK1_stress_function);
         ib_method_ops->registerLInitStrategy(ib_initializer);

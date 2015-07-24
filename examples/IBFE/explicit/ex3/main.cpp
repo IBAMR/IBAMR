@@ -161,14 +161,8 @@ int main(int argc, char* argv[])
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        MeshTools::Generation::build_square(mesh,
-                                            static_cast<int>(ceil(2.0 / ds)),
-                                            static_cast<int>(ceil(0.5 / ds)),
-                                            0.0,
-                                            2.0,
-                                            0.0,
-                                            0.5,
-                                            Utility::string_to_enum<ElemType>(elem_type));
+        MeshTools::Generation::build_square(mesh, static_cast<int>(ceil(2.0 / ds)), static_cast<int>(ceil(0.5 / ds)),
+                                            0.0, 2.0, 0.0, 0.5, Utility::string_to_enum<ElemType>(elem_type));
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
         for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
         {
@@ -218,39 +212,31 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
         PK1_dev_stress_data.quad_order =
-            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
         PK1_dil_stress_data.quad_order =
-            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
@@ -264,27 +250,24 @@ int main(int argc, char* argv[])
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
                                                                          static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dev",
-                                                  MONOMIAL,
-                                                  CONSTANT,
+        ib_post_processor->registerTensorVariable("sigma_dev", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
-                                                  &PK1_dev_stress_fcn_data);
+                                                  std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
                                                                          static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dil",
-                                                  MONOMIAL,
-                                                  CONSTANT,
+        ib_post_processor->registerTensorVariable("sigma_dil", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
-                                                  &PK1_dil_stress_fcn_data);
+                                                  std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
 
-        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f",
-                                                                      LAGRANGE,
-                                                                      FIRST,
-                                                                      navier_stokes_integrator->getPressureVariable(),
-                                                                      navier_stokes_integrator->getCurrentContext());
+        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
+                                                /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
+                                                                      p_ghostfill, p_interp_spec);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -360,8 +343,8 @@ int main(int argc, char* argv[])
             if (uses_exodus)
             {
                 ib_post_processor->postProcessData(loop_time);
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -404,8 +387,8 @@ int main(int argc, char* argv[])
                 if (uses_exodus)
                 {
                     ib_post_processor->postProcessData(loop_time);
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -421,12 +404,7 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            mesh,
-                            equation_systems,
-                            iteration_num,
-                            loop_time,
+                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
                             postproc_data_dump_dirname);
             }
         }
