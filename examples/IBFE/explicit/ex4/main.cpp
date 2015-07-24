@@ -303,12 +303,18 @@ int main(int argc, char* argv[])
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
                                                   std::vector<unsigned int>(),
                                                   &PK1_dil_stress_fcn_data);
-
-        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f",
+        std::vector<double> vec_ones (3,1.0);
+        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+/*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+	    
+		FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
+/*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true, false, vec_ones);
+	    ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f",
                                                                       LAGRANGE,
                                                                       FIRST,
                                                                       navier_stokes_integrator->getPressureVariable(),
-                                                                      navier_stokes_integrator->getCurrentContext());
+                                                                      navier_stokes_integrator->getCurrentContext(),
+																	  p_ghostfill, p_interp_spec);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
