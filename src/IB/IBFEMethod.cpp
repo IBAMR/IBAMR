@@ -755,7 +755,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_current.get(nodal_X_indices[d], nodal_X_values[d]);
+                    X_current.get(nodal_X_indices[d], &nodal_X_values[d][0]);
                 }
 
                 for (unsigned int k = 0; k < total_local_nodes; ++k)
@@ -866,7 +866,7 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_current.get(nodal_X_indices[d], nodal_X_values[d]);
+                    X_current.get(nodal_X_indices[d], &nodal_X_values[d][0]);
                 }
 
                 for (unsigned int k = 0; k < total_local_nodes; ++k)

@@ -50,6 +50,7 @@
 #include <libmesh/mesh.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
 #include <libmesh/petsc_matrix.h>
 
 // Headers for application-specific algorithm/data structure objects

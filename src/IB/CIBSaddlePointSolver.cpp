@@ -826,7 +826,11 @@ void CIBSaddlePointSolver::resetKSPOperators()
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-        KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER);
+
+      //      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); //this is for petsc < 3.5 
+      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);	
+      KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
+      
     }
     return;
 } // resetKSPOperators

@@ -264,7 +264,7 @@ void CIBFEMethod::eulerStep(const double current_time, const double new_time)
         PetscVector<double>& X_current = *d_X_current_vecs[part];
         PetscVector<double>& X_half = *d_X_half_vecs[part];
 
-        std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
+        std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
         std::vector<std::vector<double> > nodal_X_values(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -289,7 +289,7 @@ void CIBFEMethod::eulerStep(const double current_time, const double new_time)
 
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_current.get(nodal_X_indices[d], nodal_X_values[d]);
+            X_current.get(nodal_X_indices[d], &nodal_X_values[d][0]);
         }
 
         for (unsigned int k = 0; k < total_local_nodes; ++k)
@@ -347,7 +347,7 @@ void CIBFEMethod::midpointStep(const double current_time, const double new_time)
         PetscVector<double>& X_current = *d_X_current_vecs[part];
         PetscVector<double>& X_new = *d_X_new_vecs[part];
 
-        std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
+        std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
         std::vector<std::vector<double> > nodal_X_values(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -372,7 +372,7 @@ void CIBFEMethod::midpointStep(const double current_time, const double new_time)
 
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_current.get(nodal_X_indices[d], nodal_X_values[d]);
+            X_current.get(nodal_X_indices[d], &nodal_X_values[d][0]);
         }
 
         for (unsigned int k = 0; k < total_local_nodes; ++k)
