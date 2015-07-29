@@ -306,9 +306,21 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     if (d_pc_type == "asm")
     {
         int num_subdomains = static_cast<int>(d_overlap_is.size());
-        TBOX_ASSERT(num_subdomains > 0);
-        ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, &d_overlap_is[0], &d_nonoverlap_is[0]);
-        IBTK_CHKERRQ(ierr);
+        if (num_subdomains == 0)
+        {
+            IS is;
+            ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, NULL, PETSC_OWN_POINTER, &is);
+            IBTK_CHKERRQ(ierr);
+            ierr = PCASMSetLocalSubdomains(ksp_pc, 1, &is, &is);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&is);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, &d_overlap_is[0], &d_nonoverlap_is[0]);
+            IBTK_CHKERRQ(ierr);
+        }
     }
 
     // Indicate that the solver is initialized.
