@@ -178,6 +178,18 @@ inline bool is_dirichlet_bdry(const Elem* elem,
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     return get_dirichlet_bdry_ids(bdry_ids) != 0;
 }
+
+inline bool has_physical_bdry(const Elem* elem,
+                              const BoundaryInfo& boundary_info,
+                              const DofMap& dof_map)
+{
+    bool has_physical_bdry = false;
+    for (unsigned short int side = 0; side < elem->n_sides() && !has_physical_bdry; ++side)
+    {
+        has_physical_bdry = has_physical_bdry || is_physical_bdry(elem, side, boundary_info, dof_map);
+    }
+    return has_physical_bdry;
+}
 }
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -1518,13 +1530,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
-            bool has_physical_boundaries = false;
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                has_physical_boundaries =
-                    has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
-            }
-            if (!has_physical_boundaries) continue;
+            const bool touches_physical_bdry = has_physical_bdry(elem, boundary_info, dof_map);
+            if (!touches_physical_bdry) continue;
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1779,20 +1786,15 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SideData<NDIM, bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(false);
+        SideData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(0));
+        num_intersections.fillAll(0);
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
-            bool has_physical_boundaries = false;
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                has_physical_boundaries =
-                    has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
-            }
-            if (!has_physical_boundaries) continue;
+            const bool touches_physical_bdry = has_physical_bdry(elem, boundary_info, dof_map);
+            if (!touches_physical_bdry) continue;
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1822,18 +1824,19 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // to the physical coordinates.
                 s_node_cache.resize(n_node_side);
                 X_node_cache.resize(n_node_side);
-                X_min = IBTK::Point::Constant(0.5 * std::numeric_limits<double>::max());
+                X_min = IBTK::Point::Constant(+0.5 * std::numeric_limits<double>::max());
                 X_max = IBTK::Point::Constant(-0.5 * std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);
+                    libMesh::Point& X = X_node_cache[k];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices[d][k]);
-                        X_min[d] = std::min(X_min[d], X_node_cache[k](d));
-                        X_max[d] = std::max(X_max[d], X_node_cache[k](d));
+                        X(d) = X_ghost_vec(side_dof_indices[d][k]);
+                        X_min[d] = std::min(X_min[d], X(d));
+                        X_max[d] = std::max(X_max[d], X(d));
                     }
-                    side_elem->point(k) = X_node_cache[k];
+                    side_elem->point(k) = X;
                 }
                 Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
                               IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
@@ -1875,12 +1878,9 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             libMesh::Point X = r + intersections[k].first * q;
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = std::floor((X(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
-                            if (spread_value_at_loc(i_s))
-                            {
-                                intersection_ref_coords.push_back(intersections[k].second);
-                                intersection_indices.push_back(i_s);
-                                spread_value_at_loc(i_s) = true;
-                            }
+                            intersection_ref_coords.push_back(intersections[k].second);
+                            intersection_indices.push_back(i_s);
+                            num_intersections(i_s) += 1;
                         }
                     }
                 }
@@ -1893,15 +1893,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                 // If there are no intersection points, then continue to the
                 // next side.
-                pout << "looking for intersection point...\n";
                 if (intersection_ref_coords.empty()) continue;
-                pout << "found intersection point!\n";
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
+                const bool impose_dp_dn_jumps = !d_use_IB_spread_operator;
                 static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
                 fe_face->reinit(elem, side, TOL, &intersection_ref_coords);
-                if (!d_use_IB_spread_operator)
+                if (impose_dp_dn_jumps)
                     get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, dof_indices);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
                 for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
@@ -1953,6 +1952,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             F -= PP * normal_face[qp];
                         }
                     }
+
                     if (d_lag_surface_pressure_fcn_data[part].fcn)
                     {
                         // Compute the value of the pressure at the quadrature
@@ -1992,7 +1992,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     // ineffective when we use "diffuse" force spreading; hence,
                     // we compute it only when we do NOT use the IB/FE version
                     // of the IB force spreading operator.
-                    if (d_use_IB_spread_operator)
+                    if (!impose_dp_dn_jumps)
                     {
                         F_qp.zero();
                     }
