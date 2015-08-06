@@ -726,13 +726,13 @@ void IBFEMethod::spreadForce(const int f_data_idx,
                                                   /*is_density*/ true,
                                                   /*accumulate_on_grid*/ true);
         }
-        if (d_split_forces)
+        if (d_split_normal_force || d_split_tangential_force)
         {
-            if (d_use_jump_conditions)
+            if (d_use_jump_conditions && d_split_normal_force)
             {
                 imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
             }
-            else
+            if (!d_use_jump_conditions || d_split_tangential_force)
             {
                 spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
             }
@@ -960,7 +960,8 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_split_forces", d_split_forces);
+    db->putBool("d_split_normal_force", d_split_normal_force);
+    db->putBool("d_split_tangential_force", d_split_tangential_force);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
@@ -1155,12 +1156,12 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Skip non-physical boundaries.
                 if (!is_physical_bdry(elem, side, boundary_info, dof_map)) continue;
 
-                // Determine if we need to compute surface forces along this
+                // Determine if we need to integrate surface forces along this
                 // part of the physical boundary; if not, skip the present side.
                 const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
-                const bool compute_transmission_force =
-                    (d_split_forces && !at_dirichlet_bdry) || (!d_split_forces && at_dirichlet_bdry);
-                if (!compute_transmission_force) continue;
+                const bool integrate_normal_force = (d_split_normal_force && !at_dirichlet_bdry) || (!d_split_normal_force && at_dirichlet_bdry);
+                const bool integrate_tangential_force = (d_split_tangential_force && !at_dirichlet_bdry) || (!d_split_tangential_force && at_dirichlet_bdry);
+                if (!integrate_normal_force && !integrate_tangential_force) continue;
 
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
@@ -1175,7 +1176,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
-                    // force to the right-hand-side vector.
+                    // traction force to the right-hand-side vector.
                     if (d_PK1_stress_fcn_data[part][k].fcn)
                     {
                         d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
@@ -1183,15 +1184,16 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         F += PP * normal_face[qp];
                     }
 
-                    // If we are imposing jump conditions, then we keep only the
-                    // normal part of the force.  This has the effect of
-                    // projecting the tangential part of the surface force (but
-                    // not the normal part) onto the interior force density.
-                    if (d_use_jump_conditions && d_split_forces && !at_dirichlet_bdry)
+                    n = (tensor_inverse_transpose(FF, NDIM) * normal_face[qp]).unit();
+
+                    if (!integrate_normal_force)
                     {
-                        tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                        n = (FF_inv_trans * normal_face[qp]).unit();
-                        F = (F * n) * n;
+                        F -= (F * n) * n;  // remove the normal component.
+                    }
+
+                    if (!integrate_tangential_force)
+                    {
+                        F -= (F - (F * n) * n);  // remove the tangential component.
                     }
 
                     // Add the boundary forces to the right-hand-side vector.
@@ -1306,8 +1308,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Determine if we need to compute surface forces along this
                 // part of the physical boundary; if not, skip the present side.
                 const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
-                const bool compute_transmission_force = (!d_split_forces && !at_dirichlet_bdry);
-                if (!compute_transmission_force) continue;
+                const bool integrate_normal_force = !d_split_normal_force && !at_dirichlet_bdry;
+                const bool integrate_tangential_force = !d_split_tangential_force && !at_dirichlet_bdry;
+                if (!integrate_normal_force && !integrate_tangential_force) continue;
 
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
@@ -1344,14 +1347,16 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         F += F_s;
                     }
 
-                    // If we are imposing jump conditions, then we keep only the
-                    // normal part of the force.  This has the effect of
-                    // projecting the tangential part of the surface force (but
-                    // not the normal part) onto the interior force density.
-                    if (d_use_jump_conditions && d_split_forces && !at_dirichlet_bdry)
+                    n = (tensor_inverse_transpose(FF, NDIM) * normal_face[qp]).unit();
+
+                    if (!integrate_normal_force)
                     {
-                        n = (FF_inv_trans * normal_face[qp]).unit();
-                        F = (F * n) * n;
+                        F -= (F * n) * n;  // remove the normal component.
+                    }
+
+                    if (!integrate_tangential_force)
+                    {
+                        F -= (F - (F * n) * n);  // remove the tangential component.
                     }
 
                     // Add the boundary forces to the right-hand-side vector.
@@ -1390,7 +1395,12 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                                 const double data_time,
                                                 const unsigned int part)
 {
-    if (d_constrained_part[part] || !d_split_forces) return;
+    if (d_constrained_part[part] || (!d_split_normal_force && !d_split_tangential_force)) return;
+
+    // Check to see if we need to integrate the surface forces.
+    const bool integrate_normal_force = d_split_normal_force && !d_use_jump_conditions;
+    const bool integrate_tangential_force = d_split_tangential_force;
+    if (!integrate_normal_force && !integrate_tangential_force) return;
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1503,7 +1513,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F, F_s;
+    VectorValue<double> F, F_s, n;
     libMesh::Point X_qp;
     double P;
     boost::multi_array<double, 2> X_node, X_node_side;
@@ -1607,6 +1617,18 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                         F += F_s * JxW_face[qp];
                     }
 
+                    n = (tensor_inverse_transpose(FF, NDIM) * normal_face[qp]).unit();
+
+                    if (!integrate_normal_force)
+                    {
+                        F -= (F * n) * n;  // remove the normal component.
+                    }
+
+                    if (!integrate_tangential_force)
+                    {
+                        F -= (F - (F * n) * n);  // remove the tangential component.
+                    }
+
                     const int idx = NDIM * qp_offset;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1656,7 +1678,11 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                       const double data_time,
                                       const unsigned int part)
 {
-    if (d_constrained_part[part] || !d_split_forces) return;
+    if (d_constrained_part[part] || (!d_split_normal_force && !d_split_tangential_force)) return;
+
+    // Check to see if we need to integrate the normal surface force.
+    const bool integrate_normal_force = d_split_normal_force && d_use_jump_conditions;
+    if (!integrate_normal_force) return;
 
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -1987,11 +2013,6 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     // current configuration.  This value determines the
                     // discontinuity in the normal derivative of the pressure at
                     // the fluid-structure interface.
-                    //
-                    // NOTE: This additional correction appears to be
-                    // ineffective when we use "diffuse" force spreading; hence,
-                    // we compute it only when we do NOT use the IB/FE version
-                    // of the IB force spreading operator.
                     if (!impose_dp_dn_jumps)
                     {
                         F_qp.zero();
@@ -2111,7 +2132,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_use_IB_spread_operator = true;
     d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
-    d_split_forces = false;
+    d_split_normal_force = false;
+    d_split_tangential_force = false;
     d_use_jump_conditions = false;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
@@ -2336,7 +2358,10 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.point_density = db->getDouble("IB_point_density");
 
     // Force computation settings.
-    if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
+    if (db->isBool("split_normal_force")) d_split_normal_force = db->getBool("split_normal_force");
+    else if (db->isBool("split_forces")) d_split_normal_force = db->getBool("split_forces");
+    if (db->isBool("split_tangential_force")) d_split_tangential_force = db->getBool("split_tangential_force");
+    else if (db->isBool("split_forces")) d_split_tangential_force = db->getBool("split_forces");
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
     if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
@@ -2380,7 +2405,8 @@ void IBFEMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_split_forces = db->getBool("d_split_forces");
+    d_split_normal_force = db->getBool("d_split_normal_force");
+    d_split_tangential_force = db->getBool("d_split_tangential_force");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));

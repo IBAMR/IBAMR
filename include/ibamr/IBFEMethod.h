@@ -655,7 +655,7 @@ protected:
     IBTK::FEDataManager::InterpSpec d_interp_spec;
     bool d_use_IB_spread_operator;
     IBTK::FEDataManager::SpreadSpec d_spread_spec;
-    bool d_split_forces;
+    bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
     libMesh::FEFamily d_fe_family;
     libMesh::Order d_fe_order;
