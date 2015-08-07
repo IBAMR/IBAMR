@@ -104,11 +104,12 @@ namespace IBAMR
 class IBFEMethod : public IBStrategy
 {
 public:
+    static const std::string BODY_VELOCITY_SYSTEM_NAME;
     static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
+    static const std::string PHI_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
-    static const std::string BODY_VELOCITY_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -138,6 +139,11 @@ public:
      * specified part.
      */
     IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
+
+    /*!
+     * Indicate that a part should use stress normalization.
+     */
+    void registerStressNormalizationPart(unsigned int part = 0);
 
     /*!
      * Indicate that a part is constrained.
@@ -571,12 +577,21 @@ protected:
                                        unsigned int part);
 
     /*
+     * \brief Compute the stress normalization field Phi.
+     */
+    void computeStressNormalization(libMesh::PetscVector<double>& Phi_vec,
+                                    libMesh::PetscVector<double>& X_vec,
+                                    double data_time,
+                                    unsigned int part);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
      */
     void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
                                      libMesh::PetscVector<double>& X_vec,
+                                     libMesh::PetscVector<double>* Phi_vec,
                                      double data_time,
                                      unsigned int part);
 
@@ -640,11 +655,12 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems, d_U_b_systems;
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
     bool d_fe_data_initialized;
 
@@ -662,6 +678,12 @@ protected:
     libMesh::QuadratureType d_quad_type;
     libMesh::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
+
+    /*
+     * Data related to handling stress normalization.
+     */
+    bool d_has_stress_normalization_parts;
+    std::vector<bool> d_stress_normalization_part;
 
     /*
      * Data related to handling constrained body constraints.

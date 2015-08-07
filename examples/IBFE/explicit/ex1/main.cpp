@@ -228,6 +228,10 @@ int main(int argc, char* argv[])
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+        if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
+        {
+            ib_method_ops->registerStressNormalizationPart();
+        }
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
