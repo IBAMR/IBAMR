@@ -278,6 +278,11 @@ public:
     void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
+     * Get a pointer to the VisIt data writer registered with the solver.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > getVisItDataWriter() const;
+
+    /*!
      * Prepare variables for plotting.
      *
      * Subclasses can control the method used to setup plot data by overriding
