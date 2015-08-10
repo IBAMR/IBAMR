@@ -51,6 +51,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -226,11 +227,26 @@ int main(int argc, char* argv[])
                                         error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->registerPK1StressFunction(PK1_stress_function);
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();
+        }
+
+        // Set up post processor to recover computed stresses.
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+        {
+            Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+            Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+            HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+                /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
+                                                    /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
+            ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
+                                                                          p_ghostfill, p_interp_spec);
         }
 
         // Create Eulerian initial condition specification objects.
@@ -300,6 +316,7 @@ int main(int argc, char* argv[])
             system.get_dof_map().add_periodic_boundary(pbc);
         }
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -322,6 +339,7 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                           loop_time);
             }
@@ -372,6 +390,7 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                               loop_time);
                 }
