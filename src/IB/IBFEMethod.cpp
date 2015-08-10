@@ -64,6 +64,7 @@
 #include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBFEMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -193,7 +194,7 @@ inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_inf
 
 static const Real PENALTY = 1.e10;
 
-void assemble_poisson(EquationSystems& es, const std::string& system_name)
+void assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
 {
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
@@ -1236,8 +1237,8 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp, qp, X_node, phi_face);
                     jacobian(FF, qp, X_node, dphi_face);
-                    const TensorValue<double> FF_t = FF.transpose();
                     const double J = FF.det();
+                    const TensorValue<double> FF_trans = FF.transpose();
                     double Phi = 0.0;
                     n = (tensor_inverse_transpose(FF, NDIM) * normal_face[qp]).unit();
 
@@ -1248,7 +1249,7 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     {
                         d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        Phi += n * ((PP * FF_t) * n) / J;
+                        Phi += n * ((PP * FF_trans) * n) / J;
                     }
 
                     // Add the boundary forces to the right-hand-side vector.
@@ -1358,11 +1359,15 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     VecGetArray(X_local_vec, &X_local_soln);
 
     PetscVector<double>* Phi_petsc_vec = dynamic_cast<PetscVector<double>*>(Phi_vec);
-    Vec Phi_global_vec = Phi_vec ? Phi_petsc_vec->vec() : NULL;
-    Vec Phi_local_vec;
-    VecGhostGetLocalForm(Phi_global_vec, &Phi_local_vec);
+    Vec Phi_global_vec = NULL;
+    Vec Phi_local_vec = NULL;
     double* Phi_local_soln;
-    VecGetArray(Phi_local_vec, &Phi_local_soln);
+    if (Phi_vec)
+    {
+        Phi_global_vec = Phi_petsc_vec->vec();
+        VecGhostGetLocalForm(Phi_global_vec, &Phi_local_vec);
+        VecGetArray(Phi_local_vec, &Phi_local_soln);
+    }
 
     // First handle the stress contributions.
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
@@ -1446,7 +1451,6 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 const libMesh::Point& s_qp = q_point[qp];
                 interpolate(X_qp, qp, X_node, phi);
                 jacobian(FF, qp, X_node, dphi);
-                const double J = FF.det();
                 if (Phi_vec) interpolate(Phi_qp, qp, Phi_node, phi);
 
                 // Compute the value of the first Piola-Kirchhoff stress tensor
@@ -1454,7 +1458,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // the right-hand-side vector.
                 d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
                                                    d_PK1_stress_fcn_data[part][k].ctx);
-                if (Phi_vec) PP -= J * Phi_qp * tensor_inverse_transpose(FF, NDIM);
+                if (Phi_vec) PP -= FF.det() * Phi_qp * tensor_inverse_transpose(FF, NDIM);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -PP * dphi[k][qp] * JxW[qp];
@@ -1490,7 +1494,6 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp, qp, X_node, phi_face);
                     jacobian(FF, qp, X_node, dphi_face);
-                    const double J = FF.det();
                     if (Phi_vec) interpolate(Phi_qp, qp, Phi_node, phi);
                     F.zero();
 
@@ -1501,7 +1504,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     {
                         d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        if (Phi_vec) PP -= J * Phi_qp * tensor_inverse_transpose(FF, NDIM);
+                        if (Phi_vec) PP -= FF.det() * Phi_qp * tensor_inverse_transpose(FF, NDIM);
                         F += PP * normal_face[qp];
                     }
 
@@ -1704,6 +1707,12 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    if (Phi_vec)
+    {
+        VecRestoreArray(Phi_local_vec, &Phi_local_soln);
+        VecGhostRestoreLocalForm(Phi_global_vec, &Phi_local_vec);
+    }
 
     // Solve for G.
     d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
