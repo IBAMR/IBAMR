@@ -137,7 +137,7 @@ protected:
     /*
      * The collection of function objects.
      */
-    std::vector<boost::shared_ptr<CartGridFunction> > d_fcns;
+    std::vector<boost::shared_ptr<CartGridFunction>> d_fcns;
 
 private:
     /*!

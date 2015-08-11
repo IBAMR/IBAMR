@@ -316,7 +316,7 @@ protected:
      */
     std::vector<libMesh::System*> d_scalar_var_systems;
     std::vector<IBTK::ScalarMeshFcnPtr> d_scalar_var_fcns;
-    std::vector<std::vector<unsigned int> > d_scalar_var_fcn_systems;
+    std::vector<std::vector<unsigned int>> d_scalar_var_fcn_systems;
     std::vector<void*> d_scalar_var_fcn_ctxs;
 
     /*!
@@ -324,7 +324,7 @@ protected:
      */
     std::vector<libMesh::System*> d_vector_var_systems;
     std::vector<IBTK::VectorMeshFcnPtr> d_vector_var_fcns;
-    std::vector<std::vector<unsigned int> > d_vector_var_fcn_systems;
+    std::vector<std::vector<unsigned int>> d_vector_var_fcn_systems;
     std::vector<void*> d_vector_var_fcn_ctxs;
     std::vector<unsigned int> d_vector_var_dims;
 
@@ -333,7 +333,7 @@ protected:
      */
     std::vector<libMesh::System*> d_tensor_var_systems;
     std::vector<IBTK::TensorMeshFcnPtr> d_tensor_var_fcns;
-    std::vector<std::vector<unsigned int> > d_tensor_var_fcn_systems;
+    std::vector<std::vector<unsigned int>> d_tensor_var_fcn_systems;
     std::vector<void*> d_tensor_var_fcn_ctxs;
     std::vector<unsigned int> d_tensor_var_dims;
 
@@ -341,8 +341,8 @@ protected:
      * Eulerian interpolation data.
      */
     std::vector<libMesh::System*> d_scalar_interp_var_systems;
-    std::vector<boost::shared_ptr<SAMRAI::hier::Variable> > d_scalar_interp_vars;
-    std::vector<boost::shared_ptr<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
+    std::vector<boost::shared_ptr<SAMRAI::hier::Variable>> d_scalar_interp_vars;
+    std::vector<boost::shared_ptr<SAMRAI::hier::VariableContext>> d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
         d_scalar_interp_fill_transactions;

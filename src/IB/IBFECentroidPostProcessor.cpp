@@ -149,12 +149,12 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
     X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = X_fe->get_xyz();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+    const std::vector<std::vector<double>>& phi_X = X_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_X = X_fe->get_dphi();
     X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     X_data.close();
@@ -167,10 +167,10 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_scalar_vars = d_scalar_var_systems.size();
     std::vector<const DofMap*> scalar_var_dof_maps(num_scalar_vars);
-    std::vector<std::vector<unsigned int> > scalar_var_dof_indices(num_scalar_vars);
+    std::vector<std::vector<unsigned int>> scalar_var_dof_indices(num_scalar_vars);
     std::vector<NumericVector<double>*> scalar_var_data(num_scalar_vars);
     std::vector<unsigned int> scalar_var_system_num(num_scalar_vars);
-    std::vector<std::vector<NumericVector<double>*> > scalar_var_fcn_data(num_scalar_vars);
+    std::vector<std::vector<NumericVector<double>*>> scalar_var_fcn_data(num_scalar_vars);
     for (unsigned int k = 0; k < num_scalar_vars; ++k)
     {
         scalar_var_dof_maps[k] = &d_scalar_var_systems[k]->get_dof_map();
@@ -186,10 +186,10 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_vector_vars = d_vector_var_systems.size();
     std::vector<const DofMap*> vector_var_dof_maps(num_vector_vars);
-    std::vector<std::vector<std::vector<unsigned int> > > vector_var_dof_indices(num_vector_vars);
+    std::vector<std::vector<std::vector<unsigned int>>> vector_var_dof_indices(num_vector_vars);
     std::vector<NumericVector<double>*> vector_var_data(num_vector_vars);
     std::vector<unsigned int> vector_var_system_num(num_vector_vars);
-    std::vector<std::vector<NumericVector<double>*> > vector_var_fcn_data(num_vector_vars);
+    std::vector<std::vector<NumericVector<double>*>> vector_var_fcn_data(num_vector_vars);
     for (unsigned int k = 0; k < num_vector_vars; ++k)
     {
         vector_var_dof_maps[k] = &d_vector_var_systems[k]->get_dof_map();
@@ -206,10 +206,10 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
 
     const size_t num_tensor_vars = d_tensor_var_systems.size();
     std::vector<const DofMap*> tensor_var_dof_maps(num_tensor_vars);
-    std::vector<boost::multi_array<std::vector<unsigned int>, 2> > tensor_var_dof_indices(num_tensor_vars);
+    std::vector<boost::multi_array<std::vector<unsigned int>, 2>> tensor_var_dof_indices(num_tensor_vars);
     std::vector<NumericVector<double>*> tensor_var_data(num_tensor_vars);
     std::vector<unsigned int> tensor_var_system_num(num_tensor_vars);
-    std::vector<std::vector<NumericVector<double>*> > tensor_var_fcn_data(num_tensor_vars);
+    std::vector<std::vector<NumericVector<double>*>> tensor_var_fcn_data(num_tensor_vars);
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
         tensor_var_dof_maps[k] = &d_tensor_var_systems[k]->get_dof_map();

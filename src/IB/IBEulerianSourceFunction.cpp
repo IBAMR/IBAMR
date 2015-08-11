@@ -89,10 +89,10 @@ void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int d
                                                                      const bool initial_time,
                                                                      const boost::shared_ptr<PatchLevel>& /*level*/)
 {
-    auto q_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
+    auto q_cc_data = BOOST_CAST<CellData<double>>(patch->getPatchData(data_idx));
     q_cc_data->fillAll(0.0);
     if (initial_time) return;
-    auto q_ib_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_ib_solver->d_q_idx));
+    auto q_ib_cc_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_ib_solver->d_q_idx));
     PatchCellDataBasicOps<double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;

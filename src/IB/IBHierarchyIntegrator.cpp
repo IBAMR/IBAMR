@@ -147,7 +147,7 @@ void IBHierarchyIntegrator::registerLoadBalancer(const boost::shared_ptr<ChopAnd
     d_load_balancer = load_balancer;
     if (d_workload_idx == -1)
     {
-        d_workload_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::workload");
+        d_workload_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::workload");
         IntVector no_ghosts = IntVector::getZero(DIM);
         registerVariable(d_workload_idx, d_workload_var, no_ghosts, getCurrentContext());
     }
@@ -187,9 +187,9 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_pt
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
     d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
-    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
+    auto cc_var = boost::make_shared<CellVariable<double>>(DIM, "cc_var");
     d_hier_cc_data_ops =
-        BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
+        BOOST_CAST<HierarchyCellDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
 
     // Initialize all variables.
     auto var_db = VariableDatabase::getDatabase();
@@ -246,8 +246,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_pt
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(d_u_var);
-    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(d_u_var);
+    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(d_u_var);
+    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(d_u_var);
     if (u_cc_var)
     {
         d_u_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(
@@ -284,7 +284,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_pt
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        auto p_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(d_p_var);
+        auto p_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(d_p_var);
         if (p_cc_var)
         {
             d_p_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(

@@ -467,8 +467,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         {
             auto patch = *p;
 
-            auto U_error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-            auto U_scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(U_scratch_idx));
+            auto U_error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+            auto U_scratch_data = BOOST_CAST<SideData<double>>(patch->getPatchData(U_scratch_idx));
             const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box.isSpatiallyEqual(U_scratch_data->getGhostBox()));
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
@@ -480,8 +480,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                                                         IntVector::getZero(DIM));
             }
 
-            auto P_error_data = BOOST_CAST<CellData<double> >(error.getComponentPatchData(1, *patch));
-            auto P_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(P_scratch_idx));
+            auto P_error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(1, *patch));
+            auto P_scratch_data = BOOST_CAST<CellData<double>>(patch->getPatchData(P_scratch_idx));
             const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box.isSpatiallyEqual(P_scratch_data->getGhostBox()));
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
@@ -507,8 +507,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                 {
                     auto patch = *p;
 
-                    auto U_error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-                    auto U_scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(U_scratch_idx));
+                    auto U_error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+                    auto U_scratch_data = BOOST_CAST<SideData<double>>(patch->getPatchData(U_scratch_idx));
                     const Box& U_ghost_box = U_error_data->getGhostBox();
                     TBOX_ASSERT(U_ghost_box.isSpatiallyEqual(U_scratch_data->getGhostBox()));
                     TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
@@ -520,8 +520,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                                   d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector::getZero(DIM));
                     }
 
-                    auto P_error_data = BOOST_CAST<CellData<double> >(error.getComponentPatchData(1, *patch));
-                    auto P_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(P_scratch_idx));
+                    auto P_error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(1, *patch));
+                    auto P_scratch_data = BOOST_CAST<CellData<double>>(patch->getPatchData(P_scratch_idx));
                     const Box& P_ghost_box = P_error_data->getGhostBox();
                     TBOX_ASSERT(P_ghost_box.isSpatiallyEqual(P_scratch_data->getGhostBox()));
                     TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
@@ -563,14 +563,14 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
             auto patch = *p;
-            auto U_error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-            auto U_residual_data = BOOST_CAST<SideData<double> >(residual.getComponentPatchData(0, *patch));
+            auto U_error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+            auto U_residual_data = BOOST_CAST<SideData<double>>(residual.getComponentPatchData(0, *patch));
             const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box.isSpatiallyEqual(U_residual_data->getGhostBox()));
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_residual_data->getGhostCellWidth() == d_gcw);
-            auto P_error_data = BOOST_CAST<CellData<double> >(error.getComponentPatchData(1, *patch));
-            auto P_residual_data = BOOST_CAST<CellData<double> >(residual.getComponentPatchData(1, *patch));
+            auto P_error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(1, *patch));
+            auto P_residual_data = BOOST_CAST<CellData<double>>(residual.getComponentPatchData(1, *patch));
             const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box.isSpatiallyEqual(P_residual_data->getGhostBox()));
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);

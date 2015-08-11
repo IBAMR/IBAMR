@@ -174,13 +174,13 @@ public:
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getSolutionVector() const;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getFunctionVector() const;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.

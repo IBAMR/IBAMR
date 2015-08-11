@@ -77,8 +77,8 @@ public:
      */
     virtual void
     setNullspace(bool nullspace_contains_constant_vec,
-                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >&
-                     nullspace_basis_vecs = std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
+                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>&
+                     nullspace_basis_vecs = std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>());
 
     /*!
      * \brief Get whether the nullspace of the linear system contains th
@@ -89,7 +89,7 @@ public:
     /*!
      * \brief Get the basis vectors for the nullspace of the linear system.
      */
-    virtual const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >&
+    virtual const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>&
     getNullspaceBasisVectors() const;
 
     //\}
@@ -129,7 +129,7 @@ protected:
 
     // Nullspace data.
     bool d_nullspace_contains_constant_vec;
-    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > > d_nullspace_basis_vecs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>> d_nullspace_basis_vecs;
 
 private:
     /*!

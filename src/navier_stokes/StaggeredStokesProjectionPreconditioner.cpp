@@ -118,27 +118,27 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string Phi_var_name = d_object_name + "::Phi";
-    d_Phi_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(Phi_var_name));
+    d_Phi_var = BOOST_CAST<CellVariable<double>>(var_db->getVariable(Phi_var_name));
     if (d_Phi_var)
     {
         d_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Phi_var, context);
     }
     else
     {
-        d_Phi_var = boost::make_shared<CellVariable<double> >(DIM, Phi_var_name);
+        d_Phi_var = boost::make_shared<CellVariable<double>>(DIM, Phi_var_name);
         d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
 
     const std::string F_var_name = d_object_name + "::F";
-    d_F_Phi_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(F_var_name));
+    d_F_Phi_var = BOOST_CAST<CellVariable<double>>(var_db->getVariable(F_var_name));
     if (d_F_Phi_var)
     {
         d_F_Phi_idx = var_db->mapVariableAndContextToIndex(d_F_Phi_var, context);
     }
     else
     {
-        d_F_Phi_var = boost::make_shared<CellVariable<double> >(DIM, F_var_name);
+        d_F_Phi_var = boost::make_shared<CellVariable<double>>(DIM, F_var_name);
         d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_F_Phi_idx >= 0);
@@ -179,8 +179,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     auto F_U_var = b.getComponentVariable(0);
     auto F_P_var = b.getComponentVariable(1);
 
-    auto F_U_sc_var = BOOST_CAST<SideVariable<double> >(F_U_var);
-    auto F_P_cc_var = BOOST_CAST<CellVariable<double> >(F_P_var);
+    auto F_U_sc_var = BOOST_CAST<SideVariable<double>>(F_U_var);
+    auto F_P_cc_var = BOOST_CAST<CellVariable<double>>(F_P_var);
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -188,33 +188,33 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     auto U_var = x.getComponentVariable(0);
     auto P_var = x.getComponentVariable(1);
 
-    auto U_sc_var = BOOST_CAST<SideVariable<double> >(U_var);
-    auto P_cc_var = BOOST_CAST<CellVariable<double> >(P_var);
+    auto U_sc_var = BOOST_CAST<SideVariable<double>>(U_var);
+    auto P_cc_var = BOOST_CAST<CellVariable<double>>(P_var);
 
     // Setup the component solver vectors.
-    boost::shared_ptr<SAMRAIVectorReal<double> > F_U_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double>> F_U_vec;
     F_U_vec =
-        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    boost::shared_ptr<SAMRAIVectorReal<double> > U_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double>> U_vec;
     U_vec =
-        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    boost::shared_ptr<SAMRAIVectorReal<double> > Phi_scratch_vec;
-    Phi_scratch_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::Phi_scratch", d_hierarchy,
-                                                                    d_coarsest_ln, d_finest_ln);
+    boost::shared_ptr<SAMRAIVectorReal<double>> Phi_scratch_vec;
+    Phi_scratch_vec = boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::Phi_scratch", d_hierarchy,
+                                                                   d_coarsest_ln, d_finest_ln);
     Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    boost::shared_ptr<SAMRAIVectorReal<double> > F_Phi_vec;
-    F_Phi_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln,
-                                                              d_finest_ln);
+    boost::shared_ptr<SAMRAIVectorReal<double>> F_Phi_vec;
+    F_Phi_vec = boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln,
+                                                             d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    boost::shared_ptr<SAMRAIVectorReal<double> > P_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double>> P_vec;
     P_vec =
-        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.

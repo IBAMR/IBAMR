@@ -145,7 +145,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_num];
 
     if (D_next_mat)
@@ -178,7 +178,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
             const unsigned int num_rods = force_spec->getNumberOfRods();
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
+            const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& params =
                 force_spec->getMaterialParams();
             TBOX_ASSERT(num_rods == next_idxs.size());
             for (unsigned int k = 0; k < num_rods; ++k)
@@ -365,7 +365,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(const boost::shared
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params =
+    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>& material_params =
         d_material_params[level_number];
 
     const size_t local_sz = petsc_curr_node_idxs.size();

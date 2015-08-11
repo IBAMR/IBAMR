@@ -284,9 +284,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(HYPRE_SStructVector vector,
-                     const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src_data,
+                     const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& src_data,
                      const SAMRAI::hier::Box& box);
-    void copyFromHypre(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst_data,
+    void copyFromHypre(const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& dst_data,
                        HYPRE_SStructVector vector,
                        const SAMRAI::hier::Box& box);
     void destroyHypreSolver();

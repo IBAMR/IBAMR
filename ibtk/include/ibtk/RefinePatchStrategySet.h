@@ -224,7 +224,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.
      */
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> > d_strategy_set;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy>> d_strategy_set;
 };
 } // namespace IBTK
 

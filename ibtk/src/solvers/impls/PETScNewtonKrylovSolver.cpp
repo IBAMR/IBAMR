@@ -169,7 +169,7 @@ void PETScNewtonKrylovSolver::setOperator(const boost::shared_ptr<GeneralOperato
     return;
 }
 
-boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() const
+boost::shared_ptr<SAMRAIVectorReal<double>> PETScNewtonKrylovSolver::getSolutionVector() const
 {
     Vec petsc_x;
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
@@ -177,7 +177,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutio
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
 }
 
-boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() const
+boost::shared_ptr<SAMRAIVectorReal<double>> PETScNewtonKrylovSolver::getFunctionVector() const
 {
     Vec petsc_f;
     int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, NULL, NULL);
@@ -213,11 +213,11 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
 
     // Solve the system using a PETSc SNES object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&x, NullDeleter()));
     auto A = boost::dynamic_pointer_cast<LinearOperator>(d_F);
     if (A)
     {
-        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&b, NullDeleter()));
         A->modifyRhsForInhomogeneousBc(*d_b);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
         IBTK_CHKERRQ(ierr);
@@ -226,7 +226,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     else
     {
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b,
-                                                   boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+                                                   boost::shared_ptr<SAMRAIVectorReal<double>>(&b, NullDeleter()));
     }
     Vec residual;
 

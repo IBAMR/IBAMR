@@ -135,9 +135,9 @@ void GeneralOperator::applyAdd(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<dou
     // Guard against the case that y == z.
     auto zz = z.cloneVector(z.getName());
     zz->allocateVectorData();
-    zz->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&z, NullDeleter()));
+    zz->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&z, NullDeleter()));
     apply(x, *zz);
-    z.add(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()), zz);
+    z.add(boost::shared_ptr<SAMRAIVectorReal<double>>(&y, NullDeleter()), zz);
     zz->deallocateVectorData();
     zz->freeVectorComponents();
     zz.reset();

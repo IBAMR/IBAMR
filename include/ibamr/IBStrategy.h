@@ -208,8 +208,8 @@ public:
      */
     virtual void
     interpolateVelocity(int u_data_idx,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                         double data_time) = 0;
 
     /*!
@@ -242,7 +242,7 @@ public:
      */
     virtual void spreadForce(int f_data_idx,
                              IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                              double data_time) = 0;
 
     /*!
@@ -268,7 +268,7 @@ public:
      */
     virtual void
     spreadFluidSource(int q_data_idx,
-                      const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& q_prolongation_scheds,
+                      const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& q_prolongation_scheds,
                       double data_time);
 
     /*!
@@ -279,8 +279,8 @@ public:
      */
     virtual void
     interpolatePressure(int p_data_idx,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& p_synch_scheds,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& p_ghost_fill_scheds,
+                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& p_synch_scheds,
+                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& p_ghost_fill_scheds,
                         double data_time);
 
     /*!
@@ -319,8 +319,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -420,13 +420,13 @@ protected:
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * velocity-like variables.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > getVelocityHierarchyDataOps() const;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double>> getVelocityHierarchyDataOps() const;
 
     /*!
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * pressure-like variables.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > getPressureHierarchyDataOps() const;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double>> getPressureHierarchyDataOps() const;
 
     /*!
      * Return a pointer to a HierarchyMathOps object.
@@ -503,7 +503,7 @@ protected:
     /*!
      * Get ghost cell-filling refine schedules.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>&
     getGhostfillRefineSchedules(const std::string& name) const;
 
     /*!
@@ -511,7 +511,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>&
     getProlongRefineSchedules(const std::string& name) const;
 
     /*!
@@ -519,7 +519,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>&
     getCoarsenSchedules(const std::string& name) const;
 
     /*!

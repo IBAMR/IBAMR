@@ -184,7 +184,7 @@ private:
     /*!
      * \brief The set of IBLagrangianForceStrategy objects.
      */
-    std::vector<boost::shared_ptr<IBLagrangianForceStrategy> > d_strategy_set;
+    std::vector<boost::shared_ptr<IBLagrangianForceStrategy>> d_strategy_set;
 };
 } // namespace IBAMR
 

@@ -560,7 +560,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
                                                         const Patch& patch,
                                                         const bool adjoint_op)
 {
-    const int n_physical_codim3_boxes = physical_codim3_boxes.size();
+    const auto n_physical_codim3_boxes = physical_codim3_boxes.size();
     if (n_physical_codim3_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();

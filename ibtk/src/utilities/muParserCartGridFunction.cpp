@@ -310,10 +310,10 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
 
     // Set the data in the patch.
     auto data = patch->getPatchData(data_idx);
-    auto cc_data = boost::dynamic_pointer_cast<CellData<double> >(data);
-    auto fc_data = boost::dynamic_pointer_cast<FaceData<double> >(data);
-    auto nc_data = boost::dynamic_pointer_cast<NodeData<double> >(data);
-    auto sc_data = boost::dynamic_pointer_cast<SideData<double> >(data);
+    auto cc_data = boost::dynamic_pointer_cast<CellData<double>>(data);
+    auto fc_data = boost::dynamic_pointer_cast<FaceData<double>>(data);
+    auto nc_data = boost::dynamic_pointer_cast<NodeData<double>>(data);
+    auto sc_data = boost::dynamic_pointer_cast<SideData<double>>(data);
     if (cc_data)
     {
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));

@@ -173,8 +173,8 @@ private:
     boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<int> > d_u_dof_index_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<int> > d_p_dof_index_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<int>> d_u_dof_index_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<int>> d_p_dof_index_var;
     boost::shared_ptr<SAMRAI::xfer::RefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}

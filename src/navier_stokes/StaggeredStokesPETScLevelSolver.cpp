@@ -92,18 +92,18 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     // Construct the DOF index variable/context.
     auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_u_dof_index_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::u_dof_index");
+    d_u_dof_index_var = boost::make_shared<SideVariable<int>>(DIM, object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
-        d_u_dof_index_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(d_u_dof_index_var->getName()));
+        d_u_dof_index_var = BOOST_CAST<SideVariable<int>>(var_db->getVariable(d_u_dof_index_var->getName()));
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, IntVector(DIM, SIDEG));
-    d_p_dof_index_var = boost::make_shared<CellVariable<int> >(DIM, object_name + "::p_dof_index");
+    d_p_dof_index_var = boost::make_shared<CellVariable<int>>(DIM, object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
-        d_p_dof_index_var = BOOST_CAST<CellVariable<int> >(var_db->getVariable(d_p_dof_index_var->getName()));
+        d_p_dof_index_var = BOOST_CAST<CellVariable<int>>(var_db->getVariable(d_p_dof_index_var->getName()));
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }

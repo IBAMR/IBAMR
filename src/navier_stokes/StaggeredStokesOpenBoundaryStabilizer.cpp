@@ -154,16 +154,16 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                                                            const bool initial_time,
                                                            const boost::shared_ptr<PatchLevel>& /*level*/)
 {
-    auto F_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
+    auto F_data = BOOST_CAST<SideData<double>>(patch->getPatchData(data_idx));
     F_data->fillAll(0.0);
     if (initial_time) return;
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    auto U_current_data = BOOST_CAST<SideData<double> >(
+    auto U_current_data = BOOST_CAST<SideData<double>>(
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
-    auto U_new_data = BOOST_CAST<SideData<double> >(
+    auto U_new_data = BOOST_CAST<SideData<double>>(
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()));
     const Box& patch_box = patch->getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());

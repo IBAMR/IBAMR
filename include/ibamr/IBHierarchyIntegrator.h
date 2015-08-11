@@ -272,9 +272,9 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > d_hier_velocity_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > d_hier_pressure_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double>> d_hier_velocity_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double>> d_hier_pressure_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
 
     /*
      * Eulerian variables.
@@ -303,7 +303,7 @@ protected:
      * Nonuniform load balancing data structures.
      */
     boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_workload_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_var;
     int d_workload_idx;
 
     /*

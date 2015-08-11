@@ -113,7 +113,7 @@ void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<double>& u)
     }
     else
     {
-        d_op_u->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&u, NullDeleter()), false);
+        d_op_u->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&u, NullDeleter()), false);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_u));
         IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, NULL);
@@ -126,7 +126,7 @@ void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<double>& u)
     return;
 }
 
-boost::shared_ptr<SAMRAIVectorReal<double> > PETScMFFDJacobianOperator::getBaseVector() const
+boost::shared_ptr<SAMRAIVectorReal<double>> PETScMFFDJacobianOperator::getBaseVector() const
 {
     if (d_nonlinear_solver)
     {
@@ -147,9 +147,9 @@ void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorR
 {
     // Compute the action of the operator.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<PetscScalar> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<PetscScalar>>(&x, NullDeleter()));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
-                                               boost::shared_ptr<SAMRAIVectorReal<PetscScalar> >(&y, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<PetscScalar>>(&y, NullDeleter()));
     int ierr = MatMult(d_petsc_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
     return;

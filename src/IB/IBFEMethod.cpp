@@ -369,7 +369,7 @@ void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::share
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw = d_fe_data_managers[part]->getGhostCellWidth().max();
@@ -540,8 +540,8 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
 }
 
 void IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                     const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*u_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                      const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -691,7 +691,7 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
 
 void IBFEMethod::spreadForce(const int f_data_idx,
                              RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<boost::shared_ptr<RefineSchedule> >& /*f_prolongation_scheds*/,
+                             const std::vector<boost::shared_ptr<RefineSchedule>>& /*f_prolongation_scheds*/,
                              const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -825,8 +825,8 @@ void IBFEMethod::initializeFEData()
 void IBFEMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                           const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                           int /*u_data_idx*/,
-                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                          const std::vector<boost::shared_ptr<RefineSchedule> >&
+                                          const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*u_synch_scheds*/,
+                                          const std::vector<boost::shared_ptr<RefineSchedule>>&
                                           /*u_ghost_fill_scheds*/,
                                           int /*integrator_step*/,
                                           double /*init_data_time*/,
@@ -1001,7 +1001,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     }
 
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<std::vector<NumericVector<double>*>> PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
@@ -1037,7 +1037,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     }
 
     // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
+    AutoPtr<NumericVector<double>> G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[NDIM];
 
     // Extract the underlying solution data.
@@ -1061,7 +1061,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         // Extract the FE systems and DOF maps, and setup the FE objects.
         System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
         const DofMap& dof_map = system.get_dof_map();
-        std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1071,15 +1071,15 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<libMesh::Point>& q_point = fe->get_xyz();
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        const std::vector<std::vector<VectorValue<double>>>& dphi = fe->get_dphi();
         AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
         fe_face->attach_quadrature_rule(qrule_face.get());
         const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
         const std::vector<double>& JxW_face = fe_face->get_JxW();
         const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
-        const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-        const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+        const std::vector<std::vector<double>>& phi_face = fe_face->get_phi();
+        const std::vector<std::vector<VectorValue<double>>>& dphi_face = fe_face->get_dphi();
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1211,7 +1211,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         // Extract the FE systems and DOF maps, and setup the FE objects.
         System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
         const DofMap& dof_map = system.get_dof_map();
-        std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1221,15 +1221,15 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<libMesh::Point>& q_point = fe->get_xyz();
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
+        const std::vector<std::vector<VectorValue<double>>>& dphi = fe->get_dphi();
         AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
         fe_face->attach_quadrature_rule(qrule_face.get());
         const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
         const std::vector<double>& JxW_face = fe_face->get_JxW();
         const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
-        const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-        const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+        const std::vector<std::vector<double>>& phi_face = fe_face->get_phi();
+        const std::vector<std::vector<VectorValue<double>>>& dphi_face = fe_face->get_dphi();
 
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1404,8 +1404,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1415,8 +1415,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
     const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+    const std::vector<std::vector<double>>& phi_face = fe_face->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_face = fe_face->get_dphi();
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1433,7 +1433,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     }
 
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<std::vector<NumericVector<double>*>> PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
@@ -1478,7 +1478,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
@@ -1610,7 +1610,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
         const hier::IntVector& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box spread_box = Box::grow(patch->getBox(), ghost_width);
-        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+        auto f_data = BOOST_CAST<SideData<double>>(patch->getPatchData(f_data_idx));
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
         if (f_phys_bdry_op)
         {
@@ -1652,8 +1652,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1662,8 +1662,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
+    const std::vector<std::vector<double>>& phi_face = fe_face->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_face = fe_face->get_dphi();
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1680,7 +1680,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
 
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<std::vector<NumericVector<double>*>> PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
@@ -1733,7 +1733,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
-    const std::vector<std::vector<Elem*> >& active_patch_element_map =
+    const std::vector<std::vector<Elem*>>& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
@@ -1745,7 +1745,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     IBTK::Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex> intersection_indices;
-    std::vector<std::pair<double, libMesh::Point> > intersections;
+    std::vector<std::pair<double, libMesh::Point>> intersections;
     auto level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
@@ -1756,7 +1756,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         if (num_active_patch_elems == 0) continue;
 
         const auto patch = *p;
-        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+        auto f_data = BOOST_CAST<SideData<double>>(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();

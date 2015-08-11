@@ -141,8 +141,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -156,9 +156,9 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<boost::shared_ptr<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_V_current_data, d_V_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_K_data, d_M_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_Y_current_data, d_Y_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_V_current_data, d_V_new_data;
 
     /*
      * Gravitational acceleration.

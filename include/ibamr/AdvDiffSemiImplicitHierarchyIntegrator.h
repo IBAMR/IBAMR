@@ -174,13 +174,13 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
+    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var);
 
     /*!
      * Set the convective time stepping method to use for a particular
      * transported quantity Q.
      */
-    void setConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                        TimeSteppingType convective_time_stepping_type);
 
     /*!
@@ -188,7 +188,7 @@ public:
      * transported quantity Q.
      */
     TimeSteppingType
-    getConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
+    getConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -197,7 +197,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                               TimeSteppingType init_convective_time_stepping_type);
 
     /*!
@@ -208,13 +208,13 @@ public:
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
     TimeSteppingType
-    getInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
+    getInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var) const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver for a
      * particular transported quantity Q.
      */
-    void setConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                    const std::string& op_type);
 
     /*!
@@ -222,13 +222,13 @@ public:
      * particular transported quantity Q.
      */
     const std::string&
-    getConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
+    getConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    void setConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db);
 
     /*!
@@ -236,13 +236,13 @@ public:
      * solver for a particular transported quantity Q.
      */
     boost::shared_ptr<SAMRAI::tbox::Database>
-    getConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
+    getConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
      */
-    void setConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+    void setConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var,
                                const boost::shared_ptr<ConvectiveOperator>& convective_op);
 
     /*!
@@ -253,7 +253,7 @@ public:
      * function will initialize a default convective operator.
      */
     virtual boost::shared_ptr<ConvectiveOperator>
-    getConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
+    getConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var);
 
     /*!
      * Indicate that all of the convective operators should be (re-)initialized
@@ -265,7 +265,7 @@ public:
      * Indicate that the convective operator should be (re-)initialized before
      * the next time step.
      */
-    void setConvectiveOperatorNeedsInit(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
+    void setConvectiveOperatorNeedsInit(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -331,24 +331,24 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
 
     /*!
      * Transported quantities.
      */
-    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_N_var, d_N_old_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_N_map,
+    std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>> d_N_var, d_N_old_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>,
+             boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>> d_Q_N_map,
         d_Q_N_old_map;
 
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, TimeSteppingType>
-        d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::string> d_Q_convective_op_type;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<SAMRAI::tbox::Database> >
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, TimeSteppingType> d_Q_convective_time_stepping_type,
+        d_Q_init_convective_time_stepping_type;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, std::string> d_Q_convective_op_type;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, boost::shared_ptr<SAMRAI::tbox::Database>>
         d_Q_convective_op_input_db;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<ConvectiveOperator> >
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, boost::shared_ptr<ConvectiveOperator>>
         d_Q_convective_op;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, bool> d_Q_convective_op_needs_init;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>, bool> d_Q_convective_op_needs_init;
 
 private:
     /*!

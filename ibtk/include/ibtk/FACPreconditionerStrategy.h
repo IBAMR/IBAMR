@@ -239,7 +239,7 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<double>& vec, int level_num) const;
 
     // boost::shared_ptr to the FACPreconditioner that is using this operator.

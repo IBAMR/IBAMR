@@ -153,7 +153,7 @@ void NodeDataSynchronization::initializeOperatorState(
 #ifndef NDEBUG
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
+            auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double>>(var);
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
@@ -241,7 +241,7 @@ void NodeDataSynchronization::resetTransactionComponents(
 #ifndef NDEBUG
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
+            auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double>>(var);
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"

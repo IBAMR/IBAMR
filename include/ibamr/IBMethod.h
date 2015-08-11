@@ -221,8 +221,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              double data_time);
 
     /*!
@@ -232,8 +232,8 @@ public:
      */
     void interpolateLinearizedVelocity(
         int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
         double data_time);
 
     /*!
@@ -272,7 +272,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                      double data_time);
 
     /*!
@@ -282,7 +282,7 @@ public:
     void
     spreadLinearizedForce(int f_data_idx,
                           IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                           double data_time);
 
     /*!
@@ -305,7 +305,7 @@ public:
      * An empty default implementation is provided.
      */
     void spreadFluidSource(int q_data_idx,
-                           const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& q_prolongation_scheds,
+                           const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& q_prolongation_scheds,
                            double data_time);
 
     /*!
@@ -315,8 +315,8 @@ public:
      * An empty default implementation is provided.
      */
     void interpolatePressure(int p_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& p_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& p_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& p_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& p_ghost_fill_scheds,
                              double data_time);
 
     /*!
@@ -337,8 +337,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -416,54 +416,54 @@ protected:
      * Get the current structure position data.
      */
     void
-    getPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data, bool** X_needs_ghost_fill, double data_time);
+    getPositionData(std::vector<boost::shared_ptr<IBTK::LData>>** X_data, bool** X_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure position data.
      */
-    void getLinearizedPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data, bool** X_needs_ghost_fill);
+    void getLinearizedPositionData(std::vector<boost::shared_ptr<IBTK::LData>>** X_data, bool** X_needs_ghost_fill);
 
     /*!
      * Get the current interpolation/spreading position data.
      */
-    void getLECouplingPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_LE_data,
+    void getLECouplingPositionData(std::vector<boost::shared_ptr<IBTK::LData>>** X_LE_data,
                                    bool** X_LE_needs_ghost_fill,
                                    double data_time);
 
     /*!
      * Get the current structure velocity data.
      */
-    void getVelocityData(std::vector<boost::shared_ptr<IBTK::LData> >** U_data, double data_time);
+    void getVelocityData(std::vector<boost::shared_ptr<IBTK::LData>>** U_data, double data_time);
 
     /*!
      * Get the linearized structure velocity data.
      */
-    void getLinearizedVelocityData(std::vector<boost::shared_ptr<IBTK::LData> >** U_data);
+    void getLinearizedVelocityData(std::vector<boost::shared_ptr<IBTK::LData>>** U_data);
 
     /*!
      * Get the current structure force data.
      */
     void
-    getForceData(std::vector<boost::shared_ptr<IBTK::LData> >** F_data, bool** F_needs_ghost_fill, double data_time);
+    getForceData(std::vector<boost::shared_ptr<IBTK::LData>>** F_data, bool** F_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure force data.
      */
-    void getLinearizedForceData(std::vector<boost::shared_ptr<IBTK::LData> >** F_data, bool** F_needs_ghost_fill);
+    void getLinearizedForceData(std::vector<boost::shared_ptr<IBTK::LData>>** F_data, bool** F_needs_ghost_fill);
 
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.
      */
-    void reinitMidpointData(const std::vector<boost::shared_ptr<IBTK::LData> >& current_data,
-                            const std::vector<boost::shared_ptr<IBTK::LData> >& new_data,
-                            const std::vector<boost::shared_ptr<IBTK::LData> >& half_data);
+    void reinitMidpointData(const std::vector<boost::shared_ptr<IBTK::LData>>& current_data,
+                            const std::vector<boost::shared_ptr<IBTK::LData>>& new_data,
+                            const std::vector<boost::shared_ptr<IBTK::LData>>& half_data);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
-    void resetAnchorPointValues(std::vector<boost::shared_ptr<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
+    void resetAnchorPointValues(std::vector<boost::shared_ptr<IBTK::LData>> U_data, int coarsest_ln, int finest_ln);
 
     /*
      * PETSc function for evaluating Lagrangian force.
@@ -509,10 +509,10 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<boost::shared_ptr<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
+    std::vector<boost::shared_ptr<IBTK::LData>> d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
         d_X_LE_new_data, d_X_LE_half_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
 
     /*
      * List of local indices of local anchor points.
@@ -520,7 +520,7 @@ protected:
      * NOTE: IB points are automatically considered to be anchored if they are
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
-    std::vector<std::set<int> > d_anchor_point_local_idxs;
+    std::vector<std::set<int>> d_anchor_point_local_idxs;
 
     /*
      * Instrumentation (flow meter and pressure gauge) algorithms and data
@@ -546,8 +546,8 @@ protected:
      */
     boost::shared_ptr<IBLagrangianSourceStrategy> d_ib_source_fcn;
     bool d_ib_source_fcn_needs_init;
-    std::vector<std::vector<IBTK::Point> > d_X_src;
-    std::vector<std::vector<double> > d_r_src, d_P_src, d_Q_src;
+    std::vector<std::vector<IBTK::Point>> d_X_src;
+    std::vector<std::vector<double>> d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
     bool d_normalize_source_strength;
 

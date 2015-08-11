@@ -297,10 +297,10 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
                                                                    bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
                              input_db,
-                             boost::make_shared<CellVariable<double> >(DIM, object_name + "::U", NDIM),
-                             boost::make_shared<CellVariable<double> >(DIM, object_name + "::P"),
-                             boost::make_shared<CellVariable<double> >(DIM, object_name + "::F", NDIM),
-                             boost::make_shared<CellVariable<double> >(DIM, object_name + "::Q"),
+                             boost::make_shared<CellVariable<double>>(DIM, object_name + "::U", NDIM),
+                             boost::make_shared<CellVariable<double>>(DIM, object_name + "::P"),
+                             boost::make_shared<CellVariable<double>>(DIM, object_name + "::F", NDIM),
+                             boost::make_shared<CellVariable<double>>(DIM, object_name + "::Q"),
                              register_for_restart)
 {
     // Check to make sure the time stepping type is supported.
@@ -406,29 +406,29 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
     // INSHierarchyIntegrator base class.
-    d_U_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_U_var);
-    d_u_ADV_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::u_ADV");
-    d_P_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_P_var);
-    d_F_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_F_var);
-    d_Q_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_Q_var);
-    d_N_old_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::N_old", NDIM);
+    d_U_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_U_var);
+    d_u_ADV_var = boost::make_shared<FaceVariable<double>>(DIM, d_object_name + "::u_ADV");
+    d_P_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_P_var);
+    d_F_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_F_var);
+    d_Q_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_Q_var);
+    d_N_old_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::N_old", NDIM);
 
 #if (NDIM == 2)
-    d_Omega_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Omega");
+    d_Omega_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Omega");
 #endif
 #if (NDIM == 3)
-    d_Omega_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Omega", NDIM);
+    d_Omega_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Omega", NDIM);
 #endif
-    d_Div_U_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Div_U");
-    d_Div_u_ADV_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Div_u_ADV");
+    d_Div_U_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Div_U");
+    d_Div_u_ADV_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Div_u_ADV");
 #if (NDIM == 3)
-    d_Omega_Norm_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::|Omega|_2");
+    d_Omega_Norm_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::|Omega|_2");
 #endif
-    d_Grad_P_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Grad_P", NDIM);
-    d_Phi_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Phi");
-    d_Grad_Phi_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::Grad_Phi_cc", NDIM);
-    d_Grad_Phi_fc_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::Grad_Phi_fc");
-    d_F_div_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::F_div", NDIM);
+    d_Grad_P_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Grad_P", NDIM);
+    d_Phi_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Phi");
+    d_Grad_Phi_cc_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::Grad_Phi_cc", NDIM);
+    d_Grad_Phi_fc_var = boost::make_shared<FaceVariable<double>>(DIM, d_object_name + "::Grad_Phi_fc");
+    d_F_div_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::F_div", NDIM);
     return;
 }
 
@@ -625,12 +625,12 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
-    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
+    auto cc_var = boost::make_shared<CellVariable<double>>(DIM, "cc_var");
     d_hier_cc_data_ops =
-        BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
-    auto fc_var = boost::make_shared<FaceVariable<double> >(DIM, "fc_var");
+        BOOST_CAST<HierarchyCellDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
+    auto fc_var = boost::make_shared<FaceVariable<double>>(DIM, "fc_var");
     d_hier_fc_data_ops =
-        BOOST_CAST<HierarchyFaceDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true));
+        BOOST_CAST<HierarchyFaceDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true));
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -879,7 +879,7 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
     U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    auto U_rhs_var = BOOST_CAST<CellVariable<double> >(d_U_rhs_vec->getComponentVariable(0));
+    auto U_rhs_var = BOOST_CAST<CellVariable<double>>(d_U_rhs_vec->getComponentVariable(0));
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1159,7 +1159,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
 
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
     const int Phi_rhs_idx = d_Phi_rhs_vec->getComponentDescriptorIndex(0);
-    const auto Phi_rhs_var = BOOST_CAST<CellVariable<double> >(d_Phi_rhs_vec->getComponentVariable(0));
+    const auto Phi_rhs_var = BOOST_CAST<CellVariable<double>>(d_Phi_rhs_vec->getComponentVariable(0));
     const double div_fac =
         (MathUtilities<double>::equalEps(rho, 0.0) || MathUtilities<double>::equalEps(dt, 0.0) ? 1.0 : rho / dt);
     d_hier_math_ops->div(Phi_rhs_idx, Phi_rhs_var, -div_fac, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time,
@@ -1341,7 +1341,7 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                auto u_cc_new_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_U_new_idx));
+                auto u_cc_new_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_U_new_idx));
                 double u_max = 0.0;
                 u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -1600,8 +1600,8 @@ void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
-                auto Omega_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_Omega_idx));
+                auto tags_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
+                auto Omega_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_Omega_idx));
                 for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
@@ -1776,7 +1776,7 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(const boost::shared_p
     const Index& ilower = patch->getBox().lower();
     const Index& iupper = patch->getBox().upper();
 
-    auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_ADV_var, getCurrentContext()));
+    auto u_ADV_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(d_u_ADV_var, getCurrentContext()));
     const IntVector& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -1842,12 +1842,12 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {
-        d_U_scratch_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::U_scratch_vec", d_hierarchy,
-                                                                        coarsest_ln, finest_ln);
+        d_U_scratch_vec = boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::U_scratch_vec", d_hierarchy,
+                                                                       coarsest_ln, finest_ln);
         d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        d_Phi_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln,
-                                                                  finest_ln);
+        d_Phi_vec = boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln,
+                                                                 finest_ln);
         d_Phi_vec->addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
         if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -1881,7 +1881,7 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
                     for (auto p = level->begin(); p != level->end(); ++p)
                     {
                         auto patch = *p;
-                        auto U_nul_data = BOOST_CAST<CellData<double> >(
+                        auto U_nul_data = BOOST_CAST<CellData<double>>(
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0)));
                         U_nul_data->fillAll(0.0);
                         U_nul_data->fill(1.0, k);
@@ -1977,9 +1977,9 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
 
-            auto u_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_idx));
-            auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(Q_idx));
-            auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
+            auto u_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(u_idx));
+            auto Q_data = BOOST_CAST<CellData<double>>(patch->getPatchData(Q_idx));
+            auto F_data = BOOST_CAST<CellData<double>>(patch->getPatchData(F_idx));
 
             const IntVector& u_data_gc = u_data->getGhostCellWidth();
             const IntVector& Q_data_gc = Q_data->getGhostCellWidth();

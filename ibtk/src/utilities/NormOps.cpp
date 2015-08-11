@@ -94,7 +94,7 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-double NormOps::L1Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
+double NormOps::L1Norm(const boost::shared_ptr<SAMRAIVectorReal<double>>& samrai_vector, const bool local_only)
 {
     double L1_norm_local = L1Norm_local(samrai_vector.get());
     if (local_only) return L1_norm_local;
@@ -107,7 +107,7 @@ double NormOps::L1Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samra
     return ret_val;
 }
 
-double NormOps::L2Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
+double NormOps::L2Norm(const boost::shared_ptr<SAMRAIVectorReal<double>>& samrai_vector, const bool local_only)
 {
     double L2_norm_local = L2Norm_local(samrai_vector.get());
     if (local_only) return L2_norm_local;
@@ -120,7 +120,7 @@ double NormOps::L2Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samra
     return ret_val;
 }
 
-double NormOps::maxNorm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
+double NormOps::maxNorm(const boost::shared_ptr<SAMRAIVectorReal<double>>& samrai_vector, const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
 }
@@ -143,7 +143,7 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(comp_var);
+        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(comp_var);
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<double> patch_ops;
@@ -154,14 +154,14 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 {
                     auto patch = *p;
                     const Box& patch_box = patch->getBox();
-                    auto comp_data = BOOST_CAST<CellData<double> >(patch->getPatchData(comp_idx));
-                    auto cvol_data = BOOST_CAST<CellData<double> >((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
+                    auto comp_data = BOOST_CAST<CellData<double>>(patch->getPatchData(comp_idx));
+                    auto cvol_data = BOOST_CAST<CellData<double>>((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(comp_var);
+        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(comp_var);
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<double> patch_ops;
@@ -172,8 +172,8 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 {
                     auto patch = *p;
                     const Box& patch_box = patch->getBox();
-                    auto comp_data = BOOST_CAST<SideData<double> >(patch->getPatchData(comp_idx));
-                    auto cvol_data = BOOST_CAST<SideData<double> >((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
+                    auto comp_data = BOOST_CAST<SideData<double>>(patch->getPatchData(comp_idx));
+                    auto cvol_data = BOOST_CAST<SideData<double>>((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -196,7 +196,7 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(comp_var);
+        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(comp_var);
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<double> patch_ops;
@@ -207,14 +207,14 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 {
                     auto patch = *p;
                     const Box& patch_box = patch->getBox();
-                    auto comp_data = BOOST_CAST<CellData<double> >(patch->getPatchData(comp_idx));
-                    auto cvol_data = BOOST_CAST<CellData<double> >((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
+                    auto comp_data = BOOST_CAST<CellData<double>>(patch->getPatchData(comp_idx));
+                    auto cvol_data = BOOST_CAST<CellData<double>>((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(comp_var);
+        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(comp_var);
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<double> patch_ops;
@@ -225,8 +225,8 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 {
                     auto patch = *p;
                     const Box& patch_box = patch->getBox();
-                    auto comp_data = BOOST_CAST<SideData<double> >(patch->getPatchData(comp_idx));
-                    auto cvol_data = BOOST_CAST<SideData<double> >((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
+                    auto comp_data = BOOST_CAST<SideData<double>>(patch->getPatchData(comp_idx));
+                    auto cvol_data = BOOST_CAST<SideData<double>>((has_cvol ? patch->getPatchData(cvol_idx) : NULL));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }

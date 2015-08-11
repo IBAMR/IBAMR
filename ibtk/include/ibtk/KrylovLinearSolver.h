@@ -131,7 +131,7 @@ protected:
     // Solver components.
     boost::shared_ptr<LinearOperator> d_A;
     boost::shared_ptr<LinearSolver> d_pc_solver;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_b;
 
 private:
     /*!

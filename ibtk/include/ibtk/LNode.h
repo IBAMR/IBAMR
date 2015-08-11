@@ -81,7 +81,7 @@ public:
           int local_petsc_nidx = -1,
           const SAMRAI::hier::IntVector& periodic_offset = SAMRAI::hier::IntVector::getZero(DIM),
           const Vector& periodic_displacement = Vector::Zero(),
-          const std::vector<boost::shared_ptr<Streamable> >& node_data = std::vector<boost::shared_ptr<Streamable> >());
+          const std::vector<boost::shared_ptr<Streamable>>& node_data = std::vector<boost::shared_ptr<Streamable>>());
 
     /*!
      * \brief Copy constructor.
@@ -113,13 +113,13 @@ public:
      * \return A constant reference to any additional data items associated with
      * the node referenced by this LNode object.
      */
-    const std::vector<boost::shared_ptr<Streamable> >& getNodeData() const;
+    const std::vector<boost::shared_ptr<Streamable>>& getNodeData() const;
 
     /*!
      * \brief Reset the collection of additional data items associated with the
      * node referenced by this LNode object.
      */
-    void setNodeData(const std::vector<boost::shared_ptr<Streamable> >& node_data);
+    void setNodeData(const std::vector<boost::shared_ptr<Streamable>>& node_data);
 
     /*!
      * \brief Append a data item to the collection of data items associated with
@@ -211,7 +211,7 @@ private:
 
     // a (possibly empty) collection of data objects that are associated with
     // the node
-    std::vector<boost::shared_ptr<Streamable> > d_node_data;
+    std::vector<boost::shared_ptr<Streamable>> d_node_data;
     static const short int MAX_SIZE = 8;
     Streamable* d_node_data_type_arr[MAX_SIZE];
 };

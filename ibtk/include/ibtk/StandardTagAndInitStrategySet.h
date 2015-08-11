@@ -338,7 +338,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:StandardTagAndInitStrategy objects.
      */
-    std::vector<boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitStrategy> > d_strategy_set;
+    std::vector<boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitStrategy>> d_strategy_set;
 };
 } // namespace IBTK
 

@@ -113,7 +113,7 @@ void build_local_marker_cloud(DBfile* dbfile,
                               const double simulation_time)
 {
     std::vector<float> block_X(NDIM * nmarks);
-    std::vector<std::vector<float> > block_varvals(nvars);
+    std::vector<std::vector<float>> block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
     {
         const int varplotdepth = varplotdepths[v];
@@ -247,7 +247,7 @@ void build_local_curv_block(DBfile* dbfile,
         ;
 
     std::vector<float> block_X(NDIM * ntot);
-    std::vector<std::vector<float> > block_varvals(nvars);
+    std::vector<std::vector<float>> block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
     {
         const int varplotdepth = varplotdepths[v];
@@ -391,7 +391,7 @@ void build_local_curv_block(DBfile* dbfile,
 void build_local_ucd_mesh(DBfile* dbfile,
                           std::string& dirname,
                           const std::set<int>& vertices,
-                          const std::multimap<int, std::pair<int, int> >& edge_map,
+                          const std::multimap<int, std::pair<int, int>>& edge_map,
                           const double* const X,
                           const int nvars,
                           const std::vector<std::string>& varnames,
@@ -406,7 +406,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     const int ntot = static_cast<int>(vertices.size());
 
     std::vector<float> block_X(NDIM * ntot);
-    std::vector<std::vector<float> > block_varvals(nvars);
+    std::vector<std::vector<float>> block_varvals(nvars);
     for (int v = 0; v < nvars; ++v)
     {
         const int varplotdepth = varplotdepths[v];
@@ -443,7 +443,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     }
 
     // Prune duplicate edges.
-    std::set<std::pair<int, int> > local_edge_set;
+    std::set<std::pair<int, int>> local_edge_set;
     for (auto it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         std::pair<int, int> e = it->second;
@@ -943,7 +943,7 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
 }
 
 void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
-                                               const std::multimap<int, std::pair<int, int> >& edge_map,
+                                               const std::multimap<int, std::pair<int, int>>& edge_map,
                                                const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1146,8 +1146,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                                  << "  Could not create DBfile named " << current_file_name << std::endl);
     }
 
-    std::vector<std::vector<int> > meshtype(d_finest_ln + 1), vartype(d_finest_ln + 1);
-    std::vector<std::vector<std::vector<int> > > multimeshtype(d_finest_ln + 1), multivartype(d_finest_ln + 1);
+    std::vector<std::vector<int>> meshtype(d_finest_ln + 1), vartype(d_finest_ln + 1);
+    std::vector<std::vector<std::vector<int>>> multimeshtype(d_finest_ln + 1), multivartype(d_finest_ln + 1);
 
     // Set the local data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1302,7 +1302,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
             for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
             {
                 const std::set<int>& vertices = d_ucd_mesh_vertices[ln][mesh];
-                const std::multimap<int, std::pair<int, int> >& edge_map = d_ucd_mesh_edge_maps[ln][mesh];
+                const std::multimap<int, std::pair<int, int>>& edge_map = d_ucd_mesh_edge_maps[ln][mesh];
                 const size_t ntot = vertices.size();
 
                 std::ostringstream stream;
@@ -1348,10 +1348,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
     // Send data to the root MPI process required to create the multimesh and
     // multivar objects.
-    std::vector<std::vector<int> > nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
-    std::vector<std::vector<std::vector<int> > > meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
-    std::vector<std::vector<std::vector<std::vector<int> > > > multimeshtypes_per_proc, multivartypes_per_proc;
-    std::vector<std::vector<std::vector<std::string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc,
+    std::vector<std::vector<int>> nclouds_per_proc, nblocks_per_proc, nmbs_per_proc, nucd_meshes_per_proc;
+    std::vector<std::vector<std::vector<int>>> meshtypes_per_proc, vartypes_per_proc, mb_nblocks_per_proc;
+    std::vector<std::vector<std::vector<std::vector<int>>>> multimeshtypes_per_proc, multivartypes_per_proc;
+    std::vector<std::vector<std::vector<std::string>>> cloud_names_per_proc, block_names_per_proc, mb_names_per_proc,
         ucd_mesh_names_per_proc;
 
     if (mpi_rank == SILO_MPI_ROOT)
@@ -2036,7 +2036,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     IBTK_CHKERRQ(ierr);
 
     // Setup IS indices for all necessary data depths.
-    std::map<int, std::vector<int> > src_is_idxs;
+    std::map<int, std::vector<int>> src_is_idxs;
 
     src_is_idxs[NDIM] = ref_is_idxs;
     d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getVec();

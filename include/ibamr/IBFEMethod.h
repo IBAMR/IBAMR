@@ -426,8 +426,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              double data_time);
 
     /*!
@@ -460,7 +460,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                      double data_time);
 
     /*!
@@ -482,8 +482,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -676,7 +676,7 @@ protected:
     /*
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
-    std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
+    std::vector<std::vector<PK1StressFcnData>> d_PK1_stress_fcn_data;
 
     /*
      * Functions used to compute additional body and surface forces on the
@@ -689,7 +689,7 @@ protected:
     /*
      * Collection of all systems required to evaluate various quantities.
      */
-    std::vector<std::set<unsigned int> > d_fcn_systems, d_body_fcn_systems, d_surface_fcn_systems;
+    std::vector<std::set<unsigned int>> d_fcn_systems, d_body_fcn_systems, d_surface_fcn_systems;
 
     /*
      * Nonuniform load balancing data structures.

@@ -51,7 +51,7 @@ inline size_t StreamableManager::getDataStreamSize(const boost::shared_ptr<Strea
     return SAMRAI::tbox::MessageStream::getSizeof<int>() + data_item->getDataStreamSize();
 }
 
-inline size_t StreamableManager::getDataStreamSize(const std::vector<boost::shared_ptr<Streamable> >& data_items) const
+inline size_t StreamableManager::getDataStreamSize(const std::vector<boost::shared_ptr<Streamable>>& data_items) const
 {
     size_t size = SAMRAI::tbox::MessageStream::getSizeof<int>();
     for (unsigned int k = 0; k < data_items.size(); ++k)
@@ -71,7 +71,7 @@ inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
 }
 
 inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
-                                          std::vector<boost::shared_ptr<Streamable> >& data_items)
+                                          std::vector<boost::shared_ptr<Streamable>>& data_items)
 {
     const int num_data = static_cast<int>(data_items.size());
     stream.pack(&num_data, 1);
@@ -93,7 +93,7 @@ inline boost::shared_ptr<Streamable> StreamableManager::unpackStream(SAMRAI::tbo
 
 inline void StreamableManager::unpackStream(SAMRAI::tbox::MessageStream& stream,
                                             const SAMRAI::hier::IntVector& offset,
-                                            std::vector<boost::shared_ptr<Streamable> >& data_items)
+                                            std::vector<boost::shared_ptr<Streamable>>& data_items)
 {
     int num_data;
     stream.unpack(&num_data, 1);
@@ -102,7 +102,7 @@ inline void StreamableManager::unpackStream(SAMRAI::tbox::MessageStream& stream,
     {
         data_items[k] = unpackStream(stream, offset);
     }
-    std::vector<boost::shared_ptr<Streamable> >(data_items).swap(data_items); // trim-to-fit
+    std::vector<boost::shared_ptr<Streamable>>(data_items).swap(data_items); // trim-to-fit
     return;
 }
 

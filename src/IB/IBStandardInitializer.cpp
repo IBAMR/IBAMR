@@ -276,7 +276,7 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
                          periodic_shift);
         local_node_count += patch_vertices.size();
@@ -286,7 +286,7 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr
 
 void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+    std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
     const int level_number,
     const double /*init_data_time*/,
     const bool /*can_be_refined*/,
@@ -352,7 +352,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
                          periodic_shift);
         local_node_count += patch_vertices.size();
@@ -472,7 +472,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
                          periodic_shift);
         local_node_count += patch_vertices.size();
@@ -534,7 +534,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
                          periodic_shift);
         local_node_count += patch_vertices.size();
@@ -581,7 +581,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
         const double* const x_upper = pgeom->getXUpper();
         const double* const dx = pgeom->getDx();
 
-        auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+        auto tag_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -589,7 +589,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
         const bool can_be_refined = level_number + 2 < d_max_levels;
         for (int ln = level_number + 1; ln < d_max_levels; ++ln)
         {
-            std::vector<std::pair<int, int> > patch_vertices;
+            std::vector<std::pair<int, int>> patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
             for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
@@ -2367,7 +2367,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                 // number, and meter node indices of each of the instrumented IB
                 // points in the input file.
                 std::vector<bool> encountered_instrument_idx;
-                std::map<size_t, std::vector<bool> > encountered_node_idx;
+                std::map<size_t, std::vector<bool>> encountered_node_idx;
                 for (int k = 0; k < num_inst_pts; ++k)
                 {
                     int n;
@@ -2691,7 +2691,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
     return;
 }
 
-void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int>>& patch_vertices,
                                              const boost::shared_ptr<Patch>& patch,
                                              const int level_number,
                                              const bool /*can_be_refined*/,
@@ -2786,7 +2786,7 @@ const std::vector<double>& IBStandardInitializer::getVertexDirectors(const std::
 std::pair<int, int> IBStandardInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
                                                                            const int level_number) const
 {
-    std::map<int, std::pair<int, int> >::const_iterator it =
+    std::map<int, std::pair<int, int>>::const_iterator it =
         d_instrument_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_instrument_idx[level_number][point_index.first].end())
     {
@@ -2811,12 +2811,12 @@ int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& poi
     }
 }
 
-std::vector<boost::shared_ptr<Streamable> >
+std::vector<boost::shared_ptr<Streamable>>
 IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                           const unsigned int global_index_offset,
                                           const int level_number) const
 {
-    std::vector<boost::shared_ptr<Streamable> > node_data;
+    std::vector<boost::shared_ptr<Streamable>> node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2824,7 +2824,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     // Initialize any spring specifications associated with the present vertex.
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
-        std::vector<std::vector<double> > parameters;
+        std::vector<std::vector<double>> parameters;
         if (d_enable_springs[level_number][j])
         {
             for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
@@ -2885,7 +2885,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     // Initialize any beam specifications associated with the present vertex.
     if (d_enable_beams[level_number][j])
     {
-        std::vector<std::pair<int, int> > beam_neighbor_idxs;
+        std::vector<std::pair<int, int>> beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
@@ -2907,7 +2907,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>> rod_material_params;
         for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {

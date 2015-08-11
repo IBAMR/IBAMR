@@ -362,8 +362,8 @@ void PenaltyIBMethod::initializePatchHierarchy(
     const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
     int u_data_idx,
-    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+    const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+    const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
     int integrator_step,
     double init_data_time,
     bool initial_time)

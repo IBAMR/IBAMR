@@ -155,7 +155,7 @@ void SideDataSynchronization::initializeOperatorState(
 #ifndef NDEBUG
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        auto sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(var);
+        auto sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(var);
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
@@ -240,7 +240,7 @@ void SideDataSynchronization::resetTransactionComponents(
 #ifndef NDEBUG
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        auto sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(var);
+        auto sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(var);
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"

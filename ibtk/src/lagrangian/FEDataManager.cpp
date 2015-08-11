@@ -370,7 +370,7 @@ const FEDataManager::SpreadSpec& FEDataManager::getDefaultSpreadSpec() const
     return d_default_spread_spec;
 }
 
-const std::vector<std::vector<Elem*> >& FEDataManager::getActivePatchElementMap() const
+const std::vector<std::vector<Elem*>>& FEDataManager::getActivePatchElementMap() const
 {
     return d_active_patch_elem_map;
 }
@@ -419,7 +419,7 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
-        AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
+        AutoPtr<NumericVector<double>> sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true,
                             GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
@@ -469,8 +469,8 @@ void FEDataManager::spread(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(f_var);
-    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(f_var);
+    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(f_var);
+    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(f_var);
     const bool cc_data = f_cc_var != NULL;
     const bool sc_data = f_sc_var != NULL;
     TBOX_ASSERT(cc_data || sc_data);
@@ -497,8 +497,8 @@ void FEDataManager::spread(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -511,8 +511,8 @@ void FEDataManager::spread(const int f_data_idx,
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
     const std::vector<double>& JxW_F = F_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -637,12 +637,12 @@ void FEDataManager::spread(const int f_data_idx,
         auto f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
-            auto f_cc_data = BOOST_CAST<CellData<double> >(f_data);
+            auto f_cc_data = BOOST_CAST<CellData<double>>(f_data);
             LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
         if (sc_data)
         {
-            auto f_sc_data = BOOST_CAST<SideData<double> >(f_data);
+            auto f_sc_data = BOOST_CAST<SideData<double>>(f_data);
             LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
         if (f_phys_bdry_op)
@@ -706,8 +706,8 @@ void FEDataManager::prolongData(const int f_data_idx,
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
     const DofMap& F_dof_map = F_system.get_dof_map();
     const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -719,8 +719,8 @@ void FEDataManager::prolongData(const int f_data_idx,
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_X = X_fe->get_dphi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -758,7 +758,7 @@ void FEDataManager::prolongData(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const auto patch = *p;
-        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+        auto f_data = BOOST_CAST<SideData<double>>(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -901,7 +901,7 @@ void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& F_vec,
                            NumericVector<double>& X_vec,
                            const std::string& system_name,
-                           const std::vector<boost::shared_ptr<RefineSchedule> >& f_refine_scheds,
+                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_refine_scheds,
                            const double fill_data_time)
 {
     interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
@@ -913,7 +913,7 @@ void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& X_vec,
                            const std::string& system_name,
                            const FEDataManager::InterpSpec& interp_spec,
-                           const std::vector<boost::shared_ptr<RefineSchedule> >& f_refine_scheds,
+                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_refine_scheds,
                            const double fill_data_time)
 {
     IBTK_TIMER_START(t_interp);
@@ -923,8 +923,8 @@ void FEDataManager::interp(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(f_var);
-    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(f_var);
+    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(f_var);
+    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(f_var);
     const bool cc_data = f_cc_var != NULL;
     const bool sc_data = f_sc_var != NULL;
     TBOX_ASSERT(cc_data || sc_data);
@@ -940,8 +940,8 @@ void FEDataManager::interp(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -954,8 +954,8 @@ void FEDataManager::interp(const int f_data_idx,
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
     const std::vector<double>& JxW_F = F_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<double>>& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -975,8 +975,8 @@ void FEDataManager::interp(const int f_data_idx,
     // Loop over the patches to interpolate values to the element quadrature
     // points from the grid, then use these values to compute the projection of
     // the interpolated velocity field onto the FE basis functions.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
-    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    AutoPtr<NumericVector<double>> F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double>> F_rhs_e(n_vars);
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
     auto level = d_hierarchy->getPatchLevel(d_level_number);
@@ -1066,12 +1066,12 @@ void FEDataManager::interp(const int f_data_idx,
         auto f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
-            auto f_cc_data = BOOST_CAST<CellData<double> >(f_data);
+            auto f_cc_data = BOOST_CAST<CellData<double>>(f_data);
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
         if (sc_data)
         {
-            auto f_sc_data = BOOST_CAST<SideData<double> >(f_data);
+            auto f_sc_data = BOOST_CAST<SideData<double>>(f_data);
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
 
@@ -1170,8 +1170,8 @@ void FEDataManager::restrictData(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -1183,8 +1183,8 @@ void FEDataManager::restrictData(const int f_data_idx,
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+    const std::vector<std::vector<double>>& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double>>>& dphi_X = X_fe->get_dphi();
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
@@ -1198,8 +1198,8 @@ void FEDataManager::restrictData(const int f_data_idx,
 
     // Loop over the patches to assemble the right-hand-side vector used to
     // solve for F.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
-    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    AutoPtr<NumericVector<double>> F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double>> F_rhs_e(n_vars);
     TensorValue<double> dX_ds;
     boost::multi_array<double, 2> X_node;
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
@@ -1216,7 +1216,7 @@ void FEDataManager::restrictData(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const auto patch = *p;
-        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+        auto f_data = BOOST_CAST<SideData<double>>(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -1384,7 +1384,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Build solver components.
         LinearSolver<double>* solver = LinearSolver<double>::build(comm).release();
@@ -1550,7 +1550,7 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
                 }
             }
             const std::vector<double>& JxW = fe->get_JxW();
-            const std::vector<std::vector<double> >& phi = fe->get_phi();
+            const std::vector<std::vector<double>>& phi = fe->get_phi();
             fe->reinit(elem);
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
@@ -1831,7 +1831,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
     {
         // Determine the active elements associated with the prescribed patch
         // level.
-        std::vector<std::vector<Elem*> > active_level_elem_map;
+        std::vector<std::vector<Elem*>> active_level_elem_map;
         const IntVector ghost_width = IntVector::getOne(DIM);
         collectActivePatchElements(active_level_elem_map, level_number, ghost_width);
         std::vector<unsigned int> X_ghost_dofs;
@@ -1848,15 +1848,15 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
-        AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+        AutoPtr<NumericVector<double>> X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
         PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
@@ -1889,7 +1889,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
             const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+            auto tag_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -1942,8 +1942,8 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
         {
             const auto patch = *p;
             const Box& patch_box = patch->getBox();
-            auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
-            auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
+            auto tag_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
+            auto qp_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_qp_count_idx));
             for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
                 const CellIndex& i_c = *b;
@@ -2003,7 +2003,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     // Register the node count variable with the VariableDatabase.
-    d_qp_count_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::qp_count");
+    d_qp_count_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, IntVector(DIM, 0));
 
     // Setup Timers.
@@ -2075,11 +2075,11 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<double>>& phi = fe->get_phi();
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2111,7 +2111,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
+            auto qp_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_qp_count_idx));
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -2149,7 +2149,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
     return;
 }
 
-std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundingBoxes()
+std::vector<std::pair<Point, Point>>* FEDataManager::computeActiveElementBoundingBoxes()
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
@@ -2225,7 +2225,7 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
     return &d_active_elem_bboxes;
 }
 
-void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
+void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& active_patch_elems,
                                                const int level_number,
                                                const IntVector& ghost_width)
 {
@@ -2236,20 +2236,20 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     AutoPtr<QBase> qrule;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int>> X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
     AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<double>>& phi = fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
-    AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+    AutoPtr<NumericVector<double>> X_ghost_vec = NumericVector<double>::build(comm);
 
     // Setup data structures used to assign elements to patches.
     auto level = d_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
-    std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
-    std::vector<std::set<Elem*> > frontier_patch_elems(num_local_patches);
+    std::vector<std::set<Elem*>> local_patch_elems(num_local_patches);
+    std::vector<std::set<Elem*>> nonlocal_patch_elems(num_local_patches);
+    std::vector<std::set<Elem*>> frontier_patch_elems(num_local_patches);
 
     // We provisionally associate an element with a Cartesian grid patch if the
     // element's bounding box intersects the patch interior grown by the

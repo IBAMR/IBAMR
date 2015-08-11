@@ -118,8 +118,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        auto x_cc_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(comp));
-        auto y_cc_var = BOOST_CAST<CellVariable<double> >(y.getComponentVariable(comp));
+        auto x_cc_var = BOOST_CAST<CellVariable<double>>(x.getComponentVariable(comp));
+        auto y_cc_var = BOOST_CAST<CellVariable<double>>(y.getComponentVariable(comp));
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
@@ -154,8 +154,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        auto x_cc_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(comp));
-        auto y_cc_var = BOOST_CAST<CellVariable<double> >(y.getComponentVariable(comp));
+        auto x_cc_var = BOOST_CAST<CellVariable<double>>(x.getComponentVariable(comp));
+        auto y_cc_var = BOOST_CAST<CellVariable<double>>(y.getComponentVariable(comp));
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)

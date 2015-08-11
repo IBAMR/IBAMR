@@ -227,8 +227,8 @@ private:
     unsigned int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
     std::vector<IBTK::Vector> d_X_centroid;
-    std::vector<boost::multi_array<IBTK::Vector, 1> > d_X_perimeter;
-    std::vector<boost::multi_array<IBTK::Vector, 2> > d_X_web, d_dA_web;
+    std::vector<boost::multi_array<IBTK::Vector, 1>> d_X_perimeter;
+    std::vector<boost::multi_array<IBTK::Vector, 2>> d_X_web, d_dA_web;
 
     int d_instrument_read_timestep_num;
     double d_instrument_read_time;

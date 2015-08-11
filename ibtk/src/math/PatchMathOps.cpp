@@ -1188,8 +1188,8 @@ PatchMathOps::~PatchMathOps()
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
-                        const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<CellData<double>>& dst,
+                        const boost::shared_ptr<CellData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
@@ -1276,8 +1276,8 @@ void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
-                        const boost::shared_ptr<FaceData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<CellData<double>>& dst,
+                        const boost::shared_ptr<FaceData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
@@ -1357,8 +1357,8 @@ void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<FaceData<double> >& dst,
-                        const boost::shared_ptr<FaceData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<FaceData<double>>& dst,
+                        const boost::shared_ptr<FaceData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 3)
@@ -1431,8 +1431,8 @@ void PatchMathOps::curl(const boost::shared_ptr<FaceData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
-                        const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<CellData<double>>& dst,
+                        const boost::shared_ptr<SideData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
@@ -1512,8 +1512,8 @@ void PatchMathOps::curl(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<SideData<double> >& dst,
-                        const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<SideData<double>>& dst,
+                        const boost::shared_ptr<SideData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 3)
@@ -1586,8 +1586,8 @@ void PatchMathOps::curl(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<NodeData<double> >& dst,
-                        const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<NodeData<double>>& dst,
+                        const boost::shared_ptr<SideData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 2)
@@ -1651,8 +1651,8 @@ void PatchMathOps::curl(const boost::shared_ptr<NodeData<double> >& dst,
     return;
 }
 
-void PatchMathOps::curl(const boost::shared_ptr<EdgeData<double> >& dst,
-                        const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::curl(const boost::shared_ptr<EdgeData<double>>& dst,
+                        const boost::shared_ptr<SideData<double>>& src,
                         const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 3)
@@ -1719,8 +1719,8 @@ void PatchMathOps::curl(const boost::shared_ptr<EdgeData<double> >& dst,
     return;
 }
 
-void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
-                       const boost::shared_ptr<NodeData<double> >& src,
+void PatchMathOps::rot(const boost::shared_ptr<SideData<double>>& dst,
+                       const boost::shared_ptr<NodeData<double>>& src,
                        const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 2)
@@ -1775,8 +1775,8 @@ void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
-                       const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::rot(const boost::shared_ptr<SideData<double>>& dst,
+                       const boost::shared_ptr<CellData<double>>& src,
                        const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 2)
@@ -1840,8 +1840,8 @@ void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
-                       const boost::shared_ptr<EdgeData<double> >& src,
+void PatchMathOps::rot(const boost::shared_ptr<SideData<double>>& dst,
+                       const boost::shared_ptr<EdgeData<double>>& src,
                        const boost::shared_ptr<Patch>& patch) const
 {
 #if (NDIM != 3)
@@ -1900,19 +1900,19 @@ void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
-                       const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::rot(const boost::shared_ptr<SideData<double>>& dst,
+                       const boost::shared_ptr<SideData<double>>& src,
                        const boost::shared_ptr<Patch>& patch) const
 {
     this->curl(dst, src, patch);
     return;
 }
 
-void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::div(const boost::shared_ptr<CellData<double>>& dst,
                        const double alpha,
-                       const boost::shared_ptr<CellData<double> >& src1,
+                       const boost::shared_ptr<CellData<double>>& src1,
                        const double beta,
-                       const boost::shared_ptr<CellData<double> >& src2,
+                       const boost::shared_ptr<CellData<double>>& src2,
                        const boost::shared_ptr<Patch>& patch,
                        const int l,
                        const int m) const
@@ -2020,11 +2020,11 @@ void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::div(const boost::shared_ptr<CellData<double>>& dst,
                        const double alpha,
-                       const boost::shared_ptr<FaceData<double> >& src1,
+                       const boost::shared_ptr<FaceData<double>>& src1,
                        const double beta,
-                       const boost::shared_ptr<CellData<double> >& src2,
+                       const boost::shared_ptr<CellData<double>>& src2,
                        const boost::shared_ptr<Patch>& patch,
                        const int l,
                        const int m) const
@@ -2114,11 +2114,11 @@ void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::div(const boost::shared_ptr<CellData<double>>& dst,
                        const double alpha,
-                       const boost::shared_ptr<SideData<double> >& src1,
+                       const boost::shared_ptr<SideData<double>>& src1,
                        const double beta,
-                       const boost::shared_ptr<CellData<double> >& src2,
+                       const boost::shared_ptr<CellData<double>>& src2,
                        const boost::shared_ptr<Patch>& patch,
                        const int l,
                        const int m) const
@@ -2208,11 +2208,11 @@ void PatchMathOps::div(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::grad(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::grad(const boost::shared_ptr<CellData<double>>& dst,
                         const double alpha,
-                        const boost::shared_ptr<CellData<double> >& src1,
+                        const boost::shared_ptr<CellData<double>>& src1,
                         const double beta,
-                        const boost::shared_ptr<CellData<double> >& src2,
+                        const boost::shared_ptr<CellData<double>>& src2,
                         const boost::shared_ptr<Patch>& patch,
                         const int l) const
 {
@@ -2327,11 +2327,11 @@ void PatchMathOps::grad(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::grad(const boost::shared_ptr<FaceData<double> >& dst,
+void PatchMathOps::grad(const boost::shared_ptr<FaceData<double>>& dst,
                         const double alpha,
-                        const boost::shared_ptr<CellData<double> >& src1,
+                        const boost::shared_ptr<CellData<double>>& src1,
                         const double beta,
-                        const boost::shared_ptr<FaceData<double> >& src2,
+                        const boost::shared_ptr<FaceData<double>>& src2,
                         const boost::shared_ptr<Patch>& patch,
                         const int l) const
 {
@@ -2438,11 +2438,11 @@ void PatchMathOps::grad(const boost::shared_ptr<FaceData<double> >& dst,
     return;
 }
 
-void PatchMathOps::grad(const boost::shared_ptr<SideData<double> >& dst,
+void PatchMathOps::grad(const boost::shared_ptr<SideData<double>>& dst,
                         const double alpha,
-                        const boost::shared_ptr<CellData<double> >& src1,
+                        const boost::shared_ptr<CellData<double>>& src1,
                         const double beta,
-                        const boost::shared_ptr<SideData<double> >& src2,
+                        const boost::shared_ptr<SideData<double>>& src2,
                         const boost::shared_ptr<Patch>& patch,
                         const int l) const
 {
@@ -2549,11 +2549,11 @@ void PatchMathOps::grad(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::grad(const boost::shared_ptr<FaceData<double> >& dst,
-                        const boost::shared_ptr<FaceData<double> >& alpha,
-                        const boost::shared_ptr<CellData<double> >& src1,
+void PatchMathOps::grad(const boost::shared_ptr<FaceData<double>>& dst,
+                        const boost::shared_ptr<FaceData<double>>& alpha,
+                        const boost::shared_ptr<CellData<double>>& src1,
                         const double beta,
-                        const boost::shared_ptr<FaceData<double> >& src2,
+                        const boost::shared_ptr<FaceData<double>>& src2,
                         const boost::shared_ptr<Patch>& patch,
                         const int l) const
 {
@@ -2738,11 +2738,11 @@ void PatchMathOps::grad(const boost::shared_ptr<FaceData<double> >& dst,
     return;
 }
 
-void PatchMathOps::grad(const boost::shared_ptr<SideData<double> >& dst,
-                        const boost::shared_ptr<SideData<double> >& alpha,
-                        const boost::shared_ptr<CellData<double> >& src1,
+void PatchMathOps::grad(const boost::shared_ptr<SideData<double>>& dst,
+                        const boost::shared_ptr<SideData<double>>& alpha,
+                        const boost::shared_ptr<CellData<double>>& src1,
                         const double beta,
-                        const boost::shared_ptr<SideData<double> >& src2,
+                        const boost::shared_ptr<SideData<double>>& src2,
                         const boost::shared_ptr<Patch>& patch,
                         const int l) const
 {
@@ -2919,8 +2919,8 @@ void PatchMathOps::grad(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::interp(const boost::shared_ptr<CellData<double> >& dst,
-                          const boost::shared_ptr<FaceData<double> >& src,
+void PatchMathOps::interp(const boost::shared_ptr<CellData<double>>& dst,
+                          const boost::shared_ptr<FaceData<double>>& src,
                           const boost::shared_ptr<Patch>& patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -2985,8 +2985,8 @@ void PatchMathOps::interp(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::interp(const boost::shared_ptr<CellData<double> >& dst,
-                          const boost::shared_ptr<SideData<double> >& src,
+void PatchMathOps::interp(const boost::shared_ptr<CellData<double>>& dst,
+                          const boost::shared_ptr<SideData<double>>& src,
                           const boost::shared_ptr<Patch>& patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -3051,8 +3051,8 @@ void PatchMathOps::interp(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::interp(const boost::shared_ptr<FaceData<double> >& dst,
-                          const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::interp(const boost::shared_ptr<FaceData<double>>& dst,
+                          const boost::shared_ptr<CellData<double>>& src,
                           const boost::shared_ptr<Patch>& patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -3126,8 +3126,8 @@ void PatchMathOps::interp(const boost::shared_ptr<FaceData<double> >& dst,
     return;
 }
 
-void PatchMathOps::interp(const boost::shared_ptr<SideData<double> >& dst,
-                          const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::interp(const boost::shared_ptr<SideData<double>>& dst,
+                          const boost::shared_ptr<CellData<double>>& src,
                           const boost::shared_ptr<Patch>& patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
@@ -3201,12 +3201,12 @@ void PatchMathOps::interp(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::laplace(const boost::shared_ptr<CellData<double>>& dst,
                            const double alpha,
                            const double beta,
-                           const boost::shared_ptr<CellData<double> >& src1,
+                           const boost::shared_ptr<CellData<double>>& src1,
                            const double gamma,
-                           const boost::shared_ptr<CellData<double> >& src2,
+                           const boost::shared_ptr<CellData<double>>& src2,
                            const boost::shared_ptr<Patch>& patch,
                            const int l,
                            const int m,
@@ -3331,12 +3331,12 @@ void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::laplace(const boost::shared_ptr<SideData<double> >& dst,
+void PatchMathOps::laplace(const boost::shared_ptr<SideData<double>>& dst,
                            const double alpha,
                            const double beta,
-                           const boost::shared_ptr<SideData<double> >& src1,
+                           const boost::shared_ptr<SideData<double>>& src1,
                            const double gamma,
-                           const boost::shared_ptr<SideData<double> >& src2,
+                           const boost::shared_ptr<SideData<double>>& src2,
                            const boost::shared_ptr<Patch>& patch,
                            const int l,
                            const int m,
@@ -3494,12 +3494,12 @@ void PatchMathOps::laplace(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
-                           const boost::shared_ptr<FaceData<double> >& alpha,
+void PatchMathOps::laplace(const boost::shared_ptr<CellData<double>>& dst,
+                           const boost::shared_ptr<FaceData<double>>& alpha,
                            const double beta,
-                           const boost::shared_ptr<CellData<double> >& src1,
+                           const boost::shared_ptr<CellData<double>>& src1,
                            const double gamma,
-                           const boost::shared_ptr<CellData<double> >& src2,
+                           const boost::shared_ptr<CellData<double>>& src2,
                            const boost::shared_ptr<Patch>& patch,
                            const int l,
                            const int m,
@@ -3666,12 +3666,12 @@ void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
-                           const boost::shared_ptr<SideData<double> >& alpha,
+void PatchMathOps::laplace(const boost::shared_ptr<CellData<double>>& dst,
+                           const boost::shared_ptr<SideData<double>>& alpha,
                            const double beta,
-                           const boost::shared_ptr<CellData<double> >& src1,
+                           const boost::shared_ptr<CellData<double>>& src1,
                            const double gamma,
-                           const boost::shared_ptr<CellData<double> >& src2,
+                           const boost::shared_ptr<CellData<double>>& src2,
                            const boost::shared_ptr<Patch>& patch,
                            const int l,
                            const int m,
@@ -3838,13 +3838,13 @@ void PatchMathOps::laplace(const boost::shared_ptr<CellData<double> >& dst,
     return;
 }
 
-void PatchMathOps::vc_laplace(const boost::shared_ptr<SideData<double> >& dst,
+void PatchMathOps::vc_laplace(const boost::shared_ptr<SideData<double>>& dst,
                               const double alpha,
                               const double beta,
-                              const boost::shared_ptr<NodeData<double> >& coef,
-                              const boost::shared_ptr<SideData<double> >& src1,
+                              const boost::shared_ptr<NodeData<double>>& coef,
+                              const boost::shared_ptr<SideData<double>>& src1,
                               const double gamma_in,
-                              const boost::shared_ptr<SideData<double> >& src2_in,
+                              const boost::shared_ptr<SideData<double>>& src2_in,
                               const boost::shared_ptr<Patch>& patch,
                               const int l,
                               const int m,
@@ -3998,11 +3998,11 @@ void PatchMathOps::vc_laplace(const boost::shared_ptr<SideData<double> >& dst,
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >& dst,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double>>& dst,
                                      const double alpha,
-                                     const boost::shared_ptr<CellData<double> >& src1,
+                                     const boost::shared_ptr<CellData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<CellData<double> >& src2,
+                                     const boost::shared_ptr<CellData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4081,11 +4081,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >& dst,
-                                     const boost::shared_ptr<CellData<double> >& alpha,
-                                     const boost::shared_ptr<CellData<double> >& src1,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double>>& dst,
+                                     const boost::shared_ptr<CellData<double>>& alpha,
+                                     const boost::shared_ptr<CellData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<CellData<double> >& src2,
+                                     const boost::shared_ptr<CellData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4180,11 +4180,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >& dst,
-                                     const boost::shared_ptr<CellData<double> >& alpha,
-                                     const boost::shared_ptr<CellData<double> >& src1,
-                                     const boost::shared_ptr<CellData<double> >& beta,
-                                     const boost::shared_ptr<CellData<double> >& src2,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double>>& dst,
+                                     const boost::shared_ptr<CellData<double>>& alpha,
+                                     const boost::shared_ptr<CellData<double>>& src1,
+                                     const boost::shared_ptr<CellData<double>>& beta,
+                                     const boost::shared_ptr<CellData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4288,11 +4288,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<CellData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >& dst,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double>>& dst,
                                      const double alpha,
-                                     const boost::shared_ptr<FaceData<double> >& src1,
+                                     const boost::shared_ptr<FaceData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<FaceData<double> >& src2,
+                                     const boost::shared_ptr<FaceData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4375,11 +4375,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >& dst,
-                                     const boost::shared_ptr<FaceData<double> >& alpha,
-                                     const boost::shared_ptr<FaceData<double> >& src1,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double>>& dst,
+                                     const boost::shared_ptr<FaceData<double>>& alpha,
+                                     const boost::shared_ptr<FaceData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<FaceData<double> >& src2,
+                                     const boost::shared_ptr<FaceData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4478,11 +4478,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >& dst,
-                                     const boost::shared_ptr<FaceData<double> >& alpha,
-                                     const boost::shared_ptr<FaceData<double> >& src1,
-                                     const boost::shared_ptr<FaceData<double> >& beta,
-                                     const boost::shared_ptr<FaceData<double> >& src2,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double>>& dst,
+                                     const boost::shared_ptr<FaceData<double>>& alpha,
+                                     const boost::shared_ptr<FaceData<double>>& src1,
+                                     const boost::shared_ptr<FaceData<double>>& beta,
+                                     const boost::shared_ptr<FaceData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4590,11 +4590,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<FaceData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >& dst,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double>>& dst,
                                      const double alpha,
-                                     const boost::shared_ptr<NodeData<double> >& src1,
+                                     const boost::shared_ptr<NodeData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<NodeData<double> >& src2,
+                                     const boost::shared_ptr<NodeData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4674,11 +4674,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >& dst,
-                                     const boost::shared_ptr<NodeData<double> >& alpha,
-                                     const boost::shared_ptr<NodeData<double> >& src1,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double>>& dst,
+                                     const boost::shared_ptr<NodeData<double>>& alpha,
+                                     const boost::shared_ptr<NodeData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<NodeData<double> >& src2,
+                                     const boost::shared_ptr<NodeData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4774,11 +4774,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >& dst,
-                                     const boost::shared_ptr<NodeData<double> >& alpha,
-                                     const boost::shared_ptr<NodeData<double> >& src1,
-                                     const boost::shared_ptr<NodeData<double> >& beta,
-                                     const boost::shared_ptr<NodeData<double> >& src2,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double>>& dst,
+                                     const boost::shared_ptr<NodeData<double>>& alpha,
+                                     const boost::shared_ptr<NodeData<double>>& src1,
+                                     const boost::shared_ptr<NodeData<double>>& beta,
+                                     const boost::shared_ptr<NodeData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4883,11 +4883,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<NodeData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >& dst,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double>>& dst,
                                      const double alpha,
-                                     const boost::shared_ptr<SideData<double> >& src1,
+                                     const boost::shared_ptr<SideData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<SideData<double> >& src2,
+                                     const boost::shared_ptr<SideData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -4970,11 +4970,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >& dst,
-                                     const boost::shared_ptr<SideData<double> >& alpha,
-                                     const boost::shared_ptr<SideData<double> >& src1,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double>>& dst,
+                                     const boost::shared_ptr<SideData<double>>& alpha,
+                                     const boost::shared_ptr<SideData<double>>& src1,
                                      const double beta,
-                                     const boost::shared_ptr<SideData<double> >& src2,
+                                     const boost::shared_ptr<SideData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -5073,11 +5073,11 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >& dst,
-                                     const boost::shared_ptr<SideData<double> >& alpha,
-                                     const boost::shared_ptr<SideData<double> >& src1,
-                                     const boost::shared_ptr<SideData<double> >& beta,
-                                     const boost::shared_ptr<SideData<double> >& src2,
+void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double>>& dst,
+                                     const boost::shared_ptr<SideData<double>>& alpha,
+                                     const boost::shared_ptr<SideData<double>>& src1,
+                                     const boost::shared_ptr<SideData<double>>& beta,
+                                     const boost::shared_ptr<SideData<double>>& src2,
                                      const boost::shared_ptr<Patch>& patch,
                                      const int i,
                                      const int j,
@@ -5185,8 +5185,8 @@ void PatchMathOps::pointwiseMultiply(const boost::shared_ptr<SideData<double> >&
     return;
 }
 
-void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<CellData<double> >& dst,
-                                   const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<CellData<double>>& dst,
+                                   const boost::shared_ptr<CellData<double>>& src,
                                    const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();
@@ -5241,8 +5241,8 @@ void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<CellData<double> >& d
     return;
 }
 
-void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<CellData<double> >& dst,
-                                   const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<CellData<double>>& dst,
+                                   const boost::shared_ptr<CellData<double>>& src,
                                    const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();
@@ -5297,8 +5297,8 @@ void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<CellData<double> >& d
     return;
 }
 
-void PatchMathOps::pointwiseMaxNorm(const boost::shared_ptr<CellData<double> >& dst,
-                                    const boost::shared_ptr<CellData<double> >& src,
+void PatchMathOps::pointwiseMaxNorm(const boost::shared_ptr<CellData<double>>& dst,
+                                    const boost::shared_ptr<CellData<double>>& src,
                                     const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();
@@ -5353,8 +5353,8 @@ void PatchMathOps::pointwiseMaxNorm(const boost::shared_ptr<CellData<double> >& 
     return;
 }
 
-void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<NodeData<double> >& dst,
-                                   const boost::shared_ptr<NodeData<double> >& src,
+void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<NodeData<double>>& dst,
+                                   const boost::shared_ptr<NodeData<double>>& src,
                                    const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();
@@ -5410,8 +5410,8 @@ void PatchMathOps::pointwiseL1Norm(const boost::shared_ptr<NodeData<double> >& d
     return;
 }
 
-void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<NodeData<double> >& dst,
-                                   const boost::shared_ptr<NodeData<double> >& src,
+void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<NodeData<double>>& dst,
+                                   const boost::shared_ptr<NodeData<double>>& src,
                                    const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();
@@ -5467,8 +5467,8 @@ void PatchMathOps::pointwiseL2Norm(const boost::shared_ptr<NodeData<double> >& d
     return;
 }
 
-void PatchMathOps::pointwiseMaxNorm(const boost::shared_ptr<NodeData<double> >& dst,
-                                    const boost::shared_ptr<NodeData<double> >& src,
+void PatchMathOps::pointwiseMaxNorm(const boost::shared_ptr<NodeData<double>>& dst,
+                                    const boost::shared_ptr<NodeData<double>>& src,
                                     const boost::shared_ptr<Patch>& patch) const
 {
     double* const U = dst->getPointer();

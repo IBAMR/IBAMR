@@ -83,7 +83,7 @@ public:
      */
     AdvDiffStochasticForcing(const std::string& object_name,
                              const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
-                             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& C_var,
+                             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double>>& C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -164,7 +164,7 @@ private:
      * boost::shared_ptr to the concentration variable associated with this source term
      * generator.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_C_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -182,7 +182,7 @@ private:
      */
     double d_std;
     unsigned int d_num_rand_vals;
-    std::vector<std::vector<double> > d_weights;
+    std::vector<std::vector<double>> d_weights;
 
     /*!
      * Boundary condition scalings.
@@ -194,9 +194,9 @@ private:
      * stochastic fluxes.
      */
     boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_C_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_C_cc_var;
     int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_F_sc_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_F_sc_var;
     int d_F_sc_idx;
     std::vector<int> d_F_sc_idxs;
 };

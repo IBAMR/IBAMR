@@ -133,7 +133,7 @@ template <class MultiArray, class Array>
 inline void get_values_for_interpolation(MultiArray& U_node,
                                          const libMesh::PetscVector<double>& U_petsc_vec,
                                          const Array& U_local_soln,
-                                         const std::vector<std::vector<unsigned int> >& dof_indices)
+                                         const std::vector<std::vector<unsigned int>>& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
     const std::size_t n_nodes = dof_indices[0].size();
@@ -172,7 +172,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 template <class MultiArray>
 inline void get_values_for_interpolation(MultiArray& U_node,
                                          libMesh::NumericVector<double>& U_vec,
-                                         const std::vector<std::vector<unsigned int> >& dof_indices)
+                                         const std::vector<std::vector<unsigned int>>& dof_indices)
 {
     auto U_petsc_vec = CPP_CAST<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
@@ -187,7 +187,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 }
 
 template <class MultiArray>
-inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
+inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double>>& phi)
 {
     const int n_nodes = U_node.shape()[0];
     U = 0.0;
@@ -199,7 +199,7 @@ inline void interpolate(double& U, const int qp, const MultiArray& U_node, const
 }
 
 template <class MultiArray>
-inline double interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
+inline double interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double>>& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     double U = 0.0;
@@ -212,7 +212,7 @@ inline double interpolate(const int qp, const MultiArray& U_node, const std::vec
 
 template <class MultiArray>
 inline void
-interpolate(double* const U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
+interpolate(double* const U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double>>& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     const int n_vars = static_cast<int>(U_node.shape()[1]);
@@ -232,7 +232,7 @@ template <class MultiArray>
 inline void interpolate(libMesh::TypeVector<double>& U,
                         const int qp,
                         const MultiArray& U_node,
-                        const std::vector<std::vector<double> >& phi)
+                        const std::vector<std::vector<double>>& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     const int n_vars = static_cast<int>(U_node.shape()[1]);
@@ -252,7 +252,7 @@ template <class MultiArray>
 inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
                      const int qp,
                      const MultiArray& X_node,
-                     const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
+                     const std::vector<std::vector<libMesh::VectorValue<double>>>& dphi)
 {
     const int n_nodes = static_cast<int>(X_node.shape()[0]);
     const int dim = static_cast<int>(X_node.shape()[1]);
@@ -434,7 +434,7 @@ outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<do
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals,
+inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point>>& t_vals,
                                      libMesh::Edge* elem,
                                      libMesh::Point r,
                                      libMesh::VectorValue<double> q)
@@ -576,7 +576,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals,
+inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Point>>& t_vals,
                                      libMesh::Face* elem,
                                      libMesh::Point r,
                                      libMesh::VectorValue<double> q)

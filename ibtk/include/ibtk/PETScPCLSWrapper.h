@@ -288,7 +288,7 @@ private:
     PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that);
 
     const PC d_petsc_pc;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_b;
     Vec d_petsc_x, d_petsc_b;
 };
 } // namespace IBTK

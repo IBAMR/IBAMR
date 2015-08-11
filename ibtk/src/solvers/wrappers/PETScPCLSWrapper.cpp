@@ -83,9 +83,9 @@ bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
 
     // Update the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&x, NullDeleter()));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&b, NullDeleter()));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);

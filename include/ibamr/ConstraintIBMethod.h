@@ -102,7 +102,7 @@ public:
      * \brief Register kinematics of the immersed structure(s) with this class.
      */
     void registerConstraintIBKinematics(
-        const std::vector<boost::shared_ptr<IBAMR::ConstraintIBKinematics> >& ib_kinematics_op);
+        const std::vector<boost::shared_ptr<IBAMR::ConstraintIBKinematics>>& ib_kinematics_op);
 
     /*!
      * \brief Register any preprocess fluid solve callback functions.
@@ -165,7 +165,7 @@ public:
     /*!
      * \brief Get the current COM velocity associated with Lagrangian structures.
      */
-    inline const std::vector<std::vector<double> >& getCurrentCOMVelocity()
+    inline const std::vector<std::vector<double>>& getCurrentCOMVelocity()
     {
         return d_rigid_trans_vel_current;
     }
@@ -173,7 +173,7 @@ public:
     /*!
      * \brief Get LData associated with Lagrange multiplier force field.
      */
-    inline const std::vector<boost::shared_ptr<IBTK::LData> >& getLagrangeMultiplier()
+    inline const std::vector<boost::shared_ptr<IBTK::LData>>& getLagrangeMultiplier()
     {
         return d_l_data_U_correction;
     }
@@ -341,7 +341,7 @@ private:
     /*!
      * boost::shared_ptr to the kinematics of the immersed structures.
      */
-    std::vector<boost::shared_ptr<IBAMR::ConstraintIBKinematics> > d_ib_kinematics;
+    std::vector<boost::shared_ptr<IBAMR::ConstraintIBKinematics>> d_ib_kinematics;
 
     /*!
      * FuRMoRP apply time.
@@ -361,32 +361,32 @@ private:
     /*!
      * Rigid translational velocity of the structures.
      */
-    std::vector<std::vector<double> > d_rigid_trans_vel_current, d_rigid_trans_vel_new;
+    std::vector<std::vector<double>> d_rigid_trans_vel_current, d_rigid_trans_vel_new;
 
     /*!
      * Rigid rotational velocity of the structures.
      */
-    std::vector<std::vector<double> > d_rigid_rot_vel_current, d_rigid_rot_vel_new;
+    std::vector<std::vector<double>> d_rigid_rot_vel_current, d_rigid_rot_vel_new;
 
     /*!
      * Incremented angle from x, y and z axis when the body is rotating.
      */
-    std::vector<std::vector<double> > d_incremented_angle_from_reference_axis;
+    std::vector<std::vector<double>> d_incremented_angle_from_reference_axis;
 
     /*!
      * Translational velocity of the structures due to deformational kinematics.
      */
-    std::vector<std::vector<double> > d_vel_com_def_current, d_vel_com_def_new;
+    std::vector<std::vector<double>> d_vel_com_def_current, d_vel_com_def_new;
 
     /*!
      * Rotational velocity of the structures due to deformational kinematics.
      */
-    std::vector<std::vector<double> > d_omega_com_def_current, d_omega_com_def_new;
+    std::vector<std::vector<double>> d_omega_com_def_current, d_omega_com_def_new;
 
     /*!
      * Center of mass of the immersed structures.
      */
-    std::vector<std::vector<double> > d_center_of_mass_current, d_center_of_mass_new;
+    std::vector<std::vector<double>> d_center_of_mass_current, d_center_of_mass_new;
 
     /*!
      * Moment of inertia of the structures.
@@ -401,7 +401,7 @@ private:
     /*!
      * Coordinates of the tagged points of different structures.
      */
-    std::vector<std::vector<double> > d_tagged_pt_position;
+    std::vector<std::vector<double>> d_tagged_pt_position;
 
     /*!
      * Density and viscosity of the fluid.
@@ -427,14 +427,14 @@ private:
     /*!
      * Store LData for only those levels which contain immersed structures.
      */
-    std::vector<boost::shared_ptr<IBTK::LData> > d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
+    std::vector<boost::shared_ptr<IBTK::LData>> d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
         d_l_data_U_current, d_l_data_U_half, d_l_data_X_half_Euler, d_l_data_X_new_MidPoint;
 
     /*!
      * Hierarchy operations object. Needed for projection step.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
     int d_wgt_cc_idx, d_wgt_sc_idx;
     double d_volume;
@@ -444,8 +444,8 @@ private:
      */
     boost::shared_ptr<SAMRAI::hier::Variable> d_u_var;
     boost::shared_ptr<SAMRAI::hier::Variable> d_u_fluidSolve_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_phi_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_u_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_phi_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Div_u_var;
 
     boost::shared_ptr<SAMRAI::hier::VariableContext> d_scratch_context;
     int d_u_scratch_idx, d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;

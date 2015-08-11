@@ -81,7 +81,7 @@ LInitStrategy::~LInitStrategy()
 }
 
 void LInitStrategy::initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& /*strct_id_to_strct_name_map*/,
-                                                            std::map<int, std::pair<int, int> >&
+                                                            std::map<int, std::pair<int, int>>&
                                                             /*strct_id_to_lag_idx_range_map*/,
                                                             const int /*level_number*/,
                                                             const double /*init_data_time*/,

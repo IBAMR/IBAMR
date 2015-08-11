@@ -464,8 +464,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(u_new_idx));
-            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(u_new_idx));
+            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double>>(patch->getPatchData(u_new_idx));
+            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double>>(patch->getPatchData(u_new_idx));
             double u_max = 0.0;
             if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
             if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);

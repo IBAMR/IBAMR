@@ -235,7 +235,7 @@ private:
     boost::shared_ptr<StaggeredStokesSolver> d_stokes_solver;
     boost::shared_ptr<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_u_scratch_vec, d_f_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_u_scratch_vec, d_f_scratch_vec;
 };
 } // namespace IBAMR
 

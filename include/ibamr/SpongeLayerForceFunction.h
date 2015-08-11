@@ -148,18 +148,18 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& F_data,
-                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& U_current_data,
-                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& U_new_data,
+    void setDataOnPatchCell(const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& F_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& U_current_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& U_new_data,
                             double kappa,
                             const boost::shared_ptr<SAMRAI::hier::Patch>& patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& F_data,
-                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& U_current_data,
-                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& U_new_data,
+    void setDataOnPatchSide(const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& F_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& U_current_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& U_new_data,
                             double kappa,
                             const boost::shared_ptr<SAMRAI::hier::Patch>& patch);
 

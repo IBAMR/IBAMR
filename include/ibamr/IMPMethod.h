@@ -179,8 +179,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              double data_time);
 
     /*!
@@ -213,7 +213,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                      double data_time);
 
     /*!
@@ -229,8 +229,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -308,27 +308,27 @@ protected:
      * Get the current structure position data.
      */
     void
-    getPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data, bool** X_needs_ghost_fill, double data_time);
+    getPositionData(std::vector<boost::shared_ptr<IBTK::LData>>** X_data, bool** X_needs_ghost_fill, double data_time);
 
     /*!
      * Get the current structure velocity data.
      */
-    void getVelocityData(std::vector<boost::shared_ptr<IBTK::LData> >** U_data,
-                         std::vector<boost::shared_ptr<IBTK::LData> >** Grad_U_data,
+    void getVelocityData(std::vector<boost::shared_ptr<IBTK::LData>>** U_data,
+                         std::vector<boost::shared_ptr<IBTK::LData>>** Grad_U_data,
                          double data_time);
 
     /*!
      * Get the current structure deformation gradient data.
      */
-    void getDeformationGradientData(std::vector<boost::shared_ptr<IBTK::LData> >** F_data, double data_time);
+    void getDeformationGradientData(std::vector<boost::shared_ptr<IBTK::LData>>** F_data, double data_time);
 
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.
      */
-    void reinitMidpointData(const std::vector<boost::shared_ptr<IBTK::LData> >& current_data,
-                            const std::vector<boost::shared_ptr<IBTK::LData> >& new_data,
-                            const std::vector<boost::shared_ptr<IBTK::LData> >& half_data);
+    void reinitMidpointData(const std::vector<boost::shared_ptr<IBTK::LData>>& current_data,
+                            const std::vector<boost::shared_ptr<IBTK::LData>>& new_data,
+                            const std::vector<boost::shared_ptr<IBTK::LData>>& half_data);
 
     /*
      * Indicates whether the integrator should output logging messages.
@@ -370,11 +370,11 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<boost::shared_ptr<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X0_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_Grad_U_current_data, d_Grad_U_new_data, d_Grad_U_half_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_tau_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_X_current_data, d_X_new_data, d_X_half_data, d_X0_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_U_current_data, d_U_new_data, d_U_half_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_Grad_U_current_data, d_Grad_U_new_data, d_Grad_U_half_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_F_current_data, d_F_new_data, d_F_half_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_tau_data;
 
     /*
      * The specification and initialization information for the Lagrangian data

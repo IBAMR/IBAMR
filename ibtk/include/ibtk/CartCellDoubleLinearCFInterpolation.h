@@ -242,8 +242,8 @@ private:
      * Cached hierarchy-related information.
      */
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
-    std::vector<boost::shared_ptr<SAMRAI::hier::CoarseFineBoundary> > d_cf_boundary;
-    std::vector<boost::shared_ptr<SAMRAI::hier::BoxContainer> > d_domain_boxes;
+    std::vector<boost::shared_ptr<SAMRAI::hier::CoarseFineBoundary>> d_cf_boundary;
+    std::vector<boost::shared_ptr<SAMRAI::hier::BoxContainer>> d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector> d_periodic_shift;
 };
 } // namespace IBTK

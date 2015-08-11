@@ -272,8 +272,8 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
             auto patch = *p;
             const Box& patch_box = patch->getBox();
             auto u_current_data = patch->getPatchData(u_current_idx);
-            auto u_cc_current_data = boost::dynamic_pointer_cast<CellData<double> >(u_current_data);
-            auto u_sc_current_data = boost::dynamic_pointer_cast<SideData<double> >(u_current_data);
+            auto u_cc_current_data = boost::dynamic_pointer_cast<CellData<double>>(u_current_data);
+            auto u_sc_current_data = boost::dynamic_pointer_cast<SideData<double>>(u_current_data);
             const bool is_cc_data = u_cc_current_data != NULL;
             const bool is_sc_data = u_sc_current_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
@@ -335,8 +335,8 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
             auto patch = *p;
             const Box& patch_box = patch->getBox();
             auto u_half_data = patch->getPatchData(u_half_idx);
-            auto u_cc_half_data = boost::dynamic_pointer_cast<CellData<double> >(u_half_data);
-            auto u_sc_half_data = boost::dynamic_pointer_cast<SideData<double> >(u_half_data);
+            auto u_cc_half_data = boost::dynamic_pointer_cast<CellData<double>>(u_half_data);
+            auto u_sc_half_data = boost::dynamic_pointer_cast<SideData<double>>(u_half_data);
             const bool is_cc_data = u_cc_half_data != NULL;
             const bool is_sc_data = u_sc_half_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
@@ -405,8 +405,8 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
             auto patch = *p;
             const Box& patch_box = patch->getBox();
             auto u_new_data = patch->getPatchData(u_new_idx);
-            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(u_new_data);
-            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double> >(u_new_data);
+            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double>>(u_new_data);
+            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double>>(u_new_data);
             const bool is_cc_data = u_cc_new_data != NULL;
             const bool is_sc_data = u_sc_new_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));

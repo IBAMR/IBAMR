@@ -134,8 +134,8 @@ public:
      * specified time within the current time interval.
      */
     void interpolateVelocity(int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              double data_time);
 
     /*!
@@ -168,7 +168,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds,
                      double data_time);
 
     /*!
@@ -184,8 +184,8 @@ public:
     initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& u_ghost_fill_scheds,
                              int integrator_step,
                              double init_data_time,
                              bool initial_time);
@@ -225,9 +225,9 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<boost::shared_ptr<IBTK::LData> > d_D_current_data, d_D_new_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_N_current_data, d_N_new_data;
-    std::vector<boost::shared_ptr<IBTK::LData> > d_W_current_data, d_W_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_D_current_data, d_D_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_N_current_data, d_N_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData>> d_W_current_data, d_W_new_data;
 
     /*
      * The force and torque generator.

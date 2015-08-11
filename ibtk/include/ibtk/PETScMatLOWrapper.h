@@ -214,7 +214,7 @@ private:
     PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that);
 
     const Mat d_petsc_mat;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y, d_z;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
 } // namespace IBTK

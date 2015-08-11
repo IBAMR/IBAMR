@@ -117,7 +117,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const = 0;
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getSolutionVector() const = 0;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
@@ -126,7 +126,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const = 0;
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getFunctionVector() const = 0;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -199,7 +199,7 @@ protected:
     boost::shared_ptr<GeneralOperator> d_F;
     boost::shared_ptr<JacobianOperator> d_J;
     boost::shared_ptr<KrylovLinearSolver> d_krylov_solver;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b, d_r;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_b, d_r;
 
     // Solver parameters.
     int d_max_evaluations;

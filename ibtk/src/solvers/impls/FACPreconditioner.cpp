@@ -140,8 +140,8 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<double>& u, SAMRAIVectorRea
     }
     else
     {
-        d_f->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, NullDeleter()), false);
-        d_r->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, NullDeleter()), false);
+        d_f->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&f, NullDeleter()), false);
+        d_r->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&f, NullDeleter()), false);
         switch (d_cycle_type)
         {
         case V_CYCLE:

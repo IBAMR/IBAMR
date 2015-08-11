@@ -111,7 +111,7 @@ public:
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getBaseVector() const;
 
     //\}
 
@@ -250,7 +250,7 @@ private:
     Mat d_petsc_snes_jac;
     PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
     void* const d_petsc_snes_jac_ctx;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y, d_z;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
 } // namespace IBTK

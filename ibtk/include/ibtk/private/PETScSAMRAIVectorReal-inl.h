@@ -47,7 +47,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline Vec PETScSAMRAIVectorReal::createPETScVector(
-    const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >& samrai_vec,
+    const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar>>& samrai_vec,
     MPI_Comm comm)
 {
     TBOX_ASSERT(samrai_vec);
@@ -67,7 +67,7 @@ inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
     return;
 }
 
-inline boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >
+inline boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar>>
 PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
 {
     TBOX_ASSERT(petsc_vec);
@@ -78,7 +78,7 @@ PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
 
 inline void PETScSAMRAIVectorReal::replaceSAMRAIVector(
     Vec petsc_vec,
-    const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >& samrai_vec)
+    const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar>>& samrai_vec)
 {
     TBOX_ASSERT(petsc_vec);
     TBOX_ASSERT(samrai_vec);

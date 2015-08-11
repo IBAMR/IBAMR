@@ -185,7 +185,7 @@ private:
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Phi_var, d_F_Phi_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx;
 };
 } // namespace IBAMR

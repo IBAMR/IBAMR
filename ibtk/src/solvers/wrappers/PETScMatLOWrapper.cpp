@@ -81,9 +81,9 @@ void PETScMatLOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
 
     // Update the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&x, NullDeleter()));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&y, NullDeleter()));
 
     // Apply the operator.
     int ierr = MatMult(d_petsc_mat, d_petsc_x, d_petsc_y);
@@ -97,11 +97,11 @@ void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<d
 
     // Update the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&x, NullDeleter()));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&y, NullDeleter()));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&z, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&z, NullDeleter()));
 
     // Apply the operator.
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z);

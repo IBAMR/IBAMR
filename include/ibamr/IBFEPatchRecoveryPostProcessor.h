@@ -145,7 +145,7 @@ private:
     /*
      * Map from local nodes to element patches.
      */
-    typedef std::vector<boost::shared_ptr<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
+    typedef std::vector<boost::shared_ptr<libMesh::PeriodicBoundaryBase>> CompositePeriodicMapping;
     typedef boost::tuple<const libMesh::Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
     struct ElemPatchItemComp : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {
@@ -178,12 +178,12 @@ private:
     /*
      * Element patch L2 projection matrices.
      */
-    std::vector<Eigen::ColPivHouseholderQR<Eigen::MatrixXd> > d_local_patch_proj_solver;
+    std::vector<Eigen::ColPivHouseholderQR<Eigen::MatrixXd>> d_local_patch_proj_solver;
 
     /*
      * Stress data at interpolation points.
      */
-    typedef std::vector<libMesh::TensorValue<double> > ElemStress;
+    typedef std::vector<libMesh::TensorValue<double>> ElemStress;
     std::map<libMesh::dof_id_type, ElemStress> d_elem_sigma;
     typedef std::vector<double> ElemPressure;
     std::map<libMesh::dof_id_type, ElemPressure> d_elem_pressure;

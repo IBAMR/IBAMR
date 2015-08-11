@@ -297,7 +297,7 @@ void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = d_ghosts.max();
     for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
     {
@@ -506,7 +506,7 @@ void IBMethod::setLinearizedPosition(Vec& X_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> >* X_jac_data;
+    std::vector<boost::shared_ptr<LData>>* X_jac_data;
     bool* X_jac_needs_ghost_fill;
     getLinearizedPositionData(&X_jac_data, &X_jac_needs_ghost_fill);
     ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
@@ -577,11 +577,11 @@ void IBMethod::updateFixedLEOperators()
 }
 
 void IBMethod::interpolateVelocity(const int u_data_idx,
-                                   const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                   const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                   const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                   const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> > *U_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData>> *U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -594,11 +594,11 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
 }
 
 void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
-                                             const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                             const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                             const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                             const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> > *U_jac_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData>> *U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -615,7 +615,7 @@ void IBMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_data;
+    std::vector<boost::shared_ptr<LData>>* U_data;
     getVelocityData(&U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -634,7 +634,7 @@ void IBMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> >* U_data;
+    std::vector<boost::shared_ptr<LData>>* U_data;
     getVelocityData(&U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -653,7 +653,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> > *U_current_data, *U_new_data;
+    std::vector<boost::shared_ptr<LData>> *U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -680,7 +680,7 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> > *F_data, *X_data, *U_data;
+    std::vector<boost::shared_ptr<LData>> *F_data, *X_data, *U_data;
     bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -704,7 +704,7 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> >* F_jac_data;
+    std::vector<boost::shared_ptr<LData>>* F_jac_data;
     bool* F_jac_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     Vec F_vec = (*F_jac_data)[level_num]->getVec();
@@ -717,10 +717,10 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
 
 void IBMethod::spreadForce(const int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
+                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> > *F_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData>> *F_data, *X_LE_data;
     bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -736,10 +736,10 @@ void IBMethod::spreadForce(const int f_data_idx,
 
 void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                     const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
+                                     const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<boost::shared_ptr<LData> > *F_jac_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData>> *F_jac_data, *X_LE_data;
     bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -768,7 +768,7 @@ void IBMethod::computeLagrangianFluidSource(const double data_time)
 }
 
 void IBMethod::spreadFluidSource(const int q_data_idx,
-                                 const std::vector<boost::shared_ptr<RefineSchedule> >& /*q_prolongation_scheds*/,
+                                 const std::vector<boost::shared_ptr<RefineSchedule>>& /*q_prolongation_scheds*/,
                                  const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -777,7 +777,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<boost::shared_ptr<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -803,7 +803,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
+            const auto q_data = BOOST_CAST<CellData<double>>(patch->getPatchData(q_data_idx));
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -853,7 +853,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             Q_max = std::max(Q_max, std::abs(d_Q_src[ln][k]));
         }
     }
-    auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(getPressureHierarchyDataOps());
+    auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double>>(getPressureHierarchyDataOps());
     const double q_total = pressure_hier_data_ops->integral(q_data_idx, wgt_idx);
     if (std::abs(q_total - Q_sum) > 1.0e-12 && std::abs(q_total - Q_sum) / std::max(Q_max, 1.0) > 1.0e-12)
     {
@@ -901,7 +901,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
+                const auto q_data = BOOST_CAST<CellData<double>>(patch->getPatchData(q_data_idx));
                 for (auto blist = level_bdry_boxes.begin(), e = level_bdry_boxes.end(); blist != e; ++blist)
                 {
                     const Box it_box = *blist * patch_box;
@@ -912,7 +912,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 }
             }
         }
-        auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(getPressureHierarchyDataOps());
+        auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double>>(getPressureHierarchyDataOps());
         const double integral_q = pressure_hier_data_ops->integral(q_data_idx, wgt_idx);
         if (std::abs(integral_q) > 1.0e-10 * std::max(1.0, getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
         {
@@ -926,8 +926,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
 }
 
 void IBMethod::interpolatePressure(int p_data_idx,
-                                   const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*p_synch_scheds*/,
-                                   const std::vector<boost::shared_ptr<RefineSchedule> >& /*p_ghost_fill_scheds*/,
+                                   const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*p_synch_scheds*/,
+                                   const std::vector<boost::shared_ptr<RefineSchedule>>& /*p_ghost_fill_scheds*/,
                                    const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -936,7 +936,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<boost::shared_ptr<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
 
@@ -965,8 +965,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                const auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
-                const auto wgt_data = BOOST_CAST<CellData<double> >(patch->getPatchData(wgt_idx));
+                const auto p_data = BOOST_CAST<CellData<double>>(patch->getPatchData(p_data_idx));
+                const auto wgt_data = BOOST_CAST<CellData<double>>(patch->getPatchData(wgt_idx));
                 for (auto blist = level_bdry_boxes.begin(), e = level_bdry_boxes.end(); blist != e; ++blist)
                 {
                     const Box it_box = *blist * patch_box;
@@ -1007,7 +1007,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
+            const auto p_data = BOOST_CAST<CellData<double>>(patch->getPatchData(p_data_idx));
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -1071,9 +1071,9 @@ void IBMethod::postprocessData()
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Initialize data on each level of the patch hierarchy.
-    std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
-    std::vector<boost::shared_ptr<LData> > F_data(finest_ln + 1);
-    std::vector<boost::shared_ptr<LData> > U_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData>> X_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData>> F_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData>> U_data(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1091,8 +1091,8 @@ void IBMethod::postprocessData()
 void IBMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                         const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)
@@ -1109,8 +1109,8 @@ void IBMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>&
     if (initial_time)
     {
         // Initialize the interpolated velocity field.
-        std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
-        std::vector<boost::shared_ptr<LData> > U_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData>> X_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData>> U_data(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1193,7 +1193,7 @@ void IBMethod::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& hi
     d_l_data_manager->endDataRedistribution();
 
     // Look up the re-distributed Lagrangian position data.
-    std::vector<boost::shared_ptr<LData> > X_data(hierarchy->getFinestLevelNumber() + 1);
+    std::vector<boost::shared_ptr<LData>> X_data(hierarchy->getFinestLevelNumber() + 1);
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1352,7 +1352,7 @@ void IBMethod::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hi
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+                auto tags_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
         }
@@ -1389,7 +1389,7 @@ void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data,
+void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData>>** X_data,
                                bool** X_needs_ghost_fill,
                                double data_time)
 {
@@ -1428,7 +1428,7 @@ void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data,
     return;
 }
 
-void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData> >** X_jac_data,
+void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData>>** X_jac_data,
                                          bool** X_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
@@ -1447,7 +1447,7 @@ void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData> >*
     return;
 }
 
-void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData> >** X_LE_data,
+void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData>>** X_LE_data,
                                          bool** X_LE_needs_ghost_fill,
                                          double data_time)
 {
@@ -1491,7 +1491,7 @@ void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData> >*
     return;
 }
 
-void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data, double data_time)
+void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData>>** U_data, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1524,7 +1524,7 @@ void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data, 
     return;
 }
 
-void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >** U_jac_data)
+void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData>>** U_jac_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1540,9 +1540,7 @@ void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >*
     return;
 }
 
-void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data,
-                            bool** F_needs_ghost_fill,
-                            double data_time)
+void IBMethod::getForceData(std::vector<boost::shared_ptr<LData>>** F_data, bool** F_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1574,8 +1572,7 @@ void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data,
     return;
 }
 
-void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData> >** F_jac_data,
-                                      bool** F_jac_needs_ghost_fill)
+void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData>>** F_jac_data, bool** F_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1593,9 +1590,9 @@ void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData> >** F
     return;
 }
 
-void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
-                                  const std::vector<boost::shared_ptr<LData> >& new_data,
-                                  const std::vector<boost::shared_ptr<LData> >& half_data)
+void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData>>& current_data,
+                                  const std::vector<boost::shared_ptr<LData>>& new_data,
+                                  const std::vector<boost::shared_ptr<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1609,7 +1606,7 @@ void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& 
     return;
 }
 
-void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData> > U_data,
+void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData>> U_data,
                                       const int coarsest_ln,
                                       const int finest_ln)
 {

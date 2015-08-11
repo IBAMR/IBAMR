@@ -126,7 +126,7 @@ void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, const boost::share
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = getMinimumGhostCellWidth().max();
     for (unsigned int i = 0; i < tag_buffer.size(); ++i)
     {
@@ -171,7 +171,7 @@ void IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 }
 
 void IBStrategy::spreadFluidSource(int /*q_data_idx*/,
-                                   const std::vector<boost::shared_ptr<RefineSchedule> >& /*q_prolongation_scheds*/,
+                                   const std::vector<boost::shared_ptr<RefineSchedule>>& /*q_prolongation_scheds*/,
                                    double /*data_time*/)
 {
     // intentionally blank
@@ -179,8 +179,8 @@ void IBStrategy::spreadFluidSource(int /*q_data_idx*/,
 }
 
 void IBStrategy::interpolatePressure(int /*p_data_idx*/,
-                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*p_synch_scheds*/,
-                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*p_ghost_fill_scheds*/,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*p_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule>>& /*p_ghost_fill_scheds*/,
                                      double /*data_time*/)
 {
     // intentionally blank
@@ -208,8 +208,8 @@ void IBStrategy::postprocessData()
 void IBStrategy::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                           const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/,
                                           int /*u_data_idx*/,
-                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                          const std::vector<boost::shared_ptr<RefineSchedule> >&
+                                          const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*u_synch_scheds*/,
+                                          const std::vector<boost::shared_ptr<RefineSchedule>>&
                                           /*u_ghost_fill_scheds*/,
                                           int /*integrator_step*/,
                                           double /*init_data_time*/,
@@ -292,13 +292,13 @@ INSHierarchyIntegrator* IBStrategy::getINSHierarchyIntegrator() const
     return d_ib_solver->d_ins_hier_integrator.get();
 }
 
-boost::shared_ptr<HierarchyDataOpsReal<double> > IBStrategy::getVelocityHierarchyDataOps() const
+boost::shared_ptr<HierarchyDataOpsReal<double>> IBStrategy::getVelocityHierarchyDataOps() const
 {
     TBOX_ASSERT(d_ib_solver);
     return d_ib_solver->d_hier_velocity_data_ops;
 }
 
-boost::shared_ptr<HierarchyDataOpsReal<double> > IBStrategy::getPressureHierarchyDataOps() const
+boost::shared_ptr<HierarchyDataOpsReal<double>> IBStrategy::getPressureHierarchyDataOps() const
 {
     TBOX_ASSERT(d_ib_solver);
     return d_ib_solver->d_hier_pressure_data_ops;
@@ -371,19 +371,19 @@ boost::shared_ptr<CoarsenAlgorithm> IBStrategy::getCoarsenAlgorithm(const std::s
     return d_ib_solver->getCoarsenAlgorithm(name);
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule> >&
+const std::vector<boost::shared_ptr<RefineSchedule>>&
 IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule> >&
+const std::vector<boost::shared_ptr<RefineSchedule>>&
 IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
 }
 
-const std::vector<boost::shared_ptr<CoarsenSchedule> >& IBStrategy::getCoarsenSchedules(const std::string& name) const
+const std::vector<boost::shared_ptr<CoarsenSchedule>>& IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);
 }

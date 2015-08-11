@@ -221,8 +221,8 @@ public:
                 const boost::shared_ptr<LData>& ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -248,8 +248,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -269,12 +269,12 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
-                std::vector<boost::shared_ptr<LData> >& ds_data,
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
+                std::vector<boost::shared_ptr<LData>>& ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -296,13 +296,13 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
-                std::vector<boost::shared_ptr<LData> >& ds_data,
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
+                std::vector<boost::shared_ptr<LData>>& ds_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -328,8 +328,8 @@ public:
                 const boost::shared_ptr<LData>& X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -353,8 +353,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -373,11 +373,11 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -398,12 +398,12 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_prolongation_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -418,10 +418,10 @@ public:
                 const boost::shared_ptr<LData>& F_data,
                 const boost::shared_ptr<LData>& X_data,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >(),
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& f_synch_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -433,10 +433,10 @@ public:
                 const boost::shared_ptr<LData>& X_data,
                 const std::string& interp_kernel_fcn,
                 int level_num,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >(),
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& f_synch_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -444,12 +444,12 @@ public:
      * mesh using the default interpolation kernel function.
      */
     void interp(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >(),
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& f_synch_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = -1,
                 int finest_ln = -1);
@@ -459,13 +459,13 @@ public:
      * mesh using the specified interpolation kernel function.
      */
     void interp(int f_data_idx,
-                std::vector<boost::shared_ptr<LData> >& F_data,
-                std::vector<boost::shared_ptr<LData> >& X_data,
+                std::vector<boost::shared_ptr<LData>>& F_data,
+                std::vector<boost::shared_ptr<LData>>& X_data,
                 const std::string& interp_kernel_fcn,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >(),
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>& f_synch_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_ghost_fill_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = -1,
                 int finest_ln = -1);
@@ -1060,7 +1060,7 @@ private:
      */
     boost::shared_ptr<LNodeSetVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
-    std::vector<boost::shared_ptr<std::vector<LNode> > > d_local_and_ghost_nodes;
+    std::vector<boost::shared_ptr<std::vector<LNode>>> d_local_and_ghost_nodes;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -1068,7 +1068,7 @@ private:
      * balancing.
      */
     double d_beta_work;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_workload_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_var;
     int d_workload_idx;
     bool d_output_workload;
 
@@ -1077,7 +1077,7 @@ private:
      * cell variable used to keep track of the count of the nodes in each cell
      * for visualization and tagging purposes.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_node_count_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_node_count_var;
     int d_node_count_idx;
     bool d_output_node_count;
 
@@ -1097,10 +1097,10 @@ private:
      * Communications algorithms and schedules.
      */
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_lag_node_index_bdry_fill_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_lag_node_index_bdry_fill_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_lag_node_index_bdry_fill_scheds;
 
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_node_count_coarsen_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_node_count_coarsen_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_node_count_coarsen_scheds;
 
     /*
      * SAMRAI::hier::VariableContext objects are used for data management.
@@ -1122,21 +1122,21 @@ private:
     /*!
      * Information about the names and IDs of the various Lagrangian structures.
      */
-    std::vector<std::map<std::string, int> > d_strct_name_to_strct_id_map;
-    std::vector<std::map<int, std::string> > d_strct_id_to_strct_name_map;
-    std::vector<std::map<int, std::pair<int, int> > > d_strct_id_to_lag_idx_range_map;
-    std::vector<std::map<int, int> > d_last_lag_idx_to_strct_id_map;
-    std::vector<std::set<int> > d_inactive_strcts;
+    std::vector<std::map<std::string, int>> d_strct_name_to_strct_id_map;
+    std::vector<std::map<int, std::string>> d_strct_id_to_strct_name_map;
+    std::vector<std::map<int, std::pair<int, int>>> d_strct_id_to_lag_idx_range_map;
+    std::vector<std::map<int, int>> d_last_lag_idx_to_strct_id_map;
+    std::vector<std::set<int>> d_inactive_strcts;
 
     /*!
      * Lagrangian mesh data.
      */
-    std::vector<boost::shared_ptr<LMesh> > d_lag_mesh;
+    std::vector<boost::shared_ptr<LMesh>> d_lag_mesh;
 
     /*!
      * The Lagrangian mesh data owned by the manager object.
      */
-    std::vector<std::map<std::string, boost::shared_ptr<LData> > > d_lag_mesh_data;
+    std::vector<std::map<std::string, boost::shared_ptr<LData>>> d_lag_mesh_data;
 
     /*!
      * Indicates whether the LData is in synch with the LNodeData.
@@ -1180,15 +1180,15 @@ private:
      * global PETSc index j+d_node_offset[ln].  A similar mapping for nonlocal
      * nodes is not well defined.
      */
-    std::vector<std::vector<int> > d_local_lag_indices;
-    std::vector<std::vector<int> > d_nonlocal_lag_indices;
+    std::vector<std::vector<int>> d_local_lag_indices;
+    std::vector<std::vector<int>> d_nonlocal_lag_indices;
 
     /*!
      * The node indices of all local nodes (i.e. the nodes owned by this
      * processor) on each level of the hierarchy.  The indices are in the global
      * PETSc ordering corresponding to a depth of 1.
      */
-    std::vector<std::vector<int> > d_local_petsc_indices;
+    std::vector<std::vector<int>> d_local_petsc_indices;
 
     /*!
      * The node indices of all nonlocal nodes (i.e. the nodes owned by another
@@ -1196,7 +1196,7 @@ private:
      * processor) on each level of the hierarchy.  The indices are in the global
      * PETSc ordering corresponding to a depth of 1.
      */
-    std::vector<std::vector<int> > d_nonlocal_petsc_indices;
+    std::vector<std::vector<int>> d_nonlocal_petsc_indices;
 
     //\}
 };

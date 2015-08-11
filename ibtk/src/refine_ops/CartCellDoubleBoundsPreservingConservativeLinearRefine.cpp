@@ -155,8 +155,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         if (empty_correction_box) return;
 
         // Correct the data within the correction box.
-        auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(dst_component));
-        auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(src_component));
+        auto fdata = BOOST_CAST<CellData<double>>(fine.getPatchData(dst_component));
+        auto cdata = BOOST_CAST<CellData<double>>(coarse.getPatchData(src_component));
         TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
         const int data_depth = fdata->getDepth();
         const Box& patch_box_crse = coarse.getBox();

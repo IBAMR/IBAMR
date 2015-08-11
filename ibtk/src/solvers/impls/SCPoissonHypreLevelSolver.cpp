@@ -668,19 +668,19 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const Box x_ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
-        auto x_data = BOOST_CAST<SideData<double> >(patch->getPatchData(x_idx));
+        auto x_data = BOOST_CAST<SideData<double>>(patch->getPatchData(x_idx));
         copyToHypre(d_sol_vec, x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
-        auto b_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_idx));
+        auto b_data = BOOST_CAST<SideData<double>>(patch->getPatchData(b_idx));
         if (pgeom->intersectsPhysicalBoundary())
         {
             SideData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,
                                                          d_homogeneous_bc);
-            copyToHypre(d_rhs_vec, boost::shared_ptr<SideData<double> >(&b_adj_data, NullDeleter()), patch_box);
+            copyToHypre(d_rhs_vec, boost::shared_ptr<SideData<double>>(&b_adj_data, NullDeleter()), patch_box);
         }
         else
         {
@@ -781,22 +781,22 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto x_data = BOOST_CAST<SideData<double> >(patch->getPatchData(x_idx));
+        auto x_data = BOOST_CAST<SideData<double>>(patch->getPatchData(x_idx));
         copyFromHypre(x_data, d_sol_vec, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 }
 
 void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                            const boost::shared_ptr<SideData<double> >& src_data,
+                                            const boost::shared_ptr<SideData<double>>& src_data,
                                             const Box& box)
 {
     const bool copy_data = !src_data->getGhostBox().isSpatiallyEqual(box);
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);
-    auto hypre_data = BOOST_CAST<SideData<double> >(
-        (copy_data ? boost::make_shared<SideData<double> >(box, depth, ghosts, dirs) : src_data));
+    auto hypre_data = BOOST_CAST<SideData<double>>(
+        (copy_data ? boost::make_shared<SideData<double>>(box, depth, ghosts, dirs) : src_data));
 
     if (copy_data) hypre_data->copyOnBox(*src_data, box);
 
@@ -811,7 +811,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     return;
 }
 
-void SCPoissonHypreLevelSolver::copyFromHypre(const boost::shared_ptr<SideData<double> >& dst_data,
+void SCPoissonHypreLevelSolver::copyFromHypre(const boost::shared_ptr<SideData<double>>& dst_data,
                                               HYPRE_SStructVector vector,
                                               const Box& box)
 {
@@ -819,8 +819,8 @@ void SCPoissonHypreLevelSolver::copyFromHypre(const boost::shared_ptr<SideData<d
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);
-    auto hypre_data = BOOST_CAST<SideData<double> >(
-        (copy_data ? boost::make_shared<SideData<double> >(box, depth, ghosts, dirs) : dst_data));
+    auto hypre_data = BOOST_CAST<SideData<double>>(
+        (copy_data ? boost::make_shared<SideData<double>>(box, depth, ghosts, dirs) : dst_data));
 
     for (int var = 0; var < NVARS; ++var)
     {

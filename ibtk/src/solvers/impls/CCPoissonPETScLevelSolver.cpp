@@ -93,10 +93,10 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     // Construct the DOF index variable/context.
     auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = boost::make_shared<CellVariable<int> >(DIM, object_name + "::dof_index");
+    d_dof_index_var = boost::make_shared<CellVariable<int>>(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
-        d_dof_index_var = BOOST_CAST<CellVariable<int> >(var_db->getVariable(d_dof_index_var->getName()));
+        d_dof_index_var = BOOST_CAST<CellVariable<int>>(var_db->getVariable(d_dof_index_var->getName()));
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
@@ -118,13 +118,13 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     // Allocate DOF index data.
     auto var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    auto x_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(0));
+    auto x_var = BOOST_CAST<CellVariable<double>>(x.getComponentVariable(0));
     const int depth = x_var->getDepth();
     if (d_dof_index_var->getDepth() != depth)
     {
         var_db->removePatchDataIndex(d_dof_index_idx);
         d_dof_index_var =
-            boost::make_shared<CellVariable<int> >(d_dof_index_var->getDim(), d_dof_index_var->getName(), depth);
+            boost::make_shared<CellVariable<int>>(d_dof_index_var->getDim(), d_dof_index_var->getName(), depth);
         d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, IntVector(DIM, CELLG));
     }
     auto level = d_hierarchy->getPatchLevel(d_level_num);
@@ -182,15 +182,15 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    auto b_var = BOOST_CAST<CellVariable<double> >(b.getComponentVariable(0));
+    auto b_var = BOOST_CAST<CellVariable<double>>(b.getComponentVariable(0));
     auto var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
         auto patch = *p;
-        auto b_data = BOOST_CAST<CellData<double> >(patch->getPatchData(b_idx));
-        auto b_adj_data = BOOST_CAST<CellData<double> >(patch->getPatchData(b_adj_idx));
+        auto b_data = BOOST_CAST<CellData<double>>(patch->getPatchData(b_idx));
+        auto b_adj_data = BOOST_CAST<CellData<double>>(patch->getPatchData(b_adj_idx));
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
         PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,

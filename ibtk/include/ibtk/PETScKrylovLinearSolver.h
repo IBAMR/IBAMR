@@ -207,8 +207,8 @@ public:
      */
     void
     setNullspace(bool contains_constant_vec,
-                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-                     std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
+                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>& nullspace_basis_vecs =
+                     std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -414,7 +414,7 @@ private:
     bool d_user_provided_mat;
     bool d_user_provided_pc;
 
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_nullspace_constant_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace;

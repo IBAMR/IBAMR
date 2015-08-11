@@ -149,13 +149,13 @@ void FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-boost::shared_ptr<SAMRAIVectorReal<double> >
+boost::shared_ptr<SAMRAIVectorReal<double>>
 FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<double>& vec, int level_num) const
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
     auto level_vec =
-        boost::make_shared<SAMRAIVectorReal<double> >(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+        boost::make_shared<SAMRAIVectorReal<double>>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
         level_vec->addComponent(vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp),

@@ -153,7 +153,7 @@ void EdgeDataSynchronization::initializeOperatorState(
 #ifndef NDEBUG
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            auto ec_var = boost::dynamic_pointer_cast<EdgeVariable<double> >(var);
+            auto ec_var = boost::dynamic_pointer_cast<EdgeVariable<double>>(var);
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
@@ -241,7 +241,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
 #ifndef NDEBUG
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            auto ec_var = boost::dynamic_pointer_cast<EdgeVariable<double> >(var);
+            auto ec_var = boost::dynamic_pointer_cast<EdgeVariable<double>>(var);
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"

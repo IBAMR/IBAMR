@@ -144,9 +144,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void
-    setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> >& U_bc_coefs,
-                       const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
+                                    const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
@@ -383,7 +382,7 @@ protected:
      */
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
     boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_U_bc_coef;
-    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> > d_U_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_U_bc_coefs;
     boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_P_bc_coef;
     boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_P_bc_coef;
 
@@ -405,7 +404,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_solution, d_rhs;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -421,8 +420,8 @@ protected:
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
-    std::vector<boost::shared_ptr<IBTK::HierarchyMathOps> > d_level_math_ops;
+    std::vector<boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation>> d_level_bdry_fill_ops;
+    std::vector<boost::shared_ptr<IBTK::HierarchyMathOps>> d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -546,26 +545,26 @@ private:
     boost::shared_ptr<SAMRAI::hier::RefineOperator> d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_prolongation_refine_patch_strategy;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_prolongation_refine_schedules;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
     boost::shared_ptr<SAMRAI::hier::CoarsenOperator> d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_restriction_coarsen_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_restriction_coarsen_schedules;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_nocoarse_refine_schedules;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_synch_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_synch_refine_schedules;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>> d_synch_refine_schedules;
 };
 } // namespace IBTK
 

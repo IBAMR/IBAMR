@@ -45,12 +45,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const std::vector<boost::shared_ptr<LNode> >& LMesh::getLocalNodes() const
+inline const std::vector<boost::shared_ptr<LNode>>& LMesh::getLocalNodes() const
 {
     return d_local_nodes;
 }
 
-inline const std::vector<boost::shared_ptr<LNode> >& LMesh::getGhostNodes() const
+inline const std::vector<boost::shared_ptr<LNode>>& LMesh::getGhostNodes() const
 {
     return d_ghost_nodes;
 }

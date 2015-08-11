@@ -169,14 +169,14 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
     : d_patch_data_indices(), d_consistent_type_2_bdry(false),
       d_refine_op(boost::make_shared<CartesianSideDoubleConservativeLinearRefine>()), d_hierarchy(), d_cf_boundary(),
       d_sc_indicator_var(
-          boost::make_shared<SideVariable<int> >(DIM, "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
+          boost::make_shared<SideVariable<int>>(DIM, "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
 {
     // Setup scratch variables.
     auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
-        d_sc_indicator_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(d_sc_indicator_var->getName()));
+        d_sc_indicator_var = BOOST_CAST<SideVariable<int>>(var_db->getVariable(d_sc_indicator_var->getName()));
         d_sc_indicator_idx = var_db->mapVariableAndContextToIndex(d_sc_indicator_var, context);
     }
     else
@@ -258,10 +258,10 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(patch_data_index));
-        auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(patch_data_index));
+        auto fdata = BOOST_CAST<SideData<double>>(fine.getPatchData(patch_data_index));
+        auto cdata = BOOST_CAST<SideData<double>>(coarse.getPatchData(patch_data_index));
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
-        auto indicator_data = BOOST_CAST<SideData<int> >(fine.getPatchData(d_sc_indicator_idx));
+        auto indicator_data = BOOST_CAST<SideData<int>>(fine.getPatchData(d_sc_indicator_idx));
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
@@ -400,7 +400,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(const boost::shar
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            auto sc_indicator_data = BOOST_CAST<SideData<int> >(patch->getPatchData(d_sc_indicator_idx));
+            auto sc_indicator_data = BOOST_CAST<SideData<int>>(patch->getPatchData(d_sc_indicator_idx));
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -450,10 +450,10 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        auto data = BOOST_CAST<SideData<double> >(patch.getPatchData(patch_data_index));
+        auto data = BOOST_CAST<SideData<double>>(patch.getPatchData(patch_data_index));
         SideData<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        auto indicator_data = BOOST_CAST<SideData<int> >(patch.getPatchData(d_sc_indicator_idx));
+        auto indicator_data = BOOST_CAST<SideData<int>>(patch.getPatchData(d_sc_indicator_idx));
         const int U_ghosts = (data->getGhostCellWidth()).max();
         const int W_ghosts = (data_copy.getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();

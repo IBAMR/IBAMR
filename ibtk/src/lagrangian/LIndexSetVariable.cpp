@@ -57,7 +57,7 @@ namespace IBTK
 
 template <class T>
 LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
-    : Variable(name, boost::make_shared<LIndexSetDataFactory<T> >(IntVector::getZero(DIM)))
+    : Variable(name, boost::make_shared<LIndexSetDataFactory<T>>(IntVector::getZero(DIM)))
 {
     // intentionally blank
     return;

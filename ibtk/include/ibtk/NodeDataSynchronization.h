@@ -211,10 +211,10 @@ private:
 
     // Cached communications algorithms and schedules.
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>> d_coarsen_scheds;
 
     boost::array<boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm>, NDIM> d_refine_alg;
-    boost::array<std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >, NDIM> d_refine_scheds;
+    boost::array<std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

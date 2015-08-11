@@ -49,8 +49,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LMesh::LMesh(const std::string& object_name,
-             const std::vector<boost::shared_ptr<LNode> >& local_nodes,
-             const std::vector<boost::shared_ptr<LNode> >& ghost_nodes)
+             const std::vector<boost::shared_ptr<LNode>>& local_nodes,
+             const std::vector<boost::shared_ptr<LNode>>& ghost_nodes)
     : d_object_name(object_name), d_local_nodes(local_nodes), d_ghost_nodes(ghost_nodes)
 {
     // intentionally blank

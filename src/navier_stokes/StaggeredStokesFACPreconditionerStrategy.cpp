@@ -172,19 +172,19 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVector side_ghosts(DIM, d_gcw);
-    auto side_scratch_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::side_scratch");
+    auto side_scratch_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
-        side_scratch_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(side_scratch_var->getName()));
+        side_scratch_var = BOOST_CAST<SideVariable<double>>(var_db->getVariable(side_scratch_var->getName()));
         d_side_scratch_idx = var_db->mapVariableAndContextToIndex(side_scratch_var, d_context);
         var_db->removePatchDataIndex(d_side_scratch_idx);
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
     const IntVector cell_ghosts(DIM, d_gcw);
-    auto cell_scratch_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::cell_scratch");
+    auto cell_scratch_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
-        cell_scratch_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(cell_scratch_var->getName()));
+        cell_scratch_var = BOOST_CAST<CellVariable<double>>(var_db->getVariable(cell_scratch_var->getName()));
         d_cell_scratch_idx = var_db->mapVariableAndContextToIndex(cell_scratch_var, d_context);
         var_db->removePatchDataIndex(d_cell_scratch_idx);
     }
@@ -223,7 +223,7 @@ void StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(
 }
 
 void StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(
-    const std::vector<boost::shared_ptr<RobinBcCoefStrategy> >& U_bc_coefs,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
     const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -469,17 +469,17 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    auto U_res_sc_var = BOOST_CAST<SideVariable<double> >(residual.getComponentVariable(0));
-    auto U_sol_sc_var = BOOST_CAST<SideVariable<double> >(solution.getComponentVariable(0));
-    auto U_rhs_sc_var = BOOST_CAST<SideVariable<double> >(rhs.getComponentVariable(0));
+    auto U_res_sc_var = BOOST_CAST<SideVariable<double>>(residual.getComponentVariable(0));
+    auto U_sol_sc_var = BOOST_CAST<SideVariable<double>>(solution.getComponentVariable(0));
+    auto U_rhs_sc_var = BOOST_CAST<SideVariable<double>>(rhs.getComponentVariable(0));
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
     const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    auto P_res_cc_var = BOOST_CAST<CellVariable<double> >(residual.getComponentVariable(1));
-    auto P_sol_cc_var = BOOST_CAST<CellVariable<double> >(solution.getComponentVariable(1));
-    auto P_rhs_cc_var = BOOST_CAST<CellVariable<double> >(rhs.getComponentVariable(1));
+    auto P_res_cc_var = BOOST_CAST<CellVariable<double>>(residual.getComponentVariable(1));
+    auto P_sol_cc_var = BOOST_CAST<CellVariable<double>>(solution.getComponentVariable(1));
+    auto P_rhs_cc_var = BOOST_CAST<CellVariable<double>>(rhs.getComponentVariable(1));
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -646,7 +646,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
-    std::vector<boost::shared_ptr<RefinePatchStrategy> > prolongation_refine_patch_strategies;
+    std::vector<boost::shared_ptr<RefinePatchStrategy>> prolongation_refine_patch_strategies;
     prolongation_refine_patch_strategies.push_back(d_U_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_U_bc_op);
@@ -687,7 +687,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
                                              solution.getComponentDescriptorIndex(0),
                                              solution.getComponentDescriptorIndex(0), NULL, d_U_synch_fill_pattern);
 
-    std::vector<boost::shared_ptr<RefinePatchStrategy> > bc_op_ptrs(2);
+    std::vector<boost::shared_ptr<RefinePatchStrategy>> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
     bc_op_ptrs[1] = d_P_bc_op;
     d_U_P_bc_op = boost::make_shared<RefinePatchStrategySet>(bc_op_ptrs.begin(), bc_op_ptrs.end());

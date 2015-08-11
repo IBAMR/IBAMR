@@ -98,8 +98,8 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
-    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(data_var);
     if (data_cc_var)
     {
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -127,8 +127,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
-    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(data_var);
     if (data_cc_var)
     {
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -171,8 +171,8 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
-    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(data_var);
     boost::shared_ptr<RefineSchedule> data_synch_sched;
     if (data_cc_var)
     {
@@ -212,8 +212,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    auto dof_index_cc_var = boost::dynamic_pointer_cast<CellVariable<int> >(dof_index_var);
-    auto dof_index_sc_var = boost::dynamic_pointer_cast<SideVariable<int> >(dof_index_var);
+    auto dof_index_cc_var = boost::dynamic_pointer_cast<CellVariable<int>>(dof_index_var);
+    auto dof_index_sc_var = boost::dynamic_pointer_cast<SideVariable<int>>(dof_index_var);
     if (dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
@@ -247,9 +247,9 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
+        auto data = BOOST_CAST<CellData<double>>(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         for (auto b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& i = *b;
@@ -284,9 +284,9 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
+        auto data = BOOST_CAST<SideData<double>>(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -326,9 +326,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
+        auto data = BOOST_CAST<CellData<double>>(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (auto b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
@@ -360,9 +360,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
+        auto data = BOOST_CAST<SideData<double>>(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -395,7 +395,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
         local_dof_count += depth * CellGeometry::toCellBox(patch_box).size();
     }
@@ -416,7 +416,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<CellData<int>>(patch->getPatchData(dof_index_idx));
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
@@ -447,11 +447,11 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     auto var_db = VariableDatabase::getDatabase();
-    auto patch_id_var = boost::make_shared<SideVariable<int> >(
+    auto patch_id_var = boost::make_shared<SideVariable<int>>(
         DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
-    auto mastr_loc_var = boost::make_shared<SideVariable<int> >(
+    auto mastr_loc_var = boost::make_shared<SideVariable<int>>(
         DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
@@ -461,12 +461,12 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
-        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
+        auto patch_id_data = BOOST_CAST<SideData<int>>(patch->getPatchData(patch_id_idx));
         patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
         patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
-        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
+        auto mastr_loc_data = BOOST_CAST<SideData<int>>(patch->getPatchData(mastr_loc_idx));
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -500,10 +500,10 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
-        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
-        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
+        auto patch_id_data = BOOST_CAST<SideData<int>>(patch->getPatchData(patch_id_idx));
+        auto mastr_loc_data = BOOST_CAST<SideData<int>>(patch->getPatchData(mastr_loc_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis);
@@ -539,10 +539,10 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
+        auto dof_index_data = BOOST_CAST<SideData<int>>(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
-        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
+        auto mastr_loc_data = BOOST_CAST<SideData<int>>(patch->getPatchData(mastr_loc_idx));
         std::vector<Box> data_boxes(NDIM, Box(DIM));
         BoxContainer data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)

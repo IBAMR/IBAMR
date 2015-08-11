@@ -69,8 +69,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 std::vector<int> IBStandardSourceGen::s_num_sources;
-std::vector<std::vector<std::string> > IBStandardSourceGen::s_source_names;
-std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
+std::vector<std::vector<std::string>> IBStandardSourceGen::s_source_names;
+std::vector<std::vector<double>> IBStandardSourceGen::s_source_radii;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

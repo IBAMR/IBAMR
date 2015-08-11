@@ -252,7 +252,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch, c
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
+        auto data = BOOST_CAST<CellData<double>>(patch.getPatchData(patch_data_index));
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {

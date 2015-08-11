@@ -53,7 +53,7 @@ inline LNode::LNode(const int lagrangian_nidx,
                     const int local_petsc_nidx,
                     const SAMRAI::hier::IntVector& periodic_offset,
                     const Vector& periodic_displacement,
-                    const std::vector<boost::shared_ptr<Streamable> >& node_data)
+                    const std::vector<boost::shared_ptr<Streamable>>& node_data)
     : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
       d_node_data(node_data)
 {
@@ -100,12 +100,12 @@ inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, 
     return;
 }
 
-inline const std::vector<boost::shared_ptr<Streamable> >& LNode::getNodeData() const
+inline const std::vector<boost::shared_ptr<Streamable>>& LNode::getNodeData() const
 {
     return d_node_data;
 }
 
-inline void LNode::setNodeData(const std::vector<boost::shared_ptr<Streamable> >& node_data)
+inline void LNode::setNodeData(const std::vector<boost::shared_ptr<Streamable>>& node_data)
 {
     d_node_data = node_data;
     setupNodeDataTypeArray();

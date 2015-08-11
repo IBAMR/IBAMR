@@ -98,7 +98,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getBaseVector() const;
 
     //\}
 
@@ -215,7 +215,7 @@ private:
     boost::shared_ptr<GeneralOperator> d_F;
     boost::shared_ptr<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_op_u, d_op_x, d_op_y;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
 };

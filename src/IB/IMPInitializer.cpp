@@ -267,7 +267,7 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
     }
@@ -276,7 +276,7 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
 
 void IMPInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+    std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
     const int level_number,
     const double /*init_data_time*/,
     const bool /*can_be_refined*/,
@@ -334,7 +334,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
-        std::vector<std::pair<int, int> > patch_vertices;
+        std::vector<std::pair<int, int>> patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
         for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
@@ -379,7 +379,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
             auto point_spec = boost::make_shared<MaterialPointSpec>(
                 lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                 d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
-            std::vector<boost::shared_ptr<Streamable> > node_data(1, point_spec);
+            std::vector<boost::shared_ptr<Streamable>> node_data(1, point_spec);
             node_set->push_back(boost::make_shared<LNode>(lagrangian_idx, global_petsc_idx, local_petsc_idx,
                                                           periodic_offset, periodic_displacement, node_data));
 
@@ -419,7 +419,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
         const double* const patch_x_upper = pgeom->getXUpper();
         const double* const patch_dx = pgeom->getDx();
 
-        auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+        auto tag_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -428,7 +428,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
         const bool can_be_refined = level_number + 2 < max_levels;
         for (int ln = level_number + 1; ln < max_levels; ++ln)
         {
-            std::vector<std::pair<int, int> > patch_vertices;
+            std::vector<std::pair<int, int>> patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
             for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
@@ -474,7 +474,7 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
     return;
 }
 
-void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int>>& patch_vertices,
                                       const boost::shared_ptr<Patch>& patch,
                                       const int level_number,
                                       const bool /*can_be_refined*/) const

@@ -756,7 +756,7 @@ protected:
     /*!
      * Get ghost cell-filling refine schedules.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>&
     getGhostfillRefineSchedules(const std::string& name) const;
 
     /*!
@@ -764,7 +764,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>&
     getProlongRefineSchedules(const std::string& name) const;
 
     /*!
@@ -772,7 +772,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >&
+    const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>&
     getCoarsenSchedules(const std::string& name) const;
 
     /*!
@@ -921,15 +921,15 @@ protected:
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
      * are used for data management.
      */
-    std::list<boost::shared_ptr<SAMRAI::hier::Variable> > d_state_variables;
-    std::list<boost::shared_ptr<SAMRAI::hier::Variable> > d_scratch_variables;
+    std::list<boost::shared_ptr<SAMRAI::hier::Variable>> d_state_variables;
+    std::list<boost::shared_ptr<SAMRAI::hier::Variable>> d_scratch_variables;
 
-    std::list<boost::shared_ptr<SAMRAI::hier::Variable> > d_copy_scratch_to_current_fast;
-    std::list<boost::shared_ptr<SAMRAI::hier::Variable> > d_copy_scratch_to_current_slow;
+    std::list<boost::shared_ptr<SAMRAI::hier::Variable>> d_copy_scratch_to_current_fast;
+    std::list<boost::shared_ptr<SAMRAI::hier::Variable>> d_copy_scratch_to_current_slow;
 
     SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
 
-    std::map<SAMRAI::hier::Variable*, boost::shared_ptr<CartGridFunction> > d_state_var_init_fcns;
+    std::map<SAMRAI::hier::Variable*, boost::shared_ptr<CartGridFunction>> d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
@@ -1010,9 +1010,9 @@ private:
     /*
      * Cached communications algorithms, strategies, and schedules.
      */
-    typedef std::map<std::string, boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> > RefineAlgorithmMap;
+    typedef std::map<std::string, boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm>> RefineAlgorithmMap;
     typedef std::map<std::string, SAMRAI::xfer::RefinePatchStrategy*> RefinePatchStrategyMap;
-    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > > RefineScheduleMap;
+    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>> RefineScheduleMap;
 
     RefineAlgorithmMap d_ghostfill_algs;
     RefinePatchStrategyMap d_ghostfill_strategies;
@@ -1022,9 +1022,9 @@ private:
     RefinePatchStrategyMap d_prolong_strategies;
     RefineScheduleMap d_prolong_scheds;
 
-    typedef std::map<std::string, boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> > CoarsenAlgorithmMap;
+    typedef std::map<std::string, boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm>> CoarsenAlgorithmMap;
     typedef std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy*> CoarsenPatchStrategyMap;
-    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > > CoarsenScheduleMap;
+    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule>>> CoarsenScheduleMap;
 
     CoarsenAlgorithmMap d_coarsen_algs;
     CoarsenPatchStrategyMap d_coarsen_strategies;

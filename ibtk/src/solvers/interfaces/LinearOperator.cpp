@@ -74,7 +74,7 @@ void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<double>& y)
     b->allocateVectorData();
     x->setToScalar(0.0);
     apply(*x, *b);
-    y.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()), b);
+    y.subtract(boost::shared_ptr<SAMRAIVectorReal<double>>(&y, NullDeleter()), b);
     x->deallocateVectorData();
     x->freeVectorComponents();
     b->deallocateVectorData();

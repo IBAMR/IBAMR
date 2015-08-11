@@ -729,7 +729,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(const boost::shared_ptr<Patch
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
             patch->setPatchGeometry(
-                boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, dx,
+                boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, BLOCK_ID, dx,
                                                            shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
@@ -1229,7 +1229,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(const boost::shared_ptr<Patch>
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
             patch->setPatchGeometry(
-                boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, dx,
+                boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, BLOCK_ID, dx,
                                                            shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.

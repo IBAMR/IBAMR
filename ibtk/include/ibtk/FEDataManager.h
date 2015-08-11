@@ -293,7 +293,7 @@ public:
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
-    const std::vector<std::vector<libMesh::Elem*> >& getActivePatchElementMap() const;
+    const std::vector<std::vector<libMesh::Elem*>>& getActivePatchElementMap() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -365,8 +365,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -378,8 +378,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
-                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule>>(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -609,7 +609,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
+    std::vector<std::pair<Point, Point>>* computeActiveElementBoundingBoxes();
 
     /*!
      * Collect all of the active elements which are located within a local
@@ -618,7 +618,7 @@ private:
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*>>& active_patch_elems,
                                     int level_number,
                                     const SAMRAI::hier::IntVector& ghost_width);
 
@@ -681,7 +681,7 @@ private:
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_qp_count_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_qp_count_var;
     int d_qp_count_idx;
 
     /*
@@ -689,7 +689,7 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_workload_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_var;
     int d_workload_idx;
 
     /*
@@ -714,9 +714,9 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+    std::vector<std::vector<libMesh::Elem*>> d_active_patch_elem_map;
+    std::map<std::string, std::vector<unsigned int>> d_active_patch_ghost_dofs;
+    std::vector<std::pair<Point, Point>> d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.

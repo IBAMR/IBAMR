@@ -262,7 +262,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                                                                          const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
-          boost::make_shared<SideVariable<double> >(DIM, object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
+          boost::make_shared<SideVariable<double>>(DIM, object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
           SIDEG,
           input_db,
           default_options_prefix),
@@ -323,10 +323,10 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
 
     // Construct a variable to store any needed masking data.
     auto var_db = VariableDatabase::getDatabase();
-    auto mask_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::mask");
+    auto mask_var = boost::make_shared<SideVariable<int>>(DIM, object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
-        mask_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(mask_var->getName()));
+        mask_var = BOOST_CAST<SideVariable<int>>(var_db->getVariable(mask_var->getName()));
         d_mask_idx = var_db->mapVariableAndContextToIndex(mask_var, d_context);
         var_db->removePatchDataIndex(d_mask_idx);
     }
@@ -405,8 +405,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
             auto patch = *p;
-            auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-            auto scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(scratch_idx));
+            auto error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+            auto scratch_data = BOOST_CAST<SideData<double>>(patch->getPatchData(scratch_idx));
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box.isSpatiallyEqual(scratch_data->getGhostBox()));
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -435,8 +435,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
                     auto patch = *p;
-                    auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-                    auto scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(scratch_idx));
+                    auto error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+                    auto scratch_data = BOOST_CAST<SideData<double>>(patch->getPatchData(scratch_idx));
                     const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box.isSpatiallyEqual(scratch_data->getGhostBox()));
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -474,14 +474,14 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
             auto patch = *p;
-            auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
-            auto residual_data = BOOST_CAST<SideData<double> >(residual.getComponentPatchData(0, *patch));
+            auto error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *patch));
+            auto residual_data = BOOST_CAST<SideData<double>>(residual.getComponentPatchData(0, *patch));
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box.isSpatiallyEqual(residual_data->getGhostBox()));
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
-            auto mask_data = BOOST_CAST<SideData<int> >(patch->getPatchData(d_mask_idx));
+            auto mask_data = BOOST_CAST<SideData<int>>(patch->getPatchData(d_mask_idx));
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
@@ -498,7 +498,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                         const GlobalId src_patch_id(LocalId(cit->first), mpi_rank);
                         const Box& overlap = cit->second;
                         auto src_patch = level->getPatch(src_patch_id);
-                        auto src_error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *src_patch));
+                        auto src_error_data = BOOST_CAST<SideData<double>>(error.getComponentPatchData(0, *src_patch));
                         error_data->getArrayData(axis)
                             .copy(src_error_data->getArrayData(axis), overlap, IntVector::getZero(DIM));
                     }
@@ -624,9 +624,9 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    auto res_var = BOOST_CAST<SideVariable<double> >(residual.getComponentVariable(0));
-    auto sol_var = BOOST_CAST<SideVariable<double> >(solution.getComponentVariable(0));
-    auto rhs_var = BOOST_CAST<SideVariable<double> >(rhs.getComponentVariable(0));
+    auto res_var = BOOST_CAST<SideVariable<double>>(residual.getComponentVariable(0));
+    auto sol_var = BOOST_CAST<SideVariable<double>>(solution.getComponentVariable(0));
+    auto rhs_var = BOOST_CAST<SideVariable<double>>(rhs.getComponentVariable(0));
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -677,8 +677,8 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                                                                              const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    auto solution_var = BOOST_CAST<SideVariable<double> >(solution.getComponentVariable(0));
-    auto rhs_var = BOOST_CAST<SideVariable<double> >(rhs.getComponentVariable(0));
+    auto solution_var = BOOST_CAST<SideVariable<double>>(solution.getComponentVariable(0));
+    auto rhs_var = BOOST_CAST<SideVariable<double>>(rhs.getComponentVariable(0));
     if (solution_var->getDepth() != rhs_var->getDepth())
     {
         TBOX_ERROR("SCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
@@ -690,13 +690,13 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
-    auto scratch_sc_var = BOOST_CAST<SideVariable<double> >(scratch_var);
+    auto scratch_sc_var = BOOST_CAST<SideVariable<double>>(scratch_var);
     const int depth = solution_var->getDepth();
     if (scratch_sc_var->getDepth() != depth)
     {
         var_db->removePatchDataIndex(d_scratch_idx);
         const IntVector ghosts = d_gcw;
-        scratch_var = boost::make_shared<SideVariable<double> >(scratch_var->getDim(), scratch_var->getName(), depth);
+        scratch_var = boost::make_shared<SideVariable<double>>(scratch_var->getDim(), scratch_var->getName(), depth);
         d_scratch_idx = var_db->registerVariableAndContext(scratch_var, d_context, ghosts);
     }
 

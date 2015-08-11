@@ -122,7 +122,7 @@ public:
      * \brief Set the linear operators to be employed on the specified vector
      * component.
      */
-    void setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
+    void setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator>>& linear_ops,
                                unsigned int component);
 
     /*!
@@ -301,20 +301,20 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >
+    static std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>>
     getComponentVectors(SAMRAI::solv::SAMRAIVectorReal<double>* x);
-    static std::vector<boost::shared_ptr<const SAMRAI::solv::SAMRAIVectorReal<double> > >
+    static std::vector<boost::shared_ptr<const SAMRAI::solv::SAMRAIVectorReal<double>>>
     getComponentVectors(const SAMRAI::solv::SAMRAIVectorReal<double>* x);
 
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, boost::shared_ptr<LinearSolver> > d_pc_map;
+    std::map<unsigned int, boost::shared_ptr<LinearSolver>> d_pc_map;
 
     /*!
      * The component operators.
      */
-    std::map<unsigned int, std::vector<boost::shared_ptr<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int, std::vector<boost::shared_ptr<LinearOperator>>> d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component

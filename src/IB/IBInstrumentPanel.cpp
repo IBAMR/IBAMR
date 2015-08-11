@@ -961,9 +961,9 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            auto U_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(U_data_idx));
-            auto U_sc_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(U_data_idx));
-            auto P_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(P_data_idx));
+            auto U_cc_data = boost::dynamic_pointer_cast<CellData<double>>(patch->getPatchData(U_data_idx));
+            auto U_sc_data = boost::dynamic_pointer_cast<SideData<double>>(patch->getPatchData(U_data_idx));
+            auto P_cc_data = BOOST_CAST<CellData<double>>(patch->getPatchData(P_data_idx));
 
             for (auto b = patch_box.begin(), e = patch_box.end(); b != e; ++b)
             {
@@ -1060,7 +1060,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
-    std::vector<boost::multi_array<Vector, 1> > U_perimeter(d_num_meters);
+    std::vector<boost::multi_array<Vector, 1>> U_perimeter(d_num_meters);
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         U_perimeter[m].resize(boost::extents[d_num_perimeter_nodes[m]]);

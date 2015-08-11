@@ -656,7 +656,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     if (!initial_time && (level_number > 0 || old_level))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-        std::vector<boost::shared_ptr<RefinePatchStrategy> > fill_after_regrid_prolong_patch_strategies;
+        std::vector<boost::shared_ptr<RefinePatchStrategy>> fill_after_regrid_prolong_patch_strategies;
         auto fill_after_regrid_extrap_bc_op =
             boost::make_shared<CartExtrapPhysBdryOp>(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
         fill_after_regrid_prolong_patch_strategies.push_back(fill_after_regrid_extrap_bc_op);
@@ -690,11 +690,11 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
                 {
                     auto patch = *p;
                     auto var_current_data = patch->getPatchData(var_current_idx);
-                    auto var_current_cc_data = boost::dynamic_pointer_cast<CellData<double> >(var_current_data);
-                    auto var_current_ec_data = boost::dynamic_pointer_cast<EdgeData<double> >(var_current_data);
-                    auto var_current_fc_data = boost::dynamic_pointer_cast<FaceData<double> >(var_current_data);
-                    auto var_current_nc_data = boost::dynamic_pointer_cast<NodeData<double> >(var_current_data);
-                    auto var_current_sc_data = boost::dynamic_pointer_cast<SideData<double> >(var_current_data);
+                    auto var_current_cc_data = boost::dynamic_pointer_cast<CellData<double>>(var_current_data);
+                    auto var_current_ec_data = boost::dynamic_pointer_cast<EdgeData<double>>(var_current_data);
+                    auto var_current_fc_data = boost::dynamic_pointer_cast<FaceData<double>>(var_current_data);
+                    auto var_current_nc_data = boost::dynamic_pointer_cast<NodeData<double>>(var_current_data);
+                    auto var_current_sc_data = boost::dynamic_pointer_cast<SideData<double>>(var_current_data);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -827,7 +827,7 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHie
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+            auto tags_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
             tags_data->fillAll(0);
         }
     }
@@ -1293,7 +1293,7 @@ boost::shared_ptr<CoarsenAlgorithm> HierarchyIntegrator::getCoarsenAlgorithm(con
     return alg_it->second;
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule> >&
+const std::vector<boost::shared_ptr<RefineSchedule>>&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
@@ -1301,7 +1301,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule> >&
+const std::vector<boost::shared_ptr<RefineSchedule>>&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
@@ -1309,7 +1309,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 }
 
-const std::vector<boost::shared_ptr<CoarsenSchedule> >&
+const std::vector<boost::shared_ptr<CoarsenSchedule>>&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);

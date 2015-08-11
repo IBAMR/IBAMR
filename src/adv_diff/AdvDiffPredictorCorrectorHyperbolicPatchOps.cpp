@@ -214,7 +214,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
-        auto Q_data = BOOST_CAST<CellData<double> >(patch.getPatchData(Q_var, getDataContext()));
+        auto Q_data = BOOST_CAST<CellData<double>>(patch.getPatchData(Q_var, getDataContext()));
         auto u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
@@ -225,11 +225,11 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
             auto q_integral_var = d_q_integral_var[Q_var];
             auto u_integral_var = d_u_integral_var[u_var];
 
-            auto flux_integral_data = BOOST_CAST<FaceData<double> >(
+            auto flux_integral_data = BOOST_CAST<FaceData<double>>(
                 conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) : NULL);
-            auto q_integral_data = BOOST_CAST<FaceData<double> >(
+            auto q_integral_data = BOOST_CAST<FaceData<double>>(
                 !conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) : NULL);
-            auto u_integral_data = BOOST_CAST<FaceData<double> >(
+            auto u_integral_data = BOOST_CAST<FaceData<double>>(
                 !conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) : NULL);
 
             const IntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
@@ -301,7 +301,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsReal<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(Q_data, -1.0 / (dt * dt),
-                                        boost::shared_ptr<CellData<double> >(&N_data, NullDeleter()), patch_box);
+                                        boost::shared_ptr<CellData<double>>(&N_data, NullDeleter()), patch_box);
                 break;
             }
             default:

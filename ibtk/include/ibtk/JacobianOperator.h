@@ -89,7 +89,7 @@ public:
      * NULL pointer if the operator is not initialized, or if formJacobian() has
      * not been called.
      */
-    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const = 0;
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> getBaseVector() const = 0;
 
     //\}
 

@@ -474,7 +474,7 @@ public:
      * \brief Initialize the structure indexing information on the patch level.
      */
     void initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
-                                                 std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+                                                 std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
                                                  int level_number,
                                                  double init_data_time,
                                                  bool can_be_refined,
@@ -642,7 +642,7 @@ private:
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
-    void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
+    void getPatchVertices(std::vector<std::pair<int, int>>& point_indices,
                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                           int level_number,
                           bool can_be_refined,
@@ -714,9 +714,9 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<boost::shared_ptr<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                         unsigned int global_index_offset,
-                                                                         int level_number) const;
+    std::vector<boost::shared_ptr<IBTK::Streamable>> initializeNodeData(const std::pair<int, int>& point_index,
+                                                                        unsigned int global_index_offset,
+                                                                        int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.
@@ -755,7 +755,7 @@ private:
      * The base filenames of the structures are used to generate unique names
      * when registering data with the Silo data writer.
      */
-    std::vector<std::vector<std::string> > d_base_filename;
+    std::vector<std::vector<std::string>> d_base_filename;
 
     /*
      * Optional shift and scale factors.
@@ -775,8 +775,8 @@ private:
     /*
      * Vertex information.
      */
-    std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
+    std::vector<std::vector<int>> d_num_vertex, d_vertex_offset;
+    std::vector<std::vector<std::vector<IBTK::Point>>> d_vertex_posn;
 
     /*
      * Edge data structures.
@@ -793,53 +793,53 @@ private:
     /*
      * Spring information.
      */
-    std::vector<std::vector<bool> > d_enable_springs;
+    std::vector<std::vector<bool>> d_enable_springs;
 
-    std::vector<std::vector<std::multimap<int, Edge> > > d_spring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_spring_edge_map;
 
     struct SpringSpec
     {
         std::vector<double> parameters;
         int force_fcn_idx;
     };
-    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp> > > d_spring_spec_data;
+    std::vector<std::vector<std::map<Edge, SpringSpec, EdgeComp>>> d_spring_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_stiffness;
-    std::vector<std::vector<double> > d_uniform_spring_stiffness;
+    std::vector<std::vector<bool>> d_using_uniform_spring_stiffness;
+    std::vector<std::vector<double>> d_uniform_spring_stiffness;
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_rest_length;
-    std::vector<std::vector<double> > d_uniform_spring_rest_length;
+    std::vector<std::vector<bool>> d_using_uniform_spring_rest_length;
+    std::vector<std::vector<double>> d_uniform_spring_rest_length;
 
-    std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
-    std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
+    std::vector<std::vector<bool>> d_using_uniform_spring_force_fcn_idx;
+    std::vector<std::vector<int>> d_uniform_spring_force_fcn_idx;
 
     /*
      * Crosslink spring ("x-spring") information.
      */
-    std::vector<std::vector<bool> > d_enable_xsprings;
+    std::vector<std::vector<bool>> d_enable_xsprings;
 
-    std::vector<std::vector<std::multimap<int, Edge> > > d_xspring_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_xspring_edge_map;
 
     struct XSpringSpec
     {
         std::vector<double> parameters;
         int force_fcn_idx;
     };
-    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp> > > d_xspring_spec_data;
+    std::vector<std::vector<std::map<Edge, XSpringSpec, EdgeComp>>> d_xspring_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_stiffness;
-    std::vector<std::vector<double> > d_uniform_xspring_stiffness;
+    std::vector<std::vector<bool>> d_using_uniform_xspring_stiffness;
+    std::vector<std::vector<double>> d_uniform_xspring_stiffness;
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_rest_length;
-    std::vector<std::vector<double> > d_uniform_xspring_rest_length;
+    std::vector<std::vector<bool>> d_using_uniform_xspring_rest_length;
+    std::vector<std::vector<double>> d_uniform_xspring_rest_length;
 
-    std::vector<std::vector<bool> > d_using_uniform_xspring_force_fcn_idx;
-    std::vector<std::vector<int> > d_uniform_xspring_force_fcn_idx;
+    std::vector<std::vector<bool>> d_using_uniform_xspring_force_fcn_idx;
+    std::vector<std::vector<int>> d_uniform_xspring_force_fcn_idx;
 
     /*
      * Beam information.
      */
-    std::vector<std::vector<bool> > d_enable_beams;
+    std::vector<std::vector<bool>> d_enable_beams;
 
     struct BeamSpec
     {
@@ -847,91 +847,91 @@ private:
         double bend_rigidity;
         IBTK::Vector curvature;
     };
-    std::vector<std::vector<std::multimap<int, BeamSpec> > > d_beam_spec_data;
+    std::vector<std::vector<std::multimap<int, BeamSpec>>> d_beam_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
-    std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
+    std::vector<std::vector<bool>> d_using_uniform_beam_bend_rigidity;
+    std::vector<std::vector<double>> d_uniform_beam_bend_rigidity;
 
-    std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
-    std::vector<std::vector<IBTK::Vector> > d_uniform_beam_curvature;
+    std::vector<std::vector<bool>> d_using_uniform_beam_curvature;
+    std::vector<std::vector<IBTK::Vector>> d_uniform_beam_curvature;
 
     /*
      * Rod information.
      */
-    std::vector<std::vector<bool> > d_enable_rods;
+    std::vector<std::vector<bool>> d_enable_rods;
 
-    std::vector<std::vector<std::multimap<int, Edge> > > d_rod_edge_map;
+    std::vector<std::vector<std::multimap<int, Edge>>> d_rod_edge_map;
 
     struct RodSpec
     {
         boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
     };
-    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp> > > d_rod_spec_data;
+    std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp>>> d_rod_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_rod_properties;
-    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
+    std::vector<std::vector<bool>> d_using_uniform_rod_properties;
+    std::vector<std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>>> d_uniform_rod_properties;
 
     /*
      * Target point information.
      */
-    std::vector<std::vector<bool> > d_enable_target_points;
+    std::vector<std::vector<bool>> d_enable_target_points;
 
     struct TargetSpec
     {
         double stiffness, damping;
     };
-    std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
+    std::vector<std::vector<std::vector<TargetSpec>>> d_target_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
-    std::vector<std::vector<double> > d_uniform_target_stiffness;
+    std::vector<std::vector<bool>> d_using_uniform_target_stiffness;
+    std::vector<std::vector<double>> d_uniform_target_stiffness;
 
-    std::vector<std::vector<bool> > d_using_uniform_target_damping;
-    std::vector<std::vector<double> > d_uniform_target_damping;
+    std::vector<std::vector<bool>> d_using_uniform_target_damping;
+    std::vector<std::vector<double>> d_uniform_target_damping;
 
     /*
      * Anchor point information.
      */
-    std::vector<std::vector<bool> > d_enable_anchor_points;
+    std::vector<std::vector<bool>> d_enable_anchor_points;
 
     struct AnchorSpec
     {
         bool is_anchor_point;
     };
-    std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
+    std::vector<std::vector<std::vector<AnchorSpec>>> d_anchor_spec_data;
 
     /*
      * Mass information for the pIB method.
      */
-    std::vector<std::vector<bool> > d_enable_bdry_mass;
+    std::vector<std::vector<bool>> d_enable_bdry_mass;
 
     struct BdryMassSpec
     {
         double bdry_mass, stiffness;
     };
-    std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
+    std::vector<std::vector<std::vector<BdryMassSpec>>> d_bdry_mass_spec_data;
 
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass;
-    std::vector<std::vector<double> > d_uniform_bdry_mass;
+    std::vector<std::vector<bool>> d_using_uniform_bdry_mass;
+    std::vector<std::vector<double>> d_uniform_bdry_mass;
 
-    std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
-    std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
+    std::vector<std::vector<bool>> d_using_uniform_bdry_mass_stiffness;
+    std::vector<std::vector<double>> d_uniform_bdry_mass_stiffness;
 
     /*
      * Orthonormal directors for the generalized IB method.
      */
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
+    std::vector<std::vector<std::vector<std::vector<double>>>> d_directors;
 
     /*
      * Instrumentation information.
      */
-    std::vector<std::vector<bool> > d_enable_instrumentation;
-    std::vector<std::vector<std::map<int, std::pair<int, int> > > > d_instrument_idx;
+    std::vector<std::vector<bool>> d_enable_instrumentation;
+    std::vector<std::vector<std::map<int, std::pair<int, int>>>> d_instrument_idx;
 
     /*
      * Source information.
      */
-    std::vector<std::vector<bool> > d_enable_sources;
-    std::vector<std::vector<std::map<int, int> > > d_source_idx;
+    std::vector<std::vector<bool>> d_enable_sources;
+    std::vector<std::vector<std::map<int, int>>> d_source_idx;
 
     /*
      * Data required to specify connectivity information for visualization

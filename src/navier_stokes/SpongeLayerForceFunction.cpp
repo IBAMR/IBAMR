@@ -141,8 +141,8 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
                                               const boost::shared_ptr<PatchLevel>& /*level*/)
 {
     auto f_data = patch->getPatchData(data_idx);
-    auto f_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_data);
-    auto f_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_data);
+    auto f_cc_data = boost::dynamic_pointer_cast<CellData<double>>(f_data);
+    auto f_sc_data = boost::dynamic_pointer_cast<SideData<double>>(f_data);
     TBOX_ASSERT(f_cc_data || f_sc_data);
     if (f_cc_data) f_cc_data->fillAll(0.0);
     if (f_sc_data) f_sc_data->fillAll(0.0);
@@ -155,11 +155,11 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     auto u_current_data = patch->getPatchData(u_var, d_fluid_solver->getCurrentContext());
     auto u_new_data = patch->getPatchData(u_var, d_fluid_solver->getNewContext());
     if (f_cc_data)
-        setDataOnPatchCell(f_cc_data, BOOST_CAST<CellData<double> >(u_current_data),
-                           BOOST_CAST<CellData<double> >(u_new_data), kappa, patch);
+        setDataOnPatchCell(f_cc_data, BOOST_CAST<CellData<double>>(u_current_data),
+                           BOOST_CAST<CellData<double>>(u_new_data), kappa, patch);
     if (f_sc_data)
-        setDataOnPatchSide(f_sc_data, BOOST_CAST<SideData<double> >(u_current_data),
-                           BOOST_CAST<SideData<double> >(u_new_data), kappa, patch);
+        setDataOnPatchSide(f_sc_data, BOOST_CAST<SideData<double>>(u_current_data),
+                           BOOST_CAST<SideData<double>>(u_new_data), kappa, patch);
     return;
 }
 
@@ -167,9 +167,9 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void SpongeLayerForceFunction::setDataOnPatchCell(const boost::shared_ptr<CellData<double> >& F_data,
-                                                  const boost::shared_ptr<CellData<double> >& U_current_data,
-                                                  const boost::shared_ptr<CellData<double> >& U_new_data,
+void SpongeLayerForceFunction::setDataOnPatchCell(const boost::shared_ptr<CellData<double>>& F_data,
+                                                  const boost::shared_ptr<CellData<double>>& U_current_data,
+                                                  const boost::shared_ptr<CellData<double>>& U_new_data,
                                                   const double kappa,
                                                   const boost::shared_ptr<Patch>& patch)
 {
@@ -219,9 +219,9 @@ void SpongeLayerForceFunction::setDataOnPatchCell(const boost::shared_ptr<CellDa
     return;
 }
 
-void SpongeLayerForceFunction::setDataOnPatchSide(const boost::shared_ptr<SideData<double> >& F_data,
-                                                  const boost::shared_ptr<SideData<double> >& U_current_data,
-                                                  const boost::shared_ptr<SideData<double> >& U_new_data,
+void SpongeLayerForceFunction::setDataOnPatchSide(const boost::shared_ptr<SideData<double>>& F_data,
+                                                  const boost::shared_ptr<SideData<double>>& U_current_data,
+                                                  const boost::shared_ptr<SideData<double>>& U_new_data,
                                                   const double kappa,
                                                   const boost::shared_ptr<Patch>& patch)
 {

@@ -263,7 +263,7 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, boost::shared_ptr<LinearSolver> > d_pc_map;
+    std::map<unsigned int, boost::shared_ptr<LinearSolver>> d_pc_map;
 };
 } // namespace IBTK
 

@@ -72,7 +72,7 @@ public:
     /*!
      * \brief The continer class.
      */
-    typedef std::vector<boost::shared_ptr<T> > DataSet;
+    typedef std::vector<boost::shared_ptr<T>> DataSet;
 
     /*!
      * \brief The type of object, T, stored in the collection.

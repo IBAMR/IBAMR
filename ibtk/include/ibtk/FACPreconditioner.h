@@ -284,7 +284,7 @@ protected:
     int d_finest_ln;
     MGCycleType d_cycle_type;
     int d_num_pre_sweeps, d_num_post_sweeps;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_f, d_r;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_f, d_r;
     bool d_recompute_residual;
 
 private:

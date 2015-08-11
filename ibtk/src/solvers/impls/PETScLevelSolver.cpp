@@ -119,7 +119,7 @@ void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 
 void PETScLevelSolver::setNullspace(
     bool contains_constant_vec,
-    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double>>>& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();

@@ -431,8 +431,8 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
-        auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
-        auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(patch_data_index));
+        auto fdata = BOOST_CAST<CellData<double>>(fine.getPatchData(patch_data_index));
+        auto cdata = BOOST_CAST<CellData<double>>(coarse.getPatchData(patch_data_index));
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
         const int data_depth = fdata->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
@@ -586,8 +586,8 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
     for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
-        auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
-        auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(patch_data_index));
+        auto fdata = BOOST_CAST<CellData<double>>(fine.getPatchData(patch_data_index));
+        auto cdata = BOOST_CAST<CellData<double>>(coarse.getPatchData(patch_data_index));
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
@@ -681,7 +681,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     for (auto it = d_patch_data_indices.begin(), e = d_patch_data_indices.end(); it != e; ++it)
     {
         const int& patch_data_index = *it;
-        auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
+        auto data = BOOST_CAST<CellData<double>>(patch.getPatchData(patch_data_index));
         const int data_depth = data->getDepth();
 
         const Box& patch_box = patch.getBox();
@@ -762,7 +762,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
     for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
-        auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
+        auto data = BOOST_CAST<CellData<double>>(patch.getPatchData(patch_data_index));
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {

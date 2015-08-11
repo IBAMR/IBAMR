@@ -255,7 +255,7 @@ private:
      */
     void setPhysicalBoundaryConditions_cell(
         SAMRAI::hier::Patch& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -263,7 +263,7 @@ private:
      */
     void setPhysicalBoundaryConditions_face(
         SAMRAI::hier::Patch& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -271,7 +271,7 @@ private:
      */
     void setPhysicalBoundaryConditions_node(
         SAMRAI::hier::Patch& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -279,7 +279,7 @@ private:
      */
     void setPhysicalBoundaryConditions_side(
         SAMRAI::hier::Patch& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box, std::pair<int, int>>>& bdry_fill_boxes);
 
     /*
      * The patch data indices corresponding to the "scratch" patch data that

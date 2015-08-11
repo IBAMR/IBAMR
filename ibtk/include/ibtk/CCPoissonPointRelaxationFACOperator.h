@@ -280,8 +280,8 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& C_data,
-                                                  const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& D_data,
+                                                  const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& C_data,
+                                                  const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& D_data,
                                                   const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                                   const SAMRAI::hier::IntVector& ghost_cell_width);
 
@@ -290,8 +290,8 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                     const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& C_data,
-                                                     const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& D_data,
+                                                     const boost::shared_ptr<SAMRAI::pdat::CellData<double>>& C_data,
+                                                     const boost::shared_ptr<SAMRAI::pdat::SideData<double>>& D_data,
                                                      const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                                      const SAMRAI::hier::IntVector& ghost_cell_width);
 
@@ -305,14 +305,14 @@ private:
      * Mappings from patch indices to patch operators.
      */
     bool d_using_petsc_smoothers;
-    std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<Mat> > d_patch_mat;
+    std::vector<std::vector<Vec>> d_patch_vec_e, d_patch_vec_f;
+    std::vector<std::vector<Mat>> d_patch_mat;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxContainer> > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxContainer>> d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box>>> d_patch_neighbor_overlap;
 };
 } // namespace IBTK
 

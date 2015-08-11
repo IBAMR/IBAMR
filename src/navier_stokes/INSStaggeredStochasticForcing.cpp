@@ -474,8 +474,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                     shifted_patch_x_lower[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     shifted_patch_x_upper[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
-                    patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(
-                        ratio_to_level_zero, touches_regular_bdry, dx, shifted_patch_x_lower, shifted_patch_x_upper));
+                    patch->setPatchGeometry(
+                        boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, BLOCK_ID,
+                                                                   dx, shifted_patch_x_lower, shifted_patch_x_upper));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -547,9 +548,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         }
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
-                        patch->setPatchGeometry(
-                            boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero, touches_regular_bdry, dx,
-                                                                       shifted_patch_x_lower, shifted_patch_x_upper));
+                        patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(
+                            ratio_to_level_zero, touches_regular_bdry, BLOCK_ID, dx, shifted_patch_x_lower,
+                            shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.

@@ -150,7 +150,7 @@ void FaceDataSynchronization::initializeOperatorState(
 #ifndef NDEBUG
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double> >(var);
+        auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double>>(var);
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
@@ -235,7 +235,7 @@ void FaceDataSynchronization::resetTransactionComponents(
 #ifndef NDEBUG
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double> >(var);
+        auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double>>(var);
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"

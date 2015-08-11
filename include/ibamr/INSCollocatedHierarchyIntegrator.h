@@ -286,44 +286,44 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
 
     /*
      * Hierarchy operators and solvers.
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_scratch_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_rhs_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_adv_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_N_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_rhs_vec;
-    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > > d_U_nul_vecs;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_rhs_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_adv_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_N_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_Phi_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_Phi_rhs_vec;
+    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>> d_U_nul_vecs;
     bool d_vectors_need_init;
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
 
     /*!
      * Fluid solver variables.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_U_var;
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_u_ADV_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_P_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_F_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Q_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_N_old_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_u_ADV_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_P_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_F_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Q_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_N_old_var;
 
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_U_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_u_ADV_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Omega_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Div_U_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Div_u_ADV_var;
 
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_Norm_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Grad_P_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Phi_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Grad_Phi_cc_var;
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_Grad_Phi_fc_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_F_div_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Omega_Norm_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Grad_P_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Phi_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Grad_Phi_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_Grad_Phi_fc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_F_div_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

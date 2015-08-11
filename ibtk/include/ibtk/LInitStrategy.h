@@ -115,7 +115,7 @@ public:
      */
     virtual void
     initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
-                                            std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+                                            std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,

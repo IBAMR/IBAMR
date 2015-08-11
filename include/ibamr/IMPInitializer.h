@@ -141,7 +141,7 @@ public:
      * \brief Initialize the structure indexing information on the patch level.
      */
     void initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
-                                                 std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+                                                 std::map<int, std::pair<int, int>>& strct_id_to_lag_idx_range_map,
                                                  int level_number,
                                                  double init_data_time,
                                                  bool can_be_refined,
@@ -220,7 +220,7 @@ private:
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
-    void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
+    void getPatchVertices(std::vector<std::pair<int, int>>& point_indices,
                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                           int level_number,
                           bool can_be_refined) const;
@@ -259,15 +259,15 @@ private:
     /*
      * Assignment of meshes to level numbers.
      */
-    std::vector<std::vector<libMesh::MeshBase*> > d_meshes;
+    std::vector<std::vector<libMesh::MeshBase*>> d_meshes;
 
     /*
      * Material point data.
      */
-    std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<libMesh::Point> > > d_vertex_posn;
-    std::vector<std::vector<std::vector<double> > > d_vertex_wgt;
-    std::vector<std::vector<std::vector<libMesh::subdomain_id_type> > > d_vertex_subdomain_id;
+    std::vector<std::vector<int>> d_num_vertex, d_vertex_offset;
+    std::vector<std::vector<std::vector<libMesh::Point>>> d_vertex_posn;
+    std::vector<std::vector<std::vector<double>>> d_vertex_wgt;
+    std::vector<std::vector<std::vector<libMesh::subdomain_id_type>>> d_vertex_subdomain_id;
 
     /*
      * An (optional) Lagrangian Silo data writer.

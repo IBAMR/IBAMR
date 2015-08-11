@@ -226,8 +226,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     p_ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    auto eul_sol_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::eulerian_sol_vec", d_hierarchy,
-                                                                     coarsest_ln, finest_ln);
+    auto eul_sol_vec = boost::make_shared<SAMRAIVectorReal<double>>(d_object_name + "::eulerian_sol_vec", d_hierarchy,
+                                                                    coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
@@ -426,8 +426,8 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(u_new_idx));
-            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(u_new_idx));
+            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double>>(patch->getPatchData(u_new_idx));
+            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double>>(patch->getPatchData(u_new_idx));
             double u_max = 0.0;
             if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
             if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);

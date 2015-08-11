@@ -166,7 +166,7 @@ private:
     boost::shared_ptr<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_x, d_b;
 
     // Hierarchy configuration.
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;

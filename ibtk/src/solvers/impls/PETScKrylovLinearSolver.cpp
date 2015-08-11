@@ -194,7 +194,7 @@ void PETScKrylovLinearSolver::setPreconditioner(const boost::shared_ptr<LinearSo
 
 void PETScKrylovLinearSolver::setNullspace(
     const bool contains_constant_vec,
-    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double>>>& nullspace_basis_vecs)
 {
     deallocateNullspaceData();
     KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
@@ -221,16 +221,16 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
 
     // Solve the system using a PETSc KSP object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
-                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+                                               boost::shared_ptr<SAMRAIVectorReal<double>>(&x, NullDeleter()));
     d_A->setHomogeneousBc(d_homogeneous_bc);
     if (d_homogeneous_bc)
     {
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b,
-                                                   boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+                                                   boost::shared_ptr<SAMRAIVectorReal<double>>(&b, NullDeleter()));
     }
     else
     {
-        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&b, NullDeleter()));
         d_A->modifyRhsForInhomogeneousBc(*d_b);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
         d_A->setHomogeneousBc(true);

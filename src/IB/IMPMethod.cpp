@@ -268,7 +268,7 @@ void IMPMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = d_ghosts.max();
     for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
     {
@@ -391,8 +391,8 @@ void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_t
 }
 
 void IMPMethod::interpolateVelocity(const int u_data_idx,
-                                    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                    const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                    const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                     const double data_time)
 {
     const int coarsest_ln = 0;
@@ -402,10 +402,10 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    auto u_sc_var = BOOST_CAST<SideVariable<double> >(u_var);
+    auto u_sc_var = BOOST_CAST<SideVariable<double>>(u_var);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data, *X_data;
+    std::vector<boost::shared_ptr<LData>> *U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -439,7 +439,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
+            auto u_data = BOOST_CAST<SideData<double>>(patch->getPatchData(u_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
             const Box& patch_box = patch->getBox();
@@ -545,7 +545,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData>> *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -602,7 +602,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> > *U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData>> *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -656,7 +656,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<boost::shared_ptr<LData> > *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<boost::shared_ptr<LData>> *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -714,7 +714,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<boost::shared_ptr<LData> > *X_data, *F_data;
+    std::vector<boost::shared_ptr<LData>> *X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -770,7 +770,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 
 void IMPMethod::spreadForce(const int f_data_idx,
                             RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                            const std::vector<boost::shared_ptr<RefineSchedule> >& /*f_prolongation_scheds*/,
+                            const std::vector<boost::shared_ptr<RefineSchedule>>& /*f_prolongation_scheds*/,
                             const double data_time)
 {
     const int coarsest_ln = 0;
@@ -780,7 +780,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    auto f_sc_var = BOOST_CAST<SideVariable<double> >(f_var);
+    auto f_sc_var = BOOST_CAST<SideVariable<double>>(f_var);
 
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
@@ -794,7 +794,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Synchronize Lagrangian values.
-    std::vector<boost::shared_ptr<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData>>* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -820,7 +820,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+            auto f_data = BOOST_CAST<SideData<double>>(patch->getPatchData(f_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
             const Box& patch_box = patch->getBox();
@@ -929,8 +929,8 @@ void IMPMethod::spreadForce(const int f_data_idx,
 void IMPMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                          const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                          int /*u_data_idx*/,
-                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                         const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                         const std::vector<boost::shared_ptr<CoarsenSchedule>>& /*u_synch_scheds*/,
+                                         const std::vector<boost::shared_ptr<RefineSchedule>>& /*u_ghost_fill_scheds*/,
                                          int /*integrator_step*/,
                                          double /*init_data_time*/,
                                          bool initial_time)
@@ -1085,7 +1085,7 @@ void IMPMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data,
+void IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData>>** X_data,
                                 bool** X_needs_ghost_fill,
                                 double data_time)
 {
@@ -1124,8 +1124,8 @@ void IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data,
     return;
 }
 
-void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data,
-                                std::vector<boost::shared_ptr<LData> >** Grad_U_data,
+void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData>>** U_data,
+                                std::vector<boost::shared_ptr<LData>>** Grad_U_data,
                                 double data_time)
 {
     const int coarsest_ln = 0;
@@ -1164,7 +1164,7 @@ void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data,
     return;
 }
 
-void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData> >** F_data, double data_time)
+void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData>>** F_data, double data_time)
 {
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -1181,9 +1181,9 @@ void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData> 
     return;
 }
 
-void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
-                                   const std::vector<boost::shared_ptr<LData> >& new_data,
-                                   const std::vector<boost::shared_ptr<LData> >& half_data)
+void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData>>& current_data,
+                                   const std::vector<boost::shared_ptr<LData>>& new_data,
+                                   const std::vector<boost::shared_ptr<LData>>& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;

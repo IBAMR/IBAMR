@@ -180,7 +180,7 @@ private:
      */
     double d_std;
     unsigned int d_num_rand_vals;
-    std::vector<std::vector<double> > d_weights;
+    std::vector<std::vector<double>> d_weights;
 
     /*!
      * Boundary condition scalings.
@@ -192,16 +192,16 @@ private:
      * stochastic stresses.
      */
     boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_W_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_W_cc_var;
     int d_W_cc_idx;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > d_W_nc_var;
+    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_W_nc_var;
     int d_W_nc_idx;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> > d_W_ec_var;
+    boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double>> d_W_ec_var;
     int d_W_ec_idx;
     std::vector<int> d_W_ec_idxs;
 #endif

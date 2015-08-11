@@ -246,21 +246,21 @@ private:
     /*!
      * The names of the sources and sinks.
      */
-    static std::vector<std::vector<std::string> > s_source_names;
+    static std::vector<std::vector<std::string>> s_source_names;
 
     /*!
      * The sizes of the sources and sinks.
      */
-    static std::vector<std::vector<double> > s_source_radii;
+    static std::vector<std::vector<double>> s_source_radii;
 
     /*
      * Source/sink data.
      */
     std::vector<int> d_n_src;
-    std::vector<std::vector<std::string> > d_source_names;
-    std::vector<std::vector<double> > d_r_src;
-    std::vector<std::vector<int> > d_num_perimeter_nodes;
-    std::vector<std::vector<double> > d_Q_src, d_P_src;
+    std::vector<std::vector<std::string>> d_source_names;
+    std::vector<std::vector<double>> d_r_src;
+    std::vector<std::vector<int>> d_num_perimeter_nodes;
+    std::vector<std::vector<double>> d_Q_src, d_P_src;
 };
 } // namespace IBAMR
 

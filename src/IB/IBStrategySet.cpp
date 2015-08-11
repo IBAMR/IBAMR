@@ -161,8 +161,8 @@ void IBStrategySet::updateFixedLEOperators()
 }
 
 void IBStrategySet::interpolateVelocity(int u_data_idx,
-                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                         double data_time)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -210,7 +210,7 @@ void IBStrategySet::computeLagrangianForce(double data_time)
 
 void IBStrategySet::spreadForce(int f_data_idx,
                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
+                                const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
                                 double data_time)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -240,7 +240,7 @@ void IBStrategySet::computeLagrangianFluidSource(double data_time)
 }
 
 void IBStrategySet::spreadFluidSource(int q_data_idx,
-                                      const std::vector<boost::shared_ptr<RefineSchedule> >& q_prolongation_scheds,
+                                      const std::vector<boost::shared_ptr<RefineSchedule>>& q_prolongation_scheds,
                                       double data_time)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -251,8 +251,8 @@ void IBStrategySet::spreadFluidSource(int q_data_idx,
 }
 
 void IBStrategySet::interpolatePressure(int p_data_idx,
-                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& p_synch_scheds,
-                                        const std::vector<boost::shared_ptr<RefineSchedule> >& p_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule>>& p_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule>>& p_ghost_fill_scheds,
                                         double data_time)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -292,8 +292,8 @@ void IBStrategySet::postprocessData()
 void IBStrategySet::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                              const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                              int u_data_idx,
-                                             const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                             const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                             const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                             const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
                                              int integrator_step,
                                              double init_data_time,
                                              bool initial_time)

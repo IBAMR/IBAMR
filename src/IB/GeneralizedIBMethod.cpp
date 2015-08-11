@@ -139,17 +139,17 @@ void GeneralizedIBMethod::registerEulerianVariables()
     const IntVector no_ghosts = IntVector::getZero(DIM);
 
     auto u_var = d_ib_solver->getVelocityVariable();
-    if (boost::dynamic_pointer_cast<CellVariable<double> >(u_var))
+    if (boost::dynamic_pointer_cast<CellVariable<double>>(u_var))
     {
-        d_f_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::f", NDIM);
-        d_w_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::w", NDIM);
-        d_n_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::n", NDIM);
+        d_f_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::f", NDIM);
+        d_w_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::w", NDIM);
+        d_n_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::n", NDIM);
     }
-    else if (boost::dynamic_pointer_cast<SideVariable<double> >(u_var))
+    else if (boost::dynamic_pointer_cast<SideVariable<double>>(u_var))
     {
-        d_f_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::f");
-        d_w_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::w");
-        d_n_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::n");
+        d_f_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::f");
+        d_w_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::w");
+        d_n_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::n");
     }
     else
     {
@@ -257,17 +257,16 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
     return;
 }
 
-void GeneralizedIBMethod::interpolateVelocity(
-    const int u_data_idx,
-    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-    const double data_time)
+void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
+                                              const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+                                              const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
+                                              const double data_time)
 {
     // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
     // Interpolate the angular velocities.
-    std::vector<boost::shared_ptr<LData> >* W_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* W_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         W_data = &d_W_current_data;
@@ -286,16 +285,16 @@ void GeneralizedIBMethod::interpolateVelocity(
 
     const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     auto u_var = d_ib_solver->getVelocityVariable();
-    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
-    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
+    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(u_var);
+    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(u_var);
     if (u_cc_var)
     {
-        auto w_cc_var = BOOST_CAST<CellVariable<double> >(d_w_var);
+        auto w_cc_var = BOOST_CAST<CellVariable<double>>(d_w_var);
         getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
-        auto w_sc_var = BOOST_CAST<SideVariable<double> >(d_w_var);
+        auto w_sc_var = BOOST_CAST<SideVariable<double>>(d_w_var);
         getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, data_time);
     }
     else
@@ -303,11 +302,11 @@ void GeneralizedIBMethod::interpolateVelocity(
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                                  << "  unsupported velocity data centering" << std::endl);
     }
-    std::vector<boost::shared_ptr<LData> >* X_LE_data;
+    std::vector<boost::shared_ptr<LData>>* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<boost::shared_ptr<CoarsenSchedule> >(),
+    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<boost::shared_ptr<CoarsenSchedule>>(),
                              getGhostfillRefineSchedules(d_object_name + "::w"), data_time);
     resetAnchorPointValues(*W_data,
                            /*coarsest_ln*/ 0,
@@ -445,10 +444,10 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     int ierr;
-    std::vector<boost::shared_ptr<LData> >* F_data = NULL;
-    std::vector<boost::shared_ptr<LData> >* N_data = NULL;
-    std::vector<boost::shared_ptr<LData> >* X_data = NULL;
-    std::vector<boost::shared_ptr<LData> >* D_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* F_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* N_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* X_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* D_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
@@ -493,12 +492,12 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
 
 void GeneralizedIBMethod::spreadForce(const int f_data_idx,
                                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                      const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
+                                      const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
                                       const double data_time)
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
 
-    std::vector<boost::shared_ptr<LData> >* N_data = NULL;
+    std::vector<boost::shared_ptr<LData>>* N_data = NULL;
     bool* N_needs_ghost_fill = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -518,12 +517,12 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
     }
 
-    std::vector<boost::shared_ptr<LData> >* X_LE_data;
+    std::vector<boost::shared_ptr<LData>>* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
     d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, f_phys_bdry_op,
-                             std::vector<boost::shared_ptr<RefineSchedule> >(), data_time, *N_needs_ghost_fill,
+                             std::vector<boost::shared_ptr<RefineSchedule>>(), data_time, *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
     *N_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
@@ -537,18 +536,18 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     }
     const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     auto u_var = d_ib_solver->getVelocityVariable();
-    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
-    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
+    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(u_var);
+    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(u_var);
     if (u_cc_var)
     {
-        auto f_cc_var = BOOST_CAST<CellVariable<double> >(d_f_var);
-        auto n_cc_var = BOOST_CAST<CellVariable<double> >(d_n_var);
+        auto f_cc_var = BOOST_CAST<CellVariable<double>>(d_f_var);
+        auto n_cc_var = BOOST_CAST<CellVariable<double>>(d_n_var);
         getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
-        auto f_sc_var = BOOST_CAST<SideVariable<double> >(d_f_var);
-        auto n_sc_var = BOOST_CAST<SideVariable<double> >(d_n_var);
+        auto f_sc_var = BOOST_CAST<SideVariable<double>>(d_f_var);
+        auto n_sc_var = BOOST_CAST<SideVariable<double>>(d_n_var);
         getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, no_fill_op, data_time);
     }
     else
@@ -564,8 +563,8 @@ void GeneralizedIBMethod::initializePatchHierarchy(
     const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
     int u_data_idx,
-    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+    const std::vector<boost::shared_ptr<CoarsenSchedule>>& u_synch_scheds,
+    const std::vector<boost::shared_ptr<RefineSchedule>>& u_ghost_fill_scheds,
     int integrator_step,
     double init_data_time,
     bool initial_time)
@@ -583,8 +582,8 @@ void GeneralizedIBMethod::initializePatchHierarchy(
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
         // Initialize the interpolated angular velocity field.
-        std::vector<boost::shared_ptr<LData> > W_data(finest_ln + 1);
-        std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData>> W_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData>> X_data(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -593,16 +592,16 @@ void GeneralizedIBMethod::initializePatchHierarchy(
         }
         const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
         auto u_var = d_ib_solver->getVelocityVariable();
-        auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
-        auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
+        auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(u_var);
+        auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(u_var);
         if (u_cc_var)
         {
-            auto w_cc_var = BOOST_CAST<CellVariable<double> >(d_w_var);
+            auto w_cc_var = BOOST_CAST<CellVariable<double>>(d_w_var);
             getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, init_data_time);
         }
         else if (u_sc_var)
         {
-            auto w_sc_var = BOOST_CAST<SideVariable<double> >(d_w_var);
+            auto w_sc_var = BOOST_CAST<SideVariable<double>>(d_w_var);
             getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, init_data_time);
         }
         else
@@ -611,7 +610,7 @@ void GeneralizedIBMethod::initializePatchHierarchy(
                                      << "  unsupported velocity data centering" << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<boost::shared_ptr<CoarsenSchedule> >(),
+        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<boost::shared_ptr<CoarsenSchedule>>(),
                                  getGhostfillRefineSchedules(d_object_name + "::w"), init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }

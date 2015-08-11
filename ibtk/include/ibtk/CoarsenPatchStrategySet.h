@@ -160,7 +160,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.
      */
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenPatchStrategy> > d_strategy_set;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenPatchStrategy>> d_strategy_set;
 };
 } // namespace IBTK
 

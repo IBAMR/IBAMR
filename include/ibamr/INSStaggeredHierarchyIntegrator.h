@@ -207,8 +207,8 @@ public:
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
-    void setupSolverVectors(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& sol_vec,
-                            const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& rhs_vec,
+    void setupSolverVectors(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& sol_vec,
+                            const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -218,8 +218,8 @@ public:
      * integrator, and copy the solution data into the state data maintained by
      * the integrator.
      */
-    void resetSolverVectors(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& sol_vec,
-                            const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& rhs_vec,
+    void resetSolverVectors(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& sol_vec,
+                            const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -318,9 +318,9 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
-    boost::shared_ptr<SAMRAI::math::HierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double>> d_hier_cc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double>> d_hier_fc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchySideDataOpsReal<double>> d_hier_sc_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -333,16 +333,16 @@ private:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_scratch_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_rhs_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_adv_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_N_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_P_scratch_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_P_rhs_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_sol_vec;
-    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_rhs_vec;
-    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > > d_nul_vecs;
-    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > > d_U_nul_vecs;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_rhs_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_U_adv_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_N_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_P_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_P_rhs_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_sol_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>> d_rhs_vec;
+    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>> d_nul_vecs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double>>> d_U_nul_vecs;
     bool d_vectors_need_init;
 
     std::string d_stokes_solver_type, d_stokes_precond_type;
@@ -353,25 +353,25 @@ private:
     /*!
      * Fluid solver variables.
      */
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_U_cc_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_P_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_F_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_F_cc_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Q_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_N_old_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_U_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_P_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_F_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_F_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Q_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_N_old_var;
 
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_U_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Omega_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Div_U_var;
 
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_Norm_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_regrid_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_src_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_indicator_var;
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_F_div_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_Omega_Norm_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_U_regrid_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_U_src_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_indicator_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_F_div_var;
 
-    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_rho_var;
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_rho_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double>> d_rho_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_rho_cc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
