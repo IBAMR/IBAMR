@@ -123,7 +123,7 @@ void IBStrategy::registerEulerianCommunicationAlgorithms()
 
 void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<PatchHierarchy>& hierarchy) const
 {
-    const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
+    const unsigned int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
     for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;

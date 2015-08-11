@@ -277,7 +277,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     const std::vector<BoundaryBox> physical_codim3_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const auto n_physical_codim3_boxes = physical_codim3_boxes.size();
-    for (int n = 0; n < n_physical_codim3_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim3_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim3_boxes[n];
         const Box bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);

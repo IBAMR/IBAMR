@@ -75,14 +75,12 @@
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
 
@@ -483,8 +481,8 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    auto sc_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(d_gcw, false, false, true);
-    auto cc_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(d_gcw, false, false, true);
+    boost::shared_ptr<VariableFillPattern> sc_fill_pattern = NULL;
+    boost::shared_ptr<VariableFillPattern> cc_fill_pattern = NULL;
     InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
                                                           d_U_bc_coefs, sc_fill_pattern);
@@ -575,8 +573,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     d_P_bc_op = boost::make_shared<CartCellRobinPhysBdryOp>(d_cell_scratch_idx, d_P_bc_coef, false);
     d_U_cf_bdry_op = boost::make_shared<CartSideDoubleQuadraticCFInterpolation>();
     d_P_cf_bdry_op = boost::make_shared<CartCellDoubleQuadraticCFInterpolation>();
-    d_U_op_stencil_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(d_gcw, false, false, false);
-    d_P_op_stencil_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(d_gcw, false, false, false);
+    d_U_op_stencil_fill_pattern = NULL;
+    d_P_op_stencil_fill_pattern = NULL;
     d_U_synch_fill_pattern = boost::make_shared<SideSynchCopyFillPattern>();
 
     // Initialize the coarse level solvers when needed.

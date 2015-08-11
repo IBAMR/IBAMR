@@ -60,23 +60,15 @@ namespace IBTK
  * \brief Class CellCellNoCornersFillPattern is a concrete implementation of the
  * abstract base class SAMRAI::xfer::VariableFillPattern.  It is used to
  * calculate overlaps according to a pattern which limits overlaps to the
- * cell-centered ghost region surrounding a patch, excluding all corners.  In
- * 3D, it is also possible to configure this fill pattern object also to exclude
- * all edges.
+ * cell-centered ghost region surrounding a patch, excluding all corners.
  */
 class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * \note Parameters include_edges_on_dst_level and
-     * include_edges_on_src_level have no effect for 2D problems.
      */
-    CellNoCornersFillPattern(int stencil_width,
-                             bool include_dst_patch_box,
-                             bool include_edges_on_dst_level,
-                             bool include_edges_on_src_level);
+    CellNoCornersFillPattern(int stencil_width);
 
     /*!
      * \brief Destructor.
@@ -169,9 +161,6 @@ private:
     CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that);
 
     SAMRAI::hier::IntVector d_stencil_width;
-    const bool d_include_dst_patch_box;
-    const bool d_include_edges_on_dst_level;
-    const bool d_include_edges_on_src_level;
 };
 } // namespace IBTK
 

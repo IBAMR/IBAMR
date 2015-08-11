@@ -294,15 +294,15 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
 
 void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<PatchHierarchy>& hierarchy) const
 {
-    const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
+    const unsigned int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
     tag_buffer.resize(finest_hier_ln);
     for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = d_ghosts.max();
-    for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
+    for (unsigned int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
     {
-        const int data_ln = tag_ln + 1;
-        const int can_be_refined = data_ln < finest_hier_ln;
+        const auto data_ln = tag_ln + 1;
+        const bool can_be_refined = data_ln < finest_hier_ln;
         if (!d_l_initializer->getLevelHasLagrangianData(data_ln, can_be_refined)) continue;
         tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
     }

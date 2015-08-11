@@ -52,7 +52,6 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -218,7 +217,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
-    auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
+    boost::shared_ptr<VariableFillPattern> fill_pattern = NULL;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_transaction_comp(P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                          DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
@@ -319,7 +318,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
+    boost::shared_ptr<VariableFillPattern> fill_pattern = NULL;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,

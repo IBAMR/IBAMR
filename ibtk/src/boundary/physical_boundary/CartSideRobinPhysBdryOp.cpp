@@ -856,7 +856,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
     }
     const IntVector gcw_to_fill = IntVector::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
-    for (int n = 0; n < n_physical_codim3_boxes; ++n)
+    for (unsigned int n = 0; n < n_physical_codim3_boxes; ++n)
     {
         const BoundaryBox& bdry_box = physical_codim3_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();

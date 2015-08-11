@@ -49,7 +49,6 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/SCLaplaceOperator.h"
-#include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -76,7 +75,7 @@ namespace IBTK
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int SIDEG = 1;
+//static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -227,10 +226,6 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     // Setup the interpolation transaction information.
     d_fill_pattern = NULL;
-    if (d_poisson_spec.dIsConstant())
-    {
-        d_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
-    }
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)

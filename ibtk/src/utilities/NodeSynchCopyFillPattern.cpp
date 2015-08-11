@@ -56,6 +56,14 @@ namespace IBTK
 namespace
 {
 static const std::string PATTERN_NAME = "NODE_SYNCH_COPY_FILL_PATTERN";
+
+void compute_stencil_boxes(BoxContainer& stencil_boxes, const unsigned int axis, const Box& dst_patch_box)
+{
+    Box stencil_box = NodeGeometry::toNodeBox(dst_patch_box);
+    stencil_box.setLower(axis, stencil_box.upper(axis));
+    stencil_boxes.push_back(stencil_box);
+    return;
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -74,32 +82,46 @@ NodeSynchCopyFillPattern::~NodeSynchCopyFillPattern()
 
 boost::shared_ptr<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
-                                                                         const Box& /*dst_patch_box*/,
+                                                                         const Box& dst_patch_box,
                                                                          const Box& src_mask,
                                                                          const Box& fill_box,
                                                                          const bool overwrite_interior,
                                                                          const Transformation& transformation) const
 {
-    auto box_geom_overlap = BOOST_CAST<NodeOverlap>(
-        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
-
-    auto t_dst_geometry = CPP_CAST<const NodeGeometry*>(&dst_geometry);
-
-    // Determine the stencil box.
-    const Box& dst_box = t_dst_geometry->getBox();
-    Box stencil_box = NodeGeometry::toNodeBox(dst_box);
-    stencil_box.setLower(d_axis, stencil_box.upper(d_axis));
-
-    // Intersect the original overlap boxes with the stencil box.
+    BoxContainer stencil_boxes;
+    compute_stencil_boxes(stencil_boxes, d_axis, dst_patch_box);
     BoxContainer dst_boxes;
-    const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer();
-    for (auto it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
-    {
-        const Box overlap_box(stencil_box * *it);
-        if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);
-    }
+    auto t_dst = CPP_CAST<const NodeGeometry*>(&dst_geometry);
+    auto t_src = CPP_CAST<const NodeGeometry*>(&src_geometry);
+    t_dst->computeDestinationBoxes(dst_boxes, *t_src, src_mask, fill_box, overwrite_interior, transformation);
+    dst_boxes.intersectBoxes(stencil_boxes);
     return boost::make_shared<NodeOverlap>(dst_boxes, transformation);
+}
+
+boost::shared_ptr<hier::BoxOverlap>
+NodeSynchCopyFillPattern::computeFillBoxesOverlap(const BoxContainer& fill_boxes,
+                                                  const BoxContainer& /*node_fill_boxes*/,
+                                                  const Box& patch_box,
+                                                  const Box& data_box,
+                                                  const PatchDataFactory& /*pdf*/) const
+{
+    const Dimension& dim = patch_box.getDim();
+
+    // Compute the stencil boxes.
+    BoxContainer stencil_boxes;
+    compute_stencil_boxes(stencil_boxes, d_axis, patch_box);
+
+    // Convert overlap_boxes to node-based centerings.
+    BoxContainer overlap_boxes(fill_boxes);
+    for (auto b = overlap_boxes.begin(), b_end = overlap_boxes.end(); b != b_end; ++b)
+    {
+        b->growUpper(IntVector::getOne(dim));
+    }
+    overlap_boxes.intersectBoxes(NodeGeometry::toNodeBox(data_box));
+    overlap_boxes.intersectBoxes(stencil_boxes);
+    overlap_boxes.coalesce(); // to prevent redundant nodes.
+
+    return boost::make_shared<NodeOverlap>(overlap_boxes, Transformation(IntVector::getZero(dim)));
 }
 
 IntVector& NodeSynchCopyFillPattern::getStencilWidth()

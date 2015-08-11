@@ -57,6 +57,14 @@ namespace IBTK
 namespace
 {
 static const std::string PATTERN_NAME = "EDGE_SYNCH_COPY_FILL_PATTERN";
+
+void compute_stencil_boxes(std::vector<BoxContainer>& stencil_boxes, const unsigned int axis, const Box& dst_box)
+{
+    Box stencil_box = EdgeGeometry::toEdgeBox(dst_box, axis);
+    stencil_box.setLower(axis, stencil_box.upper(axis));
+    stencil_boxes[axis].push_back(stencil_box);
+    return;
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -76,37 +84,52 @@ EdgeSynchCopyFillPattern::~EdgeSynchCopyFillPattern()
 
 boost::shared_ptr<BoxOverlap> EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
-                                                                         const Box& /*dst_patch_box*/,
+                                                                         const Box& dst_patch_box,
                                                                          const Box& src_mask,
                                                                          const Box& fill_box,
                                                                          const bool overwrite_interior,
                                                                          const Transformation& transformation) const
 {
-    auto box_geom_overlap = BOOST_CAST<EdgeOverlap>(
-        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
-
-    auto t_dst_geometry = CPP_CAST<const EdgeGeometry*>(&dst_geometry);
-
-    std::vector<BoxContainer> dst_boxes(NDIM);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    const Dimension& dim = dst_patch_box.getDim();
+    std::vector<BoxContainer> stencil_boxes(dim.getValue());
+    compute_stencil_boxes(stencil_boxes, d_axis, dst_patch_box);
+    std::vector<hier::BoxContainer> dst_boxes(dim.getValue());
+    auto t_dst = CPP_CAST<const EdgeGeometry*>(&dst_geometry);
+    auto t_src = CPP_CAST<const EdgeGeometry*>(&src_geometry);
+    t_dst->computeDestinationBoxes(dst_boxes, *t_src, src_mask, fill_box, overwrite_interior, transformation);
+    for (int d = 0; d < dim.getValue(); ++d)
     {
-        if (axis == d_axis) continue;
-
-        // Determine the stencil box.
-        const Box& dst_box = t_dst_geometry->getBox();
-        Box stencil_box = EdgeGeometry::toEdgeBox(dst_box, axis);
-        stencil_box.setLower(d_axis, stencil_box.upper(d_axis));
-
-        // Intersect the original overlap boxes with the stencil box.
-        const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer(axis);
-        for (auto it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
-        {
-            const Box overlap_box(stencil_box * *it);
-            if (!overlap_box.empty()) dst_boxes[axis].push_back(overlap_box);
-        }
+        dst_boxes[d].intersectBoxes(stencil_boxes[d]);
     }
     return boost::make_shared<EdgeOverlap>(dst_boxes, transformation);
+}
+
+boost::shared_ptr<BoxOverlap> EdgeSynchCopyFillPattern::computeFillBoxesOverlap(const BoxContainer& fill_boxes,
+                                                                                const BoxContainer& /*node_fill_boxes*/,
+                                                                                const Box& patch_box,
+                                                                                const Box& data_box,
+                                                                                const PatchDataFactory& /*pdf*/) const
+{
+    const Dimension& dim = patch_box.getDim();
+
+    // Compute the stencil boxes.
+    std::vector<BoxContainer> stencil_boxes(dim.getValue());
+    compute_stencil_boxes(stencil_boxes, d_axis, patch_box);
+
+    // Convert overlap_boxes to edge-based centerings.
+    std::vector<BoxContainer> overlap_boxes(dim.getValue());
+    for (auto d = 0; d < dim.getValue(); ++d)
+    {
+        for (auto b = fill_boxes.begin(), b_end = fill_boxes.end(); b != b_end; ++b)
+        {
+            overlap_boxes[d].pushBack(EdgeGeometry::toEdgeBox(*b, d));
+        }
+        overlap_boxes[d].intersectBoxes(EdgeGeometry::toEdgeBox(data_box, d));
+        overlap_boxes[d].intersectBoxes(stencil_boxes[d]);
+        overlap_boxes[d].coalesce(); // to prevent redundant edges.
+    }
+
+    return boost::make_shared<EdgeOverlap>(overlap_boxes, Transformation(IntVector::getZero(dim)));
 }
 
 IntVector& EdgeSynchCopyFillPattern::getStencilWidth()

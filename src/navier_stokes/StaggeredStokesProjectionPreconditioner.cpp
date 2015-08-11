@@ -52,7 +52,6 @@
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -321,7 +320,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
+    boost::shared_ptr<VariableFillPattern> fill_pattern = NULL;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,

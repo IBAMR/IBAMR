@@ -58,16 +58,29 @@ namespace IBTK
 namespace
 {
 static const std::string PATTERN_NAME = "CELL_NO_CORNERS_FILL_PATTERN";
+
+void compute_stencil_boxes(BoxContainer& stencil_boxes, const IntVector& stencil_width, const Box& dst_box)
+{
+    const Dimension& dim = dst_box.getDim();
+    for (auto i = 0; i < dim.getValue(); ++i)
+    {
+        Box low_box(dst_box);
+        low_box.setLower(i, dst_box.lower(i) - stencil_width(i));
+        low_box.setUpper(i, dst_box.lower(i) - 1);
+        stencil_boxes.push_back(low_box);
+
+        Box high_box(dst_box);
+        high_box.setLower(i, dst_box.upper(i) + 1);
+        high_box.setUpper(i, dst_box.lower(i) + stencil_width(i));
+        stencil_boxes.push_back(high_box);
+    }
+    return;
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
-                                                   const bool include_dst_patch_box,
-                                                   const bool include_edges_on_dst_level,
-                                                   const bool include_edges_on_src_level)
-    : d_stencil_width(DIM, stencil_width), d_include_dst_patch_box(include_dst_patch_box),
-      d_include_edges_on_dst_level(include_edges_on_dst_level), d_include_edges_on_src_level(include_edges_on_src_level)
+CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width) : d_stencil_width(DIM, stencil_width)
 {
     // intentionally blank
     return;
@@ -81,64 +94,31 @@ CellNoCornersFillPattern::~CellNoCornersFillPattern()
 
 boost::shared_ptr<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
-                                                                         const Box& /*dst_patch_box*/,
+                                                                         const Box& dst_patch_box,
                                                                          const Box& src_mask,
                                                                          const Box& fill_box,
                                                                          const bool overwrite_interior,
                                                                          const Transformation& transformation) const
 {
-    auto box_geom_overlap = BOOST_CAST<CellOverlap>(
-        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    auto t_dst_geometry = CPP_CAST<const CellGeometry*>(&dst_geometry);
+    BoxContainer stencil_boxes;
+    compute_stencil_boxes(stencil_boxes, d_stencil_width, dst_patch_box);
+    return dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation,
+                                         stencil_boxes);
+}
 
-    BoxContainer dst_boxes;
-    if (!box_geom_overlap->isOverlapEmpty())
-    {
-        const Box& dst_box = t_dst_geometry->getBox();
-        const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer();
-
-        // Determine the stencil boxes with the specified ghost cell width.
-        BoxContainer stencil_boxes;
-        if (NDIM == 2 || (!d_include_edges_on_src_level && !d_include_edges_on_dst_level))
-        {
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                Box box(dst_box);
-                box.setLower(i, box.lower(i) - d_stencil_width(i));
-                box.setUpper(i, box.upper(i) + d_stencil_width(i));
-                stencil_boxes.push_back(box);
-            }
-        }
-        else
-        {
-            for (unsigned int j = 0; j < NDIM; ++j)
-            {
-                for (unsigned int i = 0; i < NDIM; ++i)
-                {
-                    if (i == j) continue;
-                    Box box(dst_box);
-                    box.setLower(i, box.lower(i) - d_stencil_width(i));
-                    box.setUpper(i, box.upper(i) + d_stencil_width(i));
-                    box.setLower(j, box.lower(j) - d_stencil_width(j));
-                    box.setUpper(j, box.upper(j) + d_stencil_width(j));
-                    stencil_boxes.push_back(box);
-                }
-            }
-        }
-
-        // Intersect the overlap boxes with the stencil boxes.
-        for (auto it1 = box_geom_overlap_boxes.begin(); it1 != box_geom_overlap_boxes.end(); ++it1)
-        {
-            BoxContainer overlap_boxes(stencil_boxes);
-            overlap_boxes.intersectBoxes(*it1);
-            for (auto it2 = overlap_boxes.begin(); it2 != overlap_boxes.end(); ++it2)
-            {
-                const Box& overlap_box = *it2;
-                if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);
-            }
-        }
-    }
-    return boost::make_shared<CellOverlap>(dst_boxes, transformation);
+boost::shared_ptr<hier::BoxOverlap>
+CellNoCornersFillPattern::computeFillBoxesOverlap(const BoxContainer& fill_boxes,
+                                                  const BoxContainer& /*node_fill_boxes*/,
+                                                  const Box& patch_box,
+                                                  const Box& data_box,
+                                                  const PatchDataFactory& /*pdf*/) const
+{
+    BoxContainer stencil_boxes;
+    compute_stencil_boxes(stencil_boxes, d_stencil_width, patch_box);
+    BoxContainer overlap_boxes(fill_boxes);
+    overlap_boxes.intersectBoxes(data_box);
+    overlap_boxes.intersectBoxes(stencil_boxes);
+    return boost::make_shared<CellOverlap>(overlap_boxes, Transformation(IntVector::getZero(patch_box.getDim())));
 }
 
 IntVector& CellNoCornersFillPattern::getStencilWidth()

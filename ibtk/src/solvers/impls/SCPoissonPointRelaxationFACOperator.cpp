@@ -78,7 +78,6 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
@@ -630,7 +629,7 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    auto fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
+    boost::shared_ptr<VariableFillPattern> fill_pattern = NULL;
     InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
                                                        d_bc_coefs, fill_pattern);
@@ -737,14 +736,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_bc_op = boost::make_shared<CartSideRobinPhysBdryOp>(d_scratch_idx, d_bc_coefs, false);
 
     // Setup fill pattern spec objects.
-    if (d_poisson_spec.dIsConstant())
-    {
-        d_op_stencil_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, true, false, false);
-    }
-    else
-    {
-        d_op_stencil_fill_pattern = NULL;
-    }
+    d_op_stencil_fill_pattern = NULL;
     d_synch_fill_pattern = boost::make_shared<SideSynchCopyFillPattern>();
 
     // Get overlap information for setting patch boundary conditions.

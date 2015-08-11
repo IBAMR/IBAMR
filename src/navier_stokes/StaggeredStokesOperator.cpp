@@ -51,11 +51,9 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearOperator.h"
-#include "ibtk/SideNoCornersFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -71,8 +69,8 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
-static const int SIDEG = 1;
+//static const int CELLG = 1;
+//static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -244,8 +242,8 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<dou
     d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
-    d_U_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
-    d_P_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
+    d_U_fill_pattern = NULL;
+    d_P_fill_pattern = NULL;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(
