@@ -1,5 +1,4 @@
-//Baky: Test 3d concentric spheres 
-
+//Baky: Test 3d concentric spheres free swim
 
 // Filename main.cpp
 // Created on 23 Apr 2015 by Amneet Bhalla
@@ -49,7 +48,6 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/CIBMethod.h>
-#include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/DirectMobilitySolver.h>
@@ -59,6 +57,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
+#include <ibamr/CIBMobilitySolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
@@ -187,12 +186,10 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify structure kinematics
-        ib_method_ops->setSolveRigidBodyVelocity(0, false);
+        ib_method_ops->setSolveRigidBodyVelocity(0, true);
         ib_method_ops->setSolveRigidBodyVelocity(1, false);
 
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel,NULL,0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel,NULL,1);
-
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel,NULL,1);
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
@@ -248,7 +245,7 @@ int main(int argc, char* argv[])
         if (mobility_solver_type == "DIRECT")
         {
             std::string mat_name1 = "struct-1";
-            std::string mat_name2 = "struct-2";
+	    std::string mat_name2 = "struct-2";
             std::vector<std::vector<unsigned> > struct_ids1;
             std::vector<std::vector<unsigned> > struct_ids2;
             std::vector<unsigned> prototype_structs1;
@@ -266,12 +263,12 @@ int main(int argc, char* argv[])
             CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(&krylov_solvers,
                                                                                           &direct_solvers);
 
-            direct_solvers->registerMobilityMat(mat_name1, prototype_structs1, EMPIRICAL, LAPACK_SVD, 0);
+            direct_solvers->registerMobilityMat(mat_name1, prototype_structs1, EMPIRICAL, LAPACK_LU, 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
-
 	    int next_proc=0;
 	    if (SAMRAI_MPI::getNodes() >1) next_proc=1;
-            direct_solvers->registerMobilityMat(mat_name2, prototype_structs2, EMPIRICAL, LAPACK_SVD, next_proc);
+
+            direct_solvers->registerMobilityMat(mat_name2, prototype_structs2, EMPIRICAL, LAPACK_LU, next_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
         }
 

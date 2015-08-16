@@ -2,12 +2,17 @@
 MU  =  1.0                   // fluid viscosity
 RHO =  0.0                   // fluid density
 
+PCBodyMobility="shell"
+//PCBodyMobility="none"
+FBMS_iter=3
+FBMS_tol=1e-4
+
 // constants
 PI         = 3.141592653589
 VISC_CFL   = 1E-16           // desired viscous CFL number
 STOKES_ITER = 4
-STOKES_TOL = 1.0e-12         // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-12         // Stokes' solver tolerance
+STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
+SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
 U_WALL = 1.0 // Wall velocity
 
@@ -79,13 +84,13 @@ CIBMethod {
 IBStandardInitializer {
     posn_shift = L/2. , L/2., L/2.
     max_levels      = MAX_LEVELS
-    structure_names = "shell_3d_out", "shell_3d_in"
+    structure_names = "shell_3d_in","shell_3d_out"
 
-   shell_3d_out{
+   shell_3d_in{
       level_number = MAX_LEVELS - 1
       uniform_spring_stiffness = 0.0
    }
-    shell_3d_in{
+   shell_3d_out{
       level_number = MAX_LEVELS - 1
       uniform_spring_stiffness = 0.0
    }
@@ -230,9 +235,19 @@ CIBStaggeredStokesSolver
             eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
         }
    }
-   FreeBodyMobilitySolver
-   {
-   }
+  FreeBodyMobilitySolver
+  { 
+      max_iterations = FBMS_iter
+      rel_residual_tol  = FBMS_tol
+      abs_residual_tol  = 0 
+      
+      pc_type=PCBodyMobility
+      //pc_type           = "shell"
+      effective_body_hydrad = 2.2162 //effective radius of the body (used in preconditioner
+      
+     
+  }
+  
 
 } // cIBStaggeredStokesSolver
 
@@ -260,6 +275,7 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   init_convective_time_stepping_type = "FORWARD_EULER" 
 }
 
 Main {
@@ -270,12 +286,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 0
    viz_dump_dirname            = "viz_icosahedron3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 1
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_2shells_3d"
 
 // timer dump parameters
