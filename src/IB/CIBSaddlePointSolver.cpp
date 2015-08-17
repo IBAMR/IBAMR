@@ -968,8 +968,7 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     solver->d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     const bool homogeneous_bc = true;
     solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    //solver->d_hier_bdry_fill->fillData(0.0);
-     solver->d_hier_bdry_fill->fillData(half_time);
+    solver->d_hier_bdry_fill->fillData(half_time);
     solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
 
     // 2b) U = J u + W.
@@ -1002,16 +1001,11 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
         // 3a) lambda = M^-1(U)
 	solver->d_mob_solver->solveMobilitySystem(Lambda, delU);
-	//??? VecScale(Lambda,1.0/(beta*gamma)); 
         
         // 3b) F_tilde = F + T(lambda)
 	solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_parts*/ true,
 						    /*only_imposed_parts*/ false);
         VecAXPY(F_tilde,1.0,vx[2]);
-	//Vec* ff;
-	// IBTK::VecMultiVecGetSubVecs(F_tilde, &ff);
-	// VecView(ff[0],PETSC_VIEWER_STDOUT_WORLD);
-	// std::cout<<"-------------------"<<std::endl;
 
 	//create a multivec to pass it to free body mobility solver.
 	Vec fb_rhs;
@@ -1024,11 +1018,6 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         // 3c) U_rigid = N^-1(F)
         solver->d_mob_solver->solveBodyMobilitySystem(vy[2],fb_rhs);
 
-//	VecScale(vy[2],0.5);
-//	Vec* ff;
-	// IBTK::VecMultiVecGetSubVecs(vy[2], &ff);
-	// VecView(ff[0],PETSC_VIEWER_STDOUT_WORLD);
-	// std::cout<<"***********************"<<std::endl;
 
         // 3d) delU = T*(U_rigid) - U
 	VecSet(delU, 0.0);
