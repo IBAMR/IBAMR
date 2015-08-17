@@ -80,6 +80,7 @@ AC_CONFIG_FILES([
   examples/CIB/Makefile
   examples/CIB/ex0/Makefile
   examples/CIB/ex1/Makefile
+  examples/CIB/ex3/Makefile
   examples/CIBFE/Makefile
   examples/CIBFE/ex0/Makefile
   examples/CIBFE/ex1/Makefile

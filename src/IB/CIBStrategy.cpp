@@ -1,3 +1,5 @@
+//Modified by Baky Aug 2015 
+
 // Filename: CIBStrategy.cpp
 // Created on 9 Nov 2014 by Amneet Bhalla
 //
@@ -274,11 +276,15 @@ void CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
     VecGetSize(U, &s);
 
     // Fill in the required vector.
-    int rank = SAMRAI_MPI::getRank();
-    if (!rank)
+    //int rank = SAMRAI_MPI::getRank();
+    // if (!rank)
     {
-        for (int i = 0; i < s; ++i) Ur[i] = a[i];
+	if (a) 
+	    for (int i = 0; i < s; ++i)  Ur[i] = a[i];
+	else 
+	    for (int i = 0; i < s; ++i) Ur[i]=0.;
     }
+    
     SAMRAI_MPI::sumReduction(&Ur[0], s);
     VecRestoreArray(U, &a);
     return;

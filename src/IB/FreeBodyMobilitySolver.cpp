@@ -9,10 +9,10 @@
 #include "ibtk/PETScMultiVec.h"
 #include "tbox/TimerManager.h"
 #include "ibamr/CIBStrategy.h"
-#include "CIBMobilitySolver.h"
+#include "ibamr/CIBMobilitySolver.h"
+#include "ibamr/FreeBodyMobilitySolver.h"
 #include "petsc-private/petscimpl.h"
 #include <limits>
-#include "FreeBodyMobilitySolver.h"
 
 namespace IBAMR
 {

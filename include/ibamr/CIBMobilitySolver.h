@@ -59,6 +59,7 @@ class StaggeredStokesPhysicalBoundaryHelper;
 class CIBStrategy;
 class DirectMobilitySolver;
 class KrylovMobilitySolver;
+class FreeBodyMobilitySolver;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -229,12 +230,13 @@ private:
     std::string d_object_name;
 
     // Number of rigid bodies
-    int d_num_rigid_parts;
+    unsigned d_num_rigid_parts;
 
     // Pointers.
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
     SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
+    SAMRAI::tbox::Pointer<IBAMR::FreeBodyMobilitySolver> d_freebody_mob_solver;
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;

@@ -1,3 +1,5 @@
+//Modified by Baky Aug2015
+
 // Filename: CIBMobilitySolver.cpp
 // Created on 19 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
 //
@@ -44,6 +46,7 @@
 #include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/FreeBodyMobilitySolver.h"
 
 namespace IBAMR
 {
@@ -84,6 +87,9 @@ CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
                                                        input_db->getDatabase("DirectMobilitySolver"), cib_strategy);
         d_direct_mob_solver->setStokesSpecifications(*navier_stokes_integrator->getStokesSpecifications());
     }
+
+    //create solver for unconstrained rigid parts
+    d_freebody_mob_solver = new FreeBodyMobilitySolver(d_object_name + "FreeBodyMobilitySolver", input_db->getDatabase("FreeBodyMobilitySolver"), "FBMInv_", cib_strategy);
 
     IBTK_DO_ONCE(t_solve_mobility_system =
                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveMobilitySystem()");
@@ -251,6 +257,16 @@ void CIBMobilitySolver::initializeSolverState(Vec x, Vec b)
         TBOX_ERROR("CIBMobilitySolver::initializeSolverState() Unknown mobility solver type" << std::endl);
     }
 
+    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+    {
+        if (d_cib_strategy->getSolveRigidBodyVelocity(part)) 
+    	{
+    	    //d_freebody_mob_solver->initializeSolverState(x, b);
+    	    d_freebody_mob_solver->setMobilitySolver(this);
+    	    break;
+    	}
+    }
+
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
     d_is_initialized = true;
@@ -283,6 +299,8 @@ void CIBMobilitySolver::deallocateSolverState()
             TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
                        << " solver type encountered." << std::endl);
         }
+//	d_freebody_mob_solver->deallocateSolverState();
+
     }
 
     // Indicate that the solver is NOT initialized.
@@ -326,14 +344,22 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b)
     return converged;
 } // solveMobilitySystem
 
-bool CIBMobilitySolver::solveBodyMobilitySystem(Vec /*x*/, Vec /*b*/)
+bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec y)
 {
     // Left blank
     IBTK_TIMER_START(t_solve_body_mobility_system);
 
-    bool converged = false;
+    // Initialize the solver, when necessary.
+    const bool deallocate_after_solve = !d_is_initialized;
+    if (deallocate_after_solve) initializeSolverState(x, y);
+
+    bool converged = d_freebody_mob_solver->solveSystem(x,y);
+
+    // Deallocate the solver, when necessary.
+    if (deallocate_after_solve) deallocateSolverState();
 
     IBTK_TIMER_STOP(t_solve_body_mobility_system);
+    
 
     return converged;
 } // solveBodyMobilitySystem

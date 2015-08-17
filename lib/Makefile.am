@@ -52,6 +52,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/ConstraintIBKinematics.cpp \
 ../src/IB/ConstraintIBMethod.cpp \
 ../src/IB/DirectMobilitySolver.cpp \
+../src/IB/FreeBodyMobilitySolver.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -171,6 +172,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/FreeBodyMobilitySolver.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
