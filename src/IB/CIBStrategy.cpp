@@ -270,19 +270,19 @@ void CIBStrategy::copyArrayToVec(Vec /*b*/,
 void CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
 {
     // Extract the underlying array.
-    PetscScalar* a;
+    PetscScalar* a = NULL;
     PetscInt s;
     VecGetArray(U, &a);
     VecGetSize(U, &s);
 
     // Fill in the required vector.
-    //int rank = SAMRAI_MPI::getRank();
-    // if (!rank)
+    if (a)
     {
-	if (a) 
 	    for (int i = 0; i < s; ++i)  Ur[i] = a[i];
-	else 
-	    for (int i = 0; i < s; ++i) Ur[i]=0.;
+    }
+    else
+    {
+	    for (int i = 0; i < s; ++i)  Ur[i] = 0.0;
     }
     
     SAMRAI_MPI::sumReduction(&Ur[0], s);

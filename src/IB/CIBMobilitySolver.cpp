@@ -1,10 +1,9 @@
-//Modified by Baky Aug2015
-
 // Filename: CIBMobilitySolver.cpp
 // Created on 19 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
 //
 // Copyright (c) 2002-2015, Amneet Bhalla, Bakytzhan Kallemov,
 // and Boyce Griffith
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,17 +35,18 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <limits>
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h"
-#include "ibtk/PETScMultiVec.h"
-#include "tbox/TimerManager.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/CIBMobilitySolver.h"
-#include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/DirectMobilitySolver.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/FreeBodyMobilitySolver.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/KrylovMobilitySolver.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScMultiVec.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h"
+#include "tbox/TimerManager.h"
 
 namespace IBAMR
 {
@@ -88,17 +88,22 @@ CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
         d_direct_mob_solver->setStokesSpecifications(*navier_stokes_integrator->getStokesSpecifications());
     }
 
-    //create solver for unconstrained rigid parts
-    d_freebody_mob_solver = new FreeBodyMobilitySolver(d_object_name + "FreeBodyMobilitySolver", input_db->getDatabase("FreeBodyMobilitySolver"), "FBMInv_", cib_strategy);
+    // Create solver for parts moving under external forces.
+    {
+        d_freebody_mob_solver =
+            new FreeBodyMobilitySolver(d_object_name + "FreeBodyMobilitySolver",
+                                       input_db->getDatabase("FreeBodyMobilitySolver"), "FBMInv_", cib_strategy);
+        d_freebody_mob_solver->setMobilitySolver(this);
+    }
 
-    IBTK_DO_ONCE(t_solve_mobility_system =
-                     TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveMobilitySystem()");
-                 t_solve_body_mobility_system =
-                     TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveBodyMobilitySystem()");
-                 t_initialize_solver_state =
-                     TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::initializeSolverState()");
-                 t_deallocate_solver_state =
-                     TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
+    IBAMR_DO_ONCE(t_solve_mobility_system =
+                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveMobilitySystem()");
+                  t_solve_body_mobility_system =
+                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::solveBodyMobilitySystem()");
+                  t_initialize_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::initializeSolverState()");
+                  t_deallocate_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
 
     return;
 } // CIBMobilitySolver
@@ -163,6 +168,7 @@ void CIBMobilitySolver::setSolutionTime(const double solution_time)
     {
         TBOX_ERROR("This statement should not be reached\n");
     }
+    d_freebody_mob_solver->setSolutionTime(solution_time);
 
     return;
 } // setSolutionTime
@@ -184,6 +190,7 @@ void CIBMobilitySolver::setTimeInterval(double current_time, double new_time)
     {
         TBOX_ERROR("This statement should not be reached\n");
     }
+    d_freebody_mob_solver->setTimeInterval(current_time, new_time);
 
     return;
 } // setTimeInterval
@@ -217,7 +224,9 @@ void CIBMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysica
     return;
 } // setPhysicalBoundaryHelper
 
-void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver, DirectMobilitySolver** dm_solver)
+void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver,
+                                           DirectMobilitySolver** dm_solver,
+                                           FreeBodyMobilitySolver** fbm_solver)
 {
     if (km_solver)
     {
@@ -229,13 +238,17 @@ void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver, Dir
         *dm_solver = d_direct_mob_solver.getPointer();
     }
 
+    if (fbm_solver)
+    {
+        *fbm_solver = d_freebody_mob_solver.getPointer();
+    }
     return;
 
 } // getMobilitySolvers
 
 void CIBMobilitySolver::initializeSolverState(Vec x, Vec b)
 {
-    IBTK_TIMER_START(t_initialize_solver_state);
+    IBAMR_TIMER_START(t_initialize_solver_state);
 
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
@@ -257,21 +270,25 @@ void CIBMobilitySolver::initializeSolverState(Vec x, Vec b)
         TBOX_ERROR("CIBMobilitySolver::initializeSolverState() Unknown mobility solver type" << std::endl);
     }
 
+    d_has_free_parts = false;
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        if (d_cib_strategy->getSolveRigidBodyVelocity(part)) 
-    	{
-    	    //d_freebody_mob_solver->initializeSolverState(x, b);
-    	    d_freebody_mob_solver->setMobilitySolver(this);
-    	    break;
-    	}
+        if (d_cib_strategy->getSolveRigidBodyVelocity(part))
+        {
+            d_has_free_parts = true;
+            break;
+        }
+    }
+    if (d_has_free_parts)
+    {
+        d_freebody_mob_solver->initializeSolverState(x, b);
     }
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
     d_is_initialized = true;
 
-    IBTK_TIMER_STOP(t_initialize_solver_state);
+    IBAMR_TIMER_STOP(t_initialize_solver_state);
 
     return;
 } // initializeSolverState
@@ -280,7 +297,7 @@ void CIBMobilitySolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
-    IBTK_TIMER_START(t_deallocate_solver_state);
+    IBAMR_TIMER_START(t_deallocate_solver_state);
 
     // Deallocate the operator and preconditioner states only if we are not
     // re-initializing the solver.
@@ -299,21 +316,24 @@ void CIBMobilitySolver::deallocateSolverState()
             TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
                        << " solver type encountered." << std::endl);
         }
-//	d_freebody_mob_solver->deallocateSolverState();
 
+        if (d_has_free_parts)
+        {
+            d_freebody_mob_solver->deallocateSolverState();
+        }
     }
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
-    IBTK_TIMER_STOP(t_deallocate_solver_state);
+    IBAMR_TIMER_STOP(t_deallocate_solver_state);
 
     return;
 } // deallocateSolverState
 
 bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b)
 {
-    IBTK_TIMER_START(t_solve_mobility_system);
+    IBAMR_TIMER_START(t_solve_mobility_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -339,27 +359,26 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b)
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-    IBTK_TIMER_STOP(t_solve_mobility_system);
+    IBAMR_TIMER_STOP(t_solve_mobility_system);
 
     return converged;
 } // solveMobilitySystem
 
-bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec y)
+bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
 {
-    // Left blank
-    IBTK_TIMER_START(t_solve_body_mobility_system);
+    IBAMR_TIMER_START(t_solve_body_mobility_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
-    if (deallocate_after_solve) initializeSolverState(x, y);
+    if (deallocate_after_solve) initializeSolverState(x, b);
 
-    bool converged = d_freebody_mob_solver->solveSystem(x,y);
+    // Solve for x.
+    bool converged = d_freebody_mob_solver->solveSystem(x, b);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-    IBTK_TIMER_STOP(t_solve_body_mobility_system);
-    
+    IBAMR_TIMER_STOP(t_solve_body_mobility_system);
 
     return converged;
 } // solveBodyMobilitySystem

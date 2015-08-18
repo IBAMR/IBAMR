@@ -9,7 +9,7 @@ STOKES_ITER = 4
 STOKES_TOL = 1.0e-12         // Stokes' solver tolerance
 SOLVER_TOL = 1.0e-12         // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL = 1.0 // Wall velocity
+U_WALL = 1.0                 // wall velocity
 
 // BCs
 PERIODIC            = 0
@@ -17,11 +17,11 @@ NORMALIZE_PRESSURE  = TRUE           // whether to explicitly force the pressure
 NORMALIZE_VELOCITY  = (PERIODIC==1)  // for Stokes flow (rho = 0)
 
 // Gridding
-N = 64                       // number of grid cells along height of domain
-PATCH_SIZE = N               // parallelization and testing
-DX = 0.5                     // grid spacing
-L = N*DX                     // length of domain
-DT = 1e-16 //VISC_CFL*DX^2/MU        // maximum timestep size
+N = 64                         // number of grid cells along height of domain
+PATCH_SIZE = N                 // parallelization and testing
+DX = 0.5                       // grid spacing
+L = N*DX                       // length of domain
+DT = 1e-16                     // maximum timestep size
 
 // solver parameters
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
@@ -33,9 +33,9 @@ NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point 
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
 DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
 ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
-CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"    // convective time stepping type used in INS solver
-CONVECTIVE_OP_TYPE  = "PPM"             // convective differencing discretization type; used in both INS and Adv-Diff solver
-CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
+CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"  // convective time stepping type used in INS solver
+CONVECTIVE_OP_TYPE  = "PPM"                  // convective differencing discretization type; used in both INS and Adv-Diff solver
+CONVECTIVE_FORM     = "ADVECTIVE"            // how to compute the convective terms; used in both INS and Adv-Diff solver
 CFL_MAX             = 0.1                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
@@ -94,10 +94,10 @@ IBStandardInitializer {
 CIBStaggeredStokesSolver 
 {
     // Parameters to control various linear operators
-    scale_interp_operator     = 1.0                                // defaults to 1.0
-    scale_spread_operator     = 1.0                                // defaults to 1.0
-    normalize_spread_force    = (PERIODIC == 1)                    // defaults to false
-    regularize_mob_factor     = DELTA                              // defaults to 0.0
+    scale_interp_operator     = 1.0                             // defaults to 1.0
+    scale_spread_operator     = 1.0                             // defaults to 1.0
+    normalize_spread_force    = (PERIODIC == 1)                 // defaults to false
+    regularize_mob_factor     = DELTA                           // defaults to 0.0
  
     // Setting for outer Krylov solver.
     options_prefix        = "SP_"

@@ -389,11 +389,6 @@ private:
                            const double dt);
 
     /*!
-     * Vector of Lagrnagian indices of all structures.
-     */
-    // std::vector<std::pair<int,int> > d_struct_lag_idx_range;
-
-    /*!
      * Functions to set constrained velocities of the structures.
      */
     std::vector<ConstrainedVelocityFcnsData> d_constrained_velocity_fcns_data;

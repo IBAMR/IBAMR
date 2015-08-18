@@ -1,5 +1,4 @@
-//Baky: Test 3d concentric spheres 
-
+// Baky: Test 3d concentric spheres
 
 // Filename main.cpp
 // Created on 23 Apr 2015 by Amneet Bhalla
@@ -84,7 +83,6 @@ void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     W_com.setZero();
     return;
 } // ConstrainedCOMVel
-
 
 void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
 {
@@ -190,8 +188,8 @@ int main(int argc, char* argv[])
         ib_method_ops->setSolveRigidBodyVelocity(0, false);
         ib_method_ops->setSolveRigidBodyVelocity(1, false);
 
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel,NULL,0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel,NULL,1);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -253,8 +251,8 @@ int main(int argc, char* argv[])
             std::vector<std::vector<unsigned> > struct_ids2;
             std::vector<unsigned> prototype_structs1;
             std::vector<unsigned> prototype_structs2;
-            
-	    //Dense matrix
+
+            // Dense matrix
             prototype_structs1.push_back(0);
             prototype_structs2.push_back(1);
 
@@ -269,8 +267,8 @@ int main(int argc, char* argv[])
             direct_solvers->registerMobilityMat(mat_name1, prototype_structs1, EMPIRICAL, LAPACK_SVD, 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
 
-	    int next_proc=0;
-	    if (SAMRAI_MPI::getNodes() >1) next_proc=1;
+            int next_proc = 0;
+            if (SAMRAI_MPI::getNodes() > 1) next_proc = 1;
             direct_solvers->registerMobilityMat(mat_name2, prototype_structs2, EMPIRICAL, LAPACK_SVD, next_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
         }

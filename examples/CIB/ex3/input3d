@@ -2,19 +2,14 @@
 MU  =  1.0                   // fluid viscosity
 RHO =  0.0                   // fluid density
 
-PCBodyMobility="shell"
-//PCBodyMobility="none"
-FBMS_iter=3
-FBMS_tol=1e-4
-
 // constants
 PI         = 3.141592653589
 VISC_CFL   = 1E-16           // desired viscous CFL number
 STOKES_ITER = 4
-STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
+STOKES_TOL = 1.0e-9          // Stokes' solver tolerance
+SOLVER_TOL = 1.0e-9          // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL = 1.0 // Wall velocity
+U_WALL = 1.0                 // wall velocity
 
 // BCs
 PERIODIC            = 0
@@ -26,7 +21,7 @@ N = 64                       // number of grid cells along height of domain
 PATCH_SIZE = N               // parallelization and testing
 DX = 0.5                     // grid spacing
 L = N*DX                     // length of domain
-DT = 1e-16 //VISC_CFL*DX^2/MU        // maximum timestep size
+DT = 1e-16                   // maximum timestep size
 
 // solver parameters
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
@@ -38,9 +33,9 @@ NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point 
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
 DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
 ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
-CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"    // convective time stepping type used in INS solver
-CONVECTIVE_OP_TYPE  = "PPM"             // convective differencing discretization type; used in both INS and Adv-Diff solver
-CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
+CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"  // convective time stepping type used in INS solver
+CONVECTIVE_OP_TYPE  = "PPM"                  // convective differencing discretization type; used in both INS and Adv-Diff solver
+CONVECTIVE_FORM     = "ADVECTIVE"            // how to compute the convective terms; used in both INS and Adv-Diff solver
 CFL_MAX             = 0.1                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
@@ -84,7 +79,7 @@ CIBMethod {
 IBStandardInitializer {
     posn_shift = L/2. , L/2., L/2.
     max_levels      = MAX_LEVELS
-    structure_names = "shell_3d_in","shell_3d_out"
+    structure_names = "shell_3d_out","shell_3d_in"
 
    shell_3d_in{
       level_number = MAX_LEVELS - 1
@@ -234,20 +229,16 @@ CIBStaggeredStokesSolver
             min_eigenvalue_threshold   = 1e-4     // defaults to 0.0
             eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
         }
-   }
-  FreeBodyMobilitySolver
-  { 
-      max_iterations = FBMS_iter
-      rel_residual_tol  = FBMS_tol
-      abs_residual_tol  = 0 
-      
-      pc_type=PCBodyMobility
-      //pc_type           = "shell"
-      effective_body_hydrad = 2.2162 //effective radius of the body (used in preconditioner
-      
-     
-  }
-  
+    }// DirectMobilitySolver
+
+    FreeBodyMobilitySolver
+    {
+        max_iterations = 3
+        rel_residual_tol  = 1.0e-4
+        abs_residual_tol  = 0
+        pc_type           = "shell"
+        body_hydroradius = 2.2162
+    }// FreeBodyMobilitySolver
 
 } // cIBStaggeredStokesSolver
 
@@ -281,13 +272,13 @@ INSStaggeredHierarchyIntegrator {
 Main {
 
 // log file parameters
-   log_file_name               = "3d_example.log"
+   log_file_name               = "CIB3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 0
-   viz_dump_dirname            = "viz_icosahedron3d"
+   viz_dump_dirname            = "viz_3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

@@ -37,10 +37,10 @@
 
 #include <string>
 
-#include "ibamr/StaggeredStokesSolver.h"
-#include "tbox/Pointer.h"
 #include "IntVector.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "petscvec.h"
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

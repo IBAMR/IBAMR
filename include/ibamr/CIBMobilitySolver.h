@@ -37,11 +37,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <vector>
 
+#include "ibamr/ibamr_enums.h"
 #include "petscksp.h"
+#include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
-#include "tbox/Database.h"
-#include "ibamr/ibamr_enums.h"
 
 namespace SAMRAI
 {
@@ -78,14 +78,15 @@ namespace IBAMR
  *
  * Here, \f$ J \f$ is the interpolation operator, \f$ S \f$ is the spreading
  * operator, \f$ L \f$ is the incompressible Stokes operator, \f$ T \f$ is the
- * rigid body operator, and \f$ \vec{w} \f$ is the desired velocity at the nodes
- * of the structure(s)
+ * rigid body operator, \f$ \vec{w} \f$ is the desired velocity at the nodes
+ * of the structure(s), and \f$ \vec{F} \f$ is the net external force and torque
+ * on the body.
  *
  * This class employs direct solver for the approximate mobility and body-mobility
- * sub-problem. The approximate mobility matrix is intended to be used in the
- * preconditioning step of the overall constraint solver as defined in the
- * \see IBAMR::CIBSaddlePointSolver class. The class also supports (an
- * unpreconditioned) Krylov (body) mobility solver for small test problems.
+ * sub-problems. The approximate mobility matrix is intended to be used in the
+ * preconditioning step of the overall constraint solver. The overall preconditioner
+ * is implemented in \see IBAMR::CIBSaddlePointSolver class. The class also supports
+ * Krylov body mobility solver for bodies moving under external force and torque.
  */
 
 class CIBMobilitySolver : public SAMRAI::tbox::DescribedClass
@@ -217,7 +218,8 @@ public:
      * return.
      */
     void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = NULL,
-                            IBAMR::DirectMobilitySolver** dm_solver = NULL);
+                            IBAMR::DirectMobilitySolver** dm_solver = NULL,
+                            IBAMR::FreeBodyMobilitySolver** fbm_solver = NULL);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
@@ -240,7 +242,7 @@ private:
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;
-    bool d_is_initialized, d_reinitializing_solver;
+    bool d_is_initialized, d_reinitializing_solver, d_has_free_parts;
     double d_interp_scale, d_spread_scale, d_reg_mob_scale;
 
     // Type of mobility solver to be used

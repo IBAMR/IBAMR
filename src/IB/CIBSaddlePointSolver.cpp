@@ -1,5 +1,3 @@
-//Modified by Baky Aug 2015
-
 // Filename: CIBSaddlePointSolver.cpp
 // Created on 10 Nov 2014 by Amneet Bhalla.
 //
@@ -36,26 +34,25 @@
 
 #include <limits>
 
+#include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesOperator.h"
-#include "ibamr/IBStrategy.h"
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/StokesSpecifications.h"
+#include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/CIBMobilitySolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h"
-#include "ibtk/PETScMultiVec.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibamr/StokesSpecifications.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScMultiVec.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h"
 #include "tbox/TimerManager.h"
 
 namespace IBAMR
@@ -92,16 +89,37 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
                                            Pointer<CIBStrategy> cib_strategy,
                                            const std::string& default_options_prefix,
                                            MPI_Comm petsc_comm)
-    : d_object_name(object_name), d_ksp_type(KSPGMRES), d_pc_type("none"), d_is_initialized(false),
-      d_reinitializing_solver(false), d_petsc_x(PETSC_NULL), d_petsc_b(PETSC_NULL),
-      d_options_prefix(default_options_prefix), d_petsc_comm(petsc_comm), d_petsc_ksp(PETSC_NULL),
-      d_petsc_mat(PETSC_NULL), d_A(NULL), d_ins_integrator(navier_stokes_integrator), d_LInv(NULL),
-      d_velocity_solver(NULL), d_pressure_solver(NULL), d_cib_strategy(cib_strategy), d_mob_solver(NULL),
-      d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()), d_scale_interp(1.0), d_scale_spread(1.0),
-      d_reg_mob_factor(0.0), d_normalize_spread_force(false), d_nul_vecs(), d_U_nul_vecs(), d_normalize_pressure(false),
-      d_normalize_velocity(false), d_current_time(std::numeric_limits<double>::signaling_NaN()),
-      d_new_time(std::numeric_limits<double>::signaling_NaN())
+    : d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures())
 {
+    d_object_name = object_name;
+    d_petsc_comm = petsc_comm;
+    d_cib_strategy = cib_strategy;
+    d_ins_integrator = navier_stokes_integrator;
+
+    d_A = NULL;
+    d_LInv = NULL;
+    d_velocity_solver = NULL;
+    d_pressure_solver = NULL;
+
+    d_mob_solver = NULL;
+    d_scale_interp = 1.0;
+    d_scale_spread = 1.0;
+    d_reg_mob_factor = 0.0;
+    d_normalize_spread_force = false;
+    d_normalize_pressure = false;
+    d_normalize_velocity = false;
+    d_current_time = std::numeric_limits<double>::signaling_NaN();
+    d_new_time = std::numeric_limits<double>::signaling_NaN();
+
+    d_petsc_ksp = NULL;
+    d_petsc_mat = NULL;
+    d_ksp_type = KSPGMRES;
+    d_pc_type = "none";
+    d_is_initialized = false;
+    d_reinitializing_solver = false;
+    d_petsc_x = NULL;
+    d_petsc_b = NULL;
+    d_options_prefix = default_options_prefix;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
@@ -285,12 +303,12 @@ CIBSaddlePointSolver::~CIBSaddlePointSolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = PETSC_NULL;
+        d_petsc_mat = NULL;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = PETSC_NULL;
+        d_petsc_ksp = NULL;
     }
     return;
 } // ~CIBSaddlePointSolver
@@ -394,7 +412,7 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     d_petsc_x = x;
     VecCopy(b, d_petsc_b);
 
-    // Mofify RHS for inhomogeneous BCs.
+    // Modify RHS for inhomogeneous BCs.
     int comps;
     Vec* vrhs;
     IBTK::VecMultiVecGetSubVecs(d_petsc_b, &vrhs);
@@ -420,7 +438,7 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Invalidate d_petsc_x Vec.
-    d_petsc_x = PETSC_NULL;
+    d_petsc_x = NULL;
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -500,8 +518,8 @@ void CIBSaddlePointSolver::deallocateSolverState()
 
     // Delete the solution and RHS vectors.
     VecDestroy(&d_petsc_b);
-    d_petsc_x = PETSC_NULL;
-    d_petsc_b = PETSC_NULL;
+    d_petsc_x = NULL;
+    d_petsc_b = NULL;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -565,7 +583,7 @@ void CIBSaddlePointSolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
 
     return;
 } // initializeKSP
@@ -723,7 +741,7 @@ void CIBSaddlePointSolver::destroyKSP()
 {
     int ierr = KSPDestroy(&d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    d_petsc_ksp = PETSC_NULL;
+    d_petsc_ksp = NULL;
     return;
 } // destroyKSP
 
@@ -803,7 +821,7 @@ void CIBSaddlePointSolver::resetKSPOptions()
         KSPMonitorCancel(d_petsc_ksp);
         KSPMonitorSet(d_petsc_ksp, reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
                                        CIBSaddlePointSolver::monitorKSP),
-                      PETSC_NULL, PETSC_NULL);
+                      NULL, NULL);
     }
     return;
 } // resetKSPOptions
@@ -814,7 +832,7 @@ void CIBSaddlePointSolver::resetKSPOperators()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = PETSC_NULL;
+        d_petsc_mat = NULL;
     }
     if (!d_petsc_mat)
     {
@@ -829,10 +847,9 @@ void CIBSaddlePointSolver::resetKSPOperators()
     if (d_petsc_ksp)
     {
 
-      //      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); //this is for petsc < 3.5 
-      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);	
-      KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
-      
+        //      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); //this is for petsc < 3.5
+        KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
+        KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
     }
     return;
 } // resetKSPOperators
@@ -943,7 +960,7 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     g_h->copyVector(IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]));
     Pointer<SAMRAIVectorReal<NDIM, double> > u_p = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
 
-    Vec W, Lambda,F_tilde;
+    Vec W, Lambda, F_tilde;
     W = vx[1];
     Lambda = vy[1];
 
@@ -976,65 +993,38 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     ib_method_ops->interpolateVelocity(u_data_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     solver->d_cib_strategy->getInterpolatedVelocity(U, half_time, beta);
-
-    //adding rhs
     VecAXPY(U, 1.0, W);
 
     // 3) Calculate the slip velocity
     if (free_comps)
-    {        
-	VecDuplicate(vx[2], &F_tilde);
-	VecSet(F_tilde,0.0);
-        VecDuplicate(U, &delU);
-	VecCopy(U, delU);
-
-	//set prescribed velocity for nonfree parts 
-	for (unsigned part = 0; part < solver->d_num_rigid_parts; ++part)
-	{
-	    if (solver->d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
-	    RigidDOFVector dofU;
-	    solver->d_cib_strategy->getNewRigidBodyVelocity(part, dofU);
-	    const double interp_scale = solver->getInterpScale();
-	    dofU *= interp_scale;
-	    solver->d_cib_strategy->setRigidBodyVelocity(part, dofU, delU);
-	}
+    {
+        VecDuplicate(vx[2], &F_tilde);
+        VecDuplicate(W, &delU);
 
         // 3a) lambda = M^-1(U)
-	solver->d_mob_solver->solveMobilitySystem(Lambda, delU);
-        
+        solver->d_mob_solver->solveMobilitySystem(Lambda, U);
+
         // 3b) F_tilde = F + T(lambda)
-	solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_parts*/ true,
-						    /*only_imposed_parts*/ false);
-        VecAXPY(F_tilde,1.0,vx[2]);
+        solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_parts*/ true,
+                                                                /*only_imposed_parts*/ false);
+        VecAXPY(F_tilde, 1.0, vx[2]);
 
-	//create a multivec to pass it to free body mobility solver.
-	Vec fb_rhs;
-	std::vector<Vec>  fbb(3);
-	fbb[0]=delU;
-	fbb[1]=Lambda;
-	fbb[2]=F_tilde;
-	IBTK::VecCreateMultiVec(PETSC_COMM_WORLD, 3, &fbb[0], &fb_rhs);
-
-        // 3c) U_rigid = N^-1(F)
-        solver->d_mob_solver->solveBodyMobilitySystem(vy[2],fb_rhs);
-
+        // 3c) U_rigid = N^-1(F_tilde)
+        solver->d_mob_solver->solveBodyMobilitySystem(vy[2], F_tilde);
 
         // 3d) delU = T*(U_rigid) - U
-	VecSet(delU, 0.0);
-	Vec* mv_U;
-	IBTK::VecMultiVecGetSubVecs(vy[2], &mv_U);
-	for (unsigned part = 0, k = 0; part < solver->d_num_rigid_parts; ++part)
-	{
-	    if (solver->d_cib_strategy->getSolveRigidBodyVelocity(part)) 
-	    {
-		solver->d_cib_strategy->setRigidBodyVelocity(part, mv_U[k], delU);
-		++k;
-	    }
-	}
-	VecAXPY(delU, -1.0, U);
-
-	VecDestroy(&fb_rhs);
-
+        VecSet(delU, 0.0);
+        Vec* mv_U;
+        IBTK::VecMultiVecGetSubVecs(vy[2], &mv_U);
+        for (unsigned part = 0, k = 0; part < solver->d_num_rigid_parts; ++part)
+        {
+            if (solver->d_cib_strategy->getSolveRigidBodyVelocity(part))
+            {
+                solver->d_cib_strategy->setRigidBodyVelocity(part, mv_U[k], delU);
+                ++k;
+            }
+        }
+        VecAXPY(delU, -1.0, U);
     }
     else
     {
@@ -1074,8 +1064,8 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     VecDestroy(&U);
     if (free_comps)
     {
-       VecDestroy(&delU);
-       VecDestroy(&F_tilde);
+        VecDestroy(&delU);
+        VecDestroy(&F_tilde);
     }
 
     // Report change in the state of y to PETSc
