@@ -576,6 +576,14 @@ protected:
                                        double data_time,
                                        unsigned int part);
 
+    /*!
+     * \brief Setup data needed to evaluate stress and force functions.
+     */
+    void setupStressAndForceSystemData(std::vector<std::vector<libMesh::NumericVector<double>*> >* PK1_stress_fcn_data,
+                                       std::vector<libMesh::NumericVector<double>*>* lag_body_force_fcn_data,
+                                       std::vector<libMesh::NumericVector<double>*>* lag_surface_force_fcn_data,
+                                       std::vector<libMesh::NumericVector<double>*>* lag_surface_pressure_fcn_data,
+                                       unsigned int part);
     /*
      * \brief Compute the stress normalization field Phi.
      */
@@ -682,6 +690,7 @@ protected:
     /*
      * Data related to handling stress normalization.
      */
+    double d_epsilon;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_stress_normalization_part;
 
