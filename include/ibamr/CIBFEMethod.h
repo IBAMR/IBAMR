@@ -134,6 +134,11 @@ public:
     typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
 
     /*!
+     * \brief Typedef specifying interface for specifying net external force and torque on structures.
+     */
+    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
+
+    /*!
      * Struct encapsulating constrained velocity functions data.
      */
     struct ConstrainedVelocityFcnsData
@@ -151,6 +156,20 @@ public:
     };
 
     /*!
+     * \brief Struct encapsulating external force and torque function data.
+     */
+    struct ExternalForceTorqueFcnData
+    {
+        ExternalForceTorqueFcnData(ExternalForceTorqueFcnPtr forcetorquefcn = NULL, void* ctx = NULL)
+            : forcetorquefcn(forcetorquefcn), ctx(ctx)
+        {
+            // intentionally left blank
+        }
+        ExternalForceTorqueFcnPtr forcetorquefcn;
+        void* ctx;
+    };
+
+    /*!
      * Register a constrained body velocity function.
      */
     void registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
@@ -159,9 +178,20 @@ public:
                                              unsigned int part = 0);
 
     /*!
-     * Register a constrained body velocity function.
+     * Register a constrained body velocity function data.
      */
     void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
+
+    /*!
+     * \brief Register an external force and torque function.
+     */
+    void registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
+                                             void* ctx = NULL,
+                                             unsigned int part = 0);
+    /*!
+     * \brief Register an external force and torque function data.
+     */
+    void registerExternalForceTorqueFunction(const ExternalForceTorqueFcnData& data, unsigned int part = 0);
 
     /*!
      * \brief Method to prepare to advance data from current_time to new_time.
@@ -240,6 +270,20 @@ public:
      * the current time interval.
      */
     virtual void getConstraintForce(Vec* L, const double data_time);
+
+    // \see CIBStrategy::getFreeRigidVelocities()
+    /*!
+     * \brief Get the free rigid velocities (DOFs) at the specified time within
+     * the current time interval.
+     */
+    virtual void getFreeRigidVelocities(Vec* U, const double data_time);
+
+    // \see CIBStrategy::getNetExternalForceTorque()
+    /*!
+     * \brief Get net external force and torque at the specified time within
+     * the current time interval.
+     */
+    virtual void getNetExternalForceTorque(Vec* F, const double data_time);
 
     // \see CIBStrategy::subtractMeanConstraintForce().
     /*!
@@ -436,9 +480,20 @@ private:
     Vec d_mv_L_new, d_mv_L_current;
 
     /*!
+     * PETSc wrappers for free rigid body velocities.
+     */
+    std::vector<Vec> d_U, d_F;
+    Vec d_mv_U, d_mv_F;
+
+    /*!
      * Functions to set constrained velocities of the structures.
      */
     std::vector<ConstrainedVelocityFcnsData> d_constrained_velocity_fcns_data;
+
+    /*!
+     * Functions to set net external force and torque on free moving structures.
+     */
+    std::vector<ExternalForceTorqueFcnData> d_ext_force_torque_fcn_data;
 
     /*!
      * Pre and post fluid solve call back functions and contexts.

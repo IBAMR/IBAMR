@@ -334,8 +334,8 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
     VecSet(Vrigid, 0.0);
-    d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/ true,
-                                         /*only_imposed_parts*/ false);
+    d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_dofs*/ true,
+                                         /*only_imposed_dofs*/ false);
     VecScale(Vrigid, d_scale_interp);
     VecAYPX(V, -1.0, Vrigid);
     if (!MathUtilities<double>::equalEps(d_reg_mob_factor, 0.0))
@@ -345,8 +345,8 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     }
 
     // (d) Force and torque constraint.
-    d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/ true,
-                                                    /*only_imposed_parts*/ false);
+    d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_dofs*/ true,
+                                                    /*only_imposed_dofs*/ false);
 
     // Delete temporary vectors.
     VecDestroy(&Vrigid);

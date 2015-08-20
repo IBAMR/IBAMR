@@ -60,7 +60,6 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 {
     GeneralSolver::init(object_name, /*homogeneous bcs*/ false);
 
-    d_free_parts = 0;
     d_sp_solver = NULL;
     d_wide_u_var = NULL;
     d_wide_f_var = NULL;
@@ -89,14 +88,6 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 
 CIBStaggeredStokesSolver::~CIBStaggeredStokesSolver()
 {
-    // Destroy vectors for U and F.
-    for (unsigned k = 0; k < d_free_parts; ++k)
-    {
-        VecDestroy(&d_U[k]);
-        VecDestroy(&d_F[k]);
-    }
-    VecDestroy(&d_mv_U);
-    VecDestroy(&d_mv_F);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_wide_u_idx);
@@ -129,24 +120,6 @@ Pointer<CIBSaddlePointSolver> CIBStaggeredStokesSolver::getSaddlePointSolver() c
 void CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                                      const SAMRAIVectorReal<NDIM, double>& b)
 {
-
-    // Create rigid body trans/rot velocity and external force/torque vector.
-    PetscInt n = 0, N = NDIM * (NDIM + 1) / 2;
-    if (!SAMRAI_MPI::getRank()) n = N;
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {
-        if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
-        d_U.push_back(static_cast<Vec>(NULL));
-        d_F.push_back(static_cast<Vec>(NULL));
-        VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U.back());
-        VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_F.back());
-        VecSet(d_U.back(), 0.0);
-        VecSet(d_F.back(), 0.0);
-        ++d_free_parts;
-    }
-    VecCreateMultiVec(PETSC_COMM_WORLD, d_free_parts, &d_U[0], &d_mv_U);
-    VecCreateMultiVec(PETSC_COMM_WORLD, d_free_parts, &d_F[0], &d_mv_F);
-
     // Wrap Eulerian data into PETSc Vecs.
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
@@ -187,15 +160,26 @@ void CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM
     // to L should suffice to know the required structure.
     Vec V = L;
 
+    // Get the rigid body velocities that need to be solved for.
+    // NOTE: The current time corresponds to the time at which solver is initialized
+    // which maybe different from the current time of the timestep being integrated upon.
+    Vec U;
+    d_cib_strategy->getFreeRigidVelocities(&U, d_current_time);
+
+    // Create a vector that contains net external force and torque on the body.
+    // NOTE: In the initialization stage we do not need an actual force vector, a reference
+    // to U should suffice to know the required structure.
+    Vec F = U;
+
     // Create the composite vectors.
     Vec mv_x, mv_b;
     std::vector<Vec> vx(3), vb(3);
     vx[0] = u_p;
     vx[1] = L;
-    vx[2] = d_mv_U;
+    vx[2] = U;
     vb[0] = g_h;
     vb[1] = V;
-    vb[2] = d_mv_F;
+    vb[2] = F;
     VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vx[0], &mv_x);
     VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vb[0], &mv_b);
 
@@ -253,43 +237,44 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     Vec L;
     d_cib_strategy->getConstraintForce(&L, d_new_time);
 
-    // Set imposed velocity for prescribed kinematics bodies in RHS.
-    // Note: Free parts have 0 set in the RHS.
+    // Get the free body velocities to solve for.
+    // NOTE: We need U at new time in the solver.
+    Vec U;
+    d_cib_strategy->getFreeRigidVelocities(&U, d_new_time);
+
+    // Set the imposed velocity for all bodies in the RHS.
     Vec V;
     VecDuplicate(L, &V);
-    VecSet(V, 0.0);
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        if (d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
-        RigidDOFVector U;
-        d_cib_strategy->getNewRigidBodyVelocity(part, U);
-        const double interp_scale = d_sp_solver->getInterpScale();
-        U *= -interp_scale;
-        d_cib_strategy->setRigidBodyVelocity(part, U, V);
-    }
-    VecSet(d_mv_F, 0.0);
-#if 0
-    Vec F0;
-    VecMultiVecGetSubVec(d_mv_F, 0, &F0);
-    double external_force[6] = {
-        1.0091626167098875e+02, -4.0358218156288928e-10, 9.1596251101991322e-04, 0.0, 0.0, 0.0
-    };
-    static const int s = NDIM * (NDIM + 1) / 2;
-    std::vector<int> idx(s);
-    for (int i = 0; i < s; ++i) idx[i] = i;
-    VecSetValues(F0, s, &idx[0], &external_force[0], INSERT_VALUES);
-    VecAssemblyBegin(F0);
-    VecAssemblyEnd(F0);
-#endif
+        RigidDOFVector U_part;
+        d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
 
-    // Create multivector.
+        // Zero-out free velocities.
+        int num_free_dofs = 0;
+        const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+        for (int k = 0; k < s_max_free_dofs; ++k)
+        {
+            if (solve_dofs[k]) U_part[k] = 0.0;
+        }
+
+        const double interp_scale = d_sp_solver->getInterpScale();
+        U_part *= -interp_scale;
+        d_cib_strategy->setRigidBodyVelocity(part, U_part, V);
+    }
+
+    // Get the net external force and torque on the bodies.
+    Vec F;
+    d_cib_strategy->getNetExternalForceTorque(&F, d_new_time);
+
+    // Create multivector to pass it to the saddle point solver.
     std::vector<Vec> vx(3), vb(3);
     vx[0] = u_p;
     vx[1] = L;
-    vx[2] = d_mv_U;
+    vx[2] = U;
     vb[0] = g_h;
     vb[1] = V;
-    vb[2] = d_mv_F;
+    vb[2] = F;
 
     Vec mv_x, mv_b;
     VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vx[0], &mv_x);
@@ -301,13 +286,45 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     // anything special for its initial guess to the Krylov solver.
     bool converged = d_sp_solver->solveSystem(mv_x, mv_b);
 
-    // Copy solution.
+    // Extract solution.
     x.copyVector(d_x_wide);
-    for (unsigned part = 0, k = 0; part < d_num_rigid_parts; ++part)
+    for (unsigned part = 0, free_part = 0; part < d_num_rigid_parts; ++part)
     {
-        if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
-        d_cib_strategy->updateNewRigidBodyVelocity(part, d_U[k]);
-        ++k;
+        RigidDOFVector U_part;
+        d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
+
+        // Update free DOFs.
+        int num_free_dofs = 0;
+        const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+        if (num_free_dofs)
+        {
+            Vec U_sub;
+            VecMultiVecGetSubVec(U, free_part, &U_sub);
+
+            PetscInt s;
+            PetscScalar* a = NULL;
+            VecGetArray(U_sub, &a);
+            VecGetSize(U_sub, &s);
+
+            std::vector<double> a_vec(s, 0.0);
+            if (a != NULL)
+            {
+                std::copy(&a[0], &a[s], &a_vec[0]);
+            }
+            SAMRAI_MPI::sumReduction(&a_vec[0], s);
+            VecRestoreArray(U_sub, &a);
+
+            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+            {
+                if (solve_dofs[k])
+                {
+                    U_part[k] = a_vec[p];
+                    ++p;
+                }
+            }
+            ++free_part;
+        }
+        d_cib_strategy->updateNewRigidBodyVelocity(part, U_part);
     }
 
     double half_time = 0.5 * (d_new_time + d_current_time);
@@ -322,12 +339,6 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     ghost_fill_schd->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
 
-    RigidDOFVector netFT0, netFT1;
-    d_cib_strategy->computeNetRigidGeneralizedForce(0, L, netFT0);
-    d_cib_strategy->computeNetRigidGeneralizedForce(1, L, netFT1);
-    pout << "\n\nNet external force and torque on structure 0 is : \n" << netFT0;
-    pout << "\n\nNet external force and torque on structure 1 is : \n" << netFT1;
-
 #if 0
         Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
         bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
@@ -337,13 +348,7 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
         d_cib_strategy->getInterpolatedVelocity(V, half_time);
         Vec* vV;
         VecMultiVecGetSubVecs(V, &vV);
-        PetscScalar* a;
-        PetscInt size_vec;
-        VecGetArray(vV[0], &a);
-        VecGetLocalSize(vV[0], &size_vec);
-        for (int i = 0; i < size_vec; ++i) pout << a[i] << "\t";
-        pout << std::endl;
-        VecRestoreArray(vV[0], &a);
+        VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
 #endif
 
 #if 1
@@ -351,13 +356,7 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
-    PetscScalar* a;
-    PetscInt size_vec;
-    VecGetArray(V, &a);
-    VecGetLocalSize(V, &size_vec);
-    for (int i = 0; i < size_vec; ++i) pout << a[i] << "\t";
-    VecRestoreArray(V, &a);
-    pout << std::endl;
+    VecView(V, PETSC_VIEWER_STDOUT_WORLD);
 #endif
 
     // Delete PETSc vectors.
@@ -386,15 +385,6 @@ void CIBStaggeredStokesSolver::deallocateSolverState()
         if (level->checkAllocated(d_wide_u_idx)) level->deallocatePatchData(d_wide_u_idx);
         if (level->checkAllocated(d_wide_f_idx)) level->deallocatePatchData(d_wide_f_idx);
     }
-
-    // Destroy the free-dofs
-    for (unsigned k = 0; k < d_U.size(); ++k)
-    {
-        VecDestroy(&d_U[k]);
-        VecDestroy(&d_F[k]);
-    }
-    VecDestroy(&d_mv_U);
-    VecDestroy(&d_mv_F);
 
     return;
 } // deallocateSolverState

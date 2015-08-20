@@ -73,7 +73,15 @@ void ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     U_com[0] = 1.0;
 
     return;
-} // ConstrainedCOMVel
+} // ConstrainedCOMOuterVel
+
+void NetOuterExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+{
+    F_ext << 2.19013, 67.4297, -1.19364;
+    T_ext << -66.9051, 5.61263, -85.0411;
+
+    return;
+} // NetOuterExternalForceTorque
 
 // Center of mass velocity
 void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
@@ -81,7 +89,7 @@ void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     U_com.setZero();
     W_com.setZero();
     return;
-} // ConstrainedCOMVel
+} // ConstrainedCOMInnerVel
 
 void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
 {
@@ -184,9 +192,14 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify structure kinematics
-        ib_method_ops->setSolveRigidBodyVelocity(0, true);
-        ib_method_ops->setSolveRigidBodyVelocity(1, false);
+        FreeRigidDOFVector outer_free_dofs, inner_free_dofs;
+        outer_free_dofs << 0, 1, 1, 1, 1, 1;
+        inner_free_dofs << 0, 0, 0, 0, 0, 0;
+        ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
+        ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
 
+        ib_method_ops->registerExternalForceTorqueFunction(&NetOuterExternalForceTorque, NULL, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
         ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
 
         // Create initial condition specification objects.
@@ -316,6 +329,17 @@ int main(int argc, char* argv[])
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            pout << "\nNet rigid force and torque on structure 0 is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n";
+            pout << "\nNet rigid force and torque on structure 1 is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(1) << "\n";
+
+            RigidDOFVector U0, U1;
+            ib_method_ops->getNewRigidBodyVelocity(0, U0);
+            ib_method_ops->getNewRigidBodyVelocity(1, U1);
+            pout << "\nRigid body velocity of structure 0 is : \n" << U0 << "\n";
+            pout << "\nRigid body velocity of structure 1 is : \n" << U1 << "\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

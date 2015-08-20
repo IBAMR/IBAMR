@@ -189,7 +189,6 @@ private:
 
     // Number of structures.
     const unsigned int d_num_rigid_parts;
-    unsigned int d_free_parts;
 
     // Pointer to saddle-point solver.
     SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
@@ -201,10 +200,6 @@ private:
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
-
-    // PETSc Vec for rigid body velocity and generalized force.
-    std::vector<Vec> d_U, d_F;
-    Vec d_mv_U, d_mv_F;
 };
 } // namespace IBAMR
 

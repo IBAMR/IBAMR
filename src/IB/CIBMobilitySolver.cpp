@@ -94,6 +94,7 @@ CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
             new FreeBodyMobilitySolver(d_object_name + "FreeBodyMobilitySolver",
                                        input_db->getDatabase("FreeBodyMobilitySolver"), "FBMInv_", cib_strategy);
         d_freebody_mob_solver->setMobilitySolver(this);
+        d_freebody_mob_solver->setStokesSpecifications(*navier_stokes_integrator->getStokesSpecifications());
     }
 
     IBAMR_DO_ONCE(t_solve_mobility_system =
@@ -273,7 +274,9 @@ void CIBMobilitySolver::initializeSolverState(Vec x, Vec b)
     d_has_free_parts = false;
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        if (d_cib_strategy->getSolveRigidBodyVelocity(part))
+        int num_free_dofs;
+        d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+        if (num_free_dofs)
         {
             d_has_free_parts = true;
             break;

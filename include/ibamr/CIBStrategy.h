@@ -47,8 +47,11 @@
 namespace IBAMR
 {
 
-typedef Eigen::Matrix<double, NDIM*(NDIM + 1) / 2, 1> RigidDOFVector;
+static const int s_max_free_dofs = NDIM * (NDIM + 1) / 2;
+typedef Eigen::Matrix<double, s_max_free_dofs, 1> RigidDOFVector;
+typedef Eigen::Matrix<int, s_max_free_dofs, 1> FreeRigidDOFVector;
 typedef RigidDOFVector RDV;
+typedef FreeRigidDOFVector FRDV;
 
 /*!
  * \brief Class CIBStrategy is a lightweight abstract strategy class which
@@ -90,7 +93,29 @@ public:
      * \param time Time (current_time or new_time) at which constraint force is
      * required.
      */
-    virtual void getConstraintForce(Vec* L, const double time) = 0;
+    virtual void getConstraintForce(Vec* L, const double data_time) = 0;
+
+    /*!
+     * \brief Get the free rigid velocities (DOFs) at the specified time within
+     * the current time interval. Generally, the implementation class maintains
+     * and stores the free DOFs. This routine is called by constraint solver
+     * to update the free rigid DOFs after the (converged) solution is obtained.
+     *
+     * \param time Time (current_time or new_time) at which constraint force is
+     * required.
+     */
+    virtual void getFreeRigidVelocities(Vec* U, const double data_time) = 0;
+
+    /*!
+     * \brief Get net external force and torque at the specified time within
+     * the current time interval. Generally, the implementation class maintains
+     * and stores the net external force and torque for the corresponding free DOFs.
+     * This routine is called by constraint solver to form the appropriate RHS.
+     *
+     * \param time Time (current_time or new_time) at which external force and torque
+     * is required.
+     */
+    virtual void getNetExternalForceTorque(Vec* F, const double data_time) = 0;
 
     /*!
      * \brief Subtract the mean of constraint force from the background Eulerian
@@ -149,19 +174,17 @@ public:
     virtual unsigned int getNumberOfNodes(const unsigned int part) const = 0;
 
     /*!
-     * \brief Set if the rigid velocity is to be solved for this
+     * \brief Set what rigid DOFs need to be solved for this
      * particular structure.
      *
-     * \param part The rigid body for which boolean is to be set.
+     * \param part The rigid body for which we are setting the free DOFs.
      */
-    void setSolveRigidBodyVelocity(const unsigned int part, const bool solve_rigid_vel);
+    void setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
 
     /*!
-     * \brief Query if the rigid velocity is to be solved for.
-     *
-     * \return true if rigid velocity is to be solved for.
+     * \brief Query what rigid DOFs need to be solved for.
      */
-    bool getSolveRigidBodyVelocity(const unsigned int part) const;
+    const FreeRigidDOFVector& getSolveRigidBodyVelocity(const unsigned int part, int& num_free_dofs) const;
 
     /*!
      * \brief Set the rigid body velocity at the nodal/marker points
@@ -185,23 +208,26 @@ public:
      * and for three-dimensions the vector values are
      * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
      *
-     * \param only_free_parts Boolean indicating if the rigid body velocity
-     * is to be set only for free moving bodies.
+     * \param only_free_dofs Boolean indicating if the rigid body velocity
+     * is to be set only for free DOFS for all parts. The corresponding size
+     * of U_sub would be \f$ U_{sub} \leq NDIM * (NDIM + 1) / 2 \f$.
      *
-     * \param only_imposed_parts Boolean indicating if the rigid body velocity
-     * is to be set only for prescribed kinematics bodies.
+     * \param only_imposed_dofs Boolean indicating if the rigid body velocity
+     * is to be set only for prescribed kinematics dofs for all parts. The
+     * corresponding size of U_sub would be \f$ U_{sub} \leq NDIM * (NDIM + 1) / 2 \f$.
      *
-     * \param all_parts Boolean indicating if the rigid body velocity
-     * is to be set for all bodies.
+     * \param all_dofs Boolean indicating if the rigid body velocity
+     * is to be set for all parts. The corresponding size of U_sub would be
+     * \f$ U_{sub} \eq NDIM * (NDIM + 1) / 2 \f$.
      *
      * \note User is responsible for setting correct number of subvecs in U
      * that corresponds to the particular combination of booleans.
      */
     virtual void setRigidBodyVelocity(Vec U,
                                       Vec V,
-                                      const bool only_free_parts,
-                                      const bool only_imposed_parts,
-                                      const bool all_parts = false);
+                                      const bool only_free_dofs,
+                                      const bool only_imposed_dofs,
+                                      const bool all_dofs = false);
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -231,23 +257,31 @@ public:
      * \param L The Lagrange multiplier vector.
      * \param F PetscMultiVec storing the net generalized force.
      *
-     * \param only_free_parts Boolean indicating if the net generalized
-     * force and torque is to be computed only for free moving bodies.
+     * \param only_free_dofs Boolean indicating if the net generalized
+     * force and torque is to be computed only for free dofs of all bodies.
      *
-     * \param only_imposed_parts Boolean indicating if the net generalized
-     * force and torque is to be computed only for prescribed kinematics bodies.
+     * \param only_imposed_dofs Boolean indicating if the net generalized
+     * force and torque is to be computed for imposed dofs of all bodies.
      *
-     * \param all_parts Boolean indicating if the net generalized
-     * force and torque is to be computed for all bodies.
+     * \param all_dofs Boolean indicating if the net generalized
+     * force and torque is to be computed for all dofs of all bodies.
      *
      * \note User is responsible for setting correct number of subvecs in F
      * that corresponds to the particular combination of booleans.
      */
     virtual void computeNetRigidGeneralizedForce(Vec L,
                                                  Vec F,
-                                                 const bool only_free_parts,
-                                                 const bool only_imposed_parts,
-                                                 const bool all_parts = false);
+                                                 const bool only_free_dofs,
+                                                 const bool only_imposed_dofs,
+                                                 const bool all_dofs = false);
+
+    /*!
+     * \brief Get total torque and force on the structure at new_time within
+     * the current time interval.
+     *
+     * \param part The rigid part.
+     */
+    const RigidDOFVector& getNetRigidGeneralizedForce(const unsigned int part);
 
     /*!
      * \brief Update the rigid body velocity obtained from the constraint Stokes
@@ -313,7 +347,17 @@ public:
     /*!
      * \brief Set the DOFs from RigidDOFVector \p Ur to PETSc Vec \p U.
      */
-    static void rdvToVec(const RigidDOFVector& Ur, Vec U);
+    static void rdvToVec(const RigidDOFVector& Ur, Vec& U);
+
+    /*!
+     * \brief Set the DOFs from Eigen::Vector3d \p U and \p W to RigidDOFVector \p UW.
+     */
+    static void eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, RigidDOFVector& UW);
+
+    /*!
+     * \brief Set the DOFs from RigidDOFVector \p UW to Eigen::Vector3d \p U and \p W.
+     */
+    static void rdvToEigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vector3d& W);
 
     /*!
      * \brief Get the rigid body translational velocity at the beginning of
@@ -389,13 +433,18 @@ protected:
     /*!
      * Whether to solve for rigid body velocity.
      */
-    std::vector<bool> d_solve_rigid_vel;
+    std::vector<FRDV> d_solve_rigid_vel;
 
     /*!
      * Rigid body velocity of the structures.
      */
     std::vector<Eigen::Vector3d> d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
     std::vector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
+
+    /*!
+     * Net rigid generalized force.
+     */
+    std::vector<RigidDOFVector> d_net_rigid_generalized_force;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:

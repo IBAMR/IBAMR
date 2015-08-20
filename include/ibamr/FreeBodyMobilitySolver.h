@@ -48,6 +48,7 @@ namespace IBAMR
 {
 class CIBStrategy;
 class CIBMobilitySolver;
+class StokesSpecifications;
 }
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -89,6 +90,11 @@ public:
      * \brief Set the mobility solver for this class.
      */
     void setMobilitySolver(SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> mobility_solver);
+
+    /*!
+     * \brief Set stokes specifications.
+     */
+    void setStokesSpecifications(const IBAMR::StokesSpecifications& stokes_spec);
 
     /*!
      * \brief Set the KSP type.
@@ -253,8 +259,10 @@ private:
     // The current, new, solution and time-interval of integration.
     double d_current_time, d_new_time, d_solution_time, d_dt;
 
-    // Viscosity, effective body hydrodynamic radius for the preconditioner
-    double d_mu, d_body_hydroradius;
+    // System physical parameters.
+    double d_mu;
+    double d_rho;
+    double d_body_hydroradius;
 };
 } // namespace IBAMR
 

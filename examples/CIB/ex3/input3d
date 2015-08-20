@@ -236,7 +236,7 @@ CIBStaggeredStokesSolver
         max_iterations = 3
         rel_residual_tol  = 1.0e-4
         abs_residual_tol  = 0
-        pc_type           = "shell"
+        pc_type           = "none"
         body_hydroradius = 2.2162
     }// FreeBodyMobilitySolver
 
@@ -277,7 +277,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 0
+   viz_dump_interval           = 1
    viz_dump_dirname            = "viz_3d"
    visit_number_procs_per_file = 1
 

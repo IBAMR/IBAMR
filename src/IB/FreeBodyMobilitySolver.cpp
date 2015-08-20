@@ -39,6 +39,7 @@
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/FreeBodyMobilitySolver.h"
+#include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScMultiVec.h"
@@ -92,7 +93,7 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = false;
+    d_initial_guess_nonzero = true;
     d_enable_logging = false;
     d_is_initialized = false;
     d_reinitializing_solver = false;
@@ -110,7 +111,6 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
         if (d_pc_type == "shell")
         {
             d_body_hydroradius = input_db->getDouble("body_hydroradius");
-            d_mu = 1.0;
         }
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
@@ -157,6 +157,14 @@ void FreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobili
 
     return;
 } // setMobilitySolver
+
+void FreeBodyMobilitySolver::setStokesSpecifications(const StokesSpecifications& stokes_spec)
+{
+    d_rho = stokes_spec.getRho();
+    d_mu = stokes_spec.getMu();
+
+    return;
+} // setStokesSpecifications
 
 const KSP& FreeBodyMobilitySolver::getPETScKSP() const
 {
@@ -503,23 +511,15 @@ PetscErrorCode FreeBodyMobilitySolver::MatVecMult_FBMSolver(Mat A, Vec x, Vec y)
 
     // a) Set rigid body velocity
     VecSet(solver->d_petsc_temp_v, 0.0); // so that lambda for specified-kinematics part is zero.
-    Vec* mv_U;
-    IBTK::VecMultiVecGetSubVecs(x, &mv_U);
-    for (unsigned part = 0, k = 0; part < solver->d_num_rigid_parts; ++part)
-    {
-        if (solver->d_cib_strategy->getSolveRigidBodyVelocity(part))
-        {
-            solver->d_cib_strategy->setRigidBodyVelocity(part, mv_U[k], solver->d_petsc_temp_v);
-            ++k;
-        }
-    }
+    solver->d_cib_strategy->setRigidBodyVelocity(x, solver->d_petsc_temp_v, /*only_free_dofs*/ true,
+                                                 /*only_imposed_dofs*/ false);
 
     // b) Solve the mobility problem.
     solver->d_mobility_solver->solveMobilitySystem(solver->d_petsc_temp_f, solver->d_petsc_temp_v);
 
     // c) Compute the generalized force and torque.
-    solver->d_cib_strategy->computeNetRigidGeneralizedForce(solver->d_petsc_temp_f, y, /*only_free_parts*/ true,
-                                                            /*only_imposed_parts*/ false);
+    solver->d_cib_strategy->computeNetRigidGeneralizedForce(solver->d_petsc_temp_f, y, /*only_free_dofs*/ true,
+                                                            /*only_imposed_dofs*/ false);
 
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
@@ -530,6 +530,7 @@ PetscErrorCode FreeBodyMobilitySolver::MatVecMult_FBMSolver(Mat A, Vec x, Vec y)
 // Routine to apply FreeBodyMobility preconditioner
 PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
 {
+    // Here we are trying to the solve the problem of the type: Py = x for y.
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
@@ -539,33 +540,48 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
     TBOX_ASSERT(solver);
 #endif
 
-    int free_comps;
     Vec* vx, *vy;
     IBTK::VecMultiVecGetSubVecs(x, &vx);
     IBTK::VecMultiVecGetSubVecs(y, &vy);
-    IBTK::VecMultiVecGetNumberOfSubVecs(x, &free_comps);
 
-    // Translational and rotational self-mobility
+    // Use translational and rotational self-mobility to predict velocity.
     const double mob_tt = 1.0 / (6.0 * M_PI * solver->d_body_hydroradius * solver->d_mu);
     const double mob_rr = 1.0 / (8.0 * M_PI * solver->d_mu * pow(solver->d_body_hydroradius, 3));
-
-    for (int part = 0; part < free_comps; ++part)
+    for (unsigned part = 0, free_part = 0; part < solver->d_num_rigid_parts; ++part)
     {
-        RigidDOFVector Ur, Fr;
+        int num_free_dofs;
+        const FRDV& solve_dofs = solver->d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
 
-        solver->d_cib_strategy->vecToRDV(vx[part], Fr);
-
-        for (int d = 0; d < NDIM; ++d)
+        if (num_free_dofs)
         {
-            Ur[d] = mob_tt * Fr[d];
-#if (NDIM == 3)
-            Ur[d + 3] = mob_rr * Fr[d + 3];
+            Vec F_sub, U_sub;
+            IBTK::VecMultiVecGetSubVec(x, free_part, &F_sub);
+            IBTK::VecMultiVecGetSubVec(y, free_part, &U_sub);
+
+            PetscScalar* a_f, *a_u;
+            VecGetArray(F_sub, &a_f);
+            VecGetArray(U_sub, &a_u);
+
+            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+            {
+                if (solve_dofs[k])
+                {
+                    if (k < NDIM)
+                    {
+                        a_u[p] = a_f[p] * mob_tt;
+                    }
+                    else
+                    {
+                        a_u[p] = a_f[p] * mob_rr;
+                    }
+                    ++p;
+                }
+            }
+
+            VecRestoreArray(F_sub, &a_f);
+            VecRestoreArray(U_sub, &a_u);
+            ++free_part;
         }
-#elif(NDIM == 2)
-        }
-        Ur[2] = mob_rr * Fr[2];
-#endif
-        solver->d_cib_strategy->rdvToVec(Ur, vy[part]);
     }
 
     PetscFunctionReturn(0);

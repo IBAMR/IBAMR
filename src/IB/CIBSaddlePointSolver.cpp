@@ -1005,8 +1005,8 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         solver->d_mob_solver->solveMobilitySystem(Lambda, U);
 
         // 3b) F_tilde = F + T(lambda)
-        solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_parts*/ true,
-                                                                /*only_imposed_parts*/ false);
+        solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_dofs*/ true,
+                                                                /*only_imposed_dofs*/ false);
         VecAXPY(F_tilde, 1.0, vx[2]);
 
         // 3c) U_rigid = N^-1(F_tilde)
@@ -1014,16 +1014,7 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
         // 3d) delU = T*(U_rigid) - U
         VecSet(delU, 0.0);
-        Vec* mv_U;
-        IBTK::VecMultiVecGetSubVecs(vy[2], &mv_U);
-        for (unsigned part = 0, k = 0; part < solver->d_num_rigid_parts; ++part)
-        {
-            if (solver->d_cib_strategy->getSolveRigidBodyVelocity(part))
-            {
-                solver->d_cib_strategy->setRigidBodyVelocity(part, mv_U[k], delU);
-                ++k;
-            }
-        }
+        solver->d_cib_strategy->setRigidBodyVelocity(vy[2], delU, /*only_free_dofs*/ true, /*only_imposed_dofs*/ false);
         VecAXPY(delU, -1.0, U);
     }
     else

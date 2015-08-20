@@ -72,9 +72,10 @@ void ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     U_com.setZero();
     W_com.setZero();
     U_com[0] = 1.0;
+    U_com[1] = 1.0;
 
     return;
-} // ConstrainedCOMVel
+} // ConstrainedCOMOuterVel
 
 // Center of mass velocity
 void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
@@ -82,7 +83,7 @@ void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     U_com.setZero();
     W_com.setZero();
     return;
-} // ConstrainedCOMVel
+} // ConstrainedCOMInnerVel
 
 void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
 {
@@ -185,8 +186,11 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify structure kinematics
-        ib_method_ops->setSolveRigidBodyVelocity(0, false);
-        ib_method_ops->setSolveRigidBodyVelocity(1, false);
+        FreeRigidDOFVector outer_free_dofs, inner_free_dofs;
+        outer_free_dofs.setZero();
+        inner_free_dofs << 0, 0, 0, 0, 0, 0;
+        ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
+        ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
 
         ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
         ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
@@ -318,6 +322,11 @@ int main(int argc, char* argv[])
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            pout << "\n\nNet rigid force and torque on structure 0 is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n";
+            pout << "\n\nNet rigid force and torque on structure 1 is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(1) << "\n\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

@@ -86,6 +86,7 @@ CIBMethod::CIBMethod(const std::string& object_name,
 
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
+    d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
     d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_lambda_filename.resize(d_num_rigid_parts);
     d_reg_filename.resize(d_num_rigid_parts);
@@ -129,6 +130,26 @@ void CIBMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcn
 
     return;
 } // registerConstrainedVelocityFunction
+
+void CIBMethod::registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
+                                                    void* ctx,
+                                                    unsigned int part)
+{
+    registerExternalForceTorqueFunction(ExternalForceTorqueFcnData(forcetorquefcn, ctx), part);
+    return;
+} // registerExternalForceTorqueFunction
+
+void CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcnData& data, unsigned int part)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(part < d_num_rigid_parts);
+#endif
+
+    d_ext_force_torque_fcn_data[part] = data;
+
+    return;
+} // registerExternalForceTorqueFunction
 
 int CIBMethod::getStructuresLevelNumber() const
 {
@@ -200,29 +221,132 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
-    // Set prescribed velocity for the time interval.
+    // Get data for free and prescribed bodies.
+    int free_parts = 0;
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-        if (!d_solve_rigid_vel[part])
+        int num_free_dofs;
+        const FRDV& solve_dofs = getSolveRigidBodyVelocity(part, num_free_dofs);
+        const bool prescribed_velocity = num_free_dofs < s_max_free_dofs;
+        if (prescribed_velocity)
         {
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, d_trans_vel_current[part],
-                                                             d_rot_vel_current[part]);
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_constrained_velocity_fcns_data[part].comvelfcn);
+#endif
+            Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new, rot_vel_current, rot_vel_half,
+                rot_vel_new;
 
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, d_trans_vel_half[part], d_rot_vel_half[part]);
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, trans_vel_current, rot_vel_current);
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, trans_vel_half, rot_vel_half);
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, trans_vel_new, rot_vel_new);
 
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, d_trans_vel_new[part], d_rot_vel_new[part]);
+            // Update only prescribed velocities in the internal data structure.
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (!solve_dofs[d])
+                {
+                    d_trans_vel_current[part][d] = trans_vel_current[d];
+                    d_trans_vel_half[part][d] = trans_vel_half[d];
+                    d_trans_vel_new[part][d] = trans_vel_new[d];
+                }
+            }
+#if (NDIM == 2)
+            if (!solve_dofs[2])
+            {
+                d_rot_vel_current[part][2] = rot_vel_current[2];
+                d_rot_vel_half[part][2] = rot_vel_half[2];
+                d_rot_vel_new[part][2] = rot_vel_new[2];
+            }
+#elif(NDIM == 3)
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (!solve_dofs[3 + d])
+                {
+                    d_rot_vel_current[part][d] = rot_vel_current[d];
+                    d_rot_vel_half[part][d] = rot_vel_half[d];
+                    d_rot_vel_new[part][d] = rot_vel_new[d];
+                }
+            }
+#endif
+        }
+
+        if (num_free_dofs)
+        {
+            d_U.push_back(static_cast<Vec>(NULL));
+            d_F.push_back(static_cast<Vec>(NULL));
+
+            Vec& U = d_U.back();
+            Vec& F = d_F.back();
+
+            PetscInt n = 0, N = num_free_dofs;
+            if (!SAMRAI_MPI::getRank()) n = N;
+            VecCreateMPI(PETSC_COMM_WORLD, n, N, &U);
+            VecCreateMPI(PETSC_COMM_WORLD, n, N, &F);
+
+            // Initialize U and F.
+            // For U we use current timestep value as a guess.
+
+            RDV Fr;
+            Eigen::Vector3d F_ext, T_ext;
+            if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
+            {
+                d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
+            }
+            else
+            {
+                F_ext.setZero();
+                T_ext.setZero();
+            }
+            eigenToRDV(F_ext, T_ext, Fr);
+
+            RDV Ur;
+            eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], Ur);
+
+            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+            {
+                if (solve_dofs[k])
+                {
+                    VecSetValue(U, p, Ur[k], INSERT_VALUES);
+                    VecSetValue(F, p, Fr[k], INSERT_VALUES);
+                    ++p;
+                }
+            }
+            VecAssemblyBegin(U);
+            VecAssemblyBegin(F);
+
+            VecAssemblyEnd(U);
+            VecAssemblyEnd(F);
+
+            ++free_parts;
         }
     }
+    VecCreateMultiVec(PETSC_COMM_WORLD, free_parts, &d_U[0], &d_mv_U);
+    VecCreateMultiVec(PETSC_COMM_WORLD, free_parts, &d_F[0], &d_mv_F);
 
     return;
 } // preprocessIntegrateData
 
 void CIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+    // Compute net rigid generalized force for structures.
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
+    Vec L_vec = ptr_lagmultpr->getVec();
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
+    {
+        computeNetRigidGeneralizedForce(part, L_vec, d_net_rigid_generalized_force[part]);
+    }
+
+    // Destroy the free-parts PETSc Vecs.
+    for (size_t k = 0; k < d_U.size(); ++k)
+    {
+        VecDestroy(&d_U[k]);
+        VecDestroy(&d_F[k]);
+    }
+    VecDestroy(&d_mv_U);
+    VecDestroy(&d_mv_F);
 
     // Dump Lagrange multiplier data.
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))
     {
         Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
@@ -296,6 +420,9 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
     // current velocity for the next time step.
     d_trans_vel_current = d_trans_vel_new;
     d_rot_vel_current = d_rot_vel_new;
+
+    // Do the base class cleanup here.
+    IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
     return;
 } // postprocessIntegrateData
@@ -490,7 +617,7 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
@@ -663,6 +790,32 @@ void CIBMethod::getConstraintForce(Vec* L, const double data_time)
 
     return;
 } // getConstraintForce
+
+void CIBMethod::getFreeRigidVelocities(Vec* U, const double data_time)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
+                MathUtilities<double>::equalEps(data_time, d_new_time));
+#endif
+
+    *U = d_mv_U;
+    return;
+
+} // getFreeRigidVelocities
+
+void CIBMethod::getNetExternalForceTorque(Vec* F, const double data_time)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
+                MathUtilities<double>::equalEps(data_time, d_new_time));
+#endif
+
+    *F = d_mv_F;
+    return;
+
+} // getNetExternalForceTorque
 
 void CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale)
 {
