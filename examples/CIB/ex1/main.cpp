@@ -1,5 +1,3 @@
-// Baky: Test 3d concentric spheres
-
 // Filename main.cpp
 // Created on 23 Apr 2015 by Amneet Bhalla
 // All rights reserved.

@@ -345,6 +345,8 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
     }
     VecDestroy(&d_mv_U);
     VecDestroy(&d_mv_F);
+    d_U.clear();
+    d_F.clear();
 
     // Dump Lagrange multiplier data.
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))

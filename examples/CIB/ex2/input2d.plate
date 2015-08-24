@@ -1,33 +1,33 @@
 // physical parameters
-MU  =  1.0                   // fluid viscosity
-RHO =  0.0                   // fluid density
+RHO     = 1.0                         // fluid density
+Re      = 20.0                        // Reynolds number of the flow
+U_PLATE = 1.0                         // wall velocity
+L_PLATE = 1.0                         // plate length
+MU      = RHO*U_PLATE*L_PLATE / Re    // fluid viscosity
 
 // constants
 PI         = 3.141592653589
-VISC_CFL   = 1E-16           // desired viscous CFL number
 STOKES_ITER = 4
-STOKES_TOL = 1.0e-12         // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-12         // Stokes' solver tolerance
+STOKES_TOL = 1.0e-9          // Stokes' solver tolerance
+SOLVER_TOL = 1.0e-9          // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL = 1.0                 // wall velocity
 
 // BCs
-PERIODIC            = 0
-NORMALIZE_PRESSURE  = TRUE           // whether to explicitly force the pressure to have mean zero
-NORMALIZE_VELOCITY  = (PERIODIC==1)  // for Stokes flow (rho = 0)
+PERIODIC            = 1
+NORMALIZE_PRESSURE  = TRUE
+NORMALIZE_VELOCITY  = FALSE
 
 // Gridding
-N = 64                         // number of grid cells along height of domain
-PATCH_SIZE = N                 // parallelization and testing
-DX = 0.5                       // grid spacing
-L = N*DX                       // length of domain
-DT = 1e-16                     // maximum timestep size
+N = 256
+L = 32.0
+H = 22.0
+DX = L/ N
 
 // solver parameters
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT                    // final simulation time
+END_TIME             = 15.0                  // final simulation time
 GROW_DT              = 1.0e0                 // growth factor for timesteps
 NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
@@ -36,8 +36,9 @@ ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for expl
 CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"  // convective time stepping type used in INS solver
 CONVECTIVE_OP_TYPE  = "PPM"                  // convective differencing discretization type; used in both INS and Adv-Diff solver
 CONVECTIVE_FORM     = "ADVECTIVE"            // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 0.1                    // maximum CFL number
-ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
+CFL_MAX             = 0.2                    // maximum CFL number
+DT                  = CFL_MAX*DX / U_PLATE   // maximum timestep size
+ERROR_ON_DT_CHANGE  = FALSE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -67,7 +68,7 @@ IBHierarchyIntegrator {
    time_stepping_type  = "MIDPOINT_RULE"
 }
 
-num_structures = 2
+num_structures = 1
 CIBMethod {
    delta_fcn             = DELTA_FUNCTION
    enable_logging        = ENABLE_LOGGING
@@ -77,32 +78,29 @@ CIBMethod {
 }
 
 IBStandardInitializer {
-    posn_shift = L/2. , L/2., L/2.
+    posn_shift      = 0.0 , 0.0
     max_levels      = MAX_LEVELS
-    structure_names = "shell_3d_out", "shell_3d_in"
+    structure_names = "plate2d"
 
-   shell_3d_out{
+   plate2d{
       level_number = MAX_LEVELS - 1
       uniform_spring_stiffness = 0.0
    }
-    shell_3d_in{
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
-   }
+
 }
 
 CIBStaggeredStokesSolver 
 {
     // Parameters to control various linear operators
-    scale_interp_operator     = 1.0                             // defaults to 1.0
-    scale_spread_operator     = 1.0                             // defaults to 1.0
-    normalize_spread_force    = (PERIODIC == 1)                 // defaults to false
-    regularize_mob_factor     = DELTA                           // defaults to 0.0
+    scale_interp_operator     = 1.0                            // defaults to 1.0
+    scale_spread_operator     = 1.0                            // defaults to 1.0
+    normalize_spread_force    = FALSE                          // defaults to false
+    regularize_mob_factor     = DELTA                          // defaults to 0.0
  
     // Setting for outer Krylov solver.
     options_prefix        = "SP_"
     max_iterations        = 100
-    rel_residual_tol      = SOLVER_TOL
+    rel_residual_tol      = 1e-11
     abs_residual_tol      = 1e-50
     ksp_type              = "fgmres"
     pc_type               = "shell"
@@ -152,13 +150,13 @@ CIBStaggeredStokesSolver
             rel_residual_tol     = 1.0e-16
             abs_residual_tol     = 1.0e-50
         }
-    }// PCStokesSolve
+    }// PCStokesSolver
 
     KrylovMobilitySolver
     {
         // Settings for outer solver.
         max_iterations        = 1000
-        rel_residual_tol      = STOKES_TOL
+        rel_residual_tol      = 1e-12
         abs_residual_tol      = 1e-50
         ksp_type              = "fgmres"
         pc_type               = "none"
@@ -171,9 +169,9 @@ CIBStaggeredStokesSolver
         stokes_precond_type   = "PROJECTION_PRECONDITIONER"
         stokes_solver_db
         {
-            max_iterations   = 100
+            max_iterations   = 1000
             ksp_type         = "gmres"
-            rel_residual_tol = STOKES_TOL
+            rel_residual_tol = 1e-12
             abs_residual_tol = 0.0
         }
 
@@ -221,7 +219,7 @@ CIBStaggeredStokesSolver
 
     DirectMobilitySolver
     {
-        recompute_mob_mat_perstep = FALSE
+        recompute_mob_mat_perstep = TRUE
         f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
 
         LAPACK_SVD
@@ -229,10 +227,16 @@ CIBStaggeredStokesSolver
             min_eigenvalue_threshold   = 1e-4     // defaults to 0.0
             eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
         }
-   }
-   FreeBodyMobilitySolver
-   {
-   }
+    }// DirectMobilitySolver
+
+    FreeBodyMobilitySolver
+    {
+        max_iterations = STOKES_ITER
+        rel_residual_tol  = STOKES_TOL
+        abs_residual_tol  = 0
+        pc_type           = "none"
+        body_hydroradius = 2.2162
+    }// FreeBodyMobilitySolver
 
 } // cIBStaggeredStokesSolver
 
@@ -260,33 +264,34 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   init_convective_time_stepping_type = "FORWARD_EULER" 
 }
 
 Main {
 
 // log file parameters
-   log_file_name               = "3d_example.log"
+   log_file_name               = "CIB2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
-   viz_dump_dirname            = "viz_icosahedron3d"
+   viz_dump_interval           = 10
+   viz_dump_dirname            = "viz_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 1
-   restart_dump_dirname        = "restart_2shells_3d"
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_2d"
 
 // timer dump parameters
    timer_dump_interval         = 1
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),( N - 1, N - 1, N - 1) ]
-   x_lo = 0., 0., 0.
-   x_up = L, L, L
-   periodic_dimension = PERIODIC, PERIODIC, PERIODIC
+   domain_boxes = [ (0,0),( N - 1, N - 1) ]
+   x_lo = 0., 0.
+   x_up = L, H
+   periodic_dimension = PERIODIC, PERIODIC
 }
 
 // Initial and BC conditions (if nonperiodic)
@@ -294,34 +299,27 @@ CartesianGeometry {
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
-   function_2 = "0.0"	
 }
 
 // u velocity
 VelocityBcCoefs_0 {
 
-   u_wall = U_WALL // 0 for homogeneous
+   u_wall = 1.0
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0" 
    acoef_function_3 = "1.0" 
-   acoef_function_4 = "1.0" 
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0" 
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "u_wall"
    gcoef_function_1 = "u_wall"
    gcoef_function_2 = "u_wall"
    gcoef_function_3 = "u_wall"
-   gcoef_function_4 = "u_wall"
-   gcoef_function_5 = "u_wall"
    
 }
 
@@ -332,48 +330,16 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0" 
    acoef_function_3 = "1.0"  
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0" 
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
-   
-}
-
-// w velocity
-VelocityBcCoefs_2 {
-   
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"  
-   acoef_function_3 = "1.0"  
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0" 
-   bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0" 
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
    
 }
 
@@ -390,10 +356,10 @@ GriddingAlgorithm {
       level_3 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = PATCH_SIZE, PATCH_SIZE, PATCH_SIZE  // all finer levels will use same values as level_0
+      level_0 = 512, 512   // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8,  8  // all finer levels will use same values as level_0
+      level_0 =   8,  8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box

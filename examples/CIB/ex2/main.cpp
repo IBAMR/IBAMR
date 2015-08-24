@@ -1,5 +1,5 @@
 // Filename main.cpp
-// Created on 23 Apr 2015 by Amneet Bhalla
+// Created on 23 Aug 2015 by Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // Center of mass velocity
-void ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
 {
     U_com.setZero();
     W_com.setZero();
@@ -73,21 +73,13 @@ void ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen:
     return;
 } // ConstrainedCOMOuterVel
 
-void NetOuterExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
 {
-    F_ext << 2.19013, 67.4297, -1.19364;
-    T_ext << -66.9051, 5.61263, -85.0411;
+    F_ext << 0.0, 0.0, 0.0;
+    T_ext << 0.0, 0.0, 0.0;
 
     return;
-} // NetOuterExternalForceTorque
-
-// Center of mass velocity
-void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
-{
-    U_com.setZero();
-    W_com.setZero();
-    return;
-} // ConstrainedCOMInnerVel
+} // NetExternalForceTorque
 
 void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
 {
@@ -190,15 +182,12 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify structure kinematics
-        FreeRigidDOFVector outer_free_dofs, inner_free_dofs;
-        outer_free_dofs << 0, 1, 1, 1, 1, 1;
-        inner_free_dofs << 0, 0, 0, 0, 0, 0;
-        ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
-        ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
+        FreeRigidDOFVector plate_free_dofs;
+        plate_free_dofs << 0, 0, 0;
+        ib_method_ops->setSolveRigidBodyVelocity(0, plate_free_dofs);
 
-        ib_method_ops->registerExternalForceTorqueFunction(&NetOuterExternalForceTorque, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, NULL, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -254,32 +243,24 @@ int main(int argc, char* argv[])
         std::string mobility_solver_type = input_db->getString("MOBILITY_SOLVER_TYPE");
         if (mobility_solver_type == "DIRECT")
         {
-            std::string mat_name1 = "struct-1";
-            std::string mat_name2 = "struct-2";
-            std::vector<std::vector<unsigned> > struct_ids1;
-            std::vector<std::vector<unsigned> > struct_ids2;
-            std::vector<unsigned> prototype_structs1;
-            std::vector<unsigned> prototype_structs2;
+            std::string mat_name = "plate";
+            std::vector<std::vector<unsigned> > struct_ids;
+            std::vector<unsigned> prototype_structs;
 
-            // Dense matrix
-            prototype_structs1.push_back(0);
-            prototype_structs2.push_back(1);
+            // Dense matrix type
+            prototype_structs.push_back(0);
 
-            struct_ids1.push_back(prototype_structs1);
-            struct_ids2.push_back(prototype_structs2);
+            // Dense matrix to operate upon
+            struct_ids.push_back(prototype_structs);
 
+            // Register the dense matrix with direct solver
             DirectMobilitySolver* direct_solvers = NULL;
             KrylovMobilitySolver* krylov_solvers = NULL;
             CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(&krylov_solvers,
                                                                                           &direct_solvers);
 
-            direct_solvers->registerMobilityMat(mat_name1, prototype_structs1, EMPIRICAL, LAPACK_LU, 0);
-            direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
-            int next_proc = 0;
-            if (SAMRAI_MPI::getNodes() > 1) next_proc = 1;
-
-            direct_solvers->registerMobilityMat(mat_name2, prototype_structs2, EMPIRICAL, LAPACK_LU, next_proc);
-            direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
+            direct_solvers->registerMobilityMat(mat_name, prototype_structs, EMPIRICAL, LAPACK_LU, 0);
+            direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
         }
 
         // Deallocate initialization objects.
@@ -323,21 +304,16 @@ int main(int argc, char* argv[])
             dt = time_integrator->getMaximumTimeStepSize();
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
+            if (loop_time > 0.11353)
+            {
+                IBAMR_DO_ONCE(plate_free_dofs[0] = 1; plate_free_dofs[1] = 1; plate_free_dofs[2] = 0;
+                              ib_method_ops->setSolveRigidBodyVelocity(0, plate_free_dofs);
+                              navier_stokes_integrator->setStokesSolverNeedsInit(););
+            }
 
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
-
-            pout << "\nNet rigid force and torque on structure 0 is : \n"
-                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n";
-            pout << "\nNet rigid force and torque on structure 1 is : \n"
-                 << ib_method_ops->getNetRigidGeneralizedForce(1) << "\n";
-
-            RigidDOFVector U0, U1;
-            ib_method_ops->getNewRigidBodyVelocity(0, U0);
-            ib_method_ops->getNewRigidBodyVelocity(1, U1);
-            pout << "\nRigid body velocity of structure 0 is : \n" << U0 << "\n";
-            pout << "\nRigid body velocity of structure 1 is : \n" << U1 << "\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
