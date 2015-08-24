@@ -846,8 +846,6 @@ void CIBSaddlePointSolver::resetKSPOperators()
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-
-        //      KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); //this is for petsc < 3.5
         KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
         KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
     }
@@ -884,7 +882,6 @@ void CIBSaddlePointSolver::resetKSPPC()
     }
     else if (pc_type == "shell")
     {
-        const std::string pc_name = d_object_name + pc_type;
         PCSetType(petsc_pc, PCSHELL);
         PCShellSetContext(petsc_pc, static_cast<void*>(this));
         PCShellSetApply(petsc_pc, CIBSaddlePointSolver::PCApply_SaddlePoint);

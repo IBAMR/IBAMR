@@ -68,6 +68,8 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
     d_wide_f_idx = -1;
     d_x_wide = NULL;
     d_b_wide = NULL;
+    d_is_initialized = false;
+    d_reinitializing_solver = false;
 
     // Create the saddle-point solver for solving constraint problem.
     d_sp_solver = new CIBSaddlePointSolver(object_name, input_db, navier_stokes_integrator, d_cib_strategy,
@@ -88,6 +90,8 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 
 CIBStaggeredStokesSolver::~CIBStaggeredStokesSolver()
 {
+    d_reinitializing_solver = false;
+    deallocateSolverState();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_wide_u_idx);
@@ -120,6 +124,13 @@ Pointer<CIBSaddlePointSolver> CIBStaggeredStokesSolver::getSaddlePointSolver() c
 void CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                                      const SAMRAIVectorReal<NDIM, double>& b)
 {
+    // Deallocate the solver state if the solver is already initialized.
+    if (d_is_initialized)
+    {
+        d_reinitializing_solver = true;
+        deallocateSolverState();
+    }
+
     // Wrap Eulerian data into PETSc Vecs.
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
@@ -191,6 +202,9 @@ void CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM
     PETScSAMRAIVectorReal::destroyPETScVector(g_h);
     VecDestroy(&mv_x);
     VecDestroy(&mv_b);
+
+    d_is_initialized = true;
+    d_reinitializing_solver = false;
 
     return;
 } // initializeSolverState
@@ -372,8 +386,11 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 
 void CIBStaggeredStokesSolver::deallocateSolverState()
 {
-    // Deallocate the saddle-point solver.
-    d_sp_solver->deallocateSolverState();
+    // Deallocate the saddle-point solver if not re-initializing
+    if (!d_reinitializing_solver)
+    {
+        d_sp_solver->deallocateSolverState();
+    }
 
     // Deallocate widened patch data.
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_x_wide->getPatchHierarchy();
@@ -385,6 +402,10 @@ void CIBStaggeredStokesSolver::deallocateSolverState()
         if (level->checkAllocated(d_wide_u_idx)) level->deallocatePatchData(d_wide_u_idx);
         if (level->checkAllocated(d_wide_f_idx)) level->deallocatePatchData(d_wide_f_idx);
     }
+
+    // Free the vectors.
+    d_x_wide.setNull();
+    d_b_wide.setNull();
 
     return;
 } // deallocateSolverState

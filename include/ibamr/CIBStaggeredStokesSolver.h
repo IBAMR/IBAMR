@@ -158,13 +158,6 @@ protected:
     //////////////////////////////////////////////////////////////////////////////
 private:
     /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    CIBStaggeredStokesSolver();
-
-    /*!
      * \brief Copy constructor.
      *
      * \note This constructor is not implemented and should not be used.
@@ -200,6 +193,9 @@ private:
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
+
+    // Bools to control initialization and deallocation
+    bool d_is_initialized, d_reinitializing_solver;
 };
 } // namespace IBAMR
 
