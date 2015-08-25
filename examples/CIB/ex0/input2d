@@ -213,7 +213,7 @@ CIBStaggeredStokesSolver
 
     DirectMobilitySolver
     {
-        compute_mob_matrix_everystep = FALSE
+        recompute_mob_mat_perstep = FALSE
         f_periodic_correction        = PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
 
         LAPACK_SVD
@@ -221,7 +221,12 @@ CIBStaggeredStokesSolver
             min_eigenvalue_threshold   = 1e-3     // defaults to 0.0
             eigenvalue_replace_value   = 1e-3     // replace eigenvalue less than min_eigenvalue_threshold
         }
-   }
+   } // DirectMobilitySolver
+
+   FreeBodyMobilitySolver
+   {
+
+   } //FreeBodyMobilitySolver
 
 } // cIBStaggeredStokesSolver
 

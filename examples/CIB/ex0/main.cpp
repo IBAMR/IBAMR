@@ -70,6 +70,7 @@ void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
     U_com.setZero();
     W_com.setZero();
     U_com[1] = 1.0;
+    W_com[2] = 1.0;
 
     return;
 } // ConstrainedCOMVel
@@ -174,8 +175,10 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify structure kinematics
-        ib_method_ops->setSolveRigidBodyVelocity(0, false);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel);
+        FreeRigidDOFVector solve_dofs;
+        solve_dofs.setZero();
+        ib_method_ops->setSolveRigidBodyVelocity(0, solve_dofs);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -292,6 +295,10 @@ int main(int argc, char* argv[])
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            RigidDOFVector U0;
+            ib_method_ops->getNewRigidBodyVelocity(0, U0);
+            pout << "\nRigid body velocity of the structure is : \n" << U0 << "\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
