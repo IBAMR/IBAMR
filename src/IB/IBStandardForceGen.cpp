@@ -783,6 +783,8 @@ void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
                                                       LDataManager* const /*l_data_manager*/)
 {
     const int num_springs = static_cast<int>(d_spring_data[level_number].lag_mastr_node_idxs.size());
+    if (num_springs == 0)
+      return;
     const int* const lag_mastr_node_idxs = &d_spring_data[level_number].lag_mastr_node_idxs[0];
     const int* const lag_slave_node_idxs = &d_spring_data[level_number].lag_slave_node_idxs[0];
     const int* const petsc_mastr_node_idxs = &d_spring_data[level_number].petsc_mastr_node_idxs[0];
@@ -994,6 +996,8 @@ void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
                                                     LDataManager* const /*l_data_manager*/)
 {
     const int num_beams = static_cast<int>(d_beam_data[level_number].petsc_mastr_node_idxs.size());
+    if (num_beams == 0)
+      return;
     const int* const petsc_mastr_node_idxs = &d_beam_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_next_node_idxs = &d_beam_data[level_number].petsc_next_node_idxs[0];
     const int* const petsc_prev_node_idxs = &d_beam_data[level_number].petsc_prev_node_idxs[0];
@@ -1154,6 +1158,8 @@ void IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data
                                                            LDataManager* const /*l_data_manager*/)
 {
     const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
+    if (num_target_points == 0)
+      return;
     const int* const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
     const double** const kappa = &d_target_point_data[level_number].kappa[0];
     const double** const eta = &d_target_point_data[level_number].eta[0];
