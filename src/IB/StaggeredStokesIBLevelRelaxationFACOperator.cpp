@@ -939,7 +939,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         if (!level_solver)
         {
             std::ostringstream level_solver_stream;
-            level_solver_stream << d_level_solver_default_options_prefix;
+            level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
                 d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
         }
