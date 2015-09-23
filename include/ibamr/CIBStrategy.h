@@ -39,6 +39,7 @@
 
 #include "petscvec.h"
 #include "Eigen/Core"
+#include "Eigen/Geometry"
 #include "ibamr/ibamr_enums.h"
 #include "tbox/DescribedClass.h"
 
@@ -290,7 +291,7 @@ public:
     void updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U);
 
     void updateNewRigidBodyVelocity(const unsigned int part, Vec U);
-
+ 
     /*!
      * \brief Copy data from distributed PETSc Vec for specified stucture indices
      * to an array defined on a single processor. A default empty implementation
@@ -416,6 +417,27 @@ public:
                                          const std::pair<double, double>& scale,
                                          double f_periodic_corr,
                                          const int managing_rank);
+    /*!
+     * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
+     *
+     * \param array Data pointer to copy to.
+     *
+     * \param struct_ids Vector of structure indices.
+     *
+     * \param isTraspose flag to indicate using transpose rotation
+     *
+     * \param managing_rank Rank of the processor managing
+     */
+    virtual void rotateArrayInitalBodyFrame(double* array, 
+					      const std::vector<unsigned>& struct_ids,
+					      const bool isTranspose,
+					      const int managing_rank);
+
+    /*!
+     * \brief return body quaternion at current or half time step
+     *
+     */
+    Eigen::Quaterniond* getBodyQuaternion(const unsigned int part, const bool halfStep=false);
 
     /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
@@ -427,8 +449,8 @@ protected:
     /*!
      * Center of mass and moment of inertia.
      */
-    std::vector<Eigen::Vector3d> d_center_of_mass_current, d_center_of_mass_half;
-    std::vector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_half;
+    std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half;
+    std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half;
 
     /*!
      * Whether to solve for rigid body velocity.

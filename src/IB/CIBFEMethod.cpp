@@ -353,13 +353,17 @@ void CIBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void CIBFEMethod::eulerStep(const double current_time, const double new_time)
-{
+{   
+    std::vector<Eigen::Matrix3d> moment_of_inertia_current, moment_of_inertia_half;
+    moment_of_inertia_current.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
+    moment_of_inertia_half.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
+    
     const double dt = new_time - current_time;
 
     // Compute center of mass and moment of inertia of the body at t^n.
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        computeCOMandMOI(part, d_center_of_mass_current[part], d_moment_of_inertia_current[part],
+        computeCOMandMOI(part, d_center_of_mass_current[part], moment_of_inertia_current[part],
                          d_X_current_vecs[part]);
     }
 
@@ -437,7 +441,7 @@ void CIBFEMethod::eulerStep(const double current_time, const double new_time)
     // Compute the COM and MOI at mid-point.
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        computeCOMandMOI(part, d_center_of_mass_half[part], d_moment_of_inertia_half[part], d_X_half_vecs[part]);
+        computeCOMandMOI(part, d_center_of_mass_half[part], moment_of_inertia_half[part], d_X_half_vecs[part]);
     }
 
     return;

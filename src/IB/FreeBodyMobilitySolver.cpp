@@ -82,6 +82,9 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
     d_petsc_mat = NULL;
     d_mobility_solver = NULL;
 
+    d_rho=1.0;
+    d_mu=1.0;
+
     d_current_time = std::numeric_limits<double>::signaling_NaN();
     d_new_time = std::numeric_limits<double>::signaling_NaN();
     d_solution_time = std::numeric_limits<double>::signaling_NaN();

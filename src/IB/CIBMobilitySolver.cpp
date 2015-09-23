@@ -334,7 +334,7 @@ void CIBMobilitySolver::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b)
+bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
     IBAMR_TIMER_START(t_solve_mobility_system);
 
@@ -350,7 +350,7 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b)
     }
     else if (d_mobility_solver_type == DIRECT)
     {
-        converged = d_direct_mob_solver->solveSystem(x, b);
+        converged = d_direct_mob_solver->solveSystem(x, b, skip_nonfree_parts);
         const double scale = 1.0 / (d_interp_scale * d_spread_scale);
         VecScale(x, scale);
     }

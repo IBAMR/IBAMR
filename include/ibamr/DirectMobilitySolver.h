@@ -1,5 +1,5 @@
 // Filename: DirectMobilitySolver.h
-// Created on 20 Feb 2015 by Amneet Bhalla
+// Created on 20 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
 //
 // Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
@@ -201,10 +201,13 @@ public:
      *
      * \param b Vec storing the desired velocity
      *
+     * \param skip_nonfree_parts Boolean indicating if the solution
+     * is to be set only for free moving components.
+     *
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(Vec x, Vec b);
+    bool solveSystem(Vec x, Vec b, const bool skip_nonfree_parts=false);
 
     /*!
      * \brief Return the ids of the structures associated with the dense
@@ -234,6 +237,11 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
+     * \brief recreate mobility matrix.
+     */
+    void createMobilityMatrix();
+
+    /*!
          * \brief Compute the inverse of mobility matrix using direct solvers.
          */
     void generateFrictionMatrix();
@@ -248,6 +256,7 @@ private:
     bool d_is_initialized;
     double d_solution_time, d_current_time, d_new_time;
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
 
     // Structure(s) stuff.
     std::map<std::string, double*> d_managed_mat_map;

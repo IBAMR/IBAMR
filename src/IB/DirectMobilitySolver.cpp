@@ -1,5 +1,5 @@
 // Filename: DirectMobilitySolver.cpp
-// Created on 20 Feb 2015 by Amneet Bhalla
+// Created on 20 Feb 2015 by Amneet Bhalla  and Bakytzhan Kallemov 
 //
 // Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
@@ -285,7 +285,7 @@ void DirectMobilitySolver::setTimeInterval(double current_time, double new_time)
     return;
 } // setTimeInterval
 
-bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
+    bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
@@ -295,6 +295,14 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
+
+    //check recreation of mobility matrix 
+    if (d_recompute_mob_mat)
+    {
+	static double check_time=-1.0e+15;
+	if (d_current_time>check_time) createMobilityMatrix();
+	check_time = d_current_time;
+    }
 
     const int rank = SAMRAI_MPI::getRank();
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
@@ -307,10 +315,39 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
         const int size = d_managed_mat_nodes_map[mat_name] * data_depth;
         for (unsigned k = 0; k < struct_ids.size(); ++k)
         {
-            double* rhs = NULL;
+	    //skipping unspecified kinematics parts if solving only for free parts
+	    if (skip_nonfree_parts) 
+	    {
+	    	bool skipflag=true;
+	    	const unsigned local_num_structs = (unsigned)struct_ids[k].size();
+	    	for (unsigned kk = 0; kk < local_num_structs; ++kk)
+		{
+		    int num_free_dofs = 0;
+		    d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
+	    	    if (num_free_dofs)
+	    	    {
+	    		skipflag=false;
+	    		break;
+	    	    }
+		}
+	    	if (skipflag) continue;
+	    }
+	    
+	    double* rhs = NULL;
             if (rank == managing_proc) rhs = new double[size];
             d_cib_strategy->copyVecToArray(b, rhs, struct_ids[k], data_depth, managing_proc);
-            if (rank == managing_proc) computeSolution(mat_name, rhs);
+	    
+	    //Here rotate vector to initial frame
+	    if (!d_recompute_mob_mat)
+	    	d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], true, managing_proc);
+
+	    //compute solution
+	    if (rank == managing_proc) computeSolution(mat_name, rhs);
+
+	    //Rotate solution vector back to structure frame
+	    if (!d_recompute_mob_mat)
+	    	d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], false, managing_proc);
+
             d_cib_strategy->copyArrayToVec(x, rhs, struct_ids[k], data_depth, managing_proc);
             delete[] rhs;
         }
@@ -330,61 +367,14 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    int file_counter = 0;
-    static bool recreate_mobility_matrices = true;
-    static std::vector<bool> read_files(managed_mats, false);
-    bool initial_time = !d_recompute_mob_mat;
+    // Get grid-info
+    Vec* vx;
+    IBTK::VecMultiVecGetSubVecs(x, &vx);
+    d_patch_hierarchy =	IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
 
-    if (recreate_mobility_matrices)
-    {
-        // Get grid-info
-        Vec* vx;
-        IBTK::VecMultiVecGetSubVecs(x, &vx);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        Pointer<PatchLevel<NDIM> > struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
-        const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
-        const double* dx0 = grid_geom->getDx();
-        const double* X_upper = grid_geom->getXUpper();
-        const double* X_lower = grid_geom->getXLower();
-        double domain_extents[NDIM], dx[NDIM];
-        for (int d = 0; d < NDIM; ++d)
-        {
-            dx[d] = dx0[d] / ratio(d);
-            domain_extents[d] = X_upper[d] - X_lower[d];
-        }
-
-        for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end();
-             ++it)
-        {
-            const std::string& mat_name = it->first;
-            double* mobility_mat = it->second;
-            MobilityMatrixType mat_type = d_managed_mat_type_map[mat_name];
-            const std::vector<unsigned>& struct_ids = d_managed_mat_prototype_id_map[mat_name];
-            const std::pair<double, double>& scale = d_managed_mat_scale_map[mat_name];
-            const int managing_proc = d_managed_mat_proc_map[mat_name];
-
-            if (mat_type == FILE && !read_files[file_counter])
-            {
-                // Get matrix from file
-
-                read_files[file_counter] = true;
-            }
-            else
-            {
-                d_cib_strategy->constructMobilityMatrix(mat_name, mat_type, mobility_mat, struct_ids, dx,
-                                                        domain_extents, initial_time, d_rho, d_mu, scale,
-                                                        d_f_periodic_corr, managing_proc);
-            }
-            ++file_counter;
-        }
-        generateFrictionMatrix();
-    }
+    if (!d_recompute_mob_mat) createMobilityMatrix();
 
     d_is_initialized = true;
-    recreate_mobility_matrices = d_recompute_mob_mat;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
@@ -429,7 +419,7 @@ void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 
     // Other parameters
     d_f_periodic_corr = input_db->getDoubleWithDefault("f_periodic_correction", d_f_periodic_corr);
-    d_recompute_mob_mat = input_db->getBoolWithDefault("recompute_mob_mat_perstep", d_recompute_mob_mat);
+    d_recompute_mob_mat = input_db->getBool("recompute_mob_mat_perstep");
 
     return;
 } // getFromInput
@@ -605,6 +595,56 @@ void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* 
 
     return;
 } // computeSolution
+  
+void DirectMobilitySolver::createMobilityMatrix()
+{
+    unsigned managed_mats = (unsigned)d_managed_mat_map.size();
+    if (!managed_mats) return;
+
+    int file_counter = 0;
+    static std::vector<bool> read_files(managed_mats, false);
+    bool initial_time = !d_recompute_mob_mat;
+
+    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > struct_patch_level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_patch_hierarchy->getGridGeometry();
+    const double* dx0 = grid_geom->getDx();
+    const double* X_upper = grid_geom->getXUpper();
+    const double* X_lower = grid_geom->getXLower();
+    double domain_extents[NDIM], dx[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+	dx[d] = dx0[d] / ratio(d);
+	domain_extents[d] = X_upper[d] - X_lower[d];
+    }
+
+    for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end();
+	 ++it)
+    {
+	const std::string& mat_name = it->first;
+	double* mobility_mat = it->second;
+	MobilityMatrixType mat_type = d_managed_mat_type_map[mat_name];
+	const std::vector<unsigned>& struct_ids = d_managed_mat_prototype_id_map[mat_name];
+	const std::pair<double, double>& scale = d_managed_mat_scale_map[mat_name];
+	const int managing_proc = d_managed_mat_proc_map[mat_name];
+
+	if (mat_type == FILE && !read_files[file_counter])
+	{
+	    // Get matrix from file
+
+	    read_files[file_counter] = true;
+	}
+	else
+	{
+	    d_cib_strategy->constructMobilityMatrix(mat_name, mat_type, mobility_mat, struct_ids, dx,
+						    domain_extents, initial_time, d_rho, d_mu, scale,
+						    d_f_periodic_corr, managing_proc);
+	}
+	++file_counter;
+    }
+    generateFrictionMatrix();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

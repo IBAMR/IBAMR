@@ -179,11 +179,14 @@ public:
          * \param x Vec storing the Lagrange multiplier
          *
          * \param b Vec storing the desired velocity
+	 *
+	 * \param skip_nonfree_parts Boolean indicating if the solution
+	 * is to be set only for free moving components.
          *
          * \return \p true if the solver converged to the specified tolerances, \p
          * false otherwise
      */
-    bool solveMobilitySystem(Vec x, Vec b);
+    bool solveMobilitySystem(Vec x, Vec b, const bool skip_nonfree_parts=false);
 
     /*!
      * \brief Solves the mobility problem.

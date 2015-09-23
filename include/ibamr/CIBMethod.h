@@ -1,5 +1,5 @@
 // Filename: CIBMethod.h
-// Created on 21 Apr 2015 by Amneet Bhalla
+// Created on 21 Apr 2015 by Amneet Bhalla and Bakytzhan Kallemov 
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
@@ -46,6 +46,10 @@ namespace IBTK
 {
 class HierarchyMathsOps;
 } // namespace IBTK
+namespace IBAMR
+{
+class CIBStandardInitializer;
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -78,12 +82,14 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef void (*ConstrainedNodalVelocityFcnPtr)(Vec U_k,
+    typedef void (*ConstrainedNodalVelocityFcnPtr)(const unsigned part,
+						   Vec U_k,
                                                    const RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
                                                    double data_time,
-                                                   void* ctx);
+                                                   void* ctx,
+						   IBAMR::CIBMethod* cib_method);
 
     typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
 
@@ -390,6 +396,36 @@ public:
                                  double f_periodic_corr,
                                  const int managing_rank);
 
+    //\see CIBStrategy:: rotateArrayInitalBodyFrame method.
+    /*!
+     * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
+     *
+     */
+    void rotateArrayInitalBodyFrame(double* array, 
+				    const std::vector<unsigned>& struct_ids,
+				    const bool isTranspose,
+				    const int managing_rank);
+
+
+    /*!
+     * \brief register CIBStandartInitializer 
+     */
+    void registerStandardInitializer(SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> ib_initializer);
+    
+    /*!
+     * \brief returns IBStandartInitializer 
+     */
+    SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> getStandardInitializer();
+    
+    /*!
+     * \brief Compute initial center of massof structures.
+     */
+    void computeInitialCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass);
+
+    /*!
+     * \brief Compute initial moment of inertia of structures.
+     */
+    void computeInitialMOIOfStructures(std::vector<Eigen::Matrix3d>& moment_of_inertia);
     //////////////////////////////////////////////////////////////////////////////
 
 protected:
@@ -407,13 +443,6 @@ private:
     void getFromRestart();
 
     /*!
-     * \brief Compute center of mass and moment of inertia of structures.
-     */
-    void computeCOMandMOIOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
-                                      std::vector<Eigen::Matrix3d>& moment_of_inertia,
-                                      std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
-
-    /*!
      * \brief Set regularization weight for Lagrangian markers.
      */
     void setRegularizationWeight(const int level_number);
@@ -424,13 +453,9 @@ private:
     void setInitialLambda(const int level_number);
 
     /*!
-     * \brief Fill the rotation matrix.
-     * \param rot_mat Matrix to set.
-     * \param dt Time interval of rotation.
+     * \brief pointer to CIBStandartInitializer.
      */
-    void setRotationMatrix(const std::vector<Eigen::Vector3d>& rot_vel,
-                           std::vector<Eigen::Matrix3d>& rot_mat,
-                           const double dt);
+    SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> d_ib_initializer;
 
     /*!
      * Functions to set constrained velocities of the structures.

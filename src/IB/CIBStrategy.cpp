@@ -52,10 +52,11 @@ namespace IBAMR
 CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
 {
     // Resize some arrays
+    d_center_of_mass_initial.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_center_of_mass_current.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_center_of_mass_half.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    d_moment_of_inertia_current.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
-    d_moment_of_inertia_half.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
+    d_quaternion_current.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
+    d_quaternion_half.resize(d_num_rigid_parts, Eigen::Quaterniond::Identity());
     d_trans_vel_current.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_trans_vel_half.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_trans_vel_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
@@ -478,6 +479,20 @@ void CIBStrategy::constructMobilityMatrix(const std::string& /*mat_name*/,
     return;
 } // constructMobilityMatrix
 
+void CIBStrategy::rotateArrayInitalBodyFrame(double* /*array*/,
+					     const std::vector<unsigned>& /*struct_ids*/,
+					     const bool /*isTranspose*/,
+					     const int /*managing_rank*/)
+{
+    // intentionally left blank.
+    return;
+} // rotateArrayInitalBodyFrame
+
+Eigen::Quaterniond* CIBStrategy::getBodyQuaternion(const unsigned int part, const bool halfStep)
+{
+    if (halfStep) return &d_quaternion_half[part];
+    return &d_quaternion_current[part];
+};
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR

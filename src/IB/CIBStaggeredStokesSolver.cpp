@@ -365,12 +365,51 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
         VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
 #endif
 
-#if 1
+#if 0
     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
     ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
     VecView(V, PETSC_VIEWER_STDOUT_WORLD);
+#endif
+
+//free parts velocity output
+#if 1
+    PetscInt free_comps;
+    IBTK::VecMultiVecGetNumberOfSubVecs(vx[2], &free_comps);
+    if (free_comps)
+    {
+	std::ofstream U_out;
+	//VecView(vx[2]);
+	Vec *vvx;
+        VecMultiVecGetSubVecs(vx[2], &vvx);
+	if (!SAMRAI_MPI::getRank())
+	{
+	    std::string fname="U_freeswim.out";
+	    if (!d_current_time)
+		U_out.open(fname.c_str(), std::ios::out );
+	    else
+		U_out.open(fname.c_str(), std::ios::out | std::ios::app);
+	    U_out << "\n"<< "sturucture swimming velocity at time  " << half_time << std::endl;
+	}
+        for (int part = 0; part < free_comps; ++part)
+        {
+	    RigidDOFVector vvU;
+	    d_cib_strategy->vecToRDV(vvx[part],vvU);
+
+	    if (SAMRAI_MPI::getRank()== 0)
+	    {
+    		U_out <<" Structure-"<<part<<std::endl;	
+    		U_out<<std::scientific;		
+    		for (int d = 0; d < (NDIM*(NDIM+1) / 2); ++d)
+    		{  
+    		    U_out << vvU[d] << std::endl;
+    		}
+    		U_out <<std::endl;	
+    	    }
+	}
+	if (!SAMRAI_MPI::getRank()) U_out.close();
+    }
 #endif
 
     // Delete PETSc vectors.
