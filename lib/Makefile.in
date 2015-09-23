@@ -193,7 +193,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
+	../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
 	../src/IB/FreeBodyMobilitySolver.cpp \
@@ -308,6 +309,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-CIBStandardInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT) \
@@ -418,7 +420,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
+	../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
 	../src/IB/FreeBodyMobilitySolver.cpp \
@@ -533,6 +536,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-CIBStandardInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT) \
@@ -738,6 +742,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
+	../include/ibamr/CIBStandardInitializer.h \
 	../include/ibamr/CIBStrategy.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
@@ -1154,6 +1159,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
+	../include/ibamr/CIBStandardInitializer.h \
 	../include/ibamr/CIBStrategy.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
@@ -1227,7 +1233,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
+	../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
 	../src/IB/FreeBodyMobilitySolver.cpp \
@@ -1454,6 +1461,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-CIBStaggeredStokesOperator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-CIBStandardInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -1769,6 +1778,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-CIBStandardInitializer.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT):  \
@@ -2070,6 +2081,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBSaddlePointSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@
@@ -2124,6 +2136,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBSaddlePointSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@
@@ -2414,6 +2427,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStaggeredStokesSolver.cpp' object='../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.obj `if test -f '../src/IB/CIBStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/IB/CIBStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStaggeredStokesSolver.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-CIBStandardInitializer.o: ../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR2d_a-CIBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
+
+../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj: ../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-CIBStrategy.o: ../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStrategy.o `test -f '../src/IB/CIBStrategy.cpp' || echo '$(srcdir)/'`../src/IB/CIBStrategy.cpp
@@ -3814,6 +3841,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStaggeredStokesSolver.cpp' object='../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.obj `if test -f '../src/IB/CIBStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/IB/CIBStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStaggeredStokesSolver.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-CIBStandardInitializer.o: ../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR3d_a-CIBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
+
+../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj: ../src/IB/CIBStandardInitializer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-CIBStrategy.o: ../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStrategy.o `test -f '../src/IB/CIBStrategy.cpp' || echo '$(srcdir)/'`../src/IB/CIBStrategy.cpp

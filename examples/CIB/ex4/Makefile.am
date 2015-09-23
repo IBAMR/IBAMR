@@ -17,14 +17,18 @@ main3d_SOURCES = $(SOURCES)
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
-	  cp -f $(srcdir)/shell_3d_in.vertex $(PWD) ; \
-	  cp -f $(srcdir)/shell_3d_out.vertex $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_42.vertex $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_162.vertex $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_42.clones $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_162.clones $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
-          rm -f $(builddir)/shell_3d_in.vertex ; \
-          rm -f $(builddir)/shell_3d_out.vertex ; \
+          rm -f $(builddir)/shell_3d_42.vertex ; \
+          rm -f $(builddir)/shell_3d_162.vertex ; \
+          rm -f $(builddir)/shell_3d_42.clones ; \
+          rm -f $(builddir)/shell_3d_162.clones ; \
 	fi ;

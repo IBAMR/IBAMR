@@ -48,6 +48,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/CIBSaddlePointSolver.cpp \
 ../src/IB/CIBStaggeredStokesOperator.cpp \
 ../src/IB/CIBStaggeredStokesSolver.cpp \
+../src/IB/CIBStandardInitializer.cpp \
 ../src/IB/CIBStrategy.cpp \
 ../src/IB/ConstraintIBKinematics.cpp \
 ../src/IB/ConstraintIBMethod.cpp \
@@ -166,6 +167,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBSaddlePointSolver.h \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
+../include/ibamr/CIBStandardInitializer.h \
 ../include/ibamr/CIBStrategy.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
