@@ -84,6 +84,7 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_eul_lambda_idx = -1;
     d_output_eul_lambda = false;
     d_lambda_dump_interval = 0;
+    d_time_integrator_needs_regrid = false;
 
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
@@ -349,6 +350,9 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 	    
     	d_quaternion_half = d_quaternion_current; 
     }
+
+    d_time_integrator_needs_regrid = false;
+
     return;
 } // preprocessIntegrateData
 
@@ -632,6 +636,7 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
+    //   int flag_regrid=0;
 
     // setup the quaternions of structures with rotation angle 0.5*(W^n)*dt.
      std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3,3));
@@ -716,6 +721,9 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     }
     *X_half_needs_ghost_fill = true;
 
+    // SAMRAI_MPI::sumReduction(flag_regrid);
+    // if (flag_regrid) d_time_integrator_needs_regrid = true;
+
     // Compute the COM at mid-step.
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
@@ -731,8 +739,8 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
 
 void CIBMethod::midpointStep(const double current_time, const double new_time)
 {
-
     const double dt = new_time - current_time;
+    int flag_regrid=0;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3,3));
@@ -804,11 +812,18 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
 		{
 		    while (X_new[d] < domain_x_lower[d]) X_new[d] += domain_length[d];
 		    while (X_new[d] >= domain_x_upper[d]) X_new[d] -= domain_length[d];
+
+		    const double X_check = (X_new[d]-dt * d_trans_vel_half[struct_handle][d]);
+		    if ((X_check>domain_x_upper[d]) || (X_check < domain_x_lower[d])) flag_regrid = 1;
 		}
             }
         }
         d_X_new_data[ln]->restoreArrays();
     }
+
+    flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
+    if (flag_regrid) d_time_integrator_needs_regrid = true;
+
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
     	for (unsigned int d = 0; d < NDIM; ++d) 
@@ -1441,6 +1456,11 @@ void CIBMethod::rotateArrayInitalBodyFrame(double* array,
     }
     return;
 } // rotateArrayInitalBodyFrame
+
+bool CIBMethod::flagRegrid() const
+{
+    return d_time_integrator_needs_regrid;
+};
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

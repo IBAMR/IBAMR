@@ -42,7 +42,7 @@ N = 64                       // number of grid cells along height of domain
 PATCH_SIZE = N               // parallelization and testing
 DX = 0.5                     // grid spacing
 L = N*DX                     // length of domain
-DT = 0.05//1e-16 //VISC_CFL*DX^2/MU        // maximum timestep size
+DT = 0.01//1e-16 //VISC_CFL*DX^2/MU        // maximum timestep size
 
 // solver parameters
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
@@ -61,7 +61,7 @@ CFL_MAX             = 0.5                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.01                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+REGRID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
 OUTPUT_F            = TRUE
