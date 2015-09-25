@@ -54,6 +54,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h"
 #include "tbox/TimerManager.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
 
 namespace IBAMR
 {
@@ -1033,7 +1034,15 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     }
 
     // Solve using previous u_p as a guess for Krylov solvers.
-    if (solver->d_ksp_type == "preonly")
+    bool zero_guess;
+    {
+      // Check if this Stokes solver is preonly type
+      KSP ksp = dynamic_cast<IBTK::PETScKrylovLinearSolver*>(solver->d_LInv.getPointer())->getPETScKSP();
+      KSPType ksp_type;
+      KSPGetType(ksp, &ksp_type);
+      zero_guess = (strcmp(ksp_type ,"preonly")!=0);
+    }
+    if (!zero_guess)
     {
         dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(false);
     }
