@@ -175,9 +175,11 @@ void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
 
-    F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
-    T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
+    // F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
+    // T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
 
+    F_ext << B1, 0, 0;
+    T_ext << B2, 0, 0;
     return;
 } // NetExternalForceTorque
 
@@ -505,9 +507,13 @@ int main(int argc, char* argv[])
             dt = time_integrator->getMaximumTimeStepSize();
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
+	    if ((time_integrator->atRegridPoint())||(ib_method_ops->flagRegrid())) 
+	    {
+		navier_stokes_integrator->setStokesSolverNeedsInit();
+		if (ib_method_ops->flagRegrid()) time_integrator->regridHierarchy();
+		
+	    }
 	    
-            if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
-		    
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

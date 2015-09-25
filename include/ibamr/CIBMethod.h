@@ -426,6 +426,14 @@ public:
      * \brief Compute initial moment of inertia of structures.
      */
     void computeInitialMOIOfStructures(std::vector<Eigen::Matrix3d>& moment_of_inertia);
+
+    /*!
+     * Function to determine whether regridding should occur at the current time
+     * step.
+     */
+    bool flagRegrid() const;
+
+
     //////////////////////////////////////////////////////////////////////////////
 
 protected:
@@ -478,6 +486,11 @@ private:
      * to Lagrangian velocities.
      */
     bool d_constraint_force_is_initialized, d_lag_velvec_is_initialized;
+
+    /*!
+     * Boolean to flag if time integrator needs regriding
+     */
+    bool d_time_integrator_needs_regrid;
 
     /*!
      * Eulerian variables.
