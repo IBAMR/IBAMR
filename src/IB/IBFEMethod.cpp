@@ -1836,7 +1836,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     VectorValue<double> F, F_s, n;
     libMesh::Point X_qp;
     double P;
-    boost::multi_array<double, 2> X_node, X_node_side;
+    boost::multi_array<double, 2> X_node;
     std::vector<double> T_bdry, X_bdry;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
@@ -1879,12 +1879,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Construct a side element.
-                AutoPtr<Elem> side_elem = elem->build_side(side);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
-                }
-                get_values_for_interpolation(X_node_side, *X_petsc_vec, X_local_soln, side_dof_indices);
+                AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
                 const bool qrule_needs_reinit = d_fe_data_managers[part]->updateSpreadQuadratureRule(
                     qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
                 if (qrule_needs_reinit)
@@ -2158,7 +2153,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Construct a side element.
-                AutoPtr<Elem> side_elem = elem->build_side(side);
+                AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
