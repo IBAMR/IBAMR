@@ -631,6 +631,24 @@ private:
                                 const std::string& system_name);
 
     /*!
+     * Create the mask for the weight of the quadrature point that will used for IB interpolation.
+     */
+    void createWeightMask(unsigned int comp,
+                          const int f_data_idx,
+                          const InterpSpec& interp_spec,
+                          const double* const X_qp,
+                          boost::multi_array<bool, NDIM>& mask);
+
+    /*!
+     * Create the mask for the weight of the quadrature that will used for IB interpolation.
+     */
+    void createWeightMask(unsigned int comp,
+                          const int f_data_idx,
+                          const SpreadSpec& interp_spec,
+                          const double* const X_qp,
+                          boost::multi_array<bool, NDIM>& mask);
+
+    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.

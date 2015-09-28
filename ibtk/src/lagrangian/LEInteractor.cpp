@@ -52,6 +52,7 @@
 #include "Patch.h"
 #include "SideData.h"
 #include "SideGeometry.h"
+#include <Eigen/Dense>
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
@@ -646,6 +647,11 @@ inline double ib4_kernel_fcn(double r)
         return 0.0;
     }
 }
+
+inline int NINT(double a)
+{
+    return (a >= 0.0 ? static_cast<int>(a + 0.5) : static_cast<int>(a - 0.5));
+}
 }
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -705,16 +711,9 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -739,16 +738,9 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -779,16 +771,9 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
 #endif
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -819,16 +804,9 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
 #endif
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -878,21 +856,9 @@ void LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    q_data->getBox(),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower,
-                    x_upper,
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(),
+                    q_data->getDepth(), x_lower, x_upper, dx, patch_touches_lower_physical_bdry,
+                    patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -947,21 +913,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower_node.data(),
-                    x_upper_node.data(),
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
+                    q_data->getGhostCellWidth(), q_data->getDepth(), x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices,
+                    periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -1030,21 +985,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1121,21 +1065,10 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1155,16 +1088,23 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
+}
+
+void LEInteractor::interpolate(std::vector<double>& Q_data,
+                               const int Q_depth,
+                               const std::vector<double>& X_data,
+                               const int X_depth,
+                               const std::vector<std::vector<boost::multi_array<bool, NDIM> > >& mask_data,
+                               const Pointer<CellData<NDIM, double> > q_data,
+                               const Pointer<Patch<NDIM> > patch,
+                               const Box<NDIM>& interp_box,
+                               const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, mask_data[0], q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1177,16 +1117,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1199,16 +1131,23 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
+}
+
+void LEInteractor::interpolate(std::vector<double>& Q_data,
+                               const int Q_depth,
+                               const std::vector<double>& X_data,
+                               const int X_depth,
+                               const std::vector<std::vector<boost::multi_array<bool, NDIM> > >& mask_data,
+                               const Pointer<SideData<NDIM, double> > q_data,
+                               const Pointer<Patch<NDIM> > patch,
+                               const Box<NDIM>& interp_box,
+                               const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, mask_data, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1221,16 +1160,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(double* const Q_data,
@@ -1277,22 +1208,208 @@ void LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    q_data->getBox(),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower,
-                    x_upper,
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(),
+                    q_data->getDepth(), x_lower, x_upper, dx, patch_touches_lower_physical_bdry,
+                    patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn);
     }
+    return;
+}
+
+void LEInteractor::interpolate(double* const Q_data,
+                               const int Q_size,
+                               const int Q_depth,
+                               const double* const X_data,
+                               const int X_size,
+                               const int X_depth,
+                               const std::vector<boost::multi_array<bool, NDIM> >& mask_data,
+                               const Pointer<CellData<NDIM, double> > q_data,
+                               const Pointer<Patch<NDIM> > patch,
+                               const Box<NDIM>& interp_box,
+                               const std::string& interp_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(static_cast<int>(mask_data.size()) == X_size / X_depth);
+    TBOX_ASSERT(interp_fcn == "IB_4");
+#else
+    NULL_USE(Q_size);
+    NULL_USE(mask_data);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+    const IntVector<NDIM>& iupper = patch_box.upper();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(interp_fcn);
+    const int min_ghosts = getMinimumGhostWidth(interp_fcn);
+    const int q_gcw_min = q_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
+    const IntVector<NDIM> ig_lower = ilower - q_gcw;
+    const IntVector<NDIM> ig_upper = iupper + q_gcw;
+
+    // Get boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Interpolate.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        int ic_lower[NDIM], ic_upper[NDIM];
+        double X_0_dx, r0, q0, X_1_dx, r1, q1;
+        double w0[4], w1[4];
+        double xstart, ystart, x, y, p_j, p_k;
+        int d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
+        typedef boost::multi_array<double, 2> wgt_array;
+        wgt_array::extent_gen extents;
+
+        for (int s = 0; s < nindices; ++s)
+        {
+            // Determine the interpolation stencil corresponding to the position
+            // of X(s) within the cell and compute the regular IB-4 interpolation weights.
+            X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower[0]) / dx[0];
+            ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
+            ic_upper[0] = ic_lower[0] + 3;
+            r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
+            q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
+            w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
+            w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
+            w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
+            w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+
+            X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower[1]) / dx[1];
+            ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
+            ic_upper[1] = ic_lower[1] + 3;
+            r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
+            q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
+            w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
+            w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
+            w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
+            w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
+
+            // Compute the tensor product of the interpolation weights.
+            wgt_array w(extents[4][4]);
+            for (i1 = 0; i1 < 4; ++i1)
+            {
+                for (i0 = 0; i0 < 4; ++i0)
+                {
+                    w[i1][i0] = w0[i0] * w1[i1];
+                }
+            }
+
+            // Set the Gram matrix and the RHS.
+            // Here we are solving the equation of the type G L = p, in which p
+            // is the vector of basis functions that we want to reproduce, G is Gram
+            // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
+            Eigen::Matrix3d G;
+            G.setZero();
+            Eigen::Vector3d p, L;
+            p[0] = 1.0;
+            p[1] = X_data[s * NDIM];
+            p[2] = X_data[s * NDIM + 1];
+
+            xstart = p[1] - (r0 + 1) * dx[0];
+            ystart = p[2] - (r1 + 1) * dx[1];
+            for (j = 0; j <= 2; ++j)
+            {
+                for (k = 0; k <= 2; ++k)
+                {
+                    for (i1 = 0; i1 <= 3; ++i1)
+                    {
+                        y = ystart + i1 * dx[1];
+                        for (i0 = 0; i0 <= 3; ++i0)
+                        {
+                            x = xstart + i0 * dx[0];
+
+                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+                            p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
+                            double& ib_weight = w[i1][i0];
+                            G(j, k) += p_j * p_k * ib_weight;
+                        }
+                    }
+                }
+            }
+
+            // Solve the system for L
+            L = G.ldlt().solve(p);
+
+            // Find the modified weights using the Lagrange multiplier and to-be-reproduced
+            // polynomial basis.
+            wgt_array psi(extents[4][4]);
+            double* data = psi.data();
+            std::fill(data, data + 16, 0.0);
+            for (i1 = 0; i1 <= 3; ++i1)
+            {
+                y = ystart + i1 * dx[1];
+                for (i0 = 0; i0 <= 3; ++i0)
+                {
+                    double& psi_elem = psi[i1][i0];
+                    double& w_elem = w[i1][i0];
+
+                    x = xstart + i0 * dx[0];
+                    for (j = 0; j <= 2; ++j)
+                    {
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+
+                        psi_elem += L[j] * p_j;
+                    }
+                    psi_elem *= w_elem;
+                }
+            }
+
+            // Interpolate u onto V using the modified weights.
+            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+
+            for (d = 0; d < Q_depth; ++d)
+            {
+                Q_data[s * Q_depth + d] = 0.0;
+                for (i1 = istart1; i1 <= istop1; ++i1)
+                {
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = istart0; i0 <= istop0; ++i0)
+                    {
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1);
+                        double& psi_elem = psi[i1][i0];
+                        Q_data[s * Q_depth + d] += (*q_data)(idx, d) * psi_elem;
+                    }
+                }
+            }
+        }
+    }
+
     return;
 }
 
@@ -1346,21 +1463,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower_node.data(),
-                    x_upper_node.data(),
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
+                    q_data->getGhostCellWidth(), q_data->getDepth(), x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices,
+                    periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -1429,21 +1535,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1520,21 +1615,10 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1563,16 +1647,9 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1597,16 +1674,9 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1637,16 +1707,9 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1677,16 +1740,9 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1736,21 +1792,9 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        spread(q_data->getPointer(),
-               q_data->getBox(),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower,
-               x_upper,
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
-               spread_fcn);
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(), Q_data, Q_depth,
+               X_data, x_lower, x_upper, dx, patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_shifts, spread_fcn);
     }
     return;
 }
@@ -1805,20 +1849,9 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        spread(q_data->getPointer(),
-               NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower_node.data(),
-               x_upper_node.data(),
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+        spread(q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(),
+               q_data->getDepth(), Q_data, Q_depth, X_data, x_lower_node.data(), x_upper_node.data(), dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1891,22 +1924,12 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
+            spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+                   /*q_depth*/ 1, &Q_data_axis[0],
+                   /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
+                   spread_fcn, axis);
         }
     }
     return;
@@ -1982,22 +2005,12 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
+            spread(q_data->getPointer(axis), EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+                   /*q_depth*/ 1, &Q_data_axis[0],
+                   /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
+                   spread_fcn, axis);
         }
     }
     return;
@@ -2013,16 +2026,8 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
@@ -2035,16 +2040,8 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
@@ -2057,16 +2054,8 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
@@ -2079,16 +2068,8 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
@@ -2135,21 +2116,9 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        spread(q_data->getPointer(),
-               q_data->getBox(),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower,
-               x_upper,
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
-               spread_fcn);
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(), Q_data, Q_depth,
+               X_data, x_lower, x_upper, dx, patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_shifts, spread_fcn);
     }
     return;
 }
@@ -2204,20 +2173,9 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        spread(q_data->getPointer(),
-               NodeGeometry<NDIM>::toNodeBox(q_data->getBox()),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower_node.data(),
-               x_upper_node.data(),
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+        spread(q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(),
+               q_data->getDepth(), Q_data, Q_depth, X_data, x_lower_node.data(), x_upper_node.data(), dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -2285,22 +2243,12 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
+            spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+                   /*q_depth*/ 1, &Q_data_axis[0],
+                   /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
+                   spread_fcn, axis);
         }
     }
     return;
@@ -2371,22 +2319,12 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
+            spread(q_data->getPointer(axis), EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+                   /*q_depth*/ 1, &Q_data_axis[0],
+                   /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
+                   spread_fcn, axis);
         }
     }
     return;
@@ -2430,276 +2368,104 @@ void LEInteractor::interpolate(double* const Q_data,
     const IntVector<NDIM>& iupper = q_data_box.upper();
     if (interp_fcn == "PIECEWISE_CONSTANT")
     {
-        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(dx,
-                                                x_lower,
-                                                x_upper,
-                                                q_depth,
+        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                q_gcw(0),
-                                                q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                ilower(2),
-                                                iupper(2),
-                                                q_gcw(0),
-                                                q_gcw(1),
-                                                q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                q_data,
-                                                &local_indices[0],
-                                                &periodic_shifts[0],
-                                                local_indices_size,
-                                                X_data,
-                                                Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "DISCONTINUOUS_LINEAR")
     {
-        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(dx,
-                                                  x_lower,
-                                                  x_upper,
-                                                  q_depth,
-                                                  axis,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
+            dx, x_lower, x_upper, q_depth, axis,
 #if (NDIM == 2)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  ilower(2),
-                                                  iupper(2),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
-                                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                  q_data,
-                                                  &local_indices[0],
-                                                  &periodic_shifts[0],
-                                                  local_indices_size,
-                                                  X_data,
-                                                  Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "PIECEWISE_LINEAR")
     {
-        LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(dx,
-                                              x_lower,
-                                              x_upper,
-                                              q_depth,
+        LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              q_gcw(0),
-                                              q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              ilower(2),
-                                              iupper(2),
-                                              q_gcw(0),
-                                              q_gcw(1),
-                                              q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                              q_data,
-                                              &local_indices[0],
-                                              &periodic_shifts[0],
-                                              local_indices_size,
-                                              X_data,
-                                              Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "PIECEWISE_CUBIC")
     {
-        LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(dx,
-                                             x_lower,
-                                             x_upper,
-                                             q_depth,
+        LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             q_gcw(0),
-                                             q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             ilower(2),
-                                             iupper(2),
-                                             q_gcw(0),
-                                             q_gcw(1),
-                                             q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                             q_data,
-                                             &local_indices[0],
-                                             &periodic_shifts[0],
-                                             local_indices_size,
-                                             X_data,
-                                             Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_3")
     {
-        LAGRANGIAN_IB_3_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_3_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_4")
     {
-        LAGRANGIAN_IB_4_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_4_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_4_W8")
     {
-        LAGRANGIAN_IB_4_W8_INTERP_FC(dx,
-                                     x_lower,
-                                     x_upper,
-                                     q_depth,
+        LAGRANGIAN_IB_4_W8_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     q_gcw(0),
-                                     q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     ilower(2),
-                                     iupper(2),
-                                     q_gcw(0),
-                                     q_gcw(1),
-                                     q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                     q_data,
-                                     &local_indices[0],
-                                     &periodic_shifts[0],
-                                     local_indices_size,
-                                     X_data,
-                                     Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_6")
     {
-        LAGRANGIAN_IB_6_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_6_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "USER_DEFINED")
     {
-        userDefinedInterpolate(Q_data,
-                               Q_depth,
-                               X_data,
-                               q_data,
-                               q_data_box,
-                               q_gcw,
-                               q_depth,
-                               x_lower,
-                               x_upper,
-                               dx,
-                               &local_indices[0],
-                               &periodic_shifts[0],
-                               local_indices_size);
+        userDefinedInterpolate(Q_data, Q_depth, X_data, q_data, q_data_box, q_gcw, q_depth, x_lower, x_upper, dx,
+                               &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -2749,276 +2515,105 @@ void LEInteractor::spread(double* const q_data,
     const IntVector<NDIM>& iupper = q_data_box.upper();
     if (spread_fcn == "PIECEWISE_CONSTANT")
     {
-        LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(dx,
-                                                x_lower,
-                                                x_upper,
-                                                q_depth,
-                                                &local_indices[0],
-                                                &periodic_shifts[0],
-                                                local_indices_size,
-                                                X_data,
-                                                Q_data,
+        LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                q_gcw(0),
-                                                q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                ilower(2),
-                                                iupper(2),
-                                                q_gcw(0),
-                                                q_gcw(1),
-                                                q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                q_data);
+            q_data);
     }
     else if (spread_fcn == "DISCONTINUOUS_LINEAR")
     {
-        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx,
-                                                  x_lower,
-                                                  x_upper,
-                                                  q_depth,
-                                                  axis,
-                                                  &local_indices[0],
-                                                  &periodic_shifts[0],
-                                                  local_indices_size,
-                                                  X_data,
-                                                  Q_data,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx, x_lower, x_upper, q_depth, axis, &local_indices[0],
+                                                  &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
+                                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  ilower(2),
-                                                  iupper(2),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
-                                                  q_gcw(2),
+                                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                                                  q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
                                                   q_data);
     }
     else if (spread_fcn == "PIECEWISE_LINEAR")
     {
-        LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(dx,
-                                              x_lower,
-                                              x_upper,
-                                              q_depth,
-                                              &local_indices[0],
-                                              &periodic_shifts[0],
-                                              local_indices_size,
-                                              X_data,
-                                              Q_data,
+        LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              q_gcw(0),
-                                              q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              ilower(2),
-                                              iupper(2),
-                                              q_gcw(0),
-                                              q_gcw(1),
-                                              q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                              q_data);
+            q_data);
     }
     else if (spread_fcn == "PIECEWISE_CUBIC")
     {
-        LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(dx,
-                                             x_lower,
-                                             x_upper,
-                                             q_depth,
-                                             &local_indices[0],
-                                             &periodic_shifts[0],
-                                             local_indices_size,
-                                             X_data,
-                                             Q_data,
+        LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             q_gcw(0),
-                                             q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             ilower(2),
-                                             iupper(2),
-                                             q_gcw(0),
-                                             q_gcw(1),
-                                             q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                             q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_3")
     {
-        LAGRANGIAN_IB_3_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_3_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_4")
     {
-        LAGRANGIAN_IB_4_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_4_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_4_W8")
     {
-        LAGRANGIAN_IB_4_W8_SPREAD_FC(dx,
-                                     x_lower,
-                                     x_upper,
-                                     q_depth,
-                                     &local_indices[0],
-                                     &periodic_shifts[0],
-                                     local_indices_size,
-                                     X_data,
-                                     Q_data,
+        LAGRANGIAN_IB_4_W8_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     q_gcw(0),
-                                     q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     ilower(2),
-                                     iupper(2),
-                                     q_gcw(0),
-                                     q_gcw(1),
-                                     q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                     q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_6")
     {
-        LAGRANGIAN_IB_6_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_6_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "USER_DEFINED")
     {
-        userDefinedSpread(q_data,
-                          q_data_box,
-                          q_gcw,
-                          q_depth,
-                          x_lower,
-                          x_upper,
-                          dx,
-                          Q_data,
-                          Q_depth,
-                          X_data,
-                          &local_indices[0],
-                          &periodic_shifts[0],
-                          local_indices_size);
+        userDefinedSpread(q_data, q_data_box, q_gcw, q_depth, x_lower, x_upper, dx, Q_data, Q_depth, X_data,
+                          &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -3156,13 +2751,12 @@ void LEInteractor::userDefinedInterpolate(double* Q,
     const int* const iupper = q_data_box.upper();
     typedef boost::multi_array_types::extent_range range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
-        q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        q, (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
+                                                                                        iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
-                       [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
+                          [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif
-                       [range(0, q_depth)]),
+                          [range(0, q_depth)]),
         boost::fortran_storage_order());
     boost::array<double, NDIM> X_cell;
     boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
@@ -3283,13 +2877,12 @@ void LEInteractor::userDefinedSpread(double* q,
     const int* const iupper = q_data_box.upper();
     typedef boost::multi_array_types::extent_range range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
-        q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        q, (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
+                                                                                        iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
-                       [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
+                          [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif
-                       [range(0, q_depth)]),
+                          [range(0, q_depth)]),
         boost::fortran_storage_order());
     boost::array<double, NDIM> X_cell;
     boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;

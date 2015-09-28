@@ -48,6 +48,8 @@ namespace boost
 {
 template <class T, std::size_t N>
 class array;
+template <class T, std::size_t N, class Allocator>
+class multi_array;
 } // namespace boost
 
 namespace IBTK
@@ -359,6 +361,31 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note X_data must provide the canonical location of the node---i.e.,
+     * each node location must lie within the extents of the physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -407,6 +434,32 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note X_data must provide the canonical location of the node---i.e.,
+     * each node location must lie within the extents of the physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -479,7 +532,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                            const std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > >& mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
                             const std::string& interp_fcn = "IB_4");
@@ -505,6 +559,61 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const std::string& interp_fcn = "IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note X_data must provide the canonical location of the node---i.e.,
+     * each node location must lie within the extents of the physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void
+    interpolate(double* Q_data,
+                int Q_size,
+                int Q_depth,
+                const double* X_data,
+                int X_size,
+                int X_depth,
+                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note X_data must provide the canonical location of the node---i.e.,
+     * each node location must lie within the extents of the physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     *
+     * \warning This method does \em not support periodic offsets for positions.
+     */
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
