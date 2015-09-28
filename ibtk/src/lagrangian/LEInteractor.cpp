@@ -1352,8 +1352,7 @@ void LEInteractor::interpolate(double* const Q_data,
 
                             p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
                             p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
-                            double& ib_weight = w[i1][i0];
-                            G(j, k) += p_j * p_k * ib_weight;
+                            G(j, k) += p_j * p_k * w[i1][i0];
                         }
                     }
                 }
@@ -1372,17 +1371,13 @@ void LEInteractor::interpolate(double* const Q_data,
                 y = ystart + i1 * dx[1];
                 for (i0 = 0; i0 <= 3; ++i0)
                 {
-                    double& psi_elem = psi[i1][i0];
-                    double& w_elem = w[i1][i0];
-
                     x = xstart + i0 * dx[0];
                     for (j = 0; j <= 2; ++j)
                     {
                         p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-
-                        psi_elem += L[j] * p_j;
+                        psi[i1][i0] += L[j] * p_j;
                     }
-                    psi_elem *= w_elem;
+                    psi[i1][i0] *= w[i1][i0];
                 }
             }
 
@@ -1402,8 +1397,7 @@ void LEInteractor::interpolate(double* const Q_data,
                     {
                         ic0 = ic_lower[0] + i0;
                         Index<NDIM> idx(ic0, ic1);
-                        double& psi_elem = psi[i1][i0];
-                        Q_data[s * Q_depth + d] += (*q_data)(idx, d) * psi_elem;
+                        Q_data[s * Q_depth + d] += (*q_data)(idx, d) * psi[i1][i0];
                     }
                 }
             }
