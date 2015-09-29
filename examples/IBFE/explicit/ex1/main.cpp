@@ -85,7 +85,7 @@ void PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*X*/,
                          const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
-                         const std::vector<NumericVector<double>*>& /*system_data*/,
+                         const std::vector<DenseVector<double> >& /*system_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
@@ -242,8 +242,10 @@ int main(int argc, char* argv[])
             Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
             Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
             HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
-                /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
-            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
+                /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN",
+                "LINEAR");
+            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH,
+                                                    /*use_adaptive_quadrature*/ false,
                                                     /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
             ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
                                                                           p_ghostfill, p_interp_spec);

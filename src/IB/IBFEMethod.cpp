@@ -1186,6 +1186,562 @@ void IBFEMethod::setupStressAndForceSystemData(std::vector<std::vector<NumericVe
     return;
 }
 
+class FEFunctionInterpolation
+{
+public:
+    FEFunctionInterpolation(const unsigned int dim = NDIM)
+        : d_dim(dim), d_initialized(false), d_eval_q_point(false), d_eval_JxW(false), d_eval_q_point_face(false),
+          d_eval_JxW_face(false), d_eval_normal_face(false), d_qrule(NULL), d_qrule_face(NULL), d_q_point(NULL),
+          d_q_point_face(NULL), d_JxW(NULL), d_JxW_face(NULL), d_normal_face(NULL), d_skip_fe_reinit(false)
+    {
+        return;
+    }
+
+    ~FEFunctionInterpolation()
+    {
+        return;
+    }
+
+    void attachQuadratureRule(QBase* qrule)
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_qrule = qrule;
+        return;
+    }
+
+    void attachQuadratureRuleFace(QBase* qrule_face)
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_qrule_face = qrule_face;
+        return;
+    }
+
+    void evalQuadraturePoints()
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_eval_q_point = true;
+        return;
+    }
+
+    void evalQuadratureWeights()
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_eval_JxW = true;
+        return;
+    }
+
+    void evalQuadraturePointsFace()
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_eval_q_point_face = true;
+        return;
+    }
+
+    void evalQuadratureWeightsFace()
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_eval_JxW_face = true;
+        return;
+    }
+
+    void evalNormalsFace()
+    {
+        TBOX_ASSERT(!d_initialized);
+        d_eval_normal_face = true;
+        return;
+    }
+
+    const std::vector<libMesh::Point>& getQuadraturePoints() const
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_eval_q_point);
+        return *d_q_point;
+    }
+
+    const std::vector<double>& getQuadratureWeights() const
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_eval_JxW);
+        return *d_JxW;
+    }
+
+    const std::vector<libMesh::Point>& getQuadraturePointsFace() const
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_eval_q_point_face);
+        return *d_q_point_face;
+    }
+
+    const std::vector<double>& getQuadratureWeightsFace() const
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_eval_JxW_face);
+        return *d_JxW_face;
+    }
+
+    const std::vector<libMesh::Point>& getNormalsFace() const
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_eval_normal_face);
+        return *d_normal_face;
+    }
+
+    const std::vector<std::vector<double> >& getPhi(const FEType& fe_type) const
+    {
+        TBOX_ASSERT(d_initialized);
+        const size_t fe_type_idx = getFETypeIndex(fe_type);
+        TBOX_ASSERT(fe_type_idx < d_fe_types.size());
+        TBOX_ASSERT(d_eval_phi[fe_type_idx]);
+        return *d_phi[fe_type_idx];
+    }
+
+    const std::vector<std::vector<VectorValue<double> > >& getDphi(const FEType& fe_type) const
+    {
+        TBOX_ASSERT(d_initialized);
+        const size_t fe_type_idx = getFETypeIndex(fe_type);
+        TBOX_ASSERT(fe_type_idx < d_fe_types.size());
+        TBOX_ASSERT(d_eval_dphi[fe_type_idx]);
+        return *d_dphi[fe_type_idx];
+    }
+
+    const std::vector<std::vector<double> >& getPhiFace(const FEType& fe_type) const
+    {
+        TBOX_ASSERT(d_initialized);
+        const size_t fe_type_idx = getFETypeIndex(fe_type);
+        TBOX_ASSERT(fe_type_idx < d_fe_types.size());
+        TBOX_ASSERT(d_eval_phi[fe_type_idx]);
+        return *d_phi_face[fe_type_idx];
+    }
+
+    const std::vector<std::vector<VectorValue<double> > >& getDphiFace(const FEType& fe_type) const
+    {
+        TBOX_ASSERT(d_initialized);
+        const size_t fe_type_idx = getFETypeIndex(fe_type);
+        TBOX_ASSERT(fe_type_idx < d_fe_types.size());
+        TBOX_ASSERT(d_eval_dphi[fe_type_idx]);
+        return *d_dphi_face[fe_type_idx];
+    }
+
+    // Evaluate the requested shape functions / derivatives for the given system.
+    void registerSystem(const System& system,
+                        const std::vector<int>& phi_vars = std::vector<int>(1, 0),
+                        const std::vector<int>& dphi_vars = std::vector<int>(1, 0))
+    {
+        TBOX_ASSERT(!d_initialized);
+        const unsigned int sys_num = system.number();
+        for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
+             it != it_end; ++it)
+        {
+            if ((*it)->number() == sys_num)
+            {
+                // This system has already been registered.  If so, just merge the collection of variables.
+                size_t system_idx = std::distance(d_noninterp_systems.begin(), it);
+                std::vector<int>& orig_phi_vars = d_noninterp_system_phi_vars[system_idx];
+                std::set<int> phi_vars_set(orig_phi_vars.begin(), orig_phi_vars.end());
+                phi_vars_set.insert(phi_vars.begin(), phi_vars.end());
+                d_noninterp_system_phi_vars[system_idx].assign(phi_vars_set.begin(), phi_vars_set.end());
+                std::vector<int>& orig_dphi_vars = d_noninterp_system_dphi_vars[system_idx];
+                std::set<int> dphi_vars_set(orig_dphi_vars.begin(), orig_dphi_vars.end());
+                dphi_vars_set.insert(dphi_vars.begin(), dphi_vars.end());
+                d_noninterp_system_dphi_vars[system_idx].assign(dphi_vars_set.begin(), dphi_vars_set.end());
+                return;
+            }
+        }
+        d_noninterp_systems.push_back(&system);
+        d_systems.push_back(&system);
+        std::set<int> all_vars_set;
+        all_vars_set.insert(phi_vars.begin(), phi_vars.end());
+        all_vars_set.insert(dphi_vars.begin(), dphi_vars.end());
+        d_noninterp_system_all_vars.push_back(std::vector<int>(all_vars_set.begin(), all_vars_set.end()));
+        std::set<int> phi_vars_set(phi_vars.begin(), phi_vars.end());
+        d_noninterp_system_phi_vars.push_back(std::vector<int>(phi_vars_set.begin(), phi_vars_set.end()));
+        std::set<int> dphi_vars_set(dphi_vars.begin(), dphi_vars.end());
+        d_noninterp_system_dphi_vars.push_back(std::vector<int>(dphi_vars_set.begin(), dphi_vars_set.end()));
+        return;
+    }
+
+    // Register a system with the interpolator for interpolating a specified collection of function variables and
+    // gradients using the supplied system data vector.
+    //
+    // If the system data vector is NULL, then this class will use system.current_local_solution.
+    //
+    // NOTE: The same system can be registered multiple times with different sets of variables/gradients and system data
+    // vectors.
+    //
+    // \return Returns an index that is used to access the interpolated data.
+    size_t registerInterpolatedSystem(const System& system,
+                                      const std::vector<int>& vars = std::vector<int>(1, 0),
+                                      const std::vector<int>& grad_vars = std::vector<int>(1, 0),
+                                      NumericVector<double>* system_data = NULL)
+    {
+        TBOX_ASSERT(!d_initialized);
+        const unsigned int sys_num = system.number();
+        for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+        {
+            if ((*it)->number() == sys_num)
+            {
+                // This system has already been registered.  Check to see if the same collection of variables (etc.)
+                // were used in the previous registration action; if so, do not re-register the system.
+                //
+                // NOTE: The same system may be registered multiple times with different collections of variables,
+                // gradient variables, system data, etc.  We want to make sure we check all of the registered systems to
+                // see if any of them match the function arguments.
+                size_t system_idx = std::distance(d_systems.begin(), it);
+                bool same_data = true;
+                same_data = same_data && (vars == d_system_vars[system_idx]);
+                same_data = same_data && (grad_vars == d_system_grad_vars[system_idx]);
+                same_data = same_data && (system_data == d_system_data[system_idx]);
+                if (same_data) return system_idx;
+            }
+        }
+
+        // Either we have not previously registered this system, or we are registering it here with a different
+        // collection of variables/data.
+        size_t system_idx = d_systems.size();
+        d_systems.push_back(&system);
+        std::set<int> all_vars_set;
+        all_vars_set.insert(vars.begin(), vars.end());
+        all_vars_set.insert(grad_vars.begin(), grad_vars.end());
+        std::vector<int> all_vars(all_vars_set.begin(), all_vars_set.end());
+        d_system_all_vars.push_back(all_vars);
+        d_system_vars.push_back(vars);
+        std::vector<size_t> var_idx(vars.size());
+        for (size_t k = 0; k < vars.size(); ++k)
+        {
+            var_idx[k] = std::distance(all_vars.begin(), std::find(all_vars.begin(), all_vars.end(), vars[k]));
+        }
+        d_system_var_idx.push_back(var_idx);
+        d_system_grad_vars.push_back(grad_vars);
+        std::vector<size_t> grad_var_idx(grad_vars.size());
+        for (size_t k = 0; k < grad_vars.size(); ++k)
+        {
+            grad_var_idx[k] =
+                std::distance(all_vars.begin(), std::find(all_vars.begin(), all_vars.end(), grad_vars[k]));
+        }
+        d_system_grad_var_idx.push_back(grad_var_idx);
+        d_system_data.push_back(system_data);
+        d_system_var_data.push_back(std::vector<DenseVector<double> >(vars.size()));
+        d_system_grad_var_data.push_back(std::vector<DenseVector<VectorValue<double> > >(grad_vars.size()));
+        return system_idx;
+    }
+
+    const std::vector<DenseVector<double> >& getVarInterpolation(const size_t system_idx)
+    {
+        TBOX_ASSERT(system_idx < d_systems.size());
+        return d_system_var_data[system_idx];
+    }
+
+    const std::vector<DenseVector<VectorValue<double> > >& getGradVarInterpolation(const size_t system_idx)
+    {
+        TBOX_ASSERT(system_idx < d_systems.size());
+        return d_system_grad_var_data[system_idx];
+    }
+
+    void init()
+    {
+        TBOX_ASSERT(!d_initialized);
+
+        // Collect the distinct FETypes to be used.
+        std::set<FEType> fe_type_set;
+        const size_t num_systems = d_systems.size();
+        for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
+        {
+            const System& system = *d_systems[system_idx];
+            const DofMap& system_dof_map = system.get_dof_map();
+            const std::vector<int>& all_vars = d_system_all_vars[system_idx];
+            for (unsigned int k = 0; k < all_vars.size(); ++k)
+            {
+                fe_type_set.insert(system_dof_map.variable_type(all_vars[k]));
+            }
+        }
+        const size_t num_noninterp_systems = d_noninterp_systems.size();
+        for (size_t system_idx = 0; system_idx < num_noninterp_systems; ++system_idx)
+        {
+            const System& system = *d_noninterp_systems[system_idx];
+            const DofMap& system_dof_map = system.get_dof_map();
+            const std::vector<int>& all_vars = d_noninterp_system_all_vars[system_idx];
+            for (unsigned int k = 0; k < all_vars.size(); ++k)
+            {
+                fe_type_set.insert(system_dof_map.variable_type(all_vars[k]));
+            }
+        }
+        d_fe_types.assign(fe_type_set.begin(), fe_type_set.end());
+
+        // Determine which FETypes are used for which variables, and which shape functions and shape function
+        // derivatives need to be computed.
+        const size_t num_fe_types = d_fe_types.size();
+        d_eval_phi.resize(num_fe_types, false);
+        d_eval_dphi.resize(num_fe_types, false);
+        d_system_var_fe_type_idx.resize(num_systems);
+        d_system_grad_var_fe_type_idx.resize(num_systems);
+        for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
+        {
+            const System& system = *d_systems[system_idx];
+            const DofMap& system_dof_map = system.get_dof_map();
+
+            const std::vector<int>& vars = d_system_vars[system_idx];
+            d_system_var_fe_type_idx[system_idx].resize(vars.size(), -1);
+            for (unsigned int k = 0; k < vars.size(); ++k)
+            {
+                const FEType& fe_type = system_dof_map.variable_type(vars[k]);
+                const size_t fe_type_idx = getFETypeIndex(fe_type);
+                d_eval_phi[fe_type_idx] = true;
+                d_system_var_fe_type_idx[system_idx][k] = fe_type_idx;
+            }
+
+            const std::vector<int>& grad_vars = d_system_grad_vars[system_idx];
+            d_system_grad_var_fe_type_idx[system_idx].resize(grad_vars.size(), -1);
+            for (unsigned int k = 0; k < grad_vars.size(); ++k)
+            {
+                const FEType& fe_type = system_dof_map.variable_type(grad_vars[k]);
+                const size_t fe_type_idx = getFETypeIndex(fe_type);
+                d_eval_dphi[fe_type_idx] = true;
+                d_system_grad_var_fe_type_idx[system_idx][k] = fe_type_idx;
+            }
+        }
+        for (size_t system_idx = 0; system_idx < num_noninterp_systems; ++system_idx)
+        {
+            const System& system = *d_noninterp_systems[system_idx];
+            const DofMap& system_dof_map = system.get_dof_map();
+
+            const std::vector<int>& phi_vars = d_noninterp_system_phi_vars[system_idx];
+            for (unsigned int k = 0; k < phi_vars.size(); ++k)
+            {
+                const FEType& fe_type = system_dof_map.variable_type(phi_vars[k]);
+                const size_t fe_type_idx = getFETypeIndex(fe_type);
+                d_eval_phi[fe_type_idx] = true;
+            }
+
+            const std::vector<int>& dphi_vars = d_noninterp_system_dphi_vars[system_idx];
+            for (unsigned int k = 0; k < dphi_vars.size(); ++k)
+            {
+                const FEType& fe_type = system_dof_map.variable_type(dphi_vars[k]);
+                const size_t fe_type_idx = getFETypeIndex(fe_type);
+                d_eval_dphi[fe_type_idx] = true;
+            }
+        }
+
+        // Collect the data needed to evaluate the interpolations.
+        d_phi.resize(num_systems, NULL);
+        d_dphi.resize(num_systems, NULL);
+        d_phi_face.resize(num_systems, NULL);
+        d_dphi_face.resize(num_systems, NULL);
+        for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
+        {
+            const FEType& fe_type = d_fe_types[fe_type_idx];
+
+            if (d_qrule)
+            {
+                d_fe[fe_type_idx] = FEBase::build(d_dim, fe_type);
+                FEBase& fe = *d_fe[fe_type_idx];
+                fe.attach_quadrature_rule(d_qrule);
+                if (d_eval_q_point && !d_q_point) d_q_point = &fe.get_xyz();
+                if (d_eval_JxW && !d_JxW) d_JxW = &fe.get_JxW();
+                if (d_eval_phi[fe_type_idx]) d_phi[fe_type_idx] = &fe.get_phi();
+                if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe.get_dphi();
+            }
+
+            if (d_qrule_face)
+            {
+                d_fe_face[fe_type_idx] = FEBase::build(d_dim, fe_type);
+                FEBase& fe_face = *d_fe_face[fe_type_idx];
+                fe_face.attach_quadrature_rule(d_qrule_face);
+                if (d_eval_q_point_face && !d_q_point_face) d_q_point_face = &fe_face.get_xyz();
+                if (d_eval_JxW_face && !d_JxW_face) d_JxW_face = &fe_face.get_JxW();
+                if (d_eval_normal_face && !d_normal_face) d_normal_face = &fe_face.get_normals();
+                if (d_eval_phi[fe_type_idx]) d_phi_face[fe_type_idx] = &fe_face.get_phi();
+                if (d_eval_dphi[fe_type_idx]) d_dphi_face[fe_type_idx] = &fe_face.get_dphi();
+            }
+        }
+
+        d_initialized = true;
+        return;
+    }
+
+    void reinit(const Elem* const elem)
+    {
+        TBOX_ASSERT(d_initialized);
+        d_current_elem = elem;
+        d_current_side = -1;
+
+        // Collect local DOF data for the element.
+        const size_t num_systems = d_systems.size();
+        d_system_elem_data.resize(num_systems);
+        for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
+        {
+            const System& system = *d_systems[system_idx];
+            const DofMap& system_dof_map = system.get_dof_map();
+            const std::vector<int>& all_vars = d_system_all_vars[system_idx];
+            const size_t num_vars = all_vars.size();
+
+            // Get the DOF mappings and local data for all variables.
+            std::vector<unsigned int> dof_indices;
+            NumericVector<double>* system_data = d_system_data[system_idx];
+            std::vector<boost::multi_array<double, 1> >& elem_data = d_system_elem_data[system_idx];
+            elem_data.resize(num_vars);
+            if (!system_data) system_data = system.current_local_solution.get();
+            for (size_t k = 0; k < num_vars; ++k)
+            {
+                system_dof_map.dof_indices(elem, dof_indices, all_vars[k]);
+                get_values_for_interpolation(elem_data[k], *system_data, dof_indices);
+            }
+        }
+
+        // Initialize FE data for the element.
+        if (!d_skip_fe_reinit)
+        {
+            for (size_t k = 0; k < d_fe.size(); ++k)
+            {
+                if (d_fe[k].get()) d_fe[k]->reinit(elem);
+            }
+        }
+        return;
+    }
+
+    void reinit(const Elem* const elem, const unsigned int side)
+    {
+        TBOX_ASSERT(d_initialized);
+
+        // Reinitialize the element data before reinitializing the side-specific data.
+        d_skip_fe_reinit = true;
+        if (d_current_elem != elem) reinit(elem);
+        d_skip_fe_reinit = false;
+        d_current_side = side;
+
+        // Initialize FE data for the element side.
+        for (size_t k = 0; k < d_fe_face.size(); ++k)
+        {
+            if (d_fe_face[k].get()) d_fe_face[k]->reinit(elem, side);
+        }
+    }
+
+    void interpolate(const Elem* const elem)
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_qrule);
+        TBOX_ASSERT(elem == d_current_elem);
+        interpolateCommon(d_system_var_data, d_system_grad_var_data, d_qrule, d_phi, d_dphi);
+        return;
+    }
+
+    void interpolate(const Elem* const elem, const int side)
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(d_qrule_face);
+        TBOX_ASSERT(elem == d_current_elem);
+        TBOX_ASSERT(side == d_current_side);
+        interpolateCommon(d_system_var_data, d_system_grad_var_data, d_qrule_face, d_phi_face, d_dphi_face);
+        return;
+    }
+
+private:
+    FEFunctionInterpolation(const FEFunctionInterpolation&);
+    FEFunctionInterpolation& operator=(const FEFunctionInterpolation&);
+
+    size_t getFETypeIndex(const FEType& fe_type) const
+    {
+        return std::distance(d_fe_types.begin(), std::find(d_fe_types.begin(), d_fe_types.end(), fe_type));
+    }
+
+    void interpolateCommon(std::vector<std::vector<DenseVector<double> > >& system_var_data,
+                           std::vector<std::vector<DenseVector<VectorValue<double> > > >& system_grad_var_data,
+                           const QBase* const qrule,
+                           const std::vector<const std::vector<std::vector<double> >*>& phi_data,
+                           const std::vector<const std::vector<std::vector<VectorValue<double> > >*>& dphi_data)
+    {
+        // Determine the number of quadrature points where the interpolation will be evaluated.
+        const unsigned int n_qp = qrule->n_points();
+
+        // Interpolate data for each system.
+        for (size_t system_idx = 0; system_idx < d_systems.size(); ++system_idx)
+        {
+            const std::vector<boost::multi_array<double, 1> >& elem_data = d_system_elem_data[system_idx];
+
+            // Interpolate regular variables.
+            {
+                std::vector<DenseVector<double> >& var_data = system_var_data[system_idx];
+                var_data.resize(n_qp);
+                const std::vector<size_t>& var_idxs = d_system_var_idx[system_idx];
+                const std::vector<size_t>& var_fe_type_idxs = d_system_var_fe_type_idx[system_idx];
+                const unsigned int num_vars = static_cast<unsigned int>(var_idxs.size());
+                var_data.resize(n_qp, DenseVector<double>(num_vars));
+                for (unsigned int k = 0; k < num_vars; ++k)
+                {
+                    const size_t var_idx = var_idxs[k];
+                    const size_t fe_type_idx = var_fe_type_idxs[k];
+                    const std::vector<std::vector<double> >& phi = *phi_data[fe_type_idx];
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        var_data[qp](k) = 0.0;
+                        for (unsigned int i = 0; i < phi.size(); ++i)
+                        {
+                            var_data[qp](k) += elem_data[var_idx][i] * phi[i][qp];
+                        }
+                    }
+                }
+            }
+
+            // Interpolate gradient variables.
+            {
+                std::vector<DenseVector<VectorValue<double> > >& grad_var_data = d_system_grad_var_data[system_idx];
+                grad_var_data.resize(n_qp);
+                const std::vector<size_t>& grad_var_idxs = d_system_grad_var_idx[system_idx];
+                const std::vector<size_t>& grad_var_fe_type_idxs = d_system_grad_var_fe_type_idx[system_idx];
+                const unsigned int num_grad_vars = static_cast<unsigned int>(grad_var_idxs.size());
+                grad_var_data.resize(n_qp, DenseVector<VectorValue<double> >(num_grad_vars));
+                for (unsigned int k = 0; k < num_grad_vars; ++k)
+                {
+                    const size_t var_idx = grad_var_idxs[k];
+                    const size_t fe_type_idx = grad_var_fe_type_idxs[k];
+                    const std::vector<std::vector<VectorValue<double> > >& dphi = *dphi_data[fe_type_idx];
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        grad_var_data[qp](k).zero();
+                        for (unsigned int i = 0; i < dphi.size(); ++i)
+                        {
+                            grad_var_data[qp](k) += elem_data[var_idx][i] * dphi[i][qp];
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    const unsigned int d_dim;
+    bool d_initialized;
+    bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
+    QBase *d_qrule, *d_qrule_face;
+    const std::vector<libMesh::Point> *d_q_point, *d_q_point_face;
+    const std::vector<double> *d_JxW, *d_JxW_face;
+    const std::vector<libMesh::Point>* d_normal_face;
+
+    // Data associated with systems.
+    std::vector<const System*> d_systems;
+    std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
+    std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
+    std::vector<NumericVector<double>*> d_system_data;
+    std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
+    std::vector<std::vector<DenseVector<double> > > d_system_var_data;
+    std::vector<std::vector<DenseVector<VectorValue<double> > > > d_system_grad_var_data;
+    std::vector<const System*> d_noninterp_systems;
+    std::vector<std::vector<int> > d_noninterp_system_all_vars, d_noninterp_system_phi_vars,
+        d_noninterp_system_dphi_vars;
+
+    // Data associated with FETypes.
+    bool d_skip_fe_reinit;
+    std::vector<FEType> d_fe_types;
+    std::vector<AutoPtr<FEBase> > d_fe, d_fe_face;
+    std::vector<bool> d_eval_phi, d_eval_dphi;
+    std::vector<const std::vector<std::vector<double> > *> d_phi, d_phi_face;
+    std::vector<const std::vector<std::vector<VectorValue<double> > > *> d_dphi, d_dphi_face;
+
+    // Data associated with the current element.
+    const Elem* d_current_elem;
+    int d_current_side;
+    std::vector<std::vector<boost::multi_array<double, 1> > > d_system_elem_data;
+};
+
 void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                             PetscVector<double>& X_vec,
                                             const double data_time,
@@ -1200,10 +1756,9 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data;
-    std::vector<NumericVector<double> *> lag_surface_force_fcn_data, lag_surface_pressure_fcn_data;
-    setupStressAndForceSystemData(&PK1_stress_fcn_data, /*lag_body_force_fcn_data*/ NULL, &lag_surface_force_fcn_data,
-                                  &lag_surface_pressure_fcn_data, part);
+    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<DenseVector<double> > lag_surface_force_fcn_data, lag_surface_pressure_fcn_data;
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     LinearImplicitSystem& system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
@@ -1282,7 +1837,7 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
 
                 double Phi = 0.0;
-                for (unsigned int k = 0; k < d_PK1_stress_fcn_data[part].size(); ++k)
+                for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
                 {
                     if (!d_PK1_stress_fcn_data[part][k].fcn) continue;
 
@@ -1359,12 +1914,10 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data;
-    std::vector<NumericVector<double> *> lag_body_force_fcn_data, lag_surface_force_fcn_data,
-        lag_surface_pressure_fcn_data;
-    setupStressAndForceSystemData(&PK1_stress_fcn_data, &lag_body_force_fcn_data, &lag_surface_force_fcn_data,
-                                  &lag_surface_pressure_fcn_data, part);
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_force_fcn_data,
+        lag_surface_pressure_fcn_data;
 
     // Setup global and elemental right-hand-side vectors.
     AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
@@ -1812,12 +2365,10 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     }
 
     // Setup extra data needed to compute stresses/forces.
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data;
-    std::vector<NumericVector<double> *> lag_body_force_fcn_data, lag_surface_force_fcn_data,
-        lag_surface_pressure_fcn_data;
-    setupStressAndForceSystemData(&PK1_stress_fcn_data, &lag_body_force_fcn_data, &lag_surface_force_fcn_data,
-                                  &lag_surface_pressure_fcn_data, part);
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_force_fcn_data,
+        lag_surface_pressure_fcn_data;
 
     // Extract the underlying solution data.
     PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_ghost_vec);
@@ -1860,6 +2411,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
+            pout << "elem = " << elem->id() << "\n";
             const bool touches_physical_bdry = has_physical_bdry(elem, boundary_info, dof_map);
             if (!touches_physical_bdry) continue;
 
@@ -2031,52 +2583,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
 
     // Setup extra data needed to compute stresses/forces.
-    for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
-         ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-    }
-
     const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
-    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
-    {
-        std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
-        for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
-             cit != PK1_stress_fcn_systems.end(); ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            PK1_stress_fcn_data[k].push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-        }
-    }
-
-    std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
-         cit != lag_body_force_fcn_systems.end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        lag_body_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
-    std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
-         cit != lag_surface_pressure_fcn_systems.end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        lag_surface_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
-         cit != lag_surface_force_fcn_systems.end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
+    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
+    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_pressure_fcn_data,
+        lag_surface_force_fcn_data;
 
     // Extract the underlying solution data.
     PetscVector<double>* F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_ghost_vec);
@@ -2503,7 +3013,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements" << std::endl);
+                                    "or only SECOND order elements"
+                                 << std::endl);
     }
     if (mesh_has_first_order_elems)
     {

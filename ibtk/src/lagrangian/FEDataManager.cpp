@@ -184,7 +184,7 @@ struct ElemComp : std::binary_function<Elem*, Elem*, bool>
 template <class ContainerOfContainers>
 inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
-    std::set<Elem*, ElemComp> elem_set(elems.begin(), elems.end());
+    std::set<Elem*, ElemComp> elem_set;
     for (typename ContainerOfContainers::const_iterator it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
     {
         elem_set.insert(it->begin(), it->end());
@@ -414,8 +414,7 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
         {
             plog << "FEDataManager::buildGhostedSolutionVector(): constructing ghost DOF index "
                     "list for system: " << system_name << "\n";
-            const MeshBase& mesh = d_es->get_mesh();
-            std::vector<Elem*> active_elems(mesh.active_local_elements_begin(), mesh.active_local_elements_end());
+            std::vector<Elem*> active_elems;
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
