@@ -189,7 +189,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 template <class MultiArray>
 inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = U_node.shape()[0];
+    const int n_nodes = static_cast<int>(U_node.shape()[0]);
     U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
