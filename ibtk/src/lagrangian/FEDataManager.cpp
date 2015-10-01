@@ -605,25 +605,28 @@ void FEDataManager::spread(const int f_data_idx,
                 if (X_fe != F_fe) X_fe->reinit(elem);
             }
             F_fe->reinit(elem);
-            const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
             double* F_begin = &F_JxW_qp[n_vars * qp_offset];
             double* X_begin = &X_qp[NDIM * qp_offset];
             std::fill(F_begin, F_begin + n_vars * n_qp, 0.0);
             std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-            for (unsigned int k = 0; k < n_node; ++k)
+            for (unsigned int k = 0; k < F_dof_indices[0].size(); ++k)
             {
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    const double p_JxW_F = phi_F[k][qp] * JxW_F[qp];
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * p_JxW_F;
+                        F_JxW_qp[n_vars * (qp_offset + qp) + i] += F_node[k][i] * phi_F[k][qp] * JxW_F[qp];
                     }
-                    const double& p_X = phi_X[k][qp];
+                }
+            }
+            for (unsigned int k = 0; k < X_dof_indices[0].size(); ++k)
+            {
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                {
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                        X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * phi_X[k][qp];
                     }
                 }
             }
@@ -877,7 +880,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                     jacobian(dX_ds, qp, X_node, dphi_X);
                     F_qp /= std::abs(dX_ds.det());
                 }
-                (*f_data)(i_s) += F_qp/static_cast<double>(num_intersections(i_s));
+                (*f_data)(i_s) += F_qp / static_cast<double>(num_intersections(i_s));
             }
         }
     }
