@@ -110,8 +110,8 @@ namespace ModelData
 static double c1_s = 1.0e5;
 void PK1_stress_function(TensorValue<double>& PP,
                          const TensorValue<double>& FF,
+                         const libMesh::Point& /*x*/,
                          const libMesh::Point& /*X*/,
-                         const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
                          const std::vector<NumericVector<double>*>& /*system_data*/,
                          double /*time*/,
@@ -121,39 +121,47 @@ void PK1_stress_function(TensorValue<double>& PP,
     return;
 } // PK1_stress_function
 
-// Tether (penalty) force function.
-static double kappa_s = 1.0e6;
-static double eta_s = 0.0;
+// Tether (penalty) force functions.
 MeshFunction* U_fcn;
+
+static double kappa_s_body = 1.0e6;
+static double eta_s_body = 0.0;
 void tether_force_function(VectorValue<double>& F,
                            const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& x,
                            const libMesh::Point& X,
-                           const libMesh::Point& s,
                            Elem* const /*elem*/,
                            const vector<NumericVector<double>*>& /*system_data*/,
                            double /*time*/,
                            void* /*ctx*/)
 {
     DenseVector<double> U(NDIM);
-    (*U_fcn)(s, 0.0, U);
+    (*U_fcn)(X, 0.0, U);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s * (s(d) - X(d)) - eta_s * U(d);
+        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U(d);
     }
     return;
 } // tether_force_function
 
+static double kappa_s_surface = 1.0e6;
+static double eta_s_surface = 0.0;
 void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& FF,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& x,
                            const libMesh::Point& X,
-                           const libMesh::Point& s,
                            Elem* const elem,
                            const unsigned short /*side*/,
-                           const vector<NumericVector<double>*>& system_data,
-                           double time,
-                           void* ctx)
+                           const vector<NumericVector<double>*>& /*system_data*/,
+                           double /*time*/,
+                           void* /*ctx*/)
 {
-    tether_force_function(F, FF, X, s, elem, system_data, time, ctx);
+    DenseVector<double> U(NDIM);
+    (*U_fcn)(X, 0.0, U);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U(d);
+    }
     return;
 } // tether_force_function
 }
@@ -283,9 +291,11 @@ int main(int argc, char* argv[])
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
-        kappa_s = input_db->getDouble("KAPPA_S");
-        eta_s = input_db->getDouble("ETA_S");
         c1_s = input_db->getDouble("C1_S");
+        kappa_s_body = input_db->getDouble("KAPPA_S_BODY");
+        eta_s_body = input_db->getDouble("ETA_S_BODY");
+        kappa_s_surface = input_db->getDouble("KAPPA_S_SURFACE");
+        eta_s_surface = input_db->getDouble("ETA_S_SURFACE");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -339,6 +349,7 @@ int main(int argc, char* argv[])
             PK1_stress_data.quad_order =
                 Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
             ib_method_ops->registerPK1StressFunction(PK1_stress_data);
+            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
             ib_method_ops->registerLagSurfaceForceFunction(tether_force_function);
             if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
             {
