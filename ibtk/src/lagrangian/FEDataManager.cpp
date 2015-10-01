@@ -924,6 +924,11 @@ void FEDataManager::interp(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
+    // Update the masking variable
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+    updateMaskingData();
+
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
@@ -975,7 +980,6 @@ void FEDataManager::interp(const int f_data_idx,
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
 
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -988,19 +992,6 @@ void FEDataManager::interp(const int f_data_idx,
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-
-        // Vector to store weight of the quadrature points.
-        typedef boost::multi_array<bool, NDIM> mask_array;
-        mask_array::extent_gen extents;
-        std::vector<std::vector<mask_array> > mask_data;
-        if (cc_data)
-        {
-            mask_data.resize(1);
-        }
-        else
-        {
-            mask_data.resize(n_vars);
-        }
 
         // Setup vectors to store the values of F and X at the quadrature
         // points.
@@ -1024,10 +1015,6 @@ void FEDataManager::interp(const int f_data_idx,
         F_qp.resize(n_vars * n_qp_patch);
         X_qp.resize(NDIM * n_qp_patch);
         std::fill(F_qp.begin(), F_qp.end(), 0.0);
-        for (unsigned int comp = 0; comp < mask_data.size(); ++comp)
-        {
-            mask_data[comp].resize(n_qp_patch);
-        }
 
         // Loop over the elements and compute the positions of the quadrature points.
         qrule.reset();
@@ -1067,16 +1054,6 @@ void FEDataManager::interp(const int f_data_idx,
                     }
                 }
             }
-            // Create the mask to be used for the weights during IB interpolation.
-            for (unsigned int comp = 0; comp < mask_data.size(); ++comp)
-            {
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    const int qp_idx = qp_offset + qp;
-                    mask_array& mask = mask_data[comp][qp_idx];
-                    createWeightMask(comp, f_data_idx, interp_spec, &X_qp[NDIM * qp_idx], mask);
-                }
-            }
             qp_offset += n_qp;
         }
 
@@ -1087,15 +1064,17 @@ void FEDataManager::interp(const int f_data_idx,
         // are within the patch interior.
         const Box<NDIM>& interp_box = patch->getBox();
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+
         if (cc_data)
         {
             Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, mask_data, f_cc_data, patch, interp_box,
-                                      interp_spec.kernel_fcn);
+            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+            Pointer<SideData<NDIM, int> > mask_data = patch->getPatchData(d_mask_idx);
+
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, mask_data, f_sc_data, patch, interp_box,
                                       interp_spec.kernel_fcn);
         }
@@ -2031,6 +2010,10 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_qp_count_var = new CellVariable<NDIM, double>(d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
+    // Register the force/velocity masking variable with the VariableDatabase.
+    d_mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
+    d_mask_idx = var_db->registerVariableAndContext(d_mask_var, d_context, d_ghost_width);
+
     // Setup Timers.
     IBTK_DO_ONCE(
         t_reinit_element_mappings =
@@ -2534,25 +2517,11 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
     return;
 } // collectGhostDOFIndices
 
-void FEDataManager::createWeightMask(unsigned int /*comp*/,
-                                     const int /*f_data_idx*/,
-                                     const InterpSpec& /*interp_spec*/,
-                                     const double* const /*X_qp*/,
-                                     boost::multi_array<bool, NDIM>& /*mask*/)
+void FEDataManager::updateMaskingData()
 {
-    // yet to be filled
+    // yet to be filled.
     return;
-} // createWeightMask
-
-void FEDataManager::createWeightMask(unsigned int /*comp*/,
-                                     const int /*f_data_idx*/,
-                                     const SpreadSpec& /*interp_spec*/,
-                                     const double* const /*X_qp*/,
-                                     boost::multi_array<bool, NDIM>& /*mask*/)
-{
-    // yet to be filled
-    return;
-} // createWeightMask
+} // updateMaskingData
 
 void FEDataManager::getFromRestart()
 {

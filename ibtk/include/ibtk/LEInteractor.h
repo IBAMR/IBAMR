@@ -376,16 +376,15 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    interpolate(std::vector<double>& Q_data,
-                int Q_depth,
-                const std::vector<double>& X_data,
-                int X_depth,
-                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                const SAMRAI::hier::Box<NDIM>& interp_box,
-                const std::string& interp_fcn = "IB_4");
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -450,16 +449,15 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    interpolate(std::vector<double>& Q_data,
-                int Q_depth,
-                const std::vector<double>& X_data,
-                int X_depth,
-                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                const SAMRAI::hier::Box<NDIM>& interp_box,
-                const std::string& interp_fcn = "IB_4");
+    static void interpolate(std::vector<double>& Q_data,
+                            int Q_depth,
+                            const std::vector<double>& X_data,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -532,7 +530,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            const std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > >& mask_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > mask_data,
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -579,18 +577,16 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    interpolate(double* Q_data,
-                int Q_size,
-                int Q_depth,
-                const double* X_data,
-                int X_size,
-                int X_depth,
-                const std::vector<std::vector<boost::multi_array<bool, NDIM, std::allocator<bool> > > >& mask_data,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                const SAMRAI::hier::Box<NDIM>& interp_box,
-                const std::string& interp_fcn = "IB_4");
+    static void interpolate(double* Q_data,
+                            int Q_size,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_size,
+                            int X_depth,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                            const SAMRAI::hier::Box<NDIM>& interp_box,
+                            const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -613,7 +609,7 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > mask_data,
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,

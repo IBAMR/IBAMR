@@ -49,6 +49,7 @@
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineSchedule.h"
+#include "SideVariable.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
@@ -631,22 +632,9 @@ private:
                                 const std::string& system_name);
 
     /*!
-     * Create the mask for the weight of the quadrature point that will used for IB interpolation.
+     * Update the masking variable to demark the inside and outside of the body region.
      */
-    void createWeightMask(unsigned int comp,
-                          const int f_data_idx,
-                          const InterpSpec& interp_spec,
-                          const double* const X_qp,
-                          boost::multi_array<bool, NDIM>& mask);
-
-    /*!
-     * Create the mask for the weight of the quadrature that will used for IB interpolation.
-     */
-    void createWeightMask(unsigned int comp,
-                          const int f_data_idx,
-                          const SpreadSpec& interp_spec,
-                          const double* const X_qp,
-                          boost::multi_array<bool, NDIM>& mask);
+    void updateMaskingData();
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -702,6 +690,14 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
+
+    /*
+     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
+     * side variable used to keep track of the force and velocity DOFs that are
+     * inside and outside of the body region.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_mask_var;
+    int d_mask_idx;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
