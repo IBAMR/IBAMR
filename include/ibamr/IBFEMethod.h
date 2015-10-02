@@ -146,47 +146,9 @@ public:
     void registerStressNormalizationPart(unsigned int part = 0);
 
     /*!
-     * Indicate that a part is constrained.
-     */
-    void registerConstrainedPart(unsigned int part = 0);
-
-    /*!
-     * Typedef specifying interface for specifying constrained body velocities.
-     */
-    typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
-                                              libMesh::NumericVector<double>& U,
-                                              libMesh::NumericVector<double>& X,
-                                              libMesh::EquationSystems* equation_systems,
-                                              double data_time,
-                                              void* ctx);
-
-    /*!
-     * Struct encapsulating constrained velocity function data.
-     */
-    struct ConstrainedVelocityFcnData
-    {
-        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-        ConstrainedVelocityFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx = NULL, unsigned int part = 0);
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part = 0);
-
-    /*!
      * Typedef specifying interface for coordinate mapping function.
      */
-    typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& X, const libMesh::Point& s, void* ctx);
+    typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
 
     /*!
      * Struct encapsulating coordinate mapping function data.
@@ -567,24 +529,6 @@ public:
 
 protected:
     /*
-     * \brief Compute the constraint force density.
-     */
-    void computeConstraintForceDensity(libMesh::PetscVector<double>& F_vec,
-                                       libMesh::PetscVector<double>& X_vec,
-                                       libMesh::PetscVector<double>& U_vec,
-                                       libMesh::PetscVector<double>& U_b_vec,
-                                       double data_time,
-                                       unsigned int part);
-
-    /*!
-     * \brief Setup data needed to evaluate stress and force functions.
-     */
-    void setupStressAndForceSystemData(std::vector<std::vector<libMesh::NumericVector<double>*> >* PK1_stress_fcn_data,
-                                       std::vector<libMesh::NumericVector<double>*>* lag_body_force_fcn_data,
-                                       std::vector<libMesh::NumericVector<double>*>* lag_surface_force_fcn_data,
-                                       std::vector<libMesh::NumericVector<double>*>* lag_surface_pressure_fcn_data,
-                                       unsigned int part);
-    /*
      * \brief Compute the stress normalization field Phi.
      */
     void computeStressNormalization(libMesh::PetscVector<double>& Phi_vec,
@@ -632,7 +576,7 @@ protected:
     void initializeCoordinates(unsigned int part);
 
     /*!
-     * \brief Compute dX = X - s, useful mainly for visualization purposes.
+     * \brief Compute dX = x - X, useful mainly for visualization purposes.
      */
     void updateCoordinateMapping(unsigned int part);
 
@@ -663,12 +607,11 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems, d_U_b_systems;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
     bool d_fe_data_initialized;
 
@@ -693,14 +636,6 @@ protected:
     double d_epsilon;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_stress_normalization_part;
-
-    /*
-     * Data related to handling constrained body constraints.
-     */
-    bool d_has_constrained_parts;
-    std::vector<bool> d_constrained_part;
-    std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
-    double d_constraint_omega;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

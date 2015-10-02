@@ -352,37 +352,6 @@ void IBFEMethod::registerStressNormalizationPart(unsigned int part)
     return;
 } // registerStressNormalizationPart
 
-void IBFEMethod::registerConstrainedPart(unsigned int part)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    if (d_constrained_part[part]) return;
-    d_has_constrained_parts = true;
-    d_constrained_part[part] = true;
-    System& U_b_system = d_equation_systems[part]->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        std::ostringstream os;
-        os << "U_b_" << d;
-        U_b_system.add_variable(os.str(), d_fe_order, d_fe_family);
-    }
-    return;
-} // registerConstrainedPart
-
-void IBFEMethod::registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx, unsigned int part)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    registerConstrainedVelocityFunction(ConstrainedVelocityFcnData(fcn, ctx), part);
-    return;
-} // registerConstrainedVelocityFunction
-
-void IBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    registerConstrainedPart(part);
-    d_constrained_velocity_fcn_data[part] = data;
-    return;
-} // registerConstrainedVelocityFunction
-
 void IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
                                                           void* ctx,
                                                           const unsigned int part)
@@ -534,11 +503,6 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
     d_Phi_systems.resize(d_num_parts);
     d_Phi_half_vecs.resize(d_num_parts);
 
-    d_U_b_systems.resize(d_num_parts);
-    d_U_b_current_vecs.resize(d_num_parts);
-    d_U_b_new_vecs.resize(d_num_parts);
-    d_U_b_half_vecs.resize(d_num_parts);
-
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
@@ -569,17 +533,6 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
                 dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->current_local_solution.get());
         }
 
-        if (d_constrained_part[part])
-        {
-            d_U_b_systems[part] = &d_equation_systems[part]->get_system(BODY_VELOCITY_SYSTEM_NAME);
-            d_U_b_current_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_U_b_systems[part]->current_local_solution.get());
-            d_U_b_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-            d_U_b_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        }
-
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
         d_X_systems[part]->solution->close();
@@ -599,14 +552,6 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
         {
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
-        }
-
-        if (d_constrained_part[part])
-        {
-            d_U_b_systems[part]->solution->close();
-            d_U_b_systems[part]->solution->localize(*d_U_b_current_vecs[part]);
-            d_U_b_systems[part]->solution->localize(*d_U_b_new_vecs[part]);
-            d_U_b_systems[part]->solution->localize(*d_U_b_half_vecs[part]);
         }
     }
     return;
@@ -644,16 +589,6 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
             d_Phi_systems[part]->solution->localize(*d_Phi_systems[part]->current_local_solution);
         }
 
-        if (d_constrained_part[part])
-        {
-            d_U_b_new_vecs[part]->close();
-            *d_U_b_systems[part]->solution = *d_U_b_new_vecs[part];
-            d_U_b_systems[part]->solution->close();
-            d_U_b_systems[part]->solution->localize(*d_U_b_systems[part]->current_local_solution);
-            delete d_U_b_new_vecs[part];
-            delete d_U_b_half_vecs[part];
-        }
-
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
@@ -676,11 +611,6 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     d_Phi_systems.clear();
     d_Phi_half_vecs.clear();
 
-    d_U_b_systems.clear();
-    d_U_b_current_vecs.clear();
-    d_U_b_new_vecs.clear();
-    d_U_b_half_vecs.clear();
-
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time = std::numeric_limits<double>::quiet_NaN();
@@ -698,24 +628,20 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         NumericVector<double>* U_vec = NULL;
-        NumericVector<double>* U_b_vec = NULL;
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
             X_vec = d_X_current_vecs[part];
             U_vec = d_U_current_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             X_vec = d_X_half_vecs[part];
             U_vec = d_U_half_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_half_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             X_vec = d_X_new_vecs[part];
             U_vec = d_U_new_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
         if (d_use_IB_interp_operator)
@@ -727,12 +653,6 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             d_fe_data_managers[part]->restrictData(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME);
         }
-        if (d_constrained_part[part] && d_constrained_velocity_fcn_data[part].fcn)
-        {
-            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-            d_constrained_velocity_fcn_data[part].fcn(*U_b_vec, *U_vec, *X_vec, equation_systems, data_time,
-                                                      d_constrained_velocity_fcn_data[part].ctx);
-        }
     }
     return;
 } // interpolateVelocity
@@ -743,16 +663,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* U_current_vec = NULL;
-        if (d_constrained_part[part])
-        {
-            U_current_vec = d_U_b_current_vecs[part];
-        }
-        else
-        {
-            U_current_vec = d_U_current_vecs[part];
-        }
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, U_current_vec->vec(), d_X_current_vecs[part]->vec());
+        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
                            d_X_new_vecs[part]->vec());
@@ -769,16 +680,7 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* U_half_vec = NULL;
-        if (d_constrained_part[part])
-        {
-            U_half_vec = d_U_b_half_vecs[part];
-        }
-        else
-        {
-            U_half_vec = d_U_half_vecs[part];
-        }
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, U_half_vec->vec(), d_X_current_vecs[part]->vec());
+        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
                            d_X_new_vecs[part]->vec());
@@ -795,21 +697,10 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* U_current_vec = NULL;
-        PetscVector<double>* U_new_vec = NULL;
-        if (d_constrained_part[part])
-        {
-            U_current_vec = d_U_b_current_vecs[part];
-            U_new_vec = d_U_b_half_vecs[part];
-        }
-        else
-        {
-            U_current_vec = d_U_current_vecs[part];
-            U_new_vec = d_U_new_vecs[part];
-        }
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, U_current_vec->vec(), d_X_current_vecs[part]->vec());
+        ierr =
+            VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, U_new_vec->vec());
+        ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
                            d_X_new_vecs[part]->vec());
@@ -825,20 +716,11 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        if (d_constrained_part[part])
+        if (d_stress_normalization_part[part])
         {
-            computeConstraintForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part],
-                                          *d_U_b_half_vecs[part], data_time, part);
+            computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        else
-        {
-            if (d_stress_normalization_part[part])
-            {
-                computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
-            }
-            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time,
-                                        part);
-        }
+        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
     }
     return;
 } // computeLagrangianForce
@@ -917,13 +799,6 @@ void IBFEMethod::initializeFEData()
             LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
-        }
-
-        if (d_constrained_part[part])
-        {
-            System& U_b_system = equation_systems->get_system<System>(BODY_VELOCITY_SYSTEM_NAME);
-            U_b_system.assemble_before_solve = false;
-            U_b_system.assemble();
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -1121,93 +996,6 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
-void IBFEMethod::computeConstraintForceDensity(PetscVector<double>& F_vec,
-                                               PetscVector<double>& /*X_vec*/,
-                                               PetscVector<double>& U_vec,
-                                               PetscVector<double>& U_b_vec,
-                                               const double /*data_time*/,
-                                               const unsigned int part)
-{
-    if (!d_constrained_part[part]) return;
-
-    const double dt = d_new_time - d_current_time;
-    const double rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
-    int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega * rho / dt, -d_constraint_omega * rho / dt, 0.0,
-                           U_b_vec.vec(), U_vec.vec());
-    IBTK_CHKERRQ(ierr);
-    F_vec.close();
-    return;
-} // computeConstraintForceDensity
-
-void IBFEMethod::setupStressAndForceSystemData(std::vector<std::vector<NumericVector<double>*> >* PK1_stress_fcn_data,
-                                               std::vector<NumericVector<double>*>* lag_body_force_fcn_data,
-                                               std::vector<NumericVector<double>*>* lag_surface_force_fcn_data,
-                                               std::vector<NumericVector<double>*>* lag_surface_pressure_fcn_data,
-                                               const unsigned int part)
-{
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
-         ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-    }
-
-    if (PK1_stress_fcn_data)
-    {
-        const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-        PK1_stress_fcn_data->resize(num_PK1_stress_fcns);
-        for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
-        {
-            (*PK1_stress_fcn_data)[k].clear();
-            std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
-            for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
-                 cit != PK1_stress_fcn_systems.end(); ++cit)
-            {
-                System& system = equation_systems->get_system(*cit);
-                (*PK1_stress_fcn_data)[k].push_back(system.current_local_solution.get());
-            }
-        }
-    }
-
-    if (lag_body_force_fcn_data)
-    {
-        lag_body_force_fcn_data->clear();
-        std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
-        for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
-             cit != lag_body_force_fcn_systems.end(); ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            lag_body_force_fcn_data->push_back(system.current_local_solution.get());
-        }
-    }
-
-    if (lag_surface_force_fcn_data)
-    {
-        lag_surface_force_fcn_data->clear();
-        std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
-        for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
-             cit != lag_surface_force_fcn_systems.end(); ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            lag_surface_force_fcn_data->push_back(system.current_local_solution.get());
-        }
-    }
-
-    if (lag_surface_pressure_fcn_data)
-    {
-        lag_surface_pressure_fcn_data->clear();
-        std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
-        for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
-             cit != lag_surface_pressure_fcn_systems.end(); ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            lag_surface_pressure_fcn_data->push_back(system.current_local_solution.get());
-        }
-    }
-    return;
-}
 
 class FEFunctionInterpolation
 {
@@ -1816,8 +1604,6 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                             const double data_time,
                                             const unsigned int part)
 {
-    if (d_constrained_part[part]) return;
-
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -1970,8 +1756,6 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                                              const double data_time,
                                              const unsigned int part)
 {
-    if (d_constrained_part[part]) return;
-
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -2354,7 +2138,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                                 const double data_time,
                                                 const unsigned int part)
 {
-    if (d_constrained_part[part] || (!d_split_normal_force && !d_split_tangential_force)) return;
+    if (!d_split_normal_force && !d_split_tangential_force) return;
 
     // Check to see if we need to integrate the surface forces.
     const bool integrate_normal_force =
@@ -2591,7 +2375,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                       const double data_time,
                                       const unsigned int part)
 {
-    if (d_constrained_part[part] || (!d_split_normal_force && !d_split_tangential_force)) return;
+    if (!d_split_normal_force && !d_split_tangential_force) return;
 
     // Check to see if we need to integrate the normal surface force.
     const bool integrate_normal_force =
@@ -3019,13 +2803,6 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_has_stress_normalization_parts = false;
     d_stress_normalization_part.resize(d_num_parts, false);
 
-    // Indicate that all of the parts are unconstrained by default and set some
-    // default values.
-    d_has_constrained_parts = false;
-    d_constrained_part.resize(d_num_parts, false);
-    d_constrained_velocity_fcn_data.resize(d_num_parts);
-    d_constraint_omega = 2.0;
-
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_PK1_stress_fcn_data.resize(d_num_parts);
@@ -3265,8 +3042,6 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
-
-    if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
     return;
 } // getFromInput
 
