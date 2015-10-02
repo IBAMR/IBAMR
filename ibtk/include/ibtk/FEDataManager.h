@@ -634,7 +634,7 @@ private:
     /*!
      * Update the masking variable to demark the inside and outside of the body region.
      */
-    void updateMaskingData();
+    void updateMaskingData(libMesh::NumericVector<double>& X_vec, const double fill_time);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -698,6 +698,12 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_mask_var;
     int d_mask_idx;
+
+    /*
+     * SAMRAI::xfer::RefineAlgorithm pointer to fill the ghost cell region of
+     * SAMRAI variables.
+     */
+    SAMRAI::xfer::RefineAlgorithm<NDIM> d_ghost_fill_alg;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the

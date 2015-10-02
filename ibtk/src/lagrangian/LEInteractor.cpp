@@ -1234,10 +1234,10 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(mask_data->getDepth() == 1);
     TBOX_ASSERT(interp_fcn == "IB_4");
 #else
     NULL_USE(Q_size);
-    NULL_USE(mask_data);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1249,16 +1249,26 @@ void LEInteractor::interpolate(double* const Q_data,
 
     // Get ghost cell width info.
     const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = q_data->getGhostCellWidth();
     const int stencil_size = getStencilSize(interp_fcn);
     const int min_ghosts = getMinimumGhostWidth(interp_fcn);
     const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
     if (q_gcw_min < min_ghosts)
     {
-        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
                    << "  kernel function          = " << interp_fcn << "\n"
                    << "  kernel stencil size      = " << stencil_size << "\n"
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
     const IntVector<NDIM> ig_lower = ilower - q_gcw;
     const IntVector<NDIM> ig_upper = iupper + q_gcw;
@@ -1336,25 +1346,31 @@ void LEInteractor::interpolate(double* const Q_data,
 #endif
 
 #if (NDIM == 2)
-
             // Compute the tensor product of the interpolation weights.
             wgt_array w(extents[4][4]);
-            for (i1 = 0; i1 < 4; ++i1)
+            for (i1 = 0; i1 <= 3; ++i1)
             {
-                for (i0 = 0; i0 < 4; ++i0)
+                ic1 = ic_lower[1] + i1;
+                for (i0 = 0; i0 <= 3; ++i0)
                 {
-                    w[i1][i0] = w0[i0] * w1[i1];
+                    ic0 = ic_lower[0] + i0;
+                    Index<NDIM> idx(ic0, ic1);
+                    w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(idx, /*depth*/ 0);
                 }
             }
 #elif(NDIM == 3)
             wgt_array w(extents[4][4][4]);
-            for (i2 = 0; i2 < 4; ++i2)
+            for (i2 = 0; i2 <= 3; ++i2)
             {
-                for (i1 = 0; i1 < 4; ++i1)
+                ic2 = ic_lower[2] + i2;
+                for (i1 = 0; i1 <= 3; ++i1)
                 {
-                    for (i0 = 0; i0 < 4; ++i0)
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = 0; i0 <= 3; ++i0)
                     {
-                        w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2];
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1, ic2);
+                        w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(idx, /*depth*/ 0);
                     }
                 }
             }
@@ -1478,7 +1494,6 @@ void LEInteractor::interpolate(double* const Q_data,
 #endif
 
 #if (NDIM == 2)
-
             // Interpolate q onto Q using the modified weights.
             istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
             istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
@@ -1690,7 +1705,6 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(interp_fcn == "IB_4");
 #else
     NULL_USE(Q_size);
-    NULL_USE(mask_data);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1703,17 +1717,28 @@ void LEInteractor::interpolate(double* const Q_data,
 
     // Get ghost cell width info.
     const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
     const int stencil_size = getStencilSize(interp_fcn);
     const int min_ghosts = getMinimumGhostWidth(interp_fcn);
     const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
     if (q_gcw_min < min_ghosts)
     {
-        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
                    << "  kernel function          = " << interp_fcn << "\n"
                    << "  kernel stencil size      = " << stencil_size << "\n"
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
     }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
+    }
+
     const IntVector<NDIM> ig_lower = ilower - q_gcw;
     const IntVector<NDIM> ig_upper = (iupper + 1) + q_gcw;
 
@@ -1805,16 +1830,11 @@ void LEInteractor::interpolate(double* const Q_data,
 
 #if (NDIM == 2)
                 // Compute the tensor product of the interpolation weights.
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-
                 wgt_array w(extents[4][4]);
-                for (i1 = istart1; i1 <= istop1; ++i1)
+                for (i1 = 0; i1 <= 3; ++i1)
                 {
                     ic1 = ic_lower[1] + i1;
-                    for (i0 = istart0; i0 <= istop0; ++i0)
+                    for (i0 = 0; i0 <= 3; ++i0)
                     {
                         ic0 = ic_lower[0] + i0;
                         Index<NDIM> idx(ic0, ic1);
@@ -1824,21 +1844,14 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
 
 #elif(NDIM == 3)
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-                istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-                istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
-
                 wgt_array w(extents[4][4][4]);
-                for (i2 = istart2; i2 <= istop2; ++i2)
+                for (i2 = 0; i2 <= 3; ++i2)
                 {
                     ic2 = ic_lower[2] + i2;
-                    for (i1 = istart1; i1 <= istop1; ++i1)
+                    for (i1 = 0; i1 <= 3; ++i1)
                     {
                         ic1 = ic_lower[1] + i1;
-                        for (i0 = istart0; i0 <= istop0; ++i0)
+                        for (i0 = 0; i0 <= 3; ++i0)
                         {
                             ic0 = ic_lower[0] + i0;
                             Index<NDIM> idx(ic0, ic1, ic2);
@@ -1968,6 +1981,11 @@ void LEInteractor::interpolate(double* const Q_data,
 
 #if (NDIM == 2)
                 // Interpolate q onto Q using the modified weights.
+                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+
                 Q_data[s * NDIM + axis] = 0.0;
                 for (i1 = istart1; i1 <= istop1; ++i1)
                 {
@@ -1981,6 +1999,13 @@ void LEInteractor::interpolate(double* const Q_data,
                     }
                 }
 #elif(NDIM == 3)
+                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+                istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
+                istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
+
                 Q_data[s * NDIM + axis] = 0.0;
                 for (i2 = istart2; i2 <= istop2; ++i2)
                 {
@@ -2488,6 +2513,21 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
            X_depth, patch, spread_box, interp_fcn);
 }
 
+void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
+                          Pointer<CellData<NDIM, double> > q_data,
+                          const std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& spread_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    spread(mask_data, q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0],
+           static_cast<int>(X_data.size()), X_depth, patch, spread_box, interp_fcn);
+}
+
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                           const std::vector<double>& Q_data,
                           const int Q_depth,
@@ -2514,6 +2554,21 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     if (Q_data.empty()) return;
     spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
            X_depth, patch, spread_box, interp_fcn);
+}
+
+void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
+                          Pointer<SideData<NDIM, double> > q_data,
+                          const std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& spread_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    spread(mask_data, q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0],
+           static_cast<int>(X_data.size()), X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
@@ -2578,6 +2633,337 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                X_data, x_lower, x_upper, dx, patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                local_indices, periodic_shifts, spread_fcn);
     }
+    return;
+}
+
+void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
+                          Pointer<CellData<NDIM, double> > q_data,
+                          const double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& spread_box,
+                          const std::string& spread_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(mask_data->getDepth() == 1);
+    TBOX_ASSERT(spread_fcn == "IB_4");
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+    const IntVector<NDIM>& iupper = patch_box.upper();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(spread_fcn);
+    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian field data:\n"
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
+    }
+    const IntVector<NDIM> ig_lower = ilower - q_gcw;
+    const IntVector<NDIM> ig_upper = iupper + q_gcw;
+
+    // Get boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Spread.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        int ic_lower[NDIM], ic_upper[NDIM];
+        double X_0_dx, r0, q0, X_1_dx, r1, q1;
+        double w0[4], w1[4];
+        double xstart, ystart, x, y, p_j, p_k;
+        int d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
+        typedef boost::multi_array<double, NDIM> wgt_array;
+        wgt_array::extent_gen extents;
+
+#if (NDIM == 3)
+        double X_2_dx, r2, q2, z, zstart;
+        double w2[4];
+        int i2, ic2, istart2, istop2;
+#endif
+
+        for (int s = 0; s < nindices; ++s)
+        {
+            // Determine the interpolation stencil corresponding to the position
+            // of X(s) within the cell and compute the regular IB-4 interpolation weights.
+            X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower[0]) / dx[0];
+            ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
+            ic_upper[0] = ic_lower[0] + 3;
+            r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
+            q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
+            w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
+            w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
+            w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
+            w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+
+            X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower[1]) / dx[1];
+            ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
+            ic_upper[1] = ic_lower[1] + 3;
+            r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
+            q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
+            w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
+            w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
+            w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
+            w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
+
+#if (NDIM == 3)
+            X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower[2]) / dx[2];
+            ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
+            ic_upper[2] = ic_lower[2] + 3;
+            r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
+            q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
+            w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
+            w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
+            w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
+            w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
+
+#endif
+
+#if (NDIM == 2)
+            // Compute the tensor product of the interpolation weights.
+            wgt_array w(extents[4][4]);
+            for (i1 = 0; i1 <= 3; ++i1)
+            {
+                ic1 = ic_lower[1] + i1;
+                for (i0 = 0; i0 <= 3; ++i0)
+                {
+                    ic0 = ic_lower[0] + i0;
+                    Index<NDIM> idx(ic0, ic1);
+                    w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(idx, /*depth*/ 0);
+                }
+            }
+#elif(NDIM == 3)
+            wgt_array w(extents[4][4][4]);
+            for (i2 = 0; i2 <= 3; ++i2)
+            {
+                ic2 = ic_lower[2] + i2;
+                for (i1 = 0; i1 <= 3; ++i1)
+                {
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = 0; i0 <= 3; ++i0)
+                    {
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1, ic2);
+                        w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(idx, /*depth*/ 0);
+                    }
+                }
+            }
+#endif
+
+#if (NDIM == 2)
+
+            // Set the Gram matrix and the RHS.
+            // Here we are solving the equation of the type G L = p, in which p
+            // is the vector of basis functions that we want to reproduce, G is Gram
+            // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
+            Eigen::Matrix3d G;
+            G.setZero();
+            Eigen::Vector3d p, L;
+            p[0] = 1.0;
+            p[1] = X_data[s * NDIM];
+            p[2] = X_data[s * NDIM + 1];
+
+            xstart = p[1] - (r0 + 1) * dx[0];
+            ystart = p[2] - (r1 + 1) * dx[1];
+            for (j = 0; j <= 2; ++j)
+            {
+                for (k = 0; k <= 2; ++k)
+                {
+                    for (i1 = 0; i1 <= 3; ++i1)
+                    {
+                        y = ystart + i1 * dx[1];
+                        for (i0 = 0; i0 <= 3; ++i0)
+                        {
+                            x = xstart + i0 * dx[0];
+
+                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+                            p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
+                            G(j, k) += p_j * p_k * w[i1][i0];
+                        }
+                    }
+                }
+            }
+#elif(NDIM == 3)
+            Eigen::Matrix4d G;
+            G.setZero();
+            Eigen::Vector4d p, L;
+            p[0] = 1.0;
+            p[1] = X_data[s * NDIM];
+            p[2] = X_data[s * NDIM + 1];
+            p[3] = X_data[s * NDIM + 2];
+
+            xstart = p[1] - (r0 + 1) * dx[0];
+            ystart = p[2] - (r1 + 1) * dx[1];
+            zstart = p[3] - (r2 + 1) * dx[2];
+            for (j = 0; j <= 3; ++j)
+            {
+                for (k = 0; k <= 3; ++k)
+                {
+                    for (i2 = 0; i2 <= 3; ++i2)
+                    {
+                        z = zstart + i2 * dx[2];
+                        for (i1 = 0; i1 <= 3; ++i1)
+                        {
+                            y = ystart + i1 * dx[1];
+                            for (i0 = 0; i0 <= 3; ++i0)
+                            {
+                                x = xstart + i0 * dx[0];
+
+                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
+                                p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
+                                G(j, k) += p_j * p_k * w[i2][i1][i0];
+                            }
+                        }
+                    }
+                }
+            }
+
+#endif
+            // Solve the system for L
+            L = G.ldlt().solve(p);
+
+#if (NDIM == 2)
+
+            // Find the modified weights using the Lagrange multiplier and to-be-reproduced
+            // polynomial basis.
+            wgt_array psi(extents[4][4]);
+            double* data = psi.data();
+            std::fill(data, data + 16, 0.0);
+            for (i1 = 0; i1 <= 3; ++i1)
+            {
+                y = ystart + i1 * dx[1];
+                for (i0 = 0; i0 <= 3; ++i0)
+                {
+                    x = xstart + i0 * dx[0];
+                    for (j = 0; j <= 2; ++j)
+                    {
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+                        psi[i1][i0] += L[j] * p_j;
+                    }
+                    psi[i1][i0] *= w[i1][i0];
+                }
+            }
+#elif(NDIM == 3)
+            wgt_array psi(extents[4][4][4]);
+            double* data = psi.data();
+            std::fill(data, data + 64, 0.0);
+            for (i2 = 0; i2 <= 3; ++i2)
+            {
+                z = zstart + i2 * dx[2];
+                for (i1 = 0; i1 <= 3; ++i1)
+                {
+                    y = ystart + i1 * dx[1];
+                    for (i0 = 0; i0 <= 3; ++i0)
+                    {
+                        x = xstart + i0 * dx[0];
+                        for (j = 0; j <= 3; ++j)
+                        {
+                            p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
+                            psi[i2][i1][i0] += L[j] * p_j;
+                        }
+                        psi[i2][i1][i0] *= w[i2][i1][i0];
+                    }
+                }
+            }
+#endif
+
+#if (NDIM == 2)
+            // Spread Q onto q using the modified weights.
+            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+
+            for (d = 0; d < Q_depth; ++d)
+            {
+                for (i1 = istart1; i1 <= istop1; ++i1)
+                {
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = istart0; i0 <= istop0; ++i0)
+                    {
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1);
+                        (*q_data)(idx, d) += Q_data[s * Q_depth + d] * psi[i1][i0];
+                    }
+                }
+            }
+#elif(NDIM == 3)
+
+            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+            istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
+            istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
+
+            for (d = 0; d < Q_depth; ++d)
+            {
+                for (i2 = istart2; i2 <= istop2; ++i2)
+                {
+                    ic2 = ic_lower[2] + i2;
+                    for (i1 = istart1; i1 <= istop1; ++i1)
+                    {
+                        ic1 = ic_lower[1] + i1;
+                        for (i0 = istart0; i0 <= istop0; ++i0)
+                        {
+                            ic0 = ic_lower[0] + i0;
+                            Index<NDIM> idx(ic0, ic1, ic2);
+                            (*q_data)(idx, d) += Q_data[s * Q_depth + d] * psi[i2][i1][i0];
+                        }
+                    }
+                }
+            }
+#endif
+        }
+    }
+
     return;
 }
 
@@ -2707,6 +3093,353 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                    /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
                    spread_fcn, axis);
+        }
+    }
+    return;
+}
+
+void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
+                          Pointer<SideData<NDIM, double> > q_data,
+                          const double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& spread_box,
+                          const std::string& spread_fcn)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(q_data->getDepth() == 1);
+    TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(spread_fcn == "IB_4");
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+    const IntVector<NDIM>& iupper = patch_box.upper();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(spread_fcn);
+    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:"
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:"
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  ghost cell width         = " << mask_gcw_min << "\n");
+    }
+
+    const IntVector<NDIM> ig_lower = ilower - q_gcw;
+    const IntVector<NDIM> ig_upper = (iupper + 1) + q_gcw;
+
+    // Determine the boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Spread.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+        std::vector<double> Q_data_axis(local_sz);
+
+        int ic_lower[NDIM], ic_upper[NDIM];
+        double X_0_dx, r0, q0, X_1_dx, r1, q1;
+        double w0[4], w1[4];
+        double xstart, ystart, x, y, p_j, p_k;
+        int axis, d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
+        typedef boost::multi_array<double, NDIM> wgt_array;
+        wgt_array::extent_gen extents;
+
+#if (NDIM == 3)
+        double X_2_dx, r2, q2, z, zstart;
+        double w2[4];
+        int i2, ic2, istart2, istop2;
+#endif
+
+        for (axis = 0; axis < NDIM; ++axis)
+        {
+            for (d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5 * dx[axis];
+            x_upper_axis[axis] += 0.5 * dx[axis];
+
+            for (int s = 0; s < nindices; ++s)
+            {
+                // Determine the interpolation stencil corresponding to the position
+                // of X(s) within the cell and compute the regular IB-4 interpolation weights.
+                X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower_axis[0]) / dx[0];
+                ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
+                ic_upper[0] = ic_lower[0] + 3;
+                r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
+                q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
+                w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
+                w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
+                w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
+                w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+
+                X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower_axis[1]) / dx[1];
+                ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
+                ic_upper[1] = ic_lower[1] + 3;
+                r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
+                q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
+                w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
+                w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
+                w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
+                w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
+
+#if (NDIM == 3)
+                X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower_axis[2]) / dx[2];
+                ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
+                ic_upper[2] = ic_lower[2] + 3;
+                r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
+                q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
+                w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
+                w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
+                w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
+                w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
+
+#endif
+
+#if (NDIM == 2)
+                // Compute the tensor product of the interpolation weights.
+                wgt_array w(extents[4][4]);
+                for (i1 = 0; i1 <= 3; ++i1)
+                {
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = 0; i0 <= 3; ++i0)
+                    {
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1);
+                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
+                        w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(s_idx, /*depth*/ 0);
+                    }
+                }
+
+#elif(NDIM == 3)
+                wgt_array w(extents[4][4][4]);
+                for (i2 = 0; i2 <= 3; ++i2)
+                {
+                    ic2 = ic_lower[2] + i2;
+                    for (i1 = 0; i1 <= 3; ++i1)
+                    {
+                        ic1 = ic_lower[1] + i1;
+                        for (i0 = 0; i0 <= 3; ++i0)
+                        {
+                            ic0 = ic_lower[0] + i0;
+                            Index<NDIM> idx(ic0, ic1, ic2);
+                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
+                            w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(s_idx, /*depth*/ 0);
+                        }
+                    }
+                }
+#endif
+
+#if (NDIM == 2)
+                // Set the Gram matrix and the RHS.
+                // Here we are solving the equation of the type G L = p, in which p
+                // is the vector of basis functions that we want to reproduce, G is Gram
+                // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
+                Eigen::Matrix3d G;
+                G.setZero();
+                Eigen::Vector3d p, L;
+                p[0] = 1.0;
+                p[1] = X_data[s * NDIM];
+                p[2] = X_data[s * NDIM + 1];
+
+                xstart = p[1] - (r0 + 1) * dx[0];
+                ystart = p[2] - (r1 + 1) * dx[1];
+                for (j = 0; j <= 2; ++j)
+                {
+                    for (k = 0; k <= 2; ++k)
+                    {
+                        for (i1 = 0; i1 <= 3; ++i1)
+                        {
+                            y = ystart + i1 * dx[1];
+                            for (i0 = 0; i0 <= 3; ++i0)
+                            {
+                                x = xstart + i0 * dx[0];
+
+                                p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+                                p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
+                                G(j, k) += p_j * p_k * w[i1][i0];
+                            }
+                        }
+                    }
+                }
+#elif(NDIM == 3)
+                Eigen::Matrix4d G;
+                G.setZero();
+                Eigen::Vector4d p, L;
+                p[0] = 1.0;
+                p[1] = X_data[s * NDIM];
+                p[2] = X_data[s * NDIM + 1];
+                p[3] = X_data[s * NDIM + 2];
+
+                xstart = p[1] - (r0 + 1) * dx[0];
+                ystart = p[2] - (r1 + 1) * dx[1];
+                zstart = p[3] - (r2 + 1) * dx[2];
+                for (j = 0; j <= 3; ++j)
+                {
+                    for (k = 0; k <= 3; ++k)
+                    {
+                        for (i2 = 0; i2 <= 3; ++i2)
+                        {
+                            z = zstart + i2 * dx[2];
+                            for (i1 = 0; i1 <= 3; ++i1)
+                            {
+                                y = ystart + i1 * dx[1];
+                                for (i0 = 0; i0 <= 3; ++i0)
+                                {
+                                    x = xstart + i0 * dx[0];
+
+                                    p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
+                                    p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
+                                    G(j, k) += p_j * p_k * w[i2][i1][i0];
+                                }
+                            }
+                        }
+                    }
+                }
+
+#endif
+
+                // Solve the system for L
+                L = G.ldlt().solve(p);
+
+#if (NDIM == 2)
+                // Find the modified weights using the Lagrange multiplier and to-be-reproduced
+                // polynomial basis.
+                wgt_array psi(extents[4][4]);
+                double* data = psi.data();
+                std::fill(data, data + 16, 0.0);
+                for (i1 = 0; i1 <= 3; ++i1)
+                {
+                    y = ystart + i1 * dx[1];
+                    for (i0 = 0; i0 <= 3; ++i0)
+                    {
+                        x = xstart + i0 * dx[0];
+                        for (j = 0; j <= 2; ++j)
+                        {
+                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
+                            psi[i1][i0] += L[j] * p_j;
+                        }
+                        psi[i1][i0] *= w[i1][i0];
+                    }
+                }
+
+#elif(NDIM == 3)
+                wgt_array psi(extents[4][4][4]);
+                double* data = psi.data();
+                std::fill(data, data + 64, 0.0);
+                for (i2 = 0; i2 <= 3; ++i2)
+                {
+                    z = zstart + i2 * dx[2];
+                    for (i1 = 0; i1 <= 3; ++i1)
+                    {
+                        y = ystart + i1 * dx[1];
+                        for (i0 = 0; i0 <= 3; ++i0)
+                        {
+                            x = xstart + i0 * dx[0];
+                            for (j = 0; j <= 3; ++j)
+                            {
+                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
+                                psi[i2][i1][i0] += L[j] * p_j;
+                            }
+                            psi[i2][i1][i0] *= w[i2][i1][i0];
+                        }
+                    }
+                }
+#endif
+
+#if (NDIM == 2)
+                // Spread Q onto q using the modified weights.
+                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+
+                for (i1 = istart1; i1 <= istop1; ++i1)
+                {
+                    ic1 = ic_lower[1] + i1;
+                    for (i0 = istart0; i0 <= istop0; ++i0)
+                    {
+                        ic0 = ic_lower[0] + i0;
+                        Index<NDIM> idx(ic0, ic1);
+                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
+                        (*q_data)(s_idx, /*depth*/ 0) += Q_data[s * NDIM + axis] * psi[i1][i0];
+                    }
+                }
+#elif(NDIM == 3)
+                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
+                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
+                istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
+                istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
+
+                for (i2 = istart2; i2 <= istop2; ++i2)
+                {
+                    ic2 = ic_lower[2] + i2;
+                    for (i1 = istart1; i1 <= istop1; ++i1)
+                    {
+                        ic1 = ic_lower[1] + i1;
+                        for (i0 = istart0; i0 <= istop0; ++i0)
+                        {
+                            ic0 = ic_lower[0] + i0;
+                            Index<NDIM> idx(ic0, ic1, ic2);
+                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
+                            (*q_data)(s_idx, /*depth*/ 0) += Q_data[s * NDIM + axis] * psi[i2][i1][i0];
+                        }
+                    }
+                }
+
+#endif
+            }
         }
     }
     return;

@@ -168,6 +168,7 @@ static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
 static Timer* t_put_to_database;
+static Timer* t_update_masking_data;
 
 // Version of FEDataManager restart file data.
 static const int FE_DATA_MANAGER_VERSION = 1;
@@ -475,6 +476,11 @@ void FEDataManager::spread(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
+    // Update the masking data.
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+    updateMaskingData(X_vec, fill_data_time);
+
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -538,7 +544,6 @@ void FEDataManager::spread(const int f_data_idx,
     // grid.
     boost::multi_array<double, 2> F_node, X_node;
     std::vector<double> F_JxW_qp, X_qp;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -644,7 +649,9 @@ void FEDataManager::spread(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+            Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
+            LEInteractor::spread(mask_data, f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box,
+                                 spread_spec.kernel_fcn);
         }
         if (f_phys_bdry_op)
         {
@@ -924,10 +931,10 @@ void FEDataManager::interp(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
-    // Update the masking variable
+    // Update the masking data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-    updateMaskingData();
+    updateMaskingData(X_vec, fill_data_time);
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -1073,7 +1080,7 @@ void FEDataManager::interp(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            Pointer<SideData<NDIM, int> > mask_data = patch->getPatchData(d_mask_idx);
+            Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
 
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, mask_data, f_sc_data, patch, interp_box,
                                       interp_spec.kernel_fcn);
@@ -2010,9 +2017,14 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_qp_count_var = new CellVariable<NDIM, double>(d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
-    // Register the force/velocity masking variable with the VariableDatabase.
+    // Register the force/velocity masking variable with the VariableDatabase and create
+    // its ghost cell filling algorithm.
+    const IntVector<NDIM> mask_gcw = IntVector<NDIM>::max(
+        d_ghost_width, IntVector<NDIM>(std::max(LEInteractor::getStencilSize(default_interp_spec.kernel_fcn),
+                                                LEInteractor::getStencilSize(default_spread_spec.kernel_fcn))));
     d_mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
-    d_mask_idx = var_db->registerVariableAndContext(d_mask_var, d_context, d_ghost_width);
+    d_mask_idx = var_db->registerVariableAndContext(d_mask_var, d_context, mask_gcw);
+    d_ghost_fill_alg.registerRefine(d_mask_idx, d_mask_idx, d_mask_idx, NULL);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -2517,10 +2529,150 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
     return;
 } // collectGhostDOFIndices
 
-void FEDataManager::updateMaskingData()
+void FEDataManager::updateMaskingData(NumericVector<double>& X_vec, const double fill_time)
 {
-    // yet to be filled.
+    IBTK_TIMER_START(t_update_masking_data);
+
+    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // discretization.  It should be straightforward to generalize it to work
+    // with other data centerings.
+    //
+    // NOTE #2: This code is specialized for isoparametric elements.  It is less
+    // clear how to relax this assumption.
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
+
+    // Extract the FE systems and DOF maps, and setup the FE object.
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+
+    // Communicate any unsynchronized ghost data and extract the underlying
+    // solution data.
+    /*if (!X_vec.closed())*/ X_vec.close();
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
+    // Loop over the patches and demark the inside and outside region of the body.
+    boost::multi_array<double, 2> X_node;
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
+    Point X_min, X_max;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+        const size_t num_active_patch_elems = patch_elems.size();
+        if (!num_active_patch_elems) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
+        mask_data->fillAll(0.0);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        const CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+        const double* const patch_x_upper = patch_geom->getXUpper();
+        const double* const patch_dx = patch_geom->getDx();
+
+        boost::array<Box<NDIM>, NDIM> side_boxes;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        }
+
+        // Loop over the elements and find the Eulerian region inside the body.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems[e_idx];
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+            s_node_cache.resize(n_node);
+            X_node_cache.resize(n_node);
+            X_min = Point::Constant(+0.5 * std::numeric_limits<double>::max());
+            X_max = Point::Constant(-0.5 * std::numeric_limits<double>::max());
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                libMesh::Point& X = X_node_cache[k];
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X(d) = X_vec(X_dof_indices[d][k]);
+                    X_min[d] = std::min(X_min[d], X(d));
+                    X_max[d] = std::max(X_max[d], X(d));
+                }
+                elem->point(k) = X;
+            }
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper),
+                          IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                       patch_upper));
+            box.grow(IntVector<NDIM>(1));
+            box = box * patch_box;
+
+            // Loop over coordinate directions and look for the Eulerian grid points
+            // that are covered by the element.
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Loop over the relevant range of indices.
+                for (SideIterator<NDIM> b(box, axis); b; b++)
+                {
+                    const SideIndex<NDIM>& i_s = b();
+                    if (side_boxes[axis].contains(i_s))
+                    {
+                        libMesh::Point p;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            p(d) =
+                                patch_x_lower[d] +
+                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
+                        }
+                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
+                        if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+                        {
+                            (*mask_data)(i_s, /*depth*/ 0) = 1.0;
+                        }
+                    }
+                }
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+        }
+    }
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    // Fill the ghost cell region of masking data.
+    d_ghost_fill_alg.createSchedule(level)->fillData(fill_time);
+
+    IBTK_TIMER_STOP(t_update_masking_data);
     return;
+
 } // updateMaskingData
 
 void FEDataManager::getFromRestart()
