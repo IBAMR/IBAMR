@@ -2446,11 +2446,13 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
+    const bool use_one_sided_interaction = false;
     d_use_IB_interp_operator = true;
     d_interp_spec = FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
-                                              interp_use_consistent_mass_matrix);
+                                              interp_use_consistent_mass_matrix, use_one_sided_interaction);
     d_use_IB_spread_operator = true;
-    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
+                                              use_one_sided_interaction);
     d_ghosts = 0;
     d_split_normal_force = false;
     d_split_tangential_force = false;
@@ -2614,6 +2616,11 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("use_IB_interaction_operators"))
         d_use_IB_interp_operator = db->getBool("use_IB_interaction_operators");
 
+    if (db->isBool("use_one_sided_interpolation"))
+        d_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interpolation");
+    else if (db->isBool("use_one_sided_interaction"))
+        d_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
+
     if (db->isString("interp_delta_fcn"))
         d_interp_spec.kernel_fcn = db->getString("interp_delta_fcn");
     else if (db->isString("IB_delta_fcn"))
@@ -2653,6 +2660,11 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_use_IB_spread_operator = db->getBool("use_IB_spread_operator");
     else if (db->isBool("use_IB_interaction_operators"))
         d_use_IB_spread_operator = db->getBool("use_IB_interaction_operators");
+
+    if (db->isBool("use_one_sided_spreading"))
+        d_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_spreading");
+    else if (db->isBool("use_one_sided_interaction"))
+        d_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
 
     if (db->isString("spread_delta_fcn"))
         d_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");

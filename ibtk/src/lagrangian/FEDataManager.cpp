@@ -478,8 +478,11 @@ void FEDataManager::spread(const int f_data_idx,
 
     // Update the masking data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-    updateMaskingData(X_vec, fill_data_time);
+    if (spread_spec.use_one_sided_interaction)
+    {
+        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+        updateMaskingData(X_vec, fill_data_time);
+    }
 
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
@@ -649,9 +652,17 @@ void FEDataManager::spread(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-            LEInteractor::spread(mask_data, f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box,
-                                 spread_spec.kernel_fcn);
+            if (spread_spec.use_one_sided_interaction)
+            {
+                Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
+                LEInteractor::spread(mask_data, f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box,
+                                     spread_spec.kernel_fcn);
+            }
+            else
+            {
+                LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box,
+                                     spread_spec.kernel_fcn);
+            }
         }
         if (f_phys_bdry_op)
         {
@@ -933,8 +944,11 @@ void FEDataManager::interp(const int f_data_idx,
 
     // Update the masking data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-    updateMaskingData(X_vec, fill_data_time);
+    if (interp_spec.use_one_sided_interaction)
+    {
+        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+        updateMaskingData(X_vec, fill_data_time);
+    }
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -1080,10 +1094,17 @@ void FEDataManager::interp(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-
-            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, mask_data, f_sc_data, patch, interp_box,
-                                      interp_spec.kernel_fcn);
+            if (interp_spec.use_one_sided_interaction)
+            {
+                Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
+                LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, mask_data, f_sc_data, patch, interp_box,
+                                          interp_spec.kernel_fcn);
+            }
+            else
+            {
+                LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box,
+                                          interp_spec.kernel_fcn);
+            }
         }
 
         // Loop over the elements and accumulate the right-hand-side values.
@@ -2048,7 +2069,8 @@ FEDataManager::FEDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector =
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()"););
+        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");
+        t_update_masking_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateMaskingData()"););
     return;
 } // FEDataManager
 
