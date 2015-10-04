@@ -652,6 +652,343 @@ inline int NINT(double a)
 {
     return (a >= 0.0 ? static_cast<int>(a + 0.5) : static_cast<int>(a - 0.5));
 }
+
+typedef boost::multi_array<double, 1> Weight;
+typedef boost::array<Weight, NDIM> DimensionalWeight;
+typedef boost::multi_array<double, NDIM> TensorWeight;
+
+void perform_mls(const int stencil_sz,
+                 const double* const X,
+                 const int* const ic_lower,
+                 const int* const /*ic_upper*/,
+                 const double* const r,
+                 const double* const dx,
+                 const ArrayData<NDIM, double>& mask_data,
+                 const DimensionalWeight& D,
+                 TensorWeight& Psi)
+{
+    TensorWeight::extent_gen extents;
+    TensorWeight T;
+
+#if (NDIM == 2)
+    T.resize(extents[stencil_sz][stencil_sz]);
+    Psi.resize(extents[stencil_sz][stencil_sz]);
+#elif(NDIM == 3)
+    T.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
+    Psi.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
+#endif
+
+    double x[NDIM], p_start[NDIM], p_j, p_k;
+#if (NDIM == 2)
+    // Compute the tensor product of the weights.
+    for (int i1 = 0; i1 < stencil_sz; ++i1)
+    {
+        const int ic1 = ic_lower[1] + i1;
+        for (int i0 = 0; i0 < stencil_sz; ++i0)
+        {
+            const int ic0 = ic_lower[0] + i0;
+            const Index<NDIM> idx(ic0, ic1);
+            T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
+        }
+    }
+#elif(NDIM == 3)
+    for (int i2 = 0; i2 < stencil_sz; ++i2)
+    {
+        const int ic2 = ic_lower[2] + i2;
+        for (int i1 = 0; i1 < stencil_sz; ++i1)
+        {
+            const int ic1 = ic_lower[1] + i1;
+            for (int i0 = 0; i0 < stencil_sz; ++i0)
+            {
+                const int ic0 = ic_lower[0] + i0;
+                const Index<NDIM> idx(ic0, ic1, ic2);
+                T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+            }
+        }
+    }
+#endif
+
+#if (NDIM == 2)
+
+    // Set the Gram matrix and the RHS.
+    // Here we are solving the equation of the type G L = p, in which p
+    // is the vector of basis functions that we want to reproduce, G is Gram
+    // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
+    Eigen::Matrix3d G;
+    G.setZero();
+    Eigen::Vector3d p, L;
+    p[0] = 1.0;
+    p[1] = X[0];
+    p[2] = X[1];
+
+    p_start[0] = X[0] - (r[0] + 1) * dx[0];
+    p_start[1] = X[1] - (r[1] + 1) * dx[1];
+    for (int j = 0; j <= 2; ++j)
+    {
+        for (int k = 0; k <= 2; ++k)
+        {
+            for (int i1 = 0; i1 < stencil_sz; ++i1)
+            {
+                x[1] = p_start[1] + i1 * dx[1];
+                for (int i0 = 0; i0 < stencil_sz; ++i0)
+                {
+                    x[0] = p_start[0] + i0 * dx[0];
+
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
+                    G(j, k) += p_j * p_k * T[i1][i0];
+                }
+            }
+        }
+    }
+#elif(NDIM == 3)
+    Eigen::Matrix4d G;
+    G.setZero();
+    Eigen::Vector4d p, L;
+    p[0] = 1.0;
+    p[1] = X[0];
+    p[2] = X[1];
+    p[3] = X[2];
+
+    p_start[0] = X[0] - (r[0] + 1) * dx[0];
+    p_start[1] = X[1] - (r[1] + 1) * dx[1];
+    p_start[2] = X[2] - (r[2] + 1) * dx[2];
+    for (int j = 0; j <= 3; ++j)
+    {
+        for (int k = 0; k <= 3; ++k)
+        {
+            for (int i2 = 0; i2 < stencil_sz; ++i2)
+            {
+                x[2] = p_start[2] + i2 * dx[2];
+                for (int i1 = 0; i1 < stencil_sz; ++i1)
+                {
+                    x[1] = p_start[1] + i1 * dx[1];
+                    for (int i0 = 0; i0 < stencil_sz; ++i0)
+                    {
+                        x[0] = p_start[0] + i0 * dx[0];
+
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                        G(j, k) += p_j * p_k * T[i2][i1][i0];
+                    }
+                }
+            }
+        }
+    }
+
+#endif
+    // Solve the system for L
+    L = G.ldlt().solve(p);
+
+#if (NDIM == 2)
+
+    // Find the modified weights using the Lagrange multiplier and to-be-reproduced
+    // polynomial basis.
+    double* data = Psi.data();
+    std::fill(data, data + stencil_sz * stencil_sz, 0.0);
+    for (int i1 = 0; i1 < stencil_sz; ++i1)
+    {
+        x[1] = p_start[1] + i1 * dx[1];
+        for (int i0 = 0; i0 < stencil_sz; ++i0)
+        {
+            x[0] = p_start[0] + i0 * dx[0];
+            for (int j = 0; j <= 2; ++j)
+            {
+                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                Psi[i1][i0] += L[j] * p_j;
+            }
+            Psi[i1][i0] *= T[i1][i0];
+        }
+    }
+#elif(NDIM == 3)
+    double* data = Psi.data();
+    std::fill(data, data + stencil_sz * stencil_sz * stencil_sz, 0.0);
+    for (int i2 = 0; i2 < stencil_sz; ++i2)
+    {
+        x[2] = p_start[2] + i2 * dx[2];
+        for (int i1 = 0; i1 < stencil_sz; ++i1)
+        {
+            x[1] = p_start[1] + i1 * dx[1];
+            for (int i0 = 0; i0 < stencil_sz; ++i0)
+            {
+                x[0] = p_start[0] + i0 * dx[0];
+                for (int j = 0; j <= 3; ++j)
+                {
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    Psi[i2][i1][i0] += L[j] * p_j;
+                }
+                Psi[i2][i1][i0] *= T[i2][i1][i0];
+            }
+        }
+    }
+#endif
+
+    return;
+
+} // perform_mls
+
+void get_mls_weights(const std::string& kernel_fcn,
+                     const double* const X,
+                     const double* const X_shift,
+                     const double* const dx,
+                     const double* const x_lower,
+                     const int* const ilower,
+                     const ArrayData<NDIM, double>& mask_data,
+                     int* ic_lower,
+                     int* ic_upper,
+                     TensorWeight& Psi)
+{
+    Weight::extent_gen extents;
+
+    if (kernel_fcn == "IB_4")
+    {
+        // Resize some arrays.
+        const int stencil_sz = LEInteractor::getStencilSize("IB_4");
+        DimensionalWeight D;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[stencil_sz]);
+        }
+
+        // Determine the interpolation stencil corresponding to the position
+        // of X within the cell and compute the regular IB weights.
+        double X_dx, q, r[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
+            ic_lower[d] = NINT(X_dx) + ilower[d] - 2;
+            ic_upper[d] = ic_lower[d] + 3;
+            r[d] = X_dx - ((ic_lower[d] + 1 - ilower[d]) + 0.5);
+            q = std::sqrt(1.0 + 4.0 * r[d] * (1.0 - r[d]));
+            D[d][0] = 0.125 * (3.0 - 2.0 * r[d] - q);
+            D[d][1] = 0.125 * (3.0 - 2.0 * r[d] + q);
+            D[d][2] = 0.125 * (1.0 + 2.0 * r[d] + q);
+            D[d][3] = 0.125 * (1.0 + 2.0 * r[d] - q);
+        }
+        perform_mls(stencil_sz, X, ic_lower, ic_upper, r, dx, mask_data, D, Psi);
+    } // IB_4
+
+    return;
+} // get_mls_weights
+
+void interpolate_data(const int stencil_sz,
+                      const int* const ig_lower,
+                      const int* const ig_upper,
+                      const int* const ic_lower,
+                      const int* const ic_upper,
+                      const ArrayData<NDIM, double>& q_data,
+                      const int q_comp,
+                      const TensorWeight& Psi,
+                      double& Q)
+{
+
+#if (NDIM == 2)
+    // Interpolate q onto Q using the modified weights.
+    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
+    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
+
+    Q = 0.0;
+    for (int i1 = istart1; i1 <= istop1; ++i1)
+    {
+        const int ic1 = ic_lower[1] + i1;
+        for (int i0 = istart0; i0 <= istop0; ++i0)
+        {
+            const int ic0 = ic_lower[0] + i0;
+            const Index<NDIM> idx(ic0, ic1);
+            Q += q_data(idx, q_comp) * Psi[i1][i0];
+        }
+    }
+
+#elif(NDIM == 3)
+    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
+    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
+    const int istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
+    const int istop2 = (stencil_sz - 1) - std::max(ic_upper[2] - ig_upper[2], 0);
+
+    Q = 0.0;
+    for (int i2 = istart2; i2 <= istop2; ++i2)
+    {
+        const int ic2 = ic_lower[2] + i2;
+        for (int i1 = istart1; i1 <= istop1; ++i1)
+        {
+            const int ic1 = ic_lower[1] + i1;
+            for (int i0 = istart0; i0 <= istop0; ++i0)
+            {
+                const int ic0 = ic_lower[0] + i0;
+                const Index<NDIM> idx(ic0, ic1, ic2);
+                Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+            }
+        }
+    }
+
+#endif
+
+    return;
+
+} // interpolate_data
+
+void spread_data(const int stencil_sz,
+                 const int* const ig_lower,
+                 const int* const ig_upper,
+                 const int* const ic_lower,
+                 const int* const ic_upper,
+                 const double* const dx,
+                 ArrayData<NDIM, double>& q_data,
+                 const int q_comp,
+                 const TensorWeight& Psi,
+                 const double& Q)
+{
+
+#if (NDIM == 2)
+    // Spread Q onto q using the modified weights.
+    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
+    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
+
+    const double fac = 1.0 / (dx[0] * dx[1]);
+    for (int i1 = istart1; i1 <= istop1; ++i1)
+    {
+        const int ic1 = ic_lower[1] + i1;
+        for (int i0 = istart0; i0 <= istop0; ++i0)
+        {
+            const int ic0 = ic_lower[0] + i0;
+            const Index<NDIM> idx(ic0, ic1);
+            q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
+        }
+    }
+
+#elif(NDIM == 3)
+
+    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
+    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
+    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
+    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
+    const int istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
+    const int istop2 = (stencil_sz - 1) - std::max(ic_upper[2] - ig_upper[2], 0);
+
+    const double fac = 1.0 / (dx[0] * dx[1] * dx[2]);
+    for (int i2 = istart2; i2 <= istop2; ++i2)
+    {
+        const int ic2 = ic_lower[2] + i2;
+        for (int i1 = istart1; i1 <= istop1; ++i1)
+        {
+            const int ic1 = ic_lower[1] + i1;
+            for (int i0 = istart0; i0 <= istop0; ++i0)
+            {
+                const int ic0 = ic_lower[0] + i0;
+                const Index<NDIM> idx(ic0, ic1, ic2);
+                q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+            }
+        }
+    }
+
+#endif
+} // spread_data
 }
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -1235,7 +1572,6 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(mask_data);
     TBOX_ASSERT(mask_data->getDepth() == 1);
-    TBOX_ASSERT(interp_fcn == "IB_4");
 #else
     NULL_USE(Q_size);
 #endif
@@ -1294,253 +1630,19 @@ void LEInteractor::interpolate(double* const Q_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        int ic_lower[NDIM], ic_upper[NDIM];
-        double X_0_dx, r0, q0, X_1_dx, r1, q1;
-        double w0[4], w1[4];
-        double xstart, ystart, x, y, p_j, p_k;
-        int d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
-        typedef boost::multi_array<double, NDIM> wgt_array;
-        wgt_array::extent_gen extents;
-
-#if (NDIM == 3)
-        double X_2_dx, r2, q2, z, zstart;
-        double w2[4];
-        int i2, ic2, istart2, istop2;
-#endif
-
+        IntVector<NDIM> ic_lower, ic_upper;
         for (int s = 0; s < nindices; ++s)
         {
-            // Determine the interpolation stencil corresponding to the position
-            // of X(s) within the cell and compute the regular IB-4 interpolation weights.
-            X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower[0]) / dx[0];
-            ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
-            ic_upper[0] = ic_lower[0] + 3;
-            r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
-            q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
-            w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
-            w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
-            w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
-            w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+            TensorWeight Psi;
+            const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
+            get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
+                            mask_data->getArrayData(), ic_lower, ic_upper, Psi);
 
-            X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower[1]) / dx[1];
-            ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
-            ic_upper[1] = ic_lower[1] + 3;
-            r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
-            q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
-            w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
-            w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
-            w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
-            w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
-
-#if (NDIM == 3)
-            X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower[2]) / dx[2];
-            ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
-            ic_upper[2] = ic_lower[2] + 3;
-            r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
-            q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
-            w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
-            w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
-            w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
-            w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
-
-#endif
-
-#if (NDIM == 2)
-            // Compute the tensor product of the interpolation weights.
-            wgt_array w(extents[4][4]);
-            for (i1 = 0; i1 <= 3; ++i1)
+            for (int comp = 0; comp < Q_depth; ++comp)
             {
-                ic1 = ic_lower[1] + i1;
-                for (i0 = 0; i0 <= 3; ++i0)
-                {
-                    ic0 = ic_lower[0] + i0;
-                    Index<NDIM> idx(ic0, ic1);
-                    w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(idx, /*depth*/ 0);
-                }
+                interpolate_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, q_data->getArrayData(), comp, Psi,
+                                 Q_data[s * Q_depth + comp]);
             }
-#elif(NDIM == 3)
-            wgt_array w(extents[4][4][4]);
-            for (i2 = 0; i2 <= 3; ++i2)
-            {
-                ic2 = ic_lower[2] + i2;
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1, ic2);
-                        w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(idx, /*depth*/ 0);
-                    }
-                }
-            }
-#endif
-
-#if (NDIM == 2)
-
-            // Set the Gram matrix and the RHS.
-            // Here we are solving the equation of the type G L = p, in which p
-            // is the vector of basis functions that we want to reproduce, G is Gram
-            // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
-            Eigen::Matrix3d G;
-            G.setZero();
-            Eigen::Vector3d p, L;
-            p[0] = 1.0;
-            p[1] = X_data[s * NDIM];
-            p[2] = X_data[s * NDIM + 1];
-
-            xstart = p[1] - (r0 + 1) * dx[0];
-            ystart = p[2] - (r1 + 1) * dx[1];
-            for (j = 0; j <= 2; ++j)
-            {
-                for (k = 0; k <= 2; ++k)
-                {
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        y = ystart + i1 * dx[1];
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            x = xstart + i0 * dx[0];
-
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                            p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
-                            G(j, k) += p_j * p_k * w[i1][i0];
-                        }
-                    }
-                }
-            }
-#elif(NDIM == 3)
-            Eigen::Matrix4d G;
-            G.setZero();
-            Eigen::Vector4d p, L;
-            p[0] = 1.0;
-            p[1] = X_data[s * NDIM];
-            p[2] = X_data[s * NDIM + 1];
-            p[3] = X_data[s * NDIM + 2];
-
-            xstart = p[1] - (r0 + 1) * dx[0];
-            ystart = p[2] - (r1 + 1) * dx[1];
-            zstart = p[3] - (r2 + 1) * dx[2];
-            for (j = 0; j <= 3; ++j)
-            {
-                for (k = 0; k <= 3; ++k)
-                {
-                    for (i2 = 0; i2 <= 3; ++i2)
-                    {
-                        z = zstart + i2 * dx[2];
-                        for (i1 = 0; i1 <= 3; ++i1)
-                        {
-                            y = ystart + i1 * dx[1];
-                            for (i0 = 0; i0 <= 3; ++i0)
-                            {
-                                x = xstart + i0 * dx[0];
-
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
-                                G(j, k) += p_j * p_k * w[i2][i1][i0];
-                            }
-                        }
-                    }
-                }
-            }
-
-#endif
-            // Solve the system for L
-            L = G.ldlt().solve(p);
-
-#if (NDIM == 2)
-
-            // Find the modified weights using the Lagrange multiplier and to-be-reproduced
-            // polynomial basis.
-            wgt_array psi(extents[4][4]);
-            double* data = psi.data();
-            std::fill(data, data + 16, 0.0);
-            for (i1 = 0; i1 <= 3; ++i1)
-            {
-                y = ystart + i1 * dx[1];
-                for (i0 = 0; i0 <= 3; ++i0)
-                {
-                    x = xstart + i0 * dx[0];
-                    for (j = 0; j <= 2; ++j)
-                    {
-                        p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                        psi[i1][i0] += L[j] * p_j;
-                    }
-                    psi[i1][i0] *= w[i1][i0];
-                }
-            }
-#elif(NDIM == 3)
-            wgt_array psi(extents[4][4][4]);
-            double* data = psi.data();
-            std::fill(data, data + 64, 0.0);
-            for (i2 = 0; i2 <= 3; ++i2)
-            {
-                z = zstart + i2 * dx[2];
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    y = ystart + i1 * dx[1];
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        x = xstart + i0 * dx[0];
-                        for (j = 0; j <= 3; ++j)
-                        {
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                            psi[i2][i1][i0] += L[j] * p_j;
-                        }
-                        psi[i2][i1][i0] *= w[i2][i1][i0];
-                    }
-                }
-            }
-#endif
-
-#if (NDIM == 2)
-            // Interpolate q onto Q using the modified weights.
-            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-
-            for (d = 0; d < Q_depth; ++d)
-            {
-                Q_data[s * Q_depth + d] = 0.0;
-                for (i1 = istart1; i1 <= istop1; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = istart0; i0 <= istop0; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        Q_data[s * Q_depth + d] += (*q_data)(idx, d) * psi[i1][i0];
-                    }
-                }
-            }
-#elif(NDIM == 3)
-            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-            istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-            istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
-
-            for (d = 0; d < Q_depth; ++d)
-            {
-                Q_data[s * Q_depth + d] = 0.0;
-                for (i2 = istart2; i2 <= istop2; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = istart1; i1 <= istop1; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = istart0; i0 <= istop0; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            Q_data[s * Q_depth + d] += (*q_data)(idx, d) * psi[i2][i1][i0];
-                        }
-                    }
-                }
-            }
-#endif
         }
     }
 
@@ -1702,7 +1804,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(mask_data);
-    TBOX_ASSERT(interp_fcn == "IB_4");
+    TBOX_ASSERT(mask_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
 #endif
@@ -1764,26 +1866,11 @@ void LEInteractor::interpolate(double* const Q_data,
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
-        std::vector<double> Q_data_axis(local_sz);
+        IntVector<NDIM> ic_lower, ic_upper;
 
-        int ic_lower[NDIM], ic_upper[NDIM];
-        double X_0_dx, r0, q0, X_1_dx, r1, q1;
-        double w0[4], w1[4];
-        double xstart, ystart, x, y, p_j, p_k;
-        int axis, d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
-        typedef boost::multi_array<double, NDIM> wgt_array;
-        wgt_array::extent_gen extents;
-
-#if (NDIM == 3)
-        double X_2_dx, r2, q2, z, zstart;
-        double w2[4];
-        int i2, ic2, istart2, istop2;
-#endif
-
-        for (axis = 0; axis < NDIM; ++axis)
+        for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (d = 0; d < NDIM; ++d)
+            for (int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
                 x_upper_axis[d] = x_upper[d];
@@ -1793,237 +1880,12 @@ void LEInteractor::interpolate(double* const Q_data,
 
             for (int s = 0; s < nindices; ++s)
             {
-                // Determine the interpolation stencil corresponding to the position
-                // of X(s) within the cell and compute the regular IB-4 interpolation weights.
-                X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower_axis[0]) / dx[0];
-                ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
-                ic_upper[0] = ic_lower[0] + 3;
-                r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
-                q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
-                w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
-                w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
-                w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
-                w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
-
-                X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower_axis[1]) / dx[1];
-                ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
-                ic_upper[1] = ic_lower[1] + 3;
-                r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
-                q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
-                w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
-                w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
-                w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
-                w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
-
-#if (NDIM == 3)
-                X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower_axis[2]) / dx[2];
-                ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
-                ic_upper[2] = ic_lower[2] + 3;
-                r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
-                q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
-                w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
-                w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
-                w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
-                w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
-
-#endif
-
-#if (NDIM == 2)
-                // Compute the tensor product of the interpolation weights.
-                wgt_array w(extents[4][4]);
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                        w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(s_idx, /*depth*/ 0);
-                    }
-                }
-
-#elif(NDIM == 3)
-                wgt_array w(extents[4][4][4]);
-                for (i2 = 0; i2 <= 3; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                            w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(s_idx, /*depth*/ 0);
-                        }
-                    }
-                }
-#endif
-
-#if (NDIM == 2)
-                // Set the Gram matrix and the RHS.
-                // Here we are solving the equation of the type G L = p, in which p
-                // is the vector of basis functions that we want to reproduce, G is Gram
-                // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
-                Eigen::Matrix3d G;
-                G.setZero();
-                Eigen::Vector3d p, L;
-                p[0] = 1.0;
-                p[1] = X_data[s * NDIM];
-                p[2] = X_data[s * NDIM + 1];
-
-                xstart = p[1] - (r0 + 1) * dx[0];
-                ystart = p[2] - (r1 + 1) * dx[1];
-                for (j = 0; j <= 2; ++j)
-                {
-                    for (k = 0; k <= 2; ++k)
-                    {
-                        for (i1 = 0; i1 <= 3; ++i1)
-                        {
-                            y = ystart + i1 * dx[1];
-                            for (i0 = 0; i0 <= 3; ++i0)
-                            {
-                                x = xstart + i0 * dx[0];
-
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                                p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
-                                G(j, k) += p_j * p_k * w[i1][i0];
-                            }
-                        }
-                    }
-                }
-#elif(NDIM == 3)
-                Eigen::Matrix4d G;
-                G.setZero();
-                Eigen::Vector4d p, L;
-                p[0] = 1.0;
-                p[1] = X_data[s * NDIM];
-                p[2] = X_data[s * NDIM + 1];
-                p[3] = X_data[s * NDIM + 2];
-
-                xstart = p[1] - (r0 + 1) * dx[0];
-                ystart = p[2] - (r1 + 1) * dx[1];
-                zstart = p[3] - (r2 + 1) * dx[2];
-                for (j = 0; j <= 3; ++j)
-                {
-                    for (k = 0; k <= 3; ++k)
-                    {
-                        for (i2 = 0; i2 <= 3; ++i2)
-                        {
-                            z = zstart + i2 * dx[2];
-                            for (i1 = 0; i1 <= 3; ++i1)
-                            {
-                                y = ystart + i1 * dx[1];
-                                for (i0 = 0; i0 <= 3; ++i0)
-                                {
-                                    x = xstart + i0 * dx[0];
-
-                                    p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                    p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
-                                    G(j, k) += p_j * p_k * w[i2][i1][i0];
-                                }
-                            }
-                        }
-                    }
-                }
-
-#endif
-
-                // Solve the system for L
-                L = G.ldlt().solve(p);
-
-#if (NDIM == 2)
-                // Find the modified weights using the Lagrange multiplier and to-be-reproduced
-                // polynomial basis.
-                wgt_array psi(extents[4][4]);
-                double* data = psi.data();
-                std::fill(data, data + 16, 0.0);
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    y = ystart + i1 * dx[1];
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        x = xstart + i0 * dx[0];
-                        for (j = 0; j <= 2; ++j)
-                        {
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                            psi[i1][i0] += L[j] * p_j;
-                        }
-                        psi[i1][i0] *= w[i1][i0];
-                    }
-                }
-
-#elif(NDIM == 3)
-                wgt_array psi(extents[4][4][4]);
-                double* data = psi.data();
-                std::fill(data, data + 64, 0.0);
-                for (i2 = 0; i2 <= 3; ++i2)
-                {
-                    z = zstart + i2 * dx[2];
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        y = ystart + i1 * dx[1];
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            x = xstart + i0 * dx[0];
-                            for (j = 0; j <= 3; ++j)
-                            {
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                psi[i2][i1][i0] += L[j] * p_j;
-                            }
-                            psi[i2][i1][i0] *= w[i2][i1][i0];
-                        }
-                    }
-                }
-#endif
-
-#if (NDIM == 2)
-                // Interpolate q onto Q using the modified weights.
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-
-                Q_data[s * NDIM + axis] = 0.0;
-                for (i1 = istart1; i1 <= istop1; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = istart0; i0 <= istop0; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                        Q_data[s * NDIM + axis] += (*q_data)(s_idx, /*depth*/ 0) * psi[i1][i0];
-                    }
-                }
-#elif(NDIM == 3)
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-                istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-                istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
-
-                Q_data[s * NDIM + axis] = 0.0;
-                for (i2 = istart2; i2 <= istop2; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = istart1; i1 <= istop1; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = istart0; i0 <= istop0; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                            Q_data[s * NDIM + axis] += (*q_data)(s_idx, /*depth*/ 0) * psi[i2][i1][i0];
-                        }
-                    }
-                }
-
-#endif
+                TensorWeight Psi;
+                const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
+                get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower_axis.data(),
+                                ilower, mask_data->getArrayData(axis), ic_lower, ic_upper, Psi);
+                interpolate_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, q_data->getArrayData(axis), 0, Psi,
+                                 Q_data[s * Q_depth + axis]);
             }
         }
     }
@@ -2656,7 +2518,6 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(mask_data);
     TBOX_ASSERT(mask_data->getDepth() == 1);
-    TBOX_ASSERT(spread_fcn == "IB_4");
 #else
     NULL_USE(Q_size);
 #endif
@@ -2715,252 +2576,19 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        int ic_lower[NDIM], ic_upper[NDIM];
-        double X_0_dx, r0, q0, X_1_dx, r1, q1;
-        double w0[4], w1[4];
-        double xstart, ystart, x, y, p_j, p_k;
-        int d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
-        typedef boost::multi_array<double, NDIM> wgt_array;
-        wgt_array::extent_gen extents;
-
-#if (NDIM == 3)
-        double X_2_dx, r2, q2, z, zstart;
-        double w2[4];
-        int i2, ic2, istart2, istop2;
-#endif
-
+        IntVector<NDIM> ic_lower, ic_upper;
         for (int s = 0; s < nindices; ++s)
         {
-            // Determine the interpolation stencil corresponding to the position
-            // of X(s) within the cell and compute the regular IB-4 interpolation weights.
-            X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower[0]) / dx[0];
-            ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
-            ic_upper[0] = ic_lower[0] + 3;
-            r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
-            q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
-            w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
-            w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
-            w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
-            w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+            TensorWeight Psi;
+            const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
+            get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
+                            mask_data->getArrayData(), ic_lower, ic_upper, Psi);
 
-            X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower[1]) / dx[1];
-            ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
-            ic_upper[1] = ic_lower[1] + 3;
-            r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
-            q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
-            w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
-            w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
-            w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
-            w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
-
-#if (NDIM == 3)
-            X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower[2]) / dx[2];
-            ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
-            ic_upper[2] = ic_lower[2] + 3;
-            r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
-            q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
-            w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
-            w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
-            w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
-            w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
-
-#endif
-
-#if (NDIM == 2)
-            // Compute the tensor product of the interpolation weights.
-            wgt_array w(extents[4][4]);
-            for (i1 = 0; i1 <= 3; ++i1)
+            for (int comp = 0; comp < Q_depth; ++comp)
             {
-                ic1 = ic_lower[1] + i1;
-                for (i0 = 0; i0 <= 3; ++i0)
-                {
-                    ic0 = ic_lower[0] + i0;
-                    Index<NDIM> idx(ic0, ic1);
-                    w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(idx, /*depth*/ 0);
-                }
+                spread_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, dx, q_data->getArrayData(), comp, Psi,
+                            Q_data[s * Q_depth + comp]);
             }
-#elif(NDIM == 3)
-            wgt_array w(extents[4][4][4]);
-            for (i2 = 0; i2 <= 3; ++i2)
-            {
-                ic2 = ic_lower[2] + i2;
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1, ic2);
-                        w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(idx, /*depth*/ 0);
-                    }
-                }
-            }
-#endif
-
-#if (NDIM == 2)
-
-            // Set the Gram matrix and the RHS.
-            // Here we are solving the equation of the type G L = p, in which p
-            // is the vector of basis functions that we want to reproduce, G is Gram
-            // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
-            Eigen::Matrix3d G;
-            G.setZero();
-            Eigen::Vector3d p, L;
-            p[0] = 1.0;
-            p[1] = X_data[s * NDIM];
-            p[2] = X_data[s * NDIM + 1];
-
-            xstart = p[1] - (r0 + 1) * dx[0];
-            ystart = p[2] - (r1 + 1) * dx[1];
-            for (j = 0; j <= 2; ++j)
-            {
-                for (k = 0; k <= 2; ++k)
-                {
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        y = ystart + i1 * dx[1];
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            x = xstart + i0 * dx[0];
-
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                            p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
-                            G(j, k) += p_j * p_k * w[i1][i0];
-                        }
-                    }
-                }
-            }
-#elif(NDIM == 3)
-            Eigen::Matrix4d G;
-            G.setZero();
-            Eigen::Vector4d p, L;
-            p[0] = 1.0;
-            p[1] = X_data[s * NDIM];
-            p[2] = X_data[s * NDIM + 1];
-            p[3] = X_data[s * NDIM + 2];
-
-            xstart = p[1] - (r0 + 1) * dx[0];
-            ystart = p[2] - (r1 + 1) * dx[1];
-            zstart = p[3] - (r2 + 1) * dx[2];
-            for (j = 0; j <= 3; ++j)
-            {
-                for (k = 0; k <= 3; ++k)
-                {
-                    for (i2 = 0; i2 <= 3; ++i2)
-                    {
-                        z = zstart + i2 * dx[2];
-                        for (i1 = 0; i1 <= 3; ++i1)
-                        {
-                            y = ystart + i1 * dx[1];
-                            for (i0 = 0; i0 <= 3; ++i0)
-                            {
-                                x = xstart + i0 * dx[0];
-
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
-                                G(j, k) += p_j * p_k * w[i2][i1][i0];
-                            }
-                        }
-                    }
-                }
-            }
-
-#endif
-            // Solve the system for L
-            L = G.ldlt().solve(p);
-
-#if (NDIM == 2)
-
-            // Find the modified weights using the Lagrange multiplier and to-be-reproduced
-            // polynomial basis.
-            wgt_array psi(extents[4][4]);
-            double* data = psi.data();
-            std::fill(data, data + 16, 0.0);
-            for (i1 = 0; i1 <= 3; ++i1)
-            {
-                y = ystart + i1 * dx[1];
-                for (i0 = 0; i0 <= 3; ++i0)
-                {
-                    x = xstart + i0 * dx[0];
-                    for (j = 0; j <= 2; ++j)
-                    {
-                        p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                        psi[i1][i0] += L[j] * p_j;
-                    }
-                    psi[i1][i0] *= w[i1][i0];
-                }
-            }
-#elif(NDIM == 3)
-            wgt_array psi(extents[4][4][4]);
-            double* data = psi.data();
-            std::fill(data, data + 64, 0.0);
-            for (i2 = 0; i2 <= 3; ++i2)
-            {
-                z = zstart + i2 * dx[2];
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    y = ystart + i1 * dx[1];
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        x = xstart + i0 * dx[0];
-                        for (j = 0; j <= 3; ++j)
-                        {
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                            psi[i2][i1][i0] += L[j] * p_j;
-                        }
-                        psi[i2][i1][i0] *= w[i2][i1][i0];
-                    }
-                }
-            }
-#endif
-
-#if (NDIM == 2)
-            // Spread Q onto q using the modified weights.
-            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-
-            for (d = 0; d < Q_depth; ++d)
-            {
-                for (i1 = istart1; i1 <= istop1; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = istart0; i0 <= istop0; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        (*q_data)(idx, d) += Q_data[s * Q_depth + d] * psi[i1][i0];
-                    }
-                }
-            }
-#elif(NDIM == 3)
-
-            istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-            istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-            istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-            istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-            istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-            istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
-
-            for (d = 0; d < Q_depth; ++d)
-            {
-                for (i2 = istart2; i2 <= istop2; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = istart1; i1 <= istop1; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = istart0; i0 <= istop0; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            (*q_data)(idx, d) += Q_data[s * Q_depth + d] * psi[i2][i1][i0];
-                        }
-                    }
-                }
-            }
-#endif
         }
     }
 
@@ -3181,26 +2809,10 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
-        const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
-        std::vector<double> Q_data_axis(local_sz);
-
-        int ic_lower[NDIM], ic_upper[NDIM];
-        double X_0_dx, r0, q0, X_1_dx, r1, q1;
-        double w0[4], w1[4];
-        double xstart, ystart, x, y, p_j, p_k;
-        int axis, d, j, k, i0, i1, ic0, ic1, istart0, istop0, istart1, istop1;
-        typedef boost::multi_array<double, NDIM> wgt_array;
-        wgt_array::extent_gen extents;
-
-#if (NDIM == 3)
-        double X_2_dx, r2, q2, z, zstart;
-        double w2[4];
-        int i2, ic2, istart2, istop2;
-#endif
-
-        for (axis = 0; axis < NDIM; ++axis)
+        IntVector<NDIM> ic_lower, ic_upper;
+        for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (d = 0; d < NDIM; ++d)
+            for (int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
                 x_upper_axis[d] = x_upper[d];
@@ -3210,235 +2822,13 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
 
             for (int s = 0; s < nindices; ++s)
             {
-                // Determine the interpolation stencil corresponding to the position
-                // of X(s) within the cell and compute the regular IB-4 interpolation weights.
-                X_0_dx = (X_data[s * NDIM] + periodic_shifts[s * NDIM] - x_lower_axis[0]) / dx[0];
-                ic_lower[0] = NINT(X_0_dx) + ilower[0] - 2;
-                ic_upper[0] = ic_lower[0] + 3;
-                r0 = X_0_dx - ((ic_lower[0] + 1 - ilower[0]) + 0.5);
-                q0 = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
-                w0[0] = 0.125 * (3.0 - 2.0 * r0 - q0);
-                w0[1] = 0.125 * (3.0 - 2.0 * r0 + q0);
-                w0[2] = 0.125 * (1.0 + 2.0 * r0 + q0);
-                w0[3] = 0.125 * (1.0 + 2.0 * r0 - q0);
+                TensorWeight Psi;
+                const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
+                get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
+                                mask_data->getArrayData(axis), ic_lower, ic_upper, Psi);
 
-                X_1_dx = (X_data[s * NDIM + 1] + periodic_shifts[s * NDIM + 1] - x_lower_axis[1]) / dx[1];
-                ic_lower[1] = NINT(X_1_dx) + ilower[1] - 2;
-                ic_upper[1] = ic_lower[1] + 3;
-                r1 = X_1_dx - ((ic_lower[1] + 1 - ilower[1]) + 0.5);
-                q1 = std::sqrt(1.0 + 4.0 * r1 * (1.0 - r1));
-                w1[0] = 0.125 * (3.0 - 2.0 * r1 - q1);
-                w1[1] = 0.125 * (3.0 - 2.0 * r1 + q1);
-                w1[2] = 0.125 * (1.0 + 2.0 * r1 + q1);
-                w1[3] = 0.125 * (1.0 + 2.0 * r1 - q1);
-
-#if (NDIM == 3)
-                X_2_dx = (X_data[s * NDIM + 2] + periodic_shifts[s * NDIM + 2] - x_lower_axis[2]) / dx[2];
-                ic_lower[2] = NINT(X_2_dx) + ilower[2] - 2;
-                ic_upper[2] = ic_lower[2] + 3;
-                r2 = X_2_dx - ((ic_lower[2] + 1 - ilower[2]) + 0.5);
-                q2 = std::sqrt(1.0 + 4.0 * r2 * (1.0 - r2));
-                w2[0] = 0.125 * (3.0 - 2.0 * r2 - q2);
-                w2[1] = 0.125 * (3.0 - 2.0 * r2 + q2);
-                w2[2] = 0.125 * (1.0 + 2.0 * r2 + q2);
-                w2[3] = 0.125 * (1.0 + 2.0 * r2 - q2);
-
-#endif
-
-#if (NDIM == 2)
-                // Compute the tensor product of the interpolation weights.
-                wgt_array w(extents[4][4]);
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                        w[i1][i0] = w0[i0] * w1[i1] * (*mask_data)(s_idx, /*depth*/ 0);
-                    }
-                }
-
-#elif(NDIM == 3)
-                wgt_array w(extents[4][4][4]);
-                for (i2 = 0; i2 <= 3; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                            w[i2][i1][i0] = w0[i0] * w1[i1] * w2[i2] * (*mask_data)(s_idx, /*depth*/ 0);
-                        }
-                    }
-                }
-#endif
-
-#if (NDIM == 2)
-                // Set the Gram matrix and the RHS.
-                // Here we are solving the equation of the type G L = p, in which p
-                // is the vector of basis functions that we want to reproduce, G is Gram
-                // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
-                Eigen::Matrix3d G;
-                G.setZero();
-                Eigen::Vector3d p, L;
-                p[0] = 1.0;
-                p[1] = X_data[s * NDIM];
-                p[2] = X_data[s * NDIM + 1];
-
-                xstart = p[1] - (r0 + 1) * dx[0];
-                ystart = p[2] - (r1 + 1) * dx[1];
-                for (j = 0; j <= 2; ++j)
-                {
-                    for (k = 0; k <= 2; ++k)
-                    {
-                        for (i1 = 0; i1 <= 3; ++i1)
-                        {
-                            y = ystart + i1 * dx[1];
-                            for (i0 = 0; i0 <= 3; ++i0)
-                            {
-                                x = xstart + i0 * dx[0];
-
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                                p_k = k == 0 ? 1.0 : (k == 1 ? x : y);
-                                G(j, k) += p_j * p_k * w[i1][i0];
-                            }
-                        }
-                    }
-                }
-#elif(NDIM == 3)
-                Eigen::Matrix4d G;
-                G.setZero();
-                Eigen::Vector4d p, L;
-                p[0] = 1.0;
-                p[1] = X_data[s * NDIM];
-                p[2] = X_data[s * NDIM + 1];
-                p[3] = X_data[s * NDIM + 2];
-
-                xstart = p[1] - (r0 + 1) * dx[0];
-                ystart = p[2] - (r1 + 1) * dx[1];
-                zstart = p[3] - (r2 + 1) * dx[2];
-                for (j = 0; j <= 3; ++j)
-                {
-                    for (k = 0; k <= 3; ++k)
-                    {
-                        for (i2 = 0; i2 <= 3; ++i2)
-                        {
-                            z = zstart + i2 * dx[2];
-                            for (i1 = 0; i1 <= 3; ++i1)
-                            {
-                                y = ystart + i1 * dx[1];
-                                for (i0 = 0; i0 <= 3; ++i0)
-                                {
-                                    x = xstart + i0 * dx[0];
-
-                                    p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                    p_k = k == 0 ? 1.0 : (k == 1 ? x : j == 2 ? y : z);
-                                    G(j, k) += p_j * p_k * w[i2][i1][i0];
-                                }
-                            }
-                        }
-                    }
-                }
-
-#endif
-
-                // Solve the system for L
-                L = G.ldlt().solve(p);
-
-#if (NDIM == 2)
-                // Find the modified weights using the Lagrange multiplier and to-be-reproduced
-                // polynomial basis.
-                wgt_array psi(extents[4][4]);
-                double* data = psi.data();
-                std::fill(data, data + 16, 0.0);
-                for (i1 = 0; i1 <= 3; ++i1)
-                {
-                    y = ystart + i1 * dx[1];
-                    for (i0 = 0; i0 <= 3; ++i0)
-                    {
-                        x = xstart + i0 * dx[0];
-                        for (j = 0; j <= 2; ++j)
-                        {
-                            p_j = j == 0 ? 1.0 : (j == 1 ? x : y);
-                            psi[i1][i0] += L[j] * p_j;
-                        }
-                        psi[i1][i0] *= w[i1][i0];
-                    }
-                }
-
-#elif(NDIM == 3)
-                wgt_array psi(extents[4][4][4]);
-                double* data = psi.data();
-                std::fill(data, data + 64, 0.0);
-                for (i2 = 0; i2 <= 3; ++i2)
-                {
-                    z = zstart + i2 * dx[2];
-                    for (i1 = 0; i1 <= 3; ++i1)
-                    {
-                        y = ystart + i1 * dx[1];
-                        for (i0 = 0; i0 <= 3; ++i0)
-                        {
-                            x = xstart + i0 * dx[0];
-                            for (j = 0; j <= 3; ++j)
-                            {
-                                p_j = j == 0 ? 1.0 : (j == 1 ? x : j == 2 ? y : z);
-                                psi[i2][i1][i0] += L[j] * p_j;
-                            }
-                            psi[i2][i1][i0] *= w[i2][i1][i0];
-                        }
-                    }
-                }
-#endif
-
-#if (NDIM == 2)
-                // Spread Q onto q using the modified weights.
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-
-                for (i1 = istart1; i1 <= istop1; ++i1)
-                {
-                    ic1 = ic_lower[1] + i1;
-                    for (i0 = istart0; i0 <= istop0; ++i0)
-                    {
-                        ic0 = ic_lower[0] + i0;
-                        Index<NDIM> idx(ic0, ic1);
-                        SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                        (*q_data)(s_idx, /*depth*/ 0) += Q_data[s * NDIM + axis] * psi[i1][i0];
-                    }
-                }
-#elif(NDIM == 3)
-                istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-                istop0 = 3 - std::max(ic_upper[0] - ig_upper[0], 0);
-                istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-                istop1 = 3 - std::max(ic_upper[1] - ig_upper[1], 0);
-                istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-                istop2 = 3 - std::max(ic_upper[2] - ig_upper[2], 0);
-
-                for (i2 = istart2; i2 <= istop2; ++i2)
-                {
-                    ic2 = ic_lower[2] + i2;
-                    for (i1 = istart1; i1 <= istop1; ++i1)
-                    {
-                        ic1 = ic_lower[1] + i1;
-                        for (i0 = istart0; i0 <= istop0; ++i0)
-                        {
-                            ic0 = ic_lower[0] + i0;
-                            Index<NDIM> idx(ic0, ic1, ic2);
-                            SideIndex<NDIM> s_idx(idx, axis, SideIndex<NDIM>::Lower);
-                            (*q_data)(s_idx, /*depth*/ 0) += Q_data[s * NDIM + axis] * psi[i2][i1][i0];
-                        }
-                    }
-                }
-
-#endif
+                spread_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, dx, q_data->getArrayData(axis), 0, Psi,
+                            Q_data[s * Q_depth + axis]);
             }
         }
     }
