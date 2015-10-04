@@ -409,8 +409,7 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
     if (!d_system_ghost_vec.count(system_name))
     {
         plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution "
-                "vector for "
-                "system: " << system_name << "\n";
+                "vector for system: " << system_name << "\n";
         if (!d_active_patch_ghost_dofs.count(system_name))
         {
             plog << "FEDataManager::buildGhostedSolutionVector(): constructing ghost DOF index "

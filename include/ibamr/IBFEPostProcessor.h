@@ -68,7 +68,7 @@ public:
                               const libMesh::Point& /*X*/,
                               const libMesh::Point& /*s*/,
                               libMesh::Elem* /*elem*/,
-                              const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
+                              const std::vector<libMesh::DenseVector<double> >& /*system_data*/,
                               double /*data_time*/,
                               void* /*ctx*/)
     {
@@ -85,7 +85,7 @@ public:
                               const libMesh::Point& /*X*/,
                               const libMesh::Point& /*s*/,
                               libMesh::Elem* /*elem*/,
-                              const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
+                              const std::vector<libMesh::DenseVector<double> >& /*system_data*/,
                               double /*data_time*/,
                               void* /*ctx*/)
     {
@@ -99,15 +99,14 @@ public:
      * \brief Function for reconstructing the Cauchy stress from the PK1 stress,
      * using the PK1 stress function data provided by the ctx argument.
      */
-    static inline void
-    cauchy_stress_from_PK1_stress_fcn(libMesh::TensorValue<double>& sigma,
-                                      const libMesh::TensorValue<double>& FF,
-                                      const libMesh::Point& X,
-                                      const libMesh::Point& s,
-                                      libMesh::Elem* elem,
-                                      const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                      double data_time,
-                                      void* ctx)
+    static inline void cauchy_stress_from_PK1_stress_fcn(libMesh::TensorValue<double>& sigma,
+                                                         const libMesh::TensorValue<double>& FF,
+                                                         const libMesh::Point& X,
+                                                         const libMesh::Point& s,
+                                                         libMesh::Elem* elem,
+                                                         const std::vector<libMesh::DenseVector<double> >& system_data,
+                                                         double data_time,
+                                                         void* ctx)
     {
         TBOX_ASSERT(ctx);
         std::pair<IBTK::TensorMeshFcnPtr, void*>* PK1_stress_fcn_data =
@@ -133,19 +132,13 @@ public:
                                                   const libMesh::Point& /*X*/,
                                                   const libMesh::Point& /*s*/,
                                                   libMesh::Elem* elem,
-                                                  const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                                  const std::vector<libMesh::DenseVector<double> >& system_data,
                                                   double /*data_time*/,
-                                                  void* ctx)
+                                                  void* /*ctx*/)
     {
         TBOX_ASSERT(system_data.size() == 1);
-        TBOX_ASSERT(ctx);
-        int f0_system_num = *static_cast<int*>(ctx);
-        libMesh::NumericVector<double>* f0_vec = system_data[0];
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
-        }
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
         f = FF * f0;
         return;
     } // deformed_material_axis_fcn
@@ -163,19 +156,13 @@ public:
                                           const libMesh::Point& /*X*/,
                                           const libMesh::Point& /*s*/,
                                           libMesh::Elem* elem,
-                                          const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                          const std::vector<libMesh::DenseVector<double> >& system_data,
                                           double /*data_time*/,
-                                          void* ctx)
+                                          void* /*ctx*/)
     {
         TBOX_ASSERT(system_data.size() == 1);
-        TBOX_ASSERT(ctx);
-        int f0_system_num = *static_cast<int*>(ctx);
-        libMesh::NumericVector<double>* f0_vec = system_data[0];
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
-        }
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
         f = (FF * f0).unit();
         return;
     } // deformed_normalized_material_axis_fcn
@@ -192,20 +179,14 @@ public:
                                                  const libMesh::Point& /*X*/,
                                                  const libMesh::Point& /*s*/,
                                                  libMesh::Elem* elem,
-                                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                                 const std::vector<libMesh::DenseVector<double> >& system_data,
                                                  double /*data_time*/,
                                                  void* ctx)
     {
         TBOX_ASSERT(system_data.size() == 1);
-        TBOX_ASSERT(ctx);
-        int f0_system_num = *static_cast<int*>(ctx);
-        libMesh::NumericVector<double>* f0_vec = system_data[0];
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
-        }
-        libMesh::VectorValue<double> f = FF * f0;
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
+        const libMesh::VectorValue<double> f = FF * f0;
         lambda = f.size() / f0.size();
         return;
     } // material_axis_stretch_fcn

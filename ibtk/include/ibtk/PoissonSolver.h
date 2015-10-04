@@ -101,6 +101,9 @@ public:
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
 protected:
+    // Specialized solver initialization.
+    void initSpecialized(const std::string& object_name, bool homogeneous_bc);
+
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;

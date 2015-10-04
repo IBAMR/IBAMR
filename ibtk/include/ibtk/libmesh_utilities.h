@@ -58,7 +58,7 @@ typedef void (*ScalarMeshFcnPtr)(double& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 const std::vector<libMesh::DenseVector<double> >& system_data,
                                  double data_time,
                                  void* ctx);
 
@@ -67,7 +67,7 @@ typedef void (*VectorMeshFcnPtr)(libMesh::VectorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 const std::vector<libMesh::DenseVector<double> >& system_data,
                                  double data_time,
                                  void* ctx);
 
@@ -76,7 +76,7 @@ typedef void (*TensorMeshFcnPtr)(libMesh::TensorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 const std::vector<libMesh::DenseVector<double> >& system_data,
                                  double data_time,
                                  void* ctx);
 
@@ -86,7 +86,7 @@ typedef void (*ScalarSurfaceFcnPtr)(double& F,
                                     const libMesh::Point& s,
                                     libMesh::Elem* elem,
                                     unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    const std::vector<libMesh::DenseVector<double> >& system_data,
                                     double data_time,
                                     void* ctx);
 
@@ -96,7 +96,7 @@ typedef void (*VectorSurfaceFcnPtr)(libMesh::VectorValue<double>& F,
                                     const libMesh::Point& s,
                                     libMesh::Elem* elem,
                                     unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    const std::vector<libMesh::DenseVector<double> >& system_data,
                                     double data_time,
                                     void* ctx);
 
@@ -106,7 +106,7 @@ typedef void (*TensorSurfaceFcnPtr)(libMesh::TensorValue<double>& F,
                                     const libMesh::Point& s,
                                     libMesh::Elem* elem,
                                     unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    const std::vector<libMesh::DenseVector<double> >& system_data,
                                     double data_time,
                                     void* ctx);
 

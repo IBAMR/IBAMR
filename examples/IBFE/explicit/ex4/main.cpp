@@ -85,7 +85,7 @@ void PK1_dev_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<NumericVector<double>*>& /*system_data*/,
+                             const std::vector<DenseVector<double> >& /*system_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -98,7 +98,7 @@ void PK1_dil_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<NumericVector<double>*>& /*system_data*/,
+                             const std::vector<DenseVector<double> >& /*system_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {

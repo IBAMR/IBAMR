@@ -47,7 +47,6 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
-#include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
 
@@ -113,7 +112,7 @@ void PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*x*/,
                          const libMesh::Point& /*X*/,
                          Elem* const /*elem*/,
-                         const std::vector<NumericVector<double>*>& /*system_data*/,
+                         const std::vector<DenseVector<double> >& /*system_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
@@ -122,8 +121,6 @@ void PK1_stress_function(TensorValue<double>& PP,
 } // PK1_stress_function
 
 // Tether (penalty) force functions.
-MeshFunction* U_fcn;
-
 static double kappa_s_body = 1.0e6;
 static double eta_s_body = 0.0;
 void tether_force_function(VectorValue<double>& F,
@@ -131,12 +128,11 @@ void tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& x,
                            const libMesh::Point& X,
                            Elem* const /*elem*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
+                           const vector<DenseVector<double> >& system_data,
                            double /*time*/,
                            void* /*ctx*/)
 {
-    DenseVector<double> U(NDIM);
-    (*U_fcn)(X, 0.0, U);
+    const DenseVector<double>& U = system_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U(d);
@@ -152,12 +148,11 @@ void tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& X,
                            Elem* const elem,
                            const unsigned short /*side*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
-                           double /*time*/,
-                           void* /*ctx*/)
+                           const vector<DenseVector<double> >& system_data,
+                           double time,
+                           void* ctx)
 {
-    DenseVector<double> U(NDIM);
-    (*U_fcn)(X, 0.0, U);
+    const DenseVector<double>& U = system_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U(d);
@@ -476,24 +471,9 @@ int main(int argc, char* argv[])
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-            AutoPtr<NumericVector<double> > U_vec = U_system.current_local_solution->clone();
-            *U_vec = *U_system.solution;
-            U_vec->close();
-            DofMap& U_dof_map = U_system.get_dof_map();
-            vector<unsigned int> vars(NDIM);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                vars[d] = d;
-            }
-            U_fcn = new MeshFunction(*equation_systems, *U_vec, U_dof_map, vars);
-            U_fcn->init();
-
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
-
-            delete U_fcn;
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

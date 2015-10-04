@@ -70,7 +70,7 @@ void upper_PK1_stress_function(TensorValue<double>& PP,
                                const libMesh::Point& /*X*/,
                                const libMesh::Point& s,
                                Elem* const /*elem*/,
-                               const vector<NumericVector<double>*>& /*system_data*/,
+                               const vector<DenseVector<double> >& /*system_data*/,
                                double /*time*/,
                                void* /*ctx*/)
 {
@@ -96,7 +96,7 @@ void lower_tether_force_function(VectorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
+                                 const vector<DenseVector<double> >& /*system_data*/,
                                  double /*time*/,
                                  void* /*ctx*/)
 {
@@ -109,7 +109,7 @@ void upper_tether_force_function(VectorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
+                                 const vector<DenseVector<double> >& /*system_data*/,
                                  double /*time*/,
                                  void* /*ctx*/)
 {
