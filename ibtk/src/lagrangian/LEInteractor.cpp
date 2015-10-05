@@ -654,21 +654,21 @@ inline int NINT(double a)
 }
 
 typedef boost::multi_array<double, 1> Weight;
-typedef boost::array<Weight, NDIM> DimensionalWeight;
-typedef boost::multi_array<double, NDIM> TensorWeight;
+typedef boost::array<Weight, NDIM> TensorProductWeights;
+typedef boost::multi_array<double, NDIM> MLSWeight;
 
 void perform_mls(const int stencil_sz,
                  const double* const X,
-                 const int* const ic_lower,
-                 const int* const /*ic_upper*/,
-                 const double* const r,
+                 const int* const stencil_lower,
+                 const int* const /*stencil_upper*/,
+                 const double* const p_start,
                  const double* const dx,
                  const ArrayData<NDIM, double>& mask_data,
-                 const DimensionalWeight& D,
-                 TensorWeight& Psi)
+                 const TensorProductWeights& D,
+                 MLSWeight& Psi)
 {
-    TensorWeight::extent_gen extents;
-    TensorWeight T;
+    MLSWeight::extent_gen extents;
+    MLSWeight T;
 
 #if (NDIM == 2)
     T.resize(extents[stencil_sz][stencil_sz]);
@@ -678,88 +678,54 @@ void perform_mls(const int stencil_sz,
     Psi.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
 #endif
 
-    double x[NDIM], p_start[NDIM], p_j, p_k;
-#if (NDIM == 2)
     // Compute the tensor product of the weights.
-    for (int i1 = 0; i1 < stencil_sz; ++i1)
-    {
-        const int ic1 = ic_lower[1] + i1;
-        for (int i0 = 0; i0 < stencil_sz; ++i0)
-        {
-            const int ic0 = ic_lower[0] + i0;
-            const Index<NDIM> idx(ic0, ic1);
-            T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
-        }
-    }
-#elif(NDIM == 3)
+    double x[NDIM], p_j, p_k;
+#if (NDIM == 3)
     for (int i2 = 0; i2 < stencil_sz; ++i2)
     {
-        const int ic2 = ic_lower[2] + i2;
+        const int ic2 = stencil_lower[2] + i2;
+#endif
         for (int i1 = 0; i1 < stencil_sz; ++i1)
         {
-            const int ic1 = ic_lower[1] + i1;
+            const int ic1 = stencil_lower[1] + i1;
             for (int i0 = 0; i0 < stencil_sz; ++i0)
             {
-                const int ic0 = ic_lower[0] + i0;
-                const Index<NDIM> idx(ic0, ic1, ic2);
-                T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+#endif
             }
         }
+#if (NDIM == 3)
     }
 #endif
-
-#if (NDIM == 2)
 
     // Set the Gram matrix and the RHS.
     // Here we are solving the equation of the type G L = p, in which p
     // is the vector of basis functions that we want to reproduce, G is Gram
     // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
-    Eigen::Matrix3d G;
+    Eigen::Matrix<double, NDIM + 1, NDIM + 1> G;
     G.setZero();
-    Eigen::Vector3d p, L;
+    Eigen::Matrix<double, NDIM + 1, 1> p, L;
     p[0] = 1.0;
-    p[1] = X[0];
-    p[2] = X[1];
-
-    p_start[0] = X[0] - (r[0] + 1) * dx[0];
-    p_start[1] = X[1] - (r[1] + 1) * dx[1];
-    for (int j = 0; j <= 2; ++j)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
-        for (int k = 0; k <= 2; ++k)
-        {
-            for (int i1 = 0; i1 < stencil_sz; ++i1)
-            {
-                x[1] = p_start[1] + i1 * dx[1];
-                for (int i0 = 0; i0 < stencil_sz; ++i0)
-                {
-                    x[0] = p_start[0] + i0 * dx[0];
-
-                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
-                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
-                    G(j, k) += p_j * p_k * T[i1][i0];
-                }
-            }
-        }
+        p[d + 1] = X[d];
     }
-#elif(NDIM == 3)
-    Eigen::Matrix4d G;
-    G.setZero();
-    Eigen::Vector4d p, L;
-    p[0] = 1.0;
-    p[1] = X[0];
-    p[2] = X[1];
-    p[3] = X[2];
 
-    p_start[0] = X[0] - (r[0] + 1) * dx[0];
-    p_start[1] = X[1] - (r[1] + 1) * dx[1];
-    p_start[2] = X[2] - (r[2] + 1) * dx[2];
-    for (int j = 0; j <= 3; ++j)
+    for (int j = 0; j <= NDIM; ++j)
     {
-        for (int k = 0; k <= 3; ++k)
+        for (int k = 0; k <= NDIM; ++k)
         {
+#if (NDIM == 3)
             for (int i2 = 0; i2 < stencil_sz; ++i2)
             {
                 x[2] = p_start[2] + i2 * dx[2];
+#endif
                 for (int i1 = 0; i1 < stencil_sz; ++i1)
                 {
                     x[1] = p_start[1] + i1 * dx[1];
@@ -767,59 +733,58 @@ void perform_mls(const int stencil_sz,
                     {
                         x[0] = p_start[0] + i0 * dx[0];
 
-                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                        G(j, k) += p_j * p_k * T[i2][i1][i0];
+#if (NDIM == 2)
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
+                        G(j, k) += p_j * p_k * T[i1][i0];
+#elif(NDIM == 3)
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    G(j, k) += p_j * p_k * T[i2][i1][i0];
+#endif
                     }
                 }
+#if (NDIM == 3)
             }
+#endif
         }
     }
 
-#endif
     // Solve the system for L
     L = G.ldlt().solve(p);
 
-#if (NDIM == 2)
-
     // Find the modified weights using the Lagrange multiplier and to-be-reproduced
     // polynomial basis.
-    double* data = Psi.data();
-    std::fill(data, data + stencil_sz * stencil_sz, 0.0);
-    for (int i1 = 0; i1 < stencil_sz; ++i1)
-    {
-        x[1] = p_start[1] + i1 * dx[1];
-        for (int i0 = 0; i0 < stencil_sz; ++i0)
-        {
-            x[0] = p_start[0] + i0 * dx[0];
-            for (int j = 0; j <= 2; ++j)
-            {
-                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
-                Psi[i1][i0] += L[j] * p_j;
-            }
-            Psi[i1][i0] *= T[i1][i0];
-        }
-    }
-#elif(NDIM == 3)
-    double* data = Psi.data();
-    std::fill(data, data + stencil_sz * stencil_sz * stencil_sz, 0.0);
+    std::fill(Psi.origin(), Psi.origin() + Psi.num_elements(), 0.0);
+#if (NDIM == 3)
     for (int i2 = 0; i2 < stencil_sz; ++i2)
     {
         x[2] = p_start[2] + i2 * dx[2];
+#endif
         for (int i1 = 0; i1 < stencil_sz; ++i1)
         {
             x[1] = p_start[1] + i1 * dx[1];
             for (int i0 = 0; i0 < stencil_sz; ++i0)
             {
                 x[0] = p_start[0] + i0 * dx[0];
-                for (int j = 0; j <= 3; ++j)
+#if (NDIM == 2)
+                for (int j = 0; j <= 2; ++j)
                 {
-                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                    Psi[i2][i1][i0] += L[j] * p_j;
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                    Psi[i1][i0] += L[j] * p_j;
                 }
-                Psi[i2][i1][i0] *= T[i2][i1][i0];
+                Psi[i1][i0] *= T[i1][i0];
+#elif(NDIM == 3)
+            for (int j = 0; j <= 3; ++j)
+            {
+                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                Psi[i2][i1][i0] += L[j] * p_j;
+            }
+            Psi[i2][i1][i0] *= T[i2][i1][i0];
+#endif
             }
         }
+#if (NDIM == 3)
     }
 #endif
 
@@ -834,9 +799,9 @@ void get_mls_weights(const std::string& kernel_fcn,
                      const double* const x_lower,
                      const int* const ilower,
                      const ArrayData<NDIM, double>& mask_data,
-                     int* ic_lower,
-                     int* ic_upper,
-                     TensorWeight& Psi)
+                     int* stencil_lower,
+                     int* stencil_upper,
+                     MLSWeight& Psi)
 {
     Weight::extent_gen extents;
 
@@ -844,29 +809,89 @@ void get_mls_weights(const std::string& kernel_fcn,
     {
         // Resize some arrays.
         const int stencil_sz = LEInteractor::getStencilSize("IB_4");
-        DimensionalWeight D;
-        for (int d = 0; d < NDIM; ++d)
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             D[d].resize(extents[stencil_sz]);
         }
 
         // Determine the interpolation stencil corresponding to the position
         // of X within the cell and compute the regular IB weights.
-        double X_dx, q, r[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        double X_dx, q, r, p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
-            ic_lower[d] = NINT(X_dx) + ilower[d] - 2;
-            ic_upper[d] = ic_lower[d] + 3;
-            r[d] = X_dx - ((ic_lower[d] + 1 - ilower[d]) + 0.5);
-            q = std::sqrt(1.0 + 4.0 * r[d] * (1.0 - r[d]));
-            D[d][0] = 0.125 * (3.0 - 2.0 * r[d] - q);
-            D[d][1] = 0.125 * (3.0 - 2.0 * r[d] + q);
-            D[d][2] = 0.125 * (1.0 + 2.0 * r[d] + q);
-            D[d][3] = 0.125 * (1.0 + 2.0 * r[d] - q);
+            stencil_lower[d] = NINT(X_dx) + ilower[d] - 2;
+            stencil_upper[d] = stencil_lower[d] + 3;
+            r = X_dx - ((stencil_lower[d] + 1 - ilower[d]) + 0.5);
+            p_start[d] = X[d] - (r + 1) * dx[d];
+            q = std::sqrt(1.0 + 4.0 * r * (1.0 - r));
+            D[d][0] = 0.125 * (3.0 - 2.0 * r - q);
+            D[d][1] = 0.125 * (3.0 - 2.0 * r + q);
+            D[d][2] = 0.125 * (1.0 + 2.0 * r + q);
+            D[d][3] = 0.125 * (1.0 + 2.0 * r - q);
         }
-        perform_mls(stencil_sz, X, ic_lower, ic_upper, r, dx, mask_data, D, Psi);
-    } // IB_4
+        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+    }
+    else if (kernel_fcn == "USER_DEFINED")
+    {
+        boost::array<double, NDIM> X_cell;
+        boost::array<int, NDIM> stencil_center;
+
+        // Determine the Cartesian cell in which X is located.
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            stencil_center[d] = static_cast<int>(std::floor((X[d] + X_shift[d] - x_lower[d]) / dx[d])) + ilower[d];
+            X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
+        }
+
+        // Determine the interpolation stencil corresponding to the position of
+        // X within the cell.
+        if (LEInteractor::s_kernel_fcn_stencil_size % 2 == 0)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (X[d] < X_cell[d])
+                {
+                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
+                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2 - 1;
+                }
+                else
+                {
+                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2 + 1;
+                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+                }
+            }
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
+                stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+            }
+        }
+
+        // Compute the kernel function weights.
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[LEInteractor::s_kernel_fcn_stencil_size]);
+        }
+
+        double p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
+            for (int k = 0, j = stencil_lower[d]; j <= stencil_upper[d]; ++j, ++k)
+            {
+                D[d][k] = LEInteractor::s_kernel_fcn(
+                    (X[d] + X_shift[d] - (X_cell[d] + static_cast<double>(j - stencil_center[d]) * dx[d])) / dx[d]);
+            }
+        }
+        perform_mls(LEInteractor::s_kernel_fcn_stencil_size, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D,
+                    Psi);
+    }
 
     return;
 } // get_mls_weights
@@ -874,57 +899,45 @@ void get_mls_weights(const std::string& kernel_fcn,
 void interpolate_data(const int stencil_sz,
                       const int* const ig_lower,
                       const int* const ig_upper,
-                      const int* const ic_lower,
-                      const int* const ic_upper,
+                      const int* const stencil_lower,
+                      const int* const stencil_upper,
                       const ArrayData<NDIM, double>& q_data,
                       const int q_comp,
-                      const TensorWeight& Psi,
+                      const MLSWeight& Psi,
                       double& Q)
 {
 
-#if (NDIM == 2)
-    // Interpolate q onto Q using the modified weights.
-    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
-    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
-
-    Q = 0.0;
-    for (int i1 = istart1; i1 <= istop1; ++i1)
+    int istart[NDIM], istop[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const int ic1 = ic_lower[1] + i1;
-        for (int i0 = istart0; i0 <= istop0; ++i0)
-        {
-            const int ic0 = ic_lower[0] + i0;
-            const Index<NDIM> idx(ic0, ic1);
-            Q += q_data(idx, q_comp) * Psi[i1][i0];
-        }
+        istart[d] = std::max(ig_lower[d] - stencil_lower[d], 0);
+        istop[d] = (stencil_sz - 1) - std::max(stencil_upper[d] - ig_upper[d], 0);
     }
 
-#elif(NDIM == 3)
-    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
-    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
-    const int istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-    const int istop2 = (stencil_sz - 1) - std::max(ic_upper[2] - ig_upper[2], 0);
-
+    // Interpolate q onto Q using the modified weights.
     Q = 0.0;
-    for (int i2 = istart2; i2 <= istop2; ++i2)
+#if (NDIM == 3)
+    for (int i2 = istart[2]; i2 <= istop[2]; ++i2)
     {
-        const int ic2 = ic_lower[2] + i2;
-        for (int i1 = istart1; i1 <= istop1; ++i1)
+        const int ic2 = stencil_lower[2] + i2;
+#endif
+        for (int i1 = istart[1]; i1 <= istop[1]; ++i1)
         {
-            const int ic1 = ic_lower[1] + i1;
-            for (int i0 = istart0; i0 <= istop0; ++i0)
+            const int ic1 = stencil_lower[1] + i1;
+            for (int i0 = istart[0]; i0 <= istop[0]; ++i0)
             {
-                const int ic0 = ic_lower[0] + i0;
-                const Index<NDIM> idx(ic0, ic1, ic2);
-                Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                Q += q_data(idx, q_comp) * Psi[i1][i0];
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+#endif
             }
         }
+#if (NDIM == 3)
     }
-
 #endif
 
     return;
@@ -934,59 +947,46 @@ void interpolate_data(const int stencil_sz,
 void spread_data(const int stencil_sz,
                  const int* const ig_lower,
                  const int* const ig_upper,
-                 const int* const ic_lower,
-                 const int* const ic_upper,
+                 const int* const stencil_lower,
+                 const int* const stencil_upper,
                  const double* const dx,
                  ArrayData<NDIM, double>& q_data,
                  const int q_comp,
-                 const TensorWeight& Psi,
+                 const MLSWeight& Psi,
                  const double& Q)
 {
 
-#if (NDIM == 2)
-    // Spread Q onto q using the modified weights.
-    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
-    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
-
-    const double fac = 1.0 / (dx[0] * dx[1]);
-    for (int i1 = istart1; i1 <= istop1; ++i1)
+    int istart[NDIM], istop[NDIM];
+    double fac = 1.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const int ic1 = ic_lower[1] + i1;
-        for (int i0 = istart0; i0 <= istop0; ++i0)
-        {
-            const int ic0 = ic_lower[0] + i0;
-            const Index<NDIM> idx(ic0, ic1);
-            q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
-        }
+        istart[d] = std::max(ig_lower[d] - stencil_lower[d], 0);
+        istop[d] = (stencil_sz - 1) - std::max(stencil_upper[d] - ig_upper[d], 0);
+        fac /= dx[d];
     }
 
-#elif(NDIM == 3)
-
-    const int istart0 = std::max(ig_lower[0] - ic_lower[0], 0);
-    const int istop0 = (stencil_sz - 1) - std::max(ic_upper[0] - ig_upper[0], 0);
-    const int istart1 = std::max(ig_lower[1] - ic_lower[1], 0);
-    const int istop1 = (stencil_sz - 1) - std::max(ic_upper[1] - ig_upper[1], 0);
-    const int istart2 = std::max(ig_lower[2] - ic_lower[2], 0);
-    const int istop2 = (stencil_sz - 1) - std::max(ic_upper[2] - ig_upper[2], 0);
-
-    const double fac = 1.0 / (dx[0] * dx[1] * dx[2]);
-    for (int i2 = istart2; i2 <= istop2; ++i2)
+#if (NDIM == 3)
+    for (int i2 = istart[2]; i2 <= istop[2]; ++i2)
     {
-        const int ic2 = ic_lower[2] + i2;
-        for (int i1 = istart1; i1 <= istop1; ++i1)
+        const int ic2 = stencil_lower[2] + i2;
+#endif
+        for (int i1 = istart[1]; i1 <= istop[1]; ++i1)
         {
-            const int ic1 = ic_lower[1] + i1;
-            for (int i0 = istart0; i0 <= istop0; ++i0)
+            const int ic1 = stencil_lower[1] + i1;
+            for (int i0 = istart[0]; i0 <= istop[0]; ++i0)
             {
-                const int ic0 = ic_lower[0] + i0;
-                const Index<NDIM> idx(ic0, ic1, ic2);
-                q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+#endif
             }
         }
+#if (NDIM == 3)
     }
-
 #endif
 } // spread_data
 }
@@ -1630,18 +1630,18 @@ void LEInteractor::interpolate(double* const Q_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        IntVector<NDIM> ic_lower, ic_upper;
+        IntVector<NDIM> stencil_lower, stencil_upper;
         for (int s = 0; s < nindices; ++s)
         {
-            TensorWeight Psi;
+            MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
             get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
-                            mask_data->getArrayData(), ic_lower, ic_upper, Psi);
+                            mask_data->getArrayData(), stencil_lower, stencil_upper, Psi);
 
             for (int comp = 0; comp < Q_depth; ++comp)
             {
-                interpolate_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, q_data->getArrayData(), comp, Psi,
-                                 Q_data[s * Q_depth + comp]);
+                interpolate_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper, q_data->getArrayData(),
+                                 comp, Psi, Q_data[s * Q_depth + comp]);
             }
         }
     }
@@ -1866,7 +1866,7 @@ void LEInteractor::interpolate(double* const Q_data,
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
-        IntVector<NDIM> ic_lower, ic_upper;
+        IntVector<NDIM> stencil_lower, stencil_upper;
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -1880,12 +1880,12 @@ void LEInteractor::interpolate(double* const Q_data,
 
             for (int s = 0; s < nindices; ++s)
             {
-                TensorWeight Psi;
+                MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
                 get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower_axis.data(),
-                                ilower, mask_data->getArrayData(axis), ic_lower, ic_upper, Psi);
-                interpolate_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, q_data->getArrayData(axis), 0, Psi,
-                                 Q_data[s * Q_depth + axis]);
+                                ilower, mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
+                interpolate_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper,
+                                 q_data->getArrayData(axis), 0, Psi, Q_data[s * Q_depth + axis]);
             }
         }
     }
@@ -2576,18 +2576,18 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     const int nindices = static_cast<int>(local_indices.size());
     if (nindices)
     {
-        IntVector<NDIM> ic_lower, ic_upper;
+        IntVector<NDIM> stencil_lower, stencil_upper;
         for (int s = 0; s < nindices; ++s)
         {
-            TensorWeight Psi;
+            MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
             get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
-                            mask_data->getArrayData(), ic_lower, ic_upper, Psi);
+                            mask_data->getArrayData(), stencil_lower, stencil_upper, Psi);
 
             for (int comp = 0; comp < Q_depth; ++comp)
             {
-                spread_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, dx, q_data->getArrayData(), comp, Psi,
-                            Q_data[s * Q_depth + comp]);
+                spread_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper, dx, q_data->getArrayData(),
+                            comp, Psi, Q_data[s * Q_depth + comp]);
             }
         }
     }
@@ -2809,7 +2809,7 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     if (nindices)
     {
         boost::array<double, NDIM> x_lower_axis, x_upper_axis;
-        IntVector<NDIM> ic_lower, ic_upper;
+        IntVector<NDIM> stencil_lower, stencil_upper;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -2822,13 +2822,13 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
 
             for (int s = 0; s < nindices; ++s)
             {
-                TensorWeight Psi;
+                MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
                 get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
-                                mask_data->getArrayData(axis), ic_lower, ic_upper, Psi);
+                                mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
 
-                spread_data(stencil_sz, ig_lower, ig_upper, ic_lower, ic_upper, dx, q_data->getArrayData(axis), 0, Psi,
-                            Q_data[s * Q_depth + axis]);
+                spread_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper, dx,
+                            q_data->getArrayData(axis), 0, Psi, Q_data[s * Q_depth + axis]);
             }
         }
     }
