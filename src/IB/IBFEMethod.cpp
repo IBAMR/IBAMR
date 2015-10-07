@@ -352,32 +352,12 @@ void IBFEMethod::registerStressNormalizationPart(unsigned int part)
     return;
 } // registerStressNormalizationPart
 
-void IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
-                                                          void* ctx,
-                                                          const unsigned int part)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
-    return;
-} // registerInitialCoordinateMappingFunction
-
 void IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_coordinate_mapping_fcn_data[part] = data;
     return;
 } // registerInitialCoordinateMappingFunction
-
-void IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
-                                           const std::vector<unsigned int>& systems,
-                                           void* ctx,
-                                           QuadratureType quad_type,
-                                           Order quad_order,
-                                           const unsigned int part)
-{
-    registerPK1StressFunction(PK1StressFcnData(fcn, systems, ctx, quad_type, quad_order), part);
-    return;
-} // registerPK1StressFunction
 
 void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
 {
@@ -391,62 +371,27 @@ void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const u
     {
         d_PK1_stress_fcn_data[part].back().quad_order = d_quad_order;
     }
-    d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
-    d_body_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
 } // registerPK1StressFunction
-
-void IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
-                                              const std::vector<unsigned int>& systems,
-                                              void* ctx,
-                                              const unsigned int part)
-{
-    registerLagBodyForceFunction(LagBodyForceFcnData(fcn, systems, ctx), part);
-    return;
-} // registerLagBodyForceFunction
 
 void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_body_force_fcn_data[part] = data;
-    d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
-    d_body_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
 } // registerLagBodyForceFunction
-
-void IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
-                                                    const std::vector<unsigned int>& systems,
-                                                    void* ctx,
-                                                    const unsigned int part)
-{
-    registerLagSurfacePressureFunction(LagSurfacePressureFcnData(fcn, systems, ctx), part);
-    return;
-} // registerLagSurfacePressureFunction
 
 void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_pressure_fcn_data[part] = data;
-    d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
-    d_surface_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
 } // registerLagSurfacePressureFunction
-
-void IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
-                                                 const std::vector<unsigned int>& systems,
-                                                 void* ctx,
-                                                 const unsigned int part)
-{
-    registerLagSurfaceForceFunction(LagSurfaceForceFcnData(fcn, systems, ctx), part);
-    return;
-} // registerLagSurfaceForceFunction
 
 void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_force_fcn_data[part] = data;
-    d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
-    d_surface_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
 } // registerLagSurfaceForceFunction
 
@@ -1166,7 +1111,7 @@ public:
     {
         TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
         const unsigned int sys_num = system.number();
-        for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
+        for (std::vector<const System*>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
              it != it_end; ++it)
         {
             if ((*it)->number() == sys_num)
@@ -1224,7 +1169,7 @@ public:
     {
         TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
         const unsigned int sys_num = system.number();
-        for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+        for (std::vector<const System*>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
         {
             if ((*it)->number() == sys_num)
             {
@@ -1268,21 +1213,56 @@ public:
         }
         d_system_grad_var_idx.push_back(grad_var_idx);
         d_system_data.push_back(system_data);
-        d_system_var_data.push_back(std::vector<std::vector<double> >(vars.size()));
-        d_system_grad_var_data.push_back(std::vector<std::vector<VectorValue<double> > >(grad_vars.size()));
         return system_idx;
     }
 
-    const std::vector<std::vector<double> >& getVarInterpolation(const size_t system_idx)
+    // Indexed via [qp][system_idx][var_idx].
+    const std::vector<std::vector<std::vector<double> > >& getVarInterpolation()
     {
-        TBOX_ASSERT(system_idx < d_systems.size());
-        return d_system_var_data[system_idx];
+        return d_system_var_data;
     }
 
-    const std::vector<std::vector<VectorValue<double> > >& getGradVarInterpolation(const size_t system_idx)
+    // Indexed via [qp][system_idx][var_idx].
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& getGradVarInterpolation()
     {
-        TBOX_ASSERT(system_idx < d_systems.size());
-        return d_system_grad_var_data[system_idx];
+        return d_system_grad_var_data;
+    }
+
+    void setupInterpolatedSystemDataIndexes(std::vector<size_t>& system_idxs,
+                                            const std::vector<SystemData>& system_data,
+                                            const EquationSystems* const equation_systems)
+    {
+        TBOX_ASSERT(!d_initialized);
+        const size_t n_systems = system_data.size();
+        system_idxs.resize(n_systems);
+        for (unsigned int k = 0; k < system_idxs.size(); ++k)
+        {
+            const System& system = equation_systems->get_system(system_data[k].system_name);
+            const std::vector<int>& vars = system_data[k].vars;
+            const std::vector<int>& grad_vars = system_data[k].grad_vars;
+            NumericVector<double>* const system_vec = system_data[k].system_vec;
+            system_idxs[k] = registerInterpolatedSystem(system, vars, grad_vars, system_vec);
+        }
+        return;
+    }
+
+    void setInterpolatedDataPointers(std::vector<const std::vector<double>*>& var_data,
+                                     std::vector<const std::vector<VectorValue<double> >*>& grad_var_data,
+                                     const std::vector<size_t>& system_idxs,
+                                     const Elem* const elem,
+                                     const unsigned int qp)
+    {
+        TBOX_ASSERT(d_initialized);
+        TBOX_ASSERT(elem == d_current_elem);
+        TBOX_ASSERT(qp < d_n_qp);
+        var_data.resize(system_idxs.size());
+        grad_var_data.resize(system_idxs.size());
+        for (unsigned k = 0; k < system_idxs.size(); ++k)
+        {
+            var_data[k] = &d_system_var_data[qp][system_idxs[k]];
+            grad_var_data[k] = &d_system_grad_var_data[qp][system_idxs[k]];
+        }
+        return;
     }
 
     void init()
@@ -1524,34 +1504,35 @@ private:
     {
         // Determine the number of quadrature points where the interpolation will be evaluated.
         const unsigned int n_qp = d_n_qp;
+        const size_t n_systems = d_systems.size();
+        system_var_data.resize(n_qp, std::vector<std::vector<double> >(n_systems));
+        system_grad_var_data.resize(n_qp, std::vector<std::vector<VectorValue<double> > >(n_systems));
 
         // Interpolate data for each system.
-        for (size_t system_idx = 0; system_idx < d_systems.size(); ++system_idx)
+        for (size_t system_idx = 0; system_idx < n_systems; ++system_idx)
         {
             const boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
 
             // Interpolate regular variables.
             {
                 const std::vector<size_t>& var_idxs = d_system_var_idx[system_idx];
-                const unsigned int num_vars = static_cast<unsigned int>(var_idxs.size());
-                std::vector<std::vector<double> >& var_data = system_var_data[system_idx];
-                var_data.resize(n_qp);
+                const unsigned int n_vars = static_cast<unsigned int>(var_idxs.size());
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    var_data[qp].resize(num_vars);
+                    system_var_data[qp][system_idx].resize(n_vars);
                 }
                 const std::vector<size_t>& var_fe_type_idxs = d_system_var_fe_type_idx[system_idx];
-                for (unsigned int k = 0; k < num_vars; ++k)
+                for (unsigned int k = 0; k < n_vars; ++k)
                 {
                     const size_t var_idx = var_idxs[k];
                     const size_t fe_type_idx = var_fe_type_idxs[k];
                     const std::vector<std::vector<double> >& phi = *phi_data[fe_type_idx];
                     for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        var_data[qp][k] = 0.0;
+                        system_var_data[qp][system_idx][k] = 0.0;
                         for (unsigned int i = 0; i < phi.size(); ++i)
                         {
-                            var_data[qp][k] += elem_data[i][var_idx] * phi[i][qp];
+                            system_var_data[qp][system_idx][k] += elem_data[i][var_idx] * phi[i][qp];
                         }
                     }
                 }
@@ -1560,25 +1541,23 @@ private:
             // Interpolate gradient variables.
             {
                 const std::vector<size_t>& grad_var_idxs = d_system_grad_var_idx[system_idx];
-                const unsigned int num_grad_vars = static_cast<unsigned int>(grad_var_idxs.size());
-                std::vector<std::vector<VectorValue<double> > >& grad_var_data = d_system_grad_var_data[system_idx];
-                grad_var_data.resize(n_qp);
+                const unsigned int n_grad_vars = static_cast<unsigned int>(grad_var_idxs.size());
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    grad_var_data[qp].resize(num_grad_vars);
+                    system_grad_var_data[qp][system_idx].resize(n_grad_vars);
                 }
                 const std::vector<size_t>& grad_var_fe_type_idxs = d_system_grad_var_fe_type_idx[system_idx];
-                for (unsigned int k = 0; k < num_grad_vars; ++k)
+                for (unsigned int k = 0; k < n_grad_vars; ++k)
                 {
                     const size_t var_idx = grad_var_idxs[k];
                     const size_t fe_type_idx = grad_var_fe_type_idxs[k];
                     const std::vector<std::vector<VectorValue<double> > >& dphi = *dphi_data[fe_type_idx];
                     for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        grad_var_data[qp][k].zero();
+                        system_grad_var_data[qp][system_idx][k].zero();
                         for (unsigned int i = 0; i < dphi.size(); ++i)
                         {
-                            grad_var_data[qp][k] += elem_data[i][var_idx] * dphi[i][qp];
+                            system_grad_var_data[qp][system_idx][k] += elem_data[i][var_idx] * dphi[i][qp];
                         }
                     }
                 }
@@ -1633,9 +1612,6 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
-    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
-    std::vector<DenseVector<double> > lag_surface_force_fcn_data, lag_surface_pressure_fcn_data;
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
@@ -1656,6 +1632,19 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     fe.evalQuadratureWeightsFace();
     fe.registerSystem(Phi_system, Phi_vars, Phi_vars); // compute phi and dphi for the Phi system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, X_vars, X_vars, &X_vec);
+    const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
+    {
+        fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs[k], d_PK1_stress_fcn_data[part][k].system_data,
+                                              equation_systems);
+    }
+    std::vector<size_t> surface_force_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data,
+                                          equation_systems);
+    std::vector<size_t> surface_pressure_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
+                                          d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
     fe.init();
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
@@ -1663,8 +1652,14 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
     const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(Phi_fe_type);
 
-    const std::vector<std::vector<double> >& X_data = fe.getVarInterpolation(X_sys_idx);
-    const std::vector<std::vector<VectorValue<double> > >& grad_X_data = fe.getGradVarInterpolation(X_sys_idx);
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
@@ -1705,7 +1700,9 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const libMesh::Point& X = q_point_face[qp];
-                get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 FF_trans = FF.transpose();
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
@@ -1713,17 +1710,17 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
 
                 double Phi = 0.0;
-                for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+                for (unsigned int k = 0; k < num_PK1_fcns; ++k)
                 {
-                    if (!d_PK1_stress_fcn_data[part][k].fcn) continue;
-
-                    // Compute the value of the first Piola-Kirchhoff stress
-                    // tensor at the quadrature point and add the corresponding
-                    // traction force to the right-hand-side vector.
                     if (d_PK1_stress_fcn_data[part][k].fcn)
                     {
-                        d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_stress_fcn_data[k], data_time,
-                                                           d_PK1_stress_fcn_data[part][k].ctx);
+                        // Compute the value of the first Piola-Kirchhoff stress
+                        // tensor at the quadrature point and add the corresponding
+                        // traction force to the right-hand-side vector.
+                        fe.setInterpolatedDataPointers(PK1_var_data[k], PK1_grad_var_data[k], PK1_fcn_system_idxs[k],
+                                                       elem, qp);
+                        d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_var_data[k], PK1_grad_var_data[k],
+                                                           data_time, d_PK1_stress_fcn_data[part][k].ctx);
                         Phi += n * ((PP * FF_trans) * n) / J;
                     }
                 }
@@ -1733,8 +1730,11 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     // Compute the value of the surface force at the
                     // quadrature point and add the corresponding force to
                     // the right-hand-side vector.
-                    d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, lag_surface_force_fcn_data,
-                                                           data_time, d_lag_surface_force_fcn_data[part].ctx);
+                    fe.setInterpolatedDataPointers(surface_force_var_data, surface_force_grad_var_data,
+                                                   surface_force_fcn_system_idxs, elem, qp);
+                    d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, surface_force_var_data,
+                                                           surface_force_grad_var_data, data_time,
+                                                           d_lag_surface_force_fcn_data[part].ctx);
                     Phi -= n * F_s * dA_da;
                 }
 
@@ -1744,8 +1744,11 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     // point and add the corresponding force to the
                     // right-hand-side vector.
                     double P = 0.0;
-                    d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, lag_surface_pressure_fcn_data,
-                                                              data_time, d_lag_surface_pressure_fcn_data[part].ctx);
+                    fe.setInterpolatedDataPointers(surface_pressure_var_data, surface_pressure_grad_var_data,
+                                                   surface_pressure_fcn_system_idxs, elem, qp);
+                    d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, surface_pressure_var_data,
+                                                              surface_pressure_grad_var_data, data_time,
+                                                              d_lag_surface_pressure_fcn_data[part].ctx);
                     Phi += P;
                 }
 
@@ -1784,19 +1787,14 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
-    // Setup extra data needed to compute stresses/forces.
-    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
-    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_force_fcn_data,
-        lag_surface_pressure_fcn_data;
-
     // Setup global and elemental right-hand-side vectors.
     AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
     // each stress function may use a different quadrature rule.
-    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+    const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
+    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
         if (!d_PK1_stress_fcn_data[part][k].fcn) continue;
 
@@ -1827,6 +1825,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         fe.evalQuadratureWeightsFace();
         fe.registerSystem(G_system, std::vector<int>(), vars); // compute dphi for the force system
         const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
+        std::vector<size_t> PK1_fcn_system_idxs;
+        fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs, d_PK1_stress_fcn_data[part][k].system_data,
+                                              equation_systems);
         fe.init();
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
@@ -1838,8 +1839,12 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
         const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(G_fe_type);
 
-        const std::vector<std::vector<double> >& X_data = fe.getVarInterpolation(X_sys_idx);
-        const std::vector<std::vector<VectorValue<double> > >& grad_X_data = fe.getGradVarInterpolation(X_sys_idx);
+        const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+        const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+            fe.getGradVarInterpolation();
+
+        std::vector<const std::vector<double>*> PK1_var_data;
+        std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data;
 
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
@@ -1868,12 +1873,15 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const libMesh::Point& X = q_point[qp];
-                get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                get_x_and_FF(x, FF, x_data, grad_x_data);
 
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_stress_fcn_data[k], data_time,
+                fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
+                d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time,
                                                    d_PK1_stress_fcn_data[part][k].ctx);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
@@ -1907,7 +1915,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     const libMesh::Point& X = q_point_face[qp];
-                    get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                    const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    get_x_and_FF(x, FF, x_data, grad_x_data);
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
 
                     F.zero();
@@ -1917,8 +1927,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     // traction force to the right-hand-side vector.
                     if (d_PK1_stress_fcn_data[part][k].fcn)
                     {
-                        d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_stress_fcn_data[k], data_time,
-                                                           d_PK1_stress_fcn_data[part][k].ctx);
+                        fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
+                        d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data,
+                                                           data_time, d_PK1_stress_fcn_data[part][k].ctx);
                         F += PP * normal_face[qp];
                     }
 
@@ -1988,6 +1999,15 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t Phi_sys_idx =
         Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) : SIZE_T_MAX;
+    std::vector<size_t> body_force_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(body_force_fcn_system_idxs, d_lag_body_force_fcn_data[part].system_data,
+                                          equation_systems);
+    std::vector<size_t> surface_force_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data,
+                                          equation_systems);
+    std::vector<size_t> surface_pressure_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
+                                          d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
     fe.init();
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
@@ -2000,9 +2020,13 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
     const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(G_fe_type);
 
-    const std::vector<std::vector<double> >& X_data = fe.getVarInterpolation(X_sys_idx);
-    const std::vector<std::vector<VectorValue<double> > >& grad_X_data = fe.getGradVarInterpolation(X_sys_idx);
-    const std::vector<std::vector<double> >* const Phi_data = Phi_vec ? &fe.getVarInterpolation(Phi_sys_idx) : NULL;
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    std::vector<const std::vector<double> *> body_force_var_data, surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> > *> body_force_grad_var_data, surface_force_grad_var_data,
+        surface_pressure_grad_var_data;
 
     // Loop over the elements to compute the right-hand side vector.
     TensorValue<double> PP, FF, FF_inv_trans;
@@ -2027,10 +2051,13 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const libMesh::Point& X = q_point[qp];
-            get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+            const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            get_x_and_FF(x, FF, x_data, grad_x_data);
             const double J = std::abs(FF.det());
             tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-            const double Phi = Phi_vec ? (*Phi_data)[qp][0] : std::numeric_limits<double>::quiet_NaN();
+            const double Phi =
+                Phi_vec ? fe_interp_var_data[qp][Phi_sys_idx][0] : std::numeric_limits<double>::quiet_NaN();
 
             if (Phi_vec)
             {
@@ -2053,8 +2080,10 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Compute the value of the body force at the quadrature
                 // point and add the corresponding forces to the
                 // right-hand-side vector.
-                d_lag_body_force_fcn_data[part].fcn(F_b, FF, x, X, elem, lag_body_force_fcn_data, data_time,
-                                                    d_lag_body_force_fcn_data[part].ctx);
+                fe.setInterpolatedDataPointers(body_force_var_data, body_force_grad_var_data,
+                                               body_force_fcn_system_idxs, elem, qp);
+                d_lag_body_force_fcn_data[part].fcn(F_b, FF, x, X, elem, body_force_var_data, body_force_grad_var_data,
+                                                    data_time, d_lag_body_force_fcn_data[part].ctx);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = F_b * phi[k][qp] * JxW[qp];
@@ -2086,7 +2115,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const libMesh::Point& X = q_point_face[qp];
-                get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                 n = (FF_inv_trans * normal_face[qp]).unit();
@@ -2099,8 +2130,11 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     // point and add the corresponding force to the
                     // right-hand-side vector.
                     double P = 0;
-                    d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, lag_surface_pressure_fcn_data,
-                                                              data_time, d_lag_surface_pressure_fcn_data[part].ctx);
+                    fe.setInterpolatedDataPointers(surface_pressure_var_data, surface_pressure_grad_var_data,
+                                                   surface_pressure_fcn_system_idxs, elem, qp);
+                    d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, surface_pressure_var_data,
+                                                              surface_pressure_grad_var_data, data_time,
+                                                              d_lag_surface_pressure_fcn_data[part].ctx);
                     F -= P * J * FF_inv_trans * normal_face[qp];
                 }
 
@@ -2109,8 +2143,11 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     // Compute the value of the surface force at the
                     // quadrature point and add the corresponding force to
                     // the right-hand-side vector.
-                    d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, lag_surface_force_fcn_data,
-                                                           data_time, d_lag_surface_force_fcn_data[part].ctx);
+                    fe.setInterpolatedDataPointers(surface_force_var_data, surface_force_grad_var_data,
+                                                   surface_force_fcn_system_idxs, elem, qp);
+                    d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, surface_force_var_data,
+                                                           surface_force_grad_var_data, data_time,
+                                                           d_lag_surface_force_fcn_data[part].ctx);
                     F += F_s;
                 }
 
@@ -2184,12 +2221,6 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
-    // Setup extra data needed to compute stresses/forces.
-    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
-    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_force_fcn_data,
-        lag_surface_pressure_fcn_data;
-
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& G_dof_map = G_system.get_dof_map();
@@ -2211,14 +2242,33 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     fe.evalQuadraturePointsFace();
     fe.evalQuadratureWeightsFace();
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
+    const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
+    {
+        fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs[k], d_PK1_stress_fcn_data[part][k].system_data,
+                                              equation_systems);
+    }
+    std::vector<size_t> surface_force_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data,
+                                          equation_systems);
+    std::vector<size_t> surface_pressure_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
+                                          d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
     fe.init();
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
-    const std::vector<std::vector<double> >& X_data = fe.getVarInterpolation(X_sys_idx);
-    const std::vector<std::vector<VectorValue<double> > >& grad_X_data = fe.getGradVarInterpolation(X_sys_idx);
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
@@ -2283,21 +2333,26 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
                     const libMesh::Point& X = q_point_face[qp];
-                    get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                    const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                     n = (FF_inv_trans * normal_face[qp]).unit();
 
                     F.zero();
 
-                    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+                    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
                     {
                         if (d_PK1_stress_fcn_data[part][k].fcn)
                         {
                             // Compute the value of the first Piola-Kirchhoff stress
                             // tensor at the quadrature point and compute the
                             // corresponding force.
-                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_stress_fcn_data[k], data_time,
+                            fe.setInterpolatedDataPointers(PK1_var_data[k], PK1_grad_var_data[k],
+                                                           PK1_fcn_system_idxs[k], elem, qp);
+                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_var_data[k],
+                                                               PK1_grad_var_data[k], data_time,
                                                                d_PK1_stress_fcn_data[part][k].ctx);
                             F -= PP * normal_face[qp] * JxW_face[qp];
                         }
@@ -2307,8 +2362,10 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side,
-                                                                  lag_surface_pressure_fcn_data, data_time,
+                        fe.setInterpolatedDataPointers(surface_pressure_var_data, surface_pressure_grad_var_data,
+                                                       surface_pressure_fcn_system_idxs, elem, qp);
+                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, surface_pressure_var_data,
+                                                                  surface_pressure_grad_var_data, data_time,
                                                                   d_lag_surface_pressure_fcn_data[part].ctx);
                         F -= P * J * FF_inv_trans * normal_face[qp] * JxW_face[qp];
                     }
@@ -2317,8 +2374,11 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, lag_surface_force_fcn_data,
-                                                               data_time, d_lag_surface_force_fcn_data[part].ctx);
+                        fe.setInterpolatedDataPointers(surface_force_var_data, surface_force_grad_var_data,
+                                                       surface_force_fcn_system_idxs, elem, qp);
+                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, surface_force_var_data,
+                                                               surface_force_grad_var_data, data_time,
+                                                               d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s * JxW_face[qp];
                     }
 
@@ -2388,12 +2448,6 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
     TBOX_ASSERT(dim == NDIM);
 
-    // Setup extra data needed to compute stresses/forces.
-    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
-    std::vector<std::vector<DenseVector<double> > > PK1_stress_fcn_data(num_PK1_stress_fcns);
-    std::vector<DenseVector<double> > lag_body_force_fcn_data, lag_surface_force_fcn_data,
-        lag_surface_pressure_fcn_data;
-
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& G_dof_map = G_system.get_dof_map();
@@ -2415,13 +2469,31 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     fe.evalNormalsFace();
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
+    const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
+    std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
+    {
+        fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs[k], d_PK1_stress_fcn_data[part][k].system_data,
+                                              equation_systems);
+    }
+    std::vector<size_t> surface_force_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data,
+                                          equation_systems);
+    std::vector<size_t> surface_pressure_fcn_system_idxs;
+    fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
+                                          d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
     fe.init();
 
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
-    const std::vector<std::vector<double> >& G_data = fe.getVarInterpolation(G_sys_idx);
-    const std::vector<std::vector<double> >& X_data = fe.getVarInterpolation(X_sys_idx);
-    const std::vector<std::vector<VectorValue<double> > >& grad_X_data = fe.getGradVarInterpolation(X_sys_idx);
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    std::vector<std::vector<const std::vector<double>*> > PK1_var_data(num_PK1_fcns);
+    std::vector<std::vector<const std::vector<VectorValue<double> >*> > PK1_grad_var_data(num_PK1_fcns);
+    std::vector<const std::vector<double> *> surface_force_var_data, surface_pressure_var_data;
+    std::vector<const std::vector<VectorValue<double> > *> surface_force_grad_var_data, surface_pressure_grad_var_data;
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
@@ -2575,12 +2647,15 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const SideIndex<NDIM>& i_s = intersection_indices[qp];
                     const unsigned int axis = i_s.getAxis();
                     const libMesh::Point& X = intersection_ref_coords[qp];
-                    get_x_and_FF(x, FF, X_data[qp], grad_X_data[qp]);
+                    const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                     n = (FF_inv_trans * normal_face[qp]).unit();
                     const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
-                    std::copy(G_data[qp].begin(), G_data[qp].end(), &G(0));
+                    const std::vector<double>& G_data = fe_interp_var_data[qp][G_sys_idx];
+                    std::copy(G_data.begin(), G_data.end(), &G(0));
 #if !defined(NDEBUG)
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -2606,17 +2681,19 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         }
                     }
 #endif
-
                     F.zero();
 
-                    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+                    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
                     {
                         if (d_PK1_stress_fcn_data[part][k].fcn)
                         {
                             // Compute the value of the first Piola-Kirchhoff
                             // stress tensor at the quadrature point and compute
                             // the corresponding force.
-                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_stress_fcn_data[k], data_time,
+                            fe.setInterpolatedDataPointers(PK1_var_data[k], PK1_grad_var_data[k],
+                                                           PK1_fcn_system_idxs[k], elem, qp);
+                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, x, X, elem, PK1_var_data[k],
+                                                               PK1_grad_var_data[k], data_time,
                                                                d_PK1_stress_fcn_data[part][k].ctx);
                             F -= PP * normal_face[qp];
                         }
@@ -2627,8 +2704,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
                         double P = 0.0;
-                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side,
-                                                                  lag_surface_pressure_fcn_data, data_time,
+                        fe.setInterpolatedDataPointers(surface_pressure_var_data, surface_pressure_grad_var_data,
+                                                       surface_pressure_fcn_system_idxs, elem, qp);
+                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, x, X, elem, side, surface_pressure_var_data,
+                                                                  surface_pressure_grad_var_data, data_time,
                                                                   d_lag_surface_pressure_fcn_data[part].ctx);
                         F -= P * J * FF_inv_trans * normal_face[qp];
                     }
@@ -2637,8 +2716,11 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, lag_surface_force_fcn_data,
-                                                               data_time, d_lag_surface_force_fcn_data[part].ctx);
+                        fe.setInterpolatedDataPointers(surface_force_var_data, surface_force_grad_var_data,
+                                                       surface_force_fcn_system_idxs, elem, qp);
+                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, x, X, elem, side, surface_force_var_data,
+                                                               surface_force_grad_var_data, data_time,
+                                                               d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s;
                     }
 
@@ -2782,9 +2864,6 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_lag_body_force_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
     d_lag_surface_force_fcn_data.resize(d_num_parts);
-    d_fcn_systems.resize(d_num_parts);
-    d_body_fcn_systems.resize(d_num_parts);
-    d_surface_fcn_systems.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
@@ -2809,8 +2888,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
+                                    "or only SECOND order elements" << std::endl);
     }
     if (mesh_has_first_order_elems)
     {

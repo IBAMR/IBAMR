@@ -72,7 +72,8 @@ void PK1_dev_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<DenseVector<double> >& /*system_data*/,
+                             const std::vector<const std::vector<double>*>& /*var_data*/,
+                             const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -85,7 +86,8 @@ void PK1_dil_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<DenseVector<double> >& /*system_data*/,
+                             const std::vector<const std::vector<double>*>& /*var_data*/,
+                             const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -252,13 +254,13 @@ int main(int argc, char* argv[])
                                                                          static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dev", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+                                                  std::vector<SystemData>(), &PK1_dev_stress_fcn_data);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
                                                                          static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dil", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+                                                  std::vector<SystemData>(), &PK1_dil_stress_fcn_data);
 
         Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();

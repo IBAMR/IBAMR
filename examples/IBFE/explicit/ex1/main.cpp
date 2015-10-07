@@ -85,7 +85,8 @@ void PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*X*/,
                          const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
-                         const std::vector<DenseVector<double> >& /*system_data*/,
+                         const std::vector<const std::vector<double>*>& /*var_data*/,
+                         const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
@@ -229,7 +230,7 @@ int main(int argc, char* argv[])
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+        ib_method_ops->registerPK1StressFunction(IBFEMethod::PK1StressFcnData(PK1_stress_function));
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();

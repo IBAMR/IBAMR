@@ -112,7 +112,8 @@ void PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*x*/,
                          const libMesh::Point& /*X*/,
                          Elem* const /*elem*/,
-                         const std::vector<DenseVector<double> >& /*system_data*/,
+                         const vector<const vector<double>*>& /*var_data*/,
+                         const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
@@ -128,14 +129,15 @@ void tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& x,
                            const libMesh::Point& X,
                            Elem* const /*elem*/,
-                           const vector<DenseVector<double> >& system_data,
+                           const vector<const vector<double>*>& var_data,
+                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                            double /*time*/,
                            void* /*ctx*/)
 {
-    const DenseVector<double>& U = system_data[0];
+    const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U(d);
+        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U[d];
     }
     return;
 } // tether_force_function
@@ -148,14 +150,15 @@ void tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& X,
                            Elem* const elem,
                            const unsigned short /*side*/,
-                           const vector<DenseVector<double> >& system_data,
+                           const vector<const vector<double>*>& var_data,
+                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                            double time,
                            void* ctx)
 {
-    const DenseVector<double>& U = system_data[0];
+    const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U(d);
+        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U[d];
     }
     return;
 } // tether_force_function

@@ -85,7 +85,8 @@ void PK1_stress_function(TensorValue<double>& PP,
                          const libMesh::Point& /*X*/,
                          const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
-                         const std::vector<DenseVector<double> >& /*system_data*/,
+                         const std::vector<const std::vector<double>*>& /*var_data*/,
+                         const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {

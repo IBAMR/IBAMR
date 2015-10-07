@@ -85,7 +85,8 @@ void PK1_dev_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<DenseVector<double> >& /*system_data*/,
+                             const vector<const vector<double>*>& /*var_data*/,
+                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -98,7 +99,8 @@ void PK1_dil_stress_function(TensorValue<double>& PP,
                              const libMesh::Point& /*X*/,
                              const libMesh::Point& /*s*/,
                              Elem* const /*elem*/,
-                             const std::vector<DenseVector<double> >& /*system_data*/,
+                             const vector<const vector<double>*>& /*var_data*/,
+                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                              double /*time*/,
                              void* /*ctx*/)
 {
@@ -284,17 +286,15 @@ int main(int argc, char* argv[])
 
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
-                                                                         static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dev", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+                                                  vector<SystemData>(), &PK1_dev_stress_fcn_data);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
-                                                                         static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dil", MONOMIAL, CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+                                                  vector<SystemData>(), &PK1_dil_stress_fcn_data);
 
         Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
@@ -468,12 +468,12 @@ int main(int argc, char* argv[])
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+            vector<vector<unsigned int> > X_dof_indices(NDIM);
             AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
             AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
-            const std::vector<double>& JxW = fe->get_JxW();
-            const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            const vector<double>& JxW = fe->get_JxW();
+            const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
             const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();

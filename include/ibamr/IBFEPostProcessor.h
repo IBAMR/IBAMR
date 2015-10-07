@@ -63,14 +63,16 @@ public:
      * \brief Function for reconstructing the deformation gradient tensor FF =
      * dX/ds.
      */
-    static inline void FF_fcn(libMesh::TensorValue<double>& FF_out,
-                              const libMesh::TensorValue<double>& FF_in,
-                              const libMesh::Point& /*X*/,
-                              const libMesh::Point& /*s*/,
-                              libMesh::Elem* /*elem*/,
-                              const std::vector<libMesh::DenseVector<double> >& /*system_data*/,
-                              double /*data_time*/,
-                              void* /*ctx*/)
+    static inline void
+    FF_fcn(libMesh::TensorValue<double>& FF_out,
+           const libMesh::TensorValue<double>& FF_in,
+           const libMesh::Point& /*X*/,
+           const libMesh::Point& /*s*/,
+           libMesh::Elem* /*elem*/,
+           const std::vector<const std::vector<double>*>& /*system_var_data*/,
+           const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+           double /*data_time*/,
+           void* /*ctx*/)
     {
         FF_out = FF_in;
         return;
@@ -80,14 +82,16 @@ public:
      * \brief Function for reconstructing the Green-Lagrangian strain tensor EE
      * = 0.5*(CC - II), with CC = FF^T FF and FF = dX/ds.
      */
-    static inline void EE_fcn(libMesh::TensorValue<double>& EE,
-                              const libMesh::TensorValue<double>& FF,
-                              const libMesh::Point& /*X*/,
-                              const libMesh::Point& /*s*/,
-                              libMesh::Elem* /*elem*/,
-                              const std::vector<libMesh::DenseVector<double> >& /*system_data*/,
-                              double /*data_time*/,
-                              void* /*ctx*/)
+    static inline void
+    EE_fcn(libMesh::TensorValue<double>& EE,
+           const libMesh::TensorValue<double>& FF,
+           const libMesh::Point& /*X*/,
+           const libMesh::Point& /*s*/,
+           libMesh::Elem* /*elem*/,
+           const std::vector<const std::vector<double>*>& /*system_var_data*/,
+           const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+           double /*data_time*/,
+           void* /*ctx*/)
     {
         const libMesh::TensorValue<double> CC = FF.transpose() * FF;
         static const libMesh::TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
@@ -99,14 +103,16 @@ public:
      * \brief Function for reconstructing the Cauchy stress from the PK1 stress,
      * using the PK1 stress function data provided by the ctx argument.
      */
-    static inline void cauchy_stress_from_PK1_stress_fcn(libMesh::TensorValue<double>& sigma,
-                                                         const libMesh::TensorValue<double>& FF,
-                                                         const libMesh::Point& X,
-                                                         const libMesh::Point& s,
-                                                         libMesh::Elem* elem,
-                                                         const std::vector<libMesh::DenseVector<double> >& system_data,
-                                                         double data_time,
-                                                         void* ctx)
+    static inline void cauchy_stress_from_PK1_stress_fcn(
+        libMesh::TensorValue<double>& sigma,
+        const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& X,
+        const libMesh::Point& s,
+        libMesh::Elem* elem,
+        const std::vector<const std::vector<double>*>& system_var_data,
+        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+        double data_time,
+        void* ctx)
     {
         TBOX_ASSERT(ctx);
         std::pair<IBTK::TensorMeshFcnPtr, void*>* PK1_stress_fcn_data =
@@ -115,7 +121,7 @@ public:
         IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->first;
         void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->second;
         libMesh::TensorValue<double> PP;
-        PK1_stress_fcn(PP, FF, X, s, elem, system_data, data_time, PK1_stress_fcn_ctx);
+        PK1_stress_fcn(PP, FF, X, s, elem, system_var_data, system_grad_var_data, data_time, PK1_stress_fcn_ctx);
         sigma = PP * FF.transpose() / FF.det();
         return;
     } // cauchy_stress_from_PK1_stress_fcn
@@ -127,18 +133,20 @@ public:
      * \note Assumes that the material axis is described by a piecewise constant
      * field.
      */
-    static inline void deformed_material_axis_fcn(libMesh::VectorValue<double>& f,
-                                                  const libMesh::TensorValue<double>& FF,
-                                                  const libMesh::Point& /*X*/,
-                                                  const libMesh::Point& /*s*/,
-                                                  libMesh::Elem* elem,
-                                                  const std::vector<libMesh::DenseVector<double> >& system_data,
-                                                  double /*data_time*/,
-                                                  void* /*ctx*/)
+    static inline void deformed_material_axis_fcn(
+        libMesh::VectorValue<double>& f,
+        const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& /*X*/,
+        const libMesh::Point& /*s*/,
+        libMesh::Elem* /*elem*/,
+        const std::vector<const std::vector<double>*>& system_var_data,
+        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        double /*data_time*/,
+        void* /*ctx*/)
     {
-        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(system_var_data.size() == 1);
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         f = FF * f0;
         return;
     } // deformed_material_axis_fcn
@@ -150,19 +158,20 @@ public:
      * \note Assumes that the material axis is described by a piecewise constant
      * field.
      */
-    static inline void
-    deformed_normalized_material_axis_fcn(libMesh::VectorValue<double>& f,
-                                          const libMesh::TensorValue<double>& FF,
-                                          const libMesh::Point& /*X*/,
-                                          const libMesh::Point& /*s*/,
-                                          libMesh::Elem* elem,
-                                          const std::vector<libMesh::DenseVector<double> >& system_data,
-                                          double /*data_time*/,
-                                          void* /*ctx*/)
+    static inline void deformed_normalized_material_axis_fcn(
+        libMesh::VectorValue<double>& f,
+        const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& /*X*/,
+        const libMesh::Point& /*s*/,
+        libMesh::Elem* elem,
+        const std::vector<const std::vector<double>*>& system_var_data,
+        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        double /*data_time*/,
+        void* /*ctx*/)
     {
-        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(system_var_data.size() == 1);
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         f = (FF * f0).unit();
         return;
     } // deformed_normalized_material_axis_fcn
@@ -174,18 +183,20 @@ public:
      * \note Assumes that the material axis is described by a piecewise constant
      * field.
      */
-    static inline void material_axis_stretch_fcn(double& lambda,
-                                                 const libMesh::TensorValue<double>& FF,
-                                                 const libMesh::Point& /*X*/,
-                                                 const libMesh::Point& /*s*/,
-                                                 libMesh::Elem* elem,
-                                                 const std::vector<libMesh::DenseVector<double> >& system_data,
-                                                 double /*data_time*/,
-                                                 void* ctx)
+    static inline void material_axis_stretch_fcn(
+        double& lambda,
+        const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& /*X*/,
+        const libMesh::Point& /*s*/,
+        libMesh::Elem* elem,
+        const std::vector<const std::vector<double>*>& system_var_data,
+        const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
+        double /*data_time*/,
+        void* ctx)
     {
-        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(system_var_data.size() == 1);
         libMesh::VectorValue<double> f0;
-        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = system_data[0](d);
+        for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         const libMesh::VectorValue<double> f = FF * f0;
         lambda = f.size() / f0.size();
         return;
@@ -204,34 +215,37 @@ public:
     /*!
      * Register a scalar-valued variable for reconstruction.
      */
-    virtual void registerScalarVariable(const std::string& var_name,
-                                        libMesh::FEFamily var_fe_family,
-                                        libMesh::Order var_fe_order,
-                                        IBTK::ScalarMeshFcnPtr var_fcn,
-                                        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-                                        void* var_fcn_ctx = NULL);
+    virtual void
+    registerScalarVariable(const std::string& name,
+                           libMesh::FEFamily fe_family,
+                           libMesh::Order fe_order,
+                           IBTK::ScalarMeshFcnPtr fcn,
+                           const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                           void* var_fcn_ctx = NULL);
 
     /*!
      * Register a vector-valued variable for reconstruction.
      */
-    virtual void registerVectorVariable(const std::string& var_name,
-                                        libMesh::FEFamily var_fe_family,
-                                        libMesh::Order var_fe_order,
-                                        IBTK::VectorMeshFcnPtr var_fcn,
-                                        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-                                        void* var_fcn_ctx = NULL,
-                                        unsigned int var_dim = NDIM);
+    virtual void
+    registerVectorVariable(const std::string& var_name,
+                           libMesh::FEFamily var_fe_family,
+                           libMesh::Order var_fe_order,
+                           IBTK::VectorMeshFcnPtr var_fcn,
+                           const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                           void* var_fcn_ctx = NULL,
+                           unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
      */
-    virtual void registerTensorVariable(const std::string& var_name,
-                                        libMesh::FEFamily var_fe_family,
-                                        libMesh::Order var_fe_order,
-                                        IBTK::TensorMeshFcnPtr var_fcn,
-                                        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-                                        void* var_fcn_ctx = NULL,
-                                        unsigned int var_dim = NDIM);
+    virtual void
+    registerTensorVariable(const std::string& var_name,
+                           libMesh::FEFamily var_fe_family,
+                           libMesh::Order var_fe_order,
+                           IBTK::TensorMeshFcnPtr var_fcn,
+                           const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                           void* var_fcn_ctx = NULL,
+                           unsigned int var_dim = NDIM);
 
     /*!
      * Register a scalar-valued Eulerian field for reconstruction on the FE
@@ -297,7 +311,7 @@ protected:
      */
     std::vector<libMesh::System*> d_scalar_var_systems;
     std::vector<IBTK::ScalarMeshFcnPtr> d_scalar_var_fcns;
-    std::vector<std::vector<unsigned int> > d_scalar_var_fcn_systems;
+    std::vector<std::vector<IBTK::SystemData> > d_scalar_var_system_data;
     std::vector<void*> d_scalar_var_fcn_ctxs;
 
     /*!
@@ -305,7 +319,7 @@ protected:
      */
     std::vector<libMesh::System*> d_vector_var_systems;
     std::vector<IBTK::VectorMeshFcnPtr> d_vector_var_fcns;
-    std::vector<std::vector<unsigned int> > d_vector_var_fcn_systems;
+    std::vector<std::vector<IBTK::SystemData> > d_vector_var_system_data;
     std::vector<void*> d_vector_var_fcn_ctxs;
     std::vector<unsigned int> d_vector_var_dims;
 
@@ -314,7 +328,7 @@ protected:
      */
     std::vector<libMesh::System*> d_tensor_var_systems;
     std::vector<IBTK::TensorMeshFcnPtr> d_tensor_var_fcns;
-    std::vector<std::vector<unsigned int> > d_tensor_var_fcn_systems;
+    std::vector<std::vector<IBTK::SystemData> > d_tensor_var_system_data;
     std::vector<void*> d_tensor_var_fcn_ctxs;
     std::vector<unsigned int> d_tensor_var_dims;
 
@@ -333,12 +347,6 @@ protected:
      * Collection of all systems managed by this object.
      */
     std::vector<libMesh::System*> d_var_systems;
-
-    /*!
-     * Collection of all systems required by mesh functions registered with this
-     * object.
-     */
-    std::set<unsigned int> d_var_fcn_systems;
 
 private:
     /*!

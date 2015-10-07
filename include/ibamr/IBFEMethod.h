@@ -171,16 +171,6 @@ public:
      * taken to be the same as the Lagrangian coordinate system, i.e., the
      * initial coordinate mapping is assumed to be the identity mapping.
      */
-    void registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx = NULL, unsigned int part = 0);
-
-    /*!
-     * Register the (optional) function used to initialize the physical
-     * coordinates from the Lagrangian coordinates.
-     *
-     * \note If no function is provided, the initial physical coordinates are
-     * taken to be the same as the Lagrangian coordinate system, i.e., the
-     * initial coordinate mapping is assumed to be the identity mapping.
-     */
     void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
@@ -194,36 +184,20 @@ public:
     struct PK1StressFcnData
     {
         PK1StressFcnData(PK1StressFcnPtr fcn = NULL,
-                         const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                         void* ctx = NULL,
-                         libMesh::QuadratureType quad_type = libMesh::INVALID_Q_RULE,
-                         libMesh::Order quad_order = libMesh::INVALID_ORDER)
-            : fcn(fcn), systems(systems), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
+                         const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                         void* const ctx = NULL,
+                         const libMesh::QuadratureType& quad_type = libMesh::INVALID_Q_RULE,
+                         const libMesh::Order& quad_order = libMesh::INVALID_ORDER)
+            : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(libMesh::INVALID_ORDER)
         {
         }
 
         PK1StressFcnPtr fcn;
-        std::vector<unsigned int> systems;
+        std::vector<IBTK::SystemData> system_data;
         void* ctx;
         libMesh::QuadratureType quad_type;
         libMesh::Order quad_order;
     };
-
-    /*!
-     * Register the (optional) function to compute the first Piola-Kirchhoff
-     * stress tensor, used to compute the forces on the Lagrangian finite
-     * element mesh.
-     *
-     * \note It is possible to register multiple PK1 stress functions with this
-     * class.  This is intended to be used to implement selective reduced
-     * integration.
-     */
-    void registerPK1StressFunction(PK1StressFcnPtr fcn,
-                                   const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                                   void* ctx = NULL,
-                                   libMesh::QuadratureType quad_type = libMesh::INVALID_Q_RULE,
-                                   libMesh::Order quad_order = libMesh::INVALID_ORDER,
-                                   unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute the first Piola-Kirchhoff
@@ -248,28 +222,16 @@ public:
     struct LagBodyForceFcnData
     {
         LagBodyForceFcnData(LagBodyForceFcnPtr fcn = NULL,
-                            const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                            void* ctx = NULL)
-            : fcn(fcn), systems(systems), ctx(ctx)
+                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                            void* const ctx = NULL)
+            : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
 
         LagBodyForceFcnPtr fcn;
-        std::vector<unsigned int> systems;
+        std::vector<IBTK::SystemData> system_data;
         void* ctx;
     };
-
-    /*!
-     * Register the (optional) function to compute body force distributions on
-     * the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple body force functions
-     * with this class.
-     */
-    void registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
-                                      const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                                      void* ctx = NULL,
-                                      unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute body force distributions on
@@ -292,28 +254,16 @@ public:
     struct LagSurfacePressureFcnData
     {
         LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = NULL,
-                                  const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                                  void* ctx = NULL)
-            : fcn(fcn), systems(systems), ctx(ctx)
+                                  const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                                  void* const ctx = NULL)
+            : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
 
         LagSurfacePressureFcnPtr fcn;
-        std::vector<unsigned int> systems;
+        std::vector<IBTK::SystemData> system_data;
         void* ctx;
     };
-
-    /*!
-     * Register the (optional) function to compute surface pressure
-     * distributions on the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple pressure functions with
-     * this class.
-     */
-    void registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
-                                            const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                                            void* ctx = NULL,
-                                            unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute surface pressure
@@ -336,28 +286,16 @@ public:
     struct LagSurfaceForceFcnData
     {
         LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = NULL,
-                               const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                               void* ctx = NULL)
-            : fcn(fcn), systems(systems), ctx(ctx)
+                               const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                               void* const ctx = NULL)
+            : fcn(fcn), system_data(system_data), ctx(ctx)
         {
         }
 
         LagSurfaceForceFcnPtr fcn;
-        std::vector<unsigned int> systems;
+        std::vector<IBTK::SystemData> system_data;
         void* ctx;
     };
-
-    /*!
-     * Register the (optional) function to compute surface force distributions
-     * on the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple surface force functions
-     * with this class.
-     */
-    void registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
-                                         const std::vector<unsigned int>& systems = std::vector<unsigned int>(),
-                                         void* ctx = NULL,
-                                         unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute surface force distributions
@@ -654,11 +592,6 @@ protected:
     std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
-
-    /*
-     * Collection of all systems required to evaluate various quantities.
-     */
-    std::vector<std::set<unsigned int> > d_fcn_systems, d_body_fcn_systems, d_surface_fcn_systems;
 
     /*
      * Nonuniform load balancing data structures.
