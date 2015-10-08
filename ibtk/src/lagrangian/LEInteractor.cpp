@@ -2747,7 +2747,6 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(mask_data);
-    TBOX_ASSERT(spread_fcn == "IB_4");
 #else
     NULL_USE(Q_size);
 #endif
