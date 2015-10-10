@@ -281,6 +281,8 @@ int main(int argc, char* argv[])
 
         // Set up post processor to recover computed stresses.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        Pointer<IBFEPostProcessor> ib_post_processor;
+#if 0
         Pointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
 
@@ -304,7 +306,7 @@ int main(int argc, char* argv[])
                                                 /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
         ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
                                                                       p_ghostfill, p_interp_spec);
-
+#endif
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -366,7 +368,7 @@ int main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        ib_post_processor->initializeFEData();
+        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -389,7 +391,7 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                ib_post_processor->postProcessData(loop_time);
+                if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                           loop_time);
             }
@@ -440,7 +442,7 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    ib_post_processor->postProcessData(loop_time);
+                    if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                               loop_time);
                 }
