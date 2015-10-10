@@ -43,10 +43,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FEDataInterpolation::FEDataInterpolation(const unsigned int dim)
-    : d_dim(dim), d_initialized(false), d_eval_q_point(false), d_eval_JxW(false), d_eval_q_point_face(false),
-      d_eval_JxW_face(false), d_eval_normal_face(false), d_qrule(NULL), d_qrule_face(NULL), d_q_point(NULL),
-      d_q_point_face(NULL), d_JxW(NULL), d_JxW_face(NULL), d_normal_face(NULL), d_current_elem(NULL)
+FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
+    : d_dim(dim), d_fe_data_manager(fe_data_manager), d_initialized(false), d_eval_q_point(false), d_eval_JxW(false),
+      d_eval_q_point_face(false), d_eval_JxW_face(false), d_eval_normal_face(false), d_qrule(NULL), d_qrule_face(NULL),
+      d_q_point(NULL), d_q_point_face(NULL), d_JxW(NULL), d_JxW_face(NULL), d_normal_face(NULL), d_current_elem(NULL)
 {
     return;
 }
@@ -62,7 +62,7 @@ void FEDataInterpolation::registerSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
+    for (std::vector<const System*>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
          it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
@@ -112,7 +112,7 @@ size_t FEDataInterpolation::registerInterpolatedSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (std::vector<const System*>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
         {
@@ -196,7 +196,7 @@ void FEDataInterpolation::setInterpolatedDataPointers(
     return;
 }
 
-void FEDataInterpolation::init()
+void FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
 {
     TBOX_ASSERT(!d_initialized);
 
@@ -262,6 +262,16 @@ void FEDataInterpolation::init()
     {
         const System& system = *d_noninterp_systems[system_idx];
         const DofMap& system_dof_map = system.get_dof_map();
+        NumericVector<double>*& system_data = d_system_data[system_idx];
+        if (!system_data) system_data = system.current_local_solution.get();
+        if (use_IB_ghosted_vecs)
+        {
+            NumericVector<double>* ghost_data =
+                d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
+            system_data->localize(*ghost_data);
+            ghost_data->close();
+            system_data = ghost_data;
+        }
 
         const std::vector<int>& phi_vars = d_noninterp_system_phi_vars[system_idx];
         for (unsigned int k = 0; k < phi_vars.size(); ++k)
@@ -379,7 +389,6 @@ void FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
         // Get the DOF mappings and local data for all variables.
         std::vector<std::vector<unsigned int> > dof_indices(num_vars);
         NumericVector<double>* system_data = d_system_data[system_idx];
-        if (!system_data) system_data = system.current_local_solution.get();
         for (size_t k = 0; k < num_vars; ++k)
         {
             system_dof_map.dof_indices(d_current_elem, dof_indices[k], all_vars[k]);

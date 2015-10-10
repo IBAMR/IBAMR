@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "boost/multi_array.hpp"
+#include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/equation_systems.h"
 
@@ -50,7 +51,7 @@ namespace IBTK
 class FEDataInterpolation
 {
 public:
-    FEDataInterpolation(const unsigned int dim = NDIM);
+    FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
 
     ~FEDataInterpolation();
 
@@ -264,7 +265,7 @@ public:
      *
      * NOTE: This method must be called before reinitializing data on individual elements.
      */
-    void init();
+    void init(bool use_IB_ghosted_vecs);
 
     /*!
      * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified element.
@@ -281,36 +282,37 @@ public:
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
-    void reinit(const libMesh::Elem* const elem,
-                const unsigned int side,
-                const double tol = libMesh::TOLERANCE,
-                const std::vector<libMesh::Point>* const points = NULL,
+    void reinit(const libMesh::Elem* elem,
+                unsigned int side,
+                double tol = libMesh::TOLERANCE,
+                const std::vector<libMesh::Point>* points = NULL,
                 const std::vector<double>* weights = NULL);
 
     /*!
      * \brief Get the local (element) data to be interpolated from the global vectors.
      */
-    void collectDataForInterpolation(const libMesh::Elem* const elem);
+    void collectDataForInterpolation(const libMesh::Elem* elem);
 
     /*!
      * \brief Provide the elemental data associated with the given system index and element.
      */
-    const boost::multi_array<double, 2>& getElemData(const libMesh::Elem* const elem, const size_t system_idx);
+    const boost::multi_array<double, 2>& getElemData(const libMesh::Elem* elem, size_t system_idx);
 
     /*!
      * \brief Interpolate FE data on the specified element.
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
-    void interpolate(const libMesh::Elem* const elem);
+    void interpolate(const libMesh::Elem* elem);
     /*!
      * \brief Interpolate FE data on the specified side of the specified element.
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
-    void interpolate(const libMesh::Elem* const elem, const int side);
+    void interpolate(const libMesh::Elem* elem, int side);
 
 private:
+    FEDataInterpolation();
     FEDataInterpolation(const FEDataInterpolation&);
     FEDataInterpolation& operator=(const FEDataInterpolation&);
 
@@ -323,6 +325,7 @@ private:
                       const std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*>& dphi_data);
 
     const unsigned int d_dim;
+    FEDataManager* const d_fe_data_manager;
     bool d_initialized;
     bool d_eval_q_point, d_eval_JxW, d_eval_q_point_face, d_eval_JxW_face, d_eval_normal_face;
     libMesh::QBase *d_qrule, *d_qrule_face;

@@ -967,7 +967,7 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
-    FEDataInterpolation fe(dim);
+    FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -988,7 +988,7 @@ void IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
                                           d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-    fe.init();
+    fe.init(/*use_IB_ghosted_vecs*/ false);
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
@@ -1154,7 +1154,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim);
+        FEDataInterpolation fe(dim, d_fe_data_managers[part]);
         AutoPtr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
         AutoPtr<QBase> qrule_face =
@@ -1171,7 +1171,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         std::vector<size_t> PK1_fcn_system_idxs;
         fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs, d_PK1_stress_fcn_data[part][k].system_data,
                                               equation_systems);
-        fe.init();
+        fe.init(/*use_IB_ghosted_vecs*/ false);
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -1328,7 +1328,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<int> Phi_vars(1, 0);
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim);
+    FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
     AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
     fe.attachQuadratureRule(qrule.get());
@@ -1351,7 +1351,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
                                           d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-    fe.init();
+    fe.init(/*use_IB_ghosted_vecs*/ false);
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -1578,7 +1578,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim);
+    FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1598,7 +1598,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
                                           d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-    fe.init();
+    fe.init(/*use_IB_ghosted_vecs*/ true);
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
@@ -1806,7 +1806,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim);
+    FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1825,7 +1825,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(surface_pressure_fcn_system_idxs,
                                           d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-    fe.init();
+    fe.init(/*use_IB_ghosted_vecs*/ true);
 
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
 
@@ -2231,8 +2231,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
+                                    "or only SECOND order elements" << std::endl);
     }
     if (mesh_has_first_order_elems)
     {
