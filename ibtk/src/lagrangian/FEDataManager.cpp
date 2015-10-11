@@ -370,6 +370,17 @@ const FEDataManager::SpreadSpec& FEDataManager::getDefaultSpreadSpec() const
     return d_default_spread_spec;
 } // getDefaultSpreadSpec
 
+Pointer<SideVariable<NDIM, double> > FEDataManager::getMaskingVariable() const
+{
+    return d_mask_var;
+
+} // getMaskingVariable
+
+int FEDataManager::getMaskingVariablePatchDataIndex() const
+{
+    return d_mask_idx;
+} // getMaskingVariablePatchDataIndex
+
 const std::vector<std::vector<Elem*> >& FEDataManager::getActivePatchElementMap() const
 {
     return d_active_patch_elem_map;
