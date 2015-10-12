@@ -104,7 +104,6 @@ namespace IBAMR
 class IBFEMethod : public IBStrategy
 {
 public:
-    static const std::string BODY_VELOCITY_SYSTEM_NAME;
     static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;

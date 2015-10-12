@@ -289,7 +289,6 @@ void assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
 }
 }
 
-const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity system";
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFEMethod::FORCE_SYSTEM_NAME = "IB force system";
