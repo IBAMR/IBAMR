@@ -188,7 +188,7 @@ public:
                          void* const ctx = NULL,
                          const libMesh::QuadratureType& quad_type = libMesh::INVALID_Q_RULE,
                          const libMesh::Order& quad_order = libMesh::INVALID_ORDER)
-            : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(libMesh::INVALID_ORDER)
+            : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
         {
         }
 
