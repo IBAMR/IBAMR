@@ -238,6 +238,17 @@ void FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
         const System& system = *d_systems[system_idx];
         const DofMap& system_dof_map = system.get_dof_map();
 
+        NumericVector<double>*& system_data = d_system_data[system_idx];
+        if (!system_data) system_data = system.current_local_solution.get();
+        if (use_IB_ghosted_vecs)
+        {
+            NumericVector<double>* ghost_data =
+                d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
+            system_data->localize(*ghost_data);
+            ghost_data->close();
+            system_data = ghost_data;
+        }
+
         const std::vector<int>& vars = d_system_vars[system_idx];
         d_system_var_fe_type_idx[system_idx].resize(vars.size(), -1);
         for (unsigned int k = 0; k < vars.size(); ++k)
@@ -262,16 +273,6 @@ void FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     {
         const System& system = *d_noninterp_systems[system_idx];
         const DofMap& system_dof_map = system.get_dof_map();
-        NumericVector<double>*& system_data = d_system_data[system_idx];
-        if (!system_data) system_data = system.current_local_solution.get();
-        if (use_IB_ghosted_vecs)
-        {
-            NumericVector<double>* ghost_data =
-                d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
-            system_data->localize(*ghost_data);
-            ghost_data->close();
-            system_data = ghost_data;
-        }
 
         const std::vector<int>& phi_vars = d_noninterp_system_phi_vars[system_idx];
         for (unsigned int k = 0; k < phi_vars.size(); ++k)
