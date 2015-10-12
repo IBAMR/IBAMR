@@ -163,7 +163,7 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
-        libMesh::Elem* elem,
+        libMesh::Elem* /*elem*/,
         const std::vector<const std::vector<double>*>& system_var_data,
         const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
         double /*data_time*/,
@@ -188,11 +188,11 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
-        libMesh::Elem* elem,
+        libMesh::Elem* /*elem*/,
         const std::vector<const std::vector<double>*>& system_var_data,
         const std::vector<const std::vector<libMesh::VectorValue<double> >*>& /*system_grad_var_data*/,
         double /*data_time*/,
-        void* ctx)
+        void* /*ctx*/)
     {
         TBOX_ASSERT(system_var_data.size() == 1);
         libMesh::VectorValue<double> f0;
