@@ -182,6 +182,20 @@ public:
     solveSystem(
         Vec x,
         Vec b);
+
+       /*!`
+     * \brief Solve the linear system of equations \f$ K*M^-1*K^T x=b \f$ for \f$ x \f$.
+     *
+     * \param x solution vector
+     * \param b right-hand-side vector
+     *
+     * \return \p true if the solver converged to the specified tolerances, \p
+     * false otherwise
+     */
+    bool
+    solveBodySystem(
+        Vec x,
+        Vec b);
     
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$ Mx = b \f$.

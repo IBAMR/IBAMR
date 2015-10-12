@@ -479,7 +479,32 @@ KrylovMobilitySolver::solveSystem(
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
 }// solveSystem
+bool
+KrylovMobilitySolver::solveBodySystem(
+    Vec x,
+    Vec b)
+{
+    IBTK_TIMER_START(t_solve_system);
 
+    Vec d_petsc_temp_v, d_petsc_temp_f;
+    VecDuplicate(d_petsc_b, &d_petsc_temp_v);
+    VecDuplicate(d_petsc_b, &d_petsc_temp_f);
+    VecSet(d_petsc_temp_v, 0.0);
+
+    d_cib_strategy->setRigidBodyVelocity(b, d_petsc_temp_v, /*only_free_dofs*/ true,
+                                                 /*only_imposed_dofs*/ false);
+
+    // b) Solve the mobility problem.
+    bool converged = solveSystem(d_petsc_temp_f, d_petsc_temp_v);
+
+    // c) Compute the generalized force and torque.
+    d_cib_strategy->computeNetRigidGeneralizedForce(d_petsc_temp_f, x, /*only_free_dofs*/ true,
+                                                            /*only_imposed_dofs*/ false);
+    VecDestroy(&d_petsc_temp_v);
+    VecDestroy(&d_petsc_temp_f);
+    IBTK_TIMER_STOP(t_solve_system);
+    return converged;
+}
 void
 KrylovMobilitySolver::initializeSolverState(
     Vec x,
