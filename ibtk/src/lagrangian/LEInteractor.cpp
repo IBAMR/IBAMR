@@ -693,10 +693,12 @@ void perform_mls(const int stencil_sz,
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
                 const Index<NDIM> idx(ic0, ic1);
-                T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
+                T[i1][i0] = D[0][i0] * D[1][i1]; // * mask_data(idx, /*depth*/ 0);
+                TBOX_ASSERT(mask_data(idx, 0) == 1.0);
 #elif(NDIM == 3)
             const Index<NDIM> idx(ic0, ic1, ic2);
-            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2]; // * mask_data(idx, /*depth*/ 0);
+            TBOX_ASSERT(mask_data(idx, 0) == 1.0);
 #endif
             }
         }
@@ -773,7 +775,9 @@ void perform_mls(const int stencil_sz,
                     p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
                     Psi[i1][i0] += L[j] * p_j;
                 }
-                Psi[i1][i0] *= T[i1][i0];
+                // TBOX_ASSERT(Psi[i1][i0] == 1.0);
+                // Psi[i1][i0] *= T[i1][i0];
+                Psi[i1][i0] = T[i1][i0];
 #elif(NDIM == 3)
             for (int j = 0; j <= 3; ++j)
             {
@@ -1815,7 +1819,6 @@ void LEInteractor::interpolate(double* const Q_data,
     const double* const dx = pgeom->getDx();
     const Box<NDIM>& patch_box = patch->getBox();
     const IntVector<NDIM>& ilower = patch_box.lower();
-    const IntVector<NDIM>& iupper = patch_box.upper();
 
     // Get ghost cell width info.
     const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
@@ -1840,9 +1843,6 @@ void LEInteractor::interpolate(double* const Q_data,
                    << "  minimum ghost cell width = " << stencil_size << "\n"
                    << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
-
-    const IntVector<NDIM> ig_lower = ilower - q_gcw;
-    const IntVector<NDIM> ig_upper = (iupper + 1) + q_gcw;
 
     // Get boundary info.
     boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
@@ -1870,6 +1870,10 @@ void LEInteractor::interpolate(double* const Q_data,
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
+            Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis);
+            const IntVector<NDIM> ig_lower = data_box.lower() - q_gcw;
+            const IntVector<NDIM> ig_upper = data_box.upper() + q_gcw;
+
             for (int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -2368,11 +2372,11 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
-           X_depth, patch, spread_box, interp_fcn);
+           X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
@@ -2383,11 +2387,11 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(mask_data, q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0],
-           static_cast<int>(X_data.size()), X_depth, patch, spread_box, interp_fcn);
+           static_cast<int>(X_data.size()), X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
@@ -2397,11 +2401,11 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
-           X_depth, patch, spread_box, interp_fcn);
+           X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
@@ -2411,11 +2415,11 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
-           X_depth, patch, spread_box, interp_fcn);
+           X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
@@ -2426,11 +2430,11 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(mask_data, q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0],
-           static_cast<int>(X_data.size()), X_depth, patch, spread_box, interp_fcn);
+           static_cast<int>(X_data.size()), X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
@@ -2440,11 +2444,11 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                           const int X_depth,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& spread_box,
-                          const std::string& interp_fcn)
+                          const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
-           X_depth, patch, spread_box, interp_fcn);
+           X_depth, patch, spread_box, spread_fcn);
 }
 
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
@@ -2757,7 +2761,6 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
     const double* const dx = pgeom->getDx();
     const Box<NDIM>& patch_box = patch->getBox();
     const IntVector<NDIM>& ilower = patch_box.lower();
-    const IntVector<NDIM>& iupper = patch_box.upper();
 
     // Get ghost cell width info.
     const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
@@ -2782,9 +2785,6 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
                    << "  minimum ghost cell width = " << stencil_size << "\n"
                    << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
-
-    const IntVector<NDIM> ig_lower = ilower - q_gcw;
-    const IntVector<NDIM> ig_upper = (iupper + 1) + q_gcw;
 
     // Determine the boundary info.
     boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
@@ -2811,6 +2811,10 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
         IntVector<NDIM> stencil_lower, stencil_upper;
         for (int axis = 0; axis < NDIM; ++axis)
         {
+            Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis);
+            const IntVector<NDIM> ig_lower = data_box.lower() - q_gcw;
+            const IntVector<NDIM> ig_upper = data_box.upper() + q_gcw;
+
             for (int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -2823,9 +2827,8 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
             {
                 MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
-                get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
-                                mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
-
+                get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower_axis.data(),
+                                ilower, mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
                 spread_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper, dx,
                             q_data->getArrayData(axis), 0, Psi, Q_data[s * Q_depth + axis]);
             }

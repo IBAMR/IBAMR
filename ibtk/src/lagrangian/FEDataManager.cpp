@@ -2605,7 +2605,15 @@ void FEDataManager::updateMaskingData(NumericVector<double>& X_vec, const double
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-        mask_data->fillAll(0.0);
+        const Box<NDIM>& ghost_box = mask_data->getGhostBox();
+        const Box<NDIM>& box = mask_data->getBox();
+        const IntVector<NDIM>& gcw = mask_data->getGhostCellWidth();
+        TBOX_ASSERT(gcw == 4);
+        TBOX_ASSERT(box.lower() - gcw == ghost_box.lower());
+        TBOX_ASSERT(box.upper() + gcw == ghost_box.upper());
+        mask_data->fillAll(1.0, ghost_box);
+        // mask_data->fillAll(1.0);
+        continue;
 
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
