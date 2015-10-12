@@ -309,7 +309,7 @@ public:
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
      */
-    void interpolate(const libMesh::Elem* elem, int side);
+    void interpolate(const libMesh::Elem* elem, unsigned int side);
 
 private:
     FEDataInterpolation();

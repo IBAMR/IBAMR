@@ -417,7 +417,7 @@ void FEDataInterpolation::interpolate(const Elem* const elem)
     return;
 }
 
-void FEDataInterpolation::interpolate(const Elem* const elem, const int side)
+void FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int side)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(d_qrule_face);
