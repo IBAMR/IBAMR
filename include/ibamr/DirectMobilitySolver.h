@@ -210,6 +210,18 @@ public:
     bool solveSystem(Vec x, Vec b, const bool skip_nonfree_parts=false);
 
     /*!
+     * \brief Solves the body mobility problem.
+     *
+     * \param x Vec storing the body velocity
+     *
+     * \param b Vec storing the applied force
+     *
+     * \return \p true if the solver converged to the specified tolerances, \p
+     * false otherwise
+     */
+    bool solveBodySystem(Vec x, Vec b);
+
+    /*!
      * \brief Return the ids of the structures associated with the dense
          * mobility matrix formation.
          *
@@ -247,9 +259,24 @@ private:
     void generateFrictionMatrix();
 
     /*!
+         * \brief Compute the a body mobility matrix using direct solvers.
+         */
+    void generateBodyMobilityMatrix();
+
+    /*!
      * \brief Compute solution and store in the rhs vector.
      */
-    void computeSolution(const std::string& mat_name, double* rhs);
+    void computeSolution(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility=false);
+
+    /*!
+     * \brief provide a matrix decomposition.
+     */
+    void decomposeMatrix(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, const bool BodyMobility=false);
+
+    /*!
+     * \brief computes a matrix inverse.
+     */
+    void getInverseMatrix(const std::string& mat_name, double* managed_mat, double* inverse_mat, const int mat_size, const MobilityMatrixInverseType inv_type, const bool BodyMobility=false);
 
     // Solver stuff
     std::string d_object_name;
@@ -259,7 +286,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
 
     // Structure(s) stuff.
+
     std::map<std::string, double*> d_managed_mat_map;
+    std::map<std::string, double*> d_body_mob_mat_map;
     std::map<std::string, int> d_managed_mat_proc_map;
     std::map<std::string, std::vector<unsigned> > d_managed_mat_prototype_id_map;
     std::map<std::string, std::vector<std::vector<unsigned> > > d_managed_mat_actual_id_map;
@@ -268,6 +297,7 @@ private:
     std::map<std::string, unsigned int> d_managed_mat_nodes_map;
     std::map<std::string, std::pair<double, double> > d_managed_mat_scale_map;
     std::map<std::string, std::string> d_managed_mat_filename_map;
+    std::map<unsigned, std::string > d_actual_id_managed_mat_map;
 
     // System physical parameters.
     double d_mu;
@@ -279,6 +309,7 @@ private:
     bool d_recompute_mob_mat;
     double d_svd_inv_tol, d_svd_inv_eps;
     std::map<std::string, int*> d_ipiv; // for LAPACK LU calls
+    std::map<std::string, int*> d_body_ipiv; // for LAPACK LU calls
 
 }; // DirectMobilitySolver
 

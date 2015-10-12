@@ -104,6 +104,15 @@ public:
     typedef void (*preprocessSolveFluidEqn_callbackfcn)(const double, const double, const int, void*);
 
     /*!
+     * \brief Typedef specifying interface for specifying slip velocities.
+     */
+    typedef void (*VelocityDeformationFunctionPtr)(const unsigned int part,
+						   Vec V,
+                                                   Vec X,
+                                                   const Eigen::Vector3d& X_com,
+						   IBAMR::CIBMethod* d_cib_method);
+
+    /*!
      * \brief Struct encapsulating constrained velocity functions data.
      */
     struct ConstrainedVelocityFcnsData
@@ -145,6 +154,11 @@ public:
      * \brief Register a constrained body velocity function data.
      */
     void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
+
+    /*!
+     * \brief register deformation velocity.
+     */
+    void registerRigidBodyVelocityDeformationFunction(VelocityDeformationFunctionPtr VelDefFun);
 
     /*!
      * \brief Register an external force and torque function.
@@ -352,6 +366,13 @@ public:
      */
     void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
 
+    // \see CIBStrategy::setRigidBodyDeformationVelocity method.
+    /*!
+     * \brief set deformation velocity.
+     */
+    void setRigidBodyDeformationVelocity(const unsigned int part, Vec y);
+
+
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
@@ -383,20 +404,32 @@ public:
      * \brief Generate dense mobility matrix for the prototypical structures
      * identified by their indices.
      */
-    void constructMobilityMatrix(const std::string& mat_name,
-                                 MobilityMatrixType mat_type,
-                                 double* mobility_mat,
-                                 const std::vector<unsigned>& prototype_struct_ids,
-                                 const double* grid_dx,
-                                 const double* domain_extents,
-                                 const bool initial_time,
-                                 double rho,
-                                 double mu,
-                                 const std::pair<double, double>& scale,
-                                 double f_periodic_corr,
-                                 const int managing_rank);
+    void constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
+				 std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
+				 std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
+				 std::map<std::string, unsigned int>& managed_mat_nodes_map,
+				 std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
+				 std::map<std::string, int>& managed_mat_proc_map,
+				 const double* grid_dx,
+				 const double* domain_extents,
+				 const bool initial_time,
+				 double rho,
+				 double mu,
+				 double f_periodic_corr);
 
-    //\see CIBStrategy:: rotateArrayInitalBodyFrame method.
+    // \see CIBStrategy::constructBodyMobilityMatrix() method.
+    /*!
+     * \brief Generate dense body mobility matrix for the free structures
+     * identified by their ids.
+     */
+    void constructBodyMobilityMatrix(const std::string& mat_name,
+				     double* mobility_mat,
+				     double* body_mobility_mat,
+				     const std::vector<unsigned>& prototype_struct_ids,
+				     const bool initial_time,
+				     const int managing_rank);
+    
+   //\see CIBStrategy:: rotateArrayInitalBodyFrame method.
     /*!
      * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
      *
@@ -404,7 +437,8 @@ public:
     void rotateArrayInitalBodyFrame(double* array, 
 				    const std::vector<unsigned>& struct_ids,
 				    const bool isTranspose,
-				    const int managing_rank);
+				    const int managing_rank,
+				    const bool BodyMobility = false);
 
 
     /*!
@@ -528,6 +562,7 @@ private:
 
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
+    VelocityDeformationFunctionPtr d_VelDefFun;
 }; // CIBMethod
 } // namespace IBAMR
 

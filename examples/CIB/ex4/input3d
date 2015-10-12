@@ -3,12 +3,12 @@
 //shell with applied random force and torque  - RANDOM_FORCE
 
 
-//run_example = "SQUIMER"
+run_example = "SQUIMER"
 B1_squimer = 1.0
 B2_squimer = 0.0
 
 
-run_example = "RANDOM_FORCE"
+//run_example = "RANDOM_FORCE"
 DRAG_SCALE = 100.0
 TORQUE_SCALE = 100.0
 
@@ -16,19 +16,8 @@ TORQUE_SCALE = 100.0
 MU  =  1.0                   // fluid viscosity
 RHO =  0.0                   // fluid density
 
-RECOMPUTE_MOB = FALSE
-
-//PCBodyMobility="shell"
-PCBodyMobility="none"
-FBMS_iter=4
-FBMS_tol=1e-9
-
 // constants
 PI         = 3.141592653589
-VISC_CFL   = 1E-16           // desired viscous CFL number
-STOKES_ITER = 4
-STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
 U_WALL = 0.0 // Wall velocity
 
@@ -38,14 +27,20 @@ NORMALIZE_PRESSURE  = TRUE           // whether to explicitly force the pressure
 NORMALIZE_VELOCITY  = (PERIODIC==1)  // for Stokes flow (rho = 0)
 
 // Gridding
-N = 64                       // number of grid cells along height of domain
-PATCH_SIZE = N               // parallelization and testing
-DX = 0.5                     // grid spacing
-L = N*DX                     // length of domain
-DT = 0.01//1e-16 //VISC_CFL*DX^2/MU        // maximum timestep size
+N = 64               // number of grid cells along height of domain
+PATCH_SIZE = N       // max patch size
+DX = 0.5             // grid spacing
+L = N*DX             // length of domain
+DT = 0.01            // maximum timestep size
 
 // solver parameters
+SOLVER_KSP = "gmres"
+STOKES_KSP = "preonly"
+STOKES_ITER = 4
+STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
+SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
+RECOMPUTE_MOB = FALSE
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
 END_TIME             = DT*3                   // final simulation time
@@ -98,9 +93,8 @@ CIBMethod {
 }
 
 CIBStandardInitializer {
-   //active suspension code
-   structure_names          = "shell_3d_42","shell_3d_162"
-      structs_clones_num        = 4,3
+    structure_names          = "shell_3d_42","shell_3d_162"
+    structs_clones_num        = 4,3
    
     posn_shift = L/2. , L/2., L/2.
     max_levels      = MAX_LEVELS
@@ -133,9 +127,9 @@ CIBStaggeredStokesSolver
     max_iterations        = 100
     rel_residual_tol      = SOLVER_TOL
     abs_residual_tol      = 1e-50
-    ksp_type              = "fgmres"
+    ksp_type              = SOLVER_KSP
     pc_type               = "shell"
-    initial_guess_nonzero = FALSE
+    initial_guess_nonzero = TRUE
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
   
@@ -148,7 +142,7 @@ CIBStaggeredStokesSolver
         stokes_solver_db
         {
             max_iterations   = STOKES_ITER
-            ksp_type         = "gmres"
+            ksp_type         = STOKES_KSP
             rel_residual_tol = STOKES_TOL
             abs_residual_tol = 0.0
         }
@@ -259,21 +253,6 @@ CIBStaggeredStokesSolver
             eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
         }
    }
-  FreeBodyMobilitySolver
-  { 
-      max_iterations = FBMS_iter
-      rel_residual_tol  = FBMS_tol
-      abs_residual_tol  = 0 
-      
-      pc_type=PCBodyMobility
-      //pc_type           = "shell"
-      effective_body_hydrad = 2.2162 //effective radius of the body (used in preconditioner      
-      body_hydroradius = 2.0 //effective radius of the body (used in preconditioner
-      
-     
-  }
-  
-
 } // cIBStaggeredStokesSolver
 
 
@@ -306,18 +285,18 @@ INSStaggeredHierarchyIntegrator {
 Main {
 
 // log file parameters
-   log_file_name               = "3d_example.log"
+   log_file_name               = "3d_shells_clones.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 1
-   viz_dump_dirname            = "viz_icosahedron3d"
+   viz_dump_dirname            = "viz_3d_shells_clones"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_2shells_3d"
+   restart_dump_dirname        = "restart_3d_shells"
 
 // timer dump parameters
    timer_dump_interval         = 1

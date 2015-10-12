@@ -259,8 +259,14 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     // Set the imposed velocity for all bodies in the RHS.
     Vec V;
     VecDuplicate(L, &V);
+
+    Vec W;
+    VecDuplicate(L, &W);
+    VecSet(W, 0.0);
+
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
+	d_cib_strategy->setRigidBodyDeformationVelocity(part,W);
         RigidDOFVector U_part;
         d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
 
@@ -276,6 +282,9 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
         U_part *= -interp_scale;
         d_cib_strategy->setRigidBodyVelocity(part, U_part, V);
     }
+
+    VecAXPY(V,1.0,W);
+    VecDestroy(&W);
 
     // Get the net external force and torque on the bodies.
     Vec F;
@@ -386,9 +395,9 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 	if (!SAMRAI_MPI::getRank())
 	{
 	    std::string fname="U_freeswim.out";
-	    if (!d_current_time)
-		U_out.open(fname.c_str(), std::ios::out );
-	    else
+	    // if (!d_current_time)
+	    // 	U_out.open(fname.c_str(), std::ios::out );
+	    // else
 		U_out.open(fname.c_str(), std::ios::out | std::ios::app);
 	    U_out << "\n"<< "sturucture swimming velocity at time  " << half_time << std::endl;
 	}

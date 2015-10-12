@@ -32,6 +32,7 @@
 #include <Eigen/Geometry>
 // Config files
 #include <IBAMR_config.h>
+
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
@@ -64,14 +65,20 @@
 #include <ibtk/LDataManager.h>
 #include <ibamr/RNG.h>
 
-//////////////////////////////////////////////////////////////////////////////
-static double B1,B2;
-void SlipVelocity(const unsigned part, Vec U_k,  const RigidDOFVector& U, Vec X, const Eigen::Vector3d& Xin_com, double data_time, void* ctx, CIBMethod* cib_method)
-{
-    Vec Vslip;
-    VecDuplicate(U_k, &Vslip);
-    VecSet(Vslip, 0.0);
 
+//////////////////////////////////////////////////////////////////////////////
+// Center of mass velocity
+void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+{
+    U_com.setZero();
+    W_com.setZero();
+    return;
+} // ConstrainedCOMInnerVel
+
+static double B1,B2;
+void SlipVelocity(const unsigned part, Vec U_k,  Vec X, 
+		  const Eigen::Vector3d& Xin_com, CIBMethod* cib_method)
+{
     const int struct_ln = cib_method->getStructuresLevelNumber();
     // Get the position data
     double* V_array=NULL; 
@@ -121,51 +128,9 @@ void SlipVelocity(const unsigned part, Vec U_k,  const RigidDOFVector& U, Vec X,
 	    for (unsigned d=0; d<NDIM; ++d) V_array[i*NDIM+d] = rot_vec[d];
 	}
     }
-    cib_method->copyArrayToVec(Vslip, V_array, (std::vector<unsigned int>(1, part)), NDIM, 0);
-    
 
-    // Wrap the PETSc V into LData
-    std::vector<int> nonlocal_indices;
-    LData V_data("V", U_k, nonlocal_indices, false);
+    cib_method->copyArrayToVec(U_k, V_array, (std::vector<unsigned int>(1, part)), NDIM, 0);
 
-    boost::multi_array_ref<double, 2>& V_data_array = *V_data.getLocalFormVecArray();
-    
-    const Pointer<LMesh> mesh = cib_method->getLDataManager()->getLMesh(struct_ln);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    const std::pair<int, int>& part_idx_range = cib_method->getLDataManager()->getLagrangianStructureIndexRange(part, struct_ln);
-    
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-    {
-	const LNode* const node_idx = *cit;
-	const int lag_idx = node_idx->getLagrangianIndex();
-	Eigen::Vector3d dr;
-	Eigen::Vector3d R_dr;
-	
-	
-	if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
-	{
-	    const int local_idx = node_idx->getLocalPETScIndex();
-	    double* const V_node = &V_data_array[local_idx][0];
-	    
-	    const IBTK::Point& X =  cib_method->getStandardInitializer()->getVertexPosn(struct_ln,part,lag_idx-part_idx_range.first);
-	    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - X_com[d];
-	    
-	    R_dr = body_rot_matrix*dr; 
-	    
-	    V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
-	    V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
-	    V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
-	}
-    }
-    
-    // Restore underlying arrays
-    V_data.restoreArrays();
-    
-    VecAXPY(U_k, 1.0, Vslip);
-
-    VecDestroy(&Vslip);
-    if (!SAMRAI_MPI::getRank()) delete[] V_array;
-	
     return;
 }
 
@@ -175,11 +140,11 @@ void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
 
-    // F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
-    // T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
+    F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
+    T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
 
-    F_ext << B1, 0, 0;
-    T_ext << B2, 0, 0;
+//    F_ext << B1, 0, 0;
+//    T_ext << B2, 0, 0;
     return;
 } // NetExternalForceTorque
 
@@ -202,6 +167,10 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *******************************************************************************/
 int main(int argc, char* argv[])
 {
+
+    extern bool print_time; //Printing time report
+    print_time = false;
+
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -317,12 +286,16 @@ int main(int argc, char* argv[])
 	{
 	    FreeRigidDOFVector free_dofs;
 	    free_dofs << 1, 1, 1, 1, 1, 1;
+//	    free_dofs << 0, 0, 0, 0, 0, 0;
 	    ib_method_ops->setSolveRigidBodyVelocity(i, free_dofs);
 	    //Register slip velocity function for saddle point solver RHS 
 	    //register slip velocity function
 	    if (example_to_run=="SQUIMER")
 	    {
-		ib_method_ops->registerConstrainedVelocityFunction(&SlipVelocity, NULL, NULL, i);
+//			ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, i);
+
+		ib_method_ops->registerRigidBodyVelocityDeformationFunction(&SlipVelocity);
+ 		//ib_method_ops->registerConstrainedVelocityFunction(&SlipVelocity, NULL, NULL, i);
 	    }
 	    else if (example_to_run=="RANDOM_FORCE")
 	    {
@@ -419,7 +392,7 @@ int main(int argc, char* argv[])
 		    convert<<istruct;
 		    mat_name += convert.str();
 		    
-		    direct_solvers->registerMobilityMat(mat_name, prototype_ID+istruct, EMPIRICAL, LAPACK_SVD, counter%num_nodes);
+		    direct_solvers->registerMobilityMat(mat_name, prototype_ID+istruct, EMPIRICAL, LAPACK_LU, counter%num_nodes);
 		    
 		    std::vector<std::vector<unsigned> > struct_ids;
 		    struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+istruct));

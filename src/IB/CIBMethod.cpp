@@ -51,6 +51,9 @@ namespace IBAMR
 {
 
 extern "C" {
+// LAPACK function to do matrix product
+int dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
+
 void getEmpiricalMobilityMatrix(const char* kernel_name,
                                 const double mu,
                                 const double rho,
@@ -152,6 +155,11 @@ void CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcn
 
     return;
 } // registerExternalForceTorqueFunction
+void CIBMethod::registerRigidBodyVelocityDeformationFunction(VelocityDeformationFunctionPtr VelDefFun)
+{
+    d_VelDefFun=VelDefFun;
+
+}//registerVelocityDeformationFunction
 
 int CIBMethod::getStructuresLevelNumber() const
 {
@@ -1093,6 +1101,17 @@ void CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVect
     return;
 } // setRigidBodyVelocity
 
+void CIBMethod::setRigidBodyDeformationVelocity(const unsigned int part, Vec y)
+{
+    const int struct_ln = getStructuresLevelNumber();
+
+    if (!d_VelDefFun) return;
+    CIBMethod* cib_method = this;
+    (*d_VelDefFun)(part, y, d_X_half_data[struct_ln]->getVec(),
+		   d_center_of_mass_half[part], cib_method);
+    return;
+}//setRigidBodyDeformationVelocity
+
 void CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F)
 {
     const int struct_ln = getStructuresLevelNumber();
@@ -1290,22 +1309,160 @@ void CIBMethod::copyArrayToVec(Vec b,
     return;
 } // copyArrayToVec
 
-void CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
-                                        MobilityMatrixType mat_type,
-                                        double* mobility_mat,
-                                        const std::vector<unsigned>& prototype_struct_ids,
-                                        const double* grid_dx,
-                                        const double* domain_extents,
-                                        const bool initial_time,
-                                        double rho,
-                                        double mu,
-                                        const std::pair<double, double>& scale,
-                                        double f_periodic_corr,
-                                        const int managing_proc)
+void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
+					std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
+					std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
+					std::map<std::string, unsigned int>& managed_mat_nodes_map,
+					std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
+					std::map<std::string, int>& managed_mat_proc_map,
+					const double* grid_dx,
+					const double* domain_extents,
+					const bool initial_time,
+					double rho,
+					double mu,
+					double f_periodic_corr)
 {
     const double dt = d_new_time - d_current_time;
     const int struct_ln = getStructuresLevelNumber();
     const char* ib_kernel = d_l_data_manager->getDefaultInterpKernelFunction().c_str();
+    const int rank = SAMRAI_MPI::getRank();
+    std::vector<double*> W_vector;
+    for (std::map<std::string, double*>::iterator it = managed_mat_map.begin(); it != managed_mat_map.end();
+	 ++it)
+    {
+	const std::string& mat_name = it->first;
+	const std::vector<unsigned>&  prototype_struct_ids = managed_mat_prototype_id_map[mat_name];
+	const int managing_proc = managed_mat_proc_map[mat_name];
+	const int size = managed_mat_nodes_map[mat_name] * NDIM;
+
+	// Regularization for  the mobility matrix
+	double* WArr =NULL;
+	if (rank == managing_proc) WArr =  new double[size];
+	Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
+	copyVecToArray(W, WArr, prototype_struct_ids, /*depth*/ NDIM, managing_proc);
+	if (rank == managing_proc) W_vector.push_back(WArr);
+    }
+
+    unsigned counter=0;
+    unsigned file_counter = 0;
+
+    unsigned managed_mats = (unsigned)managed_mat_map.size();
+    static std::vector<bool> read_files(managed_mats, false);
+
+    for (std::map<std::string, double*>::iterator it = managed_mat_map.begin(); it != managed_mat_map.end();
+	 ++it)
+    {
+	const std::string& mat_name = it->first;
+	double* mobility_mat = it->second;
+	MobilityMatrixType mat_type = managed_mat_type_map[mat_name];
+	const std::vector<unsigned>& prototype_struct_ids = managed_mat_prototype_id_map[mat_name];
+	const std::pair<double, double>& scale = managed_mat_scale_map[mat_name];
+	const int managing_proc = managed_mat_proc_map[mat_name];
+	// Get the position data
+	if (rank == managing_proc)
+	{
+	    // Get the size of matrix
+	    const int num_nodes = managed_mat_nodes_map[mat_name];
+	    const int size = managed_mat_nodes_map[mat_name] * NDIM;
+	    
+	    if (mat_type == FILE && !read_files[file_counter])
+	    {
+		// Get matrix from file
+		
+		//Needs to be implemented
+
+		read_files[file_counter] = true;
+	    }
+	    else
+	    {
+		double* XW =  new double[size];
+		Eigen::Vector3d dr = Eigen::Vector3d::Zero();
+		Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
+		Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3,3);
+		
+		unsigned offset=0;
+		for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+		{
+		    unsigned num_struct_nodes = getNumberOfNodes(prototype_struct_ids[i]);
+		    if (!initial_time) rotation_mat = d_quaternion_half[prototype_struct_ids[i]].toRotationMatrix();
+		    
+		    
+		    for (unsigned k = 0; k < num_struct_nodes; ++k)
+		    {
+			const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
+		
+			if (initial_time)
+			{
+			    for (int d = 0; d < NDIM; ++d)	XW[offset++] = X[d];
+			    
+			}else
+			{
+			    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[prototype_struct_ids[i]][d];
+			    R_dr = rotation_mat*dr; 
+			    for (int d = 0; d < NDIM; ++d)	XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d]+R_dr[d];
+			}
+		    }
+		}
+	
+	
+		// Generate mobility matrix
+		if (mat_type == RPY)
+		{
+		    getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat);
+		}
+		else if (mat_type == EMPIRICAL)
+		{
+		    getEmpiricalMobilityMatrix(ib_kernel, mu, rho, dt, grid_dx[0], &XW[0], num_nodes, 0, f_periodic_corr,
+					       domain_extents[0], mobility_mat);
+		}
+		else
+		{
+		    TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+		}
+		delete[] XW;
+		
+
+	    }
+	    double *W = W_vector[counter];
+	    for (int i = 0; i < size; ++i)
+	    {
+		for (int j = 0; j < size; ++j)
+		{
+		    mobility_mat[i * size + j] *= scale.first;
+		    if (i == j)
+		    {
+			mobility_mat[i * size + j] += scale.second * W[i];
+		    }
+		}
+	    }
+	    delete[] W;
+	    counter++;
+
+	    // std::ofstream MM_out;
+	    // std::string fname="MobilityMatrix.out";
+	    // MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
+	    // MM_out<<std::endl;
+	    // MM_out<<std::scientific;
+	    // for (int i = 0; i < size; ++i)
+	    // {
+	    // 	for (int ii = 0; ii < size; ++ii) MM_out<<mobility_mat[ii*size+i]<<"\t";
+	    // 	MM_out<<std::endl;
+	    // }
+	}//rank
+	file_counter++;
+    }//it
+
+    return;
+} // generateMobilityMatrix
+
+void CIBMethod::constructBodyMobilityMatrix(const std::string& /*mat_name*/,
+					    double* mobility_mat,
+					    double* body_mobility_mat,
+					    const std::vector<unsigned>& prototype_struct_ids,
+					    const bool initial_time,
+					    const int managing_proc)
+{
+    const int struct_ln = getStructuresLevelNumber();
     const int rank = SAMRAI_MPI::getRank();
 
     // Get the size of matrix
@@ -1314,93 +1471,88 @@ void CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     {
         num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
     }
-    const int size = num_nodes * NDIM;
+    int size = num_nodes * NDIM;
+    int bsize = s_max_free_dofs * prototype_struct_ids.size();
 
 
-
+    const unsigned shft=s_max_free_dofs;
     // Get the position data
-    double* XW = NULL;
-    if (rank == managing_proc) XW = new double[size];
-    if (initial_time)
-    {
-	if (rank == managing_proc)
-	{
-	    unsigned offset=0;
-	    for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
-	    {
-		num_nodes = getNumberOfNodes(prototype_struct_ids[i]);
-		for (unsigned k = 0; k < num_nodes; ++k)
-		{
-		    const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
-		    for (int d = 0; d < NDIM; ++d)	XW[offset++] = X[d];
-		}
-	    }
-	}
-    }
-    else
-    {
-	if (rank == managing_proc)
-	{
-	    unsigned offset=0;
-	    Eigen::Vector3d dr;
-	    Eigen::Vector3d R_dr;
-	    
-	    for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
-	    {
-		num_nodes = getNumberOfNodes(prototype_struct_ids[i]);
-		Eigen::Matrix3d rotation_mat = d_quaternion_half[prototype_struct_ids[i]].toRotationMatrix();
-		
-		for (unsigned k = 0; k < num_nodes; ++k)
-		{
-		    const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
-		    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[prototype_struct_ids[i]][d];
-		    R_dr = rotation_mat*dr; 
-		    for (int d = 0; d < NDIM; ++d)	XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d]+R_dr[d];
-		}
-	    }
-	}
-    }
-    
-    
-    // Generate mobility matrix
     if (rank == managing_proc)
     {
-        if (mat_type == RPY)
-        {
-            getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat);
-        }
-        else if (mat_type == EMPIRICAL)
-        {
-            getEmpiricalMobilityMatrix(ib_kernel, mu, rho, dt, grid_dx[0], &XW[0], num_nodes, 0, f_periodic_corr,
-                                       domain_extents[0], mobility_mat);
-        }
-        else
-        {
-            TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
-        }
-    }
+	double* geom_mat =  new double[bsize*size];
+	std::memset(geom_mat, 0.0, sizeof(geom_mat));
 
-    // Regularize the mobility matrix
-    Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-    copyVecToArray(W, XW, prototype_struct_ids, /*depth*/ NDIM, managing_proc);
-    if (rank == managing_proc)
-    {
-        for (int i = 0; i < size; ++i)
-        {
-            for (int j = 0; j < size; ++j)
-            {
-                mobility_mat[i * size + j] *= scale.first;
-                if (i == j)
-                {
-                    mobility_mat[i * size + j] += scale.second * XW[i];
-                }
-            }
-        }
-        delete[] XW;
+	double* temp_mat = new double[bsize*size];
+
+
+	Eigen::Vector3d dr = Eigen::Vector3d::Zero();
+	Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
+	Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3,3);
+	unsigned q = 0;
+	
+	for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+	{
+	    num_nodes = getNumberOfNodes(prototype_struct_ids[i]);
+	    if (!initial_time) rotation_mat = d_quaternion_half[prototype_struct_ids[i]].toRotationMatrix();
+
+	    for (unsigned k = 0; k < num_nodes; ++k)
+	    {
+		const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
+		for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[prototype_struct_ids[i]][d];
+
+		if (!initial_time)
+		    R_dr = rotation_mat*dr; 
+		else
+		    R_dr=dr;
+
+		//column major representation for LAPACK
+		         
+		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM    ]      =  1.0; //(1,1)
+		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 1]      =  0.0; //(2,1)
+		
+		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM    ]      =  0.0; //(1,2)
+		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 1]      =  1.0; //(2,2)
+#if (NDIM == 2)
+		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      = -R_dr[1]; //(3,1)
+		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  R_dr[0]; //(3,2)
+#elif(NDIM == 3)
+		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,3)
+		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,4)
+		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM    ]      =  R_dr[2];//(1,5)
+		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM    ]      = -R_dr[1];//(1,6)
+
+		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,3)
+		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 1]      = -R_dr[2];//(2,4)
+		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,5)
+		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 1]      =  R_dr[0];//(2,6)
+		
+		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,1)
+		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,2)
+		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 2]      =  1.0;//(3,3)
+		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 2]      =  R_dr[1];//(3,4)
+		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 2]      = -R_dr[0];//(3,5)
+		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,6)
+#endif
+		q++;
+	    }
+	}
+   
+	double alpha = 1.0;
+	double beta  = 0;
+
+
+
+
+	dgemm_((char*)"N",(char*)"N", &size, &bsize, &size, &alpha, mobility_mat, &size, geom_mat, &size, &beta, temp_mat, &size);
+	dgemm_((char*)"T",(char*)"N", &bsize, &bsize, &size, &alpha, geom_mat, &size, temp_mat, &size,  &beta, body_mobility_mat, &bsize);
+
+	delete[] geom_mat;
+	delete[] temp_mat;
+
     }
 
     return;
-} // generateMobilityMatrix
+} // constructBobyMobilityMatrix
 
 void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitializer> ib_initializer)
 {
@@ -1417,7 +1569,8 @@ Pointer<IBAMR::CIBStandardInitializer> CIBMethod::getStandardInitializer()
 void CIBMethod::rotateArrayInitalBodyFrame(double* array, 
 					   const std::vector<unsigned>& struct_ids,					
 					   const bool isTranspose,
-					   const int managing_proc)
+					   const int managing_proc,
+					   const bool BodyMobility)
 {
     if (struct_ids.empty()) return;
     const unsigned num_structs = (unsigned)struct_ids.size();
@@ -1430,28 +1583,68 @@ void CIBMethod::rotateArrayInitalBodyFrame(double* array,
 	    unsigned structID=struct_ids[k];
 	    unsigned number_of_nodes = getNumberOfNodes(structID);
 
-	    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-	    Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 	    Eigen::Matrix3d Rot;
 	    if (isTranspose) 
 		Rot=(d_quaternion_half[structID].toRotationMatrix()).transpose();
 	    else 
 		Rot=d_quaternion_half[structID].toRotationMatrix();
-	 		
-	    for (unsigned node = 0; node < number_of_nodes; ++node)
+
+	    if  (BodyMobility)	 		
 	    {
+		Eigen::Vector3d F = Eigen::Vector3d::Zero();
+		Eigen::Vector3d T = Eigen::Vector3d::Zero();
+		Eigen::Vector3d R_F = Eigen::Vector3d::Zero();
+		Eigen::Vector3d R_T = Eigen::Vector3d::Zero();
+
 		for (unsigned int d = 0; d < NDIM; ++d)
 		{
-		    dr[d] = array[offset+d];
+		    F[d] = array[offset+d];
 		}
-		// Rotate dr vector using the rotation matrix.
-		R_dr = Rot * dr;
+#if(NDIM == 3)
+		for (unsigned d = 0; d < NDIM; ++d)
+		{
+		    T[d] = array[offset+d+3];;
+		}
+		R_T = Rot * T;
+#endif
+		
+		R_F = Rot * F;
+
 		for (unsigned int d = 0; d < NDIM; ++d)
 		{
-		    array[offset+d] = R_dr[d];
+		    array[offset+d] = R_F[d];
 		}
-		offset +=NDIM;
-	    }//node
+
+#if(NDIM == 3)
+		for (unsigned d = 0; d < NDIM; ++d)
+		{
+		    array[offset+d+3]= R_T[d];
+		}
+#endif
+
+		offset +=s_max_free_dofs;
+
+	    }else
+	    {
+		Eigen::Vector3d dr = Eigen::Vector3d::Zero();
+		Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
+
+		for (unsigned node = 0; node < number_of_nodes; ++node)
+		{
+		    for (unsigned int d = 0; d < NDIM; ++d)
+		    {
+			dr[d] = array[offset+d];
+		    }
+		    // Rotate dr vector using the rotation matrix.
+		    R_dr = Rot * dr;
+		    for (unsigned int d = 0; d < NDIM; ++d)
+		    {
+			array[offset+d] = R_dr[d];
+		    }
+		    offset +=NDIM;
+		}//node
+	    }
+
 	}//k
     }
     return;

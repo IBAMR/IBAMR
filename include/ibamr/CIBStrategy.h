@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <vector>
+#include <map>
 
 #include "petscvec.h"
 #include "Eigen/Core"
@@ -229,6 +230,11 @@ public:
                                       const bool only_free_dofs,
                                       const bool only_imposed_dofs,
                                       const bool all_dofs = false);
+    /*!
+     * \brief set deformation velocity.
+     */
+    virtual void setRigidBodyDeformationVelocity(const unsigned int part, Vec y);
+
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -377,16 +383,12 @@ public:
      * identified by their indices. A default empty implementation is provided
      * in this class. The derived class provides the actual implementation.
      *
-     * \param mat_name Matrix handle.
+     * \param mat_map Matrix handle with pointer to matrix representation. The matrix is
+     * stored in column-major(FORTRAN) order..
      *
-     * \param mat_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
+     * \param mat_map_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
      *
-     * \param mobility_mat Pointer to matrix representation. The matrix is
-     * stored in column-major(FORTRAN) order.
-     *
-     * \param prototype_struct_ids Indices of the structures as registered
-     * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
-     * will formed for multiple structures.
+     * \param prototype_struct_ids_map 
      *
      * \param grid_dx NDIM vector of grid spacing of structure level.
      *
@@ -405,18 +407,43 @@ public:
      *
      * \param managing_rank Rank of the processor managing this dense matrix.
      */
-    virtual void constructMobilityMatrix(const std::string& mat_name,
-                                         MobilityMatrixType mat_type,
-                                         double* mobility_mat,
-                                         const std::vector<unsigned>& prototype_struct_ids,
-                                         const double* grid_dx,
+    virtual void constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
+					 std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
+					 std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
+					 std::map<std::string, unsigned int>& managed_mat_nodes_map,
+					 std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
+					 std::map<std::string, int>& managed_mat_proc_map,
+					 const double* grid_dx,
                                          const double* domain_extents,
                                          const bool initial_time,
                                          double rho,
                                          double mu,
-                                         const std::pair<double, double>& scale,
-                                         double f_periodic_corr,
-                                         const int managing_rank);
+                                         double f_periodic_corr);
+    /*!
+     * \brief Construct a dense body mobility matrix for the prototypical structures
+     * identified by their indices. A default empty implementation is provided
+     * in this class. The derived class provides the actual implementation.
+     *
+     * \param mat_name Matrix handle.
+     *
+     * \param body_mobility_mat Pointer to matrix representation. The matrix is
+     * stored in column-major(FORTRAN) order.
+     *
+     * \param prototype_struct_ids Indices of the structures as registered
+     * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
+     * will formed for multiple structures.
+     *
+     * \param initial_time Boolean to indicate if the corresponding mobility matrix is to be
+     * generated for the initial position of the structures.
+     *
+     * \param managing_rank Rank of the processor managing this dense matrix.
+     */
+    virtual void constructBodyMobilityMatrix(const std::string& mat_name,
+					     double* mobility_mat,
+					     double* body_mobility_mat,
+					     const std::vector<unsigned>& prototype_struct_ids,
+					     const bool initial_time,
+					     const int managing_rank);
     /*!
      * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
      *
@@ -427,11 +454,16 @@ public:
      * \param isTraspose flag to indicate using transpose rotation
      *
      * \param managing_rank Rank of the processor managing
+     *
+     * \param BodyComps Boolean indicating if the array
+     * is to be set to have stucture components.
+     *
      */
     virtual void rotateArrayInitalBodyFrame(double* array, 
-					      const std::vector<unsigned>& struct_ids,
-					      const bool isTranspose,
-					      const int managing_rank);
+					    const std::vector<unsigned>& struct_ids,
+					    const bool isTranspose,
+					    const int managing_rank,
+					    const bool BodyComps = false);
 
     /*!
      * \brief return body quaternion at current or half time step

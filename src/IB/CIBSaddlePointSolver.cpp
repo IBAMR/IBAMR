@@ -31,6 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+   
+extern bool print_time=false;
 
 #include <limits>
 
@@ -450,6 +452,9 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
 
 void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 {
+    clock_t start_t=0, end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_t = clock();
+
     IBTK_TIMER_START(t_initialize_solver_state);
 
     // Deallocate the solver state if the solver is already initialized.
@@ -472,8 +477,15 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
                                  *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
     initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
                            *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
     d_mob_solver->initializeSolverState(x, b);
 
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Initialization:MobilitySolver CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
     // Initialize the KSP
     initializeKSP();
 
@@ -499,6 +511,11 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
     d_is_initialized = true;
 
     IBTK_TIMER_STOP(t_initialize_solver_state);
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Initialization:Total CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
     return;
 } // initializeSolverState
 
@@ -897,6 +914,9 @@ void CIBSaddlePointSolver::resetKSPPC()
 
 PetscErrorCode CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 {
+    clock_t start_t=0, end_t=0;
+    if (SAMRAI_MPI::getRank() == 0) start_t = clock();
+  
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
@@ -919,13 +939,20 @@ PetscErrorCode CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
     }
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
 
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"StokesOperator cycle: CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+
     PetscFunctionReturn(0);
-
-} // MatVecMult_SaddlePoint
-
+    // MatVecMult_SaddlePoint
+}
 // Exact-Schur Complement PC
 PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 {
+    clock_t start_t=0, end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_t = clock();
     // Here we are solving the equation of the type : Py = x
     // in which P is the preconditioner.
     void* ctx;
@@ -967,11 +994,18 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     Vec U, delU;
     VecDuplicate(W, &U);
 
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
     // 1) (u,p) = L^-1 (g,h)
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(false);
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setHomogeneousBc(true);
     solver->d_LInv->solveSystem(*u_p, *g_h);
-
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Preconditioner:Stokesolver-1 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    
     // 2a) Fill ghost cells of u
     int u_data_idx = u_p->getComponentDescriptorIndex(0);
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -990,6 +1024,14 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);
     ib_method_ops->interpolateVelocity(u_data_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+ 
+
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Preconditioner:Velocity interpolation CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+
     solver->d_cib_strategy->getInterpolatedVelocity(U, half_time, beta);
     VecAXPY(U, 1.0, W);
 
@@ -999,16 +1041,28 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         VecDuplicate(vx[2], &F_tilde);
         VecDuplicate(W, &delU);
 
+	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
         // 3a) lambda = M^-1(U)
         solver->d_mob_solver->solveMobilitySystem(Lambda, U);
+	if (SAMRAI_MPI::getRank() == 0 && print_time)
+	{
+	    end_t = clock();
+	    pout<< std::setprecision(4)<<"Preconditioner:MobilitySolver-1 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	}
 
         // 3b) F_tilde = F + T(lambda)
         solver->d_cib_strategy->computeNetRigidGeneralizedForce(Lambda, F_tilde, /*only_free_dofs*/ true,
                                                                 /*only_imposed_dofs*/ false);
         VecAXPY(F_tilde, 1.0, vx[2]);
 
+	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
         // 3c) U_rigid = N^-1(F_tilde)
         solver->d_mob_solver->solveBodyMobilitySystem(vy[2], F_tilde);
+	if (SAMRAI_MPI::getRank() == 0 && print_time)
+	{
+	    end_t = clock();
+	    pout<< std::setprecision(4)<<"Preconditioner:BodyMobilitySolver CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	}
 
         // 3d) delU = T*(U_rigid) - U
         VecSet(delU, 0.0);
@@ -1020,9 +1074,14 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         delU = U;
         VecScale(delU, -1.0);
     }
-
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
     // 4) lambda  = M^-1(delta_U)
     solver->d_mob_solver->solveMobilitySystem(Lambda, delU);
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Preconditioner:MobilitySolver-2 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
 
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
     const int g_data_idx = g_h->getComponentDescriptorIndex(0);
@@ -1033,6 +1092,7 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);
     }
 
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
     // Solve using previous u_p as a guess for Krylov solvers.
     bool zero_guess;
     {
@@ -1064,6 +1124,11 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         VecDestroy(&delU);
         VecDestroy(&F_tilde);
     }
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"Preconditioner:Stokesolver-2 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
 
     // Report change in the state of y to PETSc
     for (int k = 0; k < total_comps; ++k)
@@ -1071,8 +1136,14 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vy[k]));
     }
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"SaddlePointPrecoditioner CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
 
     PetscFunctionReturn(0);
+
 } // PCApply_SaddlePoint
 
 // Routine to log output of CIBSaddlePointSolver

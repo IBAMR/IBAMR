@@ -59,7 +59,7 @@ class StaggeredStokesPhysicalBoundaryHelper;
 class CIBStrategy;
 class DirectMobilitySolver;
 class KrylovMobilitySolver;
-class FreeBodyMobilitySolver;
+//class FreeBodyMobilitySolver;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -221,8 +221,8 @@ public:
      * return.
      */
     void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = NULL,
-                            IBAMR::DirectMobilitySolver** dm_solver = NULL,
-                            IBAMR::FreeBodyMobilitySolver** fbm_solver = NULL);
+                            IBAMR::DirectMobilitySolver** dm_solver = NULL);
+//                            IBAMR::FreeBodyMobilitySolver** fbm_solver = NULL);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
@@ -241,7 +241,7 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
     SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
-    SAMRAI::tbox::Pointer<IBAMR::FreeBodyMobilitySolver> d_freebody_mob_solver;
+//    SAMRAI::tbox::Pointer<IBAMR::FreeBodyMobilitySolver> d_freebody_mob_solver;
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;
@@ -250,6 +250,7 @@ private:
 
     // Type of mobility solver to be used
     MobilitySolverType d_mobility_solver_type;
+
 
 }; // CIBMobilitySolver
 
