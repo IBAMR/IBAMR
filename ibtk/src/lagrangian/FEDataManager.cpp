@@ -2052,8 +2052,8 @@ FEDataManager::FEDataManager(const std::string& object_name,
     // Register the force/velocity masking variable with the VariableDatabase and create
     // its ghost cell filling algorithm.
     const IntVector<NDIM> mask_gcw = IntVector<NDIM>::max(
-        d_ghost_width, IntVector<NDIM>(std::max(LEInteractor::getStencilSize(default_interp_spec.kernel_fcn),
-                                                LEInteractor::getStencilSize(default_spread_spec.kernel_fcn))));
+        d_ghost_width, IntVector<NDIM>(std::max(LEInteractor::getStencilSize(default_interp_spec.kernel_fcn) + 1,
+                                                LEInteractor::getStencilSize(default_spread_spec.kernel_fcn) + 1)));
     d_mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
     d_mask_idx = var_db->registerVariableAndContext(d_mask_var, d_context, mask_gcw);
     d_ghost_fill_alg.registerRefine(d_mask_idx, d_mask_idx, d_mask_idx, NULL);
@@ -2606,14 +2606,7 @@ void FEDataManager::updateMaskingData(NumericVector<double>& X_vec, const double
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
         const Box<NDIM>& ghost_box = mask_data->getGhostBox();
-        const Box<NDIM>& box = mask_data->getBox();
-        const IntVector<NDIM>& gcw = mask_data->getGhostCellWidth();
-        TBOX_ASSERT(gcw == 4);
-        TBOX_ASSERT(box.lower() - gcw == ghost_box.lower());
-        TBOX_ASSERT(box.upper() + gcw == ghost_box.upper());
-        mask_data->fillAll(1.0, ghost_box);
-        // mask_data->fillAll(1.0);
-        continue;
+        mask_data->fillAll(0.0, ghost_box);
 
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];

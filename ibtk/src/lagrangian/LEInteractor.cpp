@@ -693,12 +693,10 @@ void perform_mls(const int stencil_sz,
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
                 const Index<NDIM> idx(ic0, ic1);
-                T[i1][i0] = D[0][i0] * D[1][i1]; // * mask_data(idx, /*depth*/ 0);
-                TBOX_ASSERT(mask_data(idx, 0) == 1.0);
+                T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
 #elif(NDIM == 3)
             const Index<NDIM> idx(ic0, ic1, ic2);
-            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2]; // * mask_data(idx, /*depth*/ 0);
-            TBOX_ASSERT(mask_data(idx, 0) == 1.0);
+            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
 #endif
             }
         }
@@ -775,9 +773,7 @@ void perform_mls(const int stencil_sz,
                     p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
                     Psi[i1][i0] += L[j] * p_j;
                 }
-                // TBOX_ASSERT(Psi[i1][i0] == 1.0);
-                // Psi[i1][i0] *= T[i1][i0];
-                Psi[i1][i0] = T[i1][i0];
+                Psi[i1][i0] *= T[i1][i0];
 #elif(NDIM == 3)
             for (int j = 0; j <= 3; ++j)
             {
@@ -1635,11 +1631,12 @@ void LEInteractor::interpolate(double* const Q_data,
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
-        for (int s = 0; s < nindices; ++s)
+        for (int k = 0; k < nindices; ++k)
         {
+            int s = local_indices[k];
             MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
-            get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
+            get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[k * NDIM], dx, x_lower, ilower,
                             mask_data->getArrayData(), stencil_lower, stencil_upper, Psi);
 
             for (int comp = 0; comp < Q_depth; ++comp)
@@ -1882,11 +1879,12 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
 
-            for (int s = 0; s < nindices; ++s)
+            for (int k = 0; k < nindices; ++k)
             {
+                int s = local_indices[k];
                 MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
-                get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower_axis.data(),
+                get_mls_weights(interp_fcn, &X_data[s * NDIM], &periodic_shifts[k * NDIM], dx, x_lower_axis.data(),
                                 ilower, mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
                 interpolate_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper,
                                  q_data->getArrayData(axis), 0, Psi, Q_data[s * Q_depth + axis]);
@@ -2581,11 +2579,12 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
     if (nindices)
     {
         IntVector<NDIM> stencil_lower, stencil_upper;
-        for (int s = 0; s < nindices; ++s)
+        for (int k = 0; k < nindices; ++k)
         {
+            int s = local_indices[k];
             MLSWeight Psi;
             const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
-            get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower, ilower,
+            get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[k * NDIM], dx, x_lower, ilower,
                             mask_data->getArrayData(), stencil_lower, stencil_upper, Psi);
 
             for (int comp = 0; comp < Q_depth; ++comp)
@@ -2823,11 +2822,12 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
 
-            for (int s = 0; s < nindices; ++s)
+            for (int k = 0; k < nindices; ++k)
             {
+                int s = local_indices[k];
                 MLSWeight Psi;
                 const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
-                get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[s * NDIM], dx, x_lower_axis.data(),
+                get_mls_weights(spread_fcn, &X_data[s * NDIM], &periodic_shifts[k * NDIM], dx, x_lower_axis.data(),
                                 ilower, mask_data->getArrayData(axis), stencil_lower, stencil_upper, Psi);
                 spread_data(stencil_sz, ig_lower, ig_upper, stencil_lower, stencil_upper, dx,
                             q_data->getArrayData(axis), 0, Psi, Q_data[s * Q_depth + axis]);
