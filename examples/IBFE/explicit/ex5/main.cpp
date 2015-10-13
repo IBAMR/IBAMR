@@ -47,7 +47,6 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
-#include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
 
@@ -110,10 +109,11 @@ namespace ModelData
 static double c1_s = 1.0e5;
 void PK1_stress_function(TensorValue<double>& PP,
                          const TensorValue<double>& FF,
+                         const libMesh::Point& /*x*/,
                          const libMesh::Point& /*X*/,
-                         const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
-                         const std::vector<NumericVector<double>*>& /*system_data*/,
+                         const vector<const vector<double>*>& /*var_data*/,
+                         const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
@@ -121,39 +121,45 @@ void PK1_stress_function(TensorValue<double>& PP,
     return;
 } // PK1_stress_function
 
-// Tether (penalty) force function.
-static double kappa_s = 1.0e6;
-static double eta_s = 0.0;
-MeshFunction* U_fcn;
+// Tether (penalty) force functions.
+static double kappa_s_body = 1.0e6;
+static double eta_s_body = 0.0;
 void tether_force_function(VectorValue<double>& F,
                            const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& x,
                            const libMesh::Point& X,
-                           const libMesh::Point& s,
                            Elem* const /*elem*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
+                           const vector<const vector<double>*>& var_data,
+                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                            double /*time*/,
                            void* /*ctx*/)
 {
-    DenseVector<double> U(NDIM);
-    (*U_fcn)(s, 0.0, U);
+    const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s * (s(d) - X(d)) - eta_s * U(d);
+        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U[d];
     }
     return;
 } // tether_force_function
 
+static double kappa_s_surface = 1.0e6;
+static double eta_s_surface = 0.0;
 void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& FF,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& x,
                            const libMesh::Point& X,
-                           const libMesh::Point& s,
                            Elem* const elem,
                            const unsigned short /*side*/,
-                           const vector<NumericVector<double>*>& system_data,
+                           const vector<const vector<double>*>& var_data,
+                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                            double time,
                            void* ctx)
 {
-    tether_force_function(F, FF, X, s, elem, system_data, time, ctx);
+    const std::vector<double>& U = *var_data[0];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U[d];
+    }
     return;
 } // tether_force_function
 }
@@ -283,9 +289,11 @@ int main(int argc, char* argv[])
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
-        kappa_s = input_db->getDouble("KAPPA_S");
-        eta_s = input_db->getDouble("ETA_S");
         c1_s = input_db->getDouble("C1_S");
+        kappa_s_body = input_db->getDouble("KAPPA_S_BODY");
+        eta_s_body = input_db->getDouble("ETA_S_BODY");
+        kappa_s_surface = input_db->getDouble("KAPPA_S_SURFACE");
+        eta_s_surface = input_db->getDouble("ETA_S_SURFACE");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -339,6 +347,7 @@ int main(int argc, char* argv[])
             PK1_stress_data.quad_order =
                 Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
             ib_method_ops->registerPK1StressFunction(PK1_stress_data);
+            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
             ib_method_ops->registerLagSurfaceForceFunction(tether_force_function);
             if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
             {
@@ -465,24 +474,9 @@ int main(int argc, char* argv[])
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-            AutoPtr<NumericVector<double> > U_vec = U_system.current_local_solution->clone();
-            *U_vec = *U_system.solution;
-            U_vec->close();
-            DofMap& U_dof_map = U_system.get_dof_map();
-            vector<unsigned int> vars(NDIM);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                vars[d] = d;
-            }
-            U_fcn = new MeshFunction(*equation_systems, *U_vec, U_dof_map, vars);
-            U_fcn->init();
-
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
-
-            delete U_fcn;
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

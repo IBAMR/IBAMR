@@ -70,7 +70,8 @@ void block_tether_force_function(VectorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
+                                 const vector<const vector<double>*>& /*var_data*/,
+                                 const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                                  double /*time*/,
                                  void* /*ctx*/)
 {
@@ -86,7 +87,8 @@ void beam_tether_force_function(VectorValue<double>& F,
                                 const libMesh::Point& s,
                                 Elem* const /*elem*/,
                                 const unsigned short int side,
-                                const vector<NumericVector<double>*>& /*system_data*/,
+                                const vector<const vector<double>*>& /*var_data*/,
+                                const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                                 double /*time*/,
                                 void* /*ctx*/)
 {
@@ -108,7 +110,8 @@ void beam_PK1_dev_stress_function(TensorValue<double>& PP,
                                   const libMesh::Point& /*X*/,
                                   const libMesh::Point& /*s*/,
                                   Elem* const /*elem*/,
-                                  const vector<NumericVector<double>*>& /*system_data*/,
+                                  const vector<const vector<double>*>& /*var_data*/,
+                                  const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                                   double /*time*/,
                                   void* /*ctx*/)
 {
@@ -123,7 +126,8 @@ void beam_PK1_dil_stress_function(TensorValue<double>& PP,
                                   const libMesh::Point& /*X*/,
                                   const libMesh::Point& /*s*/,
                                   Elem* const /*elem*/,
-                                  const vector<NumericVector<double>*>& /*system_data*/,
+                                  const vector<const vector<double>*>& /*var_data*/,
+                                  const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                                   double /*time*/,
                                   void* /*ctx*/)
 {

@@ -73,7 +73,8 @@ void block_tether_force_function(VectorValue<double>& F,
                                  const libMesh::Point& X,
                                  const libMesh::Point& s,
                                  Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
+                                 const std::vector<const std::vector<double>*>& /*var_data*/,
+                                 const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                                  double /*time*/,
                                  void* /*ctx*/)
 {
@@ -87,7 +88,8 @@ void beam_tether_force_function(VectorValue<double>& F,
                                 const libMesh::Point& X,
                                 const libMesh::Point& s,
                                 Elem* const /*elem*/,
-                                const vector<NumericVector<double>*>& /*system_data*/,
+                                const std::vector<const std::vector<double>*>& /*var_data*/,
+                                const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                                 double /*time*/,
                                 void* /*ctx*/)
 {
@@ -110,7 +112,8 @@ void beam_PK1_stress_function(TensorValue<double>& PP,
                               const libMesh::Point& /*X*/,
                               const libMesh::Point& s,
                               Elem* const /*elem*/,
-                              const vector<NumericVector<double>*>& /*system_data*/,
+                              const std::vector<const std::vector<double>*>& /*var_data*/,
+                              const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                               double /*time*/,
                               void* /*ctx*/)
 {

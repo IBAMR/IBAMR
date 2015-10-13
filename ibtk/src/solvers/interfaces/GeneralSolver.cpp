@@ -228,10 +228,17 @@ void GeneralSolver::printClassData(std::ostream& stream)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void GeneralSolver::init(const std::string& object_name, bool homogeneous_bc)
+void GeneralSolver::init(const std::string& object_name, const bool homogeneous_bc)
 {
     d_object_name = object_name;
     d_homogeneous_bc = homogeneous_bc;
+    initSpecialized(object_name, homogeneous_bc);
+    return;
+} // init
+
+void GeneralSolver::initSpecialized(const std::string& /*object_name*/, const bool /*homogeneous_bc*/)
+{
+    // intentionally blank
     return;
 } // init
 
