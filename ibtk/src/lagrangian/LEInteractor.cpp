@@ -739,7 +739,7 @@ void perform_mls(const int stencil_sz,
                         G(j, k) += p_j * p_k * T[i1][i0];
 #elif(NDIM == 3)
                     p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
                     G(j, k) += p_j * p_k * T[i2][i1][i0];
 #endif
                     }
