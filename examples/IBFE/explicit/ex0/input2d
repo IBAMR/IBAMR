@@ -14,6 +14,7 @@ MFAC = 4.0                                     // ratio of Lagrangian mesh width
 ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
 CONVERGENCE_STUDY = FALSE                      // indicate whether we are performing a convergence study or not;
                                                // if so, attempt to make "nested" structural meshes
+ONE_SIDED_INTERACTION = TRUE
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -123,6 +124,8 @@ IBFEMethod {
    use_IB_interp_operator     = USE_IB_DELTA_FUNCTIONS
    IB_delta_fcn               = IB_DELTA_FUNCTION
    split_forces               = SPLIT_FORCES
+   use_one_sided_interpolation = ONE_SIDED_INTERACTION
+   use_one_sided_spreading     = ONE_SIDED_INTERACTION
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
