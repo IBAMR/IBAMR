@@ -627,11 +627,22 @@ namespace
   } // tagCellsForInitialRefinement
 
  //Baky modifications
-const Point CIBStandardInitializer::getVertexPosn(const int level_number, const int structID, const int nodeID) const
+Point CIBStandardInitializer::getPrototypeVertexPosn(const int level_number, const int structID, const int nodeID) const
+{
+    int prototypeID = d_struct_prototype_map[level_number][structID];
+    return d_vertex_posn[level_number][prototypeID][nodeID];
+} // getVertexPosn
+
+Point CIBStandardInitializer::getInitialVertexPosn(const int level_number, const int structID, const int nodeID) const
 {
     std::pair<int, int> point_index(structID,nodeID);
     return getVertexPosn(point_index, level_number);
-} // getVertexPosn
+}
+
+Eigen::Vector3d CIBStandardInitializer::getInitialCOMStructure(const int level_number, const int structID) const
+{
+    return  d_X_com[level_number][structID];
+};
 
 Eigen::Quaterniond* CIBStandardInitializer::getStructureQuaternion(const int level_number, const int structID)
 {
@@ -785,10 +796,12 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
       d_vertex_posn[ln].resize(num_base_filename);
       d_quaternion[ln].resize(num_base_filename);
       d_X_com[ln].resize(num_base_filename);
+      d_struct_prototype_map[ln].resize(num_base_filename);
       
       unsigned struct_begin_idx=0;
       for (unsigned itype = 0; itype < d_num_structs_types; ++itype)
       {
+	  d_struct_prototype_map[ln][struct_begin_idx] = struct_begin_idx;
 	  const unsigned num_clones =  d_structs_clones_num[itype];
 	  double* shift =new double[NDIM*num_clones];
 	  double* dircs =new double[NDIM*num_clones];
@@ -883,6 +896,17 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 
 	      X_com /=d_num_vertex[ln][struct_begin_idx];
 
+	      //put protoypes CM in the origin
+	      for (int k = 0; k < d_num_vertex[ln][struct_begin_idx]; ++k)
+	      {
+		  Point& X = d_vertex_posn[ln][struct_begin_idx][k];
+		  for (unsigned int d = 0; d < NDIM; ++d) 
+		  {
+		      X[d] -=X_com[d];
+		      X[d] *=d_length_scale_factor;
+		  }
+	      }
+
 	      // Close the input file.
 	      file_stream.close();
 
@@ -902,6 +926,7 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	  //Baky distribute other structures  
 	  for (unsigned j = 1; j < num_clones; ++j)
 	  {
+	      d_struct_prototype_map[ln][struct_begin_idx+j]=struct_begin_idx;
 	      d_vertex_offset[ln][struct_begin_idx+j] = d_vertex_offset[ln][struct_begin_idx+j - 1] + d_num_vertex[ln][struct_begin_idx+j-1];	      
 	      d_num_vertex[ln][struct_begin_idx+j]=d_num_vertex[ln][struct_begin_idx];
 	      
@@ -921,7 +946,7 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	      Eigen::Matrix3d rot_mat = (q.normalized()).toRotationMatrix();
 	      d_quaternion[ln][struct_begin_idx+j]=q.normalized();
 
-	      for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx+j][d] = d_length_scale_factor * (X_com[d] + shift[j*NDIM+d] + d_posn_shift[d]);
+	      for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx+j][d] = d_length_scale_factor * (shift[j*NDIM+d] + d_posn_shift[d]);
 
 	  }//j
 
@@ -940,20 +965,20 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	  Eigen::Matrix3d rot_mat = (q.normalized()).toRotationMatrix();
 	  d_quaternion[ln][struct_begin_idx]=q.normalized();
 
-	  for (int k = 0; k < d_num_vertex[ln][struct_begin_idx]; ++k)
-	  {
-	      Point& X0 = d_vertex_posn[ln][struct_begin_idx][k];
-	      Eigen::Vector3d x0 = Eigen::Vector3d::Zero();
-	      Eigen::Vector3d x  = Eigen::Vector3d::Zero();
-	      for (unsigned int d = 0; d < NDIM; ++d) x0[d] = X0[d]-X_com[d]; 
-	      x = rot_mat*x0;
+	  // for (int k = 0; k < d_num_vertex[ln][struct_begin_idx]; ++k)
+	  // {
+	  //     Point& X0 = d_vertex_posn[ln][struct_begin_idx][k];
+	  //     Eigen::Vector3d x0 = Eigen::Vector3d::Zero();
+	  //     Eigen::Vector3d x  = Eigen::Vector3d::Zero();
+	  //     for (unsigned int d = 0; d < NDIM; ++d) x0[d] = X0[d]-X_com[d]; 
+	  //     x = rot_mat*x0;
 
-	      for (unsigned int d = 0; d < NDIM; ++d)
-	      {
-		  X0[d] = d_length_scale_factor * (x[d] + shift[d]+ d_posn_shift[d]);
-	      }
-	  }
-	  for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx][d] = d_length_scale_factor * (X_com[d] + shift[d]+ d_posn_shift[d]);
+	  //     for (unsigned int d = 0; d < NDIM; ++d)
+	  //     {
+	  // 	  X0[d] = d_length_scale_factor * (x[d] + shift[d]+ d_posn_shift[d]);
+	  //     }
+	  // }
+	  for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx][d] = d_length_scale_factor * (shift[d]+ d_posn_shift[d]);
 
 	  struct_begin_idx +=num_clones;
 	  delete [] shift;
@@ -2951,36 +2976,19 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 
   Point CIBStandardInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int level_number) const
   {
-      unsigned struct_idx_beg = 0;
-      unsigned struct_idx_end = 0;
+      int prototypeID = d_struct_prototype_map[level_number][point_index.first];
+
       Point X;
-
       Eigen::Vector3d X_com = d_X_com[level_number][point_index.first];
-
-      for (unsigned itype = 0; itype < d_num_structs_types; ++itype)
-      {
-	  struct_idx_end +=  d_structs_clones_num[itype];
-	  if ((unsigned) point_index.first < struct_idx_end) 
-	  {
-	      Eigen::Matrix3d rot_mat = (d_quaternion[level_number][point_index.first]).toRotationMatrix();
+      Eigen::Matrix3d rot_mat = (d_quaternion[level_number][point_index.first]).toRotationMatrix();
 	      
-	      const Point X0 = d_vertex_posn[level_number][struct_idx_beg][point_index.second];
-	      Eigen::Vector3d x0, x;
-		  
-	      for (unsigned int d = 0; d < NDIM; ++d) x0[d] = X0[d] - d_X_com[level_number][struct_idx_beg][d]; 
-	      x = rot_mat*x0;
-	      
-	      for (unsigned int d = 0; d < NDIM; ++d) X[d] = X_com[d] + x[d];
-	      break;
-	  }
-	  struct_idx_beg +=d_structs_clones_num[itype];
+      const Point X0 = d_vertex_posn[level_number][prototypeID][point_index.second];
+      Eigen::Vector3d x0;
+      for (unsigned int d = 0; d < NDIM; ++d) x0[d] = X0[d]; 
 
-	  if (struct_idx_beg >=  d_base_filename[level_number].size())  TBOX_ERROR("CIBStandardInitializer::getVertexPosn should not get to this point." << std::endl);
-      }
-
-      // for (unsigned int d = 0; d < NDIM; ++d) std::cout<<X[d]<<"\t";
-      // std::cout<<std::endl;
-
+      Eigen::Vector3d x = rot_mat*x0;
+      for (unsigned int d = 0; d < NDIM; ++d) X[d] = X_com[d] + x[d];
+      
       return X;      
   } // getVertexPosn
 
@@ -3274,7 +3282,7 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
     d_vertex_posn.resize(d_max_levels);
     d_quaternion.resize(d_max_levels);
     d_X_com.resize(d_max_levels);
-
+    d_struct_prototype_map.resize(d_max_levels);
     d_enable_springs.resize(d_max_levels);
     d_spring_edge_map.resize(d_max_levels);
     d_spring_spec_data.resize(d_max_levels);

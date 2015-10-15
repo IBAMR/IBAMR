@@ -31,7 +31,14 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// #ifndef TIME_REPORT
+// #define TIME_REPORT
+// #endif
+
+#ifdef TIME_REPORT
 extern bool print_time;
+#endif
 
 #include <math.h>
 #include <algorithm>
@@ -281,9 +288,17 @@ void DirectMobilitySolver::setTimeInterval(double current_time, double new_time)
     return;
 } // setTimeInterval
 
+
 bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
+
+#ifdef TIME_REPORT
    clock_t end_t=0, start_med=0;
+   SAMRAI_MPI::barrier();
+   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
+   const int rank = SAMRAI_MPI::getRank();
 
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
@@ -305,18 +320,28 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	}
 	check_time = d_current_time;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-    const int rank = SAMRAI_MPI::getRank();
-    std::vector<double*> RHS_vector;
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: M^-1 Initializing CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
+    double* all_rhs = NULL;
     std::map<std::string, std::vector<bool> >  skip_struct_map;
+    std::vector<unsigned> all_rhs_struct_ids;
+    unsigned node_counter=0;
+
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
         std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
         const int managing_proc = d_managed_mat_proc_map[mat_name];
-	const int size = d_managed_mat_nodes_map[mat_name] * NDIM;
 	std::vector<bool>  skip_struct;
-	double* rhs = NULL;
         for (unsigned k = 0; k < struct_ids.size(); ++k)
         {
 	    //skipping specified kinematics parts if solving only for free parts
@@ -341,22 +366,31 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 		    continue;
 		}
 	    }
-	    
-	    if (rank == managing_proc) rhs = new double[size];
-
-	    d_cib_strategy->copyVecToArray(b, rhs, struct_ids[k], NDIM, managing_proc);
-	    if (rank == managing_proc) RHS_vector.push_back(rhs);
-	    rhs=NULL;
+	    if (rank == managing_proc)
+	    {
+		for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) all_rhs_struct_ids.push_back(struct_ids[k][kk]);
+		node_counter += d_managed_mat_nodes_map[mat_name];
+	    }
 	}
 	skip_struct_map[mat_name] = skip_struct;
     }
+
+
+    if (node_counter) all_rhs = new double[node_counter*NDIM];
+
+    d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM, rank);
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0 && print_time)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"   DirectMobilitySolver:communication copyVecToArray CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyVecToArray CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-    unsigned counter=0;
+#endif
+
+    unsigned offset=0;
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
@@ -375,7 +409,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 		//skipping specified kinematics parts if solving only for free parts
 		if (skip_nonfree_parts && skip_struct[k]) continue;
 				
-		double* rhs = RHS_vector[counter++];
+		double* rhs = all_rhs+offset;
 	
 		//Here rotate vector to initial frame
 		if (!d_recompute_mob_mat)
@@ -387,55 +421,49 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], false, managing_proc);
 
+		offset += mat_size;
 	    }
 	}
     }
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0 && print_time)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"   DirectMobilitySolver:solution at proc 0 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: M^-1*u at proc 0 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-    counter=0;
-    for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
-    {
-        const std::string& mat_name = it->first;
-        std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
-        const int managing_proc = d_managed_mat_proc_map[mat_name];
-	std::vector<bool>&  skip_struct = skip_struct_map[mat_name];
+#endif
 
-	double* rhs = NULL;
-        for (unsigned k = 0; k < struct_ids.size(); ++k)
-        {
-	    //skipping specified kinematics parts if solving only for free parts
-	    if (skip_nonfree_parts && skip_struct[k]) continue;
+    d_cib_strategy->copyAllArrayToVec(x, all_rhs, all_rhs_struct_ids, NDIM, rank);
 
-	    if (rank == managing_proc) rhs = RHS_vector[counter];
+    if (node_counter) delete[] all_rhs;
 
-	    d_cib_strategy->copyArrayToVec(x, rhs, struct_ids[k], NDIM, managing_proc);
-
-            if (rank == managing_proc) 	
-	    {
-		 delete[] rhs;
-		counter++;
-	    }
-	}
-    }
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0 && print_time)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"   DirectMobilitySolver:communication copyArrayToVec CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyArrayToVec CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
-    RHS_vector.clear();
+#endif
 
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
-
     IBAMR_TIMER_STOP(t_solve_system);
+
     return true;
 } // solveSystem
 
+
 bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 {
+#ifdef TIME_REPORT
+   clock_t end_t=0, start_med=0;
+   SAMRAI_MPI::barrier();
+   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
     
@@ -449,172 +477,222 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     const int rank = SAMRAI_MPI::getRank();
     
     std::map<unsigned, unsigned > actual_id_free_struct_id_map;
-    for (unsigned part = 0, free_part = 0; part < num_rigid_parts; ++part)
+    std::map<unsigned, unsigned > free_struct_id_actual_id_map;
+    unsigned num_free_parts=0;
+    for (unsigned part = 0; part < num_rigid_parts; ++part)
     {
 	int num_free_dofs;
 	d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
 	if (num_free_dofs)
 	{
-	    actual_id_free_struct_id_map[part] = free_part;
-	    free_part++;
+	    actual_id_free_struct_id_map[part] = num_free_parts;	    
+	    free_struct_id_actual_id_map[num_free_parts++] = part;
 	}
     }
-	     
-    std::vector<double*> RHS_vector;
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: N^-1 Initializing CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     std::map<std::string, std::vector<bool> >  skip_struct_map;
+
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
         std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
-        const int managing_proc = d_managed_mat_proc_map[mat_name];
-	double* rhs = NULL;
 	std::vector<bool>  skip_struct;
-
-	for (unsigned k = 0; k < struct_ids.size(); ++k)
+        for (unsigned k = 0; k < struct_ids.size(); ++k)
         {
-	    const unsigned local_num_structs = (unsigned)struct_ids[k].size();
-	    const unsigned size              = local_num_structs*s_max_free_dofs;
-	    bool foundFreePart = false;
-	    for (unsigned kk = 0; kk < local_num_structs; ++kk)
+	    //skipping specified kinematics parts if solving only for free parts
+	    bool skipflag=true;
+	    for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk)
 	    {
-		int num_free_dofs;
-		const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
+		int num_free_dofs = 0;
+		d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
 		if (num_free_dofs)
 		{
-		    foundFreePart = true;
-		    if (rank == managing_proc && !rhs) 
-		    {
-			rhs = new double[size];
-			std::fill(rhs, rhs+size, 0.);
-		    }
-
-		    Vec F_sub;
-		    IBTK::VecMultiVecGetSubVec(b, actual_id_free_struct_id_map[struct_ids[k][kk]], &F_sub);
-		    RigidDOFVector Fr;
-		    d_cib_strategy->vecToRDV(F_sub, Fr);
-		 
-		    if (rank == managing_proc)
-		    {
-			for (int idir = 0;  idir < s_max_free_dofs; ++idir)
-			{
-			    if (solve_dofs[idir])
-			    {
-				rhs[kk*s_max_free_dofs+idir] = Fr[idir];
-			    }
-			}
-		    }
-		    
+		    skipflag=false;
+		    skip_struct.push_back(false);
+		    break;
 		}
 	    }
-	    if (!foundFreePart)
-	    {	
+	    
+	    if (skipflag) 
+	    {
 		skip_struct.push_back(true);
 		continue;
 	    }
-	    skip_struct.push_back(false);
-	    if (rank == managing_proc) RHS_vector.push_back(rhs);
-	    rhs=NULL;
 	}
 	skip_struct_map[mat_name] = skip_struct;
     }
 
-    unsigned counter=0;   
+    const unsigned free_parts_size = num_free_parts*s_max_free_dofs;
+    std::vector<double> f_vec(free_parts_size, 0.0);
+    
+    for (unsigned part = 0; part < num_free_parts; ++part)
+    {
+	Vec F_sub;
+	IBTK::VecMultiVecGetSubVec(b, part, &F_sub);
+	PetscScalar* f = NULL;
+	VecGetArray(F_sub, &f);
+	int num_free_dofs;
+	const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(free_struct_id_actual_id_map[part], num_free_dofs);
+
+	if (f != NULL)
+	{
+	    for (int idir=0; idir<s_max_free_dofs; idir++)
+	    {
+		if (solve_dofs[idir])
+		{
+		    f_vec[part*s_max_free_dofs+idir] = f[idir];
+		}
+	    }
+	}
+	VecRestoreArray(F_sub, &f);
+    }
+
+    SAMRAI_MPI::sumReduction(&f_vec[0], free_parts_size);
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: collect all force arrays, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
         std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
         const int managing_proc = d_managed_mat_proc_map[mat_name];
 	std::vector<bool>&  skip_struct = skip_struct_map[mat_name];
-	if (rank == managing_proc)
+
+	double* managed_mat = d_body_mob_mat_map[mat_name];
+	MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+	
+	for (unsigned k = 0; k < struct_ids.size(); ++k)
 	{
-	    double* managed_mat = d_body_mob_mat_map[mat_name];
-	    MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
-
-	    for (unsigned k = 0; k < struct_ids.size(); ++k)
+	    //skipping specified kinematics parts 
+	    if (skip_struct[k]) continue;
+	    if (rank == managing_proc)
 	    {
-		//skipping specified kinematics parts 
-		if (skip_struct[k]) continue;
-
 		const int mat_size = struct_ids[k].size()*s_max_free_dofs; 
-		double* rhs = RHS_vector[counter++];
+		double *rhs = new double[mat_size];
 		
+		for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) 
+		{
+		    int num_free_dofs;
+		    d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
+		    if (num_free_dofs)
+		    {
+			const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
+			std::copy(&f_vec[free_part*s_max_free_dofs], &f_vec[free_part*s_max_free_dofs+s_max_free_dofs],rhs+kk*s_max_free_dofs);
+		    }
+		    else
+		    {
+			std::fill(rhs+kk*s_max_free_dofs, rhs+(kk+1)*s_max_free_dofs, 0.0);
+		    }
+		}
+
 		//Here rotate vector to initial frame
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], true, managing_proc, true);
 		
 		//compute solution
-		if (rank == managing_proc) computeSolution(mat_name, managed_mat, mat_size, inv_type, rhs, true);
+		computeSolution(mat_name, managed_mat, mat_size, inv_type, rhs, true);
 		//Rotate solution vector back to structure frame
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], false, managing_proc, true);
-	    }		
-	}
-    }
-	     
-    counter=0;
-    for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
-    {
-        const std::string& mat_name = it->first;
-        std::vector<std::vector<unsigned> >& struct_ids = d_managed_mat_actual_id_map[mat_name];
-        const int managing_proc = d_managed_mat_proc_map[mat_name];
-	std::vector<bool>&  skip_struct = skip_struct_map[mat_name];
-
-	double* rhs = NULL;
-	for (unsigned k = 0; k < struct_ids.size(); ++k)
-        {
-	    //skipping specified kinematics parts 
-	    if (skip_struct[k]) continue;
-
-	    const unsigned local_num_structs = (unsigned)struct_ids[k].size();
-	    const unsigned size              = local_num_structs*s_max_free_dofs;
-	    std::vector<double> u_vec(size, 0.0);
-
-	    if (rank == managing_proc)
-	    {
-		rhs = RHS_vector[counter];
-		for (unsigned kk = 0; kk < size; ++kk)
+		
+		for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) 
 		{
-		    u_vec[kk] = rhs[kk];
-		}
-	    }
-	    SAMRAI_MPI::sumReduction(&u_vec[0], size);
-
-	    bool foundFreePart = false;
-	    for (unsigned kk = 0; kk < local_num_structs; ++kk)
-	    {
-		int num_free_dofs;
-		d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
-		if (num_free_dofs)
-		{
-		    foundFreePart = true;
-		    Vec U_sub;
-		    IBTK::VecMultiVecGetSubVec(x, actual_id_free_struct_id_map[struct_ids[k][kk]], &U_sub);
-		    RigidDOFVector Ur;
-		    for (int idir = 0;  idir < s_max_free_dofs; ++idir)
+		    int num_free_dofs;
+		    d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
+		    if (num_free_dofs)
 		    {
-			Ur[idir] = u_vec[kk*s_max_free_dofs+idir];
-			
+			const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
+			std::copy(rhs+kk*s_max_free_dofs, rhs+(kk+1)*s_max_free_dofs, &f_vec[free_part*s_max_free_dofs]);
 		    }
-		    d_cib_strategy->rdvToVec(Ur, U_sub);
 		}
-	    }
-	    if (!foundFreePart) continue;
-	    if (rank == managing_proc) 
-	    {
 		delete [] rhs;
-		counter++;
-	    }
-	    rhs=NULL;
+	    }		
+	    else
+	    {
+		for (unsigned k = 0; k < struct_ids.size(); ++k)
+		{
+		    for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) 
+		    {
+			int num_free_dofs;
+			d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
+			if (num_free_dofs)
+			{
+			    const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
+			    std::fill(&f_vec[free_part*s_max_free_dofs], &f_vec[(free_part+1)*s_max_free_dofs], 0.0);
+			}
+		    }
+		}
+	    }//rank
 	}
     }
-    RHS_vector.clear();
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: N^-1*F at proc 0, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
+    SAMRAI_MPI::sumReduction(&f_vec[0], free_parts_size);
+    for (unsigned part = 0; part < num_free_parts; ++part)
+    {
+	Vec U_sub;
+	IBTK::VecMultiVecGetSubVec(x, part, &U_sub);
+	PetscScalar* u = NULL;
+	VecGetArray(U_sub, &u);
+	int num_free_dofs;
+	const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(free_struct_id_actual_id_map[part], num_free_dofs);
+
+	if (u != NULL)
+	{
+	    for (int idir=0; idir<s_max_free_dofs; idir++)
+	    {
+		if (solve_dofs[idir])
+		{
+		     u[idir] = f_vec[part*s_max_free_dofs+idir];
+		}
+	    }
+	}
+	VecRestoreArray(U_sub, &u);
+    }
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: copy velocity arrays to Vec, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
 
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
     IBAMR_TIMER_STOP(t_solve_system);
 
     return true;
-} // solveSystem
+} // solveBodySystem
+
 
 void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 {
@@ -720,18 +798,28 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
         int mob_mat_size = d_managed_mat_nodes_map[mat_name] * NDIM;
 	int mat_size = struct_ids.size() *  s_max_free_dofs;
         double* mobility_mat = d_managed_mat_map[mat_name];
-	double* inverse_mobility_mat = new double [mob_mat_size*mob_mat_size];	
-	getInverseMatrix (mat_name, mobility_mat, inverse_mobility_mat, mob_mat_size, inv_type);
-
 	double* body_mob_mat = d_body_mob_mat_map[mat_name];
-	d_cib_strategy->constructBodyMobilityMatrix(mat_name, inverse_mobility_mat, body_mob_mat, struct_ids, initial_time,  managing_proc);
 
-	delete[] inverse_mobility_mat;
+	double* kinematic_mat = new double [mob_mat_size*mat_size];	
+	double* product_mat = new double [mob_mat_size*mat_size];	
+
+	d_cib_strategy->constructKinematicMatrix(kinematic_mat, struct_ids, initial_time,  managing_proc);
+	std::memcpy(product_mat, kinematic_mat, mob_mat_size*mat_size*sizeof(double));
+
+	//compute solution
+	computeSolution(mat_name, mobility_mat, mob_mat_size, inv_type, product_mat, false, mat_size);
+
+	double alpha=1.0;
+	double beta=0.0;
+	dgemm_((char*)"T",(char*)"N", &mat_size, &mat_size, &mob_mat_size, &alpha, kinematic_mat, &mob_mat_size, product_mat, &mob_mat_size,  &beta, body_mob_mat, &mat_size);
+
+	delete[] kinematic_mat;
+	delete[] product_mat;
 
 	decomposeMatrix(mat_name, body_mob_mat,mat_size,inv_type, true);
 
-	inverse_mobility_mat = new double [mat_size*mat_size];	
-	getInverseMatrix (mat_name, body_mob_mat, inverse_mobility_mat, mat_size, inv_type);
+	//inverse_mobility_mat = new double [mat_size*mat_size];	
+	//getInverseMatrix (mat_name, body_mob_mat, inverse_mobility_mat, mat_size, inv_type);
 	// std::ofstream MM_out;
 	// std::string fname="BodyMobilityMatrix.out";
 	// MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
@@ -743,18 +831,32 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
 	//     MM_out<<std::endl;
 	// }
 	// MM_out.close();
-	delete[] inverse_mobility_mat;
+	//delete[] inverse_mat;
     }
 
     return;
 }// generateBodyFrictionMatrix
-void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* friction_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility)
+void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* friction_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility, int nrhs)
 {
+    std::ofstream MM_out;
+    std::string fname="TESTING-NEW.out";
+    MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
+    if (BodyMobility) MM_out<<"BODY MOBILITY********************* "<<mat_name<<std::endl;
+    else MM_out<<"NODE MOBILITY*********************  "<<mat_name<<std::endl;
+    MM_out<<std::endl;
+    MM_out<<std::scientific;
+    for (int i = 0; i < mat_size; ++i)
+    {
+//	for (int ii = 0; ii < mat_size; ++ii) MM_out<<inverse_mobility_mat[ii*mat_size+i]<<"\t";
+	MM_out<<rhs[i];
+	MM_out<<std::endl;
+    }
+    MM_out.close();
 
     if (inv_type == LAPACK_CHOLESKY)
     {
         int err = 0;
-        dpotrs_((char*)"L", mat_size, 1, friction_mat, mat_size, rhs, mat_size, err);
+        dpotrs_((char*)"L", mat_size, nrhs, friction_mat, mat_size, rhs, mat_size, err);
         if (err)
         {
             TBOX_ERROR("DirectMobilitySolver::computeSolution() Solution failed using "
@@ -765,9 +867,9 @@ void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* 
     {
         int err = 0;
 	if (BodyMobility) 
-	    dgetrs_((char*)"N", mat_size, 1, friction_mat, mat_size, d_body_ipiv[mat_name], rhs, mat_size, err);
+	    dgetrs_((char*)"N", mat_size, nrhs, friction_mat, mat_size, d_body_ipiv[mat_name], rhs, mat_size, err);
 	else 
-	    dgetrs_((char*)"N", mat_size, 1, friction_mat, mat_size, d_ipiv[mat_name], rhs, mat_size, err);
+	    dgetrs_((char*)"N", mat_size, nrhs, friction_mat, mat_size, d_ipiv[mat_name], rhs, mat_size, err);
 
         if (err)
         {
@@ -777,24 +879,30 @@ void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* 
     }
     else if (inv_type == LAPACK_SVD)
     {
-        std::vector<double> temp(mat_size);
-        for (int i = 0; i < mat_size; ++i)
-        {
-            temp[i] = 0.0;
-            for (int j = 0; j < mat_size; ++j)
-            {
-                temp[i] += friction_mat[i * mat_size + j] * rhs[j];
-            }
-        }
+	std::vector<std::vector<double> >temp;
+	temp.resize(nrhs);
+	for( std::vector<std::vector<double> >::iterator it = temp.begin(); it != temp.end(); ++it) it->resize(mat_size);
 
-        for (int i = 0; i < mat_size; ++i)
+        for (int n = 0; n < nrhs; ++n)
         {
-            rhs[i] = 0.0;
-            for (int j = 0; j < mat_size; ++j)
-            {
-                rhs[i] += friction_mat[j * mat_size + i] * temp[j];
-            }
-        }
+	    for (int i = 0; i < mat_size; ++i)
+	    {
+		temp[n][i] = 0.0;
+		for (int j = 0; j < mat_size; ++j)
+		{
+		    temp[n][i] += friction_mat[i * mat_size + j] * rhs[n*mat_size+j];
+		}
+	    }
+
+	    for (int i = 0; i < mat_size; ++i)
+	    {
+		rhs[n*mat_size+i] = 0.0;
+		for (int j = 0; j < mat_size; ++j)
+		{
+		    rhs[n*mat_size+i] += friction_mat[j * mat_size + i] * temp[n][j];
+		}
+	    }
+	}
     }
 
     return;

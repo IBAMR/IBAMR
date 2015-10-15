@@ -196,8 +196,12 @@ public:
      * two-dimensions the vector contains the values \f$[u,v,\omega_z]\f$
      * and for three-dimensions the vector values are
      * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
+     *
+     * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V) = 0;
+    virtual void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp)= 0;
+
+    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
 
     virtual void setRigidBodyVelocity(const unsigned int part, Vec U, Vec V);
 
@@ -227,13 +231,18 @@ public:
      */
     virtual void setRigidBodyVelocity(Vec U,
                                       Vec V,
-                                      const bool only_free_dofs,
+				      const bool only_free_dofs,
                                       const bool only_imposed_dofs,
                                       const bool all_dofs = false);
     /*!
      * \brief set deformation velocity.
      */
     virtual void setRigidBodyDeformationVelocity(const unsigned int part, Vec y);
+
+    /*!
+     * \brief set deformation velocity.
+     */
+    virtual void setRigidBodyDeformationVelocity(Vec W);
 
 
     /*!
@@ -245,7 +254,18 @@ public:
      *
      * \param F RDV storing the net generalized force.
      */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F) = 0;
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
+
+    /*!
+     * \brief Compute total force and torque on the structure.
+     *
+     * \param L The Lagrange multiplier vector.
+     *
+     * \param F vecotr RDV storing the net generalized force.
+     *
+     * \param skip_comp skip unnecessary components for efficiency
+     */
+    virtual void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp) = 0;
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -297,6 +317,7 @@ public:
     void updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U);
 
     void updateNewRigidBodyVelocity(const unsigned int part, Vec U);
+
  
     /*!
      * \brief Copy data from distributed PETSc Vec for specified stucture indices
@@ -317,11 +338,13 @@ public:
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
     virtual void copyVecToArray(Vec b,
-                                double* array,
-                                const std::vector<unsigned>& struct_ids,
-                                const int data_depth,
-                                const int array_rank);
+				double* array,
+				const std::vector<unsigned>& struct_ids,
+				const int data_depth,
+				const int array_rank);
+    
 
+    
     /*!
      * \brief Copy data from array defined on a single processor for specified
      * stucture indices to distributed PETScVec. A default empty implementation
@@ -341,10 +364,22 @@ public:
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
     virtual void copyArrayToVec(Vec b,
-                                double* array,
-                                const std::vector<unsigned>& struct_ids,
-                                const int data_depth,
-                                const int array_rank);
+			double* array,
+			const std::vector<unsigned>& struct_ids,
+			const int data_depth,
+			const int array_rank);
+
+    virtual void copyAllVecToArray(Vec b,
+				   double* array,
+				   const std::vector<unsigned>& all_rhs_struct_ids,
+				   const int data_depth,
+				   const int array_rank);
+    
+    virtual void copyAllArrayToVec(Vec b,
+				   double* array,
+				   const std::vector<unsigned>& all_rhs_struct_ids,
+				   const int data_depth,
+				   const int array_rank);
 
     /*!
      * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
@@ -420,14 +455,14 @@ public:
                                          double mu,
                                          double f_periodic_corr);
     /*!
-     * \brief Construct a dense body mobility matrix for the prototypical structures
+     * \brief Construct a kinematic matrix for the prototypical structures
      * identified by their indices. A default empty implementation is provided
      * in this class. The derived class provides the actual implementation.
      *
      * \param mat_name Matrix handle.
      *
-     * \param body_mobility_mat Pointer to matrix representation. The matrix is
-     * stored in column-major(FORTRAN) order.
+     * \param kinematic_mat Pointer to matrix representation. The matrix is
+     * stored in column-major(FORTRAN) order. Must be allocated.
      *
      * \param prototype_struct_ids Indices of the structures as registered
      * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
@@ -438,12 +473,10 @@ public:
      *
      * \param managing_rank Rank of the processor managing this dense matrix.
      */
-    virtual void constructBodyMobilityMatrix(const std::string& mat_name,
-					     double* mobility_mat,
-					     double* body_mobility_mat,
-					     const std::vector<unsigned>& prototype_struct_ids,
-					     const bool initial_time,
-					     const int managing_rank);
+    virtual void constructKinematicMatrix(double* kinematic_mat,
+					  const std::vector<unsigned>& prototype_struct_ids,
+					  const bool initial_time,
+					  const int managing_rank);
     /*!
      * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
      *
@@ -481,7 +514,7 @@ protected:
     /*!
      * Center of mass and moment of inertia.
      */
-    std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half;
+    std::vector<Eigen::Vector3d> d_center_of_mass_current, d_center_of_mass_half;
     std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half;
 
     /*!
@@ -499,6 +532,7 @@ protected:
      * Net rigid generalized force.
      */
     std::vector<RigidDOFVector> d_net_rigid_generalized_force;
+
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:

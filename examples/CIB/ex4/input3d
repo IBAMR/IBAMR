@@ -3,14 +3,14 @@
 //shell with applied random force and torque  - RANDOM_FORCE
 
 
-run_example = "SQUIMER"
+//run_example = "SQUIMER"
 B1_squimer = 1.0
 B2_squimer = 0.0
 
 
-//run_example = "RANDOM_FORCE"
-DRAG_SCALE = 100.0
-TORQUE_SCALE = 100.0
+run_example = "RANDOM_FORCE"
+DRAG_SCALE = 1.0
+TORQUE_SCALE = 1.0
 
 // physical parameters
 MU  =  1.0                   // fluid viscosity
@@ -36,7 +36,7 @@ DT = 0.01            // maximum timestep size
 // solver parameters
 SOLVER_KSP = "gmres"
 STOKES_KSP = "preonly"
-STOKES_ITER = 4
+STOKES_ITER = 2
 STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
 SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
@@ -249,8 +249,8 @@ CIBStaggeredStokesSolver
 
         LAPACK_SVD
         {
-            min_eigenvalue_threshold   = 1e-4     // defaults to 0.0
-            eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
+            min_eigenvalue_threshold   = 1e-6 /(DX*MU)     // defaults to 0.0
+            eigenvalue_replace_value   = 1e-6 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
         }
    }
 } // cIBStaggeredStokesSolver

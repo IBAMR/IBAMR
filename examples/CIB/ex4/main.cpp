@@ -67,6 +67,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
+static bool print_time;
+
 // Center of mass velocity
 void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
 {
@@ -105,7 +107,7 @@ void SlipVelocity(const unsigned part, Vec U_k,  Vec X,
 	V_array = new double[size];
 	for (unsigned i=0; i<num_of_nodes; ++i)
 	{
-	    const IBTK::Point& X = cib_method->getStandardInitializer()->getVertexPosn(struct_ln,part,i);
+	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);
 	    
 	    Eigen::Vector3d coord;
 	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d]- X_com[d];
@@ -129,8 +131,7 @@ void SlipVelocity(const unsigned part, Vec U_k,  Vec X,
 	}
     }
 
-    cib_method->copyArrayToVec(U_k, V_array, (std::vector<unsigned int>(1, part)), NDIM, 0);
-
+    cib_method->copyArrayToVec(U_k, V_array, std::vector<unsigned> (1, part), NDIM, 0);
     return;
 }
 
@@ -140,11 +141,11 @@ void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
 
-    F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
-    T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
+    // F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
+    // T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
 
-//    F_ext << B1, 0, 0;
-//    T_ext << B2, 0, 0;
+   F_ext << B1, 0, 0;
+   T_ext << B2, 0, 0;
     return;
 } // NetExternalForceTorque
 
@@ -168,7 +169,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int main(int argc, char* argv[])
 {
 
-    extern bool print_time; //Printing time report
+    //bool print_time; //Printing time report
     print_time = false;
 
     // Initialize PETSc, MPI, and SAMRAI.
@@ -422,6 +423,7 @@ int main(int argc, char* argv[])
 		    mat_name += convert.str();
 		    
 		    direct_solvers->registerMobilityMat(mat_name, prototype_ID, EMPIRICAL, LAPACK_SVD, counter%num_nodes);
+//		    direct_solvers->registerMobilityMat(mat_name, prototype_ID, RPY, LAPACK_SVD, counter%num_nodes);
 		    counter++;
 		    
 		    std::vector<std::vector<unsigned> > struct_ids;

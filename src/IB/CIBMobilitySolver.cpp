@@ -32,6 +32,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+// #ifndef TIME_REPORT
+// #define TIME_REPORT
+// #endif
+
+#ifdef TIME_REPORT
+extern bool print_time;
+#endif
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <limits>
 
@@ -310,11 +318,29 @@ void CIBMobilitySolver::deallocateSolverState()
 
 bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
+
+ #ifdef TIME_REPORT
+    clock_t start_med=0, end_t=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     IBAMR_TIMER_START(t_solve_mobility_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         CIBMobility:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
 
     // Solve for x.
     bool converged = false;
@@ -336,14 +362,22 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-    IBAMR_TIMER_STOP(t_solve_mobility_system);
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"        CIBMobility:solving CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
 
+    IBAMR_TIMER_STOP(t_solve_mobility_system);
     return converged;
 } // solveMobilitySystem
 
 bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
 {
-    bool converged;
+    bool converged=false;
     IBAMR_TIMER_START(t_solve_body_mobility_system);
 
     // Initialize the solver, when necessary.

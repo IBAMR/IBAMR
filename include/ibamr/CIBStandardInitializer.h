@@ -552,11 +552,20 @@ public:
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
-//Baky modifications
+   /*!
+     * \return The initial position of the the protoype specified vertex in CM coordinate frame.
+     */
+IBTK::Point getPrototypeVertexPosn(const int level_number, const int structID, const int nodeID) const ;
+
    /*!
      * \return The initial position of the specified vertex.
      */
-const IBTK::Point getVertexPosn(const int level_number, const int structID, const int nodeID) const;
+IBTK::Point getInitialVertexPosn(const int level_number, const int structID, const int nodeID) const;
+
+   /*!
+     * \return The initial position of the specified vertex.
+     */
+Eigen::Vector3d getInitialCOMStructure(const int level_number, const int structID) const;
 
    /*!
      * \return The initial orientation of the specified structure.
@@ -675,7 +684,7 @@ private:
     /*!
      * \return The initial position of the specified vertex.
      */
-    IBTK::Point getVertexPosn(const std::pair<int, int>& point_index, int level_number) const;
+    IBTK::Point getVertexPosn(const std::pair<int, int>& point_index, int level_number)const;
 
     /*!
      * \return The initial position of the specified vertex.
@@ -684,7 +693,7 @@ private:
                                      int level_number,
                                      const double* domain_x_lower,
                                      const double* domain_x_upper,
-                                     const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
+                                     const SAMRAI::hier::IntVector<NDIM>& periodic_shift)const;
 
     /*!
      * \reads the shifts and orientations of structure clones.
@@ -973,6 +982,7 @@ private:
     unsigned d_num_structs_types;
     std::vector<int> d_structs_clones_num;
     std::vector<std::vector<Eigen::Vector3d > > d_X_com;
+    std::vector<std::vector <int> > d_struct_prototype_map;
 
 };
 } // namespace IBAMR

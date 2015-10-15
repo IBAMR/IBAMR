@@ -364,20 +364,23 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
+    void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp);
 
     // \see CIBStrategy::setRigidBodyDeformationVelocity method.
     /*!
      * \brief set deformation velocity.
      */
-    void setRigidBodyDeformationVelocity(const unsigned int part, Vec y);
+    void setRigidBodyDeformationVelocity(const unsigned int part, Vec W);
+
+    //void setRigidBodyDeformationVelocity(Vec W);
 
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
+    void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp);
+
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -389,6 +392,7 @@ public:
                         const int data_depth,
                         const int array_rank);
 
+    
     // \see CIBStrategy::copyVecToArray() method.
     /*!
      * \brief Copy raw array to PETSc Vec for specified structures.
@@ -398,6 +402,18 @@ public:
                         const std::vector<unsigned>& struct_ids,
                         const int data_depth,
                         const int array_rank);
+
+    void copyAllArrayToVec(Vec b,
+			   double* array,
+			   const std::vector<unsigned>& all_rhs_struct_ids,
+			   const int data_depth,
+			   const int array_rank);
+    
+    void copyAllVecToArray(Vec b,
+			   double* array,
+			   const std::vector<unsigned>& all_rhs_struct_ids,
+			   const int data_depth,
+			   const int array_rank);
 
     // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
@@ -422,12 +438,10 @@ public:
      * \brief Generate dense body mobility matrix for the free structures
      * identified by their ids.
      */
-    void constructBodyMobilityMatrix(const std::string& mat_name,
-				     double* mobility_mat,
-				     double* body_mobility_mat,
-				     const std::vector<unsigned>& prototype_struct_ids,
-				     const bool initial_time,
-				     const int managing_rank);
+    void constructKinematicMatrix(double* kinematic_mat,
+				  const std::vector<unsigned>& prototype_struct_ids,
+				  const bool initial_time,
+				  const int managing_rank);
     
    //\see CIBStrategy:: rotateArrayInitalBodyFrame method.
     /*!

@@ -51,8 +51,6 @@ namespace IBAMR
 {
 
 extern "C" {
-// LAPACK function to do matrix product
-int dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
 
 void getEmpiricalMobilityMatrix(const char* kernel_name,
                                 const double mu,
@@ -346,15 +344,18 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 	    domain_length[d] = domain_x_upper[d]-domain_x_lower[d];
 	}
 	//const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-	
-	computeInitialCOMOfStructures(d_center_of_mass_initial);
-	d_center_of_mass_current=d_center_of_mass_initial;
+	const int struct_ln = getStructuresLevelNumber();
+
 	for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+	{
+	    d_center_of_mass_current[struct_no] = getStandardInitializer()->getInitialCOMStructure(struct_ln,struct_no);
+
 	    for (unsigned int d = 0; d < NDIM; ++d) 
 	    { 
 		while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d]) d_center_of_mass_current[struct_no][d] += domain_length[d];
 		while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d]) d_center_of_mass_current[struct_no][d] -= domain_length[d];
 	    }
+	}
 	    
     	d_quaternion_half = d_quaternion_current; 
     }
@@ -370,10 +371,12 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
     Vec L_vec = ptr_lagmultpr->getVec();
-    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
-    {
-        computeNetRigidGeneralizedForce(part, L_vec, d_net_rigid_generalized_force[part]);
-    }
+    
+    std::vector<bool> skip_comp;
+    skip_comp.resize(d_num_rigid_parts);
+    fill(skip_comp.begin(), skip_comp.end(), false);
+    computeNetRigidGeneralizedForce(L_vec, d_net_rigid_generalized_force, skip_comp);
+    
 
     // Destroy the free-parts PETSc Vecs.
     for (size_t k = 0; k < d_U.size(); ++k)
@@ -707,9 +710,8 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
 
             const std::pair<int,int>& lag_idx_range = d_struct_lag_idx_range[struct_handle]; 
-	    const IBTK::Point X = getStandardInitializer()->getVertexPosn(ln,struct_handle,lag_idx-lag_idx_range.first);
-            for (unsigned int d = 0; d < NDIM; ++d)  
-                dr[d] = X[d] - d_center_of_mass_initial[struct_handle][d];
+	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(ln,struct_handle,lag_idx-lag_idx_range.first);
+            for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
           
             // Rotate dr vector using the rotation matrix.
             R_dr = rotation_mat[struct_handle]*dr; 
@@ -805,9 +807,8 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
             const std::pair<int,int>& lag_idx_range = d_struct_lag_idx_range[struct_handle]; 
-	    const IBTK::Point X = getStandardInitializer()->getVertexPosn(ln,struct_handle,lag_idx-lag_idx_range.first);
-            for (unsigned int d = 0; d < NDIM; ++d)  
-                dr[d] = X[d] - d_center_of_mass_initial[struct_handle][d];
+	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(ln,struct_handle,lag_idx-lag_idx_range.first);
+            for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
             
             // Rotate dr vector using the rotation matrix.
             R_dr = rotation_mat[struct_handle]*dr; 
@@ -1038,65 +1039,69 @@ unsigned int CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
 
 } // getNumberOfStructuresNodes
 
-void CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V)
+void CIBMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U_vec, Vec V, const std::vector<bool>& skip_comp)
 {
-    void* ctx = d_constrained_velocity_fcns_data[part].ctx;
-    const int struct_ln = getStructuresLevelNumber();
-
-    if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
-    {
-	CIBMethod* cib_method_ptr = this;
-        d_constrained_velocity_fcns_data[part].nodalvelfcn(part, V, U, d_X_half_data[struct_ln]->getVec(),
-                                                           d_center_of_mass_half[part], d_new_time, ctx, 
-							   cib_method_ptr);
-    }
-    else
-    {
-	
-	Eigen::Matrix3d rotation_mat=d_quaternion_half[part].toRotationMatrix();
+    // Wrap the PETSc V into LData
+    std::vector<int> nonlocal_indices;
+    LData V_data("V", V, nonlocal_indices, false);
     
-        // Wrap the PETSc V into LData
-        std::vector<int> nonlocal_indices;
-        LData V_data("V", V, nonlocal_indices, false);
+    boost::multi_array_ref<double, 2>& V_data_array = *V_data.getLocalFormVecArray();
+    
+    const int struct_ln = getStructuresLevelNumber();
+    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    
+    for (unsigned part = 0; part < d_num_rigid_parts; ++part) 
+    {
+	if (skip_comp[part]) continue;
 
-        boost::multi_array_ref<double, 2>& V_data_array = *V_data.getLocalFormVecArray();
-
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
-        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
-
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            Eigen::Vector3d dr;
-            Eigen::Vector3d R_dr;
-
-
-            if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
-            {
-                const int local_idx = node_idx->getLocalPETScIndex();
-                double* const V_node = &V_data_array[local_idx][0];
-
-		const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,part,lag_idx-part_idx_range.first);
-		for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[part][d];
+	const RigidDOFVector& U = U_vec[part];
+	void* ctx = d_constrained_velocity_fcns_data[part].ctx;
+	
+	if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
+	{
+	    CIBMethod* cib_method_ptr = this;
+	    d_constrained_velocity_fcns_data[part].nodalvelfcn(part, V, U, d_X_half_data[struct_ln]->getVec(),
+							       d_center_of_mass_half[part], d_new_time, ctx, 
+							       cib_method_ptr);
+	}
+	else
+	{
+	    const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
+	    Eigen::Matrix3d rotation_mat=d_quaternion_half[part].toRotationMatrix();
+    
+	    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+	    {
+		const LNode* const node_idx = *cit;
+		const int lag_idx = node_idx->getLagrangianIndex();
+		Eigen::Vector3d dr;
+		Eigen::Vector3d R_dr;
 		
-		R_dr = rotation_mat*dr; 
-
+		
+		if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
+		{
+		    const int local_idx = node_idx->getLocalPETScIndex();
+		    double* const V_node = &V_data_array[local_idx][0];
+		    
+		    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,lag_idx-part_idx_range.first);
+		    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
+		    
+		    R_dr = rotation_mat*dr; 
+		    
 #if (NDIM == 2)
-                V_node[0] = U[0] - U[2] * R_dr[1];
-                V_node[1] = U[1] + U[2] * R_dr[0];
+		    V_node[0] = U[0] - U[2] * R_dr[1];
+		    V_node[1] = U[1] + U[2] * R_dr[0];
 #elif(NDIM == 3)
-                V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
-                V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
-                V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
+		    V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
+		    V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
+		    V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
 #endif
-            }
-        }
-
-        // Restore underlying arrays
-        V_data.restoreArrays();
+		}
+	    }
+	}
     }
+    // Restore underlying arrays
+    V_data.restoreArrays();
 
     return;
 } // setRigidBodyVelocity
@@ -1112,16 +1117,20 @@ void CIBMethod::setRigidBodyDeformationVelocity(const unsigned int part, Vec y)
     return;
 }//setRigidBodyDeformationVelocity
 
-void CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F)
+void CIBMethod::computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp)
 {
     const int struct_ln = getStructuresLevelNumber();
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no) 
+    {
+	if (skip_comp[struct_no]) continue;
+	F[struct_no].setZero();
+    }
 
     // Wrap the distributed PETSc Vec L into LData
     std::vector<int> nonlocal_indices;
     LData p_data("P", L, nonlocal_indices, false);
     const boost::multi_array_ref<double, 2>& p_data_array = *p_data.getLocalFormVecArray();
 
-    F.setZero();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -1131,35 +1140,38 @@ void CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, 
         const int local_idx = node_idx->getLocalPETScIndex();
         const double* const P = &p_data_array[local_idx][0];
         const unsigned struct_id = getStructureHandle(lag_idx);
-        if (struct_id != part) continue;
+	if (skip_comp[struct_id]) continue;
 
-	Eigen::Matrix3d rotation_mat=d_quaternion_half[part].toRotationMatrix();
+	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
 	Eigen::Vector3d dr;
 	Eigen::Vector3d R_dr;
-        const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
-	const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,part,lag_idx-part_idx_range.first);
-	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[part][d];
+        const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
+	const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_id,lag_idx-part_idx_range.first);
+	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
 	R_dr = rotation_mat*dr; 
 
 #if (NDIM == 2)
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += P[d];
+            F[struct_id][d] += P[d];
         }
-        F[2] += P[1] * R_dr[0] - P[0] * R_dr[1];
+        F[struct_id][2] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #elif(NDIM == 3)
         for (int d = 0; d < NDIM; ++d)
         {
-            F[d] += P[d];
+            F[struct_id][d] += P[d];
         }
-        F[3] += P[2] * R_dr[1] - P[1] * R_dr[2];
-        F[4] += P[0] * R_dr[2] - P[2] * R_dr[0];
-        F[5] += P[1] * R_dr[0] - P[0] * R_dr[1];
+        F[struct_id][3] += P[2] * R_dr[1] - P[1] * R_dr[2];
+        F[struct_id][4] += P[0] * R_dr[2] - P[2] * R_dr[0];
+        F[struct_id][5] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #endif
     }
-    SAMRAI_MPI::sumReduction(&F[0], NDIM * (NDIM + 1) / 2);
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no) 
+    {
+	if (skip_comp[struct_no]) continue;
+	SAMRAI_MPI::sumReduction(&F[struct_no][0], NDIM * (NDIM + 1) / 2);
+    }
     p_data.restoreArrays();
-
     return;
 } // computeNetRigidGeneralizedForce
 
@@ -1309,6 +1321,95 @@ void CIBMethod::copyArrayToVec(Vec b,
     return;
 } // copyArrayToVec
 
+void CIBMethod::copyAllVecToArray(Vec b,
+				  double* array,
+				  const std::vector<unsigned> & all_rhs_struct_ids,
+				  const int data_depth,
+				  const int array_rank)
+{
+    // Map the Lagrangian indices into PETSc indices
+    const int struct_ln = getStructuresLevelNumber();
+    const unsigned num_structs= all_rhs_struct_ids.size();
+
+    Vec b_lag_vec_parallel    = PETSC_NULL;
+    Vec b_lag_vec_seq         = PETSC_NULL;    
+    VecDuplicate(b, &b_lag_vec_parallel);
+
+    d_l_data_manager->scatterPETScToLagrangian(b,b_lag_vec_parallel,struct_ln);
+    d_l_data_manager->scatterToAll(b_lag_vec_parallel, b_lag_vec_seq);
+
+    PetscScalar *petsc_array;
+    VecGetArray(b_lag_vec_seq,&petsc_array);  
+
+    int counter = 0;
+    for (unsigned i = 0; i < num_structs; ++i) 
+    {
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[all_rhs_struct_ids[i]];
+
+	for (int k = lag_idx_range.first; k < lag_idx_range.second; ++k) 	
+	{
+	    for (int idir=0; idir<data_depth; ++idir) 
+	    {
+		array[counter++]  = petsc_array[k*data_depth+idir]; 
+	    }
+	}
+    }
+    VecRestoreArray(b_lag_vec_seq,&petsc_array); 
+
+    VecDestroy(&b_lag_vec_parallel); 
+    VecDestroy(&b_lag_vec_seq);
+
+    return;
+} // copyAllVecToArray
+
+void CIBMethod::copyAllArrayToVec(Vec b,
+				  double* array,
+				  const std::vector<unsigned>& all_rhs_struct_ids,
+				  const int data_depth,
+				  const int array_rank)
+{
+    const int struct_ln = getStructuresLevelNumber();
+    const unsigned num_structs= all_rhs_struct_ids.size();
+
+    Vec b_lag_vec = PETSC_NULL;
+    VecDuplicate(b, &b_lag_vec);
+    VecSet(b_lag_vec, 0.0);
+
+    PetscInt local_size = 0;
+    for (unsigned k = 0; k < num_structs; ++k)
+    {
+     	local_size += getNumberOfNodes(all_rhs_struct_ids[k]);
+    }
+    local_size *= data_depth;
+
+    PetscInt *indices = new PetscInt[local_size]; 
+
+    unsigned counter = 0;
+    for (unsigned i = 0; i < num_structs; ++i) 
+    {
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[all_rhs_struct_ids[i]];
+	const int struct_size = getNumberOfNodes(all_rhs_struct_ids[i])*data_depth;
+    	
+	for (int k = 0; k < struct_size; ++k) 	
+    	{
+	    indices[counter++] = lag_idx_range.first*data_depth + k;
+	} 
+    }
+
+    VecSetValues(b_lag_vec, local_size, indices, array, INSERT_VALUES); 
+    SAMRAI_MPI::barrier();
+
+    VecAssemblyBegin(b_lag_vec);
+    VecAssemblyEnd(b_lag_vec);
+    
+    d_l_data_manager->scatterLagrangianToPETSc(b_lag_vec, b, struct_ln);
+    
+    VecDestroy(&b_lag_vec); 
+    delete [] indices;
+
+    return;
+} // copyAllArrayToVec
+
 void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
 					std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
 					std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
@@ -1389,7 +1490,7 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 		    
 		    for (unsigned k = 0; k < num_struct_nodes; ++k)
 		    {
-			const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
+			const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,prototype_struct_ids[i],k);
 		
 			if (initial_time)
 			{
@@ -1397,7 +1498,7 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 			    
 			}else
 			{
-			    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[prototype_struct_ids[i]][d];
+			    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
 			    R_dr = rotation_mat*dr; 
 			    for (int d = 0; d < NDIM; ++d)	XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d]+R_dr[d];
 			}
@@ -1455,12 +1556,10 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
     return;
 } // generateMobilityMatrix
 
-void CIBMethod::constructBodyMobilityMatrix(const std::string& /*mat_name*/,
-					    double* mobility_mat,
-					    double* body_mobility_mat,
-					    const std::vector<unsigned>& prototype_struct_ids,
-					    const bool initial_time,
-					    const int managing_proc)
+void CIBMethod::constructKinematicMatrix(double* kinematic_mat,
+					 const std::vector<unsigned>& prototype_struct_ids,
+					 const bool initial_time,
+					 const int managing_proc)
 {
     const int struct_ln = getStructuresLevelNumber();
     const int rank = SAMRAI_MPI::getRank();
@@ -1475,16 +1574,12 @@ void CIBMethod::constructBodyMobilityMatrix(const std::string& /*mat_name*/,
     int bsize = s_max_free_dofs * prototype_struct_ids.size();
 
 
-    const unsigned shft=s_max_free_dofs;
+    const unsigned shft = s_max_free_dofs;
     // Get the position data
     if (rank == managing_proc)
     {
-	double* geom_mat =  new double[bsize*size];
-	std::memset(geom_mat, 0.0, sizeof(geom_mat));
-
-	double* temp_mat = new double[bsize*size];
-
-
+	std::fill(kinematic_mat, kinematic_mat + bsize*size, 0.0);
+	
 	Eigen::Vector3d dr = Eigen::Vector3d::Zero();
 	Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 	Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3,3);
@@ -1497,8 +1592,8 @@ void CIBMethod::constructBodyMobilityMatrix(const std::string& /*mat_name*/,
 
 	    for (unsigned k = 0; k < num_nodes; ++k)
 	    {
-		const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,prototype_struct_ids[i],k);
-		for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d] - d_center_of_mass_initial[prototype_struct_ids[i]][d];
+		const IBTK::Point X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,prototype_struct_ids[i],k);
+		for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
 
 		if (!initial_time)
 		    R_dr = rotation_mat*dr; 
@@ -1507,52 +1602,39 @@ void CIBMethod::constructBodyMobilityMatrix(const std::string& /*mat_name*/,
 
 		//column major representation for LAPACK
 		         
-		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM    ]      =  1.0; //(1,1)
-		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 1]      =  0.0; //(2,1)
+		kinematic_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM    ]      =  1.0; //(1,1)
+		kinematic_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 1]      =  0.0; //(2,1)
 		
-		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM    ]      =  0.0; //(1,2)
-		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 1]      =  1.0; //(2,2)
+		kinematic_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM    ]      =  0.0; //(1,2)
+		kinematic_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 1]      =  1.0; //(2,2)
 #if (NDIM == 2)
-		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      = -R_dr[1]; //(3,1)
-		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  R_dr[0]; //(3,2)
+		kinematic_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      = -R_dr[1]; //(3,1)
+		kinematic_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  R_dr[0]; //(3,2)
 #elif(NDIM == 3)
-		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,3)
-		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,4)
-		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM    ]      =  R_dr[2];//(1,5)
-		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM    ]      = -R_dr[1];//(1,6)
+		kinematic_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,3)
+		kinematic_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM    ]      =  0.0;//(1,4)
+		kinematic_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM    ]      =  R_dr[2];//(1,5)
+		kinematic_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM    ]      = -R_dr[1];//(1,6)
 
-		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,3)
-		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 1]      = -R_dr[2];//(2,4)
-		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,5)
-		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 1]      =  R_dr[0];//(2,6)
+		kinematic_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,3)
+		kinematic_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 1]      = -R_dr[2];//(2,4)
+		kinematic_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 1]      =  0.0;//(2,5)
+		kinematic_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 1]      =  R_dr[0];//(2,6)
 		
-		geom_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,1)
-		geom_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,2)
-		geom_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 2]      =  1.0;//(3,3)
-		geom_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 2]      =  R_dr[1];//(3,4)
-		geom_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 2]      = -R_dr[0];//(3,5)
-		geom_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,6)
+		kinematic_mat[/*col*/(i*shft  )*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,1)
+		kinematic_mat[/*col*/(i*shft+1)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,2)
+		kinematic_mat[/*col*/(i*shft+2)*size  + /*row*/ q*NDIM + 2]      =  1.0;//(3,3)
+		kinematic_mat[/*col*/(i*shft+3)*size  + /*row*/ q*NDIM + 2]      =  R_dr[1];//(3,4)
+		kinematic_mat[/*col*/(i*shft+4)*size  + /*row*/ q*NDIM + 2]      = -R_dr[0];//(3,5)
+		kinematic_mat[/*col*/(i*shft+5)*size  + /*row*/ q*NDIM + 2]      =  0.0;//(3,6)
 #endif
 		q++;
 	    }
 	}
-   
-	double alpha = 1.0;
-	double beta  = 0;
-
-
-
-
-	dgemm_((char*)"N",(char*)"N", &size, &bsize, &size, &alpha, mobility_mat, &size, geom_mat, &size, &beta, temp_mat, &size);
-	dgemm_((char*)"T",(char*)"N", &bsize, &bsize, &size, &alpha, geom_mat, &size, temp_mat, &size,  &beta, body_mobility_mat, &bsize);
-
-	delete[] geom_mat;
-	delete[] temp_mat;
-
     }
-
     return;
-} // constructBobyMobilityMatrix
+} // constructKinematicMatrix
+
 
 void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitializer> ib_initializer)
 {
@@ -1743,7 +1825,7 @@ void CIBMethod::computeInitialCOMOfStructures(std::vector<Eigen::Vector3d>& cent
 	int no_blobs = getNumberOfNodes(k);
 	for (int i = 0; i < no_blobs; ++i)
 	{
-	    const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,k,i);
+	    const IBTK::Point X = getStandardInitializer()->getInitialVertexPosn(struct_ln,k,i);
 	    for (int d = 0; d < NDIM; ++d) center_of_mass[k][d] += X[d];
 	}
 
@@ -1760,17 +1842,14 @@ void CIBMethod::computeInitialMOIOfStructures(std::vector<Eigen::Matrix3d>& mome
     {
         moment_of_inertia[struct_no].setZero();
     }
-    std::vector<Eigen::Vector3d> center_of_mass_initial;
-    center_of_mass_initial.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    computeInitialCOMOfStructures(center_of_mass_initial);
 
     for (unsigned k = 0; k < d_num_rigid_parts; ++k)
     {
 	int no_blobs = getNumberOfNodes(k);
-	const Eigen::Vector3d& X_com  =  center_of_mass_initial[k];
+	const Eigen::Vector3d X_com  =  Eigen::Vector3d::Zero();
 	for (int i = 0; i < no_blobs; ++i)
 	{
-	    const IBTK::Point X = getStandardInitializer()->getVertexPosn(struct_ln,k,i);
+	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,k,i);
 #if (NDIM == 2)
             moment_of_inertia[k](0, 0) += std::pow(X[1] - X_com[1], 2);
             moment_of_inertia[k](0, 1) += -(X[0] - X_com[0]) * (X[1] - X_com[1]);

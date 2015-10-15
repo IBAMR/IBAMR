@@ -266,7 +266,7 @@ private:
     /*!
      * \brief Compute solution and store in the rhs vector.
      */
-    void computeSolution(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility=false);
+    void computeSolution(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility=false, const int nrhs=1);
 
     /*!
      * \brief provide a matrix decomposition.

@@ -322,7 +322,7 @@ public:
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
+    virtual void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -350,7 +350,7 @@ public:
      * contained in the Vec V.
      *
      */
-    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
+    virtual void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp);
 
     // \}
 

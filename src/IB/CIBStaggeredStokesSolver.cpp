@@ -30,8 +30,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
+// #ifndef TIME_REPORT
+// #define TIME_REPORT
+// #endif
 
+#ifdef TIME_REPORT
+extern bool print_time;
+#endif
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/CIBFEMethod.h"
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesSolver.h"
@@ -238,6 +245,12 @@ void CIBStaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokes
 
 bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
+
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     // Create packaged vectors for the Saddle point solver.
     d_x_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
     d_b_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
@@ -263,24 +276,33 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     Vec W;
     VecDuplicate(L, &W);
     VecSet(W, 0.0);
+    d_cib_strategy->setRigidBodyDeformationVelocity(W);
 
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-	d_cib_strategy->setRigidBodyDeformationVelocity(part,W);
-        RigidDOFVector U_part;
-        d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
+	std::vector<RigidDOFVector> U_vec;
+	U_vec.resize(d_num_rigid_parts);
 
-        // Zero-out free velocities.
-        int num_free_dofs = 0;
-        const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
-        for (int k = 0; k < s_max_free_dofs; ++k)
-        {
-            if (solve_dofs[k]) U_part[k] = 0.0;
-        }
-
-        const double interp_scale = d_sp_solver->getInterpScale();
-        U_part *= -interp_scale;
-        d_cib_strategy->setRigidBodyVelocity(part, U_part, V);
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+	{
+	    RigidDOFVector& U_part =U_vec[part];
+	    d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
+	    
+	    // Zero-out free velocities.
+	    int num_free_dofs = 0;
+	    const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+	    for (int k = 0; k < s_max_free_dofs; ++k)
+	    {
+		if (solve_dofs[k]) U_part[k] = 0.0;
+	    }
+	    
+	    const double interp_scale = d_sp_solver->getInterpScale();
+	    U_part *= -interp_scale;
+	}
+		
+	std::vector<bool> skip_comp;
+	skip_comp.resize(d_num_rigid_parts);
+	fill(skip_comp.begin(), skip_comp.end(), false);
+	d_cib_strategy->setRigidBodyVelocity(U_vec, V, skip_comp);
     }
 
     VecAXPY(V,1.0,W);
@@ -302,6 +324,15 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     Vec mv_x, mv_b;
     VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vx[0], &mv_x);
     VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vb[0], &mv_b);
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"   SaddlePointSoler: generating rhs and initial values, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
 
     // Solve for velocity, pressure and Lagrange multipliers.
     // Notice that the state of d_U is maintained, and is passed
