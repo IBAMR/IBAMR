@@ -1340,7 +1340,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     fe.registerSystem(G_system, vars, vars); // compute phi and dphi for the force system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t Phi_sys_idx =
-        Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) : SIZE_T_MAX;
+        Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) : std::numeric_limits<size_t>::max();
     std::vector<size_t> body_force_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(body_force_fcn_system_idxs, d_lag_body_force_fcn_data[part].system_data,
                                           equation_systems);
