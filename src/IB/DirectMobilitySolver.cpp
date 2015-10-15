@@ -838,21 +838,6 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
 }// generateBodyFrictionMatrix
 void DirectMobilitySolver::computeSolution(const std::string& mat_name, double* friction_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility, int nrhs)
 {
-    std::ofstream MM_out;
-    std::string fname="TESTING-NEW.out";
-    MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
-    if (BodyMobility) MM_out<<"BODY MOBILITY********************* "<<mat_name<<std::endl;
-    else MM_out<<"NODE MOBILITY*********************  "<<mat_name<<std::endl;
-    MM_out<<std::endl;
-    MM_out<<std::scientific;
-    for (int i = 0; i < mat_size; ++i)
-    {
-//	for (int ii = 0; ii < mat_size; ++ii) MM_out<<inverse_mobility_mat[ii*mat_size+i]<<"\t";
-	MM_out<<rhs[i];
-	MM_out<<std::endl;
-    }
-    MM_out.close();
-
     if (inv_type == LAPACK_CHOLESKY)
     {
         int err = 0;
