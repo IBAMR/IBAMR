@@ -572,6 +572,11 @@ Eigen::Vector3d getInitialCOMStructure(const int level_number, const int structI
      */
 Eigen::Quaterniond* getStructureQuaternion(const int level_number, const int structID);
 
+    /*!
+     * \brief set rigid part clones parameters
+     */
+void getClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num);
+
 protected:
 private:
     /*!

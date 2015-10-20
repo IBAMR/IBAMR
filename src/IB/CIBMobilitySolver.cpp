@@ -36,10 +36,6 @@
 // #define TIME_REPORT
 // #endif
 
-#ifdef TIME_REPORT
-extern bool print_time;
-#endif
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <limits>
 
@@ -104,7 +100,7 @@ CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
                   t_deallocate_solver_state =
                       TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
 
-    return;
+     return;
 } // CIBMobilitySolver
 
 CIBMobilitySolver::~CIBMobilitySolver()
@@ -333,7 +329,7 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         CIBMobility:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -364,7 +360,7 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"        CIBMobility:solving CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -409,7 +405,7 @@ void CIBMobilitySolver::getFromInput(Pointer<Database> input_db)
     // Get the mobility solver type.
     const std::string solver_type = input_db->getString("mobility_solver_type");
     if (solver_type == "DIRECT")
-        d_mobility_solver_type = DIRECT;
+	d_mobility_solver_type = DIRECT;
     else if (solver_type == "KRYLOV")
         d_mobility_solver_type = KRYLOV;
     else

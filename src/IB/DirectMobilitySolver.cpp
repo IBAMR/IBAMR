@@ -36,9 +36,6 @@
 // #define TIME_REPORT
 // #endif
 
-#ifdef TIME_REPORT
-extern bool print_time;
-#endif
 
 #include <math.h>
 #include <algorithm>
@@ -108,6 +105,7 @@ DirectMobilitySolver::DirectMobilitySolver(const std::string& object_name,
     d_is_initialized = false;
     d_recompute_mob_mat = false;
     d_f_periodic_corr = 0.0;
+    d_mob_mat_register_completed=false;
 
     // Get from input
     if (input_db) getFromInput(input_db);
@@ -126,13 +124,16 @@ DirectMobilitySolver::~DirectMobilitySolver()
     const int rank = SAMRAI_MPI::getRank();
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
-        const int managing_proc = d_managed_mat_proc_map[it->first];
+	const std::string& mat_name = it->first;
+        const int managing_proc = d_managed_mat_proc_map[mat_name];
+	MobilityMatrixInverseType mob_inv_type = d_managed_mat_inv_type_map[mat_name];
+	MobilityMatrixInverseType body_inv_type = d_body_mat_inv_type_map[mat_name];
 	if (rank == managing_proc)
 	{
 	    if (!it->second) delete[] it->second;
-	    delete[] d_ipiv[it->first];
-	    if (!d_body_mob_mat_map[it->first]) delete[] d_body_mob_mat_map[it->first];
-	    delete[] d_body_ipiv[it->first];
+	    if (mob_inv_type == LAPACK_LU)  delete[] d_ipiv[mat_name];
+	    if (!d_body_mob_mat_map[it->first]) delete[] d_body_mob_mat_map[mat_name];
+	    if (body_inv_type == LAPACK_LU) delete[] d_body_ipiv[mat_name];
 	}
 
     }
@@ -144,12 +145,13 @@ DirectMobilitySolver::~DirectMobilitySolver()
 void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                                const unsigned prototype_struct_id,
                                                MobilityMatrixType mat_type,
-                                               MobilityMatrixInverseType inv_type,
+                                               MobilityMatrixInverseType mob_inv_type,
+                                               MobilityMatrixInverseType body_inv_type,
                                                const int managing_proc,
                                                const std::string& filename,
                                                std::pair<double, double> scale)
 {
-    registerMobilityMat(mat_name, std::vector<unsigned int>(1, prototype_struct_id), mat_type, inv_type, managing_proc,
+    registerMobilityMat(mat_name, std::vector<unsigned int>(1, prototype_struct_id), mat_type, mob_inv_type, body_inv_type, managing_proc,
                         filename, scale);
 
     return;
@@ -158,11 +160,13 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                                const std::vector<unsigned>& prototype_struct_ids,
                                                MobilityMatrixType mat_type,
-                                               MobilityMatrixInverseType inv_type,
+                                               MobilityMatrixInverseType mob_inv_type,
+                                               MobilityMatrixInverseType body_inv_type,
                                                const int managing_proc,
                                                const std::string& filename,
                                                std::pair<double, double> scale)
 {
+    if (d_mob_mat_register_completed) TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": It is impossible to register mobility matrix unless you set CODE_CUSTOM for the Direct Solver Type." << std::endl);
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(!mat_name.empty());
@@ -186,7 +190,8 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     d_managed_mat_proc_map[mat_name] = managing_proc;
     d_managed_mat_nodes_map[mat_name] = num_nodes;
     d_managed_mat_type_map[mat_name] = mat_type;
-    d_managed_mat_inv_type_map[mat_name] = inv_type;
+    d_managed_mat_inv_type_map[mat_name] = mob_inv_type;
+    d_body_mat_inv_type_map[mat_name] = body_inv_type;
     d_managed_mat_filename_map[mat_name] = filename;
     d_managed_mat_scale_map[mat_name] = scale;
     d_managed_mat_map[mat_name] = NULL;
@@ -203,10 +208,14 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     {
         d_managed_mat_map[mat_name] = new double[size * size];
         d_body_mob_mat_map[mat_name] = new double[sizeBM * sizeBM];
-        if (inv_type == LAPACK_LU)
+        if (mob_inv_type == LAPACK_LU)
         {
             d_ipiv[mat_name] = new int[size];
-	    d_body_ipiv[mat_name]= new int[sizeBM];
+
+        }
+        if (body_inv_type == LAPACK_LU)
+        {
+            d_body_ipiv[mat_name] = new int[sizeBM];
         }
     }
 
@@ -216,7 +225,7 @@ void DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
 void DirectMobilitySolver::registerStructIDsWithMobilityMat(const std::string& mat_name,
                                                             const std::vector<std::vector<unsigned> >& struct_ids)
 {
-
+    if (d_mob_mat_register_completed) TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": It is impossible to register structures unless you set CODE_CUSTOM for the Direct Solver Type." << std::endl);
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_managed_mat_map.find(mat_name) != d_managed_mat_map.end());
     for (unsigned i = 0; i < struct_ids.size(); ++i)
@@ -323,7 +332,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: M^-1 Initializing CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -380,9 +389,15 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 
     d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM, rank);
 
+    // std::cout<<"------------------------------"<<std::endl;
+    // for (unsigned kk = 0; kk < node_counter*NDIM; ++kk)
+    // 	std::cout << all_rhs[kk]<<"\t";
+    // std::cout<<std::endl;
+
+
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyVecToArray CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -401,7 +416,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	if (rank == managing_proc)
 	{
 	    double* managed_mat = d_managed_mat_map[mat_name];
-	    MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+	    MobilityMatrixInverseType mob_inv_type = d_managed_mat_inv_type_map[mat_name];
 	    const int mat_size = d_managed_mat_nodes_map[mat_name] * NDIM;
 	    
 	    for (unsigned k = 0; k < struct_ids.size(); ++k)
@@ -415,7 +430,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], true, managing_proc);
 		//compute solution
-		computeSolution(mat_name, managed_mat, mat_size, inv_type, rhs);
+		computeSolution(mat_name, managed_mat, mat_size, mob_inv_type, rhs);
 
 		//Rotate solution vector back to structure frame
 		if (!d_recompute_mob_mat)
@@ -426,9 +441,15 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	}
     }
 
+    // std::cout<<"***********************"<<std::endl;
+
+    // for (unsigned kk = 0; kk < node_counter*NDIM; ++kk)
+    // 	std::cout << all_rhs[kk]<<"\t";
+    // std::cout<<std::endl;
+
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: M^-1*u at proc 0 CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -442,7 +463,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyArrayToVec CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -492,7 +513,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: N^-1 Initializing CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -561,7 +582,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: collect all force arrays, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -577,7 +598,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 	std::vector<bool>&  skip_struct = skip_struct_map[mat_name];
 
 	double* managed_mat = d_body_mob_mat_map[mat_name];
-	MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+	MobilityMatrixInverseType body_inv_type = d_body_mat_inv_type_map[mat_name];
 	
 	for (unsigned k = 0; k < struct_ids.size(); ++k)
 	{
@@ -608,7 +629,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], true, managing_proc, true);
 		
 		//compute solution
-		computeSolution(mat_name, managed_mat, mat_size, inv_type, rhs, true);
+		computeSolution(mat_name, managed_mat, mat_size, body_inv_type, rhs, true);
 		//Rotate solution vector back to structure frame
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], false, managing_proc, true);
@@ -646,7 +667,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: N^-1*F at proc 0, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -679,7 +700,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: copy velocity arrays to Vec, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -697,10 +718,13 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 {
     if (d_is_initialized) return;
+
+    if (d_submat_type != CODE_CUSTOM) runMobilityMatManager();
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return;
 
     IBAMR_TIMER_START(t_initialize_solver_state);
+
 
     // Get grid-info
     Vec* vx;
@@ -749,16 +773,78 @@ const std::vector<std::vector<unsigned> >& DirectMobilitySolver::getStructIDs(co
 void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 {
     Pointer<Database> comp_db;
-    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(NULL);
-    if (comp_db)
+
+    //get solver type from input
+    const std::string solver_type =  input_db->getString("direct_solver_type");
+    if      (solver_type == "block_diagonal")  d_submat_type  = BLOCK_DIAG;
+    else if (solver_type == "dense")           d_submat_type = DENSE; 
+    else if (solver_type == "shell")     d_submat_type = CODE_CUSTOM;
+    else    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": Unknown direct solver type is provided." << std::endl);
+
+    if (d_submat_type != CODE_CUSTOM)
     {
-        d_svd_inv_tol = comp_db->getDouble("eigenvalue_replace_value");
-        d_svd_inv_eps = comp_db->getDouble("min_eigenvalue_threshold");
+	//get manager type from input
+	const std::string manager_type_name =  input_db->getString("mobility_block_distribution_manager");
+	if      (manager_type_name == "time_efficient")      d_manager_type = MM_EFFICIENT;
+	else if (manager_type_name == "memory_efficient")     d_manager_type = MM_MEMORY_SAVE;
+	else if (manager_type_name == "none")                 d_manager_type = MM_NONE;
+	else    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": Unknown mobility matrix type is provided." << std::endl);
+
+	//get mobility type from input
+	const std::string mob_mat_type_name =  input_db->getString("dense_block_mobility_type");
+	if      (mob_mat_type_name == "FILE")            d_mob_mat_type = FILE;
+	else if (mob_mat_type_name == "RPY")             d_mob_mat_type = RPY;
+	else if (mob_mat_type_name == "EMPIRICAL")       d_mob_mat_type = EMPIRICAL;
+	else    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": Unknown mobility matrix type is provided." << std::endl);
+	
+	const std::string inverse_name =  input_db->getString("mobility_block_inverse_method");
+	if      (inverse_name == "LAPACK_CHOLESKY") d_mob_mat_inv_type = LAPACK_CHOLESKY;
+	else if (inverse_name == "LAPACK_LU")       d_mob_mat_inv_type = LAPACK_LU;
+	else if (inverse_name == "LAPACK_SVD")      d_mob_mat_inv_type = LAPACK_SVD;
+	else    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": Unknown inverse type for a mobility matrix is provided." << std::endl);
+	
+	const std::string body_inverse_name =  input_db->getString("body_resistance_block_inverse_method");
+	if      (body_inverse_name == "LAPACK_CHOLESKY") d_body_mat_inv_type = LAPACK_CHOLESKY;
+	else if (body_inverse_name == "LAPACK_LU")       d_body_mat_inv_type = LAPACK_LU;
+	else if (body_inverse_name == "LAPACK_SVD")      d_body_mat_inv_type = LAPACK_SVD;
+	else    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": Unknown inverse type for a mobility matrix is provided." << std::endl);
+
+	double mob_scale_1 = input_db->getDoubleWithDefault("mob_scale_1",1.0);
+	double mob_scale_2 = input_db->getDoubleWithDefault("mob_scale_2",0.0);
+	d_mob_scale.first  = mob_scale_1;
+	d_mob_scale.second = mob_scale_2;
+	if (d_mob_mat_type ==FILE);
+	{
+	    unsigned num_mob_mat_filenames = input_db->getArraySize("mobility_matrix_filenames");
+	    d_stored_mob_mat_filenames.resize(num_mob_mat_filenames);
+	    input_db->getStringArray("mobility_matrix_filenames", &d_stored_mob_mat_filenames[0], num_mob_mat_filenames);
+	}
+
     }
 
     // Other parameters
     d_f_periodic_corr = input_db->getDoubleWithDefault("f_periodic_correction", d_f_periodic_corr);
     d_recompute_mob_mat = input_db->getBool("recompute_mob_mat_perstep");
+    if(input_db->isDatabase("mobility_svd_settings"))
+    {
+	comp_db = input_db->getDatabase("mobility_svd_settings");
+	d_svd_inv_tol = comp_db->getDoubleWithDefault("eigenvalue_replace_value", 0.0);
+	d_svd_inv_eps = comp_db->getDoubleWithDefault("min_eigenvalue_threshold", 0.0);
+    }else
+    {
+	d_svd_inv_tol = 0.0;
+	d_svd_inv_eps = 0.0;
+    }
+    if(input_db->isDatabase("body_resistance_svd_settings"))
+    {
+	comp_db = input_db->getDatabase("body_resistance_svd_settings");
+	d_body_svd_inv_eps = comp_db->getDoubleWithDefault("min_eigenvalue_threshold",0.0);
+	d_body_svd_inv_tol = comp_db->getDoubleWithDefault("eigenvalue_replace_value",0.0);
+    }else
+    {
+	d_body_svd_inv_eps = 0.0;
+	d_body_svd_inv_tol = 0.0;
+    }
 
     return;
 } // getFromInput
@@ -771,11 +857,11 @@ void DirectMobilitySolver::generateFrictionMatrix()
         const std::string& mat_name = it->first;
         if (rank != d_managed_mat_proc_map[mat_name]) continue;
 
-        MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+        MobilityMatrixInverseType mob_inv_type = d_managed_mat_inv_type_map[mat_name];
         double* managed_mat = d_managed_mat_map[mat_name];
         int mat_size = d_managed_mat_nodes_map[mat_name] * NDIM;
 
-	decomposeMatrix(mat_name, managed_mat,mat_size,inv_type);
+	decomposeMatrix(mat_name, managed_mat,mat_size,mob_inv_type);
     }
     return;
 } // generateFrictionMatrix
@@ -794,7 +880,8 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
 	const int managing_proc = d_managed_mat_proc_map[mat_name];
         if (rank != d_managed_mat_proc_map[mat_name]) continue;
 	const std::vector<unsigned>& struct_ids = d_managed_mat_prototype_id_map[mat_name];
-	MobilityMatrixInverseType inv_type = d_managed_mat_inv_type_map[mat_name];
+	MobilityMatrixInverseType mob_inv_type = d_managed_mat_inv_type_map[mat_name];
+	MobilityMatrixInverseType body_inv_type = d_body_mat_inv_type_map[mat_name];
         int mob_mat_size = d_managed_mat_nodes_map[mat_name] * NDIM;
 	int mat_size = struct_ids.size() *  s_max_free_dofs;
         double* mobility_mat = d_managed_mat_map[mat_name];
@@ -807,7 +894,7 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
 	std::memcpy(product_mat, kinematic_mat, mob_mat_size*mat_size*sizeof(double));
 
 	//compute solution
-	computeSolution(mat_name, mobility_mat, mob_mat_size, inv_type, product_mat, false, mat_size);
+	computeSolution(mat_name, mobility_mat, mob_mat_size, mob_inv_type, product_mat, false, mat_size);
 
 	double alpha=1.0;
 	double beta=0.0;
@@ -816,22 +903,7 @@ void DirectMobilitySolver::generateBodyMobilityMatrix()
 	delete[] kinematic_mat;
 	delete[] product_mat;
 
-	decomposeMatrix(mat_name, body_mob_mat,mat_size,inv_type, true);
-
-	//inverse_mobility_mat = new double [mat_size*mat_size];	
-	//getInverseMatrix (mat_name, body_mob_mat, inverse_mobility_mat, mat_size, inv_type);
-	// std::ofstream MM_out;
-	// std::string fname="BodyMobilityMatrix.out";
-	// MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
-	// MM_out<<std::endl;
-	// MM_out<<std::scientific;
-	// for (int i = 0; i < mat_size; ++i)
-	// {
-	//     for (int ii = 0; ii < mat_size; ++ii) MM_out<<inverse_mobility_mat[ii*mat_size+i]<<"\t";
-	//     MM_out<<std::endl;
-	// }
-	// MM_out.close();
-	//delete[] inverse_mat;
+	decomposeMatrix(mat_name, body_mob_mat,mat_size,body_inv_type, true);
     }
 
     return;
@@ -1093,6 +1165,159 @@ void DirectMobilitySolver::getInverseMatrix(const std::string& mat_name, double*
 	TBOX_ERROR("DirectMobilityMatrix::generateFrictionMatrix(): Unsupported dense "
 		   << "matrix inversion method called" << std::endl);
     }
+}
+
+void DirectMobilitySolver::runMobilityMatManager()
+{
+    if ((d_submat_type == CODE_CUSTOM) || d_mob_mat_register_completed) return;
+    
+    if(d_submat_type == MSM_UNKNOWN_TYPE) 
+    {
+	TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": runMobiltiyMatManager() Wrong type specified in" << std::endl);
+    }
+
+    if (d_submat_type == DENSE)
+    {
+	const unsigned num_rigid_parts = d_cib_strategy->getNumberOfRigidStructures();
+	std::vector<unsigned> struct_ids;
+	for(unsigned i=0; i < num_rigid_parts; i++) struct_ids.push_back(i);
+	
+	registerStructIDsWithMobilityMat("GLOBAL_DENSE", std::vector<std::vector<unsigned> > (1,struct_ids));
+
+	std::string MM_filename = "";
+	if (d_mob_mat_type ==FILE) MM_filename = d_stored_mob_mat_filenames[0];
+
+	registerMobilityMat("GLOBAL_DENSE", struct_ids, d_mob_mat_type, d_mob_mat_inv_type,  d_body_mat_inv_type, 0, MM_filename, d_mob_scale);
+    }
+    else if  (d_submat_type==BLOCK_DIAG) 
+    {
+    
+	//get clones info
+	int num_structs_types=0;
+	std::vector<int> structs_clones_num;
+	d_cib_strategy->getRigidBodyClonesParameters(num_structs_types, structs_clones_num);
+	const unsigned num_nodes = SAMRAI_MPI::getNodes();
+	unsigned prototype_ID=0;
+	unsigned counter =0;
+
+	if (d_mob_mat_type ==FILE)
+	{
+	    if ((unsigned) num_structs_types !=  d_stored_mob_mat_filenames.size())
+	    {
+		TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": runMobiltiyMatManager() not enough mobility matrices filenames in input" << std::endl);
+	    }
+	}
+
+	if (d_manager_type == MM_EFFICIENT)
+	{
+	    //time efficient way to manage mobility matrices.
+	    //Uses one copy of mobility matrix for each prototype on each processor
+	    //coresponding to prototype structure (which is the first in subset) distributed parallel
+	
+	    for(unsigned itype=0;itype<(unsigned) num_structs_types;itype++)
+	    {
+		//use all availabel processors for efficiency
+		const unsigned num_clones = structs_clones_num[itype];
+	    
+		for(unsigned inode=0; inode < std::min(num_nodes, num_clones); inode++) 
+		{
+		    //different mat names over all processors
+		    std::stringstream convert;
+		    convert<<itype;
+		    std::string mat_name = convert.str();
+		    convert<<inode;
+		    mat_name += convert.str();
+
+		    std::string MM_filename = "";
+		    if (d_mob_mat_type ==FILE) MM_filename = d_stored_mob_mat_filenames[itype];
+
+		    registerMobilityMat(mat_name, prototype_ID, d_mob_mat_type, d_mob_mat_inv_type,  d_body_mat_inv_type, counter%num_nodes,
+					MM_filename, d_mob_scale);
+		    counter++;
+		
+		    std::vector<std::vector<unsigned> > struct_ids;
+		    for(unsigned istruct=inode; istruct<num_clones; istruct += num_nodes) 		    
+		    {
+		    
+			struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+istruct));
+		    }
+		
+		    registerStructIDsWithMobilityMat(mat_name, struct_ids);
+		}
+		prototype_ID +=num_clones;
+	    }
+	} else if (d_manager_type == MM_MEMORY_SAVE)
+	{
+	    //memory efficient way to manage mobility matrices.
+	    //Uses only one copy of mobility matrix for particular prototype on a single processor
+	
+	    for(unsigned itype=0;itype < (unsigned) num_structs_types;itype++)
+	    {
+		//use all availabel processors for efficiency
+		const unsigned num_clones = structs_clones_num[itype];
+	    
+		//different mat names over all processors
+		std::stringstream convert;
+		convert<<itype;
+		std::string mat_name = convert.str();
+
+		std::string MM_filename = "";
+		if (d_mob_mat_type ==FILE) MM_filename = d_stored_mob_mat_filenames[itype];
+
+		registerMobilityMat(mat_name, prototype_ID, d_mob_mat_type, d_mob_mat_inv_type,  d_body_mat_inv_type, counter%num_nodes,
+				    MM_filename, d_mob_scale);
+		counter++;
+
+		std::vector<std::vector<unsigned> > struct_ids;
+		for(unsigned iclone=0; iclone < num_clones; iclone++) 
+		{
+		    struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+iclone));
+		}
+	    
+		registerStructIDsWithMobilityMat(mat_name, struct_ids);
+	    
+		prototype_ID +=num_clones;
+	    }
+	} else if (d_manager_type == MM_NONE)
+	{
+	    //Each clone has its own copy of mobility matrix
+	    //This is example that all structures have their own mobility matrix 
+	    //distributed parallel
+	    for(unsigned itype=0;itype<(unsigned) num_structs_types;itype++)
+	    {
+		//use all availabel processors for efficiency
+		const unsigned num_clones = structs_clones_num[itype];
+	    
+		for(unsigned istruct=0; istruct<num_clones; istruct++) 
+		{
+		    //different mat names over all processors
+		    std::stringstream convert;
+		    convert<<itype;
+		    std::string mat_name = "struct-"+convert.str();
+		    convert<<istruct;
+		    mat_name += convert.str();
+
+		    std::string MM_filename = "";
+		    if (d_mob_mat_type ==FILE) MM_filename = d_stored_mob_mat_filenames[itype];
+
+		    registerMobilityMat(mat_name, prototype_ID+istruct,  d_mob_mat_type, d_mob_mat_inv_type,  d_body_mat_inv_type, counter%num_nodes,
+					MM_filename, d_mob_scale);
+		
+		    std::vector<std::vector<unsigned> > struct_ids;
+		    struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+istruct));
+		    registerStructIDsWithMobilityMat(mat_name, struct_ids);
+		    counter++;
+		}
+		prototype_ID +=num_clones;
+	    }
+	}else
+	{
+	    TBOX_ERROR(d_object_name <<"::"<<d_object_name <<": runMobiltiyMatManager() unknown type of block distribution manager" << std::endl);
+	}
+    }
+
+    d_mob_mat_register_completed = true;
+    return;
 }
 
 //////////////////////////////////////////////////////////////////////////////

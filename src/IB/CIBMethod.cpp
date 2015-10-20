@@ -1490,8 +1490,19 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 		    
 		    for (unsigned k = 0; k < num_struct_nodes; ++k)
 		    {
-			const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,prototype_struct_ids[i],k);
-		
+	
+
+			IBTK::Point X;
+
+			//check if the global dense mobility matrix is used
+			if (mat_name=="GLOBAL_DENSE")
+			{
+			    X=getStandardInitializer()->getInitialVertexPosn(struct_ln,i,k);
+			}else
+			{
+			    X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,prototype_struct_ids[i],k);
+			}
+
 			if (initial_time)
 			{
 			    for (int d = 0; d < NDIM; ++d)	XW[offset++] = X[d];
@@ -1638,8 +1649,8 @@ void CIBMethod::constructKinematicMatrix(double* kinematic_mat,
 
 void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitializer> ib_initializer)
 {
-//    registerLInitStrategy(ib_initializer);
     d_ib_initializer = ib_initializer;
+    d_ib_initializer-> getClonesParameters(d_num_structs_types, d_structs_clones_num);
 };
 
 

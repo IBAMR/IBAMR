@@ -3,12 +3,12 @@
 //shell with applied random force and torque  - RANDOM_FORCE
 
 
-//run_example = "SQUIMER"
+run_example = "SQUIMER"
 B1_squimer = 1.0
 B2_squimer = 0.0
 
 
-run_example = "RANDOM_FORCE"
+//run_example = "RANDOM_FORCE"
 DRAG_SCALE = 1.0
 TORQUE_SCALE = 1.0
 
@@ -31,11 +31,11 @@ N = 64               // number of grid cells along height of domain
 PATCH_SIZE = N       // max patch size
 DX = 0.5             // grid spacing
 L = N*DX             // length of domain
-DT = 0.01            // maximum timestep size
+DT = 1e-16//0.01            // maximum timestep size
 
 // solver parameters
-SOLVER_KSP = "gmres"
-STOKES_KSP = "preonly"
+SOLVER_KSP = "fgmres"
+STOKES_KSP = "gmres"
 STOKES_ITER = 2
 STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
 SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
@@ -133,6 +133,46 @@ CIBStaggeredStokesSolver
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
   
+    DirectMobilitySolver
+    {
+        //Type of a global mobility matrix for all structures and their clones.
+	//shell - skips all parameters in the input for direct solver, all parameters must be defined in the code through corresponding register function.
+        direct_solver_type  = "block_diagonal" //  "block_diagonal", "dense", "shell"
+        
+        //mobility_block_distribution_manager: Manage distribution of direct solver in parallel.
+	//time_effcient - distribute all structure clones uniformly over processors and creates one copy of each mobility submatrix on the each processor
+	//memory_efficient - creates only one copy of mobility matrix for all clones on a corresponding managing processor, matrices are distributed parallel
+	//none - each clone has its own mobility matrix distributed over all processors parallel
+	
+	mobility_block_distribution_manager = "time_efficient"//"time_efficient", "memory_efficient", "none"
+	
+        recompute_mob_mat_perstep = RECOMPUTE_MOB
+	
+	dense_block_mobility_type            = "EMPIRICAL" //"FILE", "EMPIRICAL", "RPY"
+	mobility_block_inverse_method        = "LAPACK_SVD" // "LAPACK_CHOLESKY","LAPACK_LU","LAPACK_SVD"
+	body_resistance_block_inverse_method = "LAPACK_CHOLESKY" // "LAPACK_CHOLESKY","LAPACK_LU","LAPACK_SVD"
+	
+	//if dense_block_mobility_type is choosen "FILE" this variable provides an array of filenames for stored mobility matrices 
+	mobility_matrix_filenames = "mob_matrix_1", "mob_matrix_2"
+	
+        f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
+     
+        // if not present default values mob_scale_1 = 1.0, mob_scale_2 = 0.0	
+	mob_scale_1                  = 1.0                   // scaling factors for mobility matrix 
+	mob_scale_2                  = DELTA                 // scaled_MM = mob_scale_1*[MobilityMatrix] + mob_scale_2*[I]  
+	
+        mobility_svd_settings
+        {
+            min_eigenvalue_threshold   = 1e-4 /(DX*MU)     // defaults to 0.0
+            eigenvalue_replace_value   = 1e-4 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
+        }
+        
+        body_resistance_svd_settings
+        {
+            min_eigenvalue_threshold   = 1e-5 /(DX*MU)     // defaults to 0.0
+            eigenvalue_replace_value   = 1e-5 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
+        }
+   }
     // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
     PCStokesSolver
     {
@@ -242,17 +282,7 @@ CIBStaggeredStokesSolver
 
     }// KrylovMobilitySolver
 
-    DirectMobilitySolver
-    {
-        recompute_mob_mat_perstep = RECOMPUTE_MOB
-        f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
 
-        LAPACK_SVD
-        {
-            min_eigenvalue_threshold   = 1e-6 /(DX*MU)     // defaults to 0.0
-            eigenvalue_replace_value   = 1e-6 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
-        }
-   }
 } // cIBStaggeredStokesSolver
 
 

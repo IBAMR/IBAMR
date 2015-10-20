@@ -67,7 +67,6 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-static bool print_time;
 
 // Center of mass velocity
 void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
@@ -86,18 +85,7 @@ void SlipVelocity(const unsigned part, Vec U_k,  Vec X,
     double* V_array=NULL; 
     const unsigned num_of_nodes = cib_method->getNumberOfNodes(part);
     unsigned size = num_of_nodes*NDIM;
-
-    static std::vector<Eigen::Vector3d> center_of_mass_initial;
-    static bool initializeCOM=true;
-    if (initializeCOM)
-    {
-	const int num_rigid_parts = cib_method->getNumberOfRigidStructures();
-	center_of_mass_initial.resize(num_rigid_parts, Eigen::Vector3d::Zero());
-	cib_method->computeInitialCOMOfStructures(center_of_mass_initial);
-	initializeCOM=false;
-    }
-
-    const Eigen::Vector3d& X_com  =  center_of_mass_initial[part];
+     
     Eigen::Quaterniond* Q = cib_method->getBodyQuaternion(part,true);
     Eigen::Matrix3d  body_rot_matrix=Q->toRotationMatrix();
 
@@ -110,7 +98,7 @@ void SlipVelocity(const unsigned part, Vec U_k,  Vec X,
 	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);
 	    
 	    Eigen::Vector3d coord;
-	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d]- X_com[d];
+	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d];
 	    
 	    double r=coord.norm();
 	    double r_proj=sqrt(coord[1]*coord[1]+coord[2]*coord[2]);
@@ -144,8 +132,8 @@ void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
     // F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
     // T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
 
-   F_ext << B1, 0, 0;
-   T_ext << B2, 0, 0;
+    F_ext << B1, 0, 0;
+    T_ext << B2, 0, 0;
     return;
 } // NetExternalForceTorque
 
@@ -168,10 +156,6 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *******************************************************************************/
 int main(int argc, char* argv[])
 {
-
-    //bool print_time; //Printing time report
-    print_time = false;
-
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -354,92 +338,6 @@ int main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
-	//First initialize orientation vectors
-	//ib_method_ops->updateBodyRotationMatrix();
-	// Register mobility matrices (if needed)
-        std::string mobility_solver_type = input_db->getString("MOBILITY_SOLVER_TYPE");
-        if (mobility_solver_type == "DIRECT")
-        {
-            DirectMobilitySolver* direct_solvers = NULL;
-            KrylovMobilitySolver* krylov_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(&krylov_solvers,
-                                                                                          &direct_solvers);
-	    const unsigned num_nodes = SAMRAI_MPI::getNodes();
-	    unsigned prototype_ID=0;
-	    unsigned counter =0;
-
-/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- *
- *  Here are  examples of construction mobility matrix in parallel
- *
- *!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1*/
-
-#if 0
-	    //Each clone has its own copy of mobility matrix
-	    //This is example that all structures have their own mobility matrix 
-	    //distributed parallel
-	    for(unsigned itype=0;itype<num_structs_types;itype++)
-	    {
-		//use all availabel processors for efficiency
-		const unsigned num_clones = structs_clones_num[itype];
-		
-		for(unsigned istruct=0; istruct<num_clones; istruct++) 
-		{
-		    //different mat names over all processors
-		    std::stringstream convert;
-		    convert<<itype;
-		    std::string mat_name = "struct-"+convert.str();
-		    convert<<istruct;
-		    mat_name += convert.str();
-		    
-		    direct_solvers->registerMobilityMat(mat_name, prototype_ID+istruct, EMPIRICAL, LAPACK_LU, counter%num_nodes);
-		    
-		    std::vector<std::vector<unsigned> > struct_ids;
-		    struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+istruct));
-		    direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
-		    counter++;
-		}
-		prototype_ID +=num_clones;
-	    }
-	
-#else
-	    //More memory efficient way to manage mobility matrices.
-	    //Uses only one copy of mobility matrix for each prototype on each processor
-	    //coresponding to prototype structure (which is the first in subset) distributed parallel
-	    
-	    for(unsigned itype=0;itype<num_structs_types;itype++)
-	    {
-		//use all availabel processors for efficiency
-		const unsigned num_clones = structs_clones_num[itype];
-		
-		for(unsigned inode=0; inode < std::min(num_nodes, num_clones); inode++) 
-		{
-		    //different mat names over all processors
-		    std::stringstream convert;
-		    convert<<itype;
-		    std::string mat_name = "struct-"+convert.str();
-		    convert<<inode;
-		    mat_name += convert.str();
-		    
-		    direct_solvers->registerMobilityMat(mat_name, prototype_ID, EMPIRICAL, LAPACK_SVD, counter%num_nodes);
-//		    direct_solvers->registerMobilityMat(mat_name, prototype_ID, RPY, LAPACK_SVD, counter%num_nodes);
-		    counter++;
-		    
-		    std::vector<std::vector<unsigned> > struct_ids;
-		    std::vector<unsigned> local_struct_ids;
-		    for(unsigned istruct=inode; istruct<num_clones; istruct += num_nodes) 		    
-		    {
-			
-			struct_ids.push_back(std::vector<unsigned int>(1, prototype_ID+istruct));
-		    }
-		    
-		    direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
-		}
-		prototype_ID +=num_clones;
-	    }
-#endif
-	}
 
 	// Deallocate initialization objects.
         app_initializer.setNull();

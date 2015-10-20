@@ -34,10 +34,6 @@
 // #define TIME_REPORT
 // #endif
 
-#ifdef TIME_REPORT
-extern bool print_time;
-#endif
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/CIBFEMethod.h"
 #include "ibamr/CIBSaddlePointSolver.h"
@@ -327,7 +323,7 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"   SaddlePointSoler: generating rhs and initial values, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;

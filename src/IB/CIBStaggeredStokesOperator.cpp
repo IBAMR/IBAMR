@@ -36,9 +36,6 @@
 // #define TIME_REPORT
 // #endif
 
-#ifdef TIME_REPORT
-extern bool print_time=false;
-#endif
 
 #include <algorithm>
 #include <map>
@@ -306,7 +303,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Pointer<CellVariable<NDIM, double> > A_p_cc_var = g_f.getComponentVariable(1);
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:Allocations CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -333,7 +330,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:Interpolatiions + setups CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -351,7 +348,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                              A_u_idx, A_u_sc_var);
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:grad + laplace operator, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -367,7 +364,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     }
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:Force spreading + normalizations CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -393,7 +390,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:Interpolate Velocity CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -409,7 +406,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator:setRigidVelocity, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -425,7 +422,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator: Mobility Regulization, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
@@ -438,7 +435,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                                                     /*only_imposed_dofs*/ false);
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0 && print_time)
+    if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
 	pout<< std::setprecision(4)<<"      StokesOperator: K^T*lambda, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;

@@ -649,6 +649,12 @@ Eigen::Quaterniond* CIBStandardInitializer::getStructureQuaternion(const int lev
     return &d_quaternion[level_number][structID];
 } // getVertexPosn
 
+void CIBStandardInitializer::getClonesParameters(int& num_structs_types, 
+						 std::vector<int>& structs_clones_num)
+{
+    num_structs_types = d_num_structs_types;
+    structs_clones_num = d_structs_clones_num;
+};
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

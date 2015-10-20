@@ -66,7 +66,20 @@ namespace IBAMR
  * \brief Class DirectMobilitySolver solves the mobility sub-problem by
  * employing direct solvers for computing the inverse of mobility matrix.
  */
-
+enum MobilitySubmatrixManager
+{
+    MM_EFFICIENT=0,
+    MM_MEMORY_SAVE,
+    MM_NONE,
+    MM_UNKNOWN_TYPE = -1
+};
+enum  MobSubMatrixType
+{
+    BLOCK_DIAG=0,
+    DENSE,
+    CODE_CUSTOM,
+    MSM_UNKNOWN_TYPE = -1
+};
 class DirectMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
 
@@ -107,7 +120,8 @@ public:
     void registerMobilityMat(const std::string& mat_name,
                              const unsigned prototype_struct_id,
                              MobilityMatrixType mat_type,
-                             MobilityMatrixInverseType inv_type,
+                             MobilityMatrixInverseType mob_inv_type,
+                             MobilityMatrixInverseType body_inv_type,
                              const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
@@ -134,7 +148,8 @@ public:
     void registerMobilityMat(const std::string& mat_name,
                              const std::vector<unsigned>& prototype_struct_ids,
                              MobilityMatrixType mat_type,
-                             MobilityMatrixInverseType inv_type,
+                             MobilityMatrixInverseType mob_inv_type,
+                             MobilityMatrixInverseType body_inv_type,
                              const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
@@ -278,6 +293,11 @@ private:
      */
     void getInverseMatrix(const std::string& mat_name, double* managed_mat, double* inverse_mat, const int mat_size, const MobilityMatrixInverseType inv_type, const bool BodyMobility=false);
 
+    /*!
+     * \brief defines a manager for global mobility matrix.
+     */
+    void runMobilityMatManager();
+
     // Solver stuff
     std::string d_object_name;
     bool d_is_initialized;
@@ -294,6 +314,7 @@ private:
     std::map<std::string, std::vector<std::vector<unsigned> > > d_managed_mat_actual_id_map;
     std::map<std::string, MobilityMatrixType> d_managed_mat_type_map;
     std::map<std::string, MobilityMatrixInverseType> d_managed_mat_inv_type_map;
+    std::map<std::string, MobilityMatrixInverseType> d_body_mat_inv_type_map;
     std::map<std::string, unsigned int> d_managed_mat_nodes_map;
     std::map<std::string, std::pair<double, double> > d_managed_mat_scale_map;
     std::map<std::string, std::string> d_managed_mat_filename_map;
@@ -307,9 +328,16 @@ private:
     std::string d_kernel_name;
     double d_f_periodic_corr;
     bool d_recompute_mob_mat;
-    double d_svd_inv_tol, d_svd_inv_eps;
+    double d_svd_inv_tol, d_svd_inv_eps, d_body_svd_inv_tol, d_body_svd_inv_eps;
     std::map<std::string, int*> d_ipiv; // for LAPACK LU calls
     std::map<std::string, int*> d_body_ipiv; // for LAPACK LU calls
+    bool d_mob_mat_register_completed;
+    MobSubMatrixType d_submat_type;
+    MobilitySubmatrixManager d_manager_type;
+    MobilityMatrixType d_mob_mat_type;
+    MobilityMatrixInverseType d_mob_mat_inv_type, d_body_mat_inv_type;
+    std::pair<double, double> d_mob_scale;
+    std::vector<std::string> d_stored_mob_mat_filenames;
 
 }; // DirectMobilitySolver
 

@@ -504,6 +504,17 @@ public:
      */
     Eigen::Quaterniond* getBodyQuaternion(const unsigned int part, const bool halfStep=false);
 
+    /*!
+     * \brief set rigid part clones parameters
+     */
+    void setRigidBodyClonesParameters(const int num_structs_types, 
+				      const std::vector<int>& structs_clones_num);
+
+    /*!
+     * \brief set rigid part clones parameters
+     */
+    void getRigidBodyClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num);
+
     /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
     /*!
@@ -532,6 +543,12 @@ protected:
      * Net rigid generalized force.
      */
     std::vector<RigidDOFVector> d_net_rigid_generalized_force;
+
+    /*!
+     * rigid parts clones parameters
+     */
+    int d_num_structs_types;
+    std::vector<int> d_structs_clones_num;
 
 
     /////////////////////////////// PRIVATE //////////////////////////////////////

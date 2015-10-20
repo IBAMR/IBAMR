@@ -567,6 +567,21 @@ Eigen::Quaterniond* CIBStrategy::getBodyQuaternion(const unsigned int part, cons
     if (halfStep) return &d_quaternion_half[part];
     return &d_quaternion_current[part];
 };
+
+void CIBStrategy::setRigidBodyClonesParameters(const int num_structs_types, 
+					       const std::vector<int>& structs_clones_num)
+{
+    d_num_structs_types = num_structs_types;
+    d_structs_clones_num = structs_clones_num;
+};
+
+void CIBStrategy::getRigidBodyClonesParameters(int& num_structs_types, 
+					       std::vector<int>& structs_clones_num)
+{
+    num_structs_types = d_num_structs_types;
+    structs_clones_num = d_structs_clones_num;
+};
+
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR
