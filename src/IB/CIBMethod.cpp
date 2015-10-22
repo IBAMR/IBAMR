@@ -1050,56 +1050,57 @@ void CIBMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U_vec, V
     const int struct_ln = getStructuresLevelNumber();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    {
+	const LNode* const node_idx = *cit;
+	const int lag_idx = node_idx->getLagrangianIndex();
+        const unsigned struct_id = getStructureHandle(lag_idx);
+	if (skip_comp[struct_id]) continue;
+
+	Eigen::Vector3d dr;
+	Eigen::Vector3d R_dr;
+	
+	const RigidDOFVector& U = U_vec[struct_id];
+	
+	if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn) continue;
+	
+	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
+	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
     
+	const int local_idx = node_idx->getLocalPETScIndex();
+	double* const V_node = &V_data_array[local_idx][0];
+	
+	const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_id,lag_idx-part_idx_range.first);
+	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
+	
+	R_dr = rotation_mat*dr; 
+	
+#if (NDIM == 2)
+	V_node[0] = U[0] - U[2] * R_dr[1];
+	V_node[1] = U[1] + U[2] * R_dr[0];
+#elif(NDIM == 3)
+	V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
+	V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
+	V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
+#endif
+    }
+
     for (unsigned part = 0; part < d_num_rigid_parts; ++part) 
     {
 	if (skip_comp[part]) continue;
-
-	const RigidDOFVector& U = U_vec[part];
-	void* ctx = d_constrained_velocity_fcns_data[part].ctx;
-	
 	if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
 	{
+	    
+	    const RigidDOFVector& U = U_vec[part];
+	    void* ctx = d_constrained_velocity_fcns_data[part].ctx;
 	    CIBMethod* cib_method_ptr = this;
 	    d_constrained_velocity_fcns_data[part].nodalvelfcn(part, V, U, d_X_half_data[struct_ln]->getVec(),
 							       d_center_of_mass_half[part], d_new_time, ctx, 
 							       cib_method_ptr);
 	}
-	else
-	{
-	    const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
-	    Eigen::Matrix3d rotation_mat=d_quaternion_half[part].toRotationMatrix();
-    
-	    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-	    {
-		const LNode* const node_idx = *cit;
-		const int lag_idx = node_idx->getLagrangianIndex();
-		Eigen::Vector3d dr;
-		Eigen::Vector3d R_dr;
-		
-		
-		if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
-		{
-		    const int local_idx = node_idx->getLocalPETScIndex();
-		    double* const V_node = &V_data_array[local_idx][0];
-		    
-		    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,lag_idx-part_idx_range.first);
-		    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
-		    
-		    R_dr = rotation_mat*dr; 
-		    
-#if (NDIM == 2)
-		    V_node[0] = U[0] - U[2] * R_dr[1];
-		    V_node[1] = U[1] + U[2] * R_dr[0];
-#elif(NDIM == 3)
-		    V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
-		    V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
-		    V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
-#endif
-		}
-	    }
-	}
     }
+
     // Restore underlying arrays
     V_data.restoreArrays();
 

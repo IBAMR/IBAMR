@@ -32,10 +32,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+// #ifndef TIME_REPORT
+// #define TIME_REPORT
+// #endif
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/namespaces.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibtk/PETScMultiVec.h"
 #include "tbox/Utilities.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -135,6 +139,12 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
                                        const bool only_imposed_dofs,
                                        const bool all_dofs)
 {
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    clock_t end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
     std::vector<RigidDOFVector> UDOF;
@@ -211,10 +221,27 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
     {
 	TBOX_ERROR("CIBStrategy::setRigidBodyVelocity() incorrect parameters in the function call" << std::endl);
     }
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         setRigidBodyVelocity: setting parameters, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
    
     //collective call over all nodes
     setRigidBodyVelocity(UDOF, V, skip_comp);
-
+    
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         setRigidBodyVelocity: collective call, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
     return;
 } // setRigidBodyVelocity
 

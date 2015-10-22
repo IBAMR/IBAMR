@@ -29,6 +29,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef TIME_REPORT
+#define TIME_REPORT
+#endif
+
 #include <Eigen/Geometry>
 // Config files
 #include <IBAMR_config.h>
@@ -107,12 +111,14 @@ void SlipVelocity(const unsigned part, Vec U_k,  Vec X,
 	    double v_theta=(B1*sin_theta+B2*cos_theta*sin_theta);
 	    
 	    Eigen::Vector3d temp_vec = Eigen::Vector3d::Zero();
-	    temp_vec[0] = -v_theta*sin_theta;
-	    if (r_proj>1e-9)
-	    {
-		temp_vec[1] = v_theta*cos_theta*coord[1]/r_proj;
-		temp_vec[2] = v_theta*cos_theta*coord[2]/r_proj;
-	    }
+	    // temp_vec[0] = -v_theta*sin_theta;
+	    // if (r_proj>1e-9)
+	    // {
+	    // 	temp_vec[1] = v_theta*cos_theta*coord[1]/r_proj;
+	    // 	temp_vec[2] = v_theta*cos_theta*coord[2]/r_proj;
+	    // }
+	    if ((part==0)&&(i==0))  temp_vec[0] = 1.0;
+
 	    Eigen::Vector3d rot_vec=body_rot_matrix*temp_vec;
 	    
 	    for (unsigned d=0; d<NDIM; ++d) V_array[i*NDIM+d] = rot_vec[d];
@@ -156,6 +162,11 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *******************************************************************************/
 int main(int argc, char* argv[])
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
+
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -362,7 +373,14 @@ int main(int argc, char* argv[])
             output_data(patch_hierarchy, ib_method_ops->getLDataManager(), iteration_num, loop_time,
                         postproc_data_dump_dirname);
         }
-
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"main():register and initialization step, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;

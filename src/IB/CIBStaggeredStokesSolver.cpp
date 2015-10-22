@@ -326,7 +326,8 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"   SaddlePointSoler: generating rhs and initial values, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"  StaggeredStokesSolver: generating rhs and initial values, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
     }
 #endif
 
@@ -335,6 +336,16 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     // as an initial guess for the next solve. We do not need to do
     // anything special for its initial guess to the Krylov solver.
     bool converged = d_sp_solver->solveSystem(mv_x, mv_b);
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"  StaggeredStokesSolver: Total time for system solve, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    }
+#endif
 
     // Extract solution.
     x.copyVector(d_x_wide);
@@ -454,6 +465,15 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     VecDestroy(&V);
     VecDestroy(&mv_x);
     VecDestroy(&mv_b);
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"  StaggeredStokesSolver: Update velocities and output, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<<std::endl;
+    }
+#endif
 
     return converged;
 

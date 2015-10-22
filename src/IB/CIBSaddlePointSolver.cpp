@@ -1000,6 +1000,7 @@ PetscErrorCode CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 	end_t = clock();
 	pout<< std::setprecision(4)<<"     StokesOperator cycle: Total CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
+    pout<<std::endl;
 #endif
 
     PetscFunctionReturn(0);
@@ -1283,7 +1284,8 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"    SaddlePointSolver::PCApply: Total CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"    SaddlePointSolver::PCApply: Total CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;
+	pout<<std::endl;
     }
 #endif
 

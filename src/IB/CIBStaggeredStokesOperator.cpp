@@ -438,7 +438,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator: K^T*lambda, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"      StokesOperator: K^T*lambda, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;
     }
 #endif
 
