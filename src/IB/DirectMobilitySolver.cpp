@@ -32,11 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
-
-
 #include <math.h>
 #include <algorithm>
 
@@ -312,8 +307,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
 
-    IBAMR_TIMER_START(t_solve_system);
-
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
@@ -387,20 +380,14 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 
     if (node_counter) all_rhs = new double[node_counter*NDIM];
 
-    d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM, rank);
-
-    // std::cout<<"------------------------------"<<std::endl;
-    // for (unsigned kk = 0; kk < node_counter*NDIM; ++kk)
-    // 	std::cout << all_rhs[kk]<<"\t";
-    // std::cout<<std::endl;
-
+    d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM);
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
 	end_t = clock();
-	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyVecToArray CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyAllVecToArray CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
@@ -441,12 +428,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	}
     }
 
-    // std::cout<<"***********************"<<std::endl;
-
-    // for (unsigned kk = 0; kk < node_counter*NDIM; ++kk)
-    // 	std::cout << all_rhs[kk]<<"\t";
-    // std::cout<<std::endl;
-
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
@@ -457,7 +438,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
-    d_cib_strategy->copyAllArrayToVec(x, all_rhs, all_rhs_struct_ids, NDIM, rank);
+    d_cib_strategy->copyAllArrayToVec(x, all_rhs, all_rhs_struct_ids, NDIM);
 
     if (node_counter) delete[] all_rhs;
 
@@ -469,9 +450,10 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	pout<< std::setprecision(4)<<"         PCApply:DirectMobilitySolver: copyArrayToVec CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
 #endif
+    // pout<<"****************************"<<std::endl;
+    // VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
-    IBAMR_TIMER_STOP(t_solve_system);
 
     return true;
 } // solveSystem
@@ -521,6 +503,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
+    //forming a skip list
     std::map<std::string, std::vector<bool> >  skip_struct_map;
 
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
@@ -553,32 +536,23 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 	skip_struct_map[mat_name] = skip_struct;
     }
 
-    const unsigned free_parts_size = num_free_parts*s_max_free_dofs;
-    std::vector<double> f_vec(free_parts_size, 0.0);
-    
-    for (unsigned part = 0; part < num_free_parts; ++part)
-    {
-	Vec F_sub;
-	IBTK::VecMultiVecGetSubVec(b, part, &F_sub);
-	PetscScalar* f = NULL;
-	VecGetArray(F_sub, &f);
-	int num_free_dofs;
-	const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(free_struct_id_actual_id_map[part], num_free_dofs);
+    // pout<<"++++++++Body+++++++++++++++"<<std::endl;
+    // VecView(b, PETSC_VIEWER_STDOUT_WORLD);
 
-	if (f != NULL)
-	{
-	    for (int idir=0; idir<s_max_free_dofs; idir++)
-	    {
-		if (solve_dofs[idir])
-		{
-		    f_vec[part*s_max_free_dofs+idir] = f[idir];
-		}
-	    }
-	}
-	VecRestoreArray(F_sub, &f);
-    }
+    Vec F_all;
+    VecScatter ctx;
+    VecScatterCreateToAll(b,&ctx,&F_all);
+    VecScatterBegin(ctx, b, F_all, INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterEnd  (ctx, b, F_all, INSERT_VALUES,SCATTER_FORWARD);
 
-    SAMRAI_MPI::sumReduction(&f_vec[0], free_parts_size);
+    PetscScalar* f_array = NULL;
+    PetscInt comps;
+    VecGetSize(b, &comps);
+    VecGetArray(F_all, &f_array);
+    const int free_parts_size = num_free_parts*s_max_free_dofs;
+
+    TBOX_ASSERT(comps == free_parts_size);
+
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
@@ -587,9 +561,12 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 	end_t = clock();
 	pout<< std::setprecision(4)<<"         PCApply:BodyDirectMobilitySolver: collect all force arrays, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
+    std::vector<double> RHS;
+    std::vector<int> indices;
+    unsigned offset = 0;
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
     {
         const std::string& mat_name = it->first;
@@ -616,7 +593,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 		    if (num_free_dofs)
 		    {
 			const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
-			std::copy(&f_vec[free_part*s_max_free_dofs], &f_vec[free_part*s_max_free_dofs+s_max_free_dofs],rhs+kk*s_max_free_dofs);
+			std::copy(&f_array[free_part*s_max_free_dofs], &f_array[free_part*s_max_free_dofs+s_max_free_dofs],rhs+kk*s_max_free_dofs);
 		    }
 		    else
 		    {
@@ -633,7 +610,7 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 		//Rotate solution vector back to structure frame
 		if (!d_recompute_mob_mat)
 		    d_cib_strategy->rotateArrayInitalBodyFrame(rhs, struct_ids[k], false, managing_proc, true);
-		
+
 		for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) 
 		{
 		    int num_free_dofs;
@@ -641,27 +618,17 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
 		    if (num_free_dofs)
 		    {
 			const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
-			std::copy(rhs+kk*s_max_free_dofs, rhs+(kk+1)*s_max_free_dofs, &f_vec[free_part*s_max_free_dofs]);
+			for (int d = 0; d < s_max_free_dofs; ++d) 
+			{
+			    RHS.push_back(rhs[kk*s_max_free_dofs+d]);
+			    indices.push_back(free_part*s_max_free_dofs+d);
+			}
+			offset += s_max_free_dofs;
 		    }
 		}
 		delete [] rhs;
 	    }		
-	    else
-	    {
-		for (unsigned k = 0; k < struct_ids.size(); ++k)
-		{
-		    for (unsigned kk = 0; kk < struct_ids[k].size(); ++kk) 
-		    {
-			int num_free_dofs;
-			d_cib_strategy->getSolveRigidBodyVelocity(struct_ids[k][kk], num_free_dofs);
-			if (num_free_dofs)
-			{
-			    const unsigned free_part = actual_id_free_struct_id_map[struct_ids[k][kk]];
-			    std::fill(&f_vec[free_part*s_max_free_dofs], &f_vec[(free_part+1)*s_max_free_dofs], 0.0);
-			}
-		    }
-		}
-	    }//rank
+
 	}
     }
 
@@ -675,28 +642,13 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
-    SAMRAI_MPI::sumReduction(&f_vec[0], free_parts_size);
-    for (unsigned part = 0; part < num_free_parts; ++part)
-    {
-	Vec U_sub;
-	IBTK::VecMultiVecGetSubVec(x, part, &U_sub);
-	PetscScalar* u = NULL;
-	VecGetArray(U_sub, &u);
-	int num_free_dofs;
-	const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(free_struct_id_actual_id_map[part], num_free_dofs);
+    VecSetValues(x, offset, &indices[0], &RHS[0], INSERT_VALUES); 
+    VecAssemblyBegin(x);
+    VecAssemblyEnd(x);
 
-	if (u != NULL)
-	{
-	    for (int idir=0; idir<s_max_free_dofs; idir++)
-	    {
-		if (solve_dofs[idir])
-		{
-		     u[idir] = f_vec[part*s_max_free_dofs+idir];
-		}
-	    }
-	}
-	VecRestoreArray(U_sub, &u);
-    }
+    VecRestoreArray(F_all, &f_array);
+    VecScatterDestroy(&ctx);
+    VecDestroy(&F_all);
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
@@ -710,6 +662,8 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
     IBAMR_TIMER_STOP(t_solve_system);
+    //  pout<<"$$$$$$$$$$$$$$$ Body $$$$$$$$$$$$$$"<<std::endl;
+    //  VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     return true;
 } // solveBodySystem

@@ -87,7 +87,8 @@ IBHierarchyIntegrator {
 CIBMethod {
    delta_fcn             = DELTA_FUNCTION
    enable_logging        = ENABLE_LOGGING
-   lambda_dirname        = "./Lambda"
+   lambda_dirname        = "./Output"
+   output_all_lambdas    = FALSE //whether output all lambdas
    lambda_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
    output_eul_lambda     = TRUE         // defaults to false
 }
@@ -132,6 +133,8 @@ CIBStaggeredStokesSolver
     initial_guess_nonzero = TRUE
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
+    free_velocity_dirname        = "./Output"
+    free_velocity_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
   
     DirectMobilitySolver
     {

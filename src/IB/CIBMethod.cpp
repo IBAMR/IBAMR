@@ -105,7 +105,9 @@ CIBMethod::CIBMethod(const std::string& object_name,
 
 CIBMethod::~CIBMethod()
 {
-    // intentionally left blank.
+
+    if ((SAMRAI_MPI::getRank() == 0)&&(d_lambda_dump_interval)) d_lambda_stream.close();
+
     return;
 } // ~cIBMethod
 
@@ -226,11 +228,19 @@ void CIBMethod::registerEulerianCommunicationAlgorithms()
 
 void CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
 
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Get data for free and prescribed bodies.
-    int free_parts = 0;
+    std::vector<PetscInt> indices;
+    std::vector<PetscScalar> U_vec;
+    std::vector<PetscScalar> F_vec;
+    int counter=0;
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         int num_free_dofs;
@@ -278,58 +288,57 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 #endif
         }
 
-        if (num_free_dofs)
-        {
-            d_U.push_back(static_cast<Vec>(NULL));
-            d_F.push_back(static_cast<Vec>(NULL));
-
-            Vec& U = d_U.back();
-            Vec& F = d_F.back();
-
-            PetscInt n = 0, N = num_free_dofs;
-            if (!SAMRAI_MPI::getRank()) n = N;
-            VecCreateMPI(PETSC_COMM_WORLD, n, N, &U);
-            VecCreateMPI(PETSC_COMM_WORLD, n, N, &F);
-
-            // Initialize U and F.
-            // For U we use current timestep value as a guess.
-
-            RDV Fr;
-            Eigen::Vector3d F_ext, T_ext;
-            if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
-            {
-                d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
-            }
-            else
-            {
-                F_ext.setZero();
-                T_ext.setZero();
-            }
-            eigenToRDV(F_ext, T_ext, Fr);
-
-            RDV Ur;
-            eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], Ur);
-
-            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-            {
-                if (solve_dofs[k])
-                {
-                    VecSetValue(U, p, Ur[k], INSERT_VALUES);
-                    VecSetValue(F, p, Fr[k], INSERT_VALUES);
-                    ++p;
-                }
-            }
-            VecAssemblyBegin(U);
-            VecAssemblyBegin(F);
-
-            VecAssemblyEnd(U);
-            VecAssemblyEnd(F);
-
-            ++free_parts;
-        }
+	if (!SAMRAI_MPI::getRank())
+	{
+	    if (num_free_dofs)
+	    {
+		// Initialize U and F.
+		// For U we use current timestep value as a guess.
+		RDV Fr;
+		Eigen::Vector3d F_ext, T_ext;
+		if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
+		{
+		    d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
+		}
+		else
+		{
+		    F_ext.setZero();
+		    T_ext.setZero();
+		}
+		eigenToRDV(F_ext, T_ext, Fr);
+		
+		RDV Ur;
+		eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], Ur);
+		
+		for (int k = 0; k < s_max_free_dofs; ++k)
+		{
+		    if (solve_dofs[k])
+		    {
+			U_vec.push_back(Ur[k]);
+			F_vec.push_back(Fr[k]);
+		    }else
+		    {
+			U_vec.push_back(0.0);
+			F_vec.push_back(0.0);
+		    }
+		    indices.push_back(counter++);
+		    
+		}
+	    }
+	}
     }
-    VecCreateMultiVec(PETSC_COMM_WORLD, free_parts, &d_U[0], &d_mv_U);
-    VecCreateMultiVec(PETSC_COMM_WORLD, free_parts, &d_F[0], &d_mv_F);
+    const int global_size = SAMRAI_MPI::sumReduction(counter);
+
+    VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, global_size, &d_mv_U);
+    VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, global_size, &d_mv_F);
+
+    VecSetValues(d_mv_U, counter, &indices[0], &U_vec[0], INSERT_VALUES); 
+    VecAssemblyBegin(d_mv_U);
+    VecAssemblyEnd(d_mv_U);
+
+    VecSetValues(d_mv_F, counter, &indices[0], &F_vec[0], INSERT_VALUES); 
+    VecAssemblyBegin(d_mv_F);
+    VecAssemblyEnd(d_mv_F);
 
     const double start_time = d_ib_solver->getStartTime();
     const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
@@ -362,32 +371,37 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 
     d_time_integrator_needs_regrid = false;
 
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:preprocessIntegrateData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
+
     return;
 } // preprocessIntegrateData
 
 void CIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {    
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     // Compute net rigid generalized force for structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
-    Vec L_vec = ptr_lagmultpr->getVec();
+    //Vec L_vec = ptr_lagmultpr->getVec();
     
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
     fill(skip_comp.begin(), skip_comp.end(), false);
-    computeNetRigidGeneralizedForce(L_vec, d_net_rigid_generalized_force, skip_comp);
+    //computeNetRigidGeneralizedForce(L_vec, d_net_rigid_generalized_force, skip_comp);
     
-
-    // Destroy the free-parts PETSc Vecs.
-    for (size_t k = 0; k < d_U.size(); ++k)
-    {
-        VecDestroy(&d_U[k]);
-        VecDestroy(&d_F[k]);
-    }
     VecDestroy(&d_mv_U);
     VecDestroy(&d_mv_F);
-    d_U.clear();
-    d_F.clear();
 
     // Dump Lagrange multiplier data.
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))
@@ -405,30 +419,48 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
         {
             PetscScalar* L;
             VecGetArray(lambda_lag_vec_seq, &L);
-            int counter_L = -1;
+            int counter_L = 0;
             Eigen::Vector3d total_lambda = Eigen::Vector3d::Zero();
-
-            d_lambda_stream << new_time << std::endl << std::endl;
+            Eigen::Vector3d total_torque = Eigen::Vector3d::Zero();
+	    Eigen::Vector3d dr   = Eigen::Vector3d::Zero();
+	    Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
+	    Eigen::Vector3d dF   = Eigen::Vector3d::Zero();
+	    Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3,3);
+	    // d_lambda_stream << std::endl << "t="<<new_time << std::endl << std::endl;
             for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
             {
                 const int no_ib_pts = getNumberOfNodes(struct_no);
-                d_lambda_stream << "structure: " << struct_no << " ib_pts: " << no_ib_pts << std::endl;
-
+		// d_lambda_stream << "structure: " << struct_no << " ib_pts: " << no_ib_pts << std::endl;
+		rotation_mat=d_quaternion_current[struct_no].toRotationMatrix();
                 for (int i = 0; i < no_ib_pts; ++i)
                 {
+		    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(finest_ln,struct_no,i);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        d_lambda_stream << L[++counter_L] << "\t";
+			if (d_output_all_lambdas) d_lambda_stream << L[counter_L] << "\t";
                         total_lambda[d] += L[counter_L];
+			dF[d] = L[counter_L];
+			dr[d] = X[d];
+			counter_L++;
                     }
-                    d_lambda_stream << std::endl;
+                    if (d_output_all_lambdas) d_lambda_stream << std::endl;
+		    R_dr = rotation_mat*dr; 
+		    total_torque += R_dr.cross(dF);
+
                 }
-                d_lambda_stream << "Net resultant lambda for structure: " << struct_no << " ";
+		d_lambda_stream <<struct_no <<"\t";
 
                 for (int d = 0; d < NDIM; ++d) d_lambda_stream << total_lambda[d] << "\t";
+#if (NDIM == 2)
+		d_lambda_stream << total_torque[2];
+#elif (NDIM == 3)
+		for (int d = 0; d < NDIM; ++d) d_lambda_stream << total_torque[d] << "\t";
+#endif
                 d_lambda_stream << std::endl;
                 total_lambda.setZero();
+                total_torque.setZero();
             }
+	    d_lambda_stream << std::endl;
             VecRestoreArray(lambda_lag_vec_seq, &L);
         }
         VecDestroy(&lambda_lag_vec_parallel);
@@ -467,6 +499,14 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 
     // Do the base class cleanup here.
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:postprocessIntegrateData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
 
     return;
 } // postprocessIntegrateData
@@ -479,6 +519,11 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
                                     Pointer<BasePatchLevel<NDIM> > old_level,
                                     bool allocate_data)
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
                                   allocate_data);
 
@@ -516,6 +561,16 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
             d_silo_writer->registerVariableData("lambda", lag_mul_data, level_number);
         }
     }
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:initializeLevelData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
+
     return;
 } // initializeLevelData
 
@@ -528,6 +583,11 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
                                          double init_data_time,
                                          bool initial_time)
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
     IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
@@ -589,14 +649,24 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
 	    d_quaternion_current[i] = (*initial_body_quatern);
 	}
 	
-	//Copy all quarteninons from StandardInitializer as current 
-	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-	    for(unsigned i=0;i<d_num_rigid_parts;i++)
-	    {
-		Eigen::Quaterniond* initial_body_quatern = getStandardInitializer()->getStructureQuaternion(ln, i);
-		(*initial_body_quatern) = Eigen::Quaterniond::Identity();
-	    }
+	// //Copy all quarteninons from StandardInitializer as current 
+	// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+	//     for(unsigned i=0;i<d_num_rigid_parts;i++)
+	//     {
+	// 	Eigen::Quaterniond* initial_body_quatern = getStandardInitializer()->getStructureQuaternion(ln, i);
+	// 	(*initial_body_quatern) = Eigen::Quaterniond::Identity();
+	//     }
     }
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:intializePatchHierarchy, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
+
     return;
 } // initializePatchHierarchy
 
@@ -644,6 +714,11 @@ void CIBMethod::spreadForce(
 
 void CIBMethod::eulerStep(const double current_time, const double new_time)
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
@@ -731,9 +806,6 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     }
     *X_half_needs_ghost_fill = true;
 
-    // SAMRAI_MPI::sumReduction(flag_regrid);
-    // if (flag_regrid) d_time_integrator_needs_regrid = true;
-
     // Compute the COM at mid-step.
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
@@ -744,11 +816,26 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:eulerStep, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
+
     return;
 } // eulerStep
 
 void CIBMethod::midpointStep(const double current_time, const double new_time)
 {
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     const double dt = new_time - current_time;
     int flag_regrid=0;
 
@@ -847,6 +934,16 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
+
+#ifdef TIME_REPORT
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"    CIBMethod:midpointStep, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+#endif
+
     return;
 } // midpointStep
 
@@ -1039,8 +1136,28 @@ unsigned int CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
 
 } // getNumberOfStructuresNodes
 
-void CIBMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U_vec, Vec V, const std::vector<bool>& skip_comp)
+void CIBMethod::setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp)
 {
+    std::map<unsigned,unsigned> struct_to_free_map;
+    unsigned counter=0;
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    {
+	if (skip_comp[struct_no]) continue;
+	struct_to_free_map[struct_no]=counter++;
+    }
+
+    Vec U_all;
+    VecScatter ctx;
+    VecScatterCreateToAll(U,&ctx,&U_all);
+
+    VecScatterBegin(ctx, U, U_all, INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterEnd  (ctx, U, U_all, INSERT_VALUES,SCATTER_FORWARD);
+
+    PetscScalar* u_array = NULL;
+    PetscInt comps;
+    VecGetSize(U, &comps);
+    VecGetArray(U_all, &u_array);
+
     // Wrap the PETSc V into LData
     std::vector<int> nonlocal_indices;
     LData V_data("V", V, nonlocal_indices, false);
@@ -1058,13 +1175,24 @@ void CIBMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U_vec, V
         const unsigned struct_id = getStructureHandle(lag_idx);
 	if (skip_comp[struct_id]) continue;
 
+	RigidDOFVector U;
+	U.setZero();
+	if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn)
+	{
+	    
+	    void* ctx = d_constrained_velocity_fcns_data[struct_id].ctx;
+	    CIBMethod* cib_method_ptr = this;
+	    d_constrained_velocity_fcns_data[struct_id].nodalvelfcn(struct_id, V, U, d_X_half_data[struct_ln]->getVec(),
+							       d_center_of_mass_half[struct_id], d_new_time, ctx, 
+							       cib_method_ptr);
+	}
 	Eigen::Vector3d dr;
 	Eigen::Vector3d R_dr;
 	
-	const RigidDOFVector& U = U_vec[struct_id];
-	
-	if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn) continue;
-	
+	for (int idof=0; idof < s_max_free_dofs; ++idof) 
+	{
+	    if (d_solve_rigid_vel[struct_id][idof])  U[idof] = u_array[struct_to_free_map[struct_id]*s_max_free_dofs+idof];
+	}
 	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
 	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
     
@@ -1089,43 +1217,45 @@ void CIBMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U_vec, V
     for (unsigned part = 0; part < d_num_rigid_parts; ++part) 
     {
 	if (skip_comp[part]) continue;
-	if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
-	{
-	    
-	    const RigidDOFVector& U = U_vec[part];
-	    void* ctx = d_constrained_velocity_fcns_data[part].ctx;
-	    CIBMethod* cib_method_ptr = this;
-	    d_constrained_velocity_fcns_data[part].nodalvelfcn(part, V, U, d_X_half_data[struct_ln]->getVec(),
-							       d_center_of_mass_half[part], d_new_time, ctx, 
-							       cib_method_ptr);
-	}
+
     }
 
     // Restore underlying arrays
     V_data.restoreArrays();
+    VecRestoreArray(U_all, &u_array);
+    VecScatterDestroy(&ctx);
+    VecDestroy(&U_all);
 
     return;
 } // setRigidBodyVelocity
 
-void CIBMethod::setRigidBodyDeformationVelocity(const unsigned int part, Vec y)
+void CIBMethod::setRigidBodyDeformationVelocity(Vec W)
 {
     const int struct_ln = getStructuresLevelNumber();
 
     if (!d_VelDefFun) return;
     CIBMethod* cib_method = this;
-    (*d_VelDefFun)(part, y, d_X_half_data[struct_ln]->getVec(),
-		   d_center_of_mass_half[part], cib_method);
+    (*d_VelDefFun)(W, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half, cib_method);
     return;
 }//setRigidBodyDeformationVelocity
 
-void CIBMethod::computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp)
+void CIBMethod::computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp)
 {
-    const int struct_ln = getStructuresLevelNumber();
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no) 
+    std::map<unsigned,unsigned> struct_to_free_map;
+    unsigned counter=0;
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
 	if (skip_comp[struct_no]) continue;
-	F[struct_no].setZero();
+	struct_to_free_map[struct_no]=counter++;
     }
+    const int struct_ln = getStructuresLevelNumber();
+    VecSet(F, 0.0);    
+    PetscInt size;
+    VecGetSize(F,&size);
+    TBOX_ASSERT((unsigned)size == s_max_free_dofs*counter);
+
+    PetscScalar* f_array=new PetscScalar[size];
+    std::fill(f_array, f_array + size, 0.0);
 
     // Wrap the distributed PETSc Vec L into LData
     std::vector<int> nonlocal_indices;
@@ -1150,183 +1280,45 @@ void CIBMethod::computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVecto
 	const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_id,lag_idx-part_idx_range.first);
 	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
 	R_dr = rotation_mat*dr; 
+	const unsigned free_idx=struct_to_free_map[struct_id];
 
+        for (int d = 0; d < NDIM; ++d)
+        {
+            f_array[free_idx*s_max_free_dofs+d] += P[d];
+        }
 #if (NDIM == 2)
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[struct_id][d] += P[d];
-        }
-        F[struct_id][2] += P[1] * R_dr[0] - P[0] * R_dr[1];
+        f_array[free_idx*s_max_free_dofs+2] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #elif(NDIM == 3)
-        for (int d = 0; d < NDIM; ++d)
-        {
-            F[struct_id][d] += P[d];
-        }
-        F[struct_id][3] += P[2] * R_dr[1] - P[1] * R_dr[2];
-        F[struct_id][4] += P[0] * R_dr[2] - P[2] * R_dr[0];
-        F[struct_id][5] += P[1] * R_dr[0] - P[0] * R_dr[1];
+        f_array[free_idx*s_max_free_dofs+3] += P[2] * R_dr[1] - P[1] * R_dr[2];
+        f_array[free_idx*s_max_free_dofs+4] += P[0] * R_dr[2] - P[2] * R_dr[0];
+        f_array[free_idx*s_max_free_dofs+5] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #endif
     }
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no) 
-    {
-	if (skip_comp[struct_no]) continue;
-	SAMRAI_MPI::sumReduction(&F[struct_no][0], NDIM * (NDIM + 1) / 2);
-    }
+    
+    SAMRAI_MPI::sumReduction(f_array, size);
     p_data.restoreArrays();
+
+    PetscInt *indices = new PetscInt[size]; 
+    
+    for (int i = 0; i < size; ++i) indices[i] = i; 
+    
+    
+    if (!SAMRAI_MPI::getRank()) VecSetValues(F, size, indices, f_array, INSERT_VALUES); 
+    
+    VecAssemblyBegin(F);
+    VecAssemblyEnd(F);
+
+    delete [] indices;
+    delete [] f_array;
+
     return;
 } // computeNetRigidGeneralizedForce
 
-void CIBMethod::copyVecToArray(Vec b,
-                               double* array,
-                               const std::vector<unsigned int>& struct_ids,
-                               const int data_depth,
-                               const int array_rank)
-{
-    if (struct_ids.empty()) return;
-    const unsigned num_structs = (unsigned)struct_ids.size();
-
-    // Get the Lagrangian indices of the structures.
-    std::vector<int> map;
-    PetscInt total_nodes = 0;
-    for (unsigned k = 0; k < num_structs; ++k)
-    {
-        total_nodes += getNumberOfNodes(struct_ids[k]);
-    }
-    map.reserve(total_nodes);
-    for (unsigned k = 0; k < num_structs; ++k)
-    {
-        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_ids[k]];
-        const unsigned struct_nodes = getNumberOfNodes(struct_ids[k]);
-        for (unsigned j = 0; j < struct_nodes; ++j)
-        {
-            map.push_back(lag_idx_range.first + j);
-        }
-    }
-
-    // Map the Lagrangian indices into PETSc indices
-    const int struct_ln = getStructuresLevelNumber();
-    d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
-
-    // Wrap the raw data in a PETSc Vec
-    PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
-    PetscInt array_local_size = 0;
-    if (rank == array_rank) array_local_size = size;
-    Vec array_vec;
-    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
-
-    // Create index sets to define global index mapping.
-    std::vector<PetscInt> vec_indices, array_indices;
-    vec_indices.reserve(size);
-    array_indices.reserve(size);
-    for (PetscInt j = 0; j < total_nodes; ++j)
-    {
-        PetscInt petsc_idx = map[j];
-        for (int d = 0; d < data_depth; ++d)
-        {
-            array_indices.push_back(j * data_depth + d);
-            vec_indices.push_back(petsc_idx * data_depth + d);
-        }
-    }
-    IS is_vec;
-    IS is_array;
-    ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
-    ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
-
-    // Scatter values
-    VecScatter ctx;
-    VecScatterCreate(b, is_vec, array_vec, is_array, &ctx);
-    VecScatterBegin(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
-    VecScatterEnd(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
-
-    // Cleanup temporary objects.
-    VecScatterDestroy(&ctx);
-    ISDestroy(&is_vec);
-    ISDestroy(&is_array);
-    VecDestroy(&array_vec);
-
-    return;
-} // copyVecToArray
-
-void CIBMethod::copyArrayToVec(Vec b,
-                               double* array,
-                               const std::vector<unsigned>& struct_ids,
-                               const int data_depth,
-                               const int array_rank)
-{
-    if (struct_ids.empty()) return;
-    const unsigned num_structs = (unsigned)struct_ids.size();
-
-    // Get the Lagrangian indices of the structures.
-    std::vector<int> map;
-    PetscInt total_nodes = 0;
-    for (unsigned k = 0; k < num_structs; ++k)
-    {
-        total_nodes += getNumberOfNodes(struct_ids[k]);
-    }
-    map.reserve(total_nodes);
-    for (unsigned k = 0; k < num_structs; ++k)
-    {
-        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_ids[k]];
-        const unsigned struct_nodes = getNumberOfNodes(struct_ids[k]);
-        for (unsigned j = 0; j < struct_nodes; ++j)
-        {
-            map.push_back(lag_idx_range.first + j);
-        }
-    }
-
-    // Map the Lagrangian indices into PETSc indices
-    const int struct_ln = getStructuresLevelNumber();
-    d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
-
-    // Wrap the array in a PETSc Vec
-    PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
-    PetscInt array_local_size = 0;
-    if (rank == array_rank) array_local_size = size;
-    Vec array_vec;
-    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
-
-    // Create index sets to define global index mapping.
-    std::vector<PetscInt> vec_indices, array_indices;
-    vec_indices.reserve(size);
-    array_indices.reserve(size);
-    for (PetscInt j = 0; j < total_nodes; ++j)
-    {
-        PetscInt petsc_idx = map[j];
-        for (int d = 0; d < data_depth; ++d)
-        {
-            array_indices.push_back(j * data_depth + d);
-            vec_indices.push_back(petsc_idx * data_depth + d);
-        }
-    }
-    IS is_vec;
-    IS is_array;
-    ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
-    ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
-
-    // Scatter values
-    VecScatter ctx;
-    VecScatterCreate(array_vec, is_array, b, is_vec, &ctx);
-    VecScatterBegin(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
-    VecScatterEnd(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
-
-    // Destroy temporary objects
-    VecScatterDestroy(&ctx);
-    ISDestroy(&is_vec);
-    ISDestroy(&is_array);
-
-    VecDestroy(&array_vec);
-    VecDestroy(&array_vec);
-
-    return;
-} // copyArrayToVec
 
 void CIBMethod::copyAllVecToArray(Vec b,
 				  double* array,
 				  const std::vector<unsigned> & all_rhs_struct_ids,
-				  const int data_depth,
-				  const int array_rank)
+				  const int data_depth)
 {
     // Map the Lagrangian indices into PETSc indices
     const int struct_ln = getStructuresLevelNumber();
@@ -1366,8 +1358,7 @@ void CIBMethod::copyAllVecToArray(Vec b,
 void CIBMethod::copyAllArrayToVec(Vec b,
 				  double* array,
 				  const std::vector<unsigned>& all_rhs_struct_ids,
-				  const int data_depth,
-				  const int array_rank)
+				  const int data_depth)
 {
     const int struct_ln = getStructuresLevelNumber();
     const unsigned num_structs= all_rhs_struct_ids.size();
@@ -1398,8 +1389,7 @@ void CIBMethod::copyAllArrayToVec(Vec b,
     }
 
     VecSetValues(b_lag_vec, local_size, indices, array, INSERT_VALUES); 
-    SAMRAI_MPI::barrier();
-
+ 
     VecAssemblyBegin(b_lag_vec);
     VecAssemblyEnd(b_lag_vec);
     
@@ -1441,7 +1431,9 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 	double* WArr =NULL;
 	if (rank == managing_proc) WArr =  new double[size];
 	Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-	copyVecToArray(W, WArr, prototype_struct_ids, /*depth*/ NDIM, managing_proc);
+	std::vector<unsigned> struct_ids;
+	if (rank == managing_proc) struct_ids =  prototype_struct_ids;
+	copyAllVecToArray(W, WArr, struct_ids, /*depth*/ NDIM);
 	if (rank == managing_proc) W_vector.push_back(WArr);
     }
 
@@ -1550,17 +1542,6 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 	    }
 	    delete[] W;
 	    counter++;
-
-	    // std::ofstream MM_out;
-	    // std::string fname="MobilityMatrix.out";
-	    // MM_out.open(fname.c_str(), std::ios::out | std::ios::app);
-	    // MM_out<<std::endl;
-	    // MM_out<<std::scientific;
-	    // for (int i = 0; i < size; ++i)
-	    // {
-	    // 	for (int ii = 0; ii < size; ++ii) MM_out<<mobility_mat[ii*size+i]<<"\t";
-	    // 	MM_out<<std::endl;
-	    // }
 	}//rank
 	file_counter++;
     }//it
@@ -1758,31 +1739,33 @@ void CIBMethod::getFromInput(Pointer<Database> input_db)
     if (d_lambda_dump_interval)
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
-        std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./lambda");
+        std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./Output");
         if (!from_restart) Utilities::recursiveMkdir(dir_name);
 
+	d_output_all_lambdas = input_db->getBoolWithDefault("output_all_lambdas", false);
+	
         if (SAMRAI_MPI::getRank() == 0)
         {
-            std::string filename = dir_name + "/" + "lambda";
+            std::string filename = dir_name + "/" + "Lambda.dat";
             if (from_restart)
                 d_lambda_stream.open(filename.c_str(), std::ofstream::app | std::ofstream::out);
             else
                 d_lambda_stream.open(filename.c_str(), std::ofstream::out);
 
-            d_lambda_stream.precision(16);
+            d_lambda_stream.precision(15);
             d_lambda_stream << std::scientific;
         }
     }
 
-    if (input_db->keyExists("lambda_filenames"))
-    {
-        tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
-        TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
-        for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-        {
-            d_lambda_filename[struct_no] = lambda_filenames[struct_no];
-        }
-    }
+    // if (input_db->keyExists("lambda_filenames"))
+    // {
+    //     tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
+    //     TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
+    //     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    //     {
+    //         d_lambda_filename[struct_no] = lambda_filenames[struct_no];
+    //     }
+    // }
 
     if (input_db->keyExists("weight_filenames"))
     {

@@ -29,10 +29,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef TIME_REPORT
-#define TIME_REPORT
-#endif
-
 #include <Eigen/Geometry>
 // Config files
 #include <IBAMR_config.h>
@@ -81,51 +77,49 @@ void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
 } // ConstrainedCOMInnerVel
 
 static double B1,B2;
-void SlipVelocity(const unsigned part, Vec U_k,  Vec X, 
-		  const Eigen::Vector3d& Xin_com, CIBMethod* cib_method)
+void SlipVelocity(Vec W,  Vec X, 
+		  const std::vector<Eigen::Vector3d>& Xin_com, CIBMethod* cib_method)
 {
+    const int rank =  SAMRAI_MPI::getRank();
+    const int nodes =  SAMRAI_MPI::getNodes();
     const int struct_ln = cib_method->getStructuresLevelNumber();
-    // Get the position data
-    double* V_array=NULL; 
-    const unsigned num_of_nodes = cib_method->getNumberOfNodes(part);
-    unsigned size = num_of_nodes*NDIM;
-     
-    Eigen::Quaterniond* Q = cib_method->getBodyQuaternion(part,true);
-    Eigen::Matrix3d  body_rot_matrix=Q->toRotationMatrix();
+    const unsigned num_rigid_parts = cib_method->getNumberOfRigidStructures();
+    std::vector<unsigned> struct_ids;
+    std::vector<double> V_array; 
 
-    
-    if (!SAMRAI_MPI::getRank())
+    for (unsigned part = rank; part < num_rigid_parts; part +=nodes)
     {
-	V_array = new double[size];
-	for (unsigned i=0; i<num_of_nodes; ++i)
-	{
-	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);
+	struct_ids.push_back(part);
+	const unsigned num_of_nodes = cib_method->getNumberOfNodes(part);
+	Eigen::Quaterniond* Q = cib_method->getBodyQuaternion(part,true);
+	Eigen::Matrix3d  body_rot_matrix=Q->toRotationMatrix();
+    	for (unsigned i=0; i<num_of_nodes; ++i)
+    	{
+    	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);
 	    
-	    Eigen::Vector3d coord;
-	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d];
+    	    Eigen::Vector3d coord;
+    	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d];
 	    
-	    double r=coord.norm();
-	    double r_proj=sqrt(coord[1]*coord[1]+coord[2]*coord[2]);
-	    double cos_theta=coord[0]/r;
-	    double sin_theta=r_proj/r;
-	    double v_theta=(B1*sin_theta+B2*cos_theta*sin_theta);
+    	    double r=coord.norm();
+    	    double r_proj=sqrt(coord[1]*coord[1]+coord[2]*coord[2]);
+    	    double cos_theta=coord[0]/r;
+    	    double sin_theta=r_proj/r;
+    	    double v_theta=(B1*sin_theta+B2*cos_theta*sin_theta);
 	    
-	    Eigen::Vector3d temp_vec = Eigen::Vector3d::Zero();
-	    // temp_vec[0] = -v_theta*sin_theta;
-	    // if (r_proj>1e-9)
-	    // {
-	    // 	temp_vec[1] = v_theta*cos_theta*coord[1]/r_proj;
-	    // 	temp_vec[2] = v_theta*cos_theta*coord[2]/r_proj;
-	    // }
-	    if ((part==0)&&(i==0))  temp_vec[0] = 1.0;
+    	    Eigen::Vector3d temp_vec = Eigen::Vector3d::Zero();
+    	    temp_vec[0] = -v_theta*sin_theta;
+    	    if (r_proj>1e-9)
+    	    {
+    	    	temp_vec[1] = v_theta*cos_theta*coord[1]/r_proj;
+    	    	temp_vec[2] = v_theta*cos_theta*coord[2]/r_proj;
+    	    }
+    
+    	    Eigen::Vector3d slip_vec=body_rot_matrix*temp_vec;
 
-	    Eigen::Vector3d rot_vec=body_rot_matrix*temp_vec;
-	    
-	    for (unsigned d=0; d<NDIM; ++d) V_array[i*NDIM+d] = rot_vec[d];
-	}
+    	    for (unsigned d=0; d<NDIM; ++d) V_array.push_back(slip_vec[d]);
+    	}
     }
-
-    cib_method->copyArrayToVec(U_k, V_array, std::vector<unsigned> (1, part), NDIM, 0);
+    cib_method->copyAllArrayToVec(W, &V_array[0], struct_ids, NDIM);
     return;
 }
 
@@ -135,11 +129,9 @@ void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
     for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
 
-    // F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
-    // T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
+    F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
+    T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
 
-    F_ext << B1, 0, 0;
-    T_ext << B2, 0, 0;
     return;
 } // NetExternalForceTorque
 
@@ -162,11 +154,6 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *******************************************************************************/
 int main(int argc, char* argv[])
 {
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
-
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -175,6 +162,10 @@ int main(int argc, char* argv[])
     SAMRAIManager::setMaxNumberPatchDataEntries(2054);
     RNG::parallel_seed(1);
 
+#ifdef TIME_REPORT
+    clock_t end_t=0, start_med=0;
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
@@ -444,7 +435,10 @@ int main(int argc, char* argv[])
         }
 
         // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) 
+	{
+	    if (u_bc_coefs[d]) delete u_bc_coefs[d];
+	}
 
     } // cleanup dynamically allocated objects prior to shutdown
 

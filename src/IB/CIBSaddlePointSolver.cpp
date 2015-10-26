@@ -31,9 +31,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
 
 #include <limits>
 
@@ -86,6 +83,9 @@ static Timer* t_deallocate_solver_state;
 } // anonymous
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+#ifdef TIME_REPORT
+static clock_t iteration_t=0;
+#endif
 
 CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
                                            Pointer<Database> input_db,
@@ -423,7 +423,8 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     d_petsc_x = x;
     VecCopy(b, d_petsc_b);
 
-    // Modify RHS for inhomogeneous BCs.
+
+     // Modify RHS for inhomogeneous BCs.
     int comps;
     Vec* vrhs;
     IBTK::VecMultiVecGetSubVecs(d_petsc_b, &vrhs);
@@ -472,7 +473,6 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
 	pout<< std::setprecision(4)<<"   SaddlePointSoler: Total time SaddlePointSolver, CPU time taken for the time step is:"<< double(end_t-start_t)/double(CLOCKS_PER_SEC)<<std::endl;;
     }
 #endif
-
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
 } // solveSystem
@@ -1009,12 +1009,19 @@ PetscErrorCode CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 // Exact-Schur Complement PC
 PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 {
-
 #ifdef TIME_REPORT
     clock_t start_t=0, end_t=0, start_med=0;
     SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_t = clock();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) 
+    {
+	start_t = clock();
+	start_med = clock();
+	if (iteration_t) 
+	{
+	    pout<< std::setprecision(4)<<" Total time for the iteration, CPU time taken for the time step is:"<< double(clock() - iteration_t)/double(CLOCKS_PER_SEC)<<std::endl;
+	}
+	iteration_t=clock();
+    }
 #endif
   
     // Here we are solving the equation of the type : Py = x
@@ -1049,13 +1056,15 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     g_h->copyVector(IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]));
     Pointer<SAMRAIVectorReal<NDIM, double> > u_p = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
 
-    Vec W, Lambda, F_tilde;
+    Vec W, Lambda;
+    std::vector<Vec> Fvector;//storage for multivec copy
+
     W = vx[1];
     Lambda = vy[1];
 
     // Create temporary vectors for storage.
     // U is the interpolated velocity and delU is the slip velocity.
-    Vec U, delU;
+    Vec U, delU, F_tilde;
     VecDuplicate(W, &U);
 
 #ifdef TIME_REPORT
@@ -1123,10 +1132,19 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 	SAMRAI_MPI::barrier();
 	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
-
         VecDuplicate(vx[2], &F_tilde);
         VecDuplicate(W, &delU);
 
+#ifdef TIME_REPORT
+	SAMRAI_MPI::barrier();
+	if (SAMRAI_MPI::getRank() == 0)
+	{
+	    end_t = clock();
+	    pout<< std::setprecision(4)<<"     PCApply: vector duplications-2, Total CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+	}
+	SAMRAI_MPI::barrier();
+	if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+#endif
         // 3a) lambda = M^-1(U)
         solver->d_mob_solver->solveMobilitySystem(Lambda, U);
 
@@ -1259,8 +1277,8 @@ PetscErrorCode CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     VecDestroy(&U);
     if (free_comps)
     {
-        VecDestroy(&delU);
-        VecDestroy(&F_tilde);
+	VecDestroy(&delU);
+	VecDestroy(&F_tilde);
     }
 
 #ifdef TIME_REPORT

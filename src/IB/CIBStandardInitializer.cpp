@@ -160,7 +160,7 @@ namespace
     TBOX_ASSERT(input_db);
 #endif
 
-    // Register the specification objects with the StreamableManager class.
+    //Register the specification objects with the StreamableManager class.
     IBAnchorPointSpec::registerWithStreamableManager();
     IBBeamForceSpec::registerWithStreamableManager();
     IBInstrumentationSpec::registerWithStreamableManager();
@@ -820,12 +820,13 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	  if (fileNameCenters.size()) fileNameCenters.erase(fileNameCenters.size() - 1); //erase number zero
 	  fileNameCenters +=".clones";
 
-	  readClonesCenterPositions(fileNameCenters,num_clones, shift, dircs);
 
 	  //unsigned int j = 0; //Baky - reading file only once
 
 	  // Wait for the previous MPI process to finish reading the current file.
 	  if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, struct_begin_idx);
+
+	  readClonesCenterPositions(fileNameCenters,num_clones, shift, dircs);
 
 	  if (itype == 0)
 	  {

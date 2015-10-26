@@ -32,10 +32,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <limits>
 
@@ -321,7 +317,7 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
-    IBAMR_TIMER_START(t_solve_mobility_system);
+//    IBAMR_TIMER_START(t_solve_mobility_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -367,7 +363,7 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
     }
 #endif
 
-    IBAMR_TIMER_STOP(t_solve_mobility_system);
+//    IBAMR_TIMER_STOP(t_solve_mobility_system);
     return converged;
 } // solveMobilitySystem
 

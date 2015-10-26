@@ -511,7 +511,6 @@ PetscErrorCode FreeBodyMobilitySolver::MatVecMult_FBMSolver(Mat A, Vec x, Vec y)
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-
     // a) Set rigid body velocity
     VecSet(solver->d_petsc_temp_v, 0.0); // so that lambda for specified-kinematics part is zero.
     solver->d_cib_strategy->setRigidBodyVelocity(x, solver->d_petsc_temp_v, /*only_free_dofs*/ true,
@@ -565,6 +564,14 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
             VecGetArray(F_sub, &a_f);
             VecGetArray(U_sub, &a_u);
 
+	    // RigidDOFVector Fr;
+	    // solver->d_cib_strategy->vecToRDV(F_sub, Fr);
+
+	    // std::cout<<"checkpoint-0"<<std::endl;
+	    // for (int idir=0;idir<s_max_free_dofs;idir++)
+	    // 	std::cout<<Fr[idir]<<"\t";
+	    // std::cout<<std::endl;
+
             for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
             {
                 if (solve_dofs[k])
@@ -586,6 +593,8 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
             ++free_part;
         }
     }
+
+
 
     PetscFunctionReturn(0);
 } // PCApply_FBMSolver

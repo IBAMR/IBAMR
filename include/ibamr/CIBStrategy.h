@@ -199,9 +199,7 @@ public:
      *
      * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp)= 0;
-
-    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
+    virtual void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp)= 0;
 
     virtual void setRigidBodyVelocity(const unsigned int part, Vec U, Vec V);
 
@@ -237,24 +235,7 @@ public:
     /*!
      * \brief set deformation velocity.
      */
-    virtual void setRigidBodyDeformationVelocity(const unsigned int part, Vec y);
-
-    /*!
-     * \brief set deformation velocity.
-     */
     virtual void setRigidBodyDeformationVelocity(Vec W);
-
-
-    /*!
-     * \brief Compute total force and torque on the structure.
-     *
-     * \param part The structure index.
-     *
-     * \param L The Lagrange multiplier vector.
-     *
-     * \param F RDV storing the net generalized force.
-     */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -265,18 +246,8 @@ public:
      *
      * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp) = 0;
+    virtual void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp) = 0;
 
-    /*!
-     * \brief Compute total force and torque on the structure.
-     *
-     * \param part The structure index.
-     *
-     * \param L The Lagrange multiplier vector.
-     *
-     * \param F Vec storing the net generalized force.
-     */
-    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Vec F);
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -302,21 +273,9 @@ public:
                                                  const bool only_imposed_dofs,
                                                  const bool all_dofs = false);
 
-    /*!
-     * \brief Get total torque and force on the structure at new_time within
-     * the current time interval.
-     *
-     * \param part The rigid part.
-     */
-    const RigidDOFVector& getNetRigidGeneralizedForce(const unsigned int part);
 
-    /*!
-     * \brief Update the rigid body velocity obtained from the constraint Stokes
-     * solver for free-moving case.
-     */
-    void updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U);
 
-    void updateNewRigidBodyVelocity(const unsigned int part, Vec U);
+    void updateNewRigidBodyVelocity(Vec U, const bool all_dofs = false);
 
  
     /*!
@@ -364,32 +323,21 @@ public:
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
     virtual void copyArrayToVec(Vec b,
-			double* array,
-			const std::vector<unsigned>& struct_ids,
-			const int data_depth,
-			const int array_rank);
-
+				double* array,
+				const std::vector<unsigned>& struct_ids,
+				const int data_depth,
+				const int array_rank);
+    
     virtual void copyAllVecToArray(Vec b,
 				   double* array,
 				   const std::vector<unsigned>& all_rhs_struct_ids,
-				   const int data_depth,
-				   const int array_rank);
+				   const int data_depth);
     
     virtual void copyAllArrayToVec(Vec b,
 				   double* array,
 				   const std::vector<unsigned>& all_rhs_struct_ids,
-				   const int data_depth,
-				   const int array_rank);
+				   const int data_depth);
 
-    /*!
-     * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
-     */
-    static void vecToRDV(Vec U, RigidDOFVector& Ur);
-
-    /*!
-     * \brief Set the DOFs from RigidDOFVector \p Ur to PETSc Vec \p U.
-     */
-    static void rdvToVec(const RigidDOFVector& Ur, Vec& U);
 
     /*!
      * \brief Set the DOFs from Eigen::Vector3d \p U and \p W to RigidDOFVector \p UW.
@@ -532,6 +480,8 @@ protected:
      * Whether to solve for rigid body velocity.
      */
     std::vector<FRDV> d_solve_rigid_vel;
+    std::vector<bool> d_isFree_component; //added for efficiency
+
 
     /*!
      * Rigid body velocity of the structures.
@@ -542,7 +492,7 @@ protected:
     /*!
      * Net rigid generalized force.
      */
-    std::vector<RigidDOFVector> d_net_rigid_generalized_force;
+    //std::vector<RigidDOFVector> d_net_rigid_generalized_force;
 
     /*!
      * rigid parts clones parameters

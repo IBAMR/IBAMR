@@ -32,11 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
-
-
 #include <algorithm>
 #include <map>
 

@@ -32,9 +32,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
@@ -67,8 +64,8 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     d_rot_vel_half.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_rot_vel_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_solve_rigid_vel.resize(d_num_rigid_parts);
-    d_net_rigid_generalized_force.resize(d_num_rigid_parts);
-
+    d_isFree_component.resize(d_num_rigid_parts);
+    
     return;
 } // CIBStrategy
 
@@ -93,6 +90,14 @@ unsigned int CIBStrategy::getNumberOfRigidStructures() const
 void CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)
 {
     d_solve_rigid_vel[part] = solve_rigid_vel;
+    int num_free_dofs = 0;
+    getSolveRigidBodyVelocity(part, num_free_dofs);
+    
+    if (num_free_dofs) 
+	d_isFree_component[part] = true;
+    else
+	d_isFree_component[part] = false;
+
     return;
 
 } // setSolveRigidBodyVelocity
@@ -111,27 +116,20 @@ const FreeRigidDOFVector& CIBStrategy::getSolveRigidBodyVelocity(const unsigned 
     return d_solve_rigid_vel[part];
 } // getSolveRigidBodyVelocity
 
-void CIBStrategy::setRigidBodyVelocity(unsigned int part, const RigidDOFVector& U, Vec V)
+void CIBStrategy::setRigidBodyVelocity(unsigned int part, Vec U, Vec V)
 {
+    PetscInt size;
+    VecGetSize(U,&size);
+    TBOX_ASSERT(size == s_max_free_dofs);
+
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
     fill(skip_comp.begin(), skip_comp.end(), true);   
     skip_comp[part] = false;
-    std::vector<RigidDOFVector> temp_U;
-    temp_U.resize(d_num_rigid_parts);
-    temp_U[part]= U;
 
     //collective call over all nodes
-    setRigidBodyVelocity(temp_U, V, skip_comp);
+    setRigidBodyVelocity(U, V, skip_comp);
 }
-void CIBStrategy::setRigidBodyVelocity(const unsigned int part, Vec U, Vec V)
-{
-    RigidDOFVector Ur;
-    vecToRDV(U, Ur);
-    setRigidBodyVelocity(part, Ur, V);
-
-    return;
-} // setRigidBodyVelocity
 
 void CIBStrategy::setRigidBodyVelocity(Vec U,
                                        Vec V,
@@ -144,79 +142,28 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
     clock_t end_t=0, start_med=0;
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
-
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
-    std::vector<RigidDOFVector> UDOF;
-    UDOF.resize(d_num_rigid_parts);
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {   
-	UDOF[part].setZero();
-    }
-
+    
     if (only_free_dofs || only_imposed_dofs)
     {
-        for (unsigned part = 0, comp_part = 0; part < d_num_rigid_parts; ++part)
+        for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             int num_free_dofs=0;
 	    for (int k = 0; k < s_max_free_dofs; ++k) num_free_dofs +=d_solve_rigid_vel[part][k];
-	    RigidDOFVector& U_part = UDOF[part];
 	    
-	    Vec U_sub;
-	    VecMultiVecGetSubVec(U, comp_part, &U_sub);
-	    
-	    PetscInt s;
-	    PetscScalar* a = NULL;
-	    VecGetArray(U_sub, &a);
-	    VecGetSize(U_sub, &s);
-	    
-	    std::vector<double> a_vec(s, 0.0);
-	    if (a != NULL)
-	    {
-		std::copy(&a[0], &a[s], &a_vec[0]);
-	    }
-	    SAMRAI_MPI::sumReduction(&a_vec[0], s);
-	    VecRestoreArray(U_sub, &a);
-	    
-	    for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-	    {
-		if (only_free_dofs && num_free_dofs)
-		{
-		    if (d_solve_rigid_vel[part][k])
-		    {
-			U_part[k] = a_vec[p];
-			++p;
-		    }
-		    skip_comp[part]=false;
-		} 
-		else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
-		{
-		    if (!d_solve_rigid_vel[part][k])
-		    {
-			U_part[k] = a_vec[p];
-			++p;
-		    }
-		    skip_comp[part]=false;
-		}
-		else
-		{
-		    skip_comp[part]=true;
-		}
-	    }
-	    ++comp_part;
+	    if (only_free_dofs && num_free_dofs)
+		skip_comp[part]=false;
+	    else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
+		skip_comp[part]=false;
+	    else
+		skip_comp[part]=true;
 	}
     } 
     else if (all_dofs)
     {
-        Vec* vU;
-        VecMultiVecGetSubVecs(U, &vU);
-        for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-        {
-	    RigidDOFVector& U_part = UDOF[part];
-	    vecToRDV(vU[part], U_part);
-	}
-	fill(skip_comp.begin(), skip_comp.end(), false);   
-    }  
+    	fill(skip_comp.begin(), skip_comp.end(), false);   
+    } 
     else
     {
 	TBOX_ERROR("CIBStrategy::setRigidBodyVelocity() incorrect parameters in the function call" << std::endl);
@@ -232,7 +179,7 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
 #endif
    
     //collective call over all nodes
-    setRigidBodyVelocity(UDOF, V, skip_comp);
+    setRigidBodyVelocity(U, V, skip_comp);
     
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
@@ -245,45 +192,13 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
     return;
 } // setRigidBodyVelocity
 
-void CIBStrategy::setRigidBodyDeformationVelocity(const unsigned int /*part*/, Vec /*y*/)
-{
-    // intentionally left blank.
-    return;
-}
 
 void CIBStrategy::setRigidBodyDeformationVelocity(Vec W)
 {
-    // Vec* vW;
-    // VecMultiVecGetSubVecs(W, &vW);
 
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {  
-	setRigidBodyDeformationVelocity(part, W);
-    }
+    // intentionally left blank.
     return;
 }
-void CIBStrategy::computeNetRigidGeneralizedForce(const unsigned int part, Vec L,  RigidDOFVector& F)
-{
-    std::vector<bool> skip_comp;
-    skip_comp.resize(d_num_rigid_parts);
-    fill(skip_comp.begin(), skip_comp.end(), true);   
-    skip_comp[part] = false;
-
-    //collective call over all nodes
-    computeNetRigidGeneralizedForce(L, d_net_rigid_generalized_force, skip_comp);
-    F=d_net_rigid_generalized_force[part];
-
-    return;
-} // computeNetRigidGeneralizedForce
-
-void CIBStrategy::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Vec F)
-{
-    RigidDOFVector f;
-    computeNetRigidGeneralizedForce(part, L, f);
-    rdvToVec(f, F);
-
-    return;
-} // computeNetRigidGeneralizedForce
 
 void CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
                                                   Vec F,
@@ -304,7 +219,6 @@ void CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
 	    if (only_free_dofs && num_free_dofs) 
 	    {
 		skip_comp[part] = false;
-		d_net_rigid_generalized_force[part].setZero();
 	    }
 	    else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
 	    { 
@@ -326,88 +240,54 @@ void CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
     }
 
     //collective call over all nodes
-    computeNetRigidGeneralizedForce(L, d_net_rigid_generalized_force, skip_comp);
-
-    //flll the vector
-    if (only_free_dofs || only_imposed_dofs)
-    {
-	for (unsigned part = 0, comp_part = 0; part < d_num_rigid_parts; ++part)
-	{ 
-	    if (skip_comp[part]) continue;
-	    
-	    RigidDOFVector& F_part = d_net_rigid_generalized_force[part];
-	    
-	    Vec F_sub;
-	    VecMultiVecGetSubVec(F, comp_part, &F_sub);
-	    
-	    PetscInt s;
-	    PetscScalar* a = NULL;
-	    VecGetArray(F_sub, &a);
-	    VecGetSize(F_sub, &s);
-	    
-	    if (a != NULL)
-	    {
-		if (only_free_dofs)
-		{
-		    for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-		    {
-			if (d_solve_rigid_vel[part][k])
-			{
-			    a[p] = F_part[k];
-			    ++p;
-			}
-		    }
-				
-		}else if (only_imposed_dofs)
-		{
-		    for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-		    {
-			if (!d_solve_rigid_vel[part][k])
-			{
-			    a[p] = F_part[k];
-			    ++p;
-			}
-		    }
-		}
-	    }
-	    VecRestoreArray(F_sub, &a);
-	    ++comp_part;
-	}
-    } else if (all_dofs)
-    {        
-	Vec* vF;
-	VecMultiVecGetSubVecs(F, &vF);
-	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-	{
-	    rdvToVec(d_net_rigid_generalized_force[part], vF[part]);
-	}
-	    
-    }
+    computeNetRigidGeneralizedForce(L, F, skip_comp);
 
     return;
 } // computeNetRigidGeneralizedForce
 
-const RigidDOFVector& CIBStrategy::getNetRigidGeneralizedForce(const unsigned int part)
+
+void CIBStrategy::updateNewRigidBodyVelocity(Vec U, const bool all_dofs)
 {
-    return d_net_rigid_generalized_force[part];
-} // getNetRigidGeneralizedForce
+    Vec U_all;
+    VecScatter ctx;
+    VecScatterCreateToAll(U,&ctx,&U_all);
 
-void CIBStrategy::updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U)
-{
-    TBOX_ASSERT(part < d_num_rigid_parts);
-    rdvToEigen(U, d_trans_vel_new[part], d_rot_vel_new[part]);
+    VecScatterBegin(ctx,U,U_all,INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterEnd(ctx,U,U_all,INSERT_VALUES,SCATTER_FORWARD);
 
-    d_trans_vel_half[part] = 0.5 * (d_trans_vel_current[part] + d_trans_vel_new[part]);
-    d_rot_vel_half[part] = 0.5 * (d_rot_vel_current[part] + d_rot_vel_new[part]);
+    PetscScalar* u_array = NULL;
+    PetscInt comps;
+    VecGetSize(U, &comps);
+    VecGetArray(U_all, &u_array);
+    
+    int counter = 0;
+    for (unsigned i = 0; i < d_num_rigid_parts; ++i) 
+    {
+	if (d_isFree_component[i] || all_dofs)
+	{
+	    for (int d=0; d < NDIM; ++d) 
+	    {
+		if (d_solve_rigid_vel[i][d] || all_dofs ) d_trans_vel_new[i][d]  = u_array[counter*s_max_free_dofs+d]; 
+	    }
 
-    return;
-} // updateNewRigidBodyVelocity
+#if (NDIM == 2)
+	    if (d_solve_rigid_vel[i][NDIM] || all_dofs)  d_rot_vel_new[i][2] = u_array[counter*s_max_free_dofs+3];
+#elif(NDIM == 3)
+	    for (int d=0; d < NDIM; ++d) 
+	    {
+		if (d_solve_rigid_vel[i][d+NDIM] || all_dofs) d_rot_vel_new[i][d]  = u_array[counter*s_max_free_dofs+NDIM+d]; 
+	    }
+#endif
+	    d_trans_vel_half[i] = 0.5 * (d_trans_vel_current[i] + d_trans_vel_new[i]);
+	    d_rot_vel_half[i] = 0.5 * (d_rot_vel_current[i] + d_rot_vel_new[i]);
+	    counter++;
+	}
+	
+    }
 
-void CIBStrategy::updateNewRigidBodyVelocity(const unsigned int part, Vec U)
-{
-    RigidDOFVector Ur;
-    vecToRDV(U, Ur);
-    updateNewRigidBodyVelocity(part, Ur);
+    VecRestoreArray(U_all, &u_array);
+    VecScatterDestroy(&ctx);
+    VecDestroy(&U_all);
 
     return;
 } // updateNewRigidBodyVelocity
@@ -435,8 +315,7 @@ void CIBStrategy::copyArrayToVec(Vec /*b*/,
 void CIBStrategy::copyAllArrayToVec(Vec /*b*/,
 				    double* /*array*/,
 				    const std::vector<unsigned>& /*rhs_struct_ids*/,
-				    const int /*data_depth*/,
-				    const int /*array_rank*/)
+				    const int /*data_depth*/)
 {
     // intentionally left-blank
     return;
@@ -445,57 +324,11 @@ void CIBStrategy::copyAllArrayToVec(Vec /*b*/,
 void CIBStrategy::copyAllVecToArray(Vec /*b*/,
 				    double* /*array*/,
 				    const std::vector<unsigned>& /*rhs_struct_ids*/,
-				    const int /*data_depth*/,
-				    const int /*array_rank*/)
+				    const int /*data_depth*/)
 {
     // intentionally left-blank
     return;
 } // copyVecToArray
-
-void CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
-{
-    // Extract the underlying array.
-    PetscScalar* a = NULL;
-    PetscInt s;
-    VecGetArray(U, &a);
-    VecGetSize(U, &s);
-
-#if !defined(NDEBUG)
-    TBOX_ASSERT(s == s_max_free_dofs);
-#endif
-
-    // Fill in the required vector.
-    if (a != NULL)
-    {
-        std::copy(&a[0], &a[s], &Ur[0]);
-    }
-    else
-    {
-        Ur.setZero();
-    }
-
-    SAMRAI_MPI::sumReduction(&Ur[0], s);
-    VecRestoreArray(U, &a);
-    return;
-} // vecToRDV
-
-void CIBStrategy::rdvToVec(const RigidDOFVector& Ur, Vec& U)
-{
-    if (U == NULL)
-    {
-        PetscInt n = 0, N = s_max_free_dofs;
-        if (!SAMRAI_MPI::getRank()) n = N;
-        VecCreateMPI(PETSC_COMM_WORLD, n, N, &U);
-    }
-
-    std::vector<int> idx(s_max_free_dofs);
-    for (int i = 0; i < s_max_free_dofs; ++i) idx[i] = i;
-    VecSetValues(U, s_max_free_dofs, &idx[0], &Ur[0], INSERT_VALUES);
-    VecAssemblyBegin(U);
-    VecAssemblyEnd(U);
-
-    return;
-} // rdvToVec
 
 void CIBStrategy::eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, RigidDOFVector& UW)
 {

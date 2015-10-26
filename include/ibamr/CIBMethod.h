@@ -106,10 +106,9 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying slip velocities.
      */
-    typedef void (*VelocityDeformationFunctionPtr)(const unsigned int part,
-						   Vec V,
+    typedef void (*VelocityDeformationFunctionPtr)(Vec V,
                                                    Vec X,
-                                                   const Eigen::Vector3d& X_com,
+                                                   const std::vector<Eigen::Vector3d>& X_com,
 						   IBAMR::CIBMethod* d_cib_method);
 
     /*!
@@ -364,13 +363,13 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp);
+    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp);
 
     // \see CIBStrategy::setRigidBodyDeformationVelocity method.
     /*!
      * \brief set deformation velocity.
      */
-    void setRigidBodyDeformationVelocity(const unsigned int part, Vec W);
+    void setRigidBodyDeformationVelocity(Vec W);
 
     //void setRigidBodyDeformationVelocity(Vec W);
 
@@ -379,41 +378,18 @@ public:
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp);
+    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp);
 
-
-    // \see CIBStrategy::copyVecToArray() method.
-    /*!
-     * \brief Copy PETSc Vec to raw array for specified structures.
-     */
-    void copyVecToArray(Vec b,
-                        double* array,
-                        const std::vector<unsigned>& struct_ids,
-                        const int data_depth,
-                        const int array_rank);
-
-    
-    // \see CIBStrategy::copyVecToArray() method.
-    /*!
-     * \brief Copy raw array to PETSc Vec for specified structures.
-     */
-    void copyArrayToVec(Vec b,
-                        double* array,
-                        const std::vector<unsigned>& struct_ids,
-                        const int data_depth,
-                        const int array_rank);
 
     void copyAllArrayToVec(Vec b,
 			   double* array,
 			   const std::vector<unsigned>& all_rhs_struct_ids,
-			   const int data_depth,
-			   const int array_rank);
+			   const int data_depth);
     
     void copyAllVecToArray(Vec b,
 			   double* array,
 			   const std::vector<unsigned>& all_rhs_struct_ids,
-			   const int data_depth,
-			   const int array_rank);
+			   const int data_depth);
 
     // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
@@ -554,7 +530,6 @@ private:
     /*!
      * PETSc wrappers for free rigid body velocities.
      */
-    std::vector<Vec> d_U, d_F;
     Vec d_mv_U, d_mv_F;
 
     /*!
@@ -566,7 +541,7 @@ private:
     /*!
      * Control printing of S[lambda]
      */
-    bool d_output_eul_lambda;
+    bool d_output_eul_lambda, d_output_all_lambdas;
 
     /*!
      * Printing Lagrange multiplier.

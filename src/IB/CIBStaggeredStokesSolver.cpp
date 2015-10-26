@@ -30,10 +30,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// #ifndef TIME_REPORT
-// #define TIME_REPORT
-// #endif
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/CIBFEMethod.h"
 #include "ibamr/CIBSaddlePointSolver.h"
@@ -88,6 +84,22 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
     d_wide_u_idx = var_db->registerVariableAndContext(d_wide_u_var, d_wide_ctx, ghost_width);
     d_wide_f_idx = var_db->registerVariableAndContext(d_wide_f_var, d_wide_ctx, ghost_width);
 
+    std::string dir_name = input_db->getStringWithDefault("free_velocity_dirname", "./Output");	
+    Utilities::recursiveMkdir(dir_name);
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    
+    if (!SAMRAI_MPI::getRank())
+    {
+	const std::string fname = dir_name +"/U_free.dat";
+		
+	if (from_restart)
+	    d_U_body_out.open(fname.c_str(), std::ios::out | std::ios::app);
+	else	
+	    d_U_body_out.open(fname.c_str(), std::ios::out );
+	d_U_body_out<<std::scientific;	
+	d_U_body_out.precision(15);
+    }
+    d_U_dump_interval = input_db->getIntegerWithDefault("free_velocity_dump_interval", 1);
     return;
 } // CIBStaggeredStokesSolver
 
@@ -100,6 +112,7 @@ CIBStaggeredStokesSolver::~CIBStaggeredStokesSolver()
     var_db->removePatchDataIndex(d_wide_u_idx);
     var_db->removePatchDataIndex(d_wide_f_idx);
 
+    if (!SAMRAI_MPI::getRank()) d_U_body_out.close();
     return;
 } // ~CIBStaggeredStokesSolver()
 
@@ -265,45 +278,21 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     Vec U;
     d_cib_strategy->getFreeRigidVelocities(&U, d_new_time);
 
-    // Set the imposed velocity for all bodies in the RHS.
-    Vec V;
+
+     // Set the imposed velocity for all bodies in the RHS.
+    Vec V,W;
     VecDuplicate(L, &V);
-
-    Vec W;
     VecDuplicate(L, &W);
+    VecSet(V, 0.0);
     VecSet(W, 0.0);
+
     d_cib_strategy->setRigidBodyDeformationVelocity(W);
-
-    {
-	std::vector<RigidDOFVector> U_vec;
-	U_vec.resize(d_num_rigid_parts);
-
-	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-	{
-	    RigidDOFVector& U_part =U_vec[part];
-	    d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
-	    
-	    // Zero-out free velocities.
-	    int num_free_dofs = 0;
-	    const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
-	    for (int k = 0; k < s_max_free_dofs; ++k)
-	    {
-		if (solve_dofs[k]) U_part[k] = 0.0;
-	    }
-	    
-	    const double interp_scale = d_sp_solver->getInterpScale();
-	    U_part *= -interp_scale;
-	}
-		
-	std::vector<bool> skip_comp;
-	skip_comp.resize(d_num_rigid_parts);
-	fill(skip_comp.begin(), skip_comp.end(), false);
-	d_cib_strategy->setRigidBodyVelocity(U_vec, V, skip_comp);
-    }
-
-    VecAXPY(V,1.0,W);
+    d_cib_strategy->setRigidBodyVelocity(U, V, false, true, false); //set only imposed parts and zero for free components
+    VecAYPX(V,-1.0,W);
+    const double interp_scale = d_sp_solver->getInterpScale();
+    VecScale(V, interp_scale);
     VecDestroy(&W);
-
+   
     // Get the net external force and torque on the bodies.
     Vec F;
     d_cib_strategy->getNetExternalForceTorque(&F, d_new_time);
@@ -349,44 +338,47 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 
     // Extract solution.
     x.copyVector(d_x_wide);
-    for (unsigned part = 0, free_part = 0; part < d_num_rigid_parts; ++part)
-    {
-        RigidDOFVector U_part;
-        d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
 
-        // Update free DOFs.
-        int num_free_dofs = 0;
-        const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
-        if (num_free_dofs)
-        {
-            Vec U_sub;
-            VecMultiVecGetSubVec(U, free_part, &U_sub);
+    d_cib_strategy->updateNewRigidBodyVelocity(U);
 
-            PetscInt s;
-            PetscScalar* a = NULL;
-            VecGetArray(U_sub, &a);
-            VecGetSize(U_sub, &s);
+    // for (unsigned part = 0, free_part = 0; part < d_num_rigid_parts; ++part)
+    // {
+    //     RigidDOFVector U_part;
+    //     d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
 
-            std::vector<double> a_vec(s, 0.0);
-            if (a != NULL)
-            {
-                std::copy(&a[0], &a[s], &a_vec[0]);
-            }
-            SAMRAI_MPI::sumReduction(&a_vec[0], s);
-            VecRestoreArray(U_sub, &a);
+    //     // Update free DOFs.
+    //     int num_free_dofs = 0;
+    //     const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+    //     if (num_free_dofs)
+    //     {
+    //         Vec U_sub;
+    //         VecMultiVecGetSubVec(U, free_part, &U_sub);
 
-            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-            {
-                if (solve_dofs[k])
-                {
-                    U_part[k] = a_vec[p];
-                    ++p;
-                }
-            }
-            ++free_part;
-        }
-        d_cib_strategy->updateNewRigidBodyVelocity(part, U_part);
-    }
+    //         PetscInt s;
+    //         PetscScalar* a = NULL;
+    //         VecGetArray(U_sub, &a);
+    //         VecGetSize(U_sub, &s);
+
+    //         std::vector<double> a_vec(s, 0.0);
+    //         if (a != NULL)
+    //         {
+    //             std::copy(&a[0], &a[s], &a_vec[0]);
+    //         }
+    //         SAMRAI_MPI::sumReduction(&a_vec[0], s);
+    //         VecRestoreArray(U_sub, &a);
+
+    //         for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
+    //         {
+    //             if (solve_dofs[k])
+    //             {
+    //                 U_part[k] = a_vec[p];
+    //                 ++p;
+    //             }
+    //         }
+    //         ++free_part;
+    //     }
+    //     d_cib_strategy->updateNewRigidBodyVelocity(part, U_part);
+    // }
 
     double half_time = 0.5 * (d_new_time + d_current_time);
     pout << "\n"
@@ -400,71 +392,71 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     ghost_fill_schd->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
 
-#if 0
-        Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
-        bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
-        ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                           std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
-        ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
-        d_cib_strategy->getInterpolatedVelocity(V, half_time);
-        Vec* vV;
-        VecMultiVecGetSubVecs(V, &vV);
-        VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
-#endif
+// #if 0
+//         Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
+//         bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
+//         ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+//                                            std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+//         ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
+//         d_cib_strategy->getInterpolatedVelocity(V, half_time);
+//         Vec* vV;
+//         VecMultiVecGetSubVecs(V, &vV);
+//         VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
+// #endif
 
-#if 0
-    Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
-    ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                       std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
-    d_cib_strategy->getInterpolatedVelocity(V, half_time);
-    VecView(V, PETSC_VIEWER_STDOUT_WORLD);
-#endif
+// #if 0
+//     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+//     ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+//                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+//     d_cib_strategy->getInterpolatedVelocity(V, half_time);
+//     VecView(V, PETSC_VIEWER_STDOUT_WORLD);
+// #endif
 
-//free parts velocity output
-#if 1
-    PetscInt free_comps;
-    IBTK::VecMultiVecGetNumberOfSubVecs(vx[2], &free_comps);
-    if (free_comps)
     {
-	std::ofstream U_out;
-	//VecView(vx[2]);
-	Vec *vvx;
-        VecMultiVecGetSubVecs(vx[2], &vvx);
-	if (!SAMRAI_MPI::getRank())
-	{
-	    std::string fname="U_freeswim.out";
-	    // if (!d_current_time)
-	    // 	U_out.open(fname.c_str(), std::ios::out );
-	    // else
-		U_out.open(fname.c_str(), std::ios::out | std::ios::app);
-	    U_out << "\n"<< "sturucture swimming velocity at time  " << half_time << std::endl;
-	}
-        for (int part = 0; part < free_comps; ++part)
-        {
-	    RigidDOFVector vvU;
-	    d_cib_strategy->vecToRDV(vvx[part],vvU);
+	//free parts velocity output
+	static unsigned output_counter=0;
 
+	PetscInt free_comps;
+	VecGetSize(vx[2], &free_comps);
+
+	Vec U_all;
+	VecScatter ctx;
+	VecScatterCreateToAll(vx[2],&ctx,&U_all);
+	VecScatterBegin(ctx, vx[2], U_all, INSERT_VALUES,SCATTER_FORWARD);
+	VecScatterEnd  (ctx, vx[2], U_all, INSERT_VALUES,SCATTER_FORWARD);
+	
+	PetscScalar* u_array = NULL;
+	VecGetArray(U_all, &u_array);
+
+	if (free_comps && d_U_dump_interval && (output_counter % d_U_dump_interval==0))
+	{
 	    if (SAMRAI_MPI::getRank()== 0)
 	    {
-    		U_out <<" Structure-"<<part<<std::endl;	
-    		U_out<<std::scientific;		
-    		for (int d = 0; d < (NDIM*(NDIM+1) / 2); ++d)
-    		{  
-    		    U_out << vvU[d] << std::endl;
-    		}
-    		U_out <<std::endl;	
-    	    }
+		for (int part = 0; part < free_comps/s_max_free_dofs; ++part)
+		{
+		    d_U_body_out <<part<<"\t";	
+		    for (int d = 0; d < s_max_free_dofs; ++d)
+		    {  
+			d_U_body_out << u_array[part*s_max_free_dofs +d] << "\t";
+		    }
+		    d_U_body_out <<std::endl;	
+		}
+		d_U_body_out <<std::endl;
+	    }
 	}
-	if (!SAMRAI_MPI::getRank()) U_out.close();
-    }
-#endif
+	output_counter++;
 
-    // Delete PETSc vectors.
-    PETScSAMRAIVectorReal::destroyPETScVector(u_p);
-    PETScSAMRAIVectorReal::destroyPETScVector(g_h);
-    VecDestroy(&V);
-    VecDestroy(&mv_x);
-    VecDestroy(&mv_b);
+	VecRestoreArray(U_all, &u_array);
+	VecScatterDestroy(&ctx);
+	VecDestroy(&U_all);
+
+	// Delete PETSc vectors.
+	PETScSAMRAIVectorReal::destroyPETScVector(u_p);
+	PETScSAMRAIVectorReal::destroyPETScVector(g_h);
+	VecDestroy(&V);
+	VecDestroy(&mv_x);
+	VecDestroy(&mv_b);
+    }
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)

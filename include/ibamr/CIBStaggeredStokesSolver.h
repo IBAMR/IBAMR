@@ -156,6 +156,7 @@ public:
     //////////////////////////////////////////////////////////////////////////////
 protected:
     //////////////////////////////////////////////////////////////////////////////
+
 private:
     /*!
      * \brief Copy constructor.
@@ -196,6 +197,10 @@ private:
 
     // Bools to control initialization and deallocation
     bool d_is_initialized, d_reinitializing_solver;
+
+    //body velocity output stream
+    std::ofstream d_U_body_out;
+    unsigned d_U_dump_interval;
 };
 } // namespace IBAMR
 
