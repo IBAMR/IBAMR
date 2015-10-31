@@ -277,7 +277,8 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     // NOTE: We need U at new time in the solver.
     Vec U;
     d_cib_strategy->getFreeRigidVelocities(&U, d_new_time);
-
+    // pout<<"stokes solver U"<<std::endl;
+    // VecView(U, PETSC_VIEWER_STDOUT_WORLD);
 
      // Set the imposed velocity for all bodies in the RHS.
     Vec V,W;
@@ -293,6 +294,9 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     VecScale(V, interp_scale);
     VecDestroy(&W);
    
+    //pout<<"setting RHS stokes solver V"<<std::endl;
+    //VecView(V, PETSC_VIEWER_STDOUT_WORLD);
+
     // Get the net external force and torque on the bodies.
     Vec F;
     d_cib_strategy->getNetExternalForceTorque(&F, d_new_time);
@@ -340,45 +344,6 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     x.copyVector(d_x_wide);
 
     d_cib_strategy->updateNewRigidBodyVelocity(U);
-
-    // for (unsigned part = 0, free_part = 0; part < d_num_rigid_parts; ++part)
-    // {
-    //     RigidDOFVector U_part;
-    //     d_cib_strategy->getNewRigidBodyVelocity(part, U_part);
-
-    //     // Update free DOFs.
-    //     int num_free_dofs = 0;
-    //     const FreeRigidDOFVector& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
-    //     if (num_free_dofs)
-    //     {
-    //         Vec U_sub;
-    //         VecMultiVecGetSubVec(U, free_part, &U_sub);
-
-    //         PetscInt s;
-    //         PetscScalar* a = NULL;
-    //         VecGetArray(U_sub, &a);
-    //         VecGetSize(U_sub, &s);
-
-    //         std::vector<double> a_vec(s, 0.0);
-    //         if (a != NULL)
-    //         {
-    //             std::copy(&a[0], &a[s], &a_vec[0]);
-    //         }
-    //         SAMRAI_MPI::sumReduction(&a_vec[0], s);
-    //         VecRestoreArray(U_sub, &a);
-
-    //         for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-    //         {
-    //             if (solve_dofs[k])
-    //             {
-    //                 U_part[k] = a_vec[p];
-    //                 ++p;
-    //             }
-    //         }
-    //         ++free_part;
-    //     }
-    //     d_cib_strategy->updateNewRigidBodyVelocity(part, U_part);
-    // }
 
     double half_time = 0.5 * (d_new_time + d_current_time);
     pout << "\n"

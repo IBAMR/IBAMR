@@ -65,6 +65,7 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     d_rot_vel_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_solve_rigid_vel.resize(d_num_rigid_parts);
     d_isFree_component.resize(d_num_rigid_parts);
+    d_isImposed_component.resize(d_num_rigid_parts);
     
     return;
 } // CIBStrategy
@@ -94,9 +95,15 @@ void CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeR
     getSolveRigidBodyVelocity(part, num_free_dofs);
     
     if (num_free_dofs) 
+    {
 	d_isFree_component[part] = true;
+	if (num_free_dofs < s_max_free_dofs) d_isImposed_component[part] = true;
+    }
     else
+    {
 	d_isFree_component[part] = false;
+	d_isImposed_component[part] = true;
+    }
 
     return;
 
@@ -263,26 +270,25 @@ void CIBStrategy::updateNewRigidBodyVelocity(Vec U, const bool all_dofs)
     int counter = 0;
     for (unsigned i = 0; i < d_num_rigid_parts; ++i) 
     {
-	if (d_isFree_component[i] || all_dofs)
+	if (d_isFree_component[i])
 	{
 	    for (int d=0; d < NDIM; ++d) 
 	    {
-		if (d_solve_rigid_vel[i][d] || all_dofs ) d_trans_vel_new[i][d]  = u_array[counter*s_max_free_dofs+d]; 
+		if (d_solve_rigid_vel[i][d]) d_trans_vel_new[i][d]  = u_array[counter*s_max_free_dofs+d]; 
 	    }
 
 #if (NDIM == 2)
-	    if (d_solve_rigid_vel[i][NDIM] || all_dofs)  d_rot_vel_new[i][2] = u_array[counter*s_max_free_dofs+3];
+	    if (d_solve_rigid_vel[i][NDIM])  d_rot_vel_new[i][2] = u_array[counter*s_max_free_dofs+3];
 #elif(NDIM == 3)
 	    for (int d=0; d < NDIM; ++d) 
 	    {
-		if (d_solve_rigid_vel[i][d+NDIM] || all_dofs) d_rot_vel_new[i][d]  = u_array[counter*s_max_free_dofs+NDIM+d]; 
+		if (d_solve_rigid_vel[i][d+NDIM]) d_rot_vel_new[i][d]  = u_array[counter*s_max_free_dofs+NDIM+d]; 
 	    }
 #endif
-	    d_trans_vel_half[i] = 0.5 * (d_trans_vel_current[i] + d_trans_vel_new[i]);
-	    d_rot_vel_half[i] = 0.5 * (d_rot_vel_current[i] + d_rot_vel_new[i]);
 	    counter++;
 	}
-	
+	d_trans_vel_half[i] = 0.5 * (d_trans_vel_current[i] + d_trans_vel_new[i]);
+	d_rot_vel_half[i] = 0.5 * (d_rot_vel_current[i] + d_rot_vel_new[i]);
     }
 
     VecRestoreArray(U_all, &u_array);
@@ -421,6 +427,12 @@ void CIBStrategy::rotateArrayInitalBodyFrame(double* /*array*/,
     // intentionally left blank.
     return;
 } // rotateArrayInitalBodyFrame
+
+Eigen::Vector3d* CIBStrategy::getBodyCenterOfMass(const unsigned int part, const bool halfStep)
+{
+    if (halfStep) return & d_center_of_mass_half[part];
+    return & d_center_of_mass_current[part];
+};
 
 Eigen::Quaterniond* CIBStrategy::getBodyQuaternion(const unsigned int part, const bool halfStep)
 {

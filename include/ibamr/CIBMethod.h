@@ -548,6 +548,7 @@ private:
      */
     int d_lambda_dump_interval;
     std::ofstream d_lambda_stream;
+    std::ofstream d_netlambda_stream;
 
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;

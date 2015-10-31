@@ -450,6 +450,12 @@ public:
      * \brief return body quaternion at current or half time step
      *
      */
+    Eigen::Vector3d* getBodyCenterOfMass(const unsigned int part, const bool halfStep=false);
+
+   /*!
+     * \brief return body quaternion at current or half time step
+     *
+     */
     Eigen::Quaterniond* getBodyQuaternion(const unsigned int part, const bool halfStep=false);
 
     /*!
@@ -481,6 +487,7 @@ protected:
      */
     std::vector<FRDV> d_solve_rigid_vel;
     std::vector<bool> d_isFree_component; //added for efficiency
+    std::vector<bool> d_isImposed_component; //added for efficiency
 
 
     /*!

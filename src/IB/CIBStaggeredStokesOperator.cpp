@@ -265,6 +265,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     clock_t end_t=0, start_med=0;
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
+   
 
     IBAMR_TIMER_START(t_apply_vec);
     const double half_time = 0.5 * (d_new_time + d_current_time);
@@ -281,6 +282,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Vec V = vy[1];
     Vec F = vy[2];
 
+    //VecView(U, PETSC_VIEWER_STDOUT_WORLD);
     // Temporary vectors.
     Vec Vrigid;
     VecDuplicate(V, &Vrigid);

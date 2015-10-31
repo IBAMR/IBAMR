@@ -377,7 +377,8 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 	skip_struct_map[mat_name] = skip_struct;
     }
 
-
+    // pout<<"****************************"<<std::endl;
+    // VecView(b, PETSC_VIEWER_STDOUT_WORLD);
     if (node_counter) all_rhs = new double[node_counter*NDIM];
 
     d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM);

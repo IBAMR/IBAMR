@@ -106,7 +106,11 @@ CIBMethod::CIBMethod(const std::string& object_name,
 CIBMethod::~CIBMethod()
 {
 
-    if ((SAMRAI_MPI::getRank() == 0)&&(d_lambda_dump_interval)) d_lambda_stream.close();
+    if ((SAMRAI_MPI::getRank() == 0)&&(d_lambda_dump_interval))
+    {
+	d_netlambda_stream.close();
+	if(d_output_all_lambdas) d_lambda_stream.close();
+    }
 
     return;
 } // ~cIBMethod
@@ -366,8 +370,9 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 	    }
 	}
 	    
-    	d_quaternion_half = d_quaternion_current; 
     }
+
+    d_quaternion_half = d_quaternion_current; 
 
     d_time_integrator_needs_regrid = false;
 
@@ -426,11 +431,9 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 	    Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 	    Eigen::Vector3d dF   = Eigen::Vector3d::Zero();
 	    Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3,3);
-	    // d_lambda_stream << std::endl << "t="<<new_time << std::endl << std::endl;
             for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
             {
                 const int no_ib_pts = getNumberOfNodes(struct_no);
-		// d_lambda_stream << "structure: " << struct_no << " ib_pts: " << no_ib_pts << std::endl;
 		rotation_mat=d_quaternion_current[struct_no].toRotationMatrix();
                 for (int i = 0; i < no_ib_pts; ++i)
                 {
@@ -448,19 +451,20 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 		    total_torque += R_dr.cross(dF);
 
                 }
-		d_lambda_stream <<struct_no <<"\t";
+		d_netlambda_stream <<struct_no <<"\t";
 
-                for (int d = 0; d < NDIM; ++d) d_lambda_stream << total_lambda[d] << "\t";
+                for (int d = 0; d < NDIM; ++d) d_netlambda_stream << total_lambda[d] << "\t";
 #if (NDIM == 2)
-		d_lambda_stream << total_torque[2];
+		d_netlambda_stream << total_torque[2];
 #elif (NDIM == 3)
-		for (int d = 0; d < NDIM; ++d) d_lambda_stream << total_torque[d] << "\t";
+		for (int d = 0; d < NDIM; ++d) d_netlambda_stream << total_torque[d] << "\t";
 #endif
-                d_lambda_stream << std::endl;
+                d_netlambda_stream << std::endl;
                 total_lambda.setZero();
                 total_torque.setZero();
             }
-	    d_lambda_stream << std::endl;
+	    if (d_output_all_lambdas) d_lambda_stream << std::endl;
+	    d_netlambda_stream << std::endl;
             VecRestoreArray(lambda_lag_vec_seq, &L);
         }
         VecDestroy(&lambda_lag_vec_parallel);
@@ -1177,21 +1181,26 @@ void CIBMethod::setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip
 
 	RigidDOFVector U;
 	U.setZero();
-	if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn)
-	{
+	
+	//setting nodal velocity is not working yet
+
+	// if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn)
+	// {
 	    
-	    void* ctx = d_constrained_velocity_fcns_data[struct_id].ctx;
-	    CIBMethod* cib_method_ptr = this;
-	    d_constrained_velocity_fcns_data[struct_id].nodalvelfcn(struct_id, V, U, d_X_half_data[struct_ln]->getVec(),
-							       d_center_of_mass_half[struct_id], d_new_time, ctx, 
-							       cib_method_ptr);
-	}
+	//     void* ctx = d_constrained_velocity_fcns_data[struct_id].ctx;
+	//     CIBMethod* cib_method_ptr = this;
+	//     d_constrained_velocity_fcns_data[struct_id].nodalvelfcn(struct_id, V, U, d_X_half_data[struct_ln]->getVec(),
+	// 						       d_center_of_mass_half[struct_id], d_new_time, ctx, 
+	// 						       cib_method_ptr);
+	// }
 	Eigen::Vector3d dr;
 	Eigen::Vector3d R_dr;
-	
+	if (d_isImposed_component[struct_id]) getNewRigidBodyVelocity(struct_id, U); 
+
 	for (int idof=0; idof < s_max_free_dofs; ++idof) 
 	{
-	    if (d_solve_rigid_vel[struct_id][idof])  U[idof] = u_array[struct_to_free_map[struct_id]*s_max_free_dofs+idof];
+	    if (d_solve_rigid_vel[struct_id][idof])  
+		U[idof] = u_array[struct_to_free_map[struct_id]*s_max_free_dofs+idof];
 	}
 	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
 	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
@@ -1746,14 +1755,25 @@ void CIBMethod::getFromInput(Pointer<Database> input_db)
 	
         if (SAMRAI_MPI::getRank() == 0)
         {
-            std::string filename = dir_name + "/" + "Lambda.dat";
+            std::string filename = dir_name + "/" + "lambdas.dat";
+            std::string filename2 = dir_name + "/" + "NetLambda.dat";
             if (from_restart)
-                d_lambda_stream.open(filename.c_str(), std::ofstream::app | std::ofstream::out);
+	    {
+		d_netlambda_stream.open(filename2.c_str(), std::ofstream::app | std::ofstream::out);
+		if(d_output_all_lambdas) d_lambda_stream.open(filename.c_str(), std::ofstream::app | std::ofstream::out);
+	    }
             else
-                d_lambda_stream.open(filename.c_str(), std::ofstream::out);
-
-            d_lambda_stream.precision(15);
-            d_lambda_stream << std::scientific;
+	    {
+		d_netlambda_stream.open(filename2.c_str(), std::ofstream::out);
+		if(d_output_all_lambdas) d_lambda_stream.open(filename.c_str(), std::ofstream::out);
+	    }
+	    if (d_output_all_lambdas)
+	    {
+		d_lambda_stream.precision(15);
+		d_lambda_stream << std::scientific;
+	    }
+            d_netlambda_stream.precision(15);
+            d_netlambda_stream << std::scientific;
         }
     }
 
