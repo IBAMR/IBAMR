@@ -199,7 +199,7 @@ public:
      *
      * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp)= 0;
+    virtual void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true)= 0;
 
     virtual void setRigidBodyVelocity(const unsigned int part, Vec U, Vec V);
 
@@ -246,7 +246,7 @@ public:
      *
      * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp) = 0;
+    virtual void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true) = 0;
 
 
     /*!

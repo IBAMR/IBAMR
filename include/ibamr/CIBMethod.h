@@ -363,7 +363,7 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp);
+    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true);
 
     // \see CIBStrategy::setRigidBodyDeformationVelocity method.
     /*!
@@ -378,7 +378,7 @@ public:
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp);
+    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true);
 
 
     void copyAllArrayToVec(Vec b,

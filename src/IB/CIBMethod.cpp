@@ -1140,50 +1140,47 @@ unsigned int CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
 
 } // getNumberOfStructuresNodes
 
-void CIBMethod::setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp)
+void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& skip_comp, const bool isHalfTimeStep)
 {
+    const unsigned num_procs = SAMRAI_MPI::getNodes();
+    const unsigned rank      = SAMRAI_MPI::getRank();
+    const int struct_ln = getStructuresLevelNumber();
+
+    Vec V_lag_vec = PETSC_NULL;
+    VecDuplicate(V, &V_lag_vec);
+    d_l_data_manager->scatterPETScToLagrangian(V,V_lag_vec,struct_ln);
+
     std::map<unsigned,unsigned> struct_to_free_map;
     unsigned counter=0;
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-	if (skip_comp[struct_no]) continue;
-	struct_to_free_map[struct_no]=counter++;
+    	if (!d_isFree_component[struct_no]) continue;
+    	struct_to_free_map[struct_no]=counter++;
     }
 
     Vec U_all;
     VecScatter ctx;
-    VecScatterCreateToAll(U,&ctx,&U_all);
+    VecScatterCreateToAll(Uvec,&ctx,&U_all);
 
-    VecScatterBegin(ctx, U, U_all, INSERT_VALUES,SCATTER_FORWARD);
-    VecScatterEnd  (ctx, U, U_all, INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterBegin(ctx, Uvec, U_all, INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterEnd  (ctx, Uvec, U_all, INSERT_VALUES,SCATTER_FORWARD);
 
     PetscScalar* u_array = NULL;
     PetscInt comps;
-    VecGetSize(U, &comps);
+    VecGetSize(Uvec, &comps);
     VecGetArray(U_all, &u_array);
 
-    // Wrap the PETSc V into LData
-    std::vector<int> nonlocal_indices;
-    LData V_data("V", V, nonlocal_indices, false);
-    
-    boost::multi_array_ref<double, 2>& V_data_array = *V_data.getLocalFormVecArray();
-    
-    const int struct_ln = getStructuresLevelNumber();
-    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    std::vector<PetscScalar> V_Array; 
+    std::vector<PetscInt> indices; 
+    counter=0;
+    for (unsigned struct_no = rank; struct_no < d_num_rigid_parts; struct_no +=num_procs)
     {
-	const LNode* const node_idx = *cit;
-	const int lag_idx = node_idx->getLagrangianIndex();
-        const unsigned struct_id = getStructureHandle(lag_idx);
-	if (skip_comp[struct_id]) continue;
+	if (skip_comp[struct_no]) continue;
 
 	RigidDOFVector U;
 	U.setZero();
 	
 	//setting nodal velocity is not working yet
-
 	// if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn)
 	// {
 	    
@@ -1193,47 +1190,59 @@ void CIBMethod::setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip
 	// 						       d_center_of_mass_half[struct_id], d_new_time, ctx, 
 	// 						       cib_method_ptr);
 	// }
+
 	Eigen::Vector3d dr;
 	Eigen::Vector3d R_dr;
-	if (d_isImposed_component[struct_id]) getNewRigidBodyVelocity(struct_id, U); 
+	if (d_isImposed_component[struct_no]) getNewRigidBodyVelocity(struct_no, U); 
 
 	for (int idof=0; idof < s_max_free_dofs; ++idof) 
 	{
-	    if (d_solve_rigid_vel[struct_id][idof])  
-		U[idof] = u_array[struct_to_free_map[struct_id]*s_max_free_dofs+idof];
+	    if (d_solve_rigid_vel[struct_no][idof])  
+		U[idof] = u_array[struct_to_free_map[struct_no]*s_max_free_dofs+idof];
 	}
-	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
-	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
-    
-	const int local_idx = node_idx->getLocalPETScIndex();
-	double* const V_node = &V_data_array[local_idx][0];
+	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_no];
+	Eigen::Matrix3d rotation_mat;
 	
-	const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_id,lag_idx-part_idx_range.first);
-	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
-	
-	R_dr = rotation_mat*dr; 
-	
+	if  (isHalfTimeStep)	
+	    rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
+	else 
+	    rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
+
+	const unsigned num_nodes = getNumberOfNodes(struct_no);
+
+	for (unsigned inode = 0; inode < num_nodes; ++inode)
+	{    
+	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_no, inode);
+	    for (unsigned int d = 0; d < NDIM; ++d)  
+	    {
+		dr[d] = X[d];
+		indices.push_back((part_idx_range.first+inode)*NDIM+d);
+		counter++;
+	    }
+
+	    R_dr = rotation_mat*dr; 
 #if (NDIM == 2)
-	V_node[0] = U[0] - U[2] * R_dr[1];
-	V_node[1] = U[1] + U[2] * R_dr[0];
+	    V_Array.push_back(U[0] - U[2] * R_dr[1]);
+	    V_Array.push_back(U[1] + U[2] * R_dr[0]);
 #elif(NDIM == 3)
-	V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
-	V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
-	V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
+	    V_Array.push_back(U[0] + U[4] * R_dr[2] - U[5] * R_dr[1]);
+	    V_Array.push_back(U[1] + U[5] * R_dr[0] - U[3] * R_dr[2]);
+	    V_Array.push_back(U[2] + U[3] * R_dr[1] - U[4] * R_dr[0]);
 #endif
+	}
     }
+    
+    VecSetValues(V_lag_vec, counter, &indices[0], &V_Array[0], INSERT_VALUES); 
+ 
+    VecAssemblyBegin(V_lag_vec);
+    VecAssemblyEnd(V_lag_vec);
+    
+    d_l_data_manager->scatterLagrangianToPETSc(V_lag_vec, V, struct_ln);
 
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part) 
-    {
-	if (skip_comp[part]) continue;
-
-    }
-
-    // Restore underlying arrays
-    V_data.restoreArrays();
     VecRestoreArray(U_all, &u_array);
     VecScatterDestroy(&ctx);
     VecDestroy(&U_all);
+    VecDestroy(&V_lag_vec); 
 
     return;
 } // setRigidBodyVelocity
@@ -1248,77 +1257,90 @@ void CIBMethod::setRigidBodyDeformationVelocity(Vec W)
     return;
 }//setRigidBodyDeformationVelocity
 
-void CIBMethod::computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp)
+void CIBMethod::computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, const bool isHalfTimeStep)
 {
+    const unsigned num_procs = SAMRAI_MPI::getNodes();
+    const unsigned rank      = SAMRAI_MPI::getRank();
+    const int struct_ln = getStructuresLevelNumber();
+
+    Vec L_lag_vec     = PETSC_NULL;
+    Vec L_lag_vec_seq = PETSC_NULL;   
+    VecDuplicate(L, &L_lag_vec);
+    d_l_data_manager->scatterPETScToLagrangian(L,L_lag_vec,struct_ln);
+    d_l_data_manager->scatterToAll(L_lag_vec, L_lag_vec_seq);
+
+    PetscScalar *L_array;
+    VecGetArray(L_lag_vec_seq,&L_array);  
+
     std::map<unsigned,unsigned> struct_to_free_map;
     unsigned counter=0;
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-	if (skip_comp[struct_no]) continue;
+	if (!d_isFree_component[struct_no]) continue;
 	struct_to_free_map[struct_no]=counter++;
     }
-    const int struct_ln = getStructuresLevelNumber();
     VecSet(F, 0.0);    
     PetscInt size;
     VecGetSize(F,&size);
-    TBOX_ASSERT((unsigned)size == s_max_free_dofs*counter);
+    //   TBOX_ASSERT((unsigned)size == s_max_free_dofs*counter);
 
-    PetscScalar* f_array=new PetscScalar[size];
-    std::fill(f_array, f_array + size, 0.0);
+    std::vector<PetscScalar> F_Array; 
+    std::vector<PetscInt> indices; 
 
-    // Wrap the distributed PETSc Vec L into LData
-    std::vector<int> nonlocal_indices;
-    LData p_data("P", L, nonlocal_indices, false);
-    const boost::multi_array_ref<double, 2>& p_data_array = *p_data.getLocalFormVecArray();
-
-    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    counter=0;
+    for (unsigned struct_no = rank; struct_no < d_num_rigid_parts; struct_no +=num_procs)
     {
-        const LNode* const node_idx = *cit;
-        const int lag_idx = node_idx->getLagrangianIndex();
-        const int local_idx = node_idx->getLocalPETScIndex();
-        const double* const P = &p_data_array[local_idx][0];
-        const unsigned struct_id = getStructureHandle(lag_idx);
-	if (skip_comp[struct_id]) continue;
+ 	if (skip_comp[struct_no]) continue;
+	
+	Eigen::Matrix3d rotation_mat;
+	
+	if  (isHalfTimeStep)	
+	    rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
+	else 
+	    rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
 
-	Eigen::Matrix3d rotation_mat=d_quaternion_half[struct_id].toRotationMatrix();
 	Eigen::Vector3d dr;
 	Eigen::Vector3d R_dr;
-        const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_id];
-	const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_id,lag_idx-part_idx_range.first);
-	for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
-	R_dr = rotation_mat*dr; 
-	const unsigned free_idx=struct_to_free_map[struct_id];
+	double f_array[s_max_free_dofs];
+	std::fill(f_array, f_array + s_max_free_dofs, 0.0);
+	const unsigned num_nodes = getNumberOfNodes(struct_no);
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
 
-        for (int d = 0; d < NDIM; ++d)
-        {
-            f_array[free_idx*s_max_free_dofs+d] += P[d];
-        }
+	for (unsigned inode = 0; inode < num_nodes; ++inode)
+	{
+	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_no, inode);
+	    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
+	    R_dr = rotation_mat*dr; 
+
+	    PetscScalar *P = L_array + (lag_idx_range.first+inode)*NDIM;
+	    for (int d = 0; d < NDIM; ++d)
+	    {
+		if (d_solve_rigid_vel[struct_no][d]) f_array[d] += P[d];
+	    }
 #if (NDIM == 2)
-        f_array[free_idx*s_max_free_dofs+2] += P[1] * R_dr[0] - P[0] * R_dr[1];
+	    if (d_solve_rigid_vel[struct_no][2]) f_array[2] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #elif(NDIM == 3)
-        f_array[free_idx*s_max_free_dofs+3] += P[2] * R_dr[1] - P[1] * R_dr[2];
-        f_array[free_idx*s_max_free_dofs+4] += P[0] * R_dr[2] - P[2] * R_dr[0];
-        f_array[free_idx*s_max_free_dofs+5] += P[1] * R_dr[0] - P[0] * R_dr[1];
+	    if (d_solve_rigid_vel[struct_no][3]) f_array[3] += P[2] * R_dr[1] - P[1] * R_dr[2];
+	    if (d_solve_rigid_vel[struct_no][4]) f_array[4] += P[0] * R_dr[2] - P[2] * R_dr[0];
+	    if (d_solve_rigid_vel[struct_no][5]) f_array[5] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #endif
+	}
+	
+        for (int d = 0; d < s_max_free_dofs; ++d)
+	{
+	    F_Array.push_back(f_array[d]);
+	    indices.push_back(struct_to_free_map[struct_no]*s_max_free_dofs+d);
+	    counter++;
+	}
     }
-    
-    SAMRAI_MPI::sumReduction(f_array, size);
-    p_data.restoreArrays();
 
-    PetscInt *indices = new PetscInt[size]; 
-    
-    for (int i = 0; i < size; ++i) indices[i] = i; 
-    
-    
-    if (!SAMRAI_MPI::getRank()) VecSetValues(F, size, indices, f_array, INSERT_VALUES); 
-    
+    VecSetValues(F, counter, &indices[0], &F_Array[0], INSERT_VALUES); 
     VecAssemblyBegin(F);
     VecAssemblyEnd(F);
 
-    delete [] indices;
-    delete [] f_array;
+    VecRestoreArray(L_lag_vec_seq,&L_array); 
+    VecDestroy(&L_lag_vec); 
+    VecDestroy(&L_lag_vec_seq);
 
     return;
 } // computeNetRigidGeneralizedForce
