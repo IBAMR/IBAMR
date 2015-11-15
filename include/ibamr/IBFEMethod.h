@@ -372,6 +372,32 @@ public:
                 double data_time);
 
     /*!
+     * Get the default interpolation spec object used by the class.
+     */
+    IBTK::FEDataManager::InterpSpec getDefaultInterpSpec() const;
+
+    /*!
+     * Get the default spread spec object used by the class.
+     */
+    IBTK::FEDataManager::SpreadSpec getDefaultSpreadSpec() const;
+
+    /*!
+     * Set the interpolation spec object used with a particular mesh part.
+     */
+    void setInterpSpec(const IBTK::FEDataManager::InterpSpec& interp_spec, unsigned int part = 0);
+
+    /*!
+     * Set the spread spec object used with a particular mesh part.
+     */
+    void setSpreadSpec(const IBTK::FEDataManager::SpreadSpec& spread_spec, unsigned int part = 0);
+
+    /*!
+     * Initialize the FE equation systems objects.  This method must be called
+     * prior to calling initializeFEData().
+     */
+    void initializeFEEquationSystems();
+
+    /*!
      * Initialize FE data.  This method must be called prior to calling
      * IBHierarchyIntegrator::initializePatchHierarchy().
      */
@@ -539,6 +565,7 @@ protected:
      * FE data associated with this object.
      */
     std::vector<libMesh::Mesh*> d_meshes;
+    int d_max_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
     const unsigned int d_num_parts;
@@ -550,15 +577,15 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
 
-    bool d_fe_data_initialized;
+    bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
     /*
      * Method paramters.
      */
-    bool d_use_IB_interp_operator;
-    IBTK::FEDataManager::InterpSpec d_interp_spec;
-    bool d_use_IB_spread_operator;
-    IBTK::FEDataManager::SpreadSpec d_spread_spec;
+    IBTK::FEDataManager::InterpSpec d_default_interp_spec;
+    IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
+    std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
+    std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
     libMesh::FEFamily d_fe_family;

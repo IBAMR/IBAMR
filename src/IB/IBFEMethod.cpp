@@ -335,6 +335,7 @@ IBFEMethod::~IBFEMethod()
 
 FEDataManager* IBFEMethod::getFEDataManager(const unsigned int part) const
 {
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
     return d_fe_data_managers[part];
 } // getFEDataManager
@@ -589,15 +590,8 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
             U_vec = d_U_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
-        if (d_use_IB_interp_operator)
-        {
-            d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME,
-                                             u_ghost_fill_scheds, data_time);
-        }
-        else
-        {
-            d_fe_data_managers[part]->restrictData(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME);
-        }
+        d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds,
+                                         data_time);
     }
     return;
 } // interpolateVelocity
@@ -684,17 +678,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        if (d_use_IB_spread_operator)
-        {
-            d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op,
-                                             data_time);
-        }
-        else
-        {
-            d_fe_data_managers[part]->prolongData(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME,
-                                                  /*is_density*/ true,
-                                                  /*accumulate_on_grid*/ true);
-        }
+        d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op,
+                                         data_time);
         if (d_split_normal_force || d_split_tangential_force)
         {
             if (d_use_jump_conditions && d_split_normal_force)
@@ -710,9 +695,95 @@ void IBFEMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
+FEDataManager::InterpSpec IBFEMethod::getDefaultInterpSpec() const
+{
+    return d_default_interp_spec;
+}
+
+FEDataManager::SpreadSpec IBFEMethod::getDefaultSpreadSpec() const
+{
+    return d_default_spread_spec;
+}
+
+void IBFEMethod::setInterpSpec(const FEDataManager::InterpSpec& interp_spec, const unsigned int part)
+{
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    d_interp_spec[part] = interp_spec;
+    return;
+}
+
+void IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const unsigned int part)
+{
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    d_spread_spec[part] = spread_spec;
+    return;
+}
+
+void IBFEMethod::initializeFEEquationSystems()
+{
+    if (d_fe_equation_systems_initialized) return;
+
+    // Create the FE data managers that manage mappings between the FE mesh
+    // parts and the Cartesian grid.
+    d_equation_systems.resize(d_num_parts, NULL);
+    d_fe_data_managers.resize(d_num_parts, NULL);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        // Create FE data managers.
+        std::ostringstream manager_stream;
+        manager_stream << "IBFEMethod FEDataManager::" << part;
+        const std::string& manager_name = manager_stream.str();
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+
+        // Create FE equation systems objects and corresponding variables.
+        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
+        EquationSystems* equation_systems = d_equation_systems[part];
+        d_fe_data_managers[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
+
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "X_" << d;
+            X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+
+        System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "dX_" << d;
+            dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+
+        System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "U_" << d;
+            U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+
+        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "F_" << d;
+            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+    }
+    d_fe_equation_systems_initialized = true;
+    return;
+}
+
 void IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+    initializeFEEquationSystems();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
@@ -1339,8 +1410,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     fe.evalQuadratureWeightsFace();
     fe.registerSystem(G_system, vars, vars); // compute phi and dphi for the force system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
-    const size_t Phi_sys_idx =
-        Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) : std::numeric_limits<size_t>::max();
+    const size_t Phi_sys_idx = Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) :
+                                         std::numeric_limits<size_t>::max();
     std::vector<size_t> body_force_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(body_force_fcn_system_idxs, d_lag_body_force_fcn_data[part].system_data,
                                           equation_systems);
@@ -1662,7 +1733,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
                 const bool qrule_needs_reinit = d_fe_data_managers[part]->updateSpreadQuadratureRule(
-                    qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
+                    qrule_face, d_spread_spec[part], side_elem.get(), X_node, patch_dx_min);
                 if (qrule_needs_reinit)
                 {
                     fe.attachQuadratureRuleFace(qrule_face.get());
@@ -1746,7 +1817,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         if (qp_offset == 0) continue;
 
         // Spread the boundary forces to the grid.
-        const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
+        const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
@@ -1979,7 +2050,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
-                const bool impose_dp_dn_jumps = !d_use_IB_spread_operator;
+                const bool impose_dp_dn_jumps = false;
                 static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
                 fe.reinit(elem, side, TOL, &intersection_ref_coords);
                 fe.interpolate(elem, side);
@@ -2174,17 +2245,20 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         d_registered_for_restart = true;
     }
 
+    // Store the mesh pointers.
+    d_meshes = meshes;
+    d_max_level_number = max_level_number;
+
     // Set some default values.
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
     const bool use_one_sided_interaction = false;
-    d_use_IB_interp_operator = true;
-    d_interp_spec = FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
-                                              interp_use_consistent_mass_matrix, use_one_sided_interaction);
-    d_use_IB_spread_operator = true;
-    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
-                                              use_one_sided_interaction);
+    d_default_interp_spec =
+        FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
+                                  interp_use_consistent_mass_matrix, use_one_sided_interaction);
+    d_default_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature,
+                                                      point_density, use_one_sided_interaction);
     d_ghosts = 0;
     d_split_normal_force = false;
     d_split_tangential_force = false;
@@ -2232,7 +2306,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements" << std::endl);
+                                    "or only SECOND order elements"
+                                 << std::endl);
     }
     if (mesh_has_first_order_elems)
     {
@@ -2250,74 +2325,15 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
+    // Set up the interaction spec objects.
+    d_interp_spec.resize(d_num_parts, d_default_interp_spec);
+    d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+
     // Report configuration.
     pout << "\n";
     pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order "
          << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
     pout << "\n";
-
-    // Check the choices for the kernel function.
-    if (d_interp_spec.kernel_fcn != d_spread_spec.kernel_fcn)
-    {
-        pout << "WARNING: different kernel functions are being used for velocity "
-                "interpolation and "
-                "force spreading.\n"
-             << "         recommended usage is to employ the same kernel functions for both "
-                "interpolation and spreading.\n";
-    }
-
-    // Create the FE data managers that manage mappings between the FE mesh
-    // parts and the Cartesian grid.
-    d_meshes = meshes;
-    d_equation_systems.resize(d_num_parts, NULL);
-    d_fe_data_managers.resize(d_num_parts, NULL);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        // Create FE data managers.
-        std::ostringstream manager_stream;
-        manager_stream << "IBFEMethod FEDataManager::" << part;
-        const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
-
-        // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
-        EquationSystems* equation_systems = d_equation_systems[part];
-        d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
-
-        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-        System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "X_" << d;
-            X_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-
-        System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "dX_" << d;
-            dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-
-        System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "U_" << d;
-            U_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "F_" << d;
-            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-    }
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -2325,6 +2341,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_half_time = std::numeric_limits<double>::quiet_NaN();
 
     // Keep track of the initialization state.
+    d_fe_equation_systems_initialized = false;
     d_fe_data_initialized = false;
     d_is_initialized = false;
     return;
@@ -2333,89 +2350,79 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
 void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
-    if (db->isBool("use_IB_interp_operator"))
-        d_use_IB_interp_operator = db->getBool("use_IB_interp_operator");
-    else if (db->isBool("use_IB_interaction_operators"))
-        d_use_IB_interp_operator = db->getBool("use_IB_interaction_operators");
-
     if (db->isBool("use_one_sided_interpolation"))
-        d_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interpolation");
+        d_default_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interpolation");
     else if (db->isBool("use_one_sided_interaction"))
-        d_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
+        d_default_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
 
     if (db->isString("interp_delta_fcn"))
-        d_interp_spec.kernel_fcn = db->getString("interp_delta_fcn");
+        d_default_interp_spec.kernel_fcn = db->getString("interp_delta_fcn");
     else if (db->isString("IB_delta_fcn"))
-        d_interp_spec.kernel_fcn = db->getString("IB_delta_fcn");
+        d_default_interp_spec.kernel_fcn = db->getString("IB_delta_fcn");
     else if (db->isString("interp_kernel_fcn"))
-        d_interp_spec.kernel_fcn = db->getString("interp_kernel_fcn");
+        d_default_interp_spec.kernel_fcn = db->getString("interp_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
-        d_interp_spec.kernel_fcn = db->getString("IB_kernel_fcn");
+        d_default_interp_spec.kernel_fcn = db->getString("IB_kernel_fcn");
 
     if (db->isString("interp_quad_type"))
-        d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
+        d_default_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
     else if (db->isString("IB_quad_type"))
-        d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
+        d_default_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
 
     if (db->isString("interp_quad_order"))
-        d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"));
+        d_default_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"));
     else if (db->isString("IB_quad_order"))
-        d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"));
+        d_default_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"));
 
     if (db->isBool("interp_use_adaptive_quadrature"))
-        d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature");
+        d_default_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
-        d_interp_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
+        d_default_interp_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
 
     if (db->isDouble("interp_point_density"))
-        d_interp_spec.point_density = db->getDouble("interp_point_density");
+        d_default_interp_spec.point_density = db->getDouble("interp_point_density");
     else if (db->isDouble("IB_point_density"))
-        d_interp_spec.point_density = db->getDouble("IB_point_density");
+        d_default_interp_spec.point_density = db->getDouble("IB_point_density");
 
     if (db->isBool("interp_use_consistent_mass_matrix"))
-        d_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix");
+        d_default_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix");
     else if (db->isBool("IB_use_consistent_mass_matrix"))
-        d_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
+        d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
     // Spreading settings.
-    if (db->isBool("use_IB_spread_operator"))
-        d_use_IB_spread_operator = db->getBool("use_IB_spread_operator");
-    else if (db->isBool("use_IB_interaction_operators"))
-        d_use_IB_spread_operator = db->getBool("use_IB_interaction_operators");
-
     if (db->isBool("use_one_sided_spreading"))
-        d_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_spreading");
+        d_default_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_spreading");
     else if (db->isBool("use_one_sided_interaction"))
-        d_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
+        d_default_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
 
     if (db->isString("spread_delta_fcn"))
-        d_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
+        d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
     else if (db->isString("IB_delta_fcn"))
-        d_spread_spec.kernel_fcn = db->getString("IB_delta_fcn");
+        d_default_spread_spec.kernel_fcn = db->getString("IB_delta_fcn");
     else if (db->isString("spread_kernel_fcn"))
-        d_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
+        d_default_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
-        d_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
+        d_default_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
 
     if (db->isString("spread_quad_type"))
-        d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
+        d_default_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
-        d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
+        d_default_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
 
     if (db->isString("spread_quad_order"))
-        d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
+        d_default_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
     else if (db->isString("IB_quad_order"))
-        d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"));
+        d_default_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"));
 
     if (db->isBool("spread_use_adaptive_quadrature"))
-        d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
+        d_default_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
-        d_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
+        d_default_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
 
     if (db->isDouble("spread_point_density"))
-        d_spread_spec.point_density = db->getDouble("spread_point_density");
+        d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
-        d_spread_spec.point_density = db->getDouble("IB_point_density");
+        d_default_spread_spec.point_density = db->getDouble("IB_point_density");
 
     // Force computation settings.
     if (db->isBool("split_normal_force"))
