@@ -1650,11 +1650,11 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         PetscMatrix<double>* M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
         PetscBool rtol_set;
         double runtime_rtol;
-        ierr = PetscOptionsGetReal("", "-ksp_rtol", &runtime_rtol, &rtol_set);
+        ierr = PetscOptionsGetReal(NULL, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
         IBTK_CHKERRQ(ierr);
         PetscBool max_it_set;
         int runtime_max_it;
-        ierr = PetscOptionsGetInt("", "-ksp_max_it", &runtime_max_it, &max_it_set);
+        ierr = PetscOptionsGetInt(NULL, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);

@@ -641,7 +641,7 @@ void PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -687,7 +687,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
-    ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+    ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
