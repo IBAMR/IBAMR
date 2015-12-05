@@ -212,7 +212,7 @@ void CIBStaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStok
 
 void CIBStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
-     IBAMR_TIMER_START(t_apply);
+    IBAMR_TIMER_START(t_apply);
     const double half_time = 0.5 * (d_new_time + d_current_time);
 
     // Get the vector components.
@@ -262,17 +262,16 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 {
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    clock_t end_t=0, start_med=0;
+    clock_t end_t = 0, start_med = 0;
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
-   
 
     IBAMR_TIMER_START(t_apply_vec);
     const double half_time = 0.5 * (d_new_time + d_current_time);
     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
 
     // Get some vectors and unpack them.
-    Vec* vx, *vy;
+    Vec *vx, *vy;
     VecMultiVecGetSubVecs(x, &vx);
     VecMultiVecGetSubVecs(y, &vy);
     SAMRAIVectorReal<NDIM, double>& u_p = *PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]);
@@ -282,7 +281,7 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Vec V = vy[1];
     Vec F = vy[2];
 
-    //VecView(U, PETSC_VIEWER_STDOUT_WORLD);
+    // VecView(U, PETSC_VIEWER_STDOUT_WORLD);
     // Temporary vectors.
     Vec Vrigid;
     VecDuplicate(V, &Vrigid);
@@ -302,8 +301,10 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:Allocations CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4) << "      StokesOperator:Allocations CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
@@ -329,8 +330,11 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:Interpolatiions + setups CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "      StokesOperator:Interpolatiions + setups CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
@@ -347,10 +351,13 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:grad + laplace operator, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "      StokesOperator:grad + laplace operator, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
     d_cib_strategy->setConstraintForce(L, half_time, -1.0 * d_scale_spread);
@@ -363,8 +370,11 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:Force spreading + normalizations CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "      StokesOperator:Force spreading + normalizations CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
 #endif
     // (b) Divergence-free constraint.
@@ -372,15 +382,24 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_u_idx, u_scratch_idx);
 
-    // (c) Rigid body velocity constraint.
+// (c) Rigid body velocity constraint.
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
+    std::vector<InterpolationTransactionComponent> u_transaction_comps(1);
+    u_transaction_comps[0] =
+        InterpolationTransactionComponent(u_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+                                          BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs, d_u_fill_pattern);
+    Pointer<HierarchyGhostCellInterpolation> u_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
+    u_bdry_fill->initializeOperatorState(u_transaction_comps, u_p.getPatchHierarchy());
+    u_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
+    u_bdry_fill->fillData(d_solution_time);
+
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-    ib_method_ops->interpolateVelocity(u_scratch_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+    ib_method_ops->interpolateVelocity(u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
     VecSet(Vrigid, 0.0);
@@ -389,10 +408,12 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:Interpolate Velocity CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4) << "      StokesOperator:Interpolate Velocity CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
     d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_dofs*/ true,
@@ -405,10 +426,12 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator:setRigidVelocity, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4) << "      StokesOperator:setRigidVelocity, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
     if (!MathUtilities<double>::equalEps(d_reg_mob_factor, 0.0))
@@ -421,10 +444,13 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator: Mobility Regulization, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "      StokesOperator: Mobility Regulization, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
 
     // (d) Force and torque constraint.
@@ -434,8 +460,9 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"      StokesOperator: K^T*lambda, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;
+        end_t = clock();
+        pout << std::setprecision(4) << "      StokesOperator: K^T*lambda, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
     }
 #endif
 
