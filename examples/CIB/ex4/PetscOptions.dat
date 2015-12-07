@@ -1,0 +1,25 @@
+# Set default options for PETSc. These options should
+# override the ones given in the IBAMR input file and 
+# they should be overridden by options given from
+# the command line
+
+
+
+# Options for the Rigid Body solver
+# *) Use GMRES
+-SP_ksp_type gmres
+# *) Use right PC to determine convergence with the norm of the real residual
+-SP_ksp_pc_side right
+# *) Set restart frequency to a high value
+-SP_ksp_gmres_restart 60
+
+
+
+# Options for the Stokes solver used in the Rigid Body preconditioner
+# *) Use richardson
+-LInv_ksp_type richardson
+# *) Use one iteration
+-LInv_ksp_max_it 1
+# *) Do not compute residual's norm
+-LInv_ksp_norm_type none
+
