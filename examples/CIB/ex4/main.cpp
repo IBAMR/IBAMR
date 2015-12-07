@@ -155,7 +155,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, "PetscOptions.dat", PETSC_NULL);
+    PetscErrorCode ierr;
+    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -173,6 +174,10 @@ int main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+	
+	// Read default Petsc options
+	std::string PetscOptionsFile = input_db->getStringWithDefault("Petsc_options_file", "");
+	ierr = PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);CHKERRQ(ierr);
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
