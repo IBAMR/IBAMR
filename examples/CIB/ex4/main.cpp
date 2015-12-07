@@ -155,7 +155,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
+    PetscInitialize(&argc, &argv, "PetscOptions.dat", PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
