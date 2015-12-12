@@ -180,6 +180,11 @@ Pointer<Variable<NDIM> > IBHierarchyIntegrator::getFluidSourceVariable() const
     return d_q_var;
 } // getFluidSourceVariable
 
+IBTK::RobinPhysBdryPatchStrategy* IBHierarchyIntegrator::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op;
+}
+
 void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -270,6 +275,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
             "IBHierarchyIntegrator::initializeHierarchy(): unsupported velocity data "
             "centering\n");
     }
+
+    std::cout << "d_u_phys_bdry_op is initialized "  << std::endl;
 
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = NULL;

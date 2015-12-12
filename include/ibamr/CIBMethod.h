@@ -49,6 +49,7 @@ class HierarchyMathsOps;
 namespace IBAMR
 {
 class CIBStandardInitializer;
+class CIBStaggeredStokesOperator;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -457,6 +458,21 @@ public:
      */
     bool flagRegrid() const;
 
+    /*
+     * \brief Function to fill ghost cells using values from the interior domain
+     * and boundary conditions.
+     */
+    void fillGhostCells(int in, const double time);
+
+    /*
+     * Set velocity boundary conditions
+     */
+    void setVelocityBC(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *u_bc_coefs);
+
+    /*
+     * Set velocity physical boundary options
+     */
+    void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
     //////////////////////////////////////////////////////////////////////////////
 
@@ -553,6 +569,12 @@ private:
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
     VelocityDeformationFunctionPtr d_VelDefFun;
+
+    // velocity boundary coefficients
+    // vector<RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;   
+
 }; // CIBMethod
 } // namespace IBAMR
 

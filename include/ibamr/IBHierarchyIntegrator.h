@@ -148,6 +148,11 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
+     * Return a pointer velocity physical boundary conditions
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *

@@ -95,6 +95,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
                                            MPI_Comm petsc_comm)
     : d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures())
 {
+    std::cout << "************************************************************ Create Saddle Point Solver " << std::endl;
     d_object_name = object_name;
     d_petsc_comm = petsc_comm;
     d_cib_strategy = cib_strategy;
@@ -420,23 +421,45 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    d_petsc_x = x;
-    VecCopy(b, d_petsc_b);
+    // d_petsc_x = x;
+    // VecCopy(b, d_petsc_b);
 
 
      // Modify RHS for inhomogeneous BCs.
-    int comps;
-    Vec* vrhs;
-    IBTK::VecMultiVecGetSubVecs(d_petsc_b, &vrhs);
-    d_A->setHomogeneousBc(false);
-    d_A->modifyRhsForInhomogeneousBc(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vrhs[0]));
-    d_A->setHomogeneousBc(true);
-    IBTK::VecMultiVecGetNumberOfSubVecs(d_petsc_b, &comps);
-    for (int k = 0; k < comps; ++k)
-    {
+    if(0){
+      int comps;
+      Vec* vrhs;
+      IBTK::VecMultiVecGetSubVecs(d_petsc_b, &vrhs);
+      d_A->setHomogeneousBc(false);
+      std::cout << "before modify RHS" << std::endl;
+      // d_A->modifyRhsForInhomogeneousBc(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vrhs[0]));
+      std::cout << "after modify RHS" << std::endl;
+      d_A->setHomogeneousBc(true);
+      IBTK::VecMultiVecGetNumberOfSubVecs(d_petsc_b, &comps);
+      for (int k = 0; k < comps; ++k)
+      {
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vrhs[k]));
+      }
+      PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
     }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
+
+    std::cout << "before modify RHS" << std::endl;
+    if(1){
+      // Set x to zero
+      Vec b_tmp;
+      VecDuplicate(x, &b_tmp);
+      VecSet(b_tmp, 0.0);
+      // Apply A*x
+      d_A->setHomogeneousBc(false);
+      d_A->apply(b_tmp, d_petsc_b);
+      d_A->setHomogeneousBc(true);
+      // Rest b = A*x to RHS
+      VecAYPX(d_petsc_b, -1, b);
+      VecDestroy(&b_tmp);
+    }
+    std::cout << "after modify RHS" << std::endl;
+
+    d_petsc_x = x;
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
@@ -488,6 +511,8 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     IBTK_TIMER_START(t_initialize_solver_state);
 
+    std::cout << "CIBSaddlePointSolver::initializeSolverState " << std::endl;
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
     {
@@ -508,6 +533,7 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
                                  *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
     initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
                            *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)

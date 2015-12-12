@@ -454,6 +454,13 @@ void CIBStrategy::getRigidBodyClonesParameters(int& num_structs_types,
     structs_clones_num = d_structs_clones_num;
 };
 
+void CIBStrategy::setHomogeneousBc(bool homogeneous_bc){
+  
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+} // setHomogeneousBc
+
+
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR

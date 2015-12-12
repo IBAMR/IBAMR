@@ -473,12 +473,13 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 
     if (d_output_eul_lambda)
     {
+        std::cout << " --- CIBMethod::postprocessIntegrateData --- " << std::endl;
         // Prepare the LData to spread
         std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(NULL)),
             position_lag_data(finest_ln + 1, Pointer<LData>(NULL));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
-        ;
+        
         position_lag_data[finest_ln] = d_l_data_manager->getLData("X", finest_ln);
 
         // Initialize the S[lambda] variable to zero.
@@ -679,6 +680,9 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                     const double data_time)
 {
+
+    std::cout << " CIBMethod::interpolateVelocity " << std::endl;
+
     if (d_lag_velvec_is_initialized)
     {
 #if !defined(NDEBUG)
@@ -688,8 +692,22 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-        d_l_data_manager->interp(u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds,
-                                 data_time);
+
+
+	if( u_synch_scheds.empty() && u_ghost_fill_scheds.empty() ){ 
+	    std::cout << "empty interpolation " << std::endl;
+	    // If walls -> fill ghost cells before interpolation.
+	    fillGhostCells(u_data_idx, data_time); 
+	    d_l_data_manager->interp(u_data_idx, 
+	    			   *U_half_data, 
+	    			   *X_half_data, 
+	    			   getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"),
+	    			   getGhostfillRefineSchedules(d_object_name+"::u"),
+	    			   data_time);
+	}
+	else{
+	    d_l_data_manager->interp(u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+	}
 
         d_lag_velvec_is_initialized = false;
     }
@@ -709,7 +727,16 @@ void CIBMethod::spreadForce(
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
+	if( f_phys_bdry_op==NULL && f_prolongation_scheds.empty() ){ 
+	    std::cout << "empty spreading " << (d_u_phys_bdry_op==NULL) << std::endl;
+	    IBMethod::spreadForce(f_data_idx, 
+	     			  d_u_phys_bdry_op,                               /* f_phys_bdry_op */ /* d_u_phys_bdry_op */
+				  getProlongRefineSchedules(d_object_name+"::f"), /* f_prolongation_scheds */
+				  data_time);
+	}
+	else{
+	    IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
+	}
         d_constraint_force_is_initialized = false;
     }
 
@@ -2106,6 +2133,59 @@ void CIBMethod::setInitialLambda(const int level_number)
 
     return;
 } // setInitialLambda
+
+
+void CIBMethod::setVelocityBC(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *u_bc_coefs){
+  
+    d_u_bc_coefs = u_bc_coefs;
+    
+    return;
+} // setVelocityBC
+
+void CIBMethod::setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op){
+  
+    d_u_phys_bdry_op = u_phys_bdry_op;
+    return;
+}
+
+void CIBMethod::fillGhostCells(int in, const double time){
+
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+
+    InterpolationTransactionComponent x_component(in, 
+						  /*DATA_REFINE_TYPE*/ "NONE",           /* NONE */
+						  /*USE_CF_INTERPOLATION*/ true,         /* true */
+						  /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN", /* Cubic_coarsen */
+						  /*BDRY_EXTRAP_TYPE*/ "LINEAR",         /* Linear */
+						  /*CONSISTENT_TYPE_2_BDRY*/ false,      /* false */
+						  d_u_bc_coefs[0],                       /* d_u_bc_coefs[0] */
+						  /*d_fill_pattern*/ NULL);              /* Null */
+
+    transaction_comps.push_back(x_component);
+    
+    // Setup 
+    int d_coarsest_ln = 0;
+    int d_finest_ln   = d_hierarchy->getFinestLevelNumber();   
+
+    const bool homogeneous_bc = d_homogeneous_bc;
+                                
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill; 
+    d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation(); 
+    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc); 
+    d_hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+
+    // Fill ghost cells of x
+    d_hier_bdry_fill->fillData(time);
+
+    //Deallocate data
+    d_hier_bdry_fill->deallocateOperatorState();
+    d_hier_bdry_fill.setNull();
+    transaction_comps.clear();
+
+    return;
+} // fillGhostCells
+
 
 } // namespace IBAMR
 
