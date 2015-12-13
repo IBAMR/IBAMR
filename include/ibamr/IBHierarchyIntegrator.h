@@ -148,7 +148,7 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
-     * Return a pointer velocity physical boundary conditions
+     * Return a pointer to the velocity physical boundary conditions
      */
     IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
 
