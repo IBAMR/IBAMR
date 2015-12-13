@@ -1,0 +1,4 @@
+This is an example of prescribed kinematics for two bodies. The outer shell (structure 0) moves with
+a unit translational velocity while the inner sphere (structure 1) is kept at rest. The mobility matrices
+of two structures are formed independently and are distributed to different processors (if the case is run
+on multiple procssors). 

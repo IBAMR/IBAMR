@@ -181,6 +181,8 @@ typedef Eigen::Matrix<double, 1, Eigen::Dynamic> RowVectorXd;
 typedef MatrixNd Matrix;
 typedef VectorNd Point;
 typedef VectorNd Vector;
+	
+	
 }
 
 //////////////////////////////////////////////////////////////////////////////

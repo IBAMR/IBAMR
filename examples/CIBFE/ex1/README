@@ -1,0 +1,18 @@
+addpath('/home/fbalboa/sfw/linux/petsc/3.4.5/bin/matlab/');
+MM = PetscBinaryRead('mobility_mat.dat'); MM=(MM+MM')/2;
+semilogy(sort(eig(MM)))
+
+List of elements:
+http://libmesh.github.io/doxygen/namespacelibMesh_1_1ElementTypes.html
+
+For 1d/2d FE mesh in VisIt:
+
+1) open  output.ex2
+2) Plot mesh by selecting add->mesh
+3a) Uncheck apply operators to all plots
+3b) Uncheck apply subset selections to all plots 
+Only for 2d you need to project, not required for 3d:
+3b) select mesh-->apply_operator-->transforms->project->double_click_on_project->apply
+4) Again select mesh->apply_operator->transforms->displace->double_click_on_displace->DisplacementVariable->Vectors->dx_-->apply
+
+5) open dumps.visit to plot Eulerian variables.

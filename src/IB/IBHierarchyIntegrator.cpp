@@ -180,6 +180,11 @@ Pointer<Variable<NDIM> > IBHierarchyIntegrator::getFluidSourceVariable() const
     return d_q_var;
 } // getFluidSourceVariable
 
+IBTK::RobinPhysBdryPatchStrategy* IBHierarchyIntegrator::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op;
+}
+
 void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
