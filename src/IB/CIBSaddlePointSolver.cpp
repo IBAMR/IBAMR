@@ -95,7 +95,6 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
                                            MPI_Comm petsc_comm)
     : d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures())
 {
-    std::cout << "************************************************************ Create Saddle Point Solver " << std::endl;
     d_object_name = object_name;
     d_petsc_comm = petsc_comm;
     d_cib_strategy = cib_strategy;
@@ -479,8 +478,6 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 #endif
 
     IBTK_TIMER_START(t_initialize_solver_state);
-
-    std::cout << "CIBSaddlePointSolver::initializeSolverState " << std::endl;
 
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
