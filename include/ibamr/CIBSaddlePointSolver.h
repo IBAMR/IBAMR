@@ -431,7 +431,7 @@ private:
     MPI_Comm     d_petsc_comm;
     KSP          d_petsc_ksp;
     Mat          d_petsc_mat;          
-	SAMRAI::tbox::Pointer<IBAMR::CIBStaggeredStokesOperator> d_A;
+    SAMRAI::tbox::Pointer<IBAMR::CIBStaggeredStokesOperator> d_A;
     
     int d_max_iterations, d_current_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
@@ -446,20 +446,20 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mob_solver;
 
-	// Book-keeping
-	const unsigned int d_num_rigid_parts;
+    // Book-keeping
+    const unsigned int d_num_rigid_parts;
 	
     // Scales used for interpolation and spreading operators.
     double d_scale_interp, d_scale_spread, d_reg_mob_factor;
-	bool d_normalize_spread_force;
+    bool d_normalize_spread_force;
 	
-	// Velocity BCs and cached communication operators for interpolation operation.
-	SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-	std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-	SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
-	std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-	SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
-
+    // Velocity BCs and cached communication operators for interpolation operation.
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    
     // Nullspace vectors for LInv
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_U_nul_vecs;

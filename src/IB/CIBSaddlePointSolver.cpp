@@ -424,19 +424,10 @@ bool CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     VecCopy(b, d_petsc_b);
 
 
-     // Modify RHS for inhomogeneous BCs.
-    int comps;
-    Vec* vrhs;
-    IBTK::VecMultiVecGetSubVecs(d_petsc_b, &vrhs);
+    // Modify RHS for inhomogeneous BCs.
     d_A->setHomogeneousBc(false);
-    d_A->modifyRhsForInhomogeneousBc(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vrhs[0]));
+    d_A->modifyRhsForInhomogeneousBc(d_petsc_b);
     d_A->setHomogeneousBc(true);
-    IBTK::VecMultiVecGetNumberOfSubVecs(d_petsc_b, &comps);
-    for (int k = 0; k < comps; ++k)
-    {
-        PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vrhs[k]));
-    }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
 
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();

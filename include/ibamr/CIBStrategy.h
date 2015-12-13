@@ -469,6 +469,11 @@ public:
      */
     void getRigidBodyClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num);
 
+    /*!
+     * \brief Set whether the interpolation J should use homogeneous boundary conditions.
+     */
+    void setHomogeneousBc(bool homogeneous_bc);
+
     /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
     /*!
@@ -507,6 +512,10 @@ protected:
     int d_num_structs_types;
     std::vector<int> d_structs_clones_num;
 
+    /*
+     * Whether the interpolation J should use homogeneous boundary conditions.
+     */ 
+    bool d_homogeneous_bc;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
