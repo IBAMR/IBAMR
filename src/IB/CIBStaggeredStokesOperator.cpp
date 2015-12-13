@@ -582,6 +582,29 @@ void CIBStaggeredStokesOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 
+void CIBStaggeredStokesOperator::modifyRhsForInhomogeneousBc(Vec y)
+{
+    // Create zero vector and temporal RHS
+    int ierr;
+    Vec b_tmp, x_tmp;
+    ierr = VecDuplicate(y, &x_tmp); IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(y, &b_tmp); IBTK_CHKERRQ(ierr);
+    ierr = VecSet(x_tmp, 0.0); IBTK_CHKERRQ(ierr);
+    
+    // Apply A*0
+    apply(x_tmp, b_tmp); 
+    
+    // Rest b_tmp = A*0 to RHS
+    ierr = VecAXPY(y, -1, b_tmp); IBTK_CHKERRQ(ierr);
+    
+    // Free memory
+    ierr = VecDestroy(&b_tmp); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&x_tmp); IBTK_CHKERRQ(ierr);
+
+    return;
+} // modifyRhsInhomogeneousBc
+
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
