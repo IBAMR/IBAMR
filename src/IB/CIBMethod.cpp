@@ -86,6 +86,8 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_output_eul_lambda = false;
     d_lambda_dump_interval = 0;
     d_time_integrator_needs_regrid = false;
+    d_u_bc_coefs = NULL;
+    d_u_phys_bdry_op = NULL;
 
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
