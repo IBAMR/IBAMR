@@ -499,7 +499,6 @@ void CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
                                  *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
     initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
                            *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
-
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
