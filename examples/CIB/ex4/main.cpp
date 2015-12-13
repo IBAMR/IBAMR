@@ -346,6 +346,10 @@ int main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+	// Register BC coefficients with the cib method
+	ib_method_ops->setVelocityBC(&u_bc_coefs);
+	ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
+
 	// Deallocate initialization objects.
         app_initializer.setNull();
 
