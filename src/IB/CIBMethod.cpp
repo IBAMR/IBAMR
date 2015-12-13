@@ -473,7 +473,6 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 
     if (d_output_eul_lambda)
     {
-        std::cout << " --- CIBMethod::postprocessIntegrateData --- " << std::endl;
         // Prepare the LData to spread
         std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(NULL)),
             position_lag_data(finest_ln + 1, Pointer<LData>(NULL));
@@ -681,8 +680,6 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
                                     const double data_time)
 {
 
-    std::cout << " CIBMethod::interpolateVelocity " << std::endl;
-
     if (d_lag_velvec_is_initialized)
     {
 #if !defined(NDEBUG)
@@ -693,10 +690,7 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
 
-
 	if( u_synch_scheds.empty() && u_ghost_fill_scheds.empty() ){ 
-	    std::cout << "empty interpolation " << std::endl;
-	    // If walls -> fill ghost cells before interpolation.
 	    fillGhostCells(u_data_idx, data_time); 
 	    d_l_data_manager->interp(u_data_idx, 
 	    			   *U_half_data, 
@@ -728,7 +722,6 @@ void CIBMethod::spreadForce(
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
 	if( f_phys_bdry_op==NULL && f_prolongation_scheds.empty() ){ 
-	    std::cout << "empty spreading " << (d_u_phys_bdry_op==NULL) << std::endl;
 	    IBMethod::spreadForce(f_data_idx, 
 	     			  d_u_phys_bdry_op,                               /* f_phys_bdry_op */ /* d_u_phys_bdry_op */
 				  getProlongRefineSchedules(d_object_name+"::f"), /* f_prolongation_scheds */
