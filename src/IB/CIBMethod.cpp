@@ -692,7 +692,7 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
 
-	if( u_synch_scheds.empty() && u_ghost_fill_scheds.empty() ){ 
+	if( u_synch_scheds.empty() && u_ghost_fill_scheds.empty() && d_u_bc_coefs != NULL ){ 
 	    fillGhostCells(u_data_idx, data_time); 
 	    d_l_data_manager->interp(u_data_idx, 
 	    			   *U_half_data, 
