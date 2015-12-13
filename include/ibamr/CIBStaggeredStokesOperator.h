@@ -217,6 +217,12 @@ public:
      */
     void setNormalizeSpreadForce(const bool normalize_force);
 
+    /*
+     * Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+     * inhomogeneous boundary conditions.
+     */
+    void modifyRhsForInhomogeneousBc(Vec y);
+
     //\}
 
     //////////////////////////////////////////////////////////////////////////////
