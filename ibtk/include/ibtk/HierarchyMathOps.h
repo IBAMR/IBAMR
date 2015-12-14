@@ -54,6 +54,7 @@
 #include "OutersideVariable.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
+#include "RobinBcCoefStrategy.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
@@ -353,7 +354,9 @@ public:
              int src_idx,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-             double src_ghost_fill_time);
+             double src_ghost_fill_time,
+             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
+                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * \brief Compute the side-centered rot of a node-centered scalar field
@@ -371,7 +374,9 @@ public:
              int src_idx,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-             double src_ghost_fill_time);
+             double src_ghost_fill_time,
+             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
+                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * \brief Compute the side-centered rot of a edge-centered vector field
@@ -389,7 +394,9 @@ public:
              int src_idx,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-             double src_ghost_fill_time);
+             double src_ghost_fill_time,
+             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
+                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * \brief Compute the side-centered rot of a side-centered vector field
@@ -407,7 +414,9 @@ public:
              int src_idx,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
              SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-             double src_ghost_fill_time);
+             double src_ghost_fill_time,
+             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs =
+                 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * \brief Compute the cell-centered divergence of a cell-centered vector

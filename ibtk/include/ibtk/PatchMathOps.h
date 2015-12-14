@@ -37,6 +37,8 @@
 
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 
 namespace SAMRAI
 {
@@ -159,7 +161,9 @@ public:
      */
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             CartSideRobinPhysBdryOp* bc_op = NULL,
+             double fill_time = 0.0) const;
 
     /*!
      * \brief Computes dst = rot src.
@@ -168,7 +172,9 @@ public:
      */
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             CartSideRobinPhysBdryOp* bc_op = NULL,
+             double fill_time = 0.0) const;
 
     /*!
      * \brief Computes dst = rot src.
@@ -177,7 +183,9 @@ public:
      */
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             CartSideRobinPhysBdryOp* bc_op = NULL,
+             double fill_time = 0.0) const;
 
     /*!
      * \brief Computes dst = rot src.
@@ -186,7 +194,9 @@ public:
      */
     void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             CartSideRobinPhysBdryOp* bc_op = NULL,
+             double fill_time = 0.0) const;
 
     /*!
      * \brief Computes dst_l = alpha div src1 + beta src2_m.
