@@ -321,6 +321,9 @@ protected:
     // Basic initialization.
     void init(const std::string& object_name, bool homogeneous_bc);
 
+    // Specialized initialization.
+    virtual void initSpecialized(const std::string& object_name, bool homogeneous_bc);
+
     // Object name.
     std::string d_object_name;
 
