@@ -1744,7 +1744,9 @@ void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
 
 void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                        const Pointer<NodeData<NDIM, double> > src,
-                       const Pointer<Patch<NDIM> > patch) const
+                       const Pointer<Patch<NDIM> > patch,
+                       CartSideRobinPhysBdryOp* bc_op,
+                       const double fill_time) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1752,6 +1754,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(bc_op);
+    NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1798,15 +1802,54 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     }
 #endif
 
-    N_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                  patch_box.upper(1), dx);
+    if (!bc_op)
+    {
+        N_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                      patch_box.upper(1), dx);
+    }
+    else
+    {
+        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+
+        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
+        NodeData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        const double* const u0 = u_data.getPointer(0);
+        const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
+        u_data.fillAll(0.0);
+        Box<NDIM> copy_box = patch_box;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const int lower = 0;
+            const int upper = 1;
+            if (!pgeom->getTouchesRegularBoundary(axis, lower)) copy_box.lower(axis) -= u_gcw(axis);
+            if (!pgeom->getTouchesRegularBoundary(axis, upper)) copy_box.upper(axis) += u_gcw(axis);
+        }
+        u_data.copyOnBox(*src, copy_box);
+
+        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
+        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        double* const w0 = w_data.getPointer(0);
+        double* const w1 = w_data.getPointer(1);
+        const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
+
+        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+
+        N_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
+                      op_box.upper(1), dx);
+
+        dst->copyOnBox(w_data, op_box);
+
+        bc_op->accumulateFromPhysicalBoundaryData(*patch, fill_time, op_gcw);
+    }
 #endif
     return;
 } // rot
 
 void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                        const Pointer<CellData<NDIM, double> > src,
-                       const Pointer<Patch<NDIM> > patch) const
+                       const Pointer<Patch<NDIM> > patch,
+                       CartSideRobinPhysBdryOp* bc_op,
+                       const double fill_time) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1814,6 +1857,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(bc_op);
+    NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1869,15 +1914,54 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     }
 #endif
 
-    C_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                  patch_box.upper(1), dx);
+    if (!bc_op)
+    {
+        C_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                      patch_box.upper(1), dx);
+    }
+    else
+    {
+        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+
+        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
+        CellData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        const double* const u0 = u_data.getPointer(0);
+        const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
+        u_data.fillAll(0.0);
+        Box<NDIM> copy_box = patch_box;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const int lower = 0;
+            const int upper = 1;
+            if (!pgeom->getTouchesRegularBoundary(axis, lower)) copy_box.lower(axis) -= u_gcw(axis);
+            if (!pgeom->getTouchesRegularBoundary(axis, upper)) copy_box.upper(axis) += u_gcw(axis);
+        }
+        u_data.copyOnBox(*src, copy_box);
+
+        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
+        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        double* const w0 = w_data.getPointer(0);
+        double* const w1 = w_data.getPointer(1);
+        const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
+
+        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+
+        C_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
+                      op_box.upper(1), dx);
+
+        dst->copyOnBox(w_data, op_box);
+
+        bc_op->accumulateFromPhysicalBoundaryData(*patch, fill_time, op_gcw);
+    }
 #endif
     return;
 } // rot
 
 void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                        const Pointer<EdgeData<NDIM, double> > src,
-                       const Pointer<Patch<NDIM> > patch) const
+                       const Pointer<Patch<NDIM> > patch,
+                       CartSideRobinPhysBdryOp* bc_op,
+                       const double fill_time) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1885,6 +1969,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
+    NULL_USE(bc_op);
+    NULL_USE(fill_time);
 #endif
 #if (NDIM == 3)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1932,20 +2018,147 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
-
 #endif
 
-    E_TO_S_ROT_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
-                  patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+    if (!bc_op)
+    {
+        E_TO_S_ROT_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
+                      patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+    }
+    else
+    {
+        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+
+        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
+        EdgeData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        const double* const u0 = u_data.getPointer(0);
+        const double* const u1 = u_data.getPointer(1);
+        const double* const u2 = u_data.getPointer(2);
+        const int u_ghosts = (u_data.getGhostCellWidth() - op_gcw).max();
+        u_data.fillAll(0.0);
+        Box<NDIM> copy_box = patch_box;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            const int lower = 0;
+            const int upper = 1;
+            if (!pgeom->getTouchesRegularBoundary(axis, lower)) copy_box.lower(axis) -= u_gcw(axis);
+            if (!pgeom->getTouchesRegularBoundary(axis, upper)) copy_box.upper(axis) += u_gcw(axis);
+        }
+        u_data.copyOnBox(*src, copy_box);
+
+        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
+        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        double* const w0 = w_data.getPointer(0);
+        double* const w1 = w_data.getPointer(1);
+        double* const w2 = w_data.getPointer(1);
+        const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
+
+        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+
+        E_TO_S_ROT_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
+                      op_box.upper(1), op_box.lower(2), op_box.upper(2), dx);
+
+        dst->copyOnBox(w_data, op_box);
+
+        bc_op->accumulateFromPhysicalBoundaryData(*patch, fill_time, op_gcw);
+    }
 #endif
     return;
 } // rot
 
 void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
                        const Pointer<SideData<NDIM, double> > src,
-                       const Pointer<Patch<NDIM> > patch) const
+                       const Pointer<Patch<NDIM> > patch,
+                       CartSideRobinPhysBdryOp* bc_op,
+                       const double fill_time) const
 {
-    this->curl(dst, src, patch);
+    if (!bc_op)
+    {
+        this->curl(dst, src, patch);
+    }
+    else
+    {
+#if (NDIM != 3)
+        TBOX_ERROR("PatchMathOps::rot():\n"
+                   << "  not implemented for NDIM != 3" << std::endl);
+        NULL_USE(dst);
+        NULL_USE(src);
+        NULL_USE(patch);
+        NULL_USE(bc_op);
+        NULL_USE(fill_time);
+#endif
+#if (NDIM == 3)
+        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        IntVector<NDIM> op_gcw = IntVector<NDIM>(1);
+
+        IntVector<NDIM> u_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), src->getGhostCellWidth());
+        SideData<NDIM, double> u_data(patch_box, src->getDepth(), u_gcw);
+        const double* const u0 = src->getPointer(0);
+        const double* const u1 = src->getPointer(1);
+        const double* const u2 = src->getPointer(2);
+        const int u_ghosts = (src->getGhostCellWidth()).max();
+
+        IntVector<NDIM> w_gcw = IntVector<NDIM>::max(IntVector<NDIM>(2), dst->getGhostCellWidth());
+        SideData<NDIM, double> w_data(patch_box, dst->getDepth(), w_gcw);
+        double* const w0 = w_data.getPointer(0);
+        double* const w1 = w_data.getPointer(1);
+        double* const w2 = w_data.getPointer(1);
+        const int w_ghosts = (w_data.getGhostCellWidth() - op_gcw).max();
+
+        const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
+
+#if !defined(NDEBUG)
+        if (w_ghosts != (dst->getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  dst does not have uniform ghost cell widths" << std::endl);
+        }
+
+        if (u_ghosts != (src->getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  src does not have uniform ghost cell widths" << std::endl);
+        }
+
+        if (src == dst)
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  src == dst." << std::endl);
+        }
+
+        const Box<NDIM>& U_box = src->getGhostBox();
+        const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+
+        if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  src has insufficient ghost cell width" << std::endl);
+        }
+
+        if (patch_box != dst->getBox())
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  dst and src must live on the same patch" << std::endl);
+        }
+
+        if (patch_box != src->getBox())
+        {
+            TBOX_ERROR("PatchMathOps::rot():\n"
+                       << "  dst and src must live on the same patch" << std::endl);
+        }
+#endif
+
+        S_TO_S_CURL_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
+                       op_box.upper(1), op_box.lower(2), op_box.upper(2), dx);
+
+        dst->copyOnBox(w_data, op_box);
+
+        bc_op->accumulateFromPhysicalBoundaryData(*patch, fill_time, op_gcw);
+#endif
+    }
     return;
 } // rot
 
