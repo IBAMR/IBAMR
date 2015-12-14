@@ -114,8 +114,7 @@ public:
      * \brief Constructor.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-                   input_db,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
                bool register_for_restart = true,
@@ -126,8 +125,7 @@ public:
      * \brief Constructor.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-                   input_db,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
                bool register_for_restart = true,
@@ -378,8 +376,7 @@ public:
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-                            gridding_alg) const;
+                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -451,10 +448,8 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
-            hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-            gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
@@ -480,16 +475,14 @@ public:
      * hierarchy.
      */
     void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-                                     gridding_alg);
+                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
     void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-                                   gridding_alg);
+                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -502,8 +495,7 @@ public:
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >
-                                 old_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
                              bool allocate_data);
 
     /*!
@@ -713,8 +705,7 @@ private:
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-                               input_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
                            bool register_for_restart,

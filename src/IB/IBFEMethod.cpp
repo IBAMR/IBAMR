@@ -210,8 +210,7 @@ const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity syst
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database>
-                           input_db,
+                       Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
                        bool register_for_restart,
@@ -225,8 +224,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 } // IBFEMethod
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database>
-                           input_db,
+                       Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart,
@@ -720,8 +718,7 @@ void IBFEMethod::initializeFEData()
 } // initializeFEData
 
 void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> >
-                                              gridding_alg,
+                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
                                           int /*u_data_idx*/,
                                           const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
                                           const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
@@ -790,8 +787,7 @@ void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarch
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     Pointer<BasePatchLevel<NDIM> >
-                                         old_level,
+                                     Pointer<BasePatchLevel<NDIM> > old_level,
                                      bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1954,8 +1950,7 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   Pointer<Database>
-                                       input_db,
+                                   Pointer<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
                                    bool register_for_restart,
@@ -2023,8 +2018,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
+                                    "or only SECOND order elements" << std::endl);
     }
     if (mesh_has_first_order_elems)
     {
@@ -2077,8 +2071,13 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-
-        if (!from_restart)
+        if (from_restart)
+        {
+            const std::string& file_name = libmesh_restart_file_name(
+                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            equation_systems->read(file_name, libMeshEnums::READ);
+        }
+        else
         {
             System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -2111,12 +2110,6 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
                 os << "F_" << d;
                 F_system.add_variable(os.str(), d_fe_order, d_fe_family);
             }
-        }
-        else
-        {
-            const std::string& file_name = libmesh_restart_file_name(
-                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
-            equation_systems->read(file_name, libMeshEnums::READ);
         }
     }
 
