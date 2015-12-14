@@ -188,6 +188,17 @@ inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_inf
     }
     return has_physical_bdry;
 }
+
+std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                      unsigned int time_step_number,
+                                      unsigned int part,
+                                      const std::string& extension)
+{
+    std::ostringstream file_name_prefix;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
+                     << std::setfill('0') << std::right << time_step_number << "." << extension;
+    return file_name_prefix.str();
+}
 }
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -202,10 +213,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
-                       bool register_for_restart)
+                       bool register_for_restart,
+                       const std::string& restart_read_dirname,
+                       unsigned int restart_restore_number)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart,
+                      restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -213,10 +227,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
-                       bool register_for_restart)
+                       bool register_for_restart,
+                       const std::string& restart_read_dirname,
+                       unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart, restart_read_dirname,
+                      restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -609,12 +626,20 @@ void IBFEMethod::spreadForce(const int f_data_idx,
 void IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems* equation_systems = d_equation_systems[part];
-        equation_systems->init();
-        initializeCoordinates(part);
+        if (from_restart)
+        {
+            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
+        }
+        else
+        {
+            equation_systems->init();
+            initializeCoordinates(part);
+        }
         updateCoordinateMapping(part);
 
         // Assemble systems.
@@ -687,6 +712,7 @@ void IBFEMethod::initializeFEData()
                 }
             }
         }
+        equation_systems->reinit();
     }
     d_fe_data_initialized = true;
     return;
@@ -1928,7 +1954,9 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
                                    Pointer<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
-                                   bool register_for_restart)
+                                   bool register_for_restart,
+                                   const std::string& restart_read_dirname,
+                                   unsigned int restart_restore_number)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -1938,6 +1966,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
+    d_libmesh_restart_read_dir = restart_read_dirname;
+    d_libmesh_restart_restore_number = restart_restore_number;
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;
@@ -2041,38 +2071,46 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
-
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-        System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (from_restart)
         {
-            std::ostringstream os;
-            os << "X_" << d;
-            X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            const std::string& file_name = libmesh_restart_file_name(
+                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            equation_systems->read(file_name, libMeshEnums::READ);
         }
-
-        System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        else
         {
-            std::ostringstream os;
-            os << "dX_" << d;
-            dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
+            System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "X_" << d;
+                X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
 
-        System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "U_" << d;
-            U_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
+            System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "dX_" << d;
+                dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
 
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "F_" << d;
-            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "U_" << d;
+                U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
+
+            System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "F_" << d;
+                F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
         }
     }
 
@@ -2138,7 +2176,6 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
         d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
-
     if (db->isString("spread_quad_order"))
         d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
     else if (db->isString("IB_quad_order"))
@@ -2148,7 +2185,6 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
         d_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
-
     if (db->isDouble("spread_point_density"))
         d_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
@@ -2161,6 +2197,16 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+
+    // Restart settings.
+    if (db->isString("libmesh_restart_file_extension"))
+    {
+        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
+    }
+    else
+    {
+        d_libmesh_restart_file_extension = "xdr";
+    }
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))
@@ -2206,6 +2252,17 @@ void IBFEMethod::getFromRestart()
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
+
+void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        const std::string& file_name =
+            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        d_equation_systems[part]->write(file_name, libMeshEnums::WRITE);
+    }
+    return;
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
