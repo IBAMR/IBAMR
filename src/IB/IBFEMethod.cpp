@@ -498,7 +498,7 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
 
 void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
                                      const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -630,14 +630,14 @@ void IBFEMethod::initializeFEData()
     {
         // Initialize FE equation systems.
         EquationSystems* equation_systems = d_equation_systems[part];
-        if (!from_restart)
+        if (from_restart)
         {
-            equation_systems->init();
-            initializeCoordinates(part);
+            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
         }
         else
         {
-            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
+            equation_systems->init();
+            initializeCoordinates(part);
         }
         updateCoordinateMapping(part);
 
