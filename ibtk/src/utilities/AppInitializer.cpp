@@ -66,8 +66,9 @@ namespace IBTK
 
 AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
     : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0), d_viz_dump_dirname(""), d_viz_writers(),
-      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_gmv_filename("output.gmv"), d_restart_dump_interval(0),
-      d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""), d_timer_dump_interval(0)
+      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"),
+      d_gmv_filename("output.gmv"), d_restart_dump_interval(0), d_restart_dump_dirname(""), d_data_dump_interval(0),
+      d_data_dump_dirname(""), d_timer_dump_interval(0)
 {
     if (argc == 1)
     {
@@ -102,7 +103,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(d_restart_read_dirname, d_restart_restore_num, SAMRAI_MPI::getNodes());
+        RestartManager::getManager()->openRestartFile(d_restart_read_dirname, d_restart_restore_num,
+                                                      SAMRAI_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.
@@ -251,11 +253,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
                 new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
-            if (d_viz_writers.size() != 1)
-            {
-                IBTK_DEPRECATED_FUNCTIONALITY("NOT automatically using both VisIt and Silo data writers.\n" <<
-                                              "Please add \"Silo\" to the list of data writer to write Silo data.\n");
-            }
         }
 
         if (d_viz_writers[i] == "Silo")
@@ -276,9 +273,9 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_viz_writers.size() == 1 && d_viz_writers[0] == "VisIt")
     {
-        IBTK_DEPRECATED_FUNCTIONALITY("Automatically using both VisIt and Silo data writers.\n" <<
-                                      "This functionality is deprecated.\n" <<
-                                      "Please add \"Silo\" to the list of data writer to write Silo data.\n");
+        IBTK_DEPRECATED_FUNCTIONALITY("Automatically using both VisIt and Silo data writers.\n"
+                                      << "In the future, it will be necessary to include \"Silo\" in the list of data "
+                                         "writer in order to output Silo data.\n");
         d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
     }
 
