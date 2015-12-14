@@ -401,7 +401,7 @@ int main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-                ib_method_ops->writeLibMeshDataToRestartFile(restart_dump_dirname, iteration_num);
+                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {

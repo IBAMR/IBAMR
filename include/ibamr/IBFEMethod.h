@@ -528,7 +528,7 @@ public:
     /*!
      * Write the equation_systems data to a restart file in the specified directory.
      */
-    void writeLibMeshDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
+    void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
 protected:
     /*

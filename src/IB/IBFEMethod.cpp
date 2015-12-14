@@ -498,7 +498,7 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
 
 void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                      const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -2253,7 +2253,7 @@ void IBFEMethod::getFromRestart()
     return;
 } // getFromRestart
 
-void IBFEMethod::writeLibMeshDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
