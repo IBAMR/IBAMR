@@ -158,6 +158,12 @@ inline boost::array<T, N> array_zero()
     return arr;
 } // array_zero
 
+inline bool level_can_be_refined(int level_number, int max_levels)
+{
+    const int finest_level_number = max_levels - 1;
+    return level_number < finest_level_number;
+}
+
 typedef Eigen::Matrix<double, 2, 2> Matrix2d;
 typedef Eigen::Matrix<double, 2, 1> Vector2d;
 typedef Eigen::Matrix<double, 2, 1> ColumnVector2d;

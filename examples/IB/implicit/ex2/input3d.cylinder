@@ -186,9 +186,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(2*N - 1,N - 1,N/4 - 1) ]
-   x_lo = -0.5*L,-0.5*L,-0.125*L
-   x_up =  1.5*L, 0.5*L, 0.125*L
+   domain_boxes = [ (0,0,0),(2*N - 1,N - 1,N - 1) ]
+   x_lo = -0.5*L,-0.5*L,-0.5*L
+   x_up =  1.5*L, 0.5*L, 0.5*L
    periodic_dimension = 0,0,1
 }
 

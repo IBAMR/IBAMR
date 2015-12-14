@@ -760,6 +760,7 @@ void FEDataManager::prolongData(const int f_data_idx,
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        if (!accumulate_on_grid) f_data->fillAll(0.0);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -774,8 +775,8 @@ void FEDataManager::prolongData(const int f_data_idx,
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
         }
 
-        SideData<NDIM, bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(false);
+        SideData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(0));
+        num_intersections.fillAll(0);
 
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -793,18 +794,19 @@ void FEDataManager::prolongData(const int f_data_idx,
             // correspond to the physical coordinates.
             s_node_cache.resize(n_node);
             X_node_cache.resize(n_node);
-            X_min = Point::Constant(0.5 * std::numeric_limits<double>::max());
+            X_min = Point::Constant(+0.5 * std::numeric_limits<double>::max());
             X_max = Point::Constant(-0.5 * std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
+                libMesh::Point& X = X_node_cache[k];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    X_node_cache[k](d) = X_vec(X_dof_indices[d][k]);
-                    X_min[d] = std::min(X_min[d], X_node_cache[k](d));
-                    X_max[d] = std::max(X_max[d], X_node_cache[k](d));
+                    X(d) = X_vec(X_dof_indices[d][k]);
+                    X_min[d] = std::min(X_min[d], X(d));
+                    X_max[d] = std::max(X_max[d], X(d));
                 }
-                elem->point(k) = X_node_cache[k];
+                elem->point(k) = X;
             }
             Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
                                                        patch_upper),
@@ -823,7 +825,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                 for (SideIterator<NDIM> b(box, axis); b; b++)
                 {
                     const SideIndex<NDIM>& i_s = b();
-                    if (!spread_value_at_loc(i_s) && side_boxes[axis].contains(i_s))
+                    if (side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -838,7 +840,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                         {
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
-                            spread_value_at_loc(i_s) = true;
+                            num_intersections(i_s) += 1;
                         }
                     }
                 }
@@ -875,14 +877,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                     jacobian(dX_ds, qp, X_node, dphi_X);
                     F_qp /= std::abs(dX_ds.det());
                 }
-                if (accumulate_on_grid)
-                {
-                    (*f_data)(i_s) += F_qp;
-                }
-                else
-                {
-                    (*f_data)(i_s) = F_qp;
-                }
+                (*f_data)(i_s) += F_qp/static_cast<double>(num_intersections(i_s));
             }
         }
     }
@@ -1695,7 +1690,7 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
     if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
+        const int min_pts = elem->default_order() == FIRST ? 2 : 3;
         const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
         switch (type)
         {

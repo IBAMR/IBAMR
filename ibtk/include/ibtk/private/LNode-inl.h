@@ -170,7 +170,7 @@ inline std::vector<T*> LNode::getNodeDataVector() const
     Streamable* it_val;
     for (size_t k = 0; k < node_data_sz; ++k)
     {
-        it_val = d_node_data_type_arr[k];
+        it_val = d_node_data[k];
         if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
         {
             ret_val.push_back(static_cast<T*>(it_val));
