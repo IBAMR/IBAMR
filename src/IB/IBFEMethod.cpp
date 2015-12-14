@@ -2197,6 +2197,16 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
+    // Restart settings.
+    if (db->isString("libmesh_restart_file_extension"))
+    {
+        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
+    }
+    else
+    {
+        d_libmesh_restart_file_extension = "xdr";
+    }
+
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))
     {
@@ -2210,14 +2220,6 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
-    if (db->isString("libmesh_restart_file_extension"))
-    {
-        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
-    }
-    else
-    {
-        d_libmesh_restart_file_extension = "xda";
-    }
     return;
 } // getFromInput
 
