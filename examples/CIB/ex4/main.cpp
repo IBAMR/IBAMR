@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 	
 	// Read default Petsc options
-	std::string PetscOptionsFile = input_db->getStringWithDefault("Petsc_options_file", "");
+	std::string PetscOptionsFile = input_db->getStringWithDefault("petsc_options_file", "");
 	ierr = PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);CHKERRQ(ierr);
 
         // Get various standard options set in the input file.

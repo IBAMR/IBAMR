@@ -2,15 +2,16 @@
 //shells with active slip - SQUIMER
 //shell with applied random force and torque  - RANDOM_FORCE
 
+petsc_options_file = "PetscOptions.dat"
 
 run_example = "SQUIMER"
-B1_squimer = 1.0
-B2_squimer = 0.0
+B1_squimer  = 1.0
+B2_squimer  = 0.0
 
 
 //run_example = "RANDOM_FORCE"
-DRAG_SCALE = 1.0
-TORQUE_SCALE = 1.0
+DRAG_SCALE    = 1.0
+TORQUE_SCALE  = 1.0
 
 // physical parameters
 MU  =  1.0                   // fluid viscosity
@@ -19,7 +20,7 @@ RHO =  0.0                   // fluid density
 // constants
 PI         = 3.141592653589
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL = 0.0 // Wall velocity
+U_WALL     = 0.0 // Wall velocity
 
 // BCs
 PERIODIC            = 1
