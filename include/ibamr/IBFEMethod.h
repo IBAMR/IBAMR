@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
 #include <stdbool.h>
 #include <stddef.h>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -114,7 +114,8 @@ public:
      * \brief Constructor.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+                   input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
                bool register_for_restart = true);
@@ -123,7 +124,8 @@ public:
      * \brief Constructor.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+                   input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
                bool register_for_restart = true);
@@ -138,44 +140,6 @@ public:
      * specified part.
      */
     IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
-
-    /*!
-     * Indicate that a part is constrained.
-     */
-    void registerConstrainedPart(unsigned int part = 0);
-
-    /*!
-     * Typedef specifying interface for specifying constrained body velocities.
-     */
-    typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
-                                              libMesh::NumericVector<double>& U,
-                                              libMesh::NumericVector<double>& X,
-                                              libMesh::EquationSystems* equation_systems,
-                                              double data_time,
-                                              void* ctx);
-
-    /*!
-     * Struct encapsulating constrained velocity function data.
-     */
-    struct ConstrainedVelocityFcnData
-    {
-        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-        ConstrainedVelocityFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx = NULL, unsigned int part = 0);
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -410,7 +374,8 @@ public:
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+                            gridding_alg) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -482,8 +447,10 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+            hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+            gridding_alg,
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
@@ -509,14 +476,16 @@ public:
      * hierarchy.
      */
     void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+                                     gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
     void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+                                   gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -529,7 +498,8 @@ public:
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >
+                                 old_level,
                              bool allocate_data);
 
     /*!
@@ -560,16 +530,6 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
-    /*
-     * \brief Compute the constraint force density.
-     */
-    void computeConstraintForceDensity(libMesh::PetscVector<double>& F_vec,
-                                       libMesh::PetscVector<double>& X_vec,
-                                       libMesh::PetscVector<double>& U_vec,
-                                       libMesh::PetscVector<double>& U_b_vec,
-                                       double data_time,
-                                       unsigned int part);
-
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
@@ -640,20 +600,17 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems;
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
 
     bool d_fe_data_initialized;
 
     /*
      * Method paramters.
      */
-    bool d_use_IB_interp_operator;
     IBTK::FEDataManager::InterpSpec d_interp_spec;
-    bool d_use_IB_spread_operator;
     IBTK::FEDataManager::SpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
@@ -662,14 +619,6 @@ protected:
     libMesh::QuadratureType d_quad_type;
     libMesh::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
-
-    /*
-     * Data related to handling constrained body constraints.
-     */
-    bool d_has_constrained_parts;
-    std::vector<bool> d_constrained_part;
-    std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
-    double d_constraint_omega;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -744,7 +693,8 @@ private:
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+                               input_db,
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
                            bool register_for_restart);
