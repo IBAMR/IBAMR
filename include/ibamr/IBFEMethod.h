@@ -675,7 +675,7 @@ protected:
      */
     std::string d_libmesh_restart_read_dir;
     int d_libmesh_restart_restore_number;
-    
+
     /*
      * Restart file type for libMesh equation systems (e.g. xda or xdr).
      */

@@ -312,6 +312,7 @@ int main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        AutoPtr<GMVIO> gmv_io(uses_gmv ? new GMVIO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -344,7 +345,7 @@ int main(int argc, char* argv[])
             {
                 std::ostringstream file_name;
                 file_name << gmv_filename + "_" << std::setw(6) << std::setfill('0') << std::right << iteration_num;
-                GMVIO(mesh).write_equation_systems(file_name.str() + ".gmv", *equation_systems);
+                gmv_io->write_equation_systems(file_name.str() + ".gmv", *equation_systems);
             }
         }
 
@@ -393,7 +394,7 @@ int main(int argc, char* argv[])
                 {
                     std::ostringstream file_name;
                     file_name << gmv_filename + "_" << std::setw(6) << std::setfill('0') << std::right << iteration_num;
-                    GMVIO(mesh).write_equation_systems(file_name.str() + ".gmv", *equation_systems);
+                    gmv_io->write_equation_systems(file_name.str() + ".gmv", *equation_systems);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

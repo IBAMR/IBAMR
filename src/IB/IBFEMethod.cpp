@@ -189,15 +189,14 @@ inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_inf
     return has_physical_bdry;
 }
 
-std::string libmesh_restart_file_name(const std::string& restart_dump_dirname, unsigned int time_step_number, unsigned int part, const std::string& extension)
+std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                      unsigned int time_step_number,
+                                      unsigned int part,
+                                      const std::string& extension)
 {
     std::ostringstream file_name_prefix;
-    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "."
-                     << std::setw(6)
-                     << std::setfill('0')
-                     << std::right
-                     << time_step_number
-                     << "." << extension;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
+                     << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }
 }
@@ -220,7 +219,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart, restart_read_dirname, restart_restore_number);
+    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart,
+                      restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -234,7 +234,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart, restart_read_dirname, restart_restore_number);
+    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart, restart_read_dirname,
+                      restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -638,7 +639,7 @@ void IBFEMethod::initializeFEData()
         }
         else
         {
-            equation_systems->reinit();  // BEG TODO: are both of these calls to reinit() needed?
+            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
         }
         updateCoordinateMapping(part);
 
@@ -2113,7 +2114,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         }
         else
         {
-            const std::string& file_name = libmesh_restart_file_name(d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            const std::string& file_name = libmesh_restart_file_name(
+                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
             equation_systems->read(file_name, libMeshEnums::READ);
         }
     }
@@ -2259,7 +2261,8 @@ void IBFEMethod::writeLibMeshDataToRestartFile(const std::string& restart_dump_d
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        const std::string& file_name = libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        const std::string& file_name =
+            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
         d_equation_systems[part]->write(file_name, libMeshEnums::WRITE);
     }
     return;
