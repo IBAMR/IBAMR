@@ -855,6 +855,19 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
+void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        const std::string& file_name =
+            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
+        const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
+        d_equation_systems[part]->write(file_name, xdr_mode, write_mode, /*partition_agnostic*/ true);
+    }
+    return;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
@@ -2255,19 +2268,6 @@ void IBFEMethod::getFromRestart()
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
-
-void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
-{
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        const std::string& file_name =
-            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
-        const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
-        const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
-        d_equation_systems[part]->write(file_name, xdr_mode, write_mode, /*partition_agnostic*/ true);
-    }
-    return;
-}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
