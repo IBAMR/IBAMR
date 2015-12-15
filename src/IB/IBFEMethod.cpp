@@ -32,13 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>
 #include <set>
+#include <stdbool.h>
+#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -287,6 +287,17 @@ void assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
         system.matrix->add_matrix(Ke, dof_indices);
     }
 }
+
+std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                      unsigned int time_step_number,
+                                      unsigned int part,
+                                      const std::string& extension)
+{
+    std::ostringstream file_name_prefix;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
+                     << std::setfill('0') << std::right << time_step_number << "." << extension;
+    return file_name_prefix.str();
+}
 }
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -301,10 +312,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
-                       bool register_for_restart)
+                       bool register_for_restart,
+                       const std::string& restart_read_dirname,
+                       unsigned int restart_restore_number)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart,
+                      restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -312,10 +326,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
-                       bool register_for_restart)
+                       bool register_for_restart,
+                       const std::string& restart_read_dirname,
+                       unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart, restart_read_dirname,
+                      restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -725,6 +742,8 @@ void IBFEMethod::initializeFEEquationSystems()
 {
     if (d_fe_equation_systems_initialized) return;
 
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts, NULL);
@@ -742,38 +761,46 @@ void IBFEMethod::initializeFEEquationSystems()
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
-
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-        System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (from_restart)
         {
-            std::ostringstream os;
-            os << "X_" << d;
-            X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            const std::string& file_name = libmesh_restart_file_name(
+                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            equation_systems->read(file_name, libMeshEnums::READ);
         }
-
-        System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        else
         {
-            std::ostringstream os;
-            os << "dX_" << d;
-            dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
+            System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "X_" << d;
+                X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
 
-        System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "U_" << d;
-            U_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
+            System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "dX_" << d;
+                dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
 
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "F_" << d;
-            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "U_" << d;
+                U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
+
+            System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "F_" << d;
+                F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
         }
     }
     d_fe_equation_systems_initialized = true;
@@ -784,12 +811,20 @@ void IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     initializeFEEquationSystems();
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems* equation_systems = d_equation_systems[part];
-        equation_systems->init();
-        initializeCoordinates(part);
+        if (from_restart)
+        {
+            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
+        }
+        else
+        {
+            equation_systems->init();
+            initializeCoordinates(part);
+        }
         updateCoordinateMapping(part);
 
         // Assemble systems.
@@ -869,6 +904,7 @@ void IBFEMethod::initializeFEData()
                 }
             }
         }
+        equation_systems->reinit();
     }
     d_fe_data_initialized = true;
     return;
@@ -999,6 +1035,7 @@ void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_h
 void IBFEMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
+    db->putInteger("d_num_parts", d_num_parts);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
     db->putBool("d_split_normal_force", d_split_normal_force);
     db->putBool("d_split_tangential_force", d_split_tangential_force);
@@ -1010,6 +1047,17 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
 } // putToDatabase
+
+void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        const std::string& file_name =
+            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        d_equation_systems[part]->write(file_name, libMeshEnums::WRITE);
+    }
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2234,7 +2282,9 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
                                    Pointer<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
-                                   bool register_for_restart)
+                                   bool register_for_restart,
+                                   const std::string& restart_read_dirname,
+                                   unsigned int restart_restore_number)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -2244,6 +2294,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
         d_registered_for_restart = true;
     }
+    d_libmesh_restart_read_dir = restart_read_dirname;
+    d_libmesh_restart_restore_number = restart_restore_number;
 
     // Store the mesh pointers.
     d_meshes = meshes;
@@ -2306,8 +2358,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
+                                    "or only SECOND order elements" << std::endl);
     }
     if (mesh_has_first_order_elems)
     {
@@ -2438,6 +2489,16 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+
+    // Restart settings.
+    if (db->isString("libmesh_restart_file_extension"))
+    {
+        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
+    }
+    else
+    {
+        d_libmesh_restart_file_extension = "xdr";
+    }
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))

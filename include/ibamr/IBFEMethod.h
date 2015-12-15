@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
 #include <stdbool.h>
 #include <stddef.h>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -117,7 +117,9 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
-               bool register_for_restart = true);
+               bool register_for_restart = true,
+               const std::string& restart_read_dirname = "",
+               unsigned int restart_restore_number = 0);
 
     /*!
      * \brief Constructor.
@@ -126,7 +128,9 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
-               bool register_for_restart = true);
+               bool register_for_restart = true,
+               const std::string& restart_read_dirname = "",
+               unsigned int restart_restore_number = 0);
 
     /*!
      * \brief Destructor.
@@ -490,6 +494,11 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*!
+     * Write the equation_systems data to a restart file in the specified directory.
+     */
+    void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
+
 protected:
     /*
      * \brief Compute the stress normalization field Phi.
@@ -637,6 +646,17 @@ protected:
      */
     bool d_registered_for_restart;
 
+    /*
+     * Directory and time step number to use when restarting.
+     */
+    std::string d_libmesh_restart_read_dir;
+    int d_libmesh_restart_restore_number;
+
+    /*
+     * Restart file type for libMesh equation systems (e.g. xda or xdr).
+     */
+    std::string d_libmesh_restart_file_extension;
+
 private:
     /*!
      * \brief Default constructor.
@@ -672,7 +692,9 @@ private:
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
-                           bool register_for_restart);
+                           bool register_for_restart,
+                           const std::string& restart_read_dirname,
+                           unsigned int restart_restore_number);
 
     /*!
      * Read input values from a given database.

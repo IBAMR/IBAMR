@@ -45,6 +45,7 @@
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/gmv_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 
@@ -138,10 +139,14 @@ int main(int argc, char* argv[])
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
+        const bool uses_gmv = dump_viz_data && !app_initializer->getGMVFilename().empty();
+        const string gmv_filename = app_initializer->getGMVFilename();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -222,7 +227,8 @@ int main(int argc, char* argv[])
         }
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                           /*register_for_restart*/ true, restart_read_dirname, restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
             navier_stokes_integrator);
@@ -309,6 +315,7 @@ int main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        AutoPtr<GMVIO> gmv_io(uses_gmv ? new GMVIO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -336,6 +343,12 @@ int main(int argc, char* argv[])
             {
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                           loop_time);
+            }
+            if (uses_gmv)
+            {
+                std::ostringstream file_name;
+                file_name << gmv_filename + "_" << std::setw(6) << std::setfill('0') << std::right << iteration_num;
+                gmv_io->write_equation_systems(file_name.str() + ".gmv", *equation_systems);
             }
         }
 
@@ -380,11 +393,18 @@ int main(int argc, char* argv[])
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
                                               loop_time);
                 }
+                if (uses_gmv)
+                {
+                    std::ostringstream file_name;
+                    file_name << gmv_filename + "_" << std::setw(6) << std::setfill('0') << std::right << iteration_num;
+                    gmv_io->write_equation_systems(file_name.str() + ".gmv", *equation_systems);
+                }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
