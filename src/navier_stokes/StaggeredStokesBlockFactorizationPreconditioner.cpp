@@ -131,6 +131,10 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
         {
             d_factorization_type = SYMMETRIC;
         }
+        else if (factorization_type_string == "DIAGONAL")
+        {
+            d_factorization_type = DIAGONAL;
+        }
         else
         {
             TBOX_ERROR("unsupported factorization type: " << factorization_type_string << "\n");
@@ -288,6 +292,11 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
                               d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
         solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ true);
+        break;
+
+    case DIAGONAL:
+        solveVelocitySubsystem(*U_vec, *F_U_vec, /*initial_guess_nonzero*/ false);
+        solvePressureSubsystem(*P_vec, *F_P_vec, /*initial_guess_nonzero*/ false);
         break;
 
     default:

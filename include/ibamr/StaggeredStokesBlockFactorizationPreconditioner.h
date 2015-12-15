@@ -73,7 +73,8 @@ public:
     {
         LOWER_TRIANGULAR,
         UPPER_TRIANGULAR,
-        SYMMETRIC
+        SYMMETRIC,
+        DIAGONAL
     };
 
     /*!
