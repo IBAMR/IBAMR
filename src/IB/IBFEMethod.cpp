@@ -2205,7 +2205,7 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     }
     else
     {
-        d_libmesh_restart_file_extension = "xdr";
+        d_libmesh_restart_file_extension = "xda";
     }
 
     // Other settings.
