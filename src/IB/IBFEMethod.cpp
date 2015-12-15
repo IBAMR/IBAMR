@@ -766,7 +766,10 @@ void IBFEMethod::initializeFEEquationSystems()
         {
             const std::string& file_name = libmesh_restart_file_name(
                 d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
-            equation_systems->read(file_name, libMeshEnums::READ);
+            const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
+            const int read_mode =
+                EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA;
+            equation_systems->read(file_name, xdr_mode, read_mode, /*partition_agnostic*/ true);
         }
         else
         {
@@ -1054,7 +1057,9 @@ void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
     {
         const std::string& file_name =
             libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
-        d_equation_systems[part]->write(file_name, libMeshEnums::WRITE);
+        const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
+        const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
+        d_equation_systems[part]->write(file_name, xdr_mode, write_mode, /*partition_agnostic*/ true);
     }
     return;
 }
