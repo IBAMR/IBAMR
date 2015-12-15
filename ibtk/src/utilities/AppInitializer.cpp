@@ -136,114 +136,88 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Configure visualization options.
+    std::string viz_dump_interval_key_name;
     if (main_db->keyExists("viz_interval"))
     {
-        d_viz_dump_interval = main_db->getInteger("viz_interval");
-        if (d_viz_dump_interval > 0)
-        {
-            if (main_db->keyExists("viz_dirname"))
-            {
-                d_viz_dump_dirname = main_db->getString("viz_dirname");
-                if (d_viz_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): viz_interval > 0, but "
-                            "`viz_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): viz_interval > 0, but key "
-                        "`viz_dirname' not specifed in input file\n";
-            }
-        }
+        viz_dump_interval_key_name = "viz_interval";
+    }
+    else if (main_db->keyExists("viz_dump_interval"))
+    {
+        viz_dump_interval_key_name = "viz_dump_interval";
     }
     else if (main_db->keyExists("viz_write_interval"))
     {
-        d_viz_dump_interval = main_db->getInteger("viz_write_interval");
-        if (d_viz_dump_interval > 0)
+        viz_dump_interval_key_name = "viz_write_interval";
+    }
+
+    std::string viz_dump_dirname_key_name;
+    if (main_db->keyExists("viz_dirname"))
+    {
+        viz_dump_dirname_key_name = "viz_dirname";
+    }
+    else if (main_db->keyExists("viz_dump_dirname"))
+    {
+        viz_dump_dirname_key_name = "viz_dump_dirname";
+    }
+    else if (main_db->keyExists("viz_write_dirname"))
+    {
+        viz_dump_dirname_key_name = "viz_write_dirname";
+    }
+
+    if (!viz_dump_interval_key_name.empty())
+    {
+        d_viz_dump_interval = main_db->getInteger(viz_dump_interval_key_name);
+        if (!viz_dump_dirname_key_name.empty())
         {
-            if (main_db->keyExists("viz_write_dirname"))
+            d_viz_dump_dirname = main_db->getString(viz_dump_dirname_key_name);
+            if (d_viz_dump_dirname.empty())
             {
-                d_viz_dump_dirname = main_db->getString("viz_write_dirname");
-                if (d_viz_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): viz_write_interval > "
-                            "0, "
-                            "but `viz_write_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): viz_write_interval > 0, "
-                        "but "
-                        "key `viz_write_dirname' not specifed in input file\n";
+                pout << "WARNING: AppInitializer::AppInitializer(): " << viz_dump_interval_key_name << " > 0, but `"
+                     << d_viz_dump_dirname << "' is empty\n";
             }
         }
-    }
-    else
-    {
-        if (main_db->keyExists("viz_dump_interval")) d_viz_dump_interval = main_db->getInteger("viz_dump_interval");
-        if (d_viz_dump_interval > 0)
+        else
         {
-            if (main_db->keyExists("viz_dump_dirname"))
-            {
-                d_viz_dump_dirname = main_db->getString("viz_dump_dirname");
-                if (d_viz_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): viz_dump_interval > "
-                            "0, but "
-                            "`viz_dump_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): viz_dump_interval > 0, "
-                        "but key "
-                        "`viz_dump_dirname' not specifed in input file\n";
-            }
+            pout << "WARNING: AppInitializer::AppInitializer(): " << viz_dump_interval_key_name
+                 << " > 0, but `viz_dump_dirname' is not specified in input file\n";
         }
     }
 
+    std::string viz_writers_key_name;
     Array<std::string> viz_writers_arr;
     if (main_db->keyExists("viz_writer"))
     {
-        viz_writers_arr = main_db->getStringArray("viz_writer");
+        viz_writers_key_name = "viz_writer";
     }
     else if (main_db->keyExists("viz_writers"))
     {
-        viz_writers_arr = main_db->getStringArray("viz_writers");
+        viz_writers_key_name = "viz_writers";
     }
+    viz_writers_arr = main_db->getStringArray(viz_writers_key_name);
     if (viz_writers_arr.size() > 0)
     {
         d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
                                                  viz_writers_arr.getPointer() + viz_writers_arr.size());
     }
+
     if (d_viz_dump_interval == 0 && d_viz_writers.size() > 0)
     {
-        if (main_db->keyExists("viz_dirname"))
+        if (main_db->keyExists(viz_dump_dirname_key_name))
         {
-            d_viz_dump_dirname = main_db->getString("viz_dirname");
+            d_viz_dump_dirname = main_db->getString(viz_dump_dirname_key_name);
             if (d_viz_dump_dirname.empty())
             {
-                pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but "
-                        "`viz_dirname' is empty\n";
-            }
-        }
-        else if (main_db->keyExists("viz_dump_dirname"))
-        {
-            d_viz_dump_dirname = main_db->getString("viz_dump_dirname");
-            if (d_viz_dump_dirname.empty())
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but "
-                        "`viz_dump_dirname' is empty\n";
+                pout << "WARNING: AppInitializer::AppInitializer(): `" << viz_writers_key_name << "' is set, but `"
+                     << viz_dump_dirname_key_name << "' is empty\n";
             }
         }
         else
         {
-            pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but key "
-                    "`viz_dump_dirname' not specifed in input file\n";
+            pout << "WARNING: AppInitializer::AppInitializer(): `" << viz_writers_key_name
+                 << "' is set, but key `viz_dump_dirname' not specifed in input file\n";
         }
     }
+
     for (unsigned int i = 0; i < d_viz_writers.size(); i++)
     {
         if (d_viz_writers[i] == "VisIt")
@@ -280,157 +254,119 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Configure restart options.
+    std::string restart_dump_interval_key_name;
     if (main_db->keyExists("restart_interval"))
     {
-        d_restart_dump_interval = main_db->getInteger("restart_interval");
-        if (d_restart_dump_interval > 0)
-        {
-            if (main_db->keyExists("restart_dirname"))
-            {
-                d_restart_dump_dirname = main_db->getString("restart_dirname");
-                if (d_restart_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): restart_interval > 0, "
-                            "but "
-                            "`restart_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): restart_interval > 0, but "
-                        "key "
-                        "`restart_dirname' not specifed in input file\n";
-            }
-        }
-    }
-    else if (main_db->keyExists("restart_write_interval"))
-    {
-        d_restart_dump_interval = main_db->getInteger("restart_write_interval");
-        if (d_restart_dump_interval > 0)
-        {
-            if (main_db->keyExists("restart_write_dirname"))
-            {
-                d_restart_dump_dirname = main_db->getString("restart_write_dirname");
-                if (d_restart_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): "
-                            "restart_write_interval > "
-                            "0, but `restart_write_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): restart_write_interval > "
-                        "0, "
-                        "but key `restart_write_dirname' not specifed in input file\n";
-            }
-        }
+        restart_dump_interval_key_name = "restart_interval";
     }
     else if (main_db->keyExists("restart_dump_interval"))
     {
-        d_restart_dump_interval = main_db->getInteger("restart_dump_interval");
-        if (d_restart_dump_interval > 0)
+        restart_dump_interval_key_name = "restart_dump_interval";
+    }
+    else if (main_db->keyExists("restart_write_interval"))
+    {
+        restart_dump_interval_key_name = "restart_write_interval";
+    }
+
+    std::string restart_dump_dirname_key_name;
+    if (main_db->keyExists("restart_dirname"))
+    {
+        restart_dump_dirname_key_name = "restart_dirname";
+    }
+    else if (main_db->keyExists("restart_dump_dirname"))
+    {
+        restart_dump_dirname_key_name = "restart_dump_dirname";
+    }
+    else if (main_db->keyExists("restart_write_dirname"))
+    {
+        restart_dump_dirname_key_name = "restart_write_dirname";
+    }
+
+    if (!restart_dump_interval_key_name.empty())
+    {
+        d_restart_dump_interval = main_db->getInteger(restart_dump_interval_key_name);
+        if (!restart_dump_dirname_key_name.empty())
         {
-            if (main_db->keyExists("restart_dump_dirname"))
+            d_restart_dump_dirname = main_db->getString(restart_dump_dirname_key_name);
+            if (d_restart_dump_dirname.empty())
             {
-                d_restart_dump_dirname = main_db->getString("restart_dump_dirname");
-                if (d_restart_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): restart_dump_interval "
-                            "> 0, "
-                            "but `restart_dump_dirname' is empty\n";
-                }
+                pout << "WARNING: AppInitializer::AppInitializer(): " << restart_dump_interval_key_name << " > 0, but `"
+                     << d_restart_dump_dirname << "' is empty\n";
             }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): restart_dump_interval > "
-                        "0, but "
-                        "key `restart_dump_dirname' not specifed in input file\n";
-            }
+        }
+        else
+        {
+            pout << "WARNING: AppInitializer::AppInitializer(): " << restart_dump_interval_key_name
+                 << " > 0, but `restart_dump_dirname' is not specified in input file\n";
         }
     }
 
     // Configure post-processing data output options.
+    std::string data_dump_interval_key_name;
     if (main_db->keyExists("data_interval"))
     {
-        d_data_dump_interval = main_db->getInteger("data_interval");
-        if (d_data_dump_interval > 0)
-        {
-            if (main_db->keyExists("data_dirname"))
-            {
-                d_data_dump_dirname = main_db->getString("data_dirname");
-                if (d_data_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but "
-                            "`data_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but key "
-                        "`data_dirname' not specifed in input file\n";
-            }
-        }
-    }
-    else if (main_db->keyExists("data_write_interval"))
-    {
-        d_data_dump_interval = main_db->getInteger("data_write_interval");
-        if (d_data_dump_interval > 0)
-        {
-            if (main_db->keyExists("data_write_dirname"))
-            {
-                d_data_dump_dirname = main_db->getString("data_write_dirname");
-                if (d_data_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): data_write_interval > "
-                            "0, "
-                            "but `data_write_dirname' is empty\n";
-                }
-            }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): data_write_interval > 0, "
-                        "but "
-                        "key `data_write_dirname' not specifed in input file\n";
-            }
-        }
+        data_dump_interval_key_name = "data_interval";
     }
     else if (main_db->keyExists("data_dump_interval"))
     {
-        d_data_dump_interval = main_db->getInteger("data_dump_interval");
-        if (d_data_dump_interval > 0)
+        data_dump_interval_key_name = "data_dump_interval";
+    }
+    else if (main_db->keyExists("data_write_interval"))
+    {
+        data_dump_interval_key_name = "data_write_interval";
+    }
+
+    std::string data_dump_dirname_key_name;
+    if (main_db->keyExists("data_dirname"))
+    {
+        data_dump_dirname_key_name = "data_dirname";
+    }
+    else if (main_db->keyExists("data_dump_dirname"))
+    {
+        data_dump_dirname_key_name = "data_dump_dirname";
+    }
+    else if (main_db->keyExists("data_write_dirname"))
+    {
+        data_dump_dirname_key_name = "data_write_dirname";
+    }
+
+    if (!data_dump_interval_key_name.empty())
+    {
+        d_data_dump_interval = main_db->getInteger(data_dump_interval_key_name);
+        if (!data_dump_dirname_key_name.empty())
         {
-            if (main_db->keyExists("data_dump_dirname"))
+            d_data_dump_dirname = main_db->getString(data_dump_dirname_key_name);
+            if (d_data_dump_dirname.empty())
             {
-                d_data_dump_dirname = main_db->getString("data_dump_dirname");
-                if (d_data_dump_dirname.empty())
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): data_dump_interval > "
-                            "0, "
-                            "but `data_dump_dirname' is empty\n";
-                }
+                pout << "WARNING: AppInitializer::AppInitializer(): " << data_dump_interval_key_name << " > 0, but `"
+                     << d_data_dump_dirname << "' is empty\n";
             }
-            else
-            {
-                pout << "WARNING: AppInitializer::AppInitializer(): data_dump_interval > 0, "
-                        "but "
-                        "key `data_dump_dirname' not specifed in input file\n";
-            }
+        }
+        else
+        {
+            pout << "WARNING: AppInitializer::AppInitializer(): " << data_dump_interval_key_name
+                 << " > 0, but `data_dump_dirname' is not specified in input file\n";
         }
     }
 
     // Configure timer options.
+    std::string timer_dump_interval_key_name;
     if (main_db->keyExists("timer_interval"))
     {
-        d_timer_dump_interval = main_db->getInteger("timer_interval");
-    }
-    else if (main_db->keyExists("timer_write_interval"))
-    {
-        d_timer_dump_interval = main_db->getInteger("timer_write_interval");
+        timer_dump_interval_key_name = "timer_interval";
     }
     else if (main_db->keyExists("timer_dump_interval"))
     {
-        d_timer_dump_interval = main_db->getInteger("timer_dump_interval");
+        timer_dump_interval_key_name = "timer_dump_interval";
+    }
+    else if (main_db->keyExists("timer_write_interval"))
+    {
+        timer_dump_interval_key_name = "timer_write_interval";
+    }
+
+    if (!timer_dump_interval_key_name.empty())
+    {
+        d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
     }
 
     if (d_timer_dump_interval > 0)
@@ -442,8 +378,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
         else
         {
-            pout << "WARNING: AppInitializer::AppInitializer(): timer_dump_interval > 0, but "
-                    "`TimerManager' input entries not specifed in input file\n";
+            pout << "WARNING: AppInitializer::AppInitializer(): " << timer_dump_interval_key_name
+                 << " > 0, but `TimerManager' input entries not specifed in input file\n";
         }
         TimerManager::createManager(timer_manager_db);
     }
