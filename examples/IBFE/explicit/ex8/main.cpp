@@ -475,6 +475,7 @@ int main(int argc, char* argv[])
         ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);
 
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* block1_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* block2_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
         EquationSystems* beam_equation_systems = ib_method_ops->getFEDataManager(2)->getEquationSystems();

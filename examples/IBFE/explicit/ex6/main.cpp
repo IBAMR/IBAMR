@@ -304,6 +304,7 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 1);
         ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 1);
 
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 

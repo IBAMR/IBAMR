@@ -304,6 +304,7 @@ int main(int argc, char* argv[])
         ib_method_ops->registerLagBodyForceFunction(upper_tether_force_data, 1);
         ib_method_ops->registerPK1StressFunction(upper_PK1_stress_data, 1);
 
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* upper_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 

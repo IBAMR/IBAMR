@@ -281,10 +281,11 @@ int main(int argc, char* argv[])
         {
             ib_method_ops->registerStressNormalizationPart();
         }
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up post processor to recover computed stresses.
-        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        ib_method_ops->initializeFEEquationSystems();
         Pointer<IBFEPostProcessor> ib_post_processor;
 #if 0
         Pointer<IBFEPostProcessor> ib_post_processor =

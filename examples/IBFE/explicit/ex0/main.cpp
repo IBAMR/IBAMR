@@ -228,6 +228,7 @@ int main(int argc, char* argv[])
                                         error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
+        ib_method_ops->initializeFEEquationSystems();
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->registerPK1StressFunction(PK1_stress_function);
