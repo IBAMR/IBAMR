@@ -2,16 +2,6 @@
 //shells with active slip - SQUIMER
 //shell with applied random force and torque  - RANDOM_FORCE
 
-petsc_options_file = "PetscOptions.dat"
-
-run_example = "SQUIMER"
-B1_squimer  = 1.0
-B2_squimer  = 0.0
-
-
-//run_example = "RANDOM_FORCE"
-DRAG_SCALE    = 1.0
-TORQUE_SCALE  = 1.0
 
 // physical parameters
 MU  =  1.0                   // fluid viscosity
@@ -20,7 +10,7 @@ RHO =  0.0                   // fluid density
 // constants
 PI         = 3.141592653589
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL     = 0.0 // Wall velocity
+U_WALL = 0.0 // Wall velocity
 
 // BCs
 PERIODIC            = 1
@@ -32,19 +22,19 @@ N = 64               // number of grid cells along height of domain
 PATCH_SIZE = N       // max patch size
 DX = 0.5             // grid spacing
 L = N*DX             // length of domain
-DT = 1e-16//0.01            // maximum timestep size
+DT = 0.1            // maximum timestep size
 
 // solver parameters
 SOLVER_KSP = "fgmres"
 STOKES_KSP = "gmres"
 STOKES_ITER = 2
-STOKES_TOL = 1.0e-9         // Stokes' solver tolerance
+STOKES_TOL = 1.0e-3         // Stokes' solver tolerance
 SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 RECOMPUTE_MOB = FALSE
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT*3                   // final simulation time
+END_TIME             = DT*1                  // final simulation time
 GROW_DT              = 1.0e0                 // growth factor for timesteps
 NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
@@ -53,7 +43,7 @@ ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for expl
 CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"    // convective time stepping type used in INS solver
 CONVECTIVE_OP_TYPE  = "PPM"             // convective differencing discretization type; used in both INS and Adv-Diff solver
 CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 0.5                    // maximum CFL number
+CFL_MAX             = 10.5                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
@@ -71,6 +61,7 @@ MAX_LEVELS = 1                            // maximum number of levels in locally
 REF_RATIO  = 4                            // refinement ratio between levels
 
 IBHierarchyIntegrator {
+   delta_fcn           = DELTA_FUNCTION
    start_time          = START_TIME
    end_time            = END_TIME
    grow_dt             = GROW_DT
@@ -103,16 +94,61 @@ CIBStandardInitializer {
     
    shell_3d_42{
       level_number             = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
+      
+      //see README file for explantion
+      structs_clones_velocity_constraints =  "none" //"none", "uniform", "file", "shell"
+      uniform_free_dofs = 0, 0, 0, 0, 0, 0
+      uniform_velocity_constraint_function 
+      {
+	vel_dof_0 = "0.0"
+        vel_dof_1 = "0.0"
+        vel_dof_2 = "0.0"   
+        vel_dof_3 = "1.0"   
+        vel_dof_4 = "0.0"
+        vel_dof_5 = "0.0"   //non imposed dofs are ignored
+       }
+       
+       structs_clones_external_force = "uniform" //"none", "uniform", "file", "random"
+       uniform_body_force_torque_function{
+	function_dof_0 = "1.0"
+	function_dof_1 = "0.0"
+	function_dof_2 = "0.0"
+	function_dof_3 = "0.0"
+	function_dof_4 = "0.0"
+	function_dof_5 = "0.0"
+       }
+       
+       random_external_force_scaling = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+      
    }
 
    shell_3d_162{
       level_number             = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
-   }
-    shell_3d_642{
-      level_number             = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
+            //see README file for explantion
+      structs_clones_velocity_constraints =  "none" //"none", "uniform", "file", "shell"
+      uniform_free_dofs = 0, 0, 0, 0, 0, 0
+      uniform_velocity_constraint_function 
+      {
+	vel_dof_0 = "1.0"
+        vel_dof_1 = "0.0"
+        vel_dof_2 = "0.0"   
+        vel_dof_3 = "0.0"   
+        vel_dof_4 = "0.0"
+        vel_dof_5 = "0.0"   //non imposed dofs are ignored
+       }
+       
+       structs_clones_external_force = "file" //"none", "uniform", "file", "random"
+       uniform_body_force_torque_function{
+	function_dof_0 = "0.0"
+	function_dof_1 = "0.0"
+	function_dof_2 = "0.0"
+	function_dof_3 = "0.0"
+	function_dof_4 = "0.0"
+	function_dof_5 = "0.0"
+       }
+       
+       random_external_force_scaling = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+
    }
 }
 

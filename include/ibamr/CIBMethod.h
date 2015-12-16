@@ -42,6 +42,11 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
+namespace mu
+{
+  class Parser;
+}// namespace mu
+
 namespace IBTK
 {
 class HierarchyMathsOps;
@@ -92,12 +97,12 @@ public:
                                                    void* ctx,
 						   IBAMR::CIBMethod* cib_method);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
+    typedef void (*ConstrainedCOMVelocityFcnPtr)(unsigned part, double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
 
     /*!
      * \brief Typedef specifying interface for specifying net external force and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
+    typedef void (*ExternalForceTorqueFcnPtr)(unsigned part, double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
 
     /*!
      * \brief Callbacks before INS is integrated.
@@ -500,6 +505,21 @@ private:
      */
     void setInitialLambda(const int level_number);
 
+   /*!
+     * \brief muParse function of clones constrained COM velocity.
+     */
+    virtual void  defaultConstrainedCOMVel(unsigned part, double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
+
+    /*!
+     * \brief muParse function external clones body force .
+     */
+    virtual void  defaultNetExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext);
+
+    /*!
+     * \brief random external body force
+     */
+    virtual void  randomExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext);
+
     /*!
      * \brief pointer to CIBStandartInitializer.
      */
@@ -569,6 +589,10 @@ private:
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
     VelocityDeformationFunctionPtr d_VelDefFun;
+
+    std::vector<std::vector<mu::Parser*> > d_comvel_constraint_parsers;
+    std::vector<std::vector<mu::Parser*> > d_ext_force_parsers;
+    std::vector<std::vector<double> >  d_random_force_scaling;
 
     // velocity boundary coefficients
     // vector<RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;

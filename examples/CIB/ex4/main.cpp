@@ -68,14 +68,6 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-// Center of mass velocity
-void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
-{
-    U_com.setZero();
-    W_com.setZero();
-    return;
-} // ConstrainedCOMInnerVel
-
 static double B1,B2;
 void SlipVelocity(Vec W,  Vec X, 
 		  const std::vector<Eigen::Vector3d>& Xin_com, CIBMethod* cib_method)
@@ -123,17 +115,6 @@ void SlipVelocity(Vec W,  Vec X,
     return;
 }
 
-void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
-{
-    double F[NDIM], T[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
-    for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
-
-    F_ext << B1*(F[0]-0.5), B1*(F[1]-0.5), B1*(F[2]-0.5);
-    T_ext << B2*(T[0]-0.5), B2*(T[1]-0.5), B2*(T[2]-0.5);
-
-    return;
-} // NetExternalForceTorque
 
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  LDataManager* l_data_manager,
@@ -155,7 +136,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscErrorCode ierr;
+    //PetscErrorCode ierr;
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
@@ -176,8 +157,8 @@ int main(int argc, char* argv[])
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 	
 	// Read default Petsc options
-	std::string PetscOptionsFile = input_db->getStringWithDefault("petsc_options_file", "");
-	ierr = PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);CHKERRQ(ierr);
+//	std::string PetscOptionsFile = input_db->getStringWithDefault("Petsc_options_file", "");
+//	ierr = PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);CHKERRQ(ierr);
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -255,46 +236,6 @@ int main(int argc, char* argv[])
             "CIBStandardInitializer", app_initializer->getComponentDatabase("CIBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
 	ib_method_ops->registerStandardInitializer(ib_initializer);
-
-        std::string example_to_run = input_db->getString("run_example");
-	if (example_to_run=="SQUIMER")
-	{
-	    //Read  constants B1 and B2 for active slip
-	    B1=input_db->getDouble("B1_squimer");
-	    B2=input_db->getDouble("B2_squimer");
-	}
-	else if (example_to_run=="RANDOM_FORCE")
-	{
-	    //Read  constants B1 and B2 for active slip
-	    B1=input_db->getDouble("DRAG_SCALE");
-	    B2=input_db->getDouble("TORQUE_SCALE");
-	} else
-	{
-	    TBOX_ERROR("Only two possible examples SQUIMER or RANDOM_FORCE" << std::endl);
-	}
-
-        // Specify kinematics os a suspension as all free moving structures
-	for(unsigned i=0;i<num_structures;i++)
-	{
-	    FreeRigidDOFVector free_dofs;
-	    free_dofs << 1, 1, 1, 1, 1, 1;
-//	    free_dofs << 0, 0, 0, 0, 0, 0;
-	    ib_method_ops->setSolveRigidBodyVelocity(i, free_dofs);
-	    //Register slip velocity function for saddle point solver RHS 
-	    //register slip velocity function
-	    if (example_to_run=="SQUIMER")
-	    {
-//			ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, i);
-
-		ib_method_ops->registerRigidBodyVelocityDeformationFunction(&SlipVelocity);
- 		//ib_method_ops->registerConstrainedVelocityFunction(&SlipVelocity, NULL, NULL, i);
-	    }
-	    else if (example_to_run=="RANDOM_FORCE")
-	    {
-		ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, NULL, i);
-	    }
-	}
-
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(

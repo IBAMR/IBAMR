@@ -52,6 +52,7 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+#include "ibamr/ibamr_enums.h"
 
 namespace IBTK
 {
@@ -426,6 +427,7 @@ namespace IBAMR
  ...
  \endverbatim
 */
+
 class CIBStandardInitializer : public IBTK::LInitStrategy
 {
 public:
@@ -571,13 +573,20 @@ Eigen::Vector3d getInitialCOMStructure(const int level_number, const int structI
      * \return The initial orientation of the specified structure.
      */
 Eigen::Quaterniond* getStructureQuaternion(const int level_number, const int structID);
-
     /*!
      * \brief set rigid part clones parameters
      */
-void getClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num);
+void getClonesParameters(int& num_structs_types, 
+			 std::vector<int >& structs_clones_num,
+			 std::vector<StructureClonesInputOptions>&   clones_velocity_constriants_type,
+			 std::vector<StructureClonesInputOptions>&   clones_external_force_type,
+			 std::vector<std::vector<int> >&  clones_free_dofs,
+			 std::vector<std::vector<std::string> >&  VelMuParseStrings,
+			 std::vector<std::vector<std::string> >&  ForceMuParseStrings,
+			 std::vector<std::vector<double> >&  d_random_force_scaling);
 
 protected:
+
 private:
     /*!
      * \brief Default constructor.
@@ -989,6 +998,11 @@ private:
     std::vector<std::vector<Eigen::Vector3d > > d_X_com;
     std::vector<std::vector <int> > d_struct_prototype_map;
 
+    std::vector<StructureClonesInputOptions>   d_clones_velocity_constraints;
+    std::vector<StructureClonesInputOptions>   d_clones_external_force;
+    std::vector<std::vector<int> >  d_uniform_clones_free_dofs;
+    std::vector<std::vector<double> >  d_random_force_scaling;
+    std::vector<std::vector<std::string> >  d_constraint_velocity_strings,  d_external_force_strings;
 };
 } // namespace IBAMR
 

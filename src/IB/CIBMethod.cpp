@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "muParser.h"
 #include "IBAMR_config.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "ibamr/CIBMethod.h"
@@ -46,6 +47,7 @@
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
+#include <ibamr/RNG.h>
 
 namespace IBAMR
 {
@@ -73,6 +75,8 @@ void getRPYMobilityMatrix(const char* kernel_name,
                           double* mm);
 }
 
+static std::vector<StructureClonesInputOptions>   velocity_constraint_type;
+static std::vector<StructureClonesInputOptions>   external_force_type;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(const std::string& object_name,
@@ -95,6 +99,9 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_lambda_filename.resize(d_num_rigid_parts);
     d_reg_filename.resize(d_num_rigid_parts);
+    d_comvel_constraint_parsers.resize(d_num_rigid_parts);
+    d_ext_force_parsers.resize(d_num_rigid_parts);
+    d_random_force_scaling.resize(d_num_rigid_parts);
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -234,13 +241,41 @@ void CIBMethod::registerEulerianCommunicationAlgorithms()
 
 void CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
+
+    const double start_time = d_ib_solver->getStartTime();
+    const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
+    if (initial_time)
+    {
+	Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+	const double* const domain_x_lower = grid_geom->getXLower();
+	const double* const domain_x_upper = grid_geom->getXUpper();  
+	double domain_length[NDIM];
+	for (int d = 0; d < NDIM; ++d)
+	{
+	    domain_length[d] = domain_x_upper[d]-domain_x_lower[d];
+	}
+	//const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+	const int struct_ln = getStructuresLevelNumber();
+
+	for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+	{
+	    d_center_of_mass_current[struct_no] = getStandardInitializer()->getInitialCOMStructure(struct_ln,struct_no);
+
+	    for (unsigned int d = 0; d < NDIM; ++d) 
+	    { 
+		while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d]) d_center_of_mass_current[struct_no][d] += domain_length[d];
+		while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d]) d_center_of_mass_current[struct_no][d] -= domain_length[d];
+	    }
+	}
+	    
+    }
+    
+    d_quaternion_half = d_quaternion_current; 
+
+    d_time_integrator_needs_regrid = false;
+
 
     // Get data for free and prescribed bodies.
     std::vector<PetscInt> indices;
@@ -254,15 +289,26 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
         const bool prescribed_velocity = num_free_dofs < s_max_free_dofs;
         if (prescribed_velocity)
         {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(d_constrained_velocity_fcns_data[part].comvelfcn);
-#endif
+            if ((velocity_constraint_type[part] == cln_shell) && !d_constrained_velocity_fcns_data[part].comvelfcn)
+	    {
+		TBOX_ERROR("CIBMethod:: type shell is set for velocity contraint for structure "<<part << " but function is not registered." << std::endl);
+	    };
+
             Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new, rot_vel_current, rot_vel_half,
                 rot_vel_new;
+	    if ((velocity_constraint_type[part] == cln_uniform) || (velocity_constraint_type[part] == cln_file)) 
+	    {
+		defaultConstrainedCOMVel(part, d_current_time, trans_vel_current, rot_vel_current);
+		defaultConstrainedCOMVel(part, d_half_time, trans_vel_half, rot_vel_half);
+		defaultConstrainedCOMVel(part, d_new_time, trans_vel_new, rot_vel_new);
+	    }  
+	    else  
+	    {
+		d_constrained_velocity_fcns_data[part].comvelfcn(part, d_current_time, trans_vel_current, rot_vel_current);
+		d_constrained_velocity_fcns_data[part].comvelfcn(part, d_half_time, trans_vel_half, rot_vel_half);
+		d_constrained_velocity_fcns_data[part].comvelfcn(part, d_new_time, trans_vel_new, rot_vel_new);
+	    } 
 
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, trans_vel_current, rot_vel_current);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, trans_vel_half, rot_vel_half);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, trans_vel_new, rot_vel_new);
 
             // Update only prescribed velocities in the internal data structure.
             for (int d = 0; d < NDIM; ++d)
@@ -302,9 +348,16 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 		// For U we use current timestep value as a guess.
 		RDV Fr;
 		Eigen::Vector3d F_ext, T_ext;
-		if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
+		if ((external_force_type[part]==cln_shell) && d_ext_force_torque_fcn_data[part].forcetorquefcn)
 		{
-		    d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
+		    d_ext_force_torque_fcn_data[part].forcetorquefcn(part, d_new_time, F_ext, T_ext);
+		}	   
+		else if ((external_force_type[part] == cln_uniform) || (external_force_type[part] == cln_file)) 
+		{
+		    defaultNetExternalForceTorque(part, d_current_time, F_ext, T_ext);
+		}else if(external_force_type[part] == cln_random) 
+		{
+		    randomExternalForceTorque(part, d_current_time, F_ext, T_ext);
 		}
 		else
 		{
@@ -346,57 +399,11 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
     VecAssemblyBegin(d_mv_F);
     VecAssemblyEnd(d_mv_F);
 
-    const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
-    if (initial_time)
-    {
-	Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-	const double* const domain_x_lower = grid_geom->getXLower();
-	const double* const domain_x_upper = grid_geom->getXUpper();  
-	double domain_length[NDIM];
-	for (int d = 0; d < NDIM; ++d)
-	{
-	    domain_length[d] = domain_x_upper[d]-domain_x_lower[d];
-	}
-	//const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-	const int struct_ln = getStructuresLevelNumber();
-
-	for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-	{
-	    d_center_of_mass_current[struct_no] = getStandardInitializer()->getInitialCOMStructure(struct_ln,struct_no);
-
-	    for (unsigned int d = 0; d < NDIM; ++d) 
-	    { 
-		while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d]) d_center_of_mass_current[struct_no][d] += domain_length[d];
-		while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d]) d_center_of_mass_current[struct_no][d] -= domain_length[d];
-	    }
-	}
-	    
-    }
-
-    d_quaternion_half = d_quaternion_current; 
-
-    d_time_integrator_needs_regrid = false;
-
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:preprocessIntegrateData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
-
     return;
 } // preprocessIntegrateData
 
 void CIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {    
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
     // Compute net rigid generalized force for structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
@@ -505,14 +512,6 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 
     // Do the base class cleanup here.
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:postprocessIntegrateData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
 
     return;
 } // postprocessIntegrateData
@@ -525,11 +524,6 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
                                     Pointer<BasePatchLevel<NDIM> > old_level,
                                     bool allocate_data)
 {
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
     IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
                                   allocate_data);
 
@@ -568,15 +562,6 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         }
     }
 
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:initializeLevelData, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
-
     return;
 } // initializeLevelData
 
@@ -589,11 +574,6 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
                                          double init_data_time,
                                          bool initial_time)
 {
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
     IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
@@ -654,24 +634,7 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
 	    Eigen::Quaterniond* initial_body_quatern = getStandardInitializer()->getStructureQuaternion(struct_ln, i);
 	    d_quaternion_current[i] = (*initial_body_quatern);
 	}
-	
-	// //Copy all quarteninons from StandardInitializer as current 
-	// for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-	//     for(unsigned i=0;i<d_num_rigid_parts;i++)
-	//     {
-	// 	Eigen::Quaterniond* initial_body_quatern = getStandardInitializer()->getStructureQuaternion(ln, i);
-	// 	(*initial_body_quatern) = Eigen::Quaterniond::Identity();
-	//     }
     }
-
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:intializePatchHierarchy, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
 
     return;
 } // initializePatchHierarchy
@@ -739,19 +702,14 @@ void CIBMethod::spreadForce(
 } // spreadForce
 
 void CIBMethod::eulerStep(const double current_time, const double new_time)
-{
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
+{ 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     //   int flag_regrid=0;
 
     // setup the quaternions of structures with rotation angle 0.5*(W^n)*dt.
-     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3,3));
+    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3,3));
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
 	const double vecnorm = d_rot_vel_current[struct_no].norm();
@@ -778,27 +736,29 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
 	domain_length[d] = domain_x_upper[d]-domain_x_lower[d];
     }
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-    
+
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.
     std::vector<Pointer<LData> >* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
+    	if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+    
         boost::multi_array_ref<double, 2>& X_half_array = *((*X_half_data)[ln]->getLocalFormVecArray());
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln); 
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
+    
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+    	
 #if !defined(NDEBUG)
         TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+	for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
@@ -843,25 +803,11 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
 
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:eulerStep, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
-
     return;
 } // eulerStep
 
 void CIBMethod::midpointStep(const double current_time, const double new_time)
 {
-#ifdef TIME_REPORT
-    clock_t end_t=0, start_med=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
     const double dt = new_time - current_time;
     int flag_regrid=0;
 
@@ -960,15 +906,6 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
-
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"    CIBMethod:midpointStep, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
 
     return;
 } // midpointStep
@@ -1685,7 +1622,203 @@ void CIBMethod::constructKinematicMatrix(double* kinematic_mat,
 void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitializer> ib_initializer)
 {
     d_ib_initializer = ib_initializer;
-    d_ib_initializer-> getClonesParameters(d_num_structs_types, d_structs_clones_num);
+    //setting velocity constraint dofs and external forces
+    std::vector<StructureClonesInputOptions>   clones_velocity_constraints;
+    std::vector<StructureClonesInputOptions>   clones_external_force;
+    std::vector<std::vector<int> >  free_dofs;
+    std::vector<std::vector<std::string> >  VelMuParseStrings;
+    std::vector<std::vector<std::string> >  ForceMuParseStrings;
+    std::vector<std::vector<double> >  clones_random_force_scaling;
+    velocity_constraint_type.clear();
+    external_force_type.clear();
+
+    d_ib_initializer-> getClonesParameters(d_num_structs_types, 
+					   d_structs_clones_num, 
+					   clones_velocity_constraints, 
+					   clones_external_force, 
+					   free_dofs, 
+					   VelMuParseStrings, 
+					   ForceMuParseStrings,
+					   clones_random_force_scaling);
+
+    unsigned offset=0, vel_counter=0, force_counter=0;
+    for(int itype=0;itype< d_num_structs_types;itype++)
+    {
+	FreeRigidDOFVector dofs;
+
+	//set velocity constraints for all clones
+	if (clones_velocity_constraints[itype] == cln_uniform)
+	{
+	    std::vector<mu::Parser*> vel_function(s_max_free_dofs,NULL);
+	    for(int d=0; d < s_max_free_dofs; d++) 
+	    {
+		dofs[d] = free_dofs[vel_counter][d];
+		
+		if (!dofs[d])
+		{
+		    vel_function[d] = new mu::Parser();
+		    vel_function[d]->SetExpr(VelMuParseStrings[vel_counter][d]);
+		}
+	    }
+	    for(unsigned int j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    {
+		d_comvel_constraint_parsers[j].resize(s_max_free_dofs,NULL);
+
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		    if (!dofs[d])
+		    {
+			d_comvel_constraint_parsers[j][d] = vel_function[d];
+		    }
+		}
+
+		setSolveRigidBodyVelocity(j, dofs);
+		velocity_constraint_type.push_back(cln_uniform);
+	    }
+	    vel_counter++;
+	} else if (clones_velocity_constraints[itype] == cln_file)
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    { 
+		d_comvel_constraint_parsers[j].resize(s_max_free_dofs,NULL);
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		    dofs[d] = free_dofs[vel_counter][d];
+		    
+		    if (!dofs[d])
+		    {
+			mu::Parser* vel_function = new mu::Parser();
+			vel_function->SetExpr(VelMuParseStrings[vel_counter][d]);
+			d_comvel_constraint_parsers[j][d] = vel_function;
+		    }
+		}
+		setSolveRigidBodyVelocity(j, dofs);
+		velocity_constraint_type.push_back(cln_file);
+		vel_counter++;
+	    }
+	} else if (clones_velocity_constraints[itype] == cln_shell)
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++) velocity_constraint_type.push_back(cln_shell);
+	} else
+	{
+
+#if (NDIM == 2)
+	    dofs << 1, 1, 1;
+#elif (NDIM == 3)
+	    dofs << 1, 1, 1, 1, 1, 1;
+#endif
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    {
+		setSolveRigidBodyVelocity(j, dofs);
+		velocity_constraint_type.push_back(cln_none);
+	    }
+	}
+
+	//set external force/torque for all clones
+	if (clones_external_force[itype] == cln_uniform)
+	{
+	    std::vector<mu::Parser*> force_function(s_max_free_dofs,NULL);
+	    for(int d=0; d < s_max_free_dofs; d++) 
+	    {
+		force_function[d] = new mu::Parser();
+		force_function[d]->SetExpr(ForceMuParseStrings[force_counter][d]);
+	    }
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    {
+
+		d_ext_force_parsers[j].resize(s_max_free_dofs,NULL);
+		for(int d=0; d < s_max_free_dofs; d++) d_ext_force_parsers[j][d] = force_function[d];
+		external_force_type.push_back(cln_uniform);
+	    }
+	    force_counter++;
+	} else if (clones_external_force[itype] == cln_file)
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    {
+		d_ext_force_parsers[j].resize(s_max_free_dofs,NULL);
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		     mu::Parser* force_function = new mu::Parser();
+		    force_function->SetExpr(ForceMuParseStrings[force_counter][d]);
+		    d_ext_force_parsers[j][d] = force_function;
+		}
+		external_force_type.push_back(cln_file);
+		force_counter++;
+	    }
+	} else if (clones_external_force[itype] == cln_random)
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	    {
+		external_force_type.push_back(cln_random);
+		d_random_force_scaling[j] =  clones_random_force_scaling[itype];
+	    }
+	} else if (clones_external_force[itype] == cln_shell)
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)	external_force_type.push_back(cln_shell);
+	} else 
+	{
+	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++) external_force_type.push_back(cln_none);
+	} 
+	offset += d_structs_clones_num[itype];
+    } 
+
+    // Define muParser variables.
+    offset=0;
+    for(int itype=0;itype< d_num_structs_types;itype++)
+    {
+	for(unsigned int j=offset;j < offset+d_structs_clones_num[itype]; j++)
+	{
+	    if ((velocity_constraint_type[j] == cln_uniform) || (velocity_constraint_type[j] == cln_file)) 
+	    {
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		    if (!d_solve_rigid_vel[j][d])
+		    {
+			mu::Parser* it = d_comvel_constraint_parsers[j][d];
+		    
+		    
+			// Variables.
+			it->DefineVar("T", &d_current_time);
+			it->DefineVar("t", &d_current_time);
+			for (unsigned int dd = 0; dd < NDIM; ++dd)
+			{
+			    std::ostringstream stream;
+			    stream << dd;
+			    const std::string postfix = stream.str();
+			    it->DefineVar("X"  + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("x"  + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
+			}
+		    }
+		}
+	    }
+	    if ((external_force_type[j] == cln_uniform) || (external_force_type[j] == cln_file)) 
+	    {
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		    mu::Parser* it = d_ext_force_parsers[j][d];
+		    
+		    
+		    // Variables.
+		    it->DefineVar("T", &d_current_time);
+		    it->DefineVar("t", &d_current_time);
+		    for (unsigned int dd = 0; dd < NDIM; ++dd)
+		    {
+			std::ostringstream stream;
+			stream << dd;
+			const std::string postfix = stream.str();
+			it->DefineVar("X"  + postfix, &(d_center_of_mass_current[j][dd]));
+			it->DefineVar("x"  + postfix, &(d_center_of_mass_current[j][dd]));
+			it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
+			it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
+		    }
+		}
+	    }
+	    
+	}
+	offset += d_structs_clones_num[itype];
+    }
 };
 
 
@@ -2180,7 +2313,54 @@ void CIBMethod::fillGhostCells(int in, const double time){
 
     return;
 } // fillGhostCells
+void  CIBMethod::defaultConstrainedCOMVel(unsigned part, double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+{
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+	if (!d_solve_rigid_vel[part][d]) U_com[d] = d_comvel_constraint_parsers[part][d]->Eval();
+    }
+#if (NDIM == 2)
+    if (!d_solve_rigid_vel[part][2]) W_com[2] = d_comvel_constraint_parsers[part][2]->Eval();
+#elif(NDIM == 3)
+    for (int d = 0; d < NDIM; ++d) 
+    {
+	if (!d_solve_rigid_vel[part][NDIM+d]) W_com[d] = d_comvel_constraint_parsers[part][NDIM+d]->Eval();
+    }
+#endif
+    return;
+} // ConstrainedCOMInnerVel
 
+void  CIBMethod::defaultNetExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+{
+    for (unsigned int d = 0; d < NDIM; ++d) F_ext[d] = d_ext_force_parsers[part][d]->Eval();
+    
+
+#if (NDIM == 2)
+    T_ext[2] = d_ext_force_parsers[part][2]->Eval();
+#elif(NDIM == 3)
+    for (int d = 0; d < NDIM; ++d) T_ext[d] = d_ext_force_parsers[part][NDIM+d]->Eval();
+#endif
+    return;
+} // NetExternalForceTorque
+
+void  CIBMethod::randomExternalForceTorque(unsigned  part , double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+{
+
+    double F[NDIM], T[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(F+d);
+    for (unsigned int d = 0; d < NDIM; ++d)   RNG::genrand(T+d);
+
+
+#if (NDIM == 2)
+    F_ext << d_random_force_scaling[part][0]*(F[0]-0.5), d_random_force_scaling[part][1]*(F[1]-0.5);
+    T_ext << d_random_force_scaling[part][2]*(T[0]-0.5);
+#elif(NDIM == 3)
+    F_ext << d_random_force_scaling[part][0]*(F[0]-0.5), d_random_force_scaling[part][1]*(F[1]-0.5), d_random_force_scaling[part][2]*(F[2]-0.5);
+    T_ext << d_random_force_scaling[part][3]*(T[0]-0.5), d_random_force_scaling[part][4]*(T[1]-0.5), d_random_force_scaling[part][5]*(T[2]-0.5);
+#endif
+    return;
+
+} // NetExternalForceTorque
 
 } // namespace IBAMR
 

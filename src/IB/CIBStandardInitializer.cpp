@@ -86,25 +86,21 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-
-
 #include "ibamr/CIBStandardInitializer.h"
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
-  class LDataManager;
+class LDataManager;
 } // namespace IBTK
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-
-
-namespace
-  {
+ namespace
+ {
     inline std::string discard_comments(const std::string& input_string)
     {
       // Create a copy of the input string, but without any text following a '!',
@@ -133,7 +129,9 @@ namespace
     {
       return floor(x + 0.5);
     } // round
-  }
+
+ }
+
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -650,10 +648,119 @@ Eigen::Quaterniond* CIBStandardInitializer::getStructureQuaternion(const int lev
 } // getVertexPosn
 
 void CIBStandardInitializer::getClonesParameters(int& num_structs_types, 
-						 std::vector<int>& structs_clones_num)
+						 std::vector<int>& structs_clones_num,
+						 std::vector<StructureClonesInputOptions>&   clones_velocity_constriants_type,
+						 std::vector<StructureClonesInputOptions>&   clones_external_force_type,
+						 std::vector<std::vector<int> >&  clones_free_dofs,
+						 std::vector<std::vector<std::string> >&  VelMuParseStrings,
+						 std::vector<std::vector<std::string> >&  ForceMuParseStrings,
+						 std::vector<std::vector<double> >&  random_force_scaling)
 {
+    static const int max_free_dofs = NDIM * (NDIM + 1) / 2;
     num_structs_types = d_num_structs_types;
     structs_clones_num = d_structs_clones_num;
+
+    clones_velocity_constriants_type = d_clones_velocity_constraints;
+    clones_external_force_type = d_clones_external_force;
+
+    clones_free_dofs.clear();
+    VelMuParseStrings.clear();
+    ForceMuParseStrings.clear();
+    random_force_scaling = d_random_force_scaling;
+
+    for (unsigned itype = 0; itype < d_num_structs_types; ++itype)
+    {
+	if (d_clones_velocity_constraints[itype] == cln_uniform)
+	{
+	    VelMuParseStrings.push_back(d_constraint_velocity_strings[itype]);
+	    clones_free_dofs.push_back(d_uniform_clones_free_dofs[itype]);
+	} 
+	else if (d_clones_velocity_constraints[itype] == cln_file)
+	{
+	    std::string fileNameConstraints = d_constraint_velocity_strings[itype][0];
+	    fileNameConstraints +=".constraint";
+	    std::ifstream file_stream;
+	    file_stream.open(fileNameConstraints.c_str(), std::ios::in);
+	    if (file_stream.is_open())
+	    {
+		const unsigned num_clones =  d_structs_clones_num[itype];
+		std::vector<int> free_dofs(max_free_dofs);
+		std::string line_string;
+		for(unsigned i=0; i<num_clones; ++i)
+		{
+		    getline(file_stream,line_string);
+		    std::istringstream line_stream(line_string);
+		    //read dofs
+		    for (int d = 0; d < max_free_dofs; ++d)
+		    {
+			if (!(line_stream >> free_dofs[d]))
+			{
+			    TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure velocity constraints dofs file encountered on line "
+				     << i + 1 << " of file " << fileNameConstraints << std::endl);
+			}
+		    }
+		    clones_free_dofs.push_back(free_dofs);
+				
+		    // Read muParse function from input
+ 		    std::vector<std::string> muParse_strings(max_free_dofs);
+		    for (int d = 0; d < max_free_dofs; ++d)
+		    {
+			if (!free_dofs[d])
+			{
+			    if (!(line_stream >> muParse_strings[d]))
+			    {
+				TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure velocity constraints dofs file encountered on line " 
+					   << i + 1 << " of file " << fileNameConstraints << std::endl);
+			    }
+			}
+		    }
+		    VelMuParseStrings.push_back(muParse_strings);			
+		}
+		file_stream.close();
+	    }else
+	    {
+		TBOX_ERROR(d_object_name << ":\n  Cannot find required constraint file: " << fileNameConstraints << std::endl);
+	    }
+       	}
+    
+	if (d_clones_external_force[itype] == cln_uniform)
+	{
+	    ForceMuParseStrings.push_back(d_external_force_strings[itype]);
+	} 
+	else if (d_clones_external_force[itype] == cln_file)
+	{
+	    std::string fileNameForce = d_external_force_strings[itype][0];
+	    fileNameForce +=".bodyforce";
+	    std::ifstream file_stream;
+	    file_stream.open(fileNameForce.c_str(), std::ios::in);
+	    if (file_stream.is_open())
+	    {
+		const unsigned num_clones =  d_structs_clones_num[itype];
+		std::string line_string;
+		for(unsigned i=0; i<num_clones; ++i)
+		{
+		    getline(file_stream,line_string);
+		    std::istringstream line_stream(line_string);
+
+		    // Read muParse function from input
+ 		    std::vector<std::string> muParse_strings(max_free_dofs);
+		    for (int d = 0; d < max_free_dofs; ++d)
+		    {
+			if (!(line_stream >> muParse_strings[d]))
+			{
+			    TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure external force file encountered on line "
+				       << i + 1 << " of file " << fileNameForce << std::endl);
+			}
+		    }
+		    ForceMuParseStrings.push_back(muParse_strings);			
+		}
+		file_stream.close();
+	    }else
+	    {
+		TBOX_ERROR(d_object_name << ":\n  Cannot find required external force file: " << fileNameForce << std::endl);
+	    }
+	}
+    }
 };
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -752,18 +859,16 @@ void CIBStandardInitializer::readClonesCenterPositions(const std::string& fileNa
 			       << i + 2 << " of file " << fileNameCenters << std::endl);
 		}
 	    }
-	    //read orientation directions
-	    for (unsigned int d = 0; d < NDIM; ++d)
+	    //read orientation directions, 2 numbers in 2D, 4 numbers in 3D
+	    for (unsigned int d = 0; d < (NDIM + NDIM/3); ++d)
 	    {
-		if (!(line_stream >> direction[i*NDIM+d]))
+		if (!(line_stream >> direction[i*(NDIM + NDIM/3)+d]))
 		{
-		    //pout<<"assuming the defaulf orientation vector (1,0,0) of the structure clone encountered on line"
-		    //<< i + 2 << " of file " << fileNameCenters << std::endl;
-		    direction[i*NDIM] = 1.0;
-		    for (unsigned int dd = 1; dd < NDIM; ++dd) direction[i*NDIM+dd]=0;
+		    direction[i*(NDIM + NDIM/3)] = 1.0;
+		    for (unsigned int dd = 1; dd < (NDIM + NDIM/3); ++dd) direction[i*(NDIM + NDIM/3)+dd]=0;
 		    break;
 		}
-	    }
+	    } 
 	}
     }
     else
@@ -776,7 +881,7 @@ void CIBStandardInitializer::readClonesCenterPositions(const std::string& fileNa
 	    //use a default position and a default orientation for a single structure
 	    for (unsigned int d = 0; d < NDIM; ++d)
 	    {
-		coords[d] = 0;
+		//coords[d] = 0;
 		direction[d] = 0;
 	    }
 	    direction[0] = 1.0;
@@ -810,9 +915,9 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	  d_struct_prototype_map[ln][struct_begin_idx] = struct_begin_idx;
 	  const unsigned num_clones =  d_structs_clones_num[itype];
 	  double* shift =new double[NDIM*num_clones];
-	  double* dircs =new double[NDIM*num_clones];
+	  // quaternions, 2 numbers in 2D and 4 numbers on 3D
+	  double* dircs =new double[(NDIM + NDIM/3)*num_clones];
 	  //center of mass of the structure prototype
-	  Eigen::Vector3d X_com = Eigen::Vector3d::Zero();
 
 	  //Read initial positions of all clones for the given structure
 	  std::string fileNameCenters = d_base_filename[ln][struct_begin_idx];
@@ -825,8 +930,6 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 
 	  // Wait for the previous MPI process to finish reading the current file.
 	  if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, struct_begin_idx);
-
-	  readClonesCenterPositions(fileNameCenters,num_clones, shift, dircs);
 
 	  if (itype == 0)
 	  {
@@ -898,24 +1001,12 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 			  }
 		      }
 		  }
-		  for (unsigned int d = 0; d < NDIM; ++d) X_com[d] +=X[d];
-	      }
-
-	      X_com /=d_num_vertex[ln][struct_begin_idx];
-
-	      //put protoypes CM in the origin
-	      for (int k = 0; k < d_num_vertex[ln][struct_begin_idx]; ++k)
-	      {
-		  Point& X = d_vertex_posn[ln][struct_begin_idx][k];
-		  for (unsigned int d = 0; d < NDIM; ++d) 
-		  {
-		      X[d] -=X_com[d];
-		      X[d] *=d_length_scale_factor;
-		  }
 	      }
 
 	      // Close the input file.
 	      file_stream.close();
+
+	      readClonesCenterPositions(fileNameCenters,num_clones, shift, dircs);
 
 	      plog << d_object_name << ":  "
 		   << "read " << d_num_vertex[ln][struct_begin_idx] << " vertices from ASCII input file named " << vertex_filename
@@ -940,17 +1031,15 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 	      // Each successive line provides the initial position of each
 	      // vertex in the input file.
 
-	      //create rotation according to input
-	      Eigen::Vector3d x_axis = Eigen::Vector3d::Zero();
-	      x_axis[0]=1.0;
-	      Eigen::Vector3d dir_vec = Eigen::Vector3d::Zero();
-	      for (unsigned int d = 0; d < NDIM; ++d) dir_vec[d] = dircs[j*NDIM+d];
-	      double vecnorm=dir_vec.norm();
-	      if (!vecnorm)  TBOX_ERROR("CIBStandardInitializer:: Direction vector cannot be zero!" << std::endl);
-	      dir_vec /=vecnorm;
-	      Eigen::Quaterniond q;
-	      q.setFromTwoVectors(x_axis, dir_vec);
-	      Eigen::Matrix3d rot_mat = (q.normalized()).toRotationMatrix();
+	      //create rotation according to input     
+	      double dir_vec[4], dir_vec_norm=0;
+	      for (unsigned int d = 0; d < (NDIM + NDIM/3); ++d){
+		  dir_vec[d] = dircs[j*(NDIM + NDIM/3)+d];
+		  dir_vec_norm += dir_vec[d] * dir_vec[d];
+	      }
+	      dir_vec_norm = sqrt(dir_vec_norm);
+	      for (unsigned int d = 0; d < (NDIM + NDIM/3); ++d) dir_vec[d] /= dir_vec_norm;
+	      Eigen::Quaterniond q(dir_vec[0], dir_vec[1], dir_vec[2], dir_vec[3]); // format is q(s, p_1, p_2, p_3)
 	      d_quaternion[ln][struct_begin_idx+j]=q.normalized();
 
 	      for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx+j][d] = d_length_scale_factor * (shift[j*NDIM+d] + d_posn_shift[d]);
@@ -959,33 +1048,18 @@ void CIBStandardInitializer::readVertexFiles(const std::string& extension)
 
 
 	  // correct zero structure coords
-	  //create rotation according to input
-	  Eigen::Vector3d x_axis = Eigen::Vector3d::Zero();
-	  x_axis[0]=1.0;
-	  Eigen::Vector3d dir_vec = Eigen::Vector3d::Zero();
-	  for (unsigned int d = 0; d < NDIM; ++d) dir_vec[d] = dircs[d];
-	  double vecnorm=dir_vec.norm();
-	  if (!vecnorm)  TBOX_ERROR("CIBStandardInitializer:: Direction vector cannot be zero!" << std::endl);
-	  dir_vec /=vecnorm;
-	  Eigen::Quaterniond q;
-	  q.setFromTwoVectors(x_axis, dir_vec);
-	  Eigen::Matrix3d rot_mat = (q.normalized()).toRotationMatrix();
+	  //create rotation according to input     
+	  double dir_vec[4], dir_vec_norm=0;
+	  for (unsigned int d = 0; d < (NDIM + NDIM/3); ++d){
+	      dir_vec[d] = dircs[d];
+	      dir_vec_norm += dir_vec[d] * dir_vec[d];
+	  }
+	  dir_vec_norm = sqrt(dir_vec_norm);
+	  for (unsigned int d = 0; d < (NDIM + NDIM/3); ++d) dir_vec[d] /= dir_vec_norm;
+	  Eigen::Quaterniond q(dir_vec[0], dir_vec[1], dir_vec[2], dir_vec[3]); // format is q(s, p_1, p_2, p_3)
 	  d_quaternion[ln][struct_begin_idx]=q.normalized();
 
-	  // for (int k = 0; k < d_num_vertex[ln][struct_begin_idx]; ++k)
-	  // {
-	  //     Point& X0 = d_vertex_posn[ln][struct_begin_idx][k];
-	  //     Eigen::Vector3d x0 = Eigen::Vector3d::Zero();
-	  //     Eigen::Vector3d x  = Eigen::Vector3d::Zero();
-	  //     for (unsigned int d = 0; d < NDIM; ++d) x0[d] = X0[d]-X_com[d]; 
-	  //     x = rot_mat*x0;
-
-	  //     for (unsigned int d = 0; d < NDIM; ++d)
-	  //     {
-	  // 	  X0[d] = d_length_scale_factor * (x[d] + shift[d]+ d_posn_shift[d]);
-	  //     }
-	  // }
-	  for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx][d] = d_length_scale_factor * (shift[d]+ d_posn_shift[d]);
+	  for (unsigned int d = 0; d < NDIM; ++d) d_X_com[ln][struct_begin_idx][d] = d_length_scale_factor * (shift[d] + d_posn_shift[d]);
 
 	  struct_begin_idx +=num_clones;
 	  delete [] shift;
@@ -3366,7 +3440,14 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
 
 	db->getStringArray("structure_names", &structure_type_names[0], d_num_structs_types);
 	db->getIntegerArray("structs_clones_num", &d_structs_clones_num[0], d_num_structs_types);
-	
+
+	const int max_free_dofs = NDIM * (NDIM + 1) / 2;
+	d_clones_velocity_constraints.resize(d_num_structs_types, cln_none);
+	d_clones_external_force.resize(d_num_structs_types, cln_none);
+	d_uniform_clones_free_dofs.resize(d_num_structs_types);
+	d_constraint_velocity_strings.resize(d_num_structs_types);
+	d_external_force_strings.resize(d_num_structs_types);
+	d_random_force_scaling.resize(d_num_structs_types);
 	int num_strcts=0; 
 	for(unsigned itype=0;itype< d_num_structs_types;itype++) num_strcts +=d_structs_clones_num[itype];
       
@@ -3400,6 +3481,68 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
 			std::string structure_name = struct_name + convert.str();
 			d_base_filename[ln].push_back(structure_name);
 		    }
+		    //RigidIBAMR options
+		    if (sub_db->keyExists("structs_clones_velocity_constraints"))
+		    {
+			const StructureClonesInputOptions velocity_constraint= string_to_enum<StructureClonesInputOptions>(sub_db->getString("structs_clones_velocity_constraints"));
+
+			pout << "assigned veloctiy constraints type for structure prototype:" << struct_name << " is "<< enum_to_string<StructureClonesInputOptions>(velocity_constraint)<<std::endl;
+			d_clones_velocity_constraints[itype] = velocity_constraint;
+			
+			if (velocity_constraint==cln_uniform)
+			{
+			    d_uniform_clones_free_dofs[itype].resize(max_free_dofs);
+			    sub_db->getIntegerArray("uniform_free_dofs", &d_uniform_clones_free_dofs[itype][0], max_free_dofs);
+			    
+			    // Read muParse function from input
+			    Pointer<Database> subsub_db = sub_db->getDatabase("uniform_velocity_constraint_function");
+			    std::vector<std::string> muParse_strings(max_free_dofs);
+			    for (int d = 0; d < max_free_dofs; ++d)
+			    {
+				if (!d_uniform_clones_free_dofs[itype][d])
+				{
+				    std::ostringstream stream;
+				    stream << "vel_dof_" << d;
+				    muParse_strings[d] = subsub_db->getString(stream.str());			
+				}
+			    }
+			    d_constraint_velocity_strings[itype]= muParse_strings;			
+			}
+			else if (velocity_constraint==cln_file)
+			{
+			    d_constraint_velocity_strings[itype] = std::vector<std::string> (1,struct_name);
+			}
+		    }
+		    
+		    if (sub_db->keyExists("structs_clones_external_force"))
+		    {
+			const StructureClonesInputOptions extern_force = string_to_enum<StructureClonesInputOptions>(sub_db->getString("structs_clones_external_force"));
+			d_clones_external_force[itype] = extern_force;
+			pout << "external body force type for structure prototype:" << struct_name << " is "<< enum_to_string<StructureClonesInputOptions>(extern_force)<<std::endl;
+			// Read muParse function from input
+			if (extern_force==cln_uniform)
+			{
+			    // Read muParse function from input
+			    Pointer<Database> subsub_db = sub_db->getDatabase("uniform_body_force_torque_function");
+			    
+			    std::vector<std::string> muParse_strings(max_free_dofs);
+			    for (int d = 0; d < max_free_dofs; ++d)
+			    {
+				std::ostringstream stream;
+				stream << "function_dof_" << d;
+				muParse_strings[d] = subsub_db->getString(stream.str());			
+			    }
+			    d_external_force_strings[itype] = muParse_strings;			
+			} else if (extern_force==cln_file)
+			{
+			    d_external_force_strings[itype] = std::vector<std::string>(1,struct_name);			
+			} else if (extern_force==cln_random)
+			{
+			    d_random_force_scaling[itype].resize(max_free_dofs);
+			    sub_db->getDoubleArray("random_external_force_scaling", &d_random_force_scaling[itype][0], max_free_dofs);
+			}
+		    }
+		
 		}
 		else
 		{
@@ -3407,14 +3550,14 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
 			       << "Key data `level_number' not found in structure `" << struct_name
 			       << "' input.");
 		}
-	    }
+	    }  
 	    else
 	    {
 		TBOX_ERROR(d_object_name << ":  "
 			   << "Key data `" << struct_name << "' not found in input.");
 	    }
 	}
-    } 
+    }
     else
     {
 	for (int ln = 0; ln < d_max_levels; ++ln)
@@ -3482,204 +3625,263 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
 	d_uniform_target_stiffness[ln].resize(num_base_filename, -1.0);
 	d_using_uniform_target_damping[ln].resize(num_base_filename, false);
 	d_uniform_target_damping[ln].resize(num_base_filename, -1.0);
-
 	d_enable_anchor_points[ln].resize(num_base_filename, true);
-
 	d_enable_bdry_mass[ln].resize(num_base_filename, true);
 	d_using_uniform_bdry_mass[ln].resize(num_base_filename, false);
 	d_uniform_bdry_mass[ln].resize(num_base_filename, -1.0);
 	d_using_uniform_bdry_mass_stiffness[ln].resize(num_base_filename, false);
 	d_uniform_bdry_mass_stiffness[ln].resize(num_base_filename, -1.0);
-
 	d_enable_instrumentation[ln].resize(num_base_filename, true);
-
 	d_enable_sources[ln].resize(num_base_filename, true);
-	unsigned j=0;
+
+
+	unsigned offset=0;
 	for(unsigned itype=0;itype< d_num_structs_types;itype++)
 	{
-	    for(int istruct=0;istruct < d_structs_clones_num[itype];istruct++)
+	    std::string base_filename = d_base_filename[ln][offset];
+	    if (base_filename.size()) base_filename.erase(base_filename.size() - 1); //erase number
+
+	    if (db->isDatabase(base_filename))
 	    {
-		std::string base_filename = d_base_filename[ln][j];
-		if (base_filename.size()) base_filename.erase(base_filename.size() - 1-std::max(0,(int)log10(1e-16+istruct))); //erase number
+		Pointer<Database> sub_db = db->getDatabase(base_filename);
 		
-		if (db->isDatabase(base_filename))
+		// Determine whether to enable or disable any particular
+		// features.
+
+		//standard options
+		if (sub_db->keyExists("enable_springs"))
 		{
-		    Pointer<Database> sub_db = db->getDatabase(base_filename);
+		    const bool temp_bool = sub_db->getBool("enable_springs");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_springs[ln][j] = temp_bool ;
+		}
+		if (sub_db->keyExists("enable_xsprings"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_xsprings");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_xsprings[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_beams"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_beams");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_beams[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_rods"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_rods");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_rods[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_target_points"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_target_points");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_target_points[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_anchor_points"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_anchor_points");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_anchor_points[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_bdry_mass"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_bdry_mass");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_bdry_mass[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_instrumentation"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_instrumentation");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_instrumentation[ln][j] = temp_bool;
+		}
+		if (sub_db->keyExists("enable_sources"))
+		{
+		    const bool temp_bool = sub_db->getBool("enable_sources");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++) d_enable_sources[ln][j] = temp_bool;
+		}
 		    
-		    // Determine whether to enable or disable any particular
-		    // features.
-		    if (sub_db->keyExists("enable_springs"))
+		// Determine whether to use uniform values for any particular
+		// structure attributes.
+		if (sub_db->keyExists("uniform_spring_stiffness"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_spring_stiffness");
+		    if (temp_value < 0.0)
 		    {
-			d_enable_springs[ln][j] = sub_db->getBool("enable_springs");
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' "
+				   "in database " << base_filename << std::endl
+				   << "  spring constant is negative" << std::endl);
 		    }
-		    if (sub_db->keyExists("enable_xsprings"))
-		    {
-			d_enable_xsprings[ln][j] = sub_db->getBool("enable_xsprings");
-		    }
-		    if (sub_db->keyExists("enable_beams"))
-		    {
-			d_enable_beams[ln][j] = sub_db->getBool("enable_beams");
-		    }
-		    if (sub_db->keyExists("enable_rods"))
-		    {
-			d_enable_rods[ln][j] = sub_db->getBool("enable_rods");
-		    }
-		    if (sub_db->keyExists("enable_target_points"))
-		    {
-			d_enable_target_points[ln][j] = sub_db->getBool("enable_target_points");
-		    }
-		    if (sub_db->keyExists("enable_anchor_points"))
-		    {
-			d_enable_anchor_points[ln][j] = sub_db->getBool("enable_anchor_points");
-		    }
-		    if (sub_db->keyExists("enable_bdry_mass"))
-		    {
-			d_enable_bdry_mass[ln][j] = sub_db->getBool("enable_bdry_mass");
-		    }
-		    if (sub_db->keyExists("enable_instrumentation"))
-		    {
-			d_enable_instrumentation[ln][j] = sub_db->getBool("enable_instrumentation");
-		    }
-		    if (sub_db->keyExists("enable_sources"))
-		    {
-			d_enable_sources[ln][j] = sub_db->getBool("enable_sources");
-		    }
-		    
-		    // Determine whether to use uniform values for any particular
-		    // structure attributes.
-		    if (sub_db->keyExists("uniform_spring_stiffness"))
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
 		    {
 			d_using_uniform_spring_stiffness[ln][j] = true;
-			d_uniform_spring_stiffness[ln][j] = sub_db->getDouble("uniform_spring_stiffness");
-			if (d_uniform_spring_stiffness[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' "
-				       "in database " << base_filename << std::endl
-				       << "  spring constant is negative" << std::endl);
-			}
+			d_uniform_spring_stiffness[ln][j] = temp_value;
 		    }
-		    if (sub_db->keyExists("uniform_spring_rest_length"))
+		}
+		if (sub_db->keyExists("uniform_spring_rest_length"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_spring_rest_length");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
+				   "`uniform_spring_rest_length' in database " << base_filename
+				   << std::endl << "  spring resting length is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
 		    {
 			d_using_uniform_spring_rest_length[ln][j] = true;
-			d_uniform_spring_rest_length[ln][j] = sub_db->getDouble("uniform_spring_rest_length");
-			if (d_uniform_spring_rest_length[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-				       "`uniform_spring_rest_length' in database " << base_filename
-				       << std::endl << "  spring resting length is negative" << std::endl);
-			}
+			d_uniform_spring_rest_length[ln][j] = temp_value;
 		    }
-		    if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
+		}
+		if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
+		{
+		    const double temp_value =  sub_db->getInteger("uniform_spring_force_fcn_idx");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
 		    {
 			d_using_uniform_spring_force_fcn_idx[ln][j] = true;
-			d_uniform_spring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_spring_force_fcn_idx");
+			d_uniform_spring_force_fcn_idx[ln][j] = temp_value;
 		    }
-		    
-		    if (sub_db->keyExists("uniform_xspring_stiffness"))
+		}
+		if (sub_db->keyExists("uniform_xspring_stiffness"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_xspring_stiffness");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_stiffness' "
+				   "in database " << base_filename << std::endl
+				   << "  spring constant is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
 		    {
 			d_using_uniform_xspring_stiffness[ln][j] = true;
-			d_uniform_xspring_stiffness[ln][j] = sub_db->getDouble("uniform_xspring_stiffness");
-			if (d_uniform_xspring_stiffness[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_stiffness' "
-				       "in database " << base_filename << std::endl
-				       << "  spring constant is negative" << std::endl);
-			}
+			d_uniform_xspring_stiffness[ln][j] = temp_value;
 		    }
-		    if (sub_db->keyExists("uniform_xspring_rest_length"))
+		}
+		if (sub_db->keyExists("uniform_xspring_rest_length"))
+		{	
+		    const double temp_value = sub_db->getDouble("uniform_xspring_rest_length");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
+				   "`uniform_xspring_rest_length' in database " << base_filename
+				   << std::endl << "  spring resting length is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
 		    {
 			d_using_uniform_xspring_rest_length[ln][j] = true;
-			d_uniform_xspring_rest_length[ln][j] = sub_db->getDouble("uniform_xspring_rest_length");
-			if (d_uniform_xspring_rest_length[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-				       "`uniform_xspring_rest_length' in database " << base_filename
-				       << std::endl << "  spring resting length is negative" << std::endl);
-			}
+			d_uniform_xspring_rest_length[ln][j] = temp_value;
 		    }
-		    if (sub_db->keyExists("uniform_xspring_force_fcn_idx"))
-		    {
+		}
+		if (sub_db->keyExists("uniform_xspring_force_fcn_idx"))
+		{
+		    const double temp_value = sub_db->getInteger("uniform_xspring_force_fcn_idx");
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {	
 			d_using_uniform_xspring_force_fcn_idx[ln][j] = true;
-			d_uniform_xspring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_xspring_force_fcn_idx");
-		    }
-
-		    if (sub_db->keyExists("uniform_beam_bend_rigidity"))
-		    {
-			d_using_uniform_beam_bend_rigidity[ln][j] = true;
-			d_uniform_beam_bend_rigidity[ln][j] = sub_db->getDouble("uniform_beam_bend_rigidity");
-			if (d_uniform_beam_bend_rigidity[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-				       "`uniform_beam_bend_rigidity' in database " << base_filename
-				       << std::endl << "  beam bending rigidity is negative" << std::endl);
-			}
-		    }
-		    if (sub_db->keyExists("uniform_beam_curvature"))
-		    {
-			d_using_uniform_beam_curvature[ln][j] = true;
-			sub_db->getDoubleArray("uniform_beam_curvature", d_uniform_beam_curvature[ln][j].data(), NDIM);
-		    }
-
-		    if (sub_db->keyExists("uniform_rod_properties"))
-		    {
-			d_using_uniform_rod_properties[ln][j] = true;
-			sub_db->getDoubleArray("uniform_rod_properties",
-					       &d_uniform_rod_properties[ln][j][0],
-					       IBRodForceSpec::NUM_MATERIAL_PARAMS);
-		    }
-
-		    if (sub_db->keyExists("uniform_target_stiffness"))
-		    {
-			d_using_uniform_target_stiffness[ln][j] = true;
-			d_uniform_target_stiffness[ln][j] = sub_db->getDouble("uniform_target_stiffness");
-			if (d_uniform_target_stiffness[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' "
-				       "in database " << base_filename << std::endl
-				       << "  target point spring constant is negative" << std::endl);
-			}
-		    }
-		    if (sub_db->keyExists("uniform_target_damping"))
-		    {
-			d_using_uniform_target_damping[ln][j] = true;
-			d_uniform_target_damping[ln][j] = sub_db->getDouble("uniform_target_damping");
-			if (d_uniform_target_damping[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in "
-				       "database " << base_filename << std::endl
-				       << "  target point spring constant is negative" << std::endl);
-			}
-		    }
-
-		    if (sub_db->keyExists("uniform_bdry_mass"))
-		    {
-			d_using_uniform_bdry_mass[ln][j] = true;
-			d_uniform_bdry_mass[ln][j] = sub_db->getDouble("uniform_bdry_mass");
-
-			if (d_uniform_bdry_mass[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass' in database "
-				       << base_filename << std::endl << "  boundary mass is negative"
-				       << std::endl);
-			}
-		    }
-		    if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
-		    {
-			d_using_uniform_bdry_mass_stiffness[ln][j] = true;
-			d_uniform_bdry_mass_stiffness[ln][j] = sub_db->getDouble("uniform_bdry_mass_stiffness");
-
-			if (d_uniform_bdry_mass_stiffness[ln][j] < 0.0)
-			{
-			    TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-				       "`uniform_bdry_mass_stiffness' in database " << base_filename
-				       << std::endl << "  boundary mass spring constant is negative"
-				       << std::endl);
-			}
+			d_uniform_xspring_force_fcn_idx[ln][j] = temp_value;
 		    }
 		}
 
-		j++;
+		if (sub_db->keyExists("uniform_beam_bend_rigidity"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_beam_bend_rigidity");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
+				   "`uniform_beam_bend_rigidity' in database " << base_filename
+				   << std::endl << "  beam bending rigidity is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_beam_bend_rigidity[ln][j] = true;
+			d_uniform_beam_bend_rigidity[ln][j] = temp_value;
+		    }
+		}
+		if (sub_db->keyExists("uniform_beam_curvature"))
+		{
+		    d_using_uniform_beam_curvature[ln][offset] = true;
+		    sub_db->getDoubleArray("uniform_beam_curvature", d_uniform_beam_curvature[ln][offset].data(), NDIM);
+		    for(unsigned j=offset+1;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_beam_curvature[ln][j] = true;
+			for(int d = 0; d < NDIM; d++) d_uniform_beam_curvature[ln][j][d] = d_uniform_beam_curvature[ln][offset][d];
+		    }
+		}
+
+		if (sub_db->keyExists("uniform_rod_properties"))
+		{
+		    d_using_uniform_rod_properties[ln][offset] = true;
+		    sub_db->getDoubleArray("uniform_rod_properties",
+					   &d_uniform_rod_properties[ln][offset][0],
+					   IBRodForceSpec::NUM_MATERIAL_PARAMS);
+		    for(unsigned j=offset+1;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_rod_properties[ln][j] = true;
+			for(int d = 0; d < NDIM; d++) d_uniform_rod_properties[ln][j][d] = d_uniform_rod_properties[ln][offset][d];
+		    }
+		}
+
+		if (sub_db->keyExists("uniform_target_stiffness"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_target_stiffness");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' "
+				   "in database " << base_filename << std::endl
+				   << "  target point spring constant is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_target_stiffness[ln][j] = true;
+			d_uniform_target_stiffness[ln][j] = temp_value;
+		    }
+		}
+		if (sub_db->keyExists("uniform_target_damping"))
+		{
+		    const double temp_value =  sub_db->getDouble("uniform_target_damping");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in "
+				   "database " << base_filename << std::endl
+				   << "  target point spring constant is negative" << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_target_damping[ln][j] = true;
+			d_uniform_target_damping[ln][j] = temp_value;
+		    }
+		}
+
+		if (sub_db->keyExists("uniform_bdry_mass"))
+		{
+		    const double temp_value =  sub_db->getDouble("uniform_bdry_mass");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass' in database "
+				   << base_filename << std::endl << "  boundary mass is negative"
+				   << std::endl);
+		    }
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_bdry_mass[ln][j] = true;
+			d_uniform_bdry_mass[ln][j] = temp_value;
+			
+		    }
+		}
+		if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
+		{
+		    const double temp_value = sub_db->getDouble("uniform_bdry_mass_stiffness");
+		    if (temp_value < 0.0)
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
+				   "`uniform_bdry_mass_stiffness' in database " << base_filename
+				   << std::endl << "  boundary mass spring constant is negative"
+				   << std::endl);
+		    }
+		    
+		    for(unsigned j=offset;j < offset+d_structs_clones_num[itype];j++)
+		    {
+			d_using_uniform_bdry_mass_stiffness[ln][j] = true;
+			d_uniform_bdry_mass_stiffness[ln][j] = temp_value;
+			
+		    }
+		}
 	    }
+	    offset += d_structs_clones_num[itype];
 	}
     }
     
@@ -3691,7 +3893,7 @@ void CIBStandardInitializer::getFromInput(Pointer<Database> db)
 	const size_t num_base_filename = d_base_filename[ln].size();
 
 	unsigned itype=0;
-	for (unsigned int j = 0; j < num_base_filename; j += d_structs_clones_num[itype++])/// ++j)
+	for (unsigned int j = 0; j < num_base_filename; j += d_structs_clones_num[itype++])
 	{
 	    std::string base_filename = d_base_filename[ln][j];
 	    if (base_filename.size()) base_filename.erase(base_filename.size() - 1); //erase number zero

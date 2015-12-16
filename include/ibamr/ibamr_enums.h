@@ -367,6 +367,38 @@ inline std::string enum_to_string<MobilityMatrixInverseType>(MobilityMatrixInver
     return "UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE";
 } // enum_to_string
 
+enum StructureClonesInputOptions
+{
+    cln_none,
+    cln_uniform,
+    cln_file,
+    cln_shell,
+    cln_random,
+    cln_unknown = -1
+};
+
+template <>
+inline StructureClonesInputOptions string_to_enum<StructureClonesInputOptions>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "none") == 0) return cln_none;
+    if (strcasecmp(val.c_str(), "uniform") == 0) return cln_uniform;
+    if (strcasecmp(val.c_str(), "file") == 0) return cln_file;
+    if (strcasecmp(val.c_str(), "shell") == 0) return cln_shell;
+    if (strcasecmp(val.c_str(), "random") == 0) return cln_random;
+    return cln_unknown;
+} // string_to_enum
+
+template <>
+inline std::string enum_to_string<StructureClonesInputOptions>(StructureClonesInputOptions val)
+{
+    if (val == cln_none) return "none";
+    if (val == cln_uniform) return "uniform";
+    if (val == cln_file) return "file";
+    if (val == cln_shell) return "shell";
+    if (val == cln_random) return "random";
+    return "unknown_type";
+} // enum_to_string
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
