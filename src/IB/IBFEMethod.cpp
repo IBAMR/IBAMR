@@ -359,6 +359,7 @@ FEDataManager* IBFEMethod::getFEDataManager(const unsigned int part) const
 
 void IBFEMethod::registerStressNormalizationPart(unsigned int part)
 {
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
     if (d_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
@@ -821,7 +822,7 @@ void IBFEMethod::initializeFEData()
         EquationSystems* equation_systems = d_equation_systems[part];
         if (from_restart)
         {
-            equation_systems->reinit(); // BEG TODO: are both of these calls to reinit() needed?
+            equation_systems->reinit();
         }
         else
         {
@@ -907,7 +908,6 @@ void IBFEMethod::initializeFEData()
                 }
             }
         }
-        equation_systems->reinit();
     }
     d_fe_data_initialized = true;
     return;
