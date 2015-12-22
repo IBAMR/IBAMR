@@ -39,6 +39,8 @@
 #include "ibamr/CIBStandardInitializer.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+#include "ibamr/StokesSpecifications.h"
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IndexUtilities.h"
@@ -348,16 +350,18 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 		// For U we use current timestep value as a guess.
 		RDV Fr;
 		Eigen::Vector3d F_ext, T_ext;
+		double ext_force_time = d_half_time;
+		if (MathUtilities<double>::equalEps(d_rho,0)) ext_force_time =  d_current_time;
 		if ((external_force_type[part]==cln_shell) && d_ext_force_torque_fcn_data[part].forcetorquefcn)
 		{
-		    d_ext_force_torque_fcn_data[part].forcetorquefcn(part, d_new_time, F_ext, T_ext);
+		    d_ext_force_torque_fcn_data[part].forcetorquefcn(part, ext_force_time, F_ext, T_ext);
 		}	   
 		else if ((external_force_type[part] == cln_uniform) || (external_force_type[part] == cln_file)) 
 		{
-		    defaultNetExternalForceTorque(part, d_current_time, F_ext, T_ext);
+		    defaultNetExternalForceTorque(part, ext_force_time, F_ext, T_ext);
 		}else if(external_force_type[part] == cln_random) 
 		{
-		    randomExternalForceTorque(part, d_current_time, F_ext, T_ext);
+		    randomExternalForceTorque(part, ext_force_time, F_ext, T_ext);
 		}
 		else
 		{
@@ -407,13 +411,11 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
     // Compute net rigid generalized force for structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
-    //Vec L_vec = ptr_lagmultpr->getVec();
     
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
     fill(skip_comp.begin(), skip_comp.end(), false);
-    //computeNetRigidGeneralizedForce(L_vec, d_net_rigid_generalized_force, skip_comp);
-    
+
     VecDestroy(&d_mv_U);
     VecDestroy(&d_mv_F);
 
@@ -636,6 +638,10 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
 	}
     }
 
+    //setting fluid density to check for steady stokes
+    const StokesSpecifications& stokes_spec = *getINSHierarchyIntegrator()->getStokesSpecifications();
+    d_rho = stokes_spec.getRho();
+
     return;
 } // initializePatchHierarchy
 
@@ -703,9 +709,13 @@ void CIBMethod::spreadForce(
 
 void CIBMethod::eulerStep(const double current_time, const double new_time)
 { 
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time - current_time;
+    double dt = new_time - current_time;
+    
+    if (MathUtilities<double>::equalEps(d_rho,0)) dt=0.0;
+
     //   int flag_regrid=0;
 
     // setup the quaternions of structures with rotation angle 0.5*(W^n)*dt.
@@ -1099,7 +1109,7 @@ unsigned int CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
 
 } // getNumberOfStructuresNodes
 
-void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& skip_comp, const bool isHalfTimeStep)
+void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& skip_comp, bool isHalfTimeStep)
 {
     const unsigned num_procs = SAMRAI_MPI::getNodes();
     const unsigned rank      = SAMRAI_MPI::getRank();
@@ -1138,59 +1148,61 @@ void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& s
 
 	RigidDOFVector U;
 	U.setZero();
-	
-	//setting nodal velocity is not working yet
-	// if (d_constrained_velocity_fcns_data[struct_id].nodalvelfcn)
-	// {
-	    
-	//     void* ctx = d_constrained_velocity_fcns_data[struct_id].ctx;
-	//     CIBMethod* cib_method_ptr = this;
-	//     d_constrained_velocity_fcns_data[struct_id].nodalvelfcn(struct_id, V, U, d_X_half_data[struct_ln]->getVec(),
-	// 						       d_center_of_mass_half[struct_id], d_new_time, ctx, 
-	// 						       cib_method_ptr);
-	// }
-
-	Eigen::Vector3d dr;
-	Eigen::Vector3d R_dr;
 	if (d_isImposed_component[struct_no]) getNewRigidBodyVelocity(struct_no, U); 
-
+	
 	for (int idof=0; idof < s_max_free_dofs; ++idof) 
 	{
 	    if (d_solve_rigid_vel[struct_no][idof])  
 		U[idof] = u_array[struct_to_free_map[struct_no]*s_max_free_dofs+idof];
-	}
-	const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_no];
-	Eigen::Matrix3d rotation_mat;
-	
-	if  (isHalfTimeStep)	
-	    rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
-	else 
-	    rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
+	}	
 
-	const unsigned num_nodes = getNumberOfNodes(struct_no);
+	//setting nodal velocity is not working yet
+	if (d_constrained_velocity_fcns_data[struct_no].nodalvelfcn)
+	{
+	    void* ctx = d_constrained_velocity_fcns_data[struct_no].ctx;
+	    CIBMethod* cib_method_ptr = this;
+	    d_constrained_velocity_fcns_data[struct_no].nodalvelfcn(struct_no, V_Array, U, d_X_half_data[struct_ln]->getVec(),
+								    d_center_of_mass_half[struct_no], d_new_time, ctx, 
+								    cib_method_ptr);
+	}else
+	{
 
-	for (unsigned inode = 0; inode < num_nodes; ++inode)
-	{    
-	    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_no, inode);
-	    for (unsigned int d = 0; d < NDIM; ++d)  
-	    {
-		dr[d] = X[d];
-		indices.push_back((part_idx_range.first+inode)*NDIM+d);
-		counter++;
-	    }
+	    Eigen::Vector3d dr;
+	    Eigen::Vector3d R_dr;
 
-	    R_dr = rotation_mat*dr; 
+	    const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_no];
+	    Eigen::Matrix3d rotation_mat;
+	    
+	    if  (isHalfTimeStep)	
+		rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
+	    else 
+		rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
+	    
+	    const unsigned num_nodes = getNumberOfNodes(struct_no);
+	    
+	    for (unsigned inode = 0; inode < num_nodes; ++inode)
+	    {    
+		const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,struct_no, inode);
+		for (unsigned int d = 0; d < NDIM; ++d)  
+		{
+		    dr[d] = X[d];
+		    indices.push_back((part_idx_range.first+inode)*NDIM+d);
+		    // counter++;
+		}
+		
+		R_dr = rotation_mat*dr; 
 #if (NDIM == 2)
-	    V_Array.push_back(U[0] - U[2] * R_dr[1]);
-	    V_Array.push_back(U[1] + U[2] * R_dr[0]);
+		V_Array.push_back(U[0] - U[2] * R_dr[1]);
+		V_Array.push_back(U[1] + U[2] * R_dr[0]);
 #elif(NDIM == 3)
-	    V_Array.push_back(U[0] + U[4] * R_dr[2] - U[5] * R_dr[1]);
-	    V_Array.push_back(U[1] + U[5] * R_dr[0] - U[3] * R_dr[2]);
-	    V_Array.push_back(U[2] + U[3] * R_dr[1] - U[4] * R_dr[0]);
+		V_Array.push_back(U[0] + U[4] * R_dr[2] - U[5] * R_dr[1]);
+		V_Array.push_back(U[1] + U[5] * R_dr[0] - U[3] * R_dr[2]);
+		V_Array.push_back(U[2] + U[3] * R_dr[1] - U[4] * R_dr[0]);
 #endif
+	    }
 	}
+	counter += getNumberOfNodes(struct_no)*NDIM;
     }
-    
     VecSetValues(V_lag_vec, counter, &indices[0], &V_Array[0], INSERT_VALUES); 
  
     VecAssemblyBegin(V_lag_vec);
@@ -1215,6 +1227,16 @@ void CIBMethod::setRigidBodyDeformationVelocity(Vec W)
     (*d_VelDefFun)(W, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half, cib_method);
     return;
 }//setRigidBodyDeformationVelocity
+
+void CIBMethod::getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U)
+{
+    if (MathUtilities<double>::equalEps(d_rho,0)) 
+	eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], U);
+    else
+	eigenToRDV(d_trans_vel_new[part], d_rot_vel_new[part], U);
+
+    return;
+} // getNewRigidBodyVelocity
 
 void CIBMethod::computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, const bool isHalfTimeStep)
 {

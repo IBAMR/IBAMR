@@ -879,9 +879,8 @@ void CIBStandardInitializer::readClonesCenterPositions(const std::string& fileNa
 	}else
 	{
 	    //use a default position and a default orientation for a single structure
-	    for (unsigned int d = 0; d < NDIM; ++d)
+	    for (unsigned int d = 0; d <  (NDIM + NDIM/3); ++d)
 	    {
-		//coords[d] = 0;
 		direction[d] = 0;
 	    }
 	    direction[0] = 1.0;

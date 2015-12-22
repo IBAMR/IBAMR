@@ -89,7 +89,7 @@ public:
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
     typedef void (*ConstrainedNodalVelocityFcnPtr)(const unsigned part,
-						   Vec U_k,
+						   std::vector<PetscScalar>& V,
                                                    const RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
@@ -369,7 +369,7 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true);
+    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true);
 
     // \see CIBStrategy::setRigidBodyDeformationVelocity method.
     /*!
@@ -379,12 +379,17 @@ public:
 
     //void setRigidBodyDeformationVelocity(Vec W);
 
+    /*! \see CIBStrategy:: getNewRigidBodyVelocity
+     * \brief Get the rigid body translational velocity
+     * the timestep.
+     */
+    void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, const bool isHalfTimeStep=true);
+    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true);
 
 
     void copyAllArrayToVec(Vec b,
@@ -598,6 +603,9 @@ private:
     // vector<RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;   
+
+    //fluid density 
+    double d_rho;
 
 }; // CIBMethod
 } // namespace IBAMR
