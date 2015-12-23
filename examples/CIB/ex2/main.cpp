@@ -118,6 +118,13 @@ int main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+ 
+	// Read default Petsc options
+	if (input_db->keyExists("petsc_options_file"))
+	{
+	    std::string PetscOptionsFile = input_db->getString("Petsc_options_file");
+	    PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+	}
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

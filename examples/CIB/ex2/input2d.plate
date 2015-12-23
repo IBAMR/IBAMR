@@ -1,3 +1,6 @@
+//PETSC options dat file
+//petsc_options_file = "PetscOptions.dat"
+
 // physical parameters
 RHO     = 1.0                         // fluid density
 Re      = 20.0                        // Reynolds number of the flow

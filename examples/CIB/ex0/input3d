@@ -1,7 +1,7 @@
 //This example shows a steady stokes simulation for structures of two types with number of clones N1 and N2
 
 //PETSC options dat file
-//Petsc_options_file = "PetscOptions.dat"
+//petsc_options_file = "PetscOptions.dat"
 
 // physical parameters
 MU  =  1.0                   // fluid viscosity

@@ -1,7 +1,7 @@
 //This example shows usage of the function registerRigidBodyVelocityDeformationFunction to simulate a suspension of active squimers of uniform size
 
 //PETSC options dat file
-//Petsc_options_file = "PetscOptions.dat"
+//petsc_options_file = "PetscOptions.dat"
 
 B1_squimer = 1.0
 B2_squimer = 0.0
