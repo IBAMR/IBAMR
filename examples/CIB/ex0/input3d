@@ -1,12 +1,14 @@
-//This is example of free swiming stuructures supports two possible flavors: 
-//shells with active slip - SQUIMER
-//shell with applied random force and torque  - RANDOM_FORCE
+//This example shows a steady stokes simulation for structures of two types with number of clones N1 and N2
 
+//PETSC options dat file
+//Petsc_options_file = "PetscOptions.dat"
 
 // physical parameters
 MU  =  1.0                   // fluid viscosity
 RHO =  0.0                   // fluid density
 
+N1 = 4 //number of clones for structure shell_3d_42
+N2 = 3
 // constants
 PI         = 3.141592653589
 DELTA      = 0.0             // regularization parameter for mobility matrix
@@ -22,7 +24,7 @@ N = 64               // number of grid cells along height of domain
 PATCH_SIZE = N       // max patch size
 DX = 0.5             // grid spacing
 L = N*DX             // length of domain
-DT = 0.1            // maximum timestep size
+DT = 0.01            // maximum timestep size
 
 // solver parameters
 SOLVER_KSP = "fgmres"
@@ -34,7 +36,7 @@ MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 RECOMPUTE_MOB = FALSE
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT*1                  // final simulation time
+END_TIME             = DT*10                  // final simulation time
 GROW_DT              = 1.0e0                 // growth factor for timesteps
 NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
@@ -43,7 +45,7 @@ ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for expl
 CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"    // convective time stepping type used in INS solver
 CONVECTIVE_OP_TYPE  = "PPM"             // convective differencing discretization type; used in both INS and Adv-Diff solver
 CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 10.5                    // maximum CFL number
+CFL_MAX             =  0.5                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
@@ -87,7 +89,7 @@ CIBMethod {
 
 CIBStandardInitializer {
     structure_names          = "shell_3d_42","shell_3d_162"
-    structs_clones_num        = 4,3
+    structs_clones_num        = N1, N2
    
     posn_shift = L/2. , L/2., L/2.
     max_levels      = MAX_LEVELS
@@ -96,7 +98,9 @@ CIBStandardInitializer {
       level_number             = MAX_LEVELS - 1
       
       //see README file for explantion
-      structs_clones_velocity_constraints =  "none" //"none", "uniform", "file", "shell"
+      structs_clones_velocity_constraints =  "file" //"none", "uniform", "file", "shell"
+      
+      //next two lines are ignored unless structs_clones_velocity_constraints is set to "uniform"
       uniform_free_dofs = 0, 0, 0, 0, 0, 0
       uniform_velocity_constraint_function 
       {
@@ -109,6 +113,8 @@ CIBStandardInitializer {
        }
        
        structs_clones_external_force = "uniform" //"none", "uniform", "file", "random"
+       
+       //next line is ignored unless structs_clones_external_force is set to "uniform"
        uniform_body_force_torque_function{
 	function_dof_0 = "1.0"
 	function_dof_1 = "0.0"
@@ -118,14 +124,16 @@ CIBStandardInitializer {
 	function_dof_5 = "0.0"
        }
        
+       //next line is ignored unless structs_clones_external_force is set to "random"
        random_external_force_scaling = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
-      
    }
 
    shell_3d_162{
       level_number             = MAX_LEVELS - 1
-            //see README file for explantion
+      //see README file for explantion
       structs_clones_velocity_constraints =  "none" //"none", "uniform", "file", "shell"
+    
+      //next two lines are ignored unless structs_clones_velocity_constraints is set to "uniform"
       uniform_free_dofs = 0, 0, 0, 0, 0, 0
       uniform_velocity_constraint_function 
       {
@@ -137,7 +145,7 @@ CIBStandardInitializer {
         vel_dof_5 = "0.0"   //non imposed dofs are ignored
        }
        
-       structs_clones_external_force = "file" //"none", "uniform", "file", "random"
+       structs_clones_external_force = "random" //"none", "uniform", "file", "random"
        uniform_body_force_torque_function{
 	function_dof_0 = "0.0"
 	function_dof_1 = "0.0"
@@ -147,6 +155,7 @@ CIBStandardInitializer {
 	function_dof_5 = "0.0"
        }
        
+       //next line is ignored unless structs_clones_external_force is set to "random"
        random_external_force_scaling = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
 
    }

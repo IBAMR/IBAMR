@@ -1,5 +1,6 @@
+// Active squimers suspension 
+
 // Filename main.cpp
-// Created on 23 Apr 2015 by Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,8 +29,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <Eigen/Geometry>
 // Config files
 #include <IBAMR_config.h>
+
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
@@ -46,47 +49,70 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/CIBMethod.h>
-#include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
+#include <ibamr/CIBStandardInitializer.h>
 #include <ibamr/DirectMobilitySolver.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBStandardInitializer.h>
-#include <ibamr/IBStandardForceGen.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
+#include <ibamr/CIBMobilitySolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibamr/RNG.h>
+
+static double B1,B2;
+void SlipVelocity(Vec W,  Vec X, 
+		  const std::vector<Eigen::Vector3d>& Xin_com, CIBMethod* cib_method)
+{
+    const int rank =  SAMRAI_MPI::getRank();
+    const int nodes =  SAMRAI_MPI::getNodes();
+    const int struct_ln = cib_method->getStructuresLevelNumber();
+    const unsigned num_rigid_parts = cib_method->getNumberOfRigidStructures();
+    std::vector<unsigned> struct_ids;
+    std::vector<double> V_array; 
+
+    for (unsigned part = rank; part < num_rigid_parts; part +=nodes)
+    {
+	struct_ids.push_back(part);
+	const unsigned num_of_nodes = cib_method->getNumberOfNodes(part);
+	Eigen::Quaterniond* Q = cib_method->getBodyQuaternion(part,true);
+	Eigen::Matrix3d  body_rot_matrix=Q->toRotationMatrix();
+    	for (unsigned i=0; i<num_of_nodes; ++i)
+    	{
+    	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);
+	    
+    	    Eigen::Vector3d coord;
+    	    for (unsigned d=0; d<NDIM; ++d) coord[d]=X[d];
+	    
+    	    double r=coord.norm();
+    	    double r_proj=sqrt(coord[1]*coord[1]+coord[2]*coord[2]);
+    	    double cos_theta=coord[0]/r;
+    	    double sin_theta=r_proj/r;
+    	    double v_theta=(B1*sin_theta+B2*cos_theta*sin_theta);
+	    
+    	    Eigen::Vector3d temp_vec = Eigen::Vector3d::Zero();
+    	    temp_vec[0] = -v_theta*sin_theta;
+    	    if (r_proj>1e-9)
+    	    {
+    	    	temp_vec[1] = v_theta*cos_theta*coord[1]/r_proj;
+    	    	temp_vec[2] = v_theta*cos_theta*coord[2]/r_proj;
+    	    }
+    
+    	    Eigen::Vector3d slip_vec=body_rot_matrix*temp_vec;
+
+    	    for (unsigned d=0; d<NDIM; ++d) V_array.push_back(slip_vec[d]);
+    	}
+    }
+    cib_method->copyAllArrayToVec(W, &V_array[0], struct_ids, NDIM);
+    return;
+}
 
 //////////////////////////////////////////////////////////////////////////////
-
-// Center of mass velocity
-void ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
-{
-    U_com.setZero();
-    W_com.setZero();
-    U_com[0] = 1.0;
-    U_com[1] = 1.0;
-
-    return;
-} // ConstrainedCOMOuterVel
-
-// Center of mass velocity
-void ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
-{
-    U_com.setZero();
-    W_com.setZero();
-    return;
-} // ConstrainedCOMInnerVel
-
-void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
-{
-}
-// Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -107,11 +133,13 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
+    //PetscErrorCode ierr;
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
     SAMRAIManager::setMaxNumberPatchDataEntries(2054);
+    RNG::parallel_seed(1);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -120,6 +148,13 @@ int main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+	
+	// Read default Petsc options
+	if (input_db->keyExists("Petsc_options_file"))
+	{
+	    std::string PetscOptionsFile = input_db->getString("Petsc_options_file");
+	    PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+	}
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -150,8 +185,21 @@ int main(int argc, char* argv[])
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
+	//**********************************************
+	//parameters for structures configuration   
+	unsigned int num_structures=0;
+	//First get number of structure using modified IBStandardInitializer
+	const unsigned num_structs_types = app_initializer->getComponentDatabase("CIBStandardInitializer")->getArraySize("structure_names");
+
+	std::vector<int> structs_clones_num(num_structs_types);
+	app_initializer->getComponentDatabase("CIBStandardInitializer")->getIntegerArray("structs_clones_num", &structs_clones_num[0], num_structs_types);
+
+	std::vector<std::string> structure_type_names(num_structs_types);
+	app_initializer->getComponentDatabase("CIBStandardInitializer")->getStringArray("structure_names", &structure_type_names[0], num_structs_types);
+
+	for(unsigned itype=0;itype<num_structs_types;itype++)  num_structures +=structs_clones_num[itype];
+
         // CIB method
-        const unsigned int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
         Pointer<CIBMethod> ib_method_ops =
             new CIBMethod("CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
 
@@ -179,19 +227,17 @@ int main(int argc, char* argv[])
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector, box_generator, load_balancer);
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
+        Pointer<CIBStandardInitializer> ib_initializer = new CIBStandardInitializer(
+            "CIBStandardInitializer", app_initializer->getComponentDatabase("CIBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
+	ib_method_ops->registerStandardInitializer(ib_initializer);
 
-        // Specify structure kinematics
-        FreeRigidDOFVector outer_free_dofs, inner_free_dofs;
-        outer_free_dofs.setZero();
-        inner_free_dofs << 0, 0, 0, 0, 0, 0;
-        ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
-        ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
-
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
+	//register velocitydeformation function
+	//Read  constants B1 and B2 for active slip
+	B1=input_db->getDouble("B1_squimer");
+	B2=input_db->getDouble("B2_squimer");
+	ib_method_ops->registerRigidBodyVelocityDeformationFunction(&SlipVelocity);
+ 	
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -243,39 +289,11 @@ int main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        // Register mobility matrices (if needed)
-        std::string mobility_solver_type = input_db->getString("MOBILITY_SOLVER_TYPE");
-        if (mobility_solver_type == "DIRECT")
-        {
-            std::string mat_name1 = "struct-1";
-            std::string mat_name2 = "struct-2";
-            std::vector<std::vector<unsigned> > struct_ids1;
-            std::vector<std::vector<unsigned> > struct_ids2;
-            std::vector<unsigned> prototype_structs1;
-            std::vector<unsigned> prototype_structs2;
+	// Register BC coefficients with the cib method
+	ib_method_ops->setVelocityBC(&u_bc_coefs);
+	ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
 
-            // Dense matrix
-            prototype_structs1.push_back(0);
-            prototype_structs2.push_back(1);
-
-            struct_ids1.push_back(prototype_structs1);
-            struct_ids2.push_back(prototype_structs2);
-
-            DirectMobilitySolver* direct_solvers = NULL;
-            KrylovMobilitySolver* krylov_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(&krylov_solvers,
-                                                                                          &direct_solvers);
-
-            direct_solvers->registerMobilityMat(mat_name1, prototype_structs1, EMPIRICAL, LAPACK_SVD, 0);
-            direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
-
-            int next_proc = 0;
-            if (SAMRAI_MPI::getNodes() > 1) next_proc = 1;
-            direct_solvers->registerMobilityMat(mat_name2, prototype_structs2, EMPIRICAL, LAPACK_SVD, next_proc);
-            direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
-        }
-
-        // Deallocate initialization objects.
+	// Deallocate initialization objects.
         app_initializer.setNull();
 
         // Print the input database contents to the log file.
@@ -298,7 +316,6 @@ int main(int argc, char* argv[])
             output_data(patch_hierarchy, ib_method_ops->getLDataManager(), iteration_num, loop_time,
                         postproc_data_dump_dirname);
         }
-
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -316,15 +333,15 @@ int main(int argc, char* argv[])
             dt = time_integrator->getMaximumTimeStepSize();
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
-
-            if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
+	    if ((time_integrator->atRegridPoint())||(ib_method_ops->flagRegrid())) 
+	    {
+		navier_stokes_integrator->setStokesSolverNeedsInit();
+		if (ib_method_ops->flagRegrid()) time_integrator->regridHierarchy();
+		
+	    }
+	    
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
-
-            pout << "\n\nNet rigid force and torque on structure 0 is : \n"
-                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n";
-            pout << "\n\nNet rigid force and torque on structure 1 is : \n"
-                 << ib_method_ops->getNetRigidGeneralizedForce(1) << "\n\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
@@ -362,7 +379,10 @@ int main(int argc, char* argv[])
         }
 
         // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) 
+	{
+	    if (u_bc_coefs[d]) delete u_bc_coefs[d];
+	}
 
     } // cleanup dynamically allocated objects prior to shutdown
 

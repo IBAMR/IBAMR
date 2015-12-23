@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST  = input3d shell_3d_in.vertex shell_3d_out.vertex
+EXTRA_DIST  = input3d shell_3d_42_RH2_h_0_3.vertex shell_3d_42_RH2_h_0_3.clones PetscOptions.dat 
 
 EXTRA_PROGRAMS =
 if SAMRAI3D_ENABLED
@@ -17,14 +17,15 @@ main3d_SOURCES = $(SOURCES)
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
-	  cp -f $(srcdir)/shell_3d_in.vertex $(PWD) ; \
-	  cp -f $(srcdir)/shell_3d_out.vertex $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_42_RH2_h_0_3.vertex $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_42_RH2_h_0_3.clones $(PWD) ; \
+	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
-          rm -f $(builddir)/shell_3d_in.vertex ; \
-          rm -f $(builddir)/shell_3d_out.vertex ; \
+          rm -f $(builddir)/shell_3d_42_RH2_h_0_3.vertex ; \
+          rm -f $(builddir)/shell_3d_42_RH2_h_0_3.clones ; \
 	fi ;

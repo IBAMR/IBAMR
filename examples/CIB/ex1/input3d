@@ -1,42 +1,54 @@
+//This example shows usage of the function registerRigidBodyVelocityDeformationFunction to simulate a suspension of active squimers of uniform size
+
+//PETSC options dat file
+//Petsc_options_file = "PetscOptions.dat"
+
+B1_squimer = 1.0
+B2_squimer = 0.0
+
 // physical parameters
 MU  =  1.0                   // fluid viscosity
 RHO =  0.0                   // fluid density
 
+N_clones = 48 //number of clones for structure shell_3d_42
+
 // constants
 PI         = 3.141592653589
-VISC_CFL   = 1E-16           // desired viscous CFL number
-STOKES_ITER = 4
-STOKES_TOL = 1.0e-12         // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-12         // Stokes' solver tolerance
 DELTA      = 0.0             // regularization parameter for mobility matrix
-U_WALL = 1.0                 // wall velocity
+U_WALL = 0.0 // Wall velocity
 
 // BCs
-PERIODIC            = 0
+PERIODIC            = 1
 NORMALIZE_PRESSURE  = TRUE           // whether to explicitly force the pressure to have mean zero
 NORMALIZE_VELOCITY  = (PERIODIC==1)  // for Stokes flow (rho = 0)
 
 // Gridding
-N = 64                         // number of grid cells along height of domain
-PATCH_SIZE = N                 // parallelization and testing
-DX = 0.5                       // grid spacing
-L = N*DX                       // length of domain
-DT = 1e-16                     // maximum timestep size
+N = 64               // number of grid cells along height of domain
+PATCH_SIZE = N       // max patch size
+DX = 0.3             // grid spacing
+L = N*DX             // length of domain
+DT = 0.01            // maximum timestep size
 
 // solver parameters
+SOLVER_KSP = "fgmres"
+STOKES_KSP = "gmres"
+STOKES_ITER = 2
+STOKES_TOL = 1.0e-3         // Stokes' solver tolerance
+SOLVER_TOL = 1.0e-9         // Stokes' solver tolerance
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
+RECOMPUTE_MOB = FALSE
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT                    // final simulation time
+END_TIME             = DT*1                  // final simulation time
 GROW_DT              = 1.0e0                 // growth factor for timesteps
 NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
 DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
 ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
-CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"  // convective time stepping type used in INS solver
-CONVECTIVE_OP_TYPE  = "PPM"                  // convective differencing discretization type; used in both INS and Adv-Diff solver
-CONVECTIVE_FORM     = "ADVECTIVE"            // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 0.1                    // maximum CFL number
+CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"    // convective time stepping type used in INS solver
+CONVECTIVE_OP_TYPE  = "PPM"             // convective differencing discretization type; used in both INS and Adv-Diff solver
+CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
+CFL_MAX             =  0.5                    // maximum CFL number
 ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
@@ -54,6 +66,7 @@ MAX_LEVELS = 1                            // maximum number of levels in locally
 REF_RATIO  = 4                            // refinement ratio between levels
 
 IBHierarchyIntegrator {
+   delta_fcn           = DELTA_FUNCTION
    start_time          = START_TIME
    end_time            = END_TIME
    grow_dt             = GROW_DT
@@ -67,49 +80,93 @@ IBHierarchyIntegrator {
    time_stepping_type  = "MIDPOINT_RULE"
 }
 
-num_structures = 2
+//num_structures = 1
 CIBMethod {
    delta_fcn             = DELTA_FUNCTION
    enable_logging        = ENABLE_LOGGING
-   lambda_dirname        = "./Lambda"
+   lambda_dirname        = "./Output"
+   output_all_lambdas    = FALSE //whether output all lambdas
    lambda_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
    output_eul_lambda     = TRUE         // defaults to false
 }
 
-IBStandardInitializer {
+CIBStandardInitializer {
+    structure_names          = "shell_3d_42_RH2_h_0_3"
+    structs_clones_num        = N_clones
+   
     posn_shift = L/2. , L/2., L/2.
     max_levels      = MAX_LEVELS
-    structure_names = "shell_3d_out", "shell_3d_in"
-
-   shell_3d_out{
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
-   }
-    shell_3d_in{
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
+    
+    shell_3d_42_RH2_h_0_3{
+      level_number             = MAX_LEVELS - 1
+      
+      //see README file for explantion
+      structs_clones_velocity_constraints =  "none" //"none", "uniform", "file", "shell"
+      structs_clones_external_force = "none" //"none", "uniform", "file", "random"
    }
 }
 
 CIBStaggeredStokesSolver 
 {
     // Parameters to control various linear operators
-    scale_interp_operator     = 1.0                             // defaults to 1.0
-    scale_spread_operator     = 1.0                             // defaults to 1.0
-    normalize_spread_force    = (PERIODIC == 1)                 // defaults to false
-    regularize_mob_factor     = DELTA                           // defaults to 0.0
+    scale_interp_operator     = 1.0                                // defaults to 1.0
+    scale_spread_operator     = 1.0                                // defaults to 1.0
+    normalize_spread_force    = (PERIODIC == 1)                    // defaults to false
+    regularize_mob_factor     = DELTA                              // defaults to 0.0
  
     // Setting for outer Krylov solver.
     options_prefix        = "SP_"
     max_iterations        = 100
     rel_residual_tol      = SOLVER_TOL
     abs_residual_tol      = 1e-50
-    ksp_type              = "fgmres"
+    ksp_type              = SOLVER_KSP
     pc_type               = "shell"
-    initial_guess_nonzero = FALSE
+    initial_guess_nonzero = TRUE
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
+    free_velocity_dirname        = "./Output"
+    free_velocity_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
   
+    DirectMobilitySolver
+    {
+        //Type of a global mobility matrix for all structures and their clones.
+	//shell - skips all parameters in the input for direct solver, all parameters must be defined in the code through corresponding register function.
+        direct_solver_type  = "block_diagonal" //  "block_diagonal", "dense", "shell"
+        
+        //mobility_block_distribution_manager: Manage distribution of direct solver in parallel.
+	//time_effcient - distribute all structure clones uniformly over processors and creates one copy of each mobility submatrix on the each processor
+	//memory_efficient - creates only one copy of mobility matrix for all clones on a corresponding managing processor, matrices are distributed parallel
+	//none - each clone has its own mobility matrix distributed over all processors parallel
+	
+	mobility_block_distribution_manager = "time_efficient"//"time_efficient", "memory_efficient", "none"
+	
+        recompute_mob_mat_perstep = RECOMPUTE_MOB
+	
+	dense_block_mobility_type            = "EMPIRICAL" //"FILE", "EMPIRICAL", "RPY"
+	mobility_block_inverse_method        = "LAPACK_SVD" // "LAPACK_CHOLESKY","LAPACK_LU","LAPACK_SVD"
+	body_resistance_block_inverse_method = "LAPACK_CHOLESKY" // "LAPACK_CHOLESKY","LAPACK_LU","LAPACK_SVD"
+	
+	//if dense_block_mobility_type is choosen "FILE" this variable provides an array of filenames for stored mobility matrices 
+	mobility_matrix_filenames = "mob_matrix_1", "mob_matrix_2"
+	
+        f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
+     
+        // if not present default values mob_scale_1 = 1.0, mob_scale_2 = 0.0	
+	mob_scale_1                  = 1.0                   // scaling factors for mobility matrix 
+	mob_scale_2                  = DELTA                 // scaled_MM = mob_scale_1*[MobilityMatrix] + mob_scale_2*[I]  
+	
+        mobility_svd_settings
+        {
+            min_eigenvalue_threshold   = 1e-4 /(DX*MU)     // defaults to 0.0
+            eigenvalue_replace_value   = 1e-4 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
+        }
+        
+        body_resistance_svd_settings
+        {
+            min_eigenvalue_threshold   = 1e-5 /(DX*MU)     // defaults to 0.0
+            eigenvalue_replace_value   = 1e-5 /(DX*MU)     // replace eigenvalue less than min_eigenvalue_threshold
+        }
+   }
     // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
     PCStokesSolver
     {
@@ -119,7 +176,7 @@ CIBStaggeredStokesSolver
         stokes_solver_db
         {
             max_iterations   = STOKES_ITER
-            ksp_type         = "gmres"
+            ksp_type         = STOKES_KSP
             rel_residual_tol = STOKES_TOL
             abs_residual_tol = 0.0
         }
@@ -219,20 +276,6 @@ CIBStaggeredStokesSolver
 
     }// KrylovMobilitySolver
 
-    DirectMobilitySolver
-    {
-        recompute_mob_mat_perstep = FALSE
-        f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
-
-        LAPACK_SVD
-        {
-            min_eigenvalue_threshold   = 1e-4     // defaults to 0.0
-            eigenvalue_replace_value   = 1e-4     // replace eigenvalue less than min_eigenvalue_threshold
-        }
-   }
-   FreeBodyMobilitySolver
-   {
-   }
 
 } // cIBStaggeredStokesSolver
 
@@ -260,23 +303,24 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   init_convective_time_stepping_type = "FORWARD_EULER" 
 }
 
 Main {
 
 // log file parameters
-   log_file_name               = "3d_example.log"
+   log_file_name               = "3d_shells_clones.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 1
-   viz_dump_dirname            = "viz_icosahedron3d"
+   viz_dump_dirname            = "viz_3d_shells_clones"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 1
-   restart_dump_dirname        = "restart_2shells_3d"
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_3d_shells"
 
 // timer dump parameters
    timer_dump_interval         = 1
@@ -287,6 +331,8 @@ CartesianGeometry {
    x_lo = 0., 0., 0.
    x_up = L, L, L
    periodic_dimension = PERIODIC, PERIODIC, PERIODIC
+
+
 }
 
 // Initial and BC conditions (if nonperiodic)
@@ -299,8 +345,6 @@ VelocityInitialConditions {
 
 // u velocity
 VelocityBcCoefs_0 {
-
-   u_wall = U_WALL // 0 for homogeneous
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -316,12 +360,12 @@ VelocityBcCoefs_0 {
    bcoef_function_4 = "0.0"
    bcoef_function_5 = "0.0"
 
-   gcoef_function_0 = "u_wall"
-   gcoef_function_1 = "u_wall"
-   gcoef_function_2 = "u_wall"
-   gcoef_function_3 = "u_wall"
-   gcoef_function_4 = "u_wall"
-   gcoef_function_5 = "u_wall"
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
    
 }
 
