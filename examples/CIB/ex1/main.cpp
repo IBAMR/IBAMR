@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 	// Read default Petsc options
 	if (input_db->keyExists("petsc_options_file"))
 	{
-	    std::string PetscOptionsFile = input_db->getString("Petsc_options_file");
+	    std::string PetscOptionsFile = input_db->getString("petsc_options_file");
 	    PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
 	}
 

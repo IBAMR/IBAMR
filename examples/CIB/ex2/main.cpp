@@ -64,7 +64,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // Center of mass velocity
-void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+void ConstrainedCOMVel(unsigned /*part*/, double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
 {
     U_com.setZero();
     W_com.setZero();
@@ -73,7 +73,7 @@ void ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
     return;
 } // ConstrainedCOMOuterVel
 
-void NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+void NetExternalForceTorque(unsigned /*part*/, double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
 {
     F_ext << 0.0, 0.0, 0.0;
     T_ext << 0.0, 0.0, 0.0;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 	// Read default Petsc options
 	if (input_db->keyExists("petsc_options_file"))
 	{
-	    std::string PetscOptionsFile = input_db->getString("Petsc_options_file");
+	    std::string PetscOptionsFile = input_db->getString("petsc_options_file");
 	    PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
 	}
 
