@@ -399,10 +399,13 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 	    {
 		for (int part = 0; part < free_comps/s_max_free_dofs; ++part)
 		{
+		    int num_free_dofs;
+		    const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+
 		    d_U_body_out <<part<<"\t";	
 		    for (int d = 0; d < s_max_free_dofs; ++d)
 		    {  
-			d_U_body_out << u_array[part*s_max_free_dofs +d] << "\t";
+			if (solve_dofs[d]) d_U_body_out << u_array[part*s_max_free_dofs +d] << "\t";
 		    }
 		    d_U_body_out <<std::endl;	
 		}
