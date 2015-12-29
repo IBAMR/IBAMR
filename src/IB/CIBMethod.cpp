@@ -100,6 +100,11 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
     d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_lambda_filename.resize(d_num_rigid_parts);
+    d_VelDefFun=NULL;
+    d_ShapeDefFun.resize(d_num_rigid_parts, NULL);
+    d_delta_X_half.resize(d_num_rigid_parts);    
+    d_delta_X_new.resize(d_num_rigid_parts); 
+    
     d_reg_filename.resize(d_num_rigid_parts);
     d_comvel_constraint_parsers.resize(d_num_rigid_parts);
     d_ext_force_parsers.resize(d_num_rigid_parts);
@@ -126,30 +131,29 @@ CIBMethod::~CIBMethod()
     return;
 } // ~cIBMethod
 
-void CIBMethod::registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
-                                                    ConstrainedCOMVelocityFcnPtr comvelfcn,
-                                                    void* ctx,
-                                                    unsigned int part)
+void CIBMethod::registerConstraintMatrix(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
+					 void* ctx,
+					 unsigned int part)
 {
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(part < d_num_rigid_parts);
-#endif
-    registerConstrainedVelocityFunction(ConstrainedVelocityFcnsData(nodalvelfcn, comvelfcn, ctx), part);
-
+    d_constrained_velocity_fcns_data[part].nodalvelfcn = nodalvelfcn;
+    d_constrained_velocity_fcns_data[part].ctx = ctx;
     return;
 } // registerConstrainedVelocityFunction
 
-void CIBMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part)
+void CIBMethod::registerConstrainedVelocityFunction(ConstrainedCOMVelocityFcnPtr comvelfcn,
+						    unsigned int part)
 {
+    d_constrained_velocity_fcns_data[part].comvelfcn = comvelfcn;
+    return;
+} // registerConstrainedVelocityFunction
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(part < d_num_rigid_parts);
-#endif
+void CIBMethod::registerConstrainedVelocityFcnData(const ConstrainedVelocityFcnsData& data, unsigned int part)
+{
     d_constrained_velocity_fcns_data[part] = data;
-
     return;
 } // registerConstrainedVelocityFunction
+
 
 void CIBMethod::registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
                                                     void* ctx,
@@ -170,11 +174,17 @@ void CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcn
 
     return;
 } // registerExternalForceTorqueFunction
-void CIBMethod::registerRigidBodyVelocityDeformationFunction(VelocityDeformationFunctionPtr VelDefFun)
+void CIBMethod::registerSlipVelocityFunction(VelocityDeformationFunctionPtr VelDefFun)
 {
     d_VelDefFun=VelDefFun;
 
 }//registerVelocityDeformationFunction
+
+    void CIBMethod::registerShapeDeformationFunction(const unsigned part, CloneShapeDeformationFunctionPtr ShapeDefFun)
+{
+    d_ShapeDefFun[part] = ShapeDefFun;
+
+}//registerShapeDeformationFunction
 
 int CIBMethod::getStructuresLevelNumber() const
 {
@@ -340,6 +350,11 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
                 }
             }
 #endif
+	    if (MathUtilities<double>::equalEps(d_rho,0))
+	    {
+	    	d_trans_vel_half[part] = d_trans_vel_current[part];
+	    	d_rot_vel_half[part] = d_rot_vel_current[part];
+	    }
         }
 
 	if (!SAMRAI_MPI::getRank())
@@ -368,8 +383,9 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 		    F_ext.setZero();
 		    T_ext.setZero();
 		}
+
 		eigenToRDV(F_ext, T_ext, Fr);
-		
+
 		RDV Ur;
 		eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], Ur);
 		
@@ -389,7 +405,25 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 		}
 	    }
 	}
+	if (d_ShapeDefFun[part])
+	{
+	    //markers displacements
+	    d_delta_X_half[part].clear();    
+	    d_delta_X_new[part].clear();    
+
+	    const int no_ib_pts = getNumberOfNodes(part);
+
+	    d_delta_X_half[part].resize(no_ib_pts, IBTK::Point::Zero());    
+	    d_delta_X_new[part].resize(no_ib_pts, IBTK::Point::Zero());    
+
+	    double time_step = d_half_time;
+	    if (MathUtilities<double>::equalEps(d_rho,0)) time_step =  d_current_time;
+	    CIBMethod* cib_method = this;
+	    d_ShapeDefFun[part](d_delta_X_half[part], time_step, cib_method);
+	    d_ShapeDefFun[part](d_delta_X_new[part], d_new_time, cib_method);
+	}
     }
+    
     const int global_size = SAMRAI_MPI::sumReduction(counter);
 
     VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, global_size, &d_mv_U);
@@ -760,20 +794,17 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
         boost::multi_array_ref<double, 2>& X_half_array = *((*X_half_data)[ln]->getLocalFormVecArray());
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln); 
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    
-        // Get structures on this level.
+
+	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
-    	
-#if !defined(NDEBUG)
-        TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
-#endif
+
 	for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
-            double* const X_half = &X_half_array[local_idx][0];
+	    double* const X_half = &X_half_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
             Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
@@ -788,9 +819,14 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
             R_dr = rotation_mat[struct_handle]*dr; 
 
             for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_half[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d] +
-                            0.5 * dt * d_trans_vel_current[struct_handle][d];
+	    {
+		X_half[d] =  d_center_of_mass_current[struct_handle][d] + R_dr[d] +  0.5 * dt * d_trans_vel_current[struct_handle][d];
+		
+		if (d_ShapeDefFun[struct_handle])
+		{
+		    X_half[d] +=  d_delta_X_half[struct_handle][lag_idx-lag_idx_range.first][d];    
+		}
+		
 		if (periodic_shift[d])
 		{
 		    while (X_half[d] < domain_x_lower[d]) X_half[d] += domain_length[d];
@@ -800,7 +836,6 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
         }
         (*X_half_data)[ln]->restoreArrays();
     }
-    *X_half_needs_ghost_fill = true;
 
     // Compute the COM at mid-step.
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -810,9 +845,10 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
 	    d_center_of_mass_half[struct_no][d] = d_center_of_mass_current[struct_no][d] + 0.5*dt*d_trans_vel_current[struct_no][d];
 	}
     }
+
+    *X_half_needs_ghost_fill = true;
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
-
     return;
 } // eulerStep
 
@@ -845,6 +881,19 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
     }
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
 
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    {
+    	for (unsigned int d = 0; d < NDIM; ++d) 
+    	{ 
+    	    d_center_of_mass_current[struct_no][d] += dt*d_trans_vel_half[struct_no][d]; 
+    	    if (periodic_shift[d])
+    	    {
+    	    	while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d]) d_center_of_mass_current[struct_no][d] += domain_length[d];
+    	    	while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d]) d_center_of_mass_current[struct_no][d] -= domain_length[d];
+    	    }
+    	}
+    }
+    
     // Rotate the body with current rotational velocity about origin
     // and translate the body to newer position.
     const int coarsest_ln = 0;
@@ -884,8 +933,13 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_new[d] =
-                    d_center_of_mass_current[struct_handle][d] + R_dr[d] + dt * d_trans_vel_half[struct_handle][d];
+                X_new[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d];// + dt * d_trans_vel_half[struct_handle][d];
+
+		if (d_ShapeDefFun[struct_handle])
+		{
+		    X_new[d] +=  d_delta_X_new[struct_handle][lag_idx-lag_idx_range.first][d];    
+		}
+
 		if (periodic_shift[d])
 		{
 		    while (X_new[d] < domain_x_lower[d]) X_new[d] += domain_length[d];
@@ -902,18 +956,6 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
     flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
     if (flag_regrid) d_time_integrator_needs_regrid = true;
 
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-    	for (unsigned int d = 0; d < NDIM; ++d) 
-    	{ 
-    	    d_center_of_mass_current[struct_no][d] += dt*d_trans_vel_half[struct_no][d]; 
-    	    if (periodic_shift[d])
-    	    {
-    	    	while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d]) d_center_of_mass_current[struct_no][d] += domain_length[d];
-    	    	while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d]) d_center_of_mass_current[struct_no][d] -= domain_length[d];
-    	    }
-    	}
-    }
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
 
@@ -1162,7 +1204,8 @@ void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& s
 	    void* ctx = d_constrained_velocity_fcns_data[struct_no].ctx;
 	    CIBMethod* cib_method_ptr = this;
 	    d_constrained_velocity_fcns_data[struct_no].nodalvelfcn(struct_no, V_Array, U, d_X_half_data[struct_ln]->getVec(),
-								    d_center_of_mass_half[struct_no], d_new_time, ctx, 
+								    d_center_of_mass_half[struct_no],  d_quaternion_half[struct_no],
+								    d_new_time, ctx, 
 								    cib_method_ptr);
 	}else
 	{
@@ -1224,7 +1267,7 @@ void CIBMethod::setRigidBodyDeformationVelocity(Vec W)
 
     if (!d_VelDefFun) return;
     CIBMethod* cib_method = this;
-    (*d_VelDefFun)(W, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half, cib_method);
+    (*d_VelDefFun)(W, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half,  d_quaternion_half, cib_method);
     return;
 }//setRigidBodyDeformationVelocity
 
@@ -1507,6 +1550,12 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 			{
 			    X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln,prototype_struct_ids[i],k);
 			}
+			
+			if (d_ShapeDefFun[i])
+			{
+			    for (unsigned int d = 0; d < NDIM; ++d)
+			    X[d] +=  d_delta_X_half[i][k][d];    
+			}
 
 			if (initial_time)
 			{
@@ -1516,7 +1565,7 @@ void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_
 			{
 			    for (unsigned int d = 0; d < NDIM; ++d)  dr[d] = X[d];
 			    R_dr = rotation_mat*dr; 
-			    for (int d = 0; d < NDIM; ++d)	XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d]+R_dr[d];
+			    for (int d = 0; d < NDIM; ++d) XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d]+R_dr[d];
 			}
 		    }
 		}
@@ -1694,7 +1743,7 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 		    }
 		}
 
-		setSolveRigidBodyVelocity(j, dofs);
+		setCloneFreeDOFs(j, dofs);
 		velocity_constraint_type.push_back(cln_uniform);
 	    }
 	    vel_counter++;
@@ -1714,7 +1763,7 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 			d_comvel_constraint_parsers[j][d] = vel_function;
 		    }
 		}
-		setSolveRigidBodyVelocity(j, dofs);
+		setCloneFreeDOFs(j, dofs);
 		velocity_constraint_type.push_back(cln_file);
 		vel_counter++;
 	    }
@@ -1731,7 +1780,7 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 #endif
 	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
 	    {
-		setSolveRigidBodyVelocity(j, dofs);
+		setCloneFreeDOFs(j, dofs);
 		velocity_constraint_type.push_back(cln_none);
 	    }
 	}
@@ -1742,14 +1791,17 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 	    std::vector<mu::Parser*> force_function(s_max_free_dofs,NULL);
 	    for(int d=0; d < s_max_free_dofs; d++) 
 	    {
-		force_function[d] = new mu::Parser();
-		force_function[d]->SetExpr(ForceMuParseStrings[force_counter][d]);
+		    force_function[d] = new mu::Parser();
+		    force_function[d]->SetExpr(ForceMuParseStrings[force_counter][d]);
 	    }
 	    for(unsigned j=offset;j < offset+d_structs_clones_num[itype]; j++)
 	    {
 
-		d_ext_force_parsers[j].resize(s_max_free_dofs,NULL);
-		for(int d=0; d < s_max_free_dofs; d++) d_ext_force_parsers[j][d] = force_function[d];
+		d_ext_force_parsers[j].resize(s_max_free_dofs, NULL);
+		for(int d=0; d < s_max_free_dofs; d++) 
+		{
+		    if(d_solve_rigid_vel[j][d]) d_ext_force_parsers[j][d] = force_function[d];
+		}
 		external_force_type.push_back(cln_uniform);
 	    }
 	    force_counter++;
@@ -1760,9 +1812,12 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 		d_ext_force_parsers[j].resize(s_max_free_dofs,NULL);
 		for(int d=0; d < s_max_free_dofs; d++) 
 		{
-		     mu::Parser* force_function = new mu::Parser();
-		    force_function->SetExpr(ForceMuParseStrings[force_counter][d]);
-		    d_ext_force_parsers[j][d] = force_function;
+		    if(d_solve_rigid_vel[j][d])
+		    {
+			mu::Parser* force_function = new mu::Parser();
+			force_function->SetExpr(ForceMuParseStrings[force_counter][d]);
+			d_ext_force_parsers[j][d] = force_function;
+		    }
 		}
 		external_force_type.push_back(cln_file);
 		force_counter++;
@@ -1819,21 +1874,24 @@ void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitialize
 	    {
 		for(int d=0; d < s_max_free_dofs; d++) 
 		{
-		    mu::Parser* it = d_ext_force_parsers[j][d];
-		    
-		    
-		    // Variables.
-		    it->DefineVar("T", &d_current_time);
-		    it->DefineVar("t", &d_current_time);
-		    for (unsigned int dd = 0; dd < NDIM; ++dd)
+		    if (d_solve_rigid_vel[j][d])
 		    {
-			std::ostringstream stream;
-			stream << dd;
-			const std::string postfix = stream.str();
-			it->DefineVar("X"  + postfix, &(d_center_of_mass_current[j][dd]));
-			it->DefineVar("x"  + postfix, &(d_center_of_mass_current[j][dd]));
-			it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
-			it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
+			mu::Parser* it = d_ext_force_parsers[j][d];
+		    
+		    
+			// Variables.
+			it->DefineVar("T", &d_current_time);
+			it->DefineVar("t", &d_current_time);
+			for (unsigned int dd = 0; dd < NDIM; ++dd)
+			{
+			    std::ostringstream stream;
+			    stream << dd;
+			    const std::string postfix = stream.str();
+			    it->DefineVar("X"  + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("x"  + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
+			    it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
+			}
 		    }
 		}
 	    }
@@ -2354,13 +2412,18 @@ void  CIBMethod::defaultConstrainedCOMVel(unsigned part, double data_time, Eigen
 
 void  CIBMethod::defaultNetExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
 {
-    for (unsigned int d = 0; d < NDIM; ++d) F_ext[d] = d_ext_force_parsers[part][d]->Eval();
+    for (unsigned int d = 0; d < NDIM; ++d) 
+    {
+	if (d_solve_rigid_vel[part][d]) F_ext[d] = d_ext_force_parsers[part][d]->Eval();
+    }
     
-
 #if (NDIM == 2)
-    T_ext[2] = d_ext_force_parsers[part][2]->Eval();
+    if (d_solve_rigid_vel[part][2]) T_ext[2] = d_ext_force_parsers[part][2]->Eval();
 #elif(NDIM == 3)
-    for (int d = 0; d < NDIM; ++d) T_ext[d] = d_ext_force_parsers[part][NDIM+d]->Eval();
+    for (int d = 0; d < NDIM; ++d) 
+    {
+	if (d_solve_rigid_vel[part][NDIM+d]) T_ext[d] = d_ext_force_parsers[part][NDIM+d]->Eval();
+    }
 #endif
     return;
 } // NetExternalForceTorque
@@ -2374,11 +2437,21 @@ void  CIBMethod::randomExternalForceTorque(unsigned  part , double data_time, Ei
 
 
 #if (NDIM == 2)
-    F_ext << d_random_force_scaling[part][0]*(F[0]-0.5), d_random_force_scaling[part][1]*(F[1]-0.5);
-    T_ext << d_random_force_scaling[part][2]*(T[0]-0.5);
+    for (unsigned int d = 0; d < NDIM; ++d) 
+    {
+	if (d_solve_rigid_vel[part][d])  F_ext[d] = d_random_force_scaling[part][d]*(F[d]-0.5);
+    }
+    if (d_solve_rigid_vel[part][2]) T_ext[2] =  d_random_force_scaling[part][2]*(T[0]-0.5);
 #elif(NDIM == 3)
-    F_ext << d_random_force_scaling[part][0]*(F[0]-0.5), d_random_force_scaling[part][1]*(F[1]-0.5), d_random_force_scaling[part][2]*(F[2]-0.5);
-    T_ext << d_random_force_scaling[part][3]*(T[0]-0.5), d_random_force_scaling[part][4]*(T[1]-0.5), d_random_force_scaling[part][5]*(T[2]-0.5);
+    for (unsigned int d = 0; d < NDIM; ++d) 
+    {
+	if (d_solve_rigid_vel[part][d])  F_ext[d] = d_random_force_scaling[part][d]*(F[d]-0.5);
+    }
+
+    for (unsigned int d = 0; d < NDIM; ++d) 
+    {
+	if (d_solve_rigid_vel[part][NDIM+d]) T_ext[d] = d_random_force_scaling[part][NDIM+d]*(T[d]-0.5);
+    }
 #endif
     return;
 

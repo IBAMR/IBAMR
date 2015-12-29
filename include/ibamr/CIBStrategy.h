@@ -181,7 +181,7 @@ public:
      *
      * \param part The rigid body for which we are setting the free DOFs.
      */
-    void setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
+    void setCloneFreeDOFs(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
 
     /*!
      * \brief Query what rigid DOFs need to be solved for.

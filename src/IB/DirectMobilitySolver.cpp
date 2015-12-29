@@ -48,6 +48,7 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 
+
 extern "C" {
 // LAPACK function to do matrix product
 int dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
@@ -336,11 +337,9 @@ void DirectMobilitySolver::setTimeInterval(double current_time, double new_time)
 bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
 
-#ifdef TIME_REPORT
     clock_t end_t = 0, start_med = 0;
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     const int rank = SAMRAI_MPI::getRank();
 
@@ -363,7 +362,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         check_time = d_current_time;
     }
 
-#ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
@@ -374,7 +372,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         ;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     double* all_rhs = NULL;
     std::map<std::string, std::vector<bool> > skip_struct_map;
@@ -420,13 +417,11 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         skip_struct_map[mat_name] = skip_struct;
     }
 
-    // pout<<"****************************"<<std::endl;
-    // VecView(b, PETSC_VIEWER_STDOUT_WORLD);
+
     if (node_counter) all_rhs = new double[node_counter * NDIM];
 
     d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM);
 
-#ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
@@ -437,7 +432,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         ;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     unsigned offset = 0;
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
@@ -475,7 +469,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         }
     }
 
-#ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
@@ -485,14 +478,13 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
              << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
         ;
     }
+
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     d_cib_strategy->copyAllArrayToVec(x, all_rhs, all_rhs_struct_ids, NDIM);
 
     if (node_counter) delete[] all_rhs;
 
-#ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
@@ -502,9 +494,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
              << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
         ;
     }
-#endif
-    // pout<<"****************************"<<std::endl;
-    // VecView(x, PETSC_VIEWER_STDOUT_WORLD);
 
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
@@ -735,6 +724,10 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 {
     if (d_is_initialized) return;
 
+    clock_t start_med=0, end_t=0;
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+
     if (d_submat_type != CODE_CUSTOM) runMobilityMatManager();
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return;
@@ -755,6 +748,16 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
+
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+	end_t = clock();
+	pout<< std::setprecision(4)<<"         DirectsSolver:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    }
+    SAMRAI_MPI::barrier();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+
     return;
 } // initializeSolverState
 

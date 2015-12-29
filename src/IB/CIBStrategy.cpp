@@ -88,7 +88,7 @@ unsigned int CIBStrategy::getNumberOfRigidStructures() const
 
 } // getNumberOfRigidStructures
 
-void CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)
+void CIBStrategy::setCloneFreeDOFs(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)
 {
     d_solve_rigid_vel[part] = solve_rigid_vel;
     int num_free_dofs = 0;

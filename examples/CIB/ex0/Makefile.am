@@ -23,6 +23,7 @@ examples: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/shell_3d_162.clones $(PWD) ; \
 	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
 	  cp -f $(srcdir)/shell_3d_42.constraint $(PWD) ; \
+	  cp -f $(srcdir)/shell_3d_42.DOFs $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -35,4 +36,5 @@ clean-local:
           rm -f $(builddir)/shell_3d_162.clones ; \
           rm -f $(builddir)/PetscOptions.dat ; \
           rm -f $(builddir)/shell_3d_42.constraint ; \
+          rm -f $(builddir)/shell_3d_42.DOFs ; \
 	fi ;

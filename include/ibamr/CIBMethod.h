@@ -93,6 +93,7 @@ public:
                                                    const RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
+						   const Eigen::Quaterniond& Quatern,
                                                    double data_time,
                                                    void* ctx,
 						   IBAMR::CIBMethod* cib_method);
@@ -115,7 +116,16 @@ public:
     typedef void (*VelocityDeformationFunctionPtr)(Vec V,
                                                    Vec X,
                                                    const std::vector<Eigen::Vector3d>& X_com,
+						   const std::vector<Eigen::Quaterniond>& Quatern,
 						   IBAMR::CIBMethod* d_cib_method);
+
+    /*!
+     * \brief Typedef specifying interface for specifying constrained body velocities.
+     */
+    typedef void (*CloneShapeDeformationFunctionPtr)(std::vector<IBTK::Point>& DeltaX,
+						     double data_time,
+						     IBAMR::CIBMethod* cib_method);
+
 
     /*!
      * \brief Struct encapsulating constrained velocity functions data.
@@ -149,21 +159,30 @@ public:
     };
 
     /*!
+     * \brief Register a user defined constrained matrix K in matrix produc K*U.
+     */
+    void registerConstraintMatrix(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
+				  void* ctx = NULL,
+				  unsigned int part = 0);
+    /*!
      * \brief Register a constrained body velocity function.
      */
-    void registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
-                                             ConstrainedCOMVelocityFcnPtr comvelfcn,
-                                             void* ctx = NULL,
-                                             unsigned int part = 0);
+    void registerConstrainedVelocityFunction(ConstrainedCOMVelocityFcnPtr comvelfcn,
+					     unsigned int part = 0);
     /*!
      * \brief Register a constrained body velocity function data.
      */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
+    void registerConstrainedVelocityFcnData(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
 
     /*!
      * \brief register deformation velocity.
      */
-    void registerRigidBodyVelocityDeformationFunction(VelocityDeformationFunctionPtr VelDefFun);
+    void registerSlipVelocityFunction(VelocityDeformationFunctionPtr VelDefFun);
+
+   /*!
+     * \brief register shape deformation function.
+     */
+    void registerShapeDeformationFunction(const unsigned part, CloneShapeDeformationFunctionPtr ShapeDefFun);
 
     /*!
      * \brief Register an external force and torque function.
@@ -594,6 +613,9 @@ private:
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
     VelocityDeformationFunctionPtr d_VelDefFun;
+    std::vector<CloneShapeDeformationFunctionPtr> d_ShapeDefFun;
+    std::vector<std::vector<IBTK::Point> >  d_delta_X_half;    
+    std::vector<std::vector<IBTK::Point> >  d_delta_X_new;    
 
     std::vector<std::vector<mu::Parser*> > d_comvel_constraint_parsers;
     std::vector<std::vector<mu::Parser*> > d_ext_force_parsers;

@@ -36,7 +36,7 @@ MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 RECOMPUTE_MOB = FALSE
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT*10                  // final simulation time
+END_TIME             = DT*1                  // final simulation time
 GROW_DT              = 1.0e0                 // growth factor for timesteps
 NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
 CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
@@ -121,7 +121,7 @@ CIBStandardInitializer {
 	function_dof_2 = "0.0"
 	function_dof_3 = "0.0"
 	function_dof_4 = "0.0"
-	function_dof_5 = "0.0"
+	function_dof_5 = "0.0" //non imposed dofs are ignored
        }
        
        //next line is ignored unless structs_clones_external_force is set to "random"
@@ -145,11 +145,11 @@ CIBStandardInitializer {
         vel_dof_5 = "0.0"   //non imposed dofs are ignored
        }
        
-       structs_clones_external_force = "random" //"none", "uniform", "file", "random"
+       structs_clones_external_force = "uniform" //"none", "uniform", "file", "random"
        uniform_body_force_torque_function{
-	function_dof_0 = "0.0"
-	function_dof_1 = "0.0"
-	function_dof_2 = "0.0"
+	function_dof_0 = "1.0"
+	function_dof_1 = "1.0"
+	function_dof_2 = "1.0"
 	function_dof_3 = "0.0"
 	function_dof_4 = "0.0"
 	function_dof_5 = "0.0"

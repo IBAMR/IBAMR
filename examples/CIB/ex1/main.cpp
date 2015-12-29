@@ -67,7 +67,7 @@
 
 static double B1,B2;
 void SlipVelocity(Vec W,  Vec X, 
-		  const std::vector<Eigen::Vector3d>& Xin_com, CIBMethod* cib_method)
+		  const std::vector<Eigen::Vector3d>& Xin_com, const std::vector<Eigen::Quaterniond>& Quatern, CIBMethod* cib_method)
 {
     const int rank =  SAMRAI_MPI::getRank();
     const int nodes =  SAMRAI_MPI::getNodes();
@@ -80,8 +80,7 @@ void SlipVelocity(Vec W,  Vec X,
     {
 	struct_ids.push_back(part);
 	const unsigned num_of_nodes = cib_method->getNumberOfNodes(part);
-	Eigen::Quaterniond* Q = cib_method->getBodyQuaternion(part,true);
-	Eigen::Matrix3d  body_rot_matrix=Q->toRotationMatrix();
+	Eigen::Matrix3d  body_rot_matrix=Quatern->toRotationMatrix();
     	for (unsigned i=0; i<num_of_nodes; ++i)
     	{
     	    const IBTK::Point& X = cib_method->getStandardInitializer()->getPrototypeVertexPosn(struct_ln,part,i);

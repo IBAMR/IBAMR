@@ -677,49 +677,69 @@ void CIBStandardInitializer::getClonesParameters(int& num_structs_types,
 	} 
 	else if (d_clones_velocity_constraints[itype] == cln_file)
 	{
+	    std::string fileNameDOFs = d_constraint_velocity_strings[itype][0];
+	    fileNameDOFs +=".DOFs";
+	    std::ifstream file_dofs;
+	    file_dofs.open(fileNameDOFs.c_str(), std::ios::in);
+
 	    std::string fileNameConstraints = d_constraint_velocity_strings[itype][0];
 	    fileNameConstraints +=".constraint";
-	    std::ifstream file_stream;
-	    file_stream.open(fileNameConstraints.c_str(), std::ios::in);
-	    if (file_stream.is_open())
+	    std::ifstream file_constraint;
+	    file_constraint.open(fileNameConstraints.c_str(), std::ios::in);
+
+	    if (file_dofs.is_open())
 	    {
 		const unsigned num_clones =  d_structs_clones_num[itype];
 		std::vector<int> free_dofs(max_free_dofs);
 		std::string line_string;
 		for(unsigned i=0; i<num_clones; ++i)
 		{
-		    getline(file_stream,line_string);
+		    getline(file_dofs,line_string);
 		    std::istringstream line_stream(line_string);
+		    int num_free_dofs=0;
 		    //read dofs
 		    for (int d = 0; d < max_free_dofs; ++d)
 		    {
 			if (!(line_stream >> free_dofs[d]))
 			{
 			    TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure velocity constraints dofs file encountered on line "
-				     << i + 1 << " of file " << fileNameConstraints << std::endl);
+				     << i + 1 << " of file " << fileNameDOFs << std::endl);
 			}
+			num_free_dofs += free_dofs[d];
 		    }
 		    clones_free_dofs.push_back(free_dofs);
-				
-		    // Read muParse function from input
- 		    std::vector<std::string> muParse_strings(max_free_dofs);
-		    for (int d = 0; d < max_free_dofs; ++d)
+		    if (file_constraint.is_open())
 		    {
-			if (!free_dofs[d])
+			std::vector<std::string> muParse_strings(max_free_dofs);
+			if (num_free_dofs<max_free_dofs)
 			{
-			    if (!(line_stream >> muParse_strings[d]))
+			    getline(file_constraint,line_string);
+			    std::istringstream line_stream_con(line_string);
+			    // Read muParse function from input
+			    for (int d = 0; d < max_free_dofs; ++d)
 			    {
-				TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure velocity constraints dofs file encountered on line " 
-					   << i + 1 << " of file " << fileNameConstraints << std::endl);
+				if (!free_dofs[d])
+				{
+				    if (!(line_stream_con >> muParse_strings[d]))
+				    {
+					TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure velocity constraints file encountered on line " 
+						   << i + 1 << " of file " << fileNameConstraints << std::endl);
+				    }
+				}
 			    }
 			}
+			VelMuParseStrings.push_back(muParse_strings);	
+		    }else
+		    {
+			TBOX_ERROR(d_object_name << ":\n  Cannot find required constraint file: " << fileNameConstraints << std::endl);
 		    }
-		    VelMuParseStrings.push_back(muParse_strings);			
+		    
 		}
-		file_stream.close();
+		file_dofs.close();
+		file_constraint.close();
 	    }else
 	    {
-		TBOX_ERROR(d_object_name << ":\n  Cannot find required constraint file: " << fileNameConstraints << std::endl);
+		TBOX_ERROR(d_object_name << ":\n  Cannot find required DOFs file: " << fileNameDOFs << std::endl);
 	    }
        	}
     
@@ -741,11 +761,24 @@ void CIBStandardInitializer::getClonesParameters(int& num_structs_types,
 		{
 		    getline(file_stream,line_string);
 		    std::istringstream line_stream(line_string);
-
 		    // Read muParse function from input
- 		    std::vector<std::string> muParse_strings(max_free_dofs);
+		    std::vector<std::string> muParse_strings(max_free_dofs);
 		    for (int d = 0; d < max_free_dofs; ++d)
 		    {
+			bool isFreePart = false; //flag for the free part
+			
+			if (d_clones_velocity_constraints[itype] == cln_none) isFreePart = true;
+			else if  (d_clones_velocity_constraints[itype] == cln_uniform)
+			{
+			    if (d_uniform_clones_free_dofs[itype][d]) isFreePart = true;
+			}
+			else if (d_clones_velocity_constraints[itype] == cln_file)
+			{
+			    if (clones_free_dofs[clones_free_dofs.size()-num_clones+i][d]) isFreePart = true; 
+			}
+			    
+			if (!isFreePart) continue; //skip if there is no free parts
+			
 			if (!(line_stream >> muParse_strings[d]))
 			{
 			    TBOX_ERROR("CIBStandardInitializer:: Invalid entry in structure external force file encountered on line "

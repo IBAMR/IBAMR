@@ -393,6 +393,15 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 	PetscScalar* u_array = NULL;
 	VecGetArray(U_all, &u_array);
 
+	std::map<unsigned,unsigned> free_to_struct_map;
+	unsigned counter=0;
+	for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+	{
+	    int num_free_dofs;
+	    d_cib_strategy->getSolveRigidBodyVelocity(struct_no, num_free_dofs);
+	    if (num_free_dofs) free_to_struct_map[counter++] = struct_no;
+	}
+
 	if (free_comps && d_U_dump_interval && (output_counter % d_U_dump_interval==0))
 	{
 	    if (SAMRAI_MPI::getRank()== 0)
@@ -400,7 +409,7 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
 		for (int part = 0; part < free_comps/s_max_free_dofs; ++part)
 		{
 		    int num_free_dofs;
-		    const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
+		    const FRDV& solve_dofs = d_cib_strategy->getSolveRigidBodyVelocity(free_to_struct_map[part], num_free_dofs);
 
 		    d_U_body_out <<part<<"\t";	
 		    for (int d = 0; d < s_max_free_dofs; ++d)
