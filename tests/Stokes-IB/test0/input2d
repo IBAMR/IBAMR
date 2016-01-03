@@ -21,7 +21,7 @@ NUM_CYCLES          = 1                   // number of cycles of fixed-point ite
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"   // convective time stepping type
 CONVECTIVE_OP_TYPE  = "PPM"               // convective differencing discretization type
 CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms
-NORMALIZE_PRESSURE  = FALSE               // whether to explicitly force the pressure to have mean zero
+NORMALIZE_PRESSURE  = TRUE               // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                 // maximum CFL number
 DT                  = 6.25e-2*DX_FINEST   // maximum timestep size
 ERROR_ON_DT_CHANGE  = TRUE                // whether to emit an error message if the time step size changes
@@ -99,39 +99,38 @@ IBHierarchyIntegrator {
 stokes_ib_precond_db
 {
 	num_pre_sweeps  = 1
-	num_post_sweeps = 2
+	num_post_sweeps = 1
 	//U_prolongation_method = "LINEAR_REFINE"
 	//P_prolongation_method = "LINEAR_REFINE"
 	//U_restriction_method  = "CONSERVATIVE_COARSEN"
 	//P_restriction_method  = "CONSERVATIVE_COARSEN"
 
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
-	level_solver_rel_residual_tol = 1.0e-12
+	level_solver_rel_residual_tol = 1.0e-9
 	level_solver_abs_residual_tol = 1.0e-50
-	level_solver_max_iterations = 10
-    level_solver_db
+	level_solver_max_iterations = 1000
+        level_solver_db
 	{
-		initial_guess_nonzero = TRUE
-		ksp_type              = "fgmres"
-		pc_type               = "asm"
+	    initial_guess_nonzero = TRUE
+	    ksp_type              = "fgmres"
+	    pc_type               = "asm"
 
-        subdomain_box_size    = 4, 4
-        overlap_size          = 1, 1
+            subdomain_box_size      = 8, 8
+            subdomain_overlap_size  = 1, 1
 	}
 
 	coarse_solver_type  = "PETSC_LEVEL_SOLVER"
 	coarse_solver_rel_residual_tol = 1.0e-12
 	coarse_solver_abs_residual_tol = 1.0e-50
-	coarse_solver_max_iterations = 25
+	coarse_solver_max_iterations = 1
 	coarse_solver_db
 	{
-		initial_guess_nonzero = TRUE
-		ksp_type              = "gmres"
-		pc_type               = "asm"
+	     initial_guess_nonzero = TRUE
+	     ksp_type              = "preonly"
+	     pc_type               = "asm"
 
-        subdomain_box_size    = 4, 4
-        overlap_size          = 1, 1
-
+             subdomain_box_size     = 2*N, N
+             subdomain_overlap_size = 0, 0
 	}
 }
 
@@ -196,7 +195,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(2*N + 1, N + 5 ) ]
+   domain_boxes = [ (0,0),(2*N, N ) ]
    x_lo = -0.5*L,-0.5*L
    x_up =  1.5*L, 0.5*L
    periodic_dimension = 0,0
@@ -218,8 +217,8 @@ GriddingAlgorithm {
       level_1 = 32, 16
    }
    smallest_patch_size {
-      level_0 =   4,  4
-      level_1 =   8,  8
+      level_0 =   8,  4
+      level_1 =   8,  4
    }
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
@@ -231,10 +230,10 @@ StandardTagAndInitialize {
     RefineBoxes {
 
       // AMR
-        level_0 = [(2, 1), (8, 8)]
+      //  level_0 = [(2, 1), (8, 8)]
 
       // Uniform refinement
-      //  level_0 = [(0, 0), (2*N + 1, N + 5)]
+        level_0 = [(0, 0), (2*N, N)]
 
     }
 }

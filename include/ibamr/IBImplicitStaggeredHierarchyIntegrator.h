@@ -205,7 +205,7 @@ private:
             StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
             d_stokes_op->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
 
-            // We set to set projection boundary conditions for the FAC pc/op.
+            // We set projection boundary conditions for the FAC pc/op.
             // This is done separately.
 
             return;

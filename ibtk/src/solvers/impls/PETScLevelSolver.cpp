@@ -51,6 +51,7 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "petscviewerhdf5.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
@@ -135,7 +136,30 @@ void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 const KSP& PETScLevelSolver::getPETScKSP() const
 {
     return d_petsc_ksp;
-}
+} // getPETScKSP
+
+void PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
+                                        std::vector<IS>** overlapping_subdomains)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_is_initialized);
+#endif
+    *nonoverlapping_subdomains = &d_nonoverlap_is;
+    *overlapping_subdomains = &d_overlap_is;
+
+    return;
+} // getASMSubdomains
+
+void PETScLevelSolver::getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_is_initialized);
+#endif
+    *rows_subdomains = &d_subdomain_row_is;
+    *cols_subdomains = &d_subdomain_col_is;
+
+    return;
+} // getMSMSubdomains
 
 void PETScLevelSolver::setNullspace(bool contains_constant_vec,
                                     const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
@@ -321,6 +345,28 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
             ierr = PCASMSetLocalSubdomains(ksp_pc, num_subdomains, &d_overlap_is[0], &d_nonoverlap_is[0]);
             IBTK_CHKERRQ(ierr);
         }
+
+        /*PetscViewer hdf5_viewer;
+        for (int k = 0; k < num_subdomains; ++k)
+        {
+            std::ostringstream nonoverlap_is_file;
+            nonoverlap_is_file << "nonoverlap_is_" << k;
+
+            PetscViewerHDF5Open(PETSC_COMM_WORLD, nonoverlap_is_file.str().c_str(), FILE_MODE_WRITE, &hdf5_viewer);
+            PetscViewerSetFormat(hdf5_viewer, PETSC_VIEWER_NATIVE);
+            PetscObjectSetName((PetscObject)d_nonoverlap_is[k], nonoverlap_is_file.str().c_str());
+            ISView(d_nonoverlap_is[k], hdf5_viewer);
+
+            std::ostringstream overlap_is_file;
+            overlap_is_file << "overlap_is_" << k;
+            PetscViewerHDF5Open(PETSC_COMM_WORLD, overlap_is_file.str().c_str(), FILE_MODE_WRITE, &hdf5_viewer);
+            PetscViewerSetFormat(hdf5_viewer, PETSC_VIEWER_NATIVE);
+            PetscObjectSetName((PetscObject)d_overlap_is[k], overlap_is_file.str().c_str());
+            ISView(d_overlap_is[k], hdf5_viewer);
+        }
+
+        // Destroy Petsc reader
+        PetscViewerDestroy(&hdf5_viewer);*/
     }
 
     // Indicate that the solver is initialized.

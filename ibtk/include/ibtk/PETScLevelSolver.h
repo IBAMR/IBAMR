@@ -115,6 +115,16 @@ public:
     const KSP& getPETScKSP() const;
 
     /*!
+     * \brief Get ASM subdomains.
+     */
+    void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
+
+    /*!
+     * \brief Get MSM subdomains.
+     */
+    void getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains);
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -232,9 +242,6 @@ public:
      *
      * \param op PETSc Mat to add to the existing matrix.
      *
-     * \param nonzero_pattern Matstructure indicating the nonzero pattern of
-     * \a op relative to the existing matrix.
-     *
      */
     void addLinearOperator(Mat& op);
 
@@ -305,9 +312,20 @@ protected:
     Mat d_petsc_mat, d_petsc_pc;
     Mat d_petsc_extern_mat;
     MatNullSpace d_petsc_nullsp;
-    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is;
     Vec d_petsc_x, d_petsc_b;
+    //\}
+
+    /*!
+     * \name Domain decomposing preconditioners
+     */
+    //\{
+    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
+
+    // ASM preconditioner
+    std::vector<IS> d_overlap_is, d_nonoverlap_is;
+
+    // MSM preconditioner
+    std::vector<IS> d_subdomain_row_is, d_subdomain_col_is;
     //\}
 
 private:

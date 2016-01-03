@@ -811,6 +811,146 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vec
     return;
 } // constructPatchLevelASMSubdomains
 
+void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
+                                                                        std::vector<IS>& is_col,
+                                                                        const IntVector<NDIM>& box_size,
+                                                                        const IntVector<NDIM>& overlap_size,
+                                                                        const std::vector<int>& num_dofs_per_proc,
+                                                                        int u_dof_index_idx,
+                                                                        int p_dof_index_idx,
+                                                                        Pointer<PatchLevel<NDIM> > patch_level)
+{
+
+    // Destroy the previously stored IS'es
+    int ierr;
+    for (unsigned int k = 0; k < is_row.size(); ++k)
+    {
+        ierr = ISDestroy(&is_row[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    is_row.clear();
+    for (unsigned int k = 0; k < is_col.size(); ++k)
+    {
+        ierr = ISDestroy(&is_col[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    is_col.clear();
+
+    // Determine the subdomains associated with this processor.
+    const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
+    std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
+    int patch_counter = 0, n_local_subdomains = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box,
+                                          box_size, overlap_size);
+
+        // Keep only local part of overlap boxes.
+        const int patch_subdomains = static_cast<int>(overlap_boxes[patch_counter].size());
+        for (int k = 0; k < patch_subdomains; ++k)
+        {
+            Box<NDIM> box_intersection = overlap_boxes[patch_counter][k] * patch_box;
+            overlap_boxes[patch_counter][k] = box_intersection;
+        }
+        n_local_subdomains += patch_subdomains;
+    }
+    is_row.resize(n_local_subdomains);
+    is_col.resize(n_local_subdomains);
+
+    // DOFs on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int n_local_dofs = num_dofs_per_proc[mpi_rank];
+    const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int last_local_dof = first_local_dof + n_local_dofs;
+    std::vector<int> all_local_dofs(n_local_dofs);
+    for (int k = 0; k < n_local_dofs; ++k)
+    {
+        all_local_dofs[k] = first_local_dof + k;
+    }
+
+    // Fill in the IS'es
+    int subdomain_counter = 0;
+    patch_counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Box<NDIM> side_patch_box[NDIM];
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            side_patch_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        }
+        Pointer<SideData<NDIM, int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
+        const int u_data_depth = u_dof_data->getDepth();
+        Pointer<CellData<NDIM, int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+        const int p_data_depth = p_dof_data->getDepth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(u_data_depth == 1);
+        TBOX_ASSERT(p_data_depth == 1);
+#endif
+
+        int n_patch_subdomains = static_cast<int>(overlap_boxes[patch_counter].size());
+        for (int s = 0; s < n_patch_subdomains; ++s, ++subdomain_counter)
+        {
+            // Get the overlapping subdomain.
+            const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][s];
+            Box<NDIM> side_box_overlap[NDIM];
+            int box_overlap_dofs_size = 0;
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                side_box_overlap[axis] = SideGeometry<NDIM>::toSideBox(box_overlap, axis);
+                box_overlap_dofs_size += side_box_overlap[axis].size();
+            }
+            box_overlap_dofs_size += box_overlap.size();
+            std::vector<int> box_row_dofs;
+            box_row_dofs.reserve(box_overlap_dofs_size);
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(side_box_overlap[axis]); b; b++)
+                {
+                    const CellIndex<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const int dof_idx = (*u_dof_data)(i_s);
+                    if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
+                    {
+                        box_row_dofs.push_back(dof_idx);
+                    }
+                }
+            }
+            for (Box<NDIM>::Iterator b(box_overlap); b; b++)
+            {
+                const CellIndex<NDIM>& i = b();
+                const int dof_idx = (*p_dof_data)(i);
+                if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
+                {
+                    box_row_dofs.push_back(dof_idx);
+                }
+            }
+
+            // Create the list of rows
+            std::sort(box_row_dofs.begin(), box_row_dofs.end());
+            const int n_rows = static_cast<int>(box_row_dofs.size());
+            ISCreateGeneral(PETSC_COMM_SELF, n_rows, &box_row_dofs[0], PETSC_COPY_VALUES, &is_row[subdomain_counter]);
+
+            // Create the list of cols.
+            const int n_cols = n_local_dofs - n_rows;
+            std::vector<int> box_col_dofs(n_cols);
+            std::set_difference(all_local_dofs.begin(), all_local_dofs.end(), box_row_dofs.begin(), box_row_dofs.end(),
+                                box_col_dofs.begin());
+            ISCreateGeneral(PETSC_COMM_SELF, n_cols, &box_col_dofs[0], PETSC_COPY_VALUES, &is_col[subdomain_counter]);
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(subdomain_counter == n_local_subdomains);
+#endif
+
+    return;
+} // constructPatchLevelMSMSubdomains
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

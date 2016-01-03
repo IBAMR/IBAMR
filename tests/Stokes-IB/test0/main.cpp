@@ -52,6 +52,7 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
+#include <ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesSolver.h>
@@ -84,7 +85,7 @@ class StokesIBSolver : public IBAMR::StaggeredStokesSolver
 
 public:
     StokesIBSolver(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                   Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op,
+                   Pointer<StaggeredStokesIBBoxRelaxationFACOperator> fac_op,
                    Pointer<StaggeredStokesFACPreconditioner> fac_pc,
                    Pointer<IBMethod> ib_method_ops)
     {
@@ -246,7 +247,7 @@ public:
             static const size_t len = 255;
             char pc_type_str[len];
             PetscBool flg;
-            PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+            PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
             std::string pc_type = "shell";
             if (flg)
             {
@@ -331,7 +332,7 @@ public:
 private:
     Pointer<PatchHierarchy<NDIM> > d_hierarchy;
     Pointer<StaggeredStokesOperator> d_stokes_op;
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> d_fac_op;
+    Pointer<StaggeredStokesIBBoxRelaxationFACOperator> d_fac_op;
     Pointer<StaggeredStokesFACPreconditioner> d_fac_pc;
     Pointer<IBMethod> d_ib_ops;
 
@@ -410,7 +411,7 @@ private:
         const int g_p_dup_idx = f_g_duplicate->getComponentDescriptorIndex(1);
 
         Vec left, right;
-        MatGetVecs(solver->d_SAJ, &right, &left);
+        MatCreateVecs(solver->d_SAJ, &right, &left);
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(right, u_idx, solver->d_u_dof_idx, p_idx,
                                                               solver->d_p_dof_idx, finest_level);
         MatMult(solver->d_SAJ, right, left);
@@ -539,8 +540,8 @@ int main(int argc, char* argv[])
 
         // Create the IB FAC op/pc and StokesIBSolver.
         Pointer<Database> stokes_ib_precond_db = input_db->getDatabase("stokes_ib_precond_db");
-        Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
-            "StaggeredStokesIBLevelRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
+        Pointer<StaggeredStokesIBBoxRelaxationFACOperator> fac_op = new StaggeredStokesIBBoxRelaxationFACOperator(
+            "StaggeredStokesIBBoxRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StaggeredStokesFACPreconditioner> fac_pc =
             new StaggeredStokesFACPreconditioner("StaggeredStokesFACPC", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StokesIBSolver> stokes_ib_solver = new StokesIBSolver(patch_hierarchy, fac_op, fac_pc, ib_method_ops);
@@ -774,6 +775,7 @@ int main(int argc, char* argv[])
         stokes_ib_solver->setTimeInterval(current_time, new_time);
         stokes_ib_solver->setSolutionTime(new_time);
         stokes_ib_solver->registerSAJ(SAJ, u_dof_index_idx, p_dof_index_idx);
+        stokes_ib_solver->setComponentsHaveNullspace(false, true);
         stokes_ib_solver->initializeSolver(eul_sol_petsc_vec, eul_rhs_petsc_vec);
         stokes_ib_solver->solveSystem(eul_sol_petsc_vec, eul_rhs_petsc_vec);
 
@@ -803,24 +805,24 @@ int main(int argc, char* argv[])
         //========================= TEST SAJ Operator ========================
 
         // Get SAJ mat for the coarsest level
-        Mat SAJ_coarsest_petsc = fac_op->getGalerkinElasticityLevelOp(coarsest_ln);
+        /* Mat SAJ_coarsest_petsc = fac_op->getGalerkinElasticityLevelOp(coarsest_ln);
 
-        // Build SAJ mat for the coarsest level using SAMRAI operators
-        Mat SAJ_coarsest_samrai;
-        MatDuplicate(SAJ_coarsest_petsc, MAT_SHARE_NONZERO_PATTERN, &SAJ_coarsest_samrai);
-        buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai, SAJ, num_dofs_per_proc, u_var, p_var, u_ib_idx,
-                                            p_ins_idx, u_dof_index_idx, p_dof_index_idx, patch_hierarchy,
-                                            hier_velocity_data_ops, hier_pressure_data_ops,
-                                            lag_data_manager->getGhostCellWidth());
+         // Build SAJ mat for the coarsest level using SAMRAI operators
+         Mat SAJ_coarsest_samrai;
+         MatDuplicate(SAJ_coarsest_petsc, MAT_SHARE_NONZERO_PATTERN, &SAJ_coarsest_samrai);
+         buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai, SAJ, num_dofs_per_proc, u_var, p_var, u_ib_idx,
+                                             p_ins_idx, u_dof_index_idx, p_dof_index_idx, patch_hierarchy,
+                                             hier_velocity_data_ops, hier_pressure_data_ops,
+                                             lag_data_manager->getGhostCellWidth());
 
-        // Print both versions of the matrices
-        PetscViewer matlab_viewer;
-        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETSC_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-        MatView(SAJ_coarsest_petsc, matlab_viewer);
-        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "SAMRAI_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-        MatView(SAJ_coarsest_samrai, matlab_viewer);
+         // Print both versions of the matrices
+         PetscViewer matlab_viewer;
+         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETSC_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
+         PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+         MatView(SAJ_coarsest_petsc, matlab_viewer);
+         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "SAMRAI_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
+         PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+         MatView(SAJ_coarsest_samrai, matlab_viewer);*/
         //====================================================================
 
         // post process hierarchy
@@ -850,8 +852,8 @@ int main(int argc, char* argv[])
 
         // Cleanup PETSc objects
         MatDestroy(&SAJ);
-        MatDestroy(&SAJ_coarsest_samrai);
-        PetscViewerDestroy(&matlab_viewer);
+        // MatDestroy(&SAJ_coarsest_samrai);
+        // PetscViewerDestroy(&matlab_viewer);
 
     } // cleanup dynamically allocated objects prior to shutdown
 

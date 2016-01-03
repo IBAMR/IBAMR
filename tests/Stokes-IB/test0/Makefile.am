@@ -26,5 +26,6 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/markers2d.vertex ; \
+	  rm -f $(builddir)/{*.dat,*.info}; \
           rm -f $(builddir)/README ; \
 	fi ;

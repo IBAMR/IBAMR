@@ -155,7 +155,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     d_level_solver_max_iterations = 1;
     d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
-	d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
+    d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
@@ -237,7 +237,7 @@ void CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string&
     d_coarse_solver_type = coarse_solver_type;
     if (!d_coarse_solver)
     {
-		
+
         d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
             d_coarse_solver_default_options_prefix);
@@ -328,22 +328,23 @@ void CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         LinearSolver* p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
         if (p_level_solver)
-		{
-			bool initial_guess_nonzero = true;
-			
-			PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
-			PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
-			
-			if (p_petsc_solver || p_petsc_level_solver)
-			{
-				const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
-				KSPType ksp_type;
-				KSPGetType(petsc_ksp, &ksp_type);
-				if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
-			}
-			p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
-		}
-		
+        {
+            bool initial_guess_nonzero = true;
+
+            PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
+            PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
+
+            if (p_petsc_solver || p_petsc_level_solver)
+            {
+                const KSP& petsc_ksp =
+                    p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
+                KSPType ksp_type;
+                KSPGetType(petsc_ksp, &ksp_type);
+                if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+            }
+            p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
+        }
+
         level_solver->solveSystem(*e_level, *r_level);
     }
     IBTK_TIMER_STOP(t_smooth_error);
@@ -368,20 +369,20 @@ bool CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<ND
     d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
     LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
     if (p_coarse_solver)
-	{
-		bool initial_guess_nonzero = true;
-		PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
-		PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
-		if (p_petsc_solver || p_petsc_level_solver)
-		{
-			const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
-			KSPType ksp_type;
-			KSPGetType(petsc_ksp, &ksp_type);
-			
-			if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
-		}
-		p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
-	}
+    {
+        bool initial_guess_nonzero = true;
+        PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+        PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+        if (p_petsc_solver || p_petsc_level_solver)
+        {
+            const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
+            KSPType ksp_type;
+            KSPGetType(petsc_ksp, &ksp_type);
+
+            if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+        }
+        p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
+    }
 
     d_coarse_solver->solveSystem(*e_level, *r_level);
     IBTK_TIMER_STOP(t_solve_coarsest_level);
@@ -486,8 +487,8 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-			std::ostringstream level_solver_stream;
-			level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
+            std::ostringstream level_solver_stream;
+            level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
                 d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
         }
@@ -514,6 +515,40 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
+
+    PetscViewer matlab_viewer;
+    const int debug_ln = d_coarsest_ln;
+    const KSP& level_ksp = debug_ln == 0 ?
+                               dynamic_cast<PETScLevelSolver*>(d_coarse_solver.getPointer())->getPETScKSP() :
+                               dynamic_cast<PETScLevelSolver*>(d_level_solvers[debug_ln].getPointer())->getPETScKSP();
+    KSPSetUp(level_ksp);
+    Mat level_mat;
+    KSPGetOperators(level_ksp, &level_mat, NULL);
+    std::ostringstream level_mat_filename;
+    level_mat_filename << "level_" << debug_ln << "_mat";
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, level_mat_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+    PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+    MatView(level_mat, matlab_viewer);
+
+    PC pc;
+    KSPGetPC(level_ksp, &pc);
+    KSP* subksp;
+    PetscInt nlocal, first;
+    PCASMGetSubKSP(pc, &nlocal, &first, &subksp);
+    for (int i = 0; i < nlocal; i++)
+    {
+        Mat sub_mat;
+        KSPGetOperators(subksp[i], &sub_mat, PETSC_NULL);
+
+        std::ostringstream filename;
+        filename << "level_" << debug_ln << "_sub_mat_" << i;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        MatView(sub_mat, matlab_viewer);
+    }
+
+    // Destroy Petsc reader
+    PetscViewerDestroy(&matlab_viewer);
 
     // Setup specialized transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();

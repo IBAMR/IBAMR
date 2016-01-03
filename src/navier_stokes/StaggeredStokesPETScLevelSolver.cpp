@@ -168,9 +168,14 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
         IBTK_CHKERRQ(ierr);
     }
     d_petsc_pc = d_petsc_mat;
+
+    // Subdomains for ASM and MSM preconditioner
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
         d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx,
         d_p_dof_index_idx, d_level, d_cf_boundary);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_subdomain_row_is, d_subdomain_col_is,
+                                                                       d_box_size, d_overlap_size, d_num_dofs_per_proc,
+                                                                       d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
