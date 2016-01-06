@@ -679,11 +679,19 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
     const int U_residual_idx = residual.getComponentDescriptorIndex(0);
     const int P_residual_idx = residual.getComponentDescriptorIndex(1);
 
-    // Copy patch level SAMRAI data to PETSc Vec
+    // Create some Vecs.
     Mat& level_mat = d_level_mat[level_num];
-    Vec err_vec, res_vec;
+    Mat& diagonal_level_mat = d_diagonal_level_mat[level_num];
+    Vec err_vec, res_vec, new_res_vec;
     ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
     IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(res_vec, &new_res_vec);
+    IBTK_CHKERRQ(ierr);
+    Vec err_vec_local, new_res_vec_local;
+    ierr = MatCreateVecs(diagonal_level_mat, &err_vec_local, &new_res_vec_local);
+    IBTK_CHKERRQ(ierr);
+
+    // Copy patch level SAMRAI data to PETSc Vec
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
                                                           d_p_dof_index_idx, level);
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
@@ -694,16 +702,39 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
     const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
     const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
 
-    // Extract the local vectors.
-    PetscScalar *err_array, *res_array;
-    ierr = VecGetArray(err_vec, &err_array);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGetArray(res_vec, &res_array);
-    IBTK_CHKERRQ(ierr);
-
     // Smooth the error by the specified number of sweeps.
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
+        // Extract the local vectors.
+        PetscScalar *err_array, *new_res_array;
+        ierr = VecGetArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Update residual
+        // Do globally: r = f - A*u
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+
+        // Do locally: r = r + A*u
+        ierr = VecGetLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
         // Smooth error on subdomains.
         const int n_subdomains = d_no_subdomains[level_num];
         for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
@@ -763,7 +794,7 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 
             for (int i = 0; i < is_size_local; ++i)
             {
-                local_values[i] = res_array[is_local_array[i] - first_local_dof];
+                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
             }
             ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
@@ -785,7 +816,6 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 
             for (int i = 0; i < is_size_nonlocal; ++i)
             {
-                nonlocal_indices[i] = i;
                 nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
             }
             ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
@@ -806,10 +836,6 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
             IBTK_CHKERRQ(ierr);
 
             // Update error vector.
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_indices[i] = i;
-            }
             ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
             IBTK_CHKERRQ(ierr);
             for (int i = 0; i < is_size_local; ++i)
@@ -831,22 +857,28 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
             ierr = VecDestroy(&e);
             IBTK_CHKERRQ(ierr);
         }
-    }
 
-    ierr = VecRestoreArray(err_vec, &err_array);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(err_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(err_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecRestoreArray(res_vec, &res_array);
-    IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+    }
 
     StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
                                                             d_p_dof_index_idx, level, NULL, NULL);
     ierr = VecDestroy(&err_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&err_vec_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec_local);
     IBTK_CHKERRQ(ierr);
 
     // Synchronize data along patch boundaries.
@@ -956,6 +988,7 @@ void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SA
             const double* const dx0 = grid_geom->getDx();
             IntVector<NDIM> ratio = finest_level->getRatio();
             double spread_scale = -0.25 * (d_new_time - d_current_time);
+            // double spread_scale = -1.0 * (d_new_time - d_current_time);
             for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d) / dx0[d];
 
             ierr = MatScale(d_SAJ_mat[ln], spread_scale);
@@ -1019,14 +1052,19 @@ void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SA
 
     // Get PETSc Mat from level solvers.
     d_level_mat.resize(d_finest_ln + 1);
+    d_diagonal_level_mat.resize(d_finest_ln + 1);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         const KSP& level_ksp =
             (ln == d_coarsest_ln) ? d_coarse_solver->getPETScKSP() : d_level_solvers[ln]->getPETScKSP();
         ierr = KSPGetOperators(level_ksp, &d_level_mat[ln], NULL);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatGetDiagonalBlock(d_level_mat[ln], &d_diagonal_level_mat[ln]);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Create subdomain matrices and KSP.
+    // PetscViewer matlab_viewer;
     d_subdomain_row_is.resize(d_finest_ln + 1);
     d_subdomain_col_is.resize(d_finest_ln + 1);
     d_no_subdomains.resize(d_finest_ln + 1);
@@ -1073,6 +1111,12 @@ void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SA
             IBTK_CHKERRQ(ierr);
             ierr = KSPSetUp(sub_ksp);
             IBTK_CHKERRQ(ierr);
+
+            /*std::ostringstream filename;
+            filename << "level_" << ln << "_" << subdomain;
+            PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+            PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+            MatView(sub_mat, matlab_viewer);*/
         }
     }
 

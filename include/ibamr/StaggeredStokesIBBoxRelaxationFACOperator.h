@@ -683,6 +683,11 @@ private:
     std::vector<Mat> d_level_mat;
 
     /*
+     * Local part of PETSc level Matrix.
+     */
+    std::vector<Mat> d_diagonal_level_mat;
+
+    /*
      * Number of subdomains on this processor.
      */
     std::vector<int> d_no_subdomains;
