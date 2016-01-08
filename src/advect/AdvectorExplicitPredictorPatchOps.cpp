@@ -41,7 +41,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "FaceData.h"
-#include "IBAMR_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"

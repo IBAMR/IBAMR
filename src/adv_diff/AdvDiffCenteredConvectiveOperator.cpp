@@ -48,7 +48,7 @@
 #include "CoarsenSchedule.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
-#include "IBAMR_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

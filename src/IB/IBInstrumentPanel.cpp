@@ -51,7 +51,7 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "eigen3/Eigen/Geometry" // IWYU pragma: keep
-#include "IBAMR_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
