@@ -43,7 +43,7 @@
 #include "CartesianSideDoubleConservativeLinearRefine.h"
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

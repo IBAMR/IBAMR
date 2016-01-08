@@ -47,7 +47,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"

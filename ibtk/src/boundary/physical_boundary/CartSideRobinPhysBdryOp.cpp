@@ -41,7 +41,7 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "ComponentSelector.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"

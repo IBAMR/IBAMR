@@ -37,7 +37,7 @@
 
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"

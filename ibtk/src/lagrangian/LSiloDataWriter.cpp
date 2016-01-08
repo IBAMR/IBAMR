@@ -45,7 +45,7 @@
 #include <utility>
 #include <vector>
 
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "ibtk/IBTK_CHKERRQ.h"

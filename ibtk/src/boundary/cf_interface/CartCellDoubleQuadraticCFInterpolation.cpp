@@ -47,7 +47,7 @@
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
 #include "GridGeometry.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
