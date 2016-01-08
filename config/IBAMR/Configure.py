@@ -85,7 +85,7 @@ class Configure(config.base.Configure):
     configDir = os.path.split(config.base.__file__)[0]
     for utility in os.listdir(os.path.join(configDir, 'packages')):
       (utilityName, ext) = os.path.splitext(utility)
-      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__', 'ctetgen', 'cuda', 'cusp', 'hypre', 'lgrind', 'metis', 'ml', 'mpi4py', 'MUMPS', 'parmetis', 'pARMS', 'PaStiX', 'petsc4py', 'PTScotch', 'sowing', 'SuperLU_DIST', 'SuperLU_MT', 'tetgen', 'thrust', 'Triangle', 'Zoltan']:
+      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__', 'concurrencykit', 'ctetgen', 'cuda', 'cusp', 'elemental', 'hypre', 'lgrind', 'metis', 'ml', 'mpi4py', 'MUMPS', 'parmetis', 'pARMS', 'PaStiX', 'petsc4py', 'pragmatic', 'PTScotch', 'revolve', 'sowing', 'SuperLU_DIST', 'SuperLU_MT', 'tetgen', 'thrust', 'Triangle', 'Trilinos', 'Zoltan']:
         utilityObj                    = self.framework.require('config.packages.'+utilityName, self)
         utilityObj.headerPrefix       = self.headerPrefix
         utilityObj.archProvider       = self.arch
@@ -167,7 +167,7 @@ class Configure(config.base.Configure):
       self.setCompilers.pushLanguage('FC')
       # Cannot have NAG f90 as the linker - so use pcc_linker as fc_linker
       fc_linker = self.setCompilers.getLinker()
-      if config.setCompilers.Configure.isNAG(fc_linker):
+      if config.setCompilers.Configure.isNAG(fc_linker, self.log):
         self.addMakeMacro('FC_LINKER',pcc_linker)
       else:
         self.addMakeMacro('FC_LINKER',fc_linker)
@@ -211,6 +211,17 @@ class Configure(config.base.Configure):
 
     # add a makefile entry for configure options
     self.addMakeMacro('CONFIGURE_OPTIONS', self.framework.getOptionsString(['configModules', 'optionsModule']).replace('\"','\\"'))
+
+    for i in self.framework.packages:
+      #if i.useddirectly:
+      self.addDefine('HAVE_'+i.PACKAGE.replace('-','_'), 1)  # ONLY list package if it is used directly by IBAMR (and not only by another package)
+      if not isinstance(i.lib, list):
+        i.lib = [i.lib]
+      self.addMakeMacro(i.PACKAGE.replace('-','_')+'_LIB', self.libraries.toStringNoDupes(i.lib))
+      if hasattr(i, 'include'):
+        if not isinstance(i.include, list):
+          i.include = [i.include]
+        self.addMakeMacro(i.PACKAGE.replace('-','_')+'_INCLUDE',self.headers.toStringNoDupes(i.include))
     return
 
   def dumpConfigInfo(self):
@@ -305,7 +316,7 @@ class Configure(config.base.Configure):
 gmakefile: ../config/gmakegen.py
 	$(PYTHON) ../config/gmakegen.py
 
-include conf/ibamrvariables
+include lib/petsc/conf/ibamrvariables
 ''')
     return
 
@@ -316,8 +327,8 @@ include conf/ibamrvariables
     #  raise RuntimeError('Incorrect option --prefix='+self.framework.argDB['prefix']+' specified. It cannot be same as PETSC_DIR!')
     self.framework.header          = self.arch.arch+'/include/'+self.project+'conf.h'
     self.framework.cHeader         = self.arch.arch+'/include/'+self.project+'fix.h'
-    self.framework.makeMacroHeader = self.arch.arch+'/conf/'+self.project+'variables'
-    self.framework.makeRuleHeader  = self.arch.arch+'/conf/'+self.project+'rules'
+    self.framework.makeMacroHeader = self.arch.arch+'/lib/petsc/conf/'+self.project+'variables'
+    self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.project+'rules'
     if not self.muparser.found:
       raise RuntimeError('MuParser not found, but is required by IBAMR')
     if not self.eigen.found:
