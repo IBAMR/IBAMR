@@ -674,7 +674,7 @@ void PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -720,7 +720,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
-    ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+    ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
@@ -763,7 +763,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
                                   &nullspace_vecs[0],
                                   &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_solver_has_attached_nullspace = true;
     }
@@ -772,7 +772,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         static const PetscBool has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, NULL, &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
     }
     return;

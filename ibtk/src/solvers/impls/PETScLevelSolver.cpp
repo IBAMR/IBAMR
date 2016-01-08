@@ -357,7 +357,7 @@ void PETScLevelSolver::setupNullspace()
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
         Vec& petsc_nullspace_vec = petsc_nullspace_basis_vecs[k];
-        ierr = MatGetVecs(d_petsc_mat, NULL, &petsc_nullspace_vec);
+        ierr = MatCreateVecs(d_petsc_mat, NULL, &petsc_nullspace_vec);
         IBTK_CHKERRQ(ierr);
         copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k], patch_level);
         double dot;
@@ -373,7 +373,7 @@ void PETScLevelSolver::setupNullspace()
         (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
         &d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+    ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
