@@ -57,6 +57,7 @@
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"

@@ -44,6 +44,17 @@
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#ifndef IBTK_FC_FUNC
+#define IBTK_FC_FUNC(name,NAME) name ## _
+#endif
+
+/* As FC_FUNC, but for C identifiers containing underscores. */
+#ifndef IBTK_FC_FUNC_
+#define IBTK_FC_FUNC_(name,NAME) name ## _
+#endif
+
 #define IBTK_BIT_SET(bitfield, b) ((bitfield) |= (1 << (b)))
 #define IBTK_BIT_CLEAR(bitfield, b) ((bitfield) &= ~(1 << (b)))
 #define IBTK_BIT_TOGGLE(bitfield, b) ((bitfield) ^= (1 << (b)))

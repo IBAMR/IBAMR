@@ -92,6 +92,7 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"

@@ -85,6 +85,7 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
