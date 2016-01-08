@@ -41,7 +41,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
-#include "petsc-private/vecimpl.h" // IWYU pragma: keep
+#include "petsc/private/vecimpl.h" // IWYU pragma: keep
 #include "petscerror.h"
 #include "petscis.h"
 #include "petscmath.h"
