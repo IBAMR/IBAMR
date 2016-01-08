@@ -24,10 +24,10 @@ else				# Show the full command line
 endif
 
 ##### Versioning #####
-IBAMR_VERSION_MAJOR := $(shell awk '/\#define IBAMR_VERSION_MAJOR/{print $$3;}' ./include/ibamrversion.h)
-IBAMR_VERSION_MINOR := $(shell awk '/\#define IBAMR_VERSION_MINOR/{print $$3;}' ./include/ibamrversion.h)
-IBAMR_VERSION_SUBMINOR := $(shell awk '/\#define IBAMR_VERSION_SUBMINOR/{print $$3;}' ./include/ibamrversion.h)
-IBAMR_VERSION_RELEASE := $(shell awk '/\#define IBAMR_VERSION_RELEASE/{print $$3;}' ./include/ibamrversion.h)
+IBAMR_VERSION_MAJOR := $(shell awk '/\#define IBAMR_VERSION_MAJOR/{print $$3;}' $(IBAMR_DIR)/include/ibamrversion.h)
+IBAMR_VERSION_MINOR := $(shell awk '/\#define IBAMR_VERSION_MINOR/{print $$3;}' $(IBAMR_DIR)/include/ibamrversion.h)
+IBAMR_VERSION_SUBMINOR := $(shell awk '/\#define IBAMR_VERSION_SUBMINOR/{print $$3;}' $(IBAMR_DIR)/include/ibamrversion.h)
+IBAMR_VERSION_RELEASE := $(shell awk '/\#define IBAMR_VERSION_RELEASE/{print $$3;}' $(IBAMR_DIR)/include/ibamrversion.h)
 ifeq ($(IBAMR_VERSION_RELEASE),0)
   IBAMR_VERSION_MINOR := 0$(IBAMR_VERSION_MINOR)
 endif
