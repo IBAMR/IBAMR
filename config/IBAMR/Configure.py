@@ -42,6 +42,7 @@ class Configure(config.base.Configure):
     self.projectdir          = framework.require(utils+'.projectdir',          self.arch)
     self.installdir          = framework.require(utils+'.installdir',          self)
     self.externalpackagesdir = framework.require(utils+'.externalpackagesdir', self)
+    self.indexTypes          = framework.require(utils+'.indexTypes',          self)
     self.compilers           = framework.require('config.compilers',           self)
     self.types               = framework.require('config.types',               self)
     self.headers             = framework.require('config.headers',             self)
@@ -76,6 +77,7 @@ class Configure(config.base.Configure):
         utilityObj.archProvider       = self.arch
         #utilityObj.languageProvider   = self.languages
         #utilityObj.precisionProvider  = self.scalartypes
+        utilityObj.indexProvider      = self.indexTypes
         utilityObj.installDirProvider = self.installdir
         utilityObj.externalPackagesDirProvider = self.externalpackagesdir
         setattr(self, utilityName.lower(), utilityObj)
@@ -89,6 +91,7 @@ class Configure(config.base.Configure):
         utilityObj.archProvider       = self.arch
         #utilityObj.languageProvider   = self.languages
         #utilityObj.precisionProvider  = self.scalartypes
+        utilityObj.indexProvider      = self.indexTypes
         utilityObj.installDirProvider = self.installdir
         utilityObj.externalPackagesDirProvider = self.externalpackagesdir
         setattr(self, utilityName.lower(), utilityObj)
