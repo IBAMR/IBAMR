@@ -676,7 +676,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         }
         buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
-        ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
+        ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
