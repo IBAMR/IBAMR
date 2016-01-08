@@ -2,7 +2,6 @@ srcs-ibtk.cpp += $(call thisdir, \
 	BGaussSeidelPreconditioner.cpp \
 	BJacobiPreconditioner.cpp \
 	CCLaplaceOperator.cpp \
-	CCPoissonHypreLevelSolver.cpp \
 	CCPoissonPETScLevelSolver.cpp \
 	CCPoissonPointRelaxationFACOperator.cpp \
 	CCPoissonSolverManager.cpp \
@@ -21,8 +20,14 @@ srcs-ibtk.cpp += $(call thisdir, \
 	PoissonFACPreconditionerStrategy.cpp \
 	PoissonSolver.cpp \
 	SCLaplaceOperator.cpp \
-	SCPoissonHypreLevelSolver.cpp \
 	SCPoissonPETScLevelSolver.cpp \
 	SCPoissonPointRelaxationFACOperator.cpp \
 	SCPoissonSolverManager.cpp \
 	)
+
+ifneq ($(PETSC_HYPRE_LIB),)
+srcs-ibtk.cpp += $(call thisdir, \
+	CCPoissonHypreLevelSolver.cpp \
+	SCPoissonHypreLevelSolver.cpp \
+	)
+endif
