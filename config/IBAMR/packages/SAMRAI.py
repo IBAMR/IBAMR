@@ -43,8 +43,8 @@ class Configure(config.package.GNUPackage):
     # Fix broken configure check
     args.append('F77LIBFLAGS="'+' '.join(self.compilers.flibs)+'"')
     args.append('--with-MPICC='+self.setCompilers.CC)
-    args.append('--with-hdf5='+self.hdf5.installDir)
-    args.append('--with-silo='+self.silo.installDir)
+    args.append('--with-hdf5='+self.hdf5.directory)
+    args.append('--with-silo='+self.silo.directory)
     args.append('--enable-debug')
     args.append('--disable-opt')
     args.append('--enable-implicit-template-instantiation')
