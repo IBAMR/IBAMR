@@ -138,6 +138,41 @@ def chkrhl9():
 ===============================================================================''')
   return 0
 
+def parsepetscversion(pv):
+  import re
+  from distutils.version import LooseVersion as Version
+
+  major    = int(re.compile(' PETSC_VERSION_MAJOR[ ]*([0-9]*)').search(pv).group(1))
+  minor    = int(re.compile(' PETSC_VERSION_MINOR[ ]*([0-9]*)').search(pv).group(1))
+  subminor = int(re.compile(' PETSC_VERSION_SUBMINOR[ ]*([0-9]*)').search(pv).group(1))
+  patch    = int(re.compile(' PETSC_VERSION_PATCH[ ]*([0-9]*)').search(pv).group(1))
+  if patch != 0:                # Patch number was used prior to 3.4
+    return Version('%d.%d.%dp%d' % (major, minor, subminor, patch))
+  elif subminor != 0:           # Maintenance releases are numbered x.y.z
+    return Version('%d.%d.%d' % (major, minor, subminor))
+  else:                         # Feature releases are x.y
+    return Version('%d.%d' % (major, minor))
+
+def chkpetscversion(petscdir):
+  try:
+    fd = open(os.path.join(petscdir, 'include', 'petscversion.h'))
+    pv = fd.read()
+    fd.close()
+    version = parsepetscversion(pv)
+  except:
+    return 1, 'unknown', 'not found'
+  try:
+    import urllib2
+    fd = urllib2.urlopen("https://bitbucket.org/petsc/petsc/raw/master/include/petscversion.h",timeout = 2)
+    pv = fd.read()
+    fd.close()
+    aversion = parsepetscversion(pv)
+  except:
+    return 0, None, None
+  if aversion > version:
+    return 1, aversion, version
+  return 0, aversion, version
+
 def check_broken_configure_log_links():
   '''Sometime symlinks can get broken if the original files are deleted. Delete such broken links'''
   import os
@@ -250,6 +285,17 @@ def configure(configure_options):
     raise RuntimeError('Run configure from $'+package.upper()+'_DIR, not '+os.path.abspath('.'))
   bsDir     = os.path.join(configDir, 'BuildSystem')
   if not os.path.isdir(bsDir):
+    if not 'PETSC_DIR' in os.environ:
+      raise RuntimeError('Need to set PETSC_DIR in the environment')
+    ret, aversion, version = chkpetscversion(os.environ['PETSC_DIR'])
+    if ret:
+      msg = "\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+The version of PETSc you are using is out-of-date, we recommend updating to the new release\n\
+  Available Version: %s   Installed Version: %s\n\
+http://www.mcs.anl.gov/petsc/download/index.html\n\
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" % (str(aversion), str(version))
+      raise RuntimeError(msg)
     bsDir   = os.path.join(os.environ['PETSC_DIR'], 'config', 'BuildSystem')
     if not os.path.isdir(bsDir):
       raise RuntimeError('Could not find BuildSystem')
