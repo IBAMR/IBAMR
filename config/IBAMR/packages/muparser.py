@@ -3,7 +3,7 @@ import config.package
 class Configure(config.package.GNUPackage):
   def __init__(self, framework):
     config.package.GNUPackage.__init__(self, framework)
-    self.download  = ['https://docs.google.com/uc?export=download&confirm=no_antivirus&id=0BzuB-ydOOoduZjlFOEFRREZrT2s']
+    self.download  = ['http://ftp.mcs.anl.gov/pub/petsc/externalpackages/muparser_v2_2_4.tar.gz']
     self.functions = []
     self.includes  = ['muParser.h']
     self.liblist   = [['libmuparser.a']]
