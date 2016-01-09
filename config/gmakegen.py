@@ -37,9 +37,8 @@ class GMakefileGenerator(ConfigReader):
       self.framework.outputMakeMacro(f, 'PETSC_ARCH', os.environ['PETSC_ARCH'])
       f.write('include ${PETSC_DIR}/lib/petsc/conf/variables\n\n')
 
-      self.framework.outputMakeMacro(f, 'BOOST_INCLUDE', '-I'+os.path.join(conf.projectdir.dir, 'ibtk', 'contrib', 'boost'))
-
       conf = self.framework.require('IBAMR.Configure', None)
+      self.framework.outputMakeMacro(f, 'BOOST_INCLUDE', '-I'+os.path.join(conf.projectdir.dir, 'ibtk', 'contrib', 'boost'))
       self.framework.outputMakeMacro(f, 'IBAMR_DIR',  conf.projectdir.dir)
       self.framework.outputMakeMacro(f, 'IBAMR_ARCH', conf.arch.arch)
       inc = []
