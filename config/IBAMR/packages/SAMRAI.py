@@ -59,4 +59,6 @@ class Configure(config.package.GNUPackage):
     args.append('--without-x')
     args.append('--with-doxygen')
     args.append('--with-dot')
+    # Completely broken shared libraries for Mac
+    args.append('--disable-shared')
     return args
