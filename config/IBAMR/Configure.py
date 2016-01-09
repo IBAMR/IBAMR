@@ -29,7 +29,7 @@ class Configure(config.base.Configure):
     import nargs
     help.addArgument(self.Project, '-prefix=<path>', nargs.Arg(None, '', 'Specify location to install '+self.Project+' (eg. /usr/local)'))
     help.addArgument(self.Project, '-load-path=<path>', nargs.Arg(None, os.path.join(os.getcwd(), 'modules'), 'Specify location of auxiliary modules'))
-    help.addArgument(self.Project, '-with-shared-libraries', nargs.ArgBool(None, 0, 'Make libraries shared'))
+    help.addArgument(self.Project, '-with-shared-libraries', nargs.ArgBool(None, 1, 'Make libraries shared'))
     help.addArgument(self.Project, '-with-dynamic-loading', nargs.ArgBool(None, 0, 'Make libraries dynamic'))
     return
 
