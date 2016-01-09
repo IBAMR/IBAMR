@@ -61,13 +61,14 @@ libibamr         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libibamr_shared) $
 srcs-core.cpp :=
 srcs-ibtk.cpp :=
 
+##### Top level Rule #####
+all : $(libibamr)
+
 ##### Inclusions #####
 # Recursively include files for all targets, needs to be defined before the source rules
 include $(IBAMR_DIR)/local.mk
 
 ##### Rules #####
-all : $(libibamr)
-
 # make print VAR=the-variable
 print:
 	@echo $($(VAR))
