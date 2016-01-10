@@ -43,7 +43,7 @@ class GMakefileGenerator(ConfigReader):
       self.framework.outputMakeMacro(f, 'IBAMR_ARCH', conf.arch.arch)
       inc = []
       lib = []
-      for packageName in ['samrai', 'hdf5', 'eigen', 'muparser']:
+      for packageName in ['samrai', 'hdf5', 'eigen', 'silo', 'muparser']:
         package = getattr(conf, packageName)
         NAME    = package.PACKAGE.replace('-','_')
         if hasattr(package, 'include'):
