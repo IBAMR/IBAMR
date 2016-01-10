@@ -53,7 +53,7 @@ class GMakefileGenerator(ConfigReader):
           self.framework.outputMakeMacro(f, NAME+'_LIB',     conf.libraries.toStringNoDupes(package.lib))
           lib.append('${'+package.PACKAGE+'_LIB}')
       self.framework.outputMakeMacro(f, 'IBAMR_INCLUDE', '-I${IBAMR_DIR}/include -I${IBAMR_DIR}/ibtk/include '+' '.join(inc))
-      self.framework.outputMakeMacro(f, 'IBAMR_LIB',     ' '.join(lib))
+      self.framework.outputMakeMacro(f, 'IBAMR_LIB',  '-L${IBAMR_DIR}/${IBAMR_ARCH}/lib -libamr '+' '.join(lib))
       f.write('CFLAGS += ${IBAMR_INCLUDE} ${BOOST_INCLUDE} -DNDIM=2\n')
       f.write('include ${IBAMR_DIR}/${IBAMR_ARCH}/lib/petsc/conf/ibamrvariables\n\ninclude ${IBAMR_DIR}/base.mk\n')
     return
