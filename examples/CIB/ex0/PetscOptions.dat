@@ -10,7 +10,7 @@
 -SP_ksp_rtol 1.0e-08          # Set tight tolerance               
 -SP_ksp_pc_side right         # Use right PC to determine convergence with the norm of the real residual
 -SP_ksp_gmres_restart 60      # Set restart frequency to a high value
--SP_ksp_gmres_max_it  1000    # Set maximum number of iteration to a very high value
+-SP_ksp_max_it  1000    # Set maximum number of iteration to a very high value
 
 
 
