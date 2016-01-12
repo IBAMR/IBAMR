@@ -125,6 +125,14 @@ public:
     void getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains);
 
     /*!
+     * \brief Get MSM subdomains with red-black ordering.
+     */
+    void getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
+                          std::vector<IS>** red_cols_subdomains,
+                          std::vector<IS>** black_rows_subdomains,
+                          std::vector<IS>** black_cols_subdomains);
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -306,7 +314,7 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type, d_pc_type;
+    std::string d_ksp_type, d_pc_type, d_shell_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc;
@@ -321,11 +329,21 @@ protected:
     //\{
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
 
-    // ASM preconditioner
+    // ASM and MSM type preconditioners.
     std::vector<IS> d_overlap_is, d_nonoverlap_is;
-
-    // MSM preconditioner
     std::vector<IS> d_subdomain_row_is, d_subdomain_col_is;
+    std::vector<IS> d_red_subdomain_row_is, d_red_subdomain_col_is;
+    std::vector<IS> d_black_subdomain_row_is, d_black_subdomain_col_is;
+    int d_no_subdomains, d_no_red_subdomains, d_no_black_subdomains;
+
+    // Various matrices for ASM and MSM type preconditioners.
+    Mat d_diagonal_mat;
+    Mat *d_subdomain_bc_mat, *d_subdomain_mat;
+    Mat *d_red_subdomain_bc_mat, *d_red_subdomain_mat;
+    Mat *d_black_subdomain_bc_mat, *d_black_subdomain_mat;
+
+    // Various KSPs.
+    std::vector<KSP> d_subdomain_ksp, d_red_subdomain_ksp, d_black_subdomain_ksp;
     //\}
 
 private:
@@ -348,6 +366,21 @@ private:
      * \return A reference to this object.
      */
     PETScLevelSolver& operator=(const PETScLevelSolver& that);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
 };
 } // namespace IBTK
 

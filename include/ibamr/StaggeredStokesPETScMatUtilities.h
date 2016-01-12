@@ -115,6 +115,21 @@ public:
                                                  int u_dof_index_idx,
                                                  int p_dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * multiplicative Schwarz method using red-black subdomain ordering.
+     */
+    static void constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
+                                                 std::vector<IS>& is_red_col,
+                                                 std::vector<IS>& is_black_row,
+                                                 std::vector<IS>& is_black_col,
+                                                 const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                                 const SAMRAI::hier::IntVector<NDIM>& overlap_size,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int u_dof_index_idx,
+                                                 int p_dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
     //\}
 
 protected:

@@ -111,11 +111,12 @@ inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 } // getIntegerMapping
 
-inline void IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
-                                              std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
-                                              const SAMRAI::hier::Box<NDIM>& patch_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                              const SAMRAI::hier::IntVector<NDIM>& overlap_size)
+inline SAMRAI::hier::IntVector<NDIM>
+IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
+                                  std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+                                  const SAMRAI::hier::Box<NDIM>& patch_box,
+                                  const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& overlap_size)
 {
     // Compute number of nonoverlapping subdomains.
     const SAMRAI::hier::IntVector<NDIM>& patch_lower = patch_box.lower();
@@ -196,7 +197,7 @@ inline void IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM
     TBOX_ASSERT(counter == n_subdomains);
 #endif
 
-    return;
+    return subdomains;
 } // partitionPatchBox
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

@@ -691,21 +691,27 @@ private:
      * Number of subdomains on this processor.
      */
     std::vector<int> d_no_subdomains;
+    std::vector<int> d_no_red_subdomains, d_no_black_subdomains;
 
     /*
      * PETSc submatrices for applying boundary conditions and doing local solves.
      */
     std::vector<Mat *> d_subdomain_bc_mat, d_subdomain_mat;
+    std::vector<Mat *> d_red_subdomain_bc_mat, d_red_subdomain_mat;
+    std::vector<Mat *> d_black_subdomain_bc_mat, d_black_subdomain_mat;
 
     /*
      * PETSc subdomain KSPs
      */
     std::vector<std::vector<KSP> > d_subdomain_ksp;
+    std::vector<std::vector<KSP> > d_red_subdomain_ksp, d_black_subdomain_ksp;
 
     /*
      * IS'es for subdomain matrices that solve local system and apply boundary conditions.
      */
     std::vector<std::vector<IS> *> d_subdomain_row_is, d_subdomain_col_is;
+    std::vector<std::vector<IS> *> d_red_subdomain_row_is, d_red_subdomain_col_is;
+    std::vector<std::vector<IS> *> d_black_subdomain_row_is, d_black_subdomain_col_is;
 
     /*
      * Mappings from patch indices to patch operators.

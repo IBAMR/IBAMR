@@ -176,6 +176,9 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_subdomain_row_is, d_subdomain_col_is,
                                                                        d_box_size, d_overlap_size, d_num_dofs_per_proc,
                                                                        d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(
+        d_red_subdomain_row_is, d_red_subdomain_col_is, d_black_subdomain_row_is, d_black_subdomain_col_is, d_box_size,
+        d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
