@@ -266,16 +266,16 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
 
     switch (d_factorization_type)
     {
-    case LOWER_TRIANGULAR:
-        solvePressureSubsystem(*P_vec, *F_P_vec, /*initial_guess_nonzero*/ false);
-        d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
-        d_hier_math_ops->grad(d_F_U_mod_idx, F_U_sc_var, /*cf_bdry_synch*/ true, -1.0, P_idx, P_cc_var,
-                              d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
-        d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
-        solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
-        break;
-
     case UPPER_TRIANGULAR:
+	solvePressureSubsystem(*P_vec, *F_P_vec, /*initial_guess_nonzero*/ false);
+	d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
+	d_hier_math_ops->grad(d_F_U_mod_idx, F_U_sc_var, /*cf_bdry_synch*/ true, -1.0, P_idx, P_cc_var,
+			      d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
+	d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
+	solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
+	break;
+
+    case LOWER_TRIANGULAR:
         solveVelocitySubsystem(*U_vec, *F_U_vec, /*initial_guess_nonzero*/ false);
         d_hier_math_ops->div(d_F_P_mod_idx, F_P_cc_var, 1.0, U_idx, U_sc_var, d_no_fill_op,
                              d_velocity_solver->getSolutionTime(), /*cf_bdry_synch*/ true, 1.0, F_P_idx, F_P_cc_var);
@@ -467,6 +467,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAM
         (d_U_problem_coefs.cIsConstant() && MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(), 0.0));
     if (steady_state)
     {
+	// if (SAMRAI_MPI::getRank() == 0) std::cout << "D = " << d_U_problem_coefs.getDConstant() << std::endl;
         d_pressure_data_ops->scale(P_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }
     else
