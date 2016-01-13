@@ -266,7 +266,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
 
     switch (d_factorization_type)
     {
-    case LOWER_TRIANGULAR:
+    case UPPER_TRIANGULAR:
         solvePressureSubsystem(*P_vec, *F_P_vec, /*initial_guess_nonzero*/ false);
         d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
         d_hier_math_ops->grad(d_F_U_mod_idx, F_U_sc_var, /*cf_bdry_synch*/ true, -1.0, P_idx, P_cc_var,
@@ -275,7 +275,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
         solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
         break;
 
-    case UPPER_TRIANGULAR:
+    case LOWER_TRIANGULAR:
         solveVelocitySubsystem(*U_vec, *F_U_vec, /*initial_guess_nonzero*/ false);
         d_hier_math_ops->div(d_F_P_mod_idx, F_P_cc_var, 1.0, U_idx, U_sc_var, d_no_fill_op,
                              d_velocity_solver->getSolutionTime(), /*cf_bdry_synch*/ true, 1.0, F_P_idx, F_P_cc_var);
