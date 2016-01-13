@@ -88,10 +88,7 @@ public:
      *
      * \see initializeOperatorState
      *
-     * \param y output: y=Ax
-     *
-     * \note A default implementation is provided which does nothing but warns
-     * that inhomogeneous boundary conditions are not properly supported.
+     * \param y output: y:=y-A*0
      */
     virtual void modifyRhsForInhomogeneousBc(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
