@@ -1109,7 +1109,6 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ NULL);
-    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
@@ -2006,8 +2005,6 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        //      d_bc_helper->cacheBcCoefData(d_bc_coefs, d_integrator_time, d_hierarchy);
-        //      d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

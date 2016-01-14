@@ -240,6 +240,26 @@ public:
      */
     virtual void deallocateOperatorState();
 
+    /*!
+     * \brief Modify u and f to account for boundary conditions.
+     *
+     * Before calling this function, the form of the vectors u and f should be set
+     * properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in this vector should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * \note The operator MUST be initialized prior to calling imposeSolBc.
+     *
+     * \see initializeOperatorState
+     *
+     * \param u output: u modified to account for any physical boundary conditions
+     * \param f output: f modified to account for any physical boundary conditions
+     *
+     * \note A default implementation is provided that does not modify u or f.
+     */
+    virtual void modifySolverVecsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f);
+
     //\}
 
     /*!
