@@ -346,6 +346,14 @@ protected:
     std::vector<KSP> d_subdomain_ksp, d_red_subdomain_ksp, d_black_subdomain_ksp;
     //\}
 
+    /*!
+     * \name Field split preconditioner.
+     */
+    //\{
+    std::vector<std::string> d_field_name;
+    std::vector<IS> d_field_is;
+    //\}
+
 private:
     /*!
      * \brief Copy constructor.

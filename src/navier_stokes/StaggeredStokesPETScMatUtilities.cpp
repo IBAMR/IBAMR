@@ -1153,6 +1153,95 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     return;
 } // constructPatchLevelMSMSubdomains
 
+void StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+    std::vector<IS>& is_field,
+    std::vector<std::string>& is_field_name,
+    const std::vector<int>& num_dofs_per_proc,
+    int u_dof_index_idx,
+    int p_dof_index_idx,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
+{
+    // Destroy the previously stored IS'es
+    int ierr;
+    for (unsigned int k = 0; k < is_field.size(); ++k)
+    {
+        ierr = ISDestroy(&is_field[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    is_field.resize(2);
+    is_field_name.resize(2);
+
+    // Name of the fields.
+    is_field_name[0] = "velocity";
+    is_field_name[1] = "pressure";
+
+    // DOFs on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int n_local_dofs = num_dofs_per_proc[mpi_rank];
+    std::vector<int> local_vel_dofs, local_pressure_dofs;
+    local_vel_dofs.reserve(n_local_dofs);
+    local_pressure_dofs.reserve(n_local_dofs);
+
+    const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int last_local_dof = first_local_dof + n_local_dofs;
+
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Box<NDIM> side_patch_box[NDIM];
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            side_patch_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        }
+
+        Pointer<SideData<NDIM, int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellData<NDIM, int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+#if !defined(NDEBUG)
+        const int u_data_depth = u_dof_data->getDepth();
+        const int p_data_depth = p_dof_data->getDepth();
+        TBOX_ASSERT(u_data_depth == 1);
+        TBOX_ASSERT(p_data_depth == 1);
+#endif
+
+        // Get the local velocity DOFs.
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(side_patch_box[axis]); b; b++)
+            {
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const int dof_idx = (*u_dof_data)(i_s);
+                if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
+                {
+                    local_vel_dofs.push_back(dof_idx);
+                }
+            }
+        }
+
+        // Get the local pressure DOFs.
+        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            const int dof_idx = (*p_dof_data)(i);
+            if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
+            {
+                local_pressure_dofs.push_back(dof_idx);
+            }
+        }
+    }
+
+    std::sort(local_vel_dofs.begin(), local_vel_dofs.end());
+    const int n_local_vel_dofs = static_cast<int>(local_vel_dofs.size());
+    ISCreateGeneral(PETSC_COMM_WORLD, n_local_vel_dofs, &local_vel_dofs[0], PETSC_COPY_VALUES, &is_field[0]);
+
+    std::sort(local_pressure_dofs.begin(), local_pressure_dofs.end());
+    const int n_local_pressure_dofs = static_cast<int>(local_pressure_dofs.size());
+    ISCreateGeneral(PETSC_COMM_WORLD, n_local_pressure_dofs, &local_pressure_dofs[0], PETSC_COPY_VALUES, &is_field[1]);
+
+    return;
+} // constructPatchLevelFields
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

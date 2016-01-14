@@ -364,6 +364,16 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
         }
     }
 
+    if (d_pc_type == "fieldsplit")
+    {
+        const int n_fields = static_cast<int>(d_field_is.size());
+        for (int k = 0; k < n_fields; ++k)
+        {
+            ierr = PCFieldSplitSetIS(ksp_pc, d_field_name[k].c_str(), d_field_is[k]);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+
     if (d_pc_type == "shell")
     {
         ierr = MatGetDiagonalBlock(d_petsc_mat, &d_diagonal_mat);

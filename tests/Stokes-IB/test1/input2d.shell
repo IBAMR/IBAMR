@@ -116,22 +116,23 @@ IBHierarchyIntegrator {
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
 	    pc_type               = "asm"
+        shell_pc_type         = "additive"
 
-            subdomain_box_size      = N, N
+            subdomain_box_size      = N  , N
             subdomain_overlap_size  = 0, 0
 	}
 
 	coarse_solver_type  = "PETSC_LEVEL_SOLVER"
 	coarse_solver_rel_residual_tol = 1.0e-12
 	coarse_solver_abs_residual_tol = 1.0e-50
-	coarse_solver_max_iterations = 1000
+	coarse_solver_max_iterations = 5
 	coarse_solver_db
 	{
 	     initial_guess_nonzero = TRUE
 	     ksp_type              = "fgmres"
 	     pc_type               = "asm"
 
-             subdomain_box_size      = N, N
+             subdomain_box_size      = N , N
              subdomain_overlap_size  = 0, 0
 	}
     }
@@ -207,8 +208,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1, N - 1) ]
-   x_lo = 0.0, 0.0
-   x_up = L, L
+   x_lo = -0.01, -0.02
+   x_up = L - 0.01, L - 0.02
    periodic_dimension = 0, 0
 }
 
@@ -225,13 +226,11 @@ GriddingAlgorithm {
       level_7 = RR,RR
    }
    largest_patch_size {
-      level_0 = 8, 8
-      level_1 = 8, 8
-      level_2 = 16, 16
+      level_0 = N, N
+      level_1 = N*2*2*2, N*2*2*2
    }
    smallest_patch_size {
-      level_0 =   8,  8
-      level_1 =   4,  4
+      level_0 =   N,  N
    }
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level

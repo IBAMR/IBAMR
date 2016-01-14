@@ -130,6 +130,16 @@ public:
                                                  int u_dof_index_idx,
                                                  int p_dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    /*!
+     * \brief Partition the patch level into subdomains suitable to be used for
+     * PCFieldSplit preconditioner.
+     */
+    static void constructPatchLevelFields(std::vector<IS>& is_field,
+                                          std::vector<std::string>& is_field_name,
+                                          const std::vector<int>& num_dofs_per_proc,
+                                          int u_dof_index_idx,
+                                          int p_dof_index_idx,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
     //\}
 
 protected:

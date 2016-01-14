@@ -180,6 +180,10 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
         d_red_subdomain_row_is, d_red_subdomain_col_is, d_black_subdomain_row_is, d_black_subdomain_col_is, d_box_size,
         d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
+    // Set IS'es for field split preconditioner.
+    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(d_field_is, d_field_name, d_num_dofs_per_proc,
+                                                                d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
