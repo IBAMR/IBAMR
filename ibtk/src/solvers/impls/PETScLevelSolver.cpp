@@ -564,7 +564,7 @@ void PETScLevelSolver::deallocateSolverState()
             IBTK_CHKERRQ(ierr);
             d_subdomain_ksp[subdomain] = NULL;
         }
-        d_no_subdomains = std::numeric_limits<int>::lowest();
+        d_no_subdomains = std::numeric_limits<int>::min();
     }
 
     if (d_pc_type == "shell" && d_shell_pc_type == "multiplicative")
@@ -598,8 +598,8 @@ void PETScLevelSolver::deallocateSolverState()
             IBTK_CHKERRQ(ierr);
             d_black_subdomain_ksp[black_subdomain] = NULL;
         }
-        d_no_red_subdomains = std::numeric_limits<int>::lowest();
-        d_no_black_subdomains = std::numeric_limits<int>::lowest();
+        d_no_red_subdomains = std::numeric_limits<int>::min();
+        d_no_black_subdomains = std::numeric_limits<int>::min();
     }
 
     d_petsc_ksp = NULL;
