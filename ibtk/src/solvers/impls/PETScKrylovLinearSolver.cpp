@@ -223,25 +223,18 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     if (d_b) d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
-    if (d_homogeneous_bc)
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    else
-    {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-        d_A->modifyRhsForInhomogeneousBc(*d_b);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
-        d_A->setHomogeneousBc(true);
-    }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_x));
-    IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
-    IBTK_CHKERRQ(ierr);
+    d_A->modifyRhsForBcs(*d_b);
+    d_A->setHomogeneousBc(true);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->imposeSolBcs(x);
+
+    // Get iterations count and residual norm.
     ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
@@ -613,12 +606,12 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(
-            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
+                              &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatShellSetOperation(
-        d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
+    ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT,
+                                reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
     IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
@@ -724,8 +717,8 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         }
 
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(
-            d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0], &d_petsc_nullsp);
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0],
+                                  &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
@@ -758,9 +751,8 @@ void PETScKrylovLinearSolver::deallocateNullspaceData()
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
         d_petsc_nullspace_constant_vec = NULL;
         d_nullspace_constant_vec->resetLevels(
-            0,
-            std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
-                     d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
+            0, std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
+                        d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
         d_nullspace_constant_vec.setNull();

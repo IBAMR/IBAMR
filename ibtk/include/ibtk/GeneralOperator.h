@@ -240,6 +240,38 @@ public:
      */
     virtual void deallocateOperatorState();
 
+    /*!
+     * \brief Modify the RHS vector to account for boundary conditions.
+     *
+     * Before calling this function, the form of the vector y should be set
+     * properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in this vector should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * \note The operator MUST be initialized prior to calling modifyRhsForBcs.
+     *
+     * \see initializeOperatorState
+     *
+     * \note A default implementation does not modify the RHS vector y.
+     */
+    virtual void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+
+    /*!
+     * \brief Impose boudary conditions in the solution vector.
+     *
+     * Before calling this function, the form of the vector y should be set
+     * properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in this vector should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * \note The operator MUST be initialized prior to calling imposeSolBcs.
+     *
+     * \see initializeOperatorState
+     *
+     * \note A default implementation does not modify the sol vector u.
+     */
+    virtual void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
+
     //\}
 
     /*!

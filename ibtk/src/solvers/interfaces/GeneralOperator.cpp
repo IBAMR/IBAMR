@@ -159,6 +159,18 @@ void GeneralOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
+void GeneralOperator::modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*y*/)
+{
+    // intentionally blank
+    return;
+} // modifyRhsForBcs
+
+void GeneralOperator::imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*u*/)
+{
+    // intentionally blank
+    return;
+} // imposeSolBcs
+
 void GeneralOperator::setLoggingEnabled(bool enable_logging)
 {
     d_enable_logging = enable_logging;
