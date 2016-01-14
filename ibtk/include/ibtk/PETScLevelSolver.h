@@ -314,6 +314,7 @@ protected:
      * \name PETSc objects.
      */
     //\{
+    bool d_use_ksp_as_smoother;
     std::string d_ksp_type, d_pc_type, d_shell_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;

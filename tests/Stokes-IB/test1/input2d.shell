@@ -113,6 +113,7 @@ IBHierarchyIntegrator {
 	level_solver_max_iterations = 2
 	level_solver_db
 	{
+        use_ksp_as_smoother   = TRUE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
 	    pc_type               = "asm"
@@ -128,6 +129,7 @@ IBHierarchyIntegrator {
 	coarse_solver_max_iterations = 5
 	coarse_solver_db
 	{
+         use_ksp_as_smoother   = FALSE
 	     initial_guess_nonzero = TRUE
 	     ksp_type              = "fgmres"
 	     pc_type               = "asm"
