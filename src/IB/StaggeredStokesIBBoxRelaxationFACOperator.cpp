@@ -34,6 +34,7 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <ostream>
 #include <string>
