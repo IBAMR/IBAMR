@@ -361,11 +361,11 @@ void StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 
 void StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef,
-                                                              u.getComponentDescriptorIndex(0),
-                                                              u.getComponentDescriptorIndex(1), d_homogeneous_bc);
-    d_bc_helper->enforceNormalVelocityBoundaryConditions(
-        u.getComponentDescriptorIndex(0), u.getComponentDescriptorIndex(1), d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+    const int U_idx = u.getComponentDescriptorIndex(0);
+    const int P_idx = u.getComponentDescriptorIndex(1);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx,
+                                                              d_homogeneous_bc);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     return;
 } // modifyRhsForBcs
