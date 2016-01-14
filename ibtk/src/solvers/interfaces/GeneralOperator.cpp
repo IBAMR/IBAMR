@@ -159,7 +159,8 @@ void GeneralOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void GeneralOperator::imposeSolBc(SAMRAIVectorReal<NDIM, double>& /*u*/)
+void GeneralOperator::modifySolverVecsForBcs(SAMRAIVectorReal<NDIM, double>& /*u*/,
+                                             SAMRAIVectorReal<NDIM, double>& /*f*/)
 {
     // intentionally blank
     return;

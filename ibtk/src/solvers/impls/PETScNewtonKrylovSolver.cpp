@@ -214,22 +214,17 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     if (d_r) d_r->allocateVectorData();
 
     // Solve the system using a PETSc SNES object.
-    d_F->imposeSolBc(x);
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     Pointer<LinearOperator> A = d_F;
     if (A)
     {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
         A->modifyRhsForInhomogeneousBc(*d_b);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
-        IBTK_CHKERRQ(ierr);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     }
-    else
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    Vec residual;
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
+    IBTK_CHKERRQ(ierr);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
+    d_F->modifySolverVecsForBcs(x, *d_b);
 
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -237,6 +232,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     IBTK_CHKERRQ(ierr);
     ierr = SNESGetLinearSolveIterations(d_petsc_snes, &d_current_linear_iterations);
     IBTK_CHKERRQ(ierr);
+    Vec residual;
     ierr = SNESGetFunction(d_petsc_snes, &residual, NULL, NULL);
     IBTK_CHKERRQ(ierr);
     ierr = VecNorm(residual, NORM_2, &d_current_residual_norm);

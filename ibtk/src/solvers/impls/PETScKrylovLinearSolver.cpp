@@ -223,20 +223,14 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     if (d_b) d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    d_A->imposeSolBc(x);
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
-    if (d_homogeneous_bc)
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    else
-    {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-        d_A->modifyRhsForInhomogeneousBc(*d_b);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
-        d_A->setHomogeneousBc(true);
-    }
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    d_A->modifyRhsForInhomogeneousBc(*d_b);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
+    d_A->modifySolverVecsForBcs(x, *d_b);
+    d_A->setHomogeneousBc(true);
+
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_x));
     IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
