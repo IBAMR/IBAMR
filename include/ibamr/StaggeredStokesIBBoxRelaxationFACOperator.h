@@ -477,6 +477,46 @@ private:
 
     //\}
 
+    /*!
+     * \name Methods for smoothing errors.
+     */
+    //\{
+
+    /*!
+     * \brief Perform a given number of relaxations on the error using
+     * block Jacobi solves on subdomains.
+     */
+    void smoothErrorAdditive(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                             int level_num,
+                             int num_sweeps,
+                             bool performing_pre_sweeps,
+                             bool performing_post_sweeps);
+
+    /*!
+     * \brief Perform a given number of relaxations on the error using
+     * block Gauss Seidel solves on local subdomains.
+     */
+    void smoothErrorMultiplicative(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                                   int level_num,
+                                   int num_sweeps,
+                                   bool performing_pre_sweeps,
+                                   bool performing_post_sweeps);
+
+    /*!
+     * \brief Perform a given number of relaxations on the error using
+     * block Gauss Seidel solves on local red-black subdomains.
+     */
+    void smoothErrorRedBlackMultiplicative(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                                           int level_num,
+                                           int num_sweeps,
+                                           bool performing_pre_sweeps,
+                                           bool performing_post_sweeps);
+
+    //\}
+
     /*
      * Problem specification.
      */

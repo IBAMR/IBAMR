@@ -107,9 +107,9 @@ int main(int argc, char* argv[])
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));       
+            "INSStaggeredHierarchyIntegrator",
+            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBImplicitStaggeredHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
             navier_stokes_integrator);
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
-            pout << "Integration stepsize dt is " << dt << "\n";             
+            pout << "Integration stepsize dt is " << dt << "\n";
 
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;

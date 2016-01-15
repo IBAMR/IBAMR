@@ -142,7 +142,7 @@ StaggeredStokesIBBoxRelaxationFACOperator::StaggeredStokesIBBoxRelaxationFACOper
     d_in_initialize_operator_state = false;
     d_coarsest_reset_ln = -1;
     d_finest_reset_ln = -1;
-    d_smoother_type = "ADDITIVE";
+    d_smoother_type = "MULTIPLICATIVE";
     d_U_prolongation_method = "CONSTANT_REFINE";
     d_P_prolongation_method = "LINEAR_REFINE";
     d_U_restriction_method = "CONSERVATIVE_COARSEN";
@@ -347,11 +347,7 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setSmootherType(const std::strin
         TBOX_ERROR(d_object_name << "::setSmootherType()\n"
                                  << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (d_level_solver_type != smoother_type)
-    {
-        d_level_solvers.clear();
-    }
-    d_level_solver_type = smoother_type;
+
     d_smoother_type = smoother_type;
 
     return;
@@ -664,596 +660,6 @@ void StaggeredStokesIBBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal
     return;
 } // computeResidual
 
-// Smooth error multiplicative all subdomains
-/*void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                            const SAMRAIVectorReal<NDIM, double>& residual,
-                                                            int level_num,
-                                                            int num_sweeps,
-                                                            bool performing_pre_sweeps,
-                                                            bool performing_post_sweeps)
-{
-    if (num_sweeps == 0) return;
-
-    int ierr;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const int U_error_idx = error.getComponentDescriptorIndex(0);
-    const int P_error_idx = error.getComponentDescriptorIndex(1);
-    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
-    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
-
-    // Create some Vecs.
-    Mat& level_mat = d_level_mat[level_num];
-    Mat& diagonal_level_mat = d_diagonal_level_mat[level_num];
-    Vec err_vec, res_vec, new_res_vec;
-    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(res_vec, &new_res_vec);
-    IBTK_CHKERRQ(ierr);
-    Vec err_vec_local, new_res_vec_local;
-    ierr = MatCreateVecs(diagonal_level_mat, &err_vec_local, &new_res_vec_local);
-    IBTK_CHKERRQ(ierr);
-
-    // Copy patch level SAMRAI data to PETSc Vec
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                          d_p_dof_index_idx, level);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
-                                                          d_p_dof_index_idx, level);
-
-    // DOFs on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
-    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
-
-    // Smooth the error by the specified number of sweeps.
-    for (int isweep = 0; isweep < num_sweeps; ++isweep)
-    {
-        // Extract the local vectors.
-        PetscScalar *err_array, *new_res_array;
-        ierr = VecGetArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
-
-        // Update residual
-        // Do globally: r = f - A*u
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-
-        // Do locally: r = r + A*u
-        ierr = VecGetLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-
-        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-
-        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-
-        // Smooth error on subdomains.
-        const int n_subdomains = d_no_subdomains[level_num];
-        for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
-        {
-            Mat& bc_mat = d_subdomain_bc_mat[level_num][subdomain];
-            KSP& sub_ksp = d_subdomain_ksp[level_num][subdomain];
-
-            // Get local and non-local DOFs.
-            // Non-local DOFs are non-subdomains DOFs that are on this processor.
-            IS& local_dofs = (*d_subdomain_row_is[level_num])[subdomain];
-            IS& nonlocal_dofs = (*d_subdomain_col_is[level_num])[subdomain];
-
-            PetscInt is_size_local, is_size_nonlocal;
-            ierr = ISGetLocalSize(local_dofs, &is_size_local);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
-            IBTK_CHKERRQ(ierr);
-            std::vector<int> local_indices(is_size_local);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_indices[i] = i;
-            }
-            std::vector<int> nonlocal_indices(is_size_nonlocal);
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_indices[i] = i;
-            }
-
-            const PetscInt *is_local_array, *is_nonlocal_array;
-            ierr = ISGetIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Create little block Vecs for solving local sytem and modifying RHS.
-            Vec u, r, e;
-            ierr = MatCreateVecs(bc_mat, &u, &r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDuplicate(r, &e);
-            IBTK_CHKERRQ(ierr);
-
-#if !defined(NDEBUG)
-            PetscInt vec_size;
-
-            ierr = VecGetSize(r, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_local == vec_size);
-
-            ierr = VecGetSize(u, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_nonlocal == vec_size);
-#endif
-
-            // Copy to/from various Vecs
-            std::vector<double> local_values(is_size_local);
-            std::vector<double> nonlocal_values(is_size_nonlocal);
-
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(r);
-            IBTK_CHKERRQ(ierr);
-
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(u);
-            IBTK_CHKERRQ(ierr);
-
-            // Modify RHS for "boundary" conditions.
-            ierr = VecScale(u, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(bc_mat, u, r, r);
-            IBTK_CHKERRQ(ierr);
-
-            // Do the local solve.
-            ierr = KSPSolve(sub_ksp, r, e);
-            IBTK_CHKERRQ(ierr);
-
-            // Update error vector.
-            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                err_array[is_local_array[i] - first_local_dof] = local_values[i];
-            }
-
-            // Restore IS indices.
-            ierr = ISRestoreIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Destroy temporary PETSc objects
-            ierr = VecDestroy(&u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&e);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        ierr = VecRestoreArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyBegin(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                            d_p_dof_index_idx, level, NULL, NULL);
-    ierr = VecDestroy(&err_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&new_res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&err_vec_local);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&new_res_vec_local);
-    IBTK_CHKERRQ(ierr);
-
-    // Synchronize data along patch boundaries.
-    xeqScheduleDataSynch(U_error_idx, level_num);
-
-    // Fill ghost cells.
-    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
-    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
-
-    return;
-} // smoothError-->mutiplicative_all_subdomains*/
-
-// Smooth error multiplicative red and black ordering
-/*void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                            const SAMRAIVectorReal<NDIM, double>& residual,
-                                                            int level_num,
-                                                            int num_sweeps,
-                                                            bool performing_pre_sweeps,
-                                                            bool performing_post_sweeps)
-{
-    if (num_sweeps == 0) return;
-
-    int ierr;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const int U_error_idx = error.getComponentDescriptorIndex(0);
-    const int P_error_idx = error.getComponentDescriptorIndex(1);
-    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
-    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
-
-    // Create some Vecs.
-    Mat& level_mat = d_level_mat[level_num];
-    Mat& diagonal_level_mat = d_diagonal_level_mat[level_num];
-
-    Vec err_vec, res_vec, new_res_vec;
-    PetscScalar *err_array, *new_res_array;
-    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(res_vec, &new_res_vec);
-    IBTK_CHKERRQ(ierr);
-
-    Vec err_vec_local, new_res_vec_local;
-    ierr = MatCreateVecs(diagonal_level_mat, &err_vec_local, &new_res_vec_local);
-    IBTK_CHKERRQ(ierr);
-
-    // Copy patch level SAMRAI data to PETSc Vec
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                          d_p_dof_index_idx, level);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
-                                                          d_p_dof_index_idx, level);
-
-    // DOFs on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
-    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
-
-    // Smooth the error by the specified number of sweeps.
-    for (int isweep = 0; isweep < num_sweeps; ++isweep)
-    {
-        // Update residual for off-processor DOFs
-        // a) Do globally: r = f - A*u
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-
-        // b) Do locally: r = r + A*u
-        ierr = VecGetLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-
-        // Extract the local vectors.
-        ierr = VecGetArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
-
-        // Smooth error on red subdomains.
-        const int n_red_subdomains = d_no_red_subdomains[level_num];
-        for (int red_subdomain = 0; red_subdomain < n_red_subdomains; ++red_subdomain)
-        {
-            Mat& bc_mat = d_red_subdomain_bc_mat[level_num][red_subdomain];
-            KSP& sub_ksp = d_red_subdomain_ksp[level_num][red_subdomain];
-
-            // Get local (to box) and non-local (non-box) DOFs.
-            // Non-local DOFs are non-subdomains or the non-box DOFs that
-            // are still on this processor.
-            IS& local_dofs = (*d_red_subdomain_row_is[level_num])[red_subdomain];
-            IS& nonlocal_dofs = (*d_red_subdomain_col_is[level_num])[red_subdomain];
-
-            PetscInt is_size_local, is_size_nonlocal;
-            ierr = ISGetLocalSize(local_dofs, &is_size_local);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
-            IBTK_CHKERRQ(ierr);
-            std::vector<int> local_indices(is_size_local);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_indices[i] = i;
-            }
-            std::vector<int> nonlocal_indices(is_size_nonlocal);
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_indices[i] = i;
-            }
-
-            const PetscInt *is_local_array, *is_nonlocal_array;
-            ierr = ISGetIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Create little block Vecs for solving local sytem and modifying RHS.
-            Vec u, r, e;
-            ierr = MatCreateVecs(bc_mat, &u, &r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDuplicate(r, &e);
-            IBTK_CHKERRQ(ierr);
-
-#if !defined(NDEBUG)
-            PetscInt vec_size;
-
-            ierr = VecGetSize(r, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_local == vec_size);
-
-            ierr = VecGetSize(u, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_nonlocal == vec_size);
-#endif
-
-            // Copy to/from various Vecs
-            std::vector<double> local_values(is_size_local);
-            std::vector<double> nonlocal_values(is_size_nonlocal);
-
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(r);
-            IBTK_CHKERRQ(ierr);
-
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(u);
-            IBTK_CHKERRQ(ierr);
-
-            // Modify RHS for "boundary" conditions.
-            ierr = VecScale(u, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(bc_mat, u, r, r);
-            IBTK_CHKERRQ(ierr);
-
-            // Do the local solve.
-            ierr = KSPSolve(sub_ksp, r, e);
-            IBTK_CHKERRQ(ierr);
-
-            // Update error vector.
-            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                err_array[is_local_array[i] - first_local_dof] = local_values[i];
-            }
-
-            // Restore IS indices.
-            ierr = ISRestoreIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Destroy temporary PETSc objects
-            ierr = VecDestroy(&u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&e);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        // Assemble error vector for contribution from red subdomains.
-        ierr = VecRestoreArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyBegin(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
-
-        // Update residual for black subdomains
-
-        // Do globally: r = f - A*u
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScale(err_vec, -1.0);
-        IBTK_CHKERRQ(ierr);
-
-        // Do locally: r = r + A*u
-        ierr = VecGetLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
-        IBTK_CHKERRQ(ierr);
-
-        // Extract the local vectors.
-        ierr = VecGetArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
- 
-        // Smooth error on black subdomains.
-        const int n_black_subdomains = d_no_black_subdomains[level_num];
-        for (int black_subdomain = 0; black_subdomain < n_black_subdomains; ++black_subdomain)
-        {
-            Mat& bc_mat = d_black_subdomain_bc_mat[level_num][black_subdomain];
-            KSP& sub_ksp = d_black_subdomain_ksp[level_num][black_subdomain];
-
-            // Get local (to box) and non-local (non-box) DOFs.
-            // Non-local DOFs are non-subdomains or the non-box DOFs that
-            // are still on this processor.
-            IS& local_dofs = (*d_black_subdomain_row_is[level_num])[black_subdomain];
-            IS& nonlocal_dofs = (*d_black_subdomain_col_is[level_num])[black_subdomain];
-
-            PetscInt is_size_local, is_size_nonlocal;
-            ierr = ISGetLocalSize(local_dofs, &is_size_local);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
-            IBTK_CHKERRQ(ierr);
-            std::vector<int> local_indices(is_size_local);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_indices[i] = i;
-            }
-            std::vector<int> nonlocal_indices(is_size_nonlocal);
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_indices[i] = i;
-            }
-
-            const PetscInt *is_local_array, *is_nonlocal_array;
-            ierr = ISGetIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Create little block Vecs for solving local sytem and modifying RHS.
-            Vec u, r, e;
-            ierr = MatCreateVecs(bc_mat, &u, &r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDuplicate(r, &e);
-            IBTK_CHKERRQ(ierr);
-
-#if !defined(NDEBUG)
-            PetscInt vec_size;
-
-            ierr = VecGetSize(r, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_local == vec_size);
-
-            ierr = VecGetSize(u, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_nonlocal == vec_size);
-#endif
-
-            // Copy to/from various Vecs
-            std::vector<double> local_values(is_size_local);
-            std::vector<double> nonlocal_values(is_size_nonlocal);
-
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(r);
-            IBTK_CHKERRQ(ierr);
-
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(u);
-            IBTK_CHKERRQ(ierr);
-
-            // Modify RHS for "boundary" conditions.
-            ierr = VecScale(u, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(bc_mat, u, r, r);
-            IBTK_CHKERRQ(ierr);
-
-            // Do the local solve.
-            ierr = KSPSolve(sub_ksp, r, e);
-            IBTK_CHKERRQ(ierr);
-
-            // Update error vector.
-            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                err_array[is_local_array[i] - first_local_dof] = local_values[i];
-            }
-
-            // Restore IS indices.
-            ierr = ISRestoreIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Destroy temporary PETSc objects
-            ierr = VecDestroy(&u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&e);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        // Assemble error vector for contribution from black subdomains.
-        ierr = VecRestoreArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyBegin(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArray(new_res_vec, &new_res_array);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                            d_p_dof_index_idx, level, NULL, NULL);
-    ierr = VecDestroy(&err_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&new_res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&err_vec_local);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&new_res_vec_local);
-    IBTK_CHKERRQ(ierr);
-
-    // Synchronize data along patch boundaries.
-    xeqScheduleDataSynch(U_error_idx, level_num);
-
-    // Fill ghost cells.
-    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
-    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
-
-    return;
-}*/ // smoothError-->mutiplicative_red_black
-
-// Smooth error additive
 void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
                                                             const SAMRAIVectorReal<NDIM, double>& residual,
                                                             int level_num,
@@ -1263,186 +669,30 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 {
     if (num_sweeps == 0) return;
 
-    int ierr;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const int U_error_idx = error.getComponentDescriptorIndex(0);
-    const int P_error_idx = error.getComponentDescriptorIndex(1);
-    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
-    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
-
-    // Create some Vecs.
-    Mat& level_mat = d_level_mat[level_num];
-    Vec err_vec, old_err_vec, res_vec;
-    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(err_vec, &old_err_vec);
-    IBTK_CHKERRQ(ierr);
-
-    // Copy patch level SAMRAI data to PETSc Vec
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                          d_p_dof_index_idx, level);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
-                                                          d_p_dof_index_idx, level);
-
-    // DOFs on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
-    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
-
-    // Smooth the error by the specified number of sweeps.
-    for (int isweep = 0; isweep < num_sweeps; ++isweep)
+    if (d_smoother_type == "MULTIPLICATIVE")
     {
-        ierr = VecCopy(err_vec, old_err_vec);
-        IBTK_CHKERRQ(ierr);
-
-        // Extract the local vectors.
-        PetscScalar *err_array, *old_err_array, *res_array;
-        ierr = VecGetArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(old_err_vec, &old_err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(res_vec, &res_array);
-        IBTK_CHKERRQ(ierr);
-
-        // Smooth error on subdomains.
-        const int n_subdomains = d_no_subdomains[level_num];
-        for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
-        {
-            Mat& bc_mat = d_subdomain_bc_mat[level_num][subdomain];
-            KSP& sub_ksp = d_subdomain_ksp[level_num][subdomain];
-
-            // Get local and non-local DOFs.
-            // Non-local DOFs are non-subdomains DOFs that are on this processor.
-            IS& local_dofs = (*d_subdomain_row_is[level_num])[subdomain];
-            IS& nonlocal_dofs = (*d_subdomain_col_is[level_num])[subdomain];
-
-            PetscInt is_size_local, is_size_nonlocal;
-            ierr = ISGetLocalSize(local_dofs, &is_size_local);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
-            IBTK_CHKERRQ(ierr);
-            std::vector<int> local_indices(is_size_local);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_indices[i] = i;
-            }
-            std::vector<int> nonlocal_indices(is_size_nonlocal);
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_indices[i] = i;
-            }
-
-            const PetscInt *is_local_array, *is_nonlocal_array;
-            ierr = ISGetIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Create little block Vecs for solving local sytem and modifying RHS.
-            Vec u, r, e;
-            ierr = MatCreateVecs(bc_mat, &u, &r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDuplicate(r, &e);
-            IBTK_CHKERRQ(ierr);
-
-#if !defined(NDEBUG)
-            PetscInt vec_size;
-
-            ierr = VecGetSize(r, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_local == vec_size);
-
-            ierr = VecGetSize(u, &vec_size);
-            IBTK_CHKERRQ(ierr);
-            TBOX_ASSERT(is_size_nonlocal == vec_size);
-#endif
-
-            // Copy to/from various Vecs
-            std::vector<double> local_values(is_size_local);
-            std::vector<double> nonlocal_values(is_size_nonlocal);
-
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                local_values[i] = res_array[is_local_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(r);
-            IBTK_CHKERRQ(ierr);
-
-            for (int i = 0; i < is_size_nonlocal; ++i)
-            {
-                nonlocal_values[i] = old_err_array[is_nonlocal_array[i] - first_local_dof];
-            }
-            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyBegin(u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(u);
-            IBTK_CHKERRQ(ierr);
-
-            // Modify RHS for "boundary" conditions.
-            ierr = VecScale(u, -1.0);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatMultAdd(bc_mat, u, r, r);
-            IBTK_CHKERRQ(ierr);
-
-            // Do the local solve.
-            ierr = KSPSolve(sub_ksp, r, e);
-            IBTK_CHKERRQ(ierr);
-
-            // Update error vector.
-            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < is_size_local; ++i)
-            {
-                err_array[is_local_array[i] - first_local_dof] = local_values[i];
-            }
-
-            // Restore IS indices.
-            ierr = ISRestoreIndices(local_dofs, &is_local_array);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
-            IBTK_CHKERRQ(ierr);
-
-            // Destroy temporary PETSc objects
-            ierr = VecDestroy(&u);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&r);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&e);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        ierr = VecRestoreArray(err_vec, &err_array);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyBegin(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(err_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArray(old_err_vec, &old_err_array);
+        StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorMultiplicative(
+            error, residual, level_num, num_sweeps, performing_pre_sweeps, performing_post_sweeps);
+    }
+    else if (d_smoother_type == "REDBLACK")
+    {
+        StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorRedBlackMultiplicative(
+            error, residual, level_num, num_sweeps, performing_pre_sweeps, performing_post_sweeps);
+    }
+    else if (d_smoother_type == "ADDITIVE")
+    {
+        StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorAdditive(error, residual, level_num, num_sweeps,
+                                                                       performing_pre_sweeps, performing_post_sweeps);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::smoothError()\n"
+                                 << "Unknown smooth error option specified. Available options are ADDITIVE, "
+                                    "MULTIPLICATIVE, REDBLACK" << std::endl);
     }
 
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
-                                                            d_p_dof_index_idx, level, NULL, NULL);
-    ierr = VecDestroy(&err_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&res_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&old_err_vec);
-    IBTK_CHKERRQ(ierr);
-
-    // Synchronize data along patch boundaries.
-    xeqScheduleDataSynch(U_error_idx, level_num);
-
-    // Fill ghost cells.
-    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
-    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
-
     return;
-} // smoothError-->additive
+} // smoothError
 
 void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
                                                                         const SAMRAIVectorReal<NDIM, double>& rhs)
@@ -2150,6 +1400,785 @@ void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleDataSynch(const int U
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);
     return;
 } // xeqScheduleDataSynch
+
+void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorMultiplicative(
+    SAMRAIVectorReal<NDIM, double>& error,
+    const SAMRAIVectorReal<NDIM, double>& residual,
+    int level_num,
+    int num_sweeps,
+    bool /*performing_pre_sweeps*/,
+    bool /*performing_post_sweeps*/)
+{
+    if (num_sweeps == 0) return;
+
+    int ierr;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    const int U_error_idx = error.getComponentDescriptorIndex(0);
+    const int P_error_idx = error.getComponentDescriptorIndex(1);
+    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
+    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
+
+    // Create some Vecs.
+    Mat& level_mat = d_level_mat[level_num];
+    Mat& diagonal_level_mat = d_diagonal_level_mat[level_num];
+    Vec err_vec, res_vec, new_res_vec;
+    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(res_vec, &new_res_vec);
+    IBTK_CHKERRQ(ierr);
+    Vec err_vec_local, new_res_vec_local;
+    ierr = MatCreateVecs(diagonal_level_mat, &err_vec_local, &new_res_vec_local);
+    IBTK_CHKERRQ(ierr);
+
+    // Copy patch level SAMRAI data to PETSc Vec
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                          d_p_dof_index_idx, level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
+                                                          d_p_dof_index_idx, level);
+
+    // DOFs on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
+    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
+
+    // Smooth the error by the specified number of sweeps.
+    for (int isweep = 0; isweep < num_sweeps; ++isweep)
+    {
+        // Extract the local vectors.
+        PetscScalar *err_array, *new_res_array;
+        ierr = VecGetArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Update residual
+        // Do globally: r = f - A*u
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+
+        // Do locally: r = r + A*u
+        ierr = VecGetLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        // Smooth error on subdomains.
+        const int n_subdomains = d_no_subdomains[level_num];
+        for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
+        {
+            Mat& bc_mat = d_subdomain_bc_mat[level_num][subdomain];
+            KSP& sub_ksp = d_subdomain_ksp[level_num][subdomain];
+
+            // Get local and non-local DOFs.
+            // Non-local DOFs are non-subdomains DOFs that are on this processor.
+            IS& local_dofs = (*d_subdomain_row_is[level_num])[subdomain];
+            IS& nonlocal_dofs = (*d_subdomain_col_is[level_num])[subdomain];
+
+            PetscInt is_size_local, is_size_nonlocal;
+            ierr = ISGetLocalSize(local_dofs, &is_size_local);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
+            IBTK_CHKERRQ(ierr);
+            std::vector<int> local_indices(is_size_local);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_indices[i] = i;
+            }
+            std::vector<int> nonlocal_indices(is_size_nonlocal);
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_indices[i] = i;
+            }
+
+            const PetscInt *is_local_array, *is_nonlocal_array;
+            ierr = ISGetIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Create little block Vecs for solving local sytem and modifying RHS.
+            Vec u, r, e;
+            ierr = MatCreateVecs(bc_mat, &u, &r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(r, &e);
+            IBTK_CHKERRQ(ierr);
+
+#if !defined(NDEBUG)
+            PetscInt vec_size;
+
+            ierr = VecGetSize(r, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_local == vec_size);
+
+            ierr = VecGetSize(u, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_nonlocal == vec_size);
+#endif
+
+            // Copy to/from various Vecs
+            std::vector<double> local_values(is_size_local);
+            std::vector<double> nonlocal_values(is_size_nonlocal);
+
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(r);
+            IBTK_CHKERRQ(ierr);
+
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(u);
+            IBTK_CHKERRQ(ierr);
+
+            // Modify RHS for "boundary" conditions.
+            ierr = VecScale(u, -1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMultAdd(bc_mat, u, r, r);
+            IBTK_CHKERRQ(ierr);
+
+            // Do the local solve.
+            ierr = KSPSolve(sub_ksp, r, e);
+            IBTK_CHKERRQ(ierr);
+
+            // Update error vector.
+            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                err_array[is_local_array[i] - first_local_dof] = local_values[i];
+            }
+
+            // Restore IS indices.
+            ierr = ISRestoreIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Destroy temporary PETSc objects
+            ierr = VecDestroy(&u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&e);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        ierr = VecRestoreArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                            d_p_dof_index_idx, level, NULL, NULL);
+    ierr = VecDestroy(&err_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&err_vec_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec_local);
+    IBTK_CHKERRQ(ierr);
+
+    // Synchronize data along patch boundaries.
+    xeqScheduleDataSynch(U_error_idx, level_num);
+
+    // Fill ghost cells.
+    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
+    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
+
+    return;
+} // smoothErrorMultiplicative
+
+void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorRedBlackMultiplicative(
+    SAMRAIVectorReal<NDIM, double>& error,
+    const SAMRAIVectorReal<NDIM, double>& residual,
+    int level_num,
+    int num_sweeps,
+    bool /*performing_pre_sweeps*/,
+    bool /*performing_post_sweeps*/)
+{
+    if (num_sweeps == 0) return;
+
+    int ierr;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    const int U_error_idx = error.getComponentDescriptorIndex(0);
+    const int P_error_idx = error.getComponentDescriptorIndex(1);
+    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
+    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
+
+    // Create some Vecs.
+    Mat& level_mat = d_level_mat[level_num];
+    Mat& diagonal_level_mat = d_diagonal_level_mat[level_num];
+
+    Vec err_vec, res_vec, new_res_vec;
+    PetscScalar *err_array, *new_res_array;
+    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(res_vec, &new_res_vec);
+    IBTK_CHKERRQ(ierr);
+
+    Vec err_vec_local, new_res_vec_local;
+    ierr = MatCreateVecs(diagonal_level_mat, &err_vec_local, &new_res_vec_local);
+    IBTK_CHKERRQ(ierr);
+
+    // Copy patch level SAMRAI data to PETSc Vec
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                          d_p_dof_index_idx, level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
+                                                          d_p_dof_index_idx, level);
+
+    // DOFs on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
+    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
+
+    // Smooth the error by the specified number of sweeps.
+    for (int isweep = 0; isweep < num_sweeps; ++isweep)
+    {
+        // Update residual for off-processor DOFs
+        // a) Do globally: r = f - A*u
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+
+        // b) Do locally: r = r + A*u
+        ierr = VecGetLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        // Extract the local vectors.
+        ierr = VecGetArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Smooth error on red subdomains.
+        const int n_red_subdomains = d_no_red_subdomains[level_num];
+        for (int red_subdomain = 0; red_subdomain < n_red_subdomains; ++red_subdomain)
+        {
+            Mat& bc_mat = d_red_subdomain_bc_mat[level_num][red_subdomain];
+            KSP& sub_ksp = d_red_subdomain_ksp[level_num][red_subdomain];
+
+            // Get local (to box) and non-local (non-box) DOFs.
+            // Non-local DOFs are non-subdomains or the non-box DOFs that
+            // are still on this processor.
+            IS& local_dofs = (*d_red_subdomain_row_is[level_num])[red_subdomain];
+            IS& nonlocal_dofs = (*d_red_subdomain_col_is[level_num])[red_subdomain];
+
+            PetscInt is_size_local, is_size_nonlocal;
+            ierr = ISGetLocalSize(local_dofs, &is_size_local);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
+            IBTK_CHKERRQ(ierr);
+            std::vector<int> local_indices(is_size_local);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_indices[i] = i;
+            }
+            std::vector<int> nonlocal_indices(is_size_nonlocal);
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_indices[i] = i;
+            }
+
+            const PetscInt *is_local_array, *is_nonlocal_array;
+            ierr = ISGetIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Create little block Vecs for solving local sytem and modifying RHS.
+            Vec u, r, e;
+            ierr = MatCreateVecs(bc_mat, &u, &r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(r, &e);
+            IBTK_CHKERRQ(ierr);
+
+#if !defined(NDEBUG)
+            PetscInt vec_size;
+
+            ierr = VecGetSize(r, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_local == vec_size);
+
+            ierr = VecGetSize(u, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_nonlocal == vec_size);
+#endif
+
+            // Copy to/from various Vecs
+            std::vector<double> local_values(is_size_local);
+            std::vector<double> nonlocal_values(is_size_nonlocal);
+
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(r);
+            IBTK_CHKERRQ(ierr);
+
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(u);
+            IBTK_CHKERRQ(ierr);
+
+            // Modify RHS for "boundary" conditions.
+            ierr = VecScale(u, -1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMultAdd(bc_mat, u, r, r);
+            IBTK_CHKERRQ(ierr);
+
+            // Do the local solve.
+            ierr = KSPSolve(sub_ksp, r, e);
+            IBTK_CHKERRQ(ierr);
+
+            // Update error vector.
+            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                err_array[is_local_array[i] - first_local_dof] = local_values[i];
+            }
+
+            // Restore IS indices.
+            ierr = ISRestoreIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Destroy temporary PETSc objects
+            ierr = VecDestroy(&u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&e);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        // Assemble error vector for contribution from red subdomains.
+        ierr = VecRestoreArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Update residual for black subdomains
+
+        // Do globally: r = f - A*u
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(level_mat, err_vec, res_vec, new_res_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecScale(err_vec, -1.0);
+        IBTK_CHKERRQ(ierr);
+
+        // Do locally: r = r + A*u
+        ierr = VecGetLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultAdd(diagonal_level_mat, err_vec_local, new_res_vec_local, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(err_vec, err_vec_local);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreLocalVector(new_res_vec, new_res_vec_local);
+        IBTK_CHKERRQ(ierr);
+
+        // Extract the local vectors.
+        ierr = VecGetArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Smooth error on black subdomains.
+        const int n_black_subdomains = d_no_black_subdomains[level_num];
+        for (int black_subdomain = 0; black_subdomain < n_black_subdomains; ++black_subdomain)
+        {
+            Mat& bc_mat = d_black_subdomain_bc_mat[level_num][black_subdomain];
+            KSP& sub_ksp = d_black_subdomain_ksp[level_num][black_subdomain];
+
+            // Get local (to box) and non-local (non-box) DOFs.
+            // Non-local DOFs are non-subdomains or the non-box DOFs that
+            // are still on this processor.
+            IS& local_dofs = (*d_black_subdomain_row_is[level_num])[black_subdomain];
+            IS& nonlocal_dofs = (*d_black_subdomain_col_is[level_num])[black_subdomain];
+
+            PetscInt is_size_local, is_size_nonlocal;
+            ierr = ISGetLocalSize(local_dofs, &is_size_local);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
+            IBTK_CHKERRQ(ierr);
+            std::vector<int> local_indices(is_size_local);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_indices[i] = i;
+            }
+            std::vector<int> nonlocal_indices(is_size_nonlocal);
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_indices[i] = i;
+            }
+
+            const PetscInt *is_local_array, *is_nonlocal_array;
+            ierr = ISGetIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Create little block Vecs for solving local sytem and modifying RHS.
+            Vec u, r, e;
+            ierr = MatCreateVecs(bc_mat, &u, &r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(r, &e);
+            IBTK_CHKERRQ(ierr);
+
+#if !defined(NDEBUG)
+            PetscInt vec_size;
+
+            ierr = VecGetSize(r, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_local == vec_size);
+
+            ierr = VecGetSize(u, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_nonlocal == vec_size);
+#endif
+
+            // Copy to/from various Vecs
+            std::vector<double> local_values(is_size_local);
+            std::vector<double> nonlocal_values(is_size_nonlocal);
+
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_values[i] = new_res_array[is_local_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(r);
+            IBTK_CHKERRQ(ierr);
+
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_values[i] = err_array[is_nonlocal_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(u);
+            IBTK_CHKERRQ(ierr);
+
+            // Modify RHS for "boundary" conditions.
+            ierr = VecScale(u, -1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMultAdd(bc_mat, u, r, r);
+            IBTK_CHKERRQ(ierr);
+
+            // Do the local solve.
+            ierr = KSPSolve(sub_ksp, r, e);
+            IBTK_CHKERRQ(ierr);
+
+            // Update error vector.
+            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                err_array[is_local_array[i] - first_local_dof] = local_values[i];
+            }
+
+            // Restore IS indices.
+            ierr = ISRestoreIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Destroy temporary PETSc objects
+            ierr = VecDestroy(&u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&e);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        // Assemble error vector for contribution from black subdomains.
+        ierr = VecRestoreArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(new_res_vec, &new_res_array);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                            d_p_dof_index_idx, level, NULL, NULL);
+    ierr = VecDestroy(&err_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&err_vec_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&new_res_vec_local);
+    IBTK_CHKERRQ(ierr);
+
+    // Synchronize data along patch boundaries.
+    xeqScheduleDataSynch(U_error_idx, level_num);
+
+    // Fill ghost cells.
+    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
+    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
+
+    return;
+} // smoothErrorRedBlackMultiplicative
+
+void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorAdditive(SAMRAIVectorReal<NDIM, double>& error,
+                                                                    const SAMRAIVectorReal<NDIM, double>& residual,
+                                                                    int level_num,
+                                                                    int num_sweeps,
+                                                                    bool /*performing_pre_sweeps*/,
+                                                                    bool /*performing_post_sweeps*/)
+{
+    if (num_sweeps == 0) return;
+
+    int ierr;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    const int U_error_idx = error.getComponentDescriptorIndex(0);
+    const int P_error_idx = error.getComponentDescriptorIndex(1);
+    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
+    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
+
+    // Create some Vecs.
+    Mat& level_mat = d_level_mat[level_num];
+    Vec err_vec, old_err_vec, res_vec;
+    ierr = MatCreateVecs(level_mat, &err_vec, &res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(err_vec, &old_err_vec);
+    IBTK_CHKERRQ(ierr);
+
+    // Copy patch level SAMRAI data to PETSc Vec
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                          d_p_dof_index_idx, level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(res_vec, U_residual_idx, d_u_dof_index_idx, P_residual_idx,
+                                                          d_p_dof_index_idx, level);
+
+    // DOFs on this processor.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const std::vector<int>& dofs_level = d_num_dofs_per_proc[level_num];
+    const int first_local_dof = std::accumulate(dofs_level.begin(), dofs_level.begin() + mpi_rank, 0);
+
+    // Smooth the error by the specified number of sweeps.
+    for (int isweep = 0; isweep < num_sweeps; ++isweep)
+    {
+        ierr = VecCopy(err_vec, old_err_vec);
+        IBTK_CHKERRQ(ierr);
+
+        // Extract the local vectors.
+        PetscScalar *err_array, *old_err_array, *res_array;
+        ierr = VecGetArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(old_err_vec, &old_err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(res_vec, &res_array);
+        IBTK_CHKERRQ(ierr);
+
+        // Smooth error on subdomains.
+        const int n_subdomains = d_no_subdomains[level_num];
+        for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
+        {
+            Mat& bc_mat = d_subdomain_bc_mat[level_num][subdomain];
+            KSP& sub_ksp = d_subdomain_ksp[level_num][subdomain];
+
+            // Get local and non-local DOFs.
+            // Non-local DOFs are non-subdomains DOFs that are on this processor.
+            IS& local_dofs = (*d_subdomain_row_is[level_num])[subdomain];
+            IS& nonlocal_dofs = (*d_subdomain_col_is[level_num])[subdomain];
+
+            PetscInt is_size_local, is_size_nonlocal;
+            ierr = ISGetLocalSize(local_dofs, &is_size_local);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetLocalSize(nonlocal_dofs, &is_size_nonlocal);
+            IBTK_CHKERRQ(ierr);
+            std::vector<int> local_indices(is_size_local);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_indices[i] = i;
+            }
+            std::vector<int> nonlocal_indices(is_size_nonlocal);
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_indices[i] = i;
+            }
+
+            const PetscInt *is_local_array, *is_nonlocal_array;
+            ierr = ISGetIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Create little block Vecs for solving local sytem and modifying RHS.
+            Vec u, r, e;
+            ierr = MatCreateVecs(bc_mat, &u, &r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(r, &e);
+            IBTK_CHKERRQ(ierr);
+
+#if !defined(NDEBUG)
+            PetscInt vec_size;
+
+            ierr = VecGetSize(r, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_local == vec_size);
+
+            ierr = VecGetSize(u, &vec_size);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(is_size_nonlocal == vec_size);
+#endif
+
+            // Copy to/from various Vecs
+            std::vector<double> local_values(is_size_local);
+            std::vector<double> nonlocal_values(is_size_nonlocal);
+
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                local_values[i] = res_array[is_local_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(r);
+            IBTK_CHKERRQ(ierr);
+
+            for (int i = 0; i < is_size_nonlocal; ++i)
+            {
+                nonlocal_values[i] = old_err_array[is_nonlocal_array[i] - first_local_dof];
+            }
+            ierr = VecSetValues(u, is_size_nonlocal, &nonlocal_indices[0], &nonlocal_values[0], INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(u);
+            IBTK_CHKERRQ(ierr);
+
+            // Modify RHS for "boundary" conditions.
+            ierr = VecScale(u, -1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMultAdd(bc_mat, u, r, r);
+            IBTK_CHKERRQ(ierr);
+
+            // Do the local solve.
+            ierr = KSPSolve(sub_ksp, r, e);
+            IBTK_CHKERRQ(ierr);
+
+            // Update error vector.
+            ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < is_size_local; ++i)
+            {
+                err_array[is_local_array[i] - first_local_dof] = local_values[i];
+            }
+
+            // Restore IS indices.
+            ierr = ISRestoreIndices(local_dofs, &is_local_array);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(nonlocal_dofs, &is_nonlocal_array);
+            IBTK_CHKERRQ(ierr);
+
+            // Destroy temporary PETSc objects
+            ierr = VecDestroy(&u);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&r);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&e);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        ierr = VecRestoreArray(err_vec, &err_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyBegin(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(err_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(old_err_vec, &old_err_array);
+    }
+
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(err_vec, U_error_idx, d_u_dof_index_idx, P_error_idx,
+                                                            d_p_dof_index_idx, level, NULL, NULL);
+    ierr = VecDestroy(&err_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&res_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&old_err_vec);
+    IBTK_CHKERRQ(ierr);
+
+    // Synchronize data along patch boundaries.
+    xeqScheduleDataSynch(U_error_idx, level_num);
+
+    // Fill ghost cells.
+    const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
+    xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
+
+    return;
+} // smoothErrorAdditive
 
 //////////////////////////////////////////////////////////////////////////////
 

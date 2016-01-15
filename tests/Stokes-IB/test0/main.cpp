@@ -805,24 +805,24 @@ int main(int argc, char* argv[])
         //========================= TEST SAJ Operator ========================
 
         // Get SAJ mat for the coarsest level
-        /* Mat SAJ_coarsest_petsc = fac_op->getGalerkinElasticityLevelOp(coarsest_ln);
+        Mat SAJ_coarsest_petsc = fac_op->getGalerkinElasticityLevelOp(coarsest_ln);
 
-         // Build SAJ mat for the coarsest level using SAMRAI operators
-         Mat SAJ_coarsest_samrai;
-         MatDuplicate(SAJ_coarsest_petsc, MAT_SHARE_NONZERO_PATTERN, &SAJ_coarsest_samrai);
-         buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai, SAJ, num_dofs_per_proc, u_var, p_var, u_ib_idx,
-                                             p_ins_idx, u_dof_index_idx, p_dof_index_idx, patch_hierarchy,
-                                             hier_velocity_data_ops, hier_pressure_data_ops,
-                                             lag_data_manager->getGhostCellWidth());
+        // Build SAJ mat for the coarsest level using SAMRAI operators
+        Mat SAJ_coarsest_samrai;
+        MatDuplicate(SAJ_coarsest_petsc, MAT_SHARE_NONZERO_PATTERN, &SAJ_coarsest_samrai);
+        buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai, SAJ, num_dofs_per_proc, u_var, p_var, u_ib_idx,
+                                            p_ins_idx, u_dof_index_idx, p_dof_index_idx, patch_hierarchy,
+                                            hier_velocity_data_ops, hier_pressure_data_ops,
+                                            lag_data_manager->getGhostCellWidth());
 
-         // Print both versions of the matrices
-         PetscViewer matlab_viewer;
-         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETSC_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
-         PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-         MatView(SAJ_coarsest_petsc, matlab_viewer);
-         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "SAMRAI_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
-         PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-         MatView(SAJ_coarsest_samrai, matlab_viewer);*/
+        // Print both versions of the matrices
+        PetscViewer matlab_viewer;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETSC_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        MatView(SAJ_coarsest_petsc, matlab_viewer);
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "SAMRAI_SAJ.dat", FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        MatView(SAJ_coarsest_samrai, matlab_viewer);
         //====================================================================
 
         // post process hierarchy
@@ -852,8 +852,8 @@ int main(int argc, char* argv[])
 
         // Cleanup PETSc objects
         MatDestroy(&SAJ);
-        // MatDestroy(&SAJ_coarsest_samrai);
-        // PetscViewerDestroy(&matlab_viewer);
+        MatDestroy(&SAJ_coarsest_samrai);
+        PetscViewerDestroy(&matlab_viewer);
 
     } // cleanup dynamically allocated objects prior to shutdown
 

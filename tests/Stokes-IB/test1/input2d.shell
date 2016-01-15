@@ -106,6 +106,7 @@ IBHierarchyIntegrator {
 	//P_prolongation_method = "LINEAR_REFINE"
 	//U_restriction_method  = "CONSERVATIVE_COARSEN"
 	//P_restriction_method  = "CONSERVATIVE_COARSEN"
+        smoother_type = "REDBLACK"
 
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
 	level_solver_rel_residual_tol = 1.0e-12
@@ -113,11 +114,11 @@ IBHierarchyIntegrator {
 	level_solver_max_iterations = 2
 	level_solver_db
 	{
-        use_ksp_as_smoother   = TRUE
+            use_ksp_as_smoother   = TRUE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
 	    pc_type               = "asm"
-        shell_pc_type         = "additive"
+            shell_pc_type         = "additive"
 
             subdomain_box_size      = N  , N
             subdomain_overlap_size  = 0, 0
@@ -129,13 +130,13 @@ IBHierarchyIntegrator {
 	coarse_solver_max_iterations = 5
 	coarse_solver_db
 	{
-         use_ksp_as_smoother   = FALSE
-	     initial_guess_nonzero = TRUE
-	     ksp_type              = "fgmres"
-	     pc_type               = "asm"
+            use_ksp_as_smoother   = FALSE
+	    initial_guess_nonzero = TRUE
+	    ksp_type              = "gmres"
+	    pc_type               = "asm"
 
-             subdomain_box_size      = N , N
-             subdomain_overlap_size  = 0, 0
+            subdomain_box_size      = N , N
+            subdomain_overlap_size  = 0, 0
 	}
     }
 }
@@ -193,7 +194,7 @@ Main {
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 1
-   viz_dump_dirname            = "viz_IB2d_2"
+   viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

@@ -104,6 +104,7 @@ stokes_ib_precond_db
 	//P_prolongation_method = "LINEAR_REFINE"
 	//U_restriction_method  = "CONSERVATIVE_COARSEN"
 	//P_restriction_method  = "CONSERVATIVE_COARSEN"
+    smoother_type           = "REDBLACK"
 
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
 	level_solver_rel_residual_tol = 1.0e-9
@@ -111,6 +112,7 @@ stokes_ib_precond_db
 	level_solver_max_iterations = 1000
         level_solver_db
 	{
+        use_ksp_as_smoother   = TRUE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "fgmres"
 	    pc_type               = "asm"
@@ -125,8 +127,9 @@ stokes_ib_precond_db
 	coarse_solver_max_iterations = 1
 	coarse_solver_db
 	{
+         use_ksp_as_smoother   = FALSE
 	     initial_guess_nonzero = TRUE
-	     ksp_type              = "preonly"
+	     ksp_type              = "gmres"
 	     pc_type               = "asm"
 
              subdomain_box_size     = 2*N, N
