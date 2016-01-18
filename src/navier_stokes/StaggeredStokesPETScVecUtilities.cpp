@@ -306,10 +306,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     }
     ierr = VecRestoreArray(vec, &array);
     IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec);
-    IBTK_CHKERRQ(ierr);
+
     return;
 } // copyToPatchLevelVec_MAC
 
