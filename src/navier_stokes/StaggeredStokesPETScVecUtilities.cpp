@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -94,7 +94,8 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                                            const int u_dof_index_idx,
                                                            const int p_data_idx,
                                                            const int p_dof_index_idx,
-                                                           Pointer<PatchLevel<NDIM> > patch_level)
+                                                           Pointer<PatchLevel<NDIM> >
+                                                               patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > u_data_var;
@@ -131,9 +132,12 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                              const int u_dof_index_idx,
                                                              const int p_data_idx,
                                                              const int p_dof_index_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level,
-                                                             Pointer<RefineSchedule<NDIM> > data_synch_sched,
-                                                             Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+                                                             Pointer<PatchLevel<NDIM> >
+                                                                 patch_level,
+                                                             Pointer<RefineSchedule<NDIM> >
+                                                                 data_synch_sched,
+                                                             Pointer<RefineSchedule<NDIM> >
+                                                                 ghost_fill_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > u_data_var;
@@ -184,10 +188,10 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> >
-StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
-                                                             const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> > StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
+                                                                                            const int p_data_idx,
+                                                                                            Pointer<PatchLevel<NDIM> >
+                                                                                                patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > u_data_var;
@@ -212,10 +216,10 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> >
-StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
-                                                             const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> > StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
+                                                                                            const int p_data_idx,
+                                                                                            Pointer<PatchLevel<NDIM> >
+                                                                                                patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
@@ -226,7 +230,8 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                                      const int u_dof_index_idx,
                                                                      const int p_dof_index_idx,
-                                                                     Pointer<PatchLevel<NDIM> > patch_level)
+                                                                     Pointer<PatchLevel<NDIM> >
+                                                                         patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > u_dof_index_var;
@@ -257,12 +262,17 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                                                                const int u_dof_index_idx,
                                                                const int p_data_idx,
                                                                const int p_dof_index_idx,
-                                                               Pointer<PatchLevel<NDIM> > patch_level)
+                                                               Pointer<PatchLevel<NDIM> >
+                                                                   patch_level)
 {
     int ierr;
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
+    PetscScalar* array;
+    ierr = VecGetArray(vec, &array);
+    IBTK_CHKERRQ(ierr);
+
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -277,8 +287,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
-                    ierr = VecSetValues(vec, 1, &dof_index, &(*u_data)(is), INSERT_VALUES);
-                    IBTK_CHKERRQ(ierr);
+                    array[dof_index - ilower] = (*u_data)(is);
                 }
             }
         }
@@ -290,11 +299,13 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
-                ierr = VecSetValues(vec, 1, &dof_index, &(*p_data)(ic), INSERT_VALUES);
+                array[dof_index - ilower] = (*p_data)(ic);
                 IBTK_CHKERRQ(ierr);
             }
         }
     }
+    ierr = VecRestoreArray(vec, &array);
+    IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(vec);
@@ -307,12 +318,17 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                                  const int u_dof_index_idx,
                                                                  const int p_data_idx,
                                                                  const int p_dof_index_idx,
-                                                                 Pointer<PatchLevel<NDIM> > patch_level)
+                                                                 Pointer<PatchLevel<NDIM> >
+                                                                     patch_level)
 {
     int ierr;
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
+    PetscScalar* array;
+    ierr = VecGetArray(vec, &array);
+    IBTK_CHKERRQ(ierr);
+
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -327,7 +343,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
-                    ierr = VecGetValues(vec, 1, &dof_index, &(*u_data)(is));
+                    (*u_data)(is) = array[dof_index - ilower];
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -340,22 +356,22 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
-                ierr = VecGetValues(vec, 1, &dof_index, &(*p_data)(ic));
+                (*p_data)(ic) = array[dof_index - ilower];
                 IBTK_CHKERRQ(ierr);
             }
         }
     }
-    ierr = VecAssemblyBegin(vec);
+    ierr = VecRestoreArray(vec, &array);
     IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec);
-    IBTK_CHKERRQ(ierr);
+
     return;
 } // copyFromPatchLevelVec_MAC
 
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
                                                                          const int u_dof_index_idx,
                                                                          const int p_dof_index_idx,
-                                                                         Pointer<PatchLevel<NDIM> > patch_level)
+                                                                         Pointer<PatchLevel<NDIM> >
+                                                                             patch_level)
 {
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
