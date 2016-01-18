@@ -199,8 +199,9 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
 {
     d_periodic_boundaries = periodic_boundaries;
 
-    const int mpi_rank = libMesh::processor_id();
-    const int mpi_size = libMesh::n_processors();
+    const Parallel::Communicator& comm = d_mesh->comm();
+    const int mpi_rank = comm.rank();
+    const int mpi_size = comm.size();
 
     // Active local elements.
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
@@ -253,8 +254,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                             const std::vector<boundary_id_type>& boundary_ids =
                                 d_mesh->boundary_info->boundary_ids(elem, i);
                             for (std::vector<boundary_id_type>::const_iterator j = boundary_ids.begin();
-                                 j != boundary_ids.end();
-                                 ++j)
+                                 j != boundary_ids.end(); ++j)
                             {
                                 const boundary_id_type boundary_id = *j;
                                 const PeriodicBoundaryBase* const periodic_boundary =
@@ -342,7 +342,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     }
     std::vector<int> n_qp_per_proc(mpi_size);
     n_qp_per_proc[mpi_rank] = d_n_qp_local;
-    Parallel::sum(n_qp_per_proc);
+    comm.sum(n_qp_per_proc);
     d_qp_global_offset = std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
     d_n_qp_global = std::accumulate(n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -351,8 +351,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
         const dof_id_type elem_id = elem->id();
         d_elem_qp_global_offset[elem_id] = d_elem_qp_local_offset[elem_id] + d_qp_global_offset;
     }
-    Parallel::sum(d_elem_qp_global_offset);
-    Parallel::sum(d_elem_qp_local_offset);
+    comm.sum(d_elem_qp_global_offset);
+    comm.sum(d_elem_qp_local_offset);
 
     // Set up element patch L2 projection matrices.
     unsigned int dim = d_mesh->mesh_dimension();
@@ -379,8 +379,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                evaluate_polynomial_basis_fcns(
-                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
+                evaluate_polynomial_basis_fcns(P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
+                                               dim, d_interp_order);
                 M += P * P.transpose();
             }
         }
@@ -426,7 +426,8 @@ void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const
                                                                const unsigned int qp,
                                                                const TensorValue<double>& sigma)
 {
-    if (elem->processor_id() != libMesh::processor_id() || !elem->active())
+    const Parallel::Communicator& comm = d_mesh->comm();
+    if (elem->processor_id() != comm.rank() || !elem->active())
     {
         TBOX_ERROR("must register stresses only for active local elements\n");
     }
@@ -445,7 +446,8 @@ void IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const ele
                                                            const unsigned int qp,
                                                            const double p)
 {
-    if (elem->processor_id() != libMesh::processor_id() || !elem->active())
+    const Parallel::Communicator& comm = d_mesh->comm();
+    if (elem->processor_id() != comm.rank() || !elem->active())
     {
         TBOX_ERROR("must register pressures only for active local elements\n");
     }
@@ -486,7 +488,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
             }
         }
     }
-    Parallel::sum(sigma_vals);
+    const Parallel::Communicator& comm = d_mesh->comm();
+    comm.sum(sigma_vals);
 
     // Perform element patch L2 projections.
     const unsigned int dim = d_mesh->mesh_dimension();
@@ -498,8 +501,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end();
-         ++it, ++k)
+         it != d_local_elem_patches.end(); ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -552,7 +554,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             pressure_vals[global_offset + qp] = d_elem_pressure[elem_id][qp];
         }
     }
-    Parallel::sum(pressure_vals);
+    const Parallel::Communicator& comm = d_mesh->comm();
+    comm.sum(pressure_vals);
 
     // Perform element patch L2 projections.
     const unsigned int dim = d_mesh->mesh_dimension();
@@ -564,8 +567,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end();
-         ++it, ++k)
+         it != d_local_elem_patches.end(); ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -583,8 +585,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                evaluate_polynomial_basis_fcns(
-                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
+                evaluate_polynomial_basis_fcns(P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
+                                               dim, d_interp_order);
                 f += P * pressure_vals[global_offset + qp];
             }
         }
