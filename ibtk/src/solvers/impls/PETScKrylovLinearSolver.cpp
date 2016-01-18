@@ -223,25 +223,18 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     if (d_b) d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
-    if (d_homogeneous_bc)
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    else
-    {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-        d_A->modifyRhsForInhomogeneousBc(*d_b);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
-        d_A->setHomogeneousBc(true);
-    }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_x));
-    IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
-    IBTK_CHKERRQ(ierr);
+    d_A->modifyRhsForBcs(*d_b);
+    d_A->setHomogeneousBc(true);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->imposeSolBcs(x);
+
+    // Get iterations count and residual norm.
     ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
