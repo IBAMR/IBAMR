@@ -404,8 +404,8 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     int first_local, last_local;
     ierr = VecGetOwnershipRange(vec, &first_local, &last_local);
     IBTK_CHKERRQ(ierr);
-    PetscScalar* array;
-    ierr = VecGetArray(vec, &array);
+    const PetscScalar* array;
+    ierr = VecGetArrayRead(vec, &array);
     IBTK_CHKERRQ(ierr);
 
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -428,6 +428,10 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         const IntVector<NDIM> p_gcw = p_data->getGhostCellWidth();
         const IntVector<NDIM> p_dof_gcw = p_dof_index_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(p_gcw.min() == p_gcw.max());
+        TBOX_ASSERT(p_dof_gcw.min() == p_dof_gcw.max());
+#endif
 
         COPY_FROM_PATCHLEVEL_VEC_MAC_FC(ilower(0), iupper(0), ilower(1), iupper(1),
 #if (NDIM == 3)
@@ -445,7 +449,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 #endif
                                         u_dof_gcw.min(), array);
     }
-    ierr = VecRestoreArray(vec, &array);
+    ierr = VecRestoreArrayRead(vec, &array);
     IBTK_CHKERRQ(ierr);
 
     return;
