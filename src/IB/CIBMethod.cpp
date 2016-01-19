@@ -2441,7 +2441,7 @@ void  CIBMethod::randomExternalForceTorque(unsigned  part , double data_time, Ei
     {
 	if (d_solve_rigid_vel[part][d])  F_ext[d] = d_random_force_scaling[part][d]*(F[d]-0.5);
     }
-    if (d_solve_rigid_vel[part][2]) T_ext[2] =  d_random_force_scaling[part][2]*(T[0]-0.5);
+    if (d_solve_rigid_vel[part][2]) T_ext[0] =  d_random_force_scaling[part][2]*(T[0]-0.5);
 #elif(NDIM == 3)
     for (unsigned int d = 0; d < NDIM; ++d) 
     {
