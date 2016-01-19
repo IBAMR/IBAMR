@@ -54,10 +54,7 @@ bool IndexUtilities::s_is_initialized = false;
 void IndexUtilities::init(Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
 {
 
-    if (s_is_initialized)
-    {
-        TBOX_ERROR("IndexUtilities::init(). Class is already initialized." << std::endl);
-    }
+    if (s_is_initialized) return;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(grid_geometry);
