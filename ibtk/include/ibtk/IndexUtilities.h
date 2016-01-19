@@ -100,17 +100,27 @@ public:
     /*!
      * \return The cell index corresponding to location \p X relative
      * to \p XLower and \p XUpper for the specified Cartesian grid
-     * spacings \p dx and box extents \p ilower and \p iupper.
+     * spacings \p dx and local box extents \p ilower and \p iupper.
      *
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
-                                                  const double* x_lower,
-                                                  const double* x_upper,
-                                                  const double* dx,
-                                                  const SAMRAI::hier::Index<NDIM>& ilower,
-                                                  const SAMRAI::hier::Index<NDIM>& iupper);
+    static SAMRAI::hier::Index<NDIM> getCellIndexLocal(const DoubleArray& X,
+                                                       const double* x_lower,
+                                                       const double* x_upper,
+                                                       const double* dx,
+                                                       const SAMRAI::hier::Index<NDIM>& ilower,
+                                                       const SAMRAI::hier::Index<NDIM>& iupper);
+
+    /*!
+     * \return The cell index corresponding to location \p X relative
+     * to lower end of the computational domain and for the specified
+     * Cartesian grid spacings \p dx.
+     *
+     * \see SAMRAI::geom::CartesianPatchGeometry
+     */
+    template <class DoubleArray>
+    static SAMRAI::hier::Index<NDIM> getCellIndexGlobal(const DoubleArray& X, const double* dx);
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable

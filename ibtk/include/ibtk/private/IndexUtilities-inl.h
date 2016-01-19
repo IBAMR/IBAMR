@@ -63,45 +63,70 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Inde
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
-                                                              const double* const x_lower,
-                                                              const double* const x_upper,
-                                                              const double* const dx,
-                                                              const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& iupper)
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexLocal(const DoubleArray& X,
+                                                                   const double* const x_lower,
+                                                                   const double* const x_upper,
+                                                                   const double* const dx,
+                                                                   const SAMRAI::hier::Index<NDIM>& ilower,
+                                                                   const SAMRAI::hier::Index<NDIM>& iupper)
 {
     SAMRAI::hier::Index<NDIM> idx;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
+        if (std::abs(dX_lower) <= std::abs(dX_upper))
+        {
+            idx(d) = ilower(d) + floor(dX_lower / dx[d]);
+        }
+        else
+        {
+            idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
+        }
+    }
 
-    if (s_is_initialized)
+    return idx;
+} // getCellIndexLocal
+
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexGlobal(const DoubleArray& X, const double* const dx)
+{
+#if !defined(NDEBUG)
+    if (!s_is_initialized)
     {
-        // Get the refinement ratio w.r.t the coarsest level.
-        SAMRAI::hier::Index<NDIM> ratio;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            ratio(d) = s_dx0[d] / dx[d];
-        }
-        SAMRAI::hier::Index<NDIM> domain_ilower = IndexUtilities::refine(s_ilower, ratio);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            double dX_lower = X[d] - s_x_lower[d];
-            idx(d) = domain_ilower(d) + floor(dX_lower / dx[d]);
-        }
+        TBOX_ERROR("IndexUtilities::getCellIndexGlobal(). Class is not initialized." << std::endl);
     }
-    else
+#endif
+
+    // Get the refinement ratio w.r.t the coarsest level.
+    SAMRAI::hier::Index<NDIM> ratio;
+    for (int d = 0; d < NDIM; ++d)
     {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
-            if (std::abs(dX_lower) <= std::abs(dX_upper))
-            {
-                idx(d) = ilower(d) + floor(dX_lower / dx[d]);
-            }
-            else
-            {
-                idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
-            }
-        }
+        ratio(d) = s_dx0[d] / dx[d];
     }
+
+#if !defined(NDEBUG)
+    bool is_integer_ratio = true;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        is_integer_ratio = is_integer_ratio && MathUtilities<double>::equalEps(dx[d], s_dx0[d] * ratio(d));
+    }
+    if (!is_integer_ratio)
+    {
+        TBOX_ERROR(
+            "IndexUtilities::getCellIndexGlobal(). Grid spacing dx is not an integral multiple of coarse grid spacing "
+            "dx0."
+            << std::endl);
+    }
+#endif
+
+    SAMRAI::hier::Index<NDIM> idx;
+    SAMRAI::hier::Index<NDIM> domain_ilower = IndexUtilities::refine(s_ilower, ratio);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        double dX_lower = X[d] - s_x_lower[d];
+        idx(d) = domain_ilower(d) + floor(dX_lower / dx[d]);
+    }
+
     return idx;
 } // getCellIndex
 
