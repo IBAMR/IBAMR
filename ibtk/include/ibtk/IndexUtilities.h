@@ -36,10 +36,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <functional>
+#include <vector>
 
+#include "Box.h"
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace geom
+{
+template <int DIM>
+class CartesianGridGeometry;
+}
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -51,11 +63,9 @@ struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );
@@ -70,6 +80,11 @@ struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM
 class IndexUtilities
 {
 public:
+    /*
+     * \brief Initialize global values for IndexUtilities class.
+     */
+    static void init(SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+
     /*
      * \return The coarsened version of a cell-centered index.
      */
@@ -96,6 +111,58 @@ public:
                                                   const double* dx,
                                                   const SAMRAI::hier::Index<NDIM>& ilower,
                                                   const SAMRAI::hier::Index<NDIM>& iupper);
+
+    /*!
+     * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
+     * on a particular patch level to a positive integer. Such a mapping can
+     * be useful for creating an application ordering (AO) between SAMRAI and
+     * PETSc data structures.
+     *
+     * \param i AMR index representing the (i,j,k) array data index for a
+     * variable on particular patch level.
+     *
+     * \param domain_lower Lower index of the domain for that patch level,
+     * assuming that the patch level covers the entire domain.
+     *
+     * \param num_cells Number of data array cells for a patch level, which is
+     * assumed to cover the entire domain. It can be thought of size of the
+     * rectangular array that can store the variable data for the patch
+     * level that covers the entire domain. For a cc-variable the number of data
+     * array cells are same as patch level cells. For a sc-variable, the number
+     * of cells for the normal component exceeds the patch level cells by 1 in
+     * the normal direction.
+     *
+     * \param depth Data depth.
+     *
+     * \param offset Component offset. This is useful for getting unique values
+     * for different components of the variable, e.g., a sc-variable. Different
+     * components can have different depth.
+     *
+     * \return The linear mapping of an AMR index to a continuous non-negative
+     * integer space.
+     */
+    static int mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
+                                 const SAMRAI::hier::Index<NDIM>& domain_lower,
+                                 const SAMRAI::hier::Index<NDIM>& num_cells,
+                                 const int depth,
+                                 const int offset = 0);
+
+    /*!
+     * \brief Partition a patch box into subdomains of size \em box_size
+     * and into equal number of overlapping subdomains whose overlap region
+     * is defined by \em overlap_size.
+     *
+     * \return Total number of subdomains the patch box got
+     * partitioned intoin various dimensions.
+     *
+     * \note The overlap boxes are obtained from nonoverlap_boxes by growing
+     * them suitably.
+     */
+    static SAMRAI::hier::IntVector<NDIM> partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
+                                                           std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+                                                           const SAMRAI::hier::Box<NDIM>& patch_box,
+                                                           const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size);
 
 private:
     /*!
@@ -131,6 +198,31 @@ private:
      * \return A reference to this object.
      */
     IndexUtilities& operator=(const IndexUtilities& that);
+
+    /*!
+     * \brief Pointer to Cartesian grid geometry.
+     */
+    static SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > s_grid_geometry;
+
+    /*!
+     * \brief Grid spacing at the coarsest level.
+     */
+    static const double* s_dx0;
+
+    /*!
+     * \brief Domain lower and upper coordinates.
+     */
+    static const double *s_x_lower, *s_x_upper;
+
+    /*!
+     * \brief Domain lower and upper index.
+     */
+    static SAMRAI::hier::IntVector<NDIM> s_ilower, s_iupper;
+
+    /*!
+     * \brief Indicate if the IndexUtilities class has been initialized.
+     */
+    static bool s_is_initialized;
 };
 } // namespace IBTK
 

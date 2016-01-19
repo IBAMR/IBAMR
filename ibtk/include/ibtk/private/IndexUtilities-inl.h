@@ -70,23 +70,152 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
                                                               const SAMRAI::hier::Index<NDIM>& ilower,
                                                               const SAMRAI::hier::Index<NDIM>& iupper)
 {
-    // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
-    // inconsitent mappings on disjoint patches.
     SAMRAI::hier::Index<NDIM> idx;
-    for (unsigned int d = 0; d < NDIM; ++d)
+
+    if (s_is_initialized)
     {
-        double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
-        if (std::abs(dX_lower) <= std::abs(dX_upper))
+        // Get the refinement ratio w.r.t the coarsest level.
+        SAMRAI::hier::Index<NDIM> ratio;
+        for (int d = 0; d < NDIM; ++d)
         {
-            idx(d) = ilower(d) + floor(dX_lower / dx[d]);
+            ratio(d) = s_dx0[d] / dx[d];
         }
-        else
+        SAMRAI::hier::Index<NDIM> domain_ilower = IndexUtilities::refine(s_ilower, ratio);
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
+            double dX_lower = X[d] - s_x_lower[d];
+            idx(d) = domain_ilower(d) + floor(dX_lower / dx[d]);
+        }
+    }
+    else
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
+            if (std::abs(dX_lower) <= std::abs(dX_upper))
+            {
+                idx(d) = ilower(d) + floor(dX_lower / dx[d]);
+            }
+            else
+            {
+                idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
+            }
         }
     }
     return idx;
 } // getCellIndex
+
+inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
+                                             const SAMRAI::hier::Index<NDIM>& domain_lower,
+                                             const SAMRAI::hier::Index<NDIM>& num_cells,
+                                             const int depth,
+                                             const int offset)
+{
+
+#if (NDIM == 1)
+    return (i(0) - domain_lower(0) + depth * num_cells(0) + offset);
+#elif (NDIM == 2)
+    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) + depth * num_cells(0) * num_cells(1) +
+            offset);
+#elif (NDIM == 3)
+    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) +
+            (i(2) - domain_lower(2)) * num_cells(0) * num_cells(1) +
+            depth * num_cells(0) * num_cells(1) * num_cells(2) + offset);
+
+#else
+    return -1;
+#endif
+
+} // getIntegerMapping
+
+inline SAMRAI::hier::IntVector<NDIM>
+IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
+                                  std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
+                                  const SAMRAI::hier::Box<NDIM>& patch_box,
+                                  const SAMRAI::hier::IntVector<NDIM>& box_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& overlap_size)
+{
+    // Compute number of nonoverlapping subdomains.
+    const SAMRAI::hier::IntVector<NDIM>& patch_lower = patch_box.lower();
+    const SAMRAI::hier::IntVector<NDIM>& patch_upper = patch_box.upper();
+    SAMRAI::hier::IntVector<NDIM> cells = 1;
+    cells += patch_upper - patch_lower;
+    const SAMRAI::hier::IntVector<NDIM> subdomains = SAMRAI::hier::IntVector<NDIM>::max(cells / box_size, 1);
+    const int n_subdomains = subdomains.getProduct();
+
+    // Resize vectors
+    nonoverlap_boxes.resize(n_subdomains);
+    overlap_boxes.resize(n_subdomains);
+
+    int counter = 0;
+#if (NDIM == 2)
+
+    const int Nx = subdomains(0);
+    const int Ny = subdomains(1);
+
+    int j_lower = patch_lower(1);
+    for (int J = 0; J < Ny; ++J)
+    {
+        const int height = (cells(1) / box_size(1) ? box_size(1) : 0) + (J == (Ny - 1) ? cells(1) % box_size(1) : 0);
+        int i_lower = patch_lower(0);
+        for (int I = 0; I < Nx; ++I)
+        {
+            const int width = (cells(0) / box_size(0) ? box_size(0) : 0) + (I == (Nx - 1) ? cells(0) % box_size(0) : 0);
+
+            SAMRAI::hier::IntVector<NDIM> box_lower(i_lower, j_lower);
+            SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1);
+            nonoverlap_boxes[counter] = SAMRAI::hier::Box<NDIM>(box_lower, box_upper);
+            overlap_boxes[counter] = SAMRAI::hier::Box<NDIM>::grow(nonoverlap_boxes[counter], overlap_size);
+
+            ++counter;
+            i_lower += width;
+        }
+        j_lower += height;
+    }
+#elif (NDIM == 3)
+
+    const int Nx = subdomains(0);
+    const int Ny = subdomains(1);
+    const int Nz = subdomains(2);
+
+    int k_lower = patch_lower(2);
+    for (int K = 0; K < Nz; ++K)
+    {
+        const int depth = (cells(2) / box_size(2) ? box_size(2) : 0) + (K == (Nz - 1) ? cells(2) % box_size(2) : 0);
+
+        int j_lower = patch_lower(1);
+        for (int J = 0; J < Ny; ++J)
+        {
+            const int height =
+                (cells(1) / box_size(1) ? box_size(1) : 0) + (J == (Ny - 1) ? cells(1) % box_size(1) : 0);
+
+            int i_lower = patch_lower(0);
+            for (int I = 0; I < Nx; ++I)
+            {
+                const int width =
+                    (cells(0) / box_size(0) ? box_size(0) : 0) + (I == (Nx - 1) ? cells(0) % box_size(0) : 0);
+
+                SAMRAI::hier::IntVector<NDIM> box_lower(i_lower, j_lower, k_lower);
+                SAMRAI::hier::IntVector<NDIM> box_upper(i_lower + width - 1, j_lower + height - 1, k_lower + depth - 1);
+                nonoverlap_boxes[counter] = SAMRAI::hier::Box<NDIM>(box_lower, box_upper);
+                overlap_boxes[counter] = SAMRAI::hier::Box<NDIM>::grow(nonoverlap_boxes[counter], overlap_size);
+
+                ++counter;
+                i_lower += width;
+            }
+            j_lower += height;
+        }
+        k_lower += depth;
+    }
+
+#endif
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter == n_subdomains);
+#endif
+
+    return subdomains;
+} // partitionPatchBox
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
