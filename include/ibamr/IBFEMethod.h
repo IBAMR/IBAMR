@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
 #include <stdbool.h>
 #include <stddef.h>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -117,7 +117,9 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
-               bool register_for_restart = true);
+               bool register_for_restart = true,
+               const std::string& restart_read_dirname = "",
+               unsigned int restart_restore_number = 0);
 
     /*!
      * \brief Constructor.
@@ -126,7 +128,9 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
-               bool register_for_restart = true);
+               bool register_for_restart = true,
+               const std::string& restart_read_dirname = "",
+               unsigned int restart_restore_number = 0);
 
     /*!
      * \brief Destructor.
@@ -138,44 +142,6 @@ public:
      * specified part.
      */
     IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
-
-    /*!
-     * Indicate that a part is constrained.
-     */
-    void registerConstrainedPart(unsigned int part = 0);
-
-    /*!
-     * Typedef specifying interface for specifying constrained body velocities.
-     */
-    typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
-                                              libMesh::NumericVector<double>& U,
-                                              libMesh::NumericVector<double>& X,
-                                              libMesh::EquationSystems* equation_systems,
-                                              double data_time,
-                                              void* ctx);
-
-    /*!
-     * Struct encapsulating constrained velocity function data.
-     */
-    struct ConstrainedVelocityFcnData
-    {
-        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-        ConstrainedVelocityFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx = NULL, unsigned int part = 0);
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -559,17 +525,12 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-protected:
-    /*
-     * \brief Compute the constraint force density.
+    /*!
+     * Write the equation_systems data to a restart file in the specified directory.
      */
-    void computeConstraintForceDensity(libMesh::PetscVector<double>& F_vec,
-                                       libMesh::PetscVector<double>& X_vec,
-                                       libMesh::PetscVector<double>& U_vec,
-                                       libMesh::PetscVector<double>& U_b_vec,
-                                       double data_time,
-                                       unsigned int part);
+    void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
+protected:
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
@@ -640,20 +601,17 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems;
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
 
     bool d_fe_data_initialized;
 
     /*
      * Method paramters.
      */
-    bool d_use_IB_interp_operator;
     IBTK::FEDataManager::InterpSpec d_interp_spec;
-    bool d_use_IB_spread_operator;
     IBTK::FEDataManager::SpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
@@ -662,14 +620,6 @@ protected:
     libMesh::QuadratureType d_quad_type;
     libMesh::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
-
-    /*
-     * Data related to handling constrained body constraints.
-     */
-    bool d_has_constrained_parts;
-    std::vector<bool> d_constrained_part;
-    std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
-    double d_constraint_omega;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -712,6 +662,17 @@ protected:
      */
     bool d_registered_for_restart;
 
+    /*
+     * Directory and time step number to use when restarting.
+     */
+    std::string d_libmesh_restart_read_dir;
+    int d_libmesh_restart_restore_number;
+
+    /*
+     * Restart file type for libMesh equation systems (e.g. xda or xdr).
+     */
+    std::string d_libmesh_restart_file_extension;
+
 private:
     /*!
      * \brief Default constructor.
@@ -747,7 +708,9 @@ private:
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
-                           bool register_for_restart);
+                           bool register_for_restart,
+                           const std::string& restart_read_dirname,
+                           unsigned int restart_restore_number);
 
     /*!
      * Read input values from a given database.

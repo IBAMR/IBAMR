@@ -1423,6 +1423,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
     // multiple grid cells within the ghost cell region.  We must therefore
     // ensure that nodes passing through periodic boundaries are added to the
     // patch only once.
+    const IndexUtilities indexer(d_grid_geom);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1437,10 +1438,6 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
             std::set<int> registered_periodic_idx;
             for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
@@ -1454,8 +1451,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx->getLocalPETScIndex();
                         double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(
-                            X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                        const CellIndex<NDIM> new_cell_idx = indexer.getCellIndexGlobal(X, patch_dx);
                         if (patch_box.contains(new_cell_idx))
                         {
                             std::map<int, IntVector<NDIM> >::const_iterator it_offset =
@@ -1525,8 +1521,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
     // Update parallel data structures to account for any displaced nodes.
     const double* const dx0 = d_grid_geom->getDx();
-    const double* const domain_x_lower = d_grid_geom->getXLower();
-    const double* const domain_x_upper = d_grid_geom->getXUpper();
+    const IndexUtilities indexer(d_grid_geom);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
@@ -1535,9 +1530,6 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
         const ProcessorMapping& processor_mapping = level->getProcessorMapping();
-        const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
-        const CellIndex<NDIM>& domain_lower = domain_box.lower();
-        const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
         boost::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1556,8 +1548,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = indexer.getCellIndexGlobal(posn, dx.data());
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
@@ -1630,8 +1621,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = indexer.getCellIndexGlobal(posn, dx.data());
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
@@ -2438,15 +2428,11 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
         // Tag cells for refinement within the bounding boxes of any displaced
         // structures on finer levels of the patch hierarchy.
+        const IndexUtilities indexer(level->getGridGeometry());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
@@ -2462,10 +2448,10 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
-                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(
-                        bounding_box.first, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(
-                        bounding_box.second, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Point& X_lower = bounding_box.first;
+                    const Point& X_upper = bounding_box.second;
+                    const CellIndex<NDIM> bbox_lower = indexer.getCellIndexGlobal(X_lower, patch_dx);
+                    const CellIndex<NDIM> bbox_upper = indexer.getCellIndexGlobal(X_upper, patch_dx);
                     const Box<NDIM> tag_box(bbox_lower, bbox_upper);
                     tag_data->fillAll(1, tag_box);
                 }

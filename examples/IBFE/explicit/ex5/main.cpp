@@ -536,7 +536,7 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 F_dof_map.dof_indices(elem, F_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices[0].size();
+            const int n_basis = static_cast<int>(F_dof_indices[0].size());
             get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
             for (int qp = 0; qp < n_qp; ++qp)
             {

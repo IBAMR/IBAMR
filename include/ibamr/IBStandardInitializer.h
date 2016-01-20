@@ -44,6 +44,7 @@
 #include "IntVector.h"
 #include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
@@ -651,7 +652,8 @@ private:
                           bool can_be_refined,
                           const double* domain_x_lower,
                           const double* domain_x_upper,
-                          const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
+                          const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                          const IBTK::IndexUtilities& indexer) const;
 
     /*!
      * \return The canonical Lagrangian index of the specified vertex.

@@ -23165,14 +23165,14 @@ else
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.4" >&5
-$as_echo_n "checking for libMesh version 0.9.4... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.4 or 0.9.5" >&5
+$as_echo_n "checking for libMesh version 0.9.4 or 0.9.5... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION == 4))
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && ((LIBMESH_MICRO_VERSION >= 4) && (LIBMESH_MICRO_VERSION <= 5)))
 #else
 asdf
 #endif
@@ -23238,7 +23238,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_PRERELEASED_VERSION}" >&5
 $as_echo "${LIBMESH_PRERELEASED_VERSION}" >&6; }
     if test "$LIBMESH_PRERELEASED_VERSION" = no; then
-      as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.4 or latest master branch from github" "$LINENO" 5
+      as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.4 or 0.9.5 or latest master branch from github" "$LINENO" 5
     fi
  fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
@@ -30606,8 +30606,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.5" >&5
-$as_echo_n "checking for PETSc version 3.5... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.6" >&5
+$as_echo_n "checking for PETSc version 3.6... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30630,7 +30630,7 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,5,0) && PETSC_VERSION_LT(3,6,0)) || !PETSC_VERSION_RELEASE)
+#if ((PETSC_VERSION_GE(3,6,0) && PETSC_VERSION_LT(3,7,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif

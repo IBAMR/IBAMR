@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -84,18 +85,48 @@ public:
 
     /*!
      * \return The cell index corresponding to location \p X relative
-     * to \p XLower and \p XUpper for the specified Cartesian grid
+     * to \p x_lower and \p x_upper for the specified Cartesian grid
      * spacings \p dx and box extents \p ilower and \p iupper.
+     *
+     * \note Because of round-off error in floating point, this routine
+     * cannot guarantee that the same spatial location X is assigned the
+     * same cell index for different values of x_lower, x_upper, ilower,
+     * and iupper.  To obtain a unique index, use the non-static member
+     * function getCellIndexGlobal().
      *
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
-                                                  const double* x_lower,
-                                                  const double* x_upper,
-                                                  const double* dx,
-                                                  const SAMRAI::hier::Index<NDIM>& ilower,
-                                                  const SAMRAI::hier::Index<NDIM>& iupper);
+    static SAMRAI::hier::Index<NDIM> getCellIndexLocal(const DoubleArray& X,
+                                                       const double* x_lower,
+                                                       const double* x_upper,
+                                                       const double* dx,
+                                                       const SAMRAI::hier::Index<NDIM>& ilower,
+                                                       const SAMRAI::hier::Index<NDIM>& iupper);
+
+    /*!
+     * \brief Constructor.
+     */
+    IndexUtilities(SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
+
+    /*!
+     * \brief Destructor.
+     */
+    ~IndexUtilities();
+
+    /*!
+     * \return The cell index corresponding to location \p X relative
+     * to the corner of the computational domain specified by the grid
+     * geometry object associated with this class.
+     *
+     * \note dx must be related by an integer refinement rato to the 
+     * base grid spacing dx0 associated with the grid geometry object.
+     *
+     * \see SAMRAI::geom::CartesianGridGeometry
+     */
+    template <class DoubleArray>
+    SAMRAI::hier::Index<NDIM> getCellIndexGlobal(const DoubleArray& X,
+                                                 const double* dx) const;
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
@@ -169,11 +200,6 @@ private:
     IndexUtilities(const IndexUtilities& from);
 
     /*!
-     * \brief Unimplemented destructor.
-     */
-    ~IndexUtilities();
-
-    /*!
      * \brief Assignment operator.
      *
      * \note This operator is not implemented and should not be used.
@@ -183,6 +209,11 @@ private:
      * \return A reference to this object.
      */
     IndexUtilities& operator=(const IndexUtilities& that);
+
+    /*!
+     * The grid geometry object associated with this class.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 };
 } // namespace IBTK
 

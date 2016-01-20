@@ -415,7 +415,6 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     // Determine the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     const double* const x_lower = grid_geom->getXLower();
-    const double* const x_upper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
     const IntVector<NDIM>& ratio = patch_level->getRatio();
     double dx[NDIM];
@@ -428,7 +427,6 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
 
     // Determine the matrix dimensions and index ranges.
     int m_local;
@@ -455,10 +453,11 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     std::vector<int> patch_num(n_local_points);
     std::vector<std::vector<Box<NDIM> > > stencil_box(n_local_points, std::vector<Box<NDIM> >(NDIM));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
+    const IndexUtilities indexer(grid_geom);
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, domain_lower, domain_upper);
+        const Index<NDIM> X_idx = indexer.getCellIndexGlobal(X, dx);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.

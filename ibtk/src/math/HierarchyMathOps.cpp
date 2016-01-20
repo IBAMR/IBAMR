@@ -88,9 +88,12 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
@@ -843,10 +846,6 @@ void HierarchyMathOps::curl(const int dst_idx,
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
                << "  not implemented for NDIM != 2" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -878,10 +877,6 @@ void HierarchyMathOps::curl(const int dst_idx,
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
                << "  not implemented for NDIM != 3" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -908,16 +903,21 @@ void HierarchyMathOps::rot(int dst_idx,
                            int src_idx,
                            Pointer<NodeVariable<NDIM, double> > /*src_var*/,
                            Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                           double src_ghost_fill_time)
+                           double src_ghost_fill_time,
+                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 2" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -933,7 +933,7 @@ void HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -944,16 +944,21 @@ void HierarchyMathOps::rot(int dst_idx,
                            int src_idx,
                            Pointer<CellVariable<NDIM, double> > /*src_var*/,
                            Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                           double src_ghost_fill_time)
+                           double src_ghost_fill_time,
+                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 2" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -969,7 +974,7 @@ void HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -980,16 +985,21 @@ void HierarchyMathOps::rot(int dst_idx,
                            int src_idx,
                            Pointer<EdgeVariable<NDIM, double> > /*src_var*/,
                            Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                           double src_ghost_fill_time)
+                           double src_ghost_fill_time,
+                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 3" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1005,7 +1015,7 @@ void HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -1016,16 +1026,17 @@ void HierarchyMathOps::rot(int dst_idx,
                            int src_idx,
                            Pointer<SideVariable<NDIM, double> > /*src_var*/,
                            Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                           double src_ghost_fill_time)
+                           double src_ghost_fill_time,
+                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#if (NDIM != 3)
-    TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 3" << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
-#endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1041,7 +1052,7 @@ void HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;

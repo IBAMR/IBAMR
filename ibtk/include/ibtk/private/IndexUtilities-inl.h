@@ -63,14 +63,14 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Inde
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
-                                                              const double* const x_lower,
-                                                              const double* const x_upper,
-                                                              const double* const dx,
-                                                              const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& iupper)
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexLocal(const DoubleArray& X,
+                                                                   const double* const x_lower,
+                                                                   const double* const x_upper,
+                                                                   const double* const dx,
+                                                                   const SAMRAI::hier::Index<NDIM>& ilower,
+                                                                   const SAMRAI::hier::Index<NDIM>& iupper)
 {
-    // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
+    // NOTE: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.
     SAMRAI::hier::Index<NDIM> idx;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -78,15 +78,15 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
         double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
         if (std::abs(dX_lower) <= std::abs(dX_upper))
         {
-            idx(d) = ilower(d) + floor(dX_lower / dx[d]);
+            idx(d) = ilower(d) + std::floor(dX_lower / dx[d]);
         }
         else
         {
-            idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
+            idx(d) = iupper(d) + std::floor(dX_upper / dx[d]) + 1;
         }
     }
     return idx;
-} // getCellIndex
+} // getCellIndexLocal
 
 inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
                                              const SAMRAI::hier::Index<NDIM>& domain_lower,
@@ -200,6 +200,48 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap
     return subdomains;
 } // partitionPatchBox
 
+inline IndexUtilities::IndexUtilities(SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom) : d_grid_geom(grid_geom)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_grid_geom);
+#endif
+    // intentionally blank
+    return;
+}// IndexUtilities
+
+inline IndexUtilities::~IndexUtilities()
+{
+    // intentionally blank
+    return;
+}// ~IndexUtilities
+
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexGlobal(const DoubleArray& X,
+                                                                    const double* const dx) const
+{
+    const double* const x_lower = d_grid_geom->getXLower();
+    const double* const dx0 = d_grid_geom->getDx();
+    SAMRAI::hier::Index<NDIM> ratio;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ratio(d) = std::round(dx0[d] / dx[d]);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(dx0[d], ratio(d) * dx[d]));
+#endif
+    }
+    const SAMRAI::hier::Box<NDIM> domain_box = d_grid_geom->getPhysicalDomain()[0];
+    const SAMRAI::hier::Index<NDIM> ilower0 = domain_box.lower();
+    const SAMRAI::hier::Index<NDIM> ilower = IndexUtilities::refine(ilower0, ratio);
+
+    SAMRAI::hier::Index<NDIM> idx;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        const double dX_lower = X[d] - x_lower[d];
+        idx(d) = ilower(d) + std::floor(dX_lower / dx[d]);
+    }
+    return idx;
+} // getCellIndexGlobal
+ 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
