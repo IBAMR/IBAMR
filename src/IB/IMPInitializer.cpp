@@ -318,6 +318,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
+    const IndexUtilities indexer(grid_geom);
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
@@ -330,11 +331,6 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
         Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
@@ -354,8 +350,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
 
             // Get the coordinates of the present vertex.
             const libMesh::Point& X = getVertexPosn(point_idx, level_number);
-            const CellIndex<NDIM> idx =
-                IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+            const CellIndex<NDIM> idx = indexer.getCellIndexGlobal(&X(0), patch_dx);
             for (int d = 0; d < NDIM; ++d)
             {
                 X_array[local_petsc_idx][d] = X(d);
@@ -445,7 +440,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<N
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(
+                const CellIndex<NDIM> i = IndexUtilities::getCellIndexLocal(
                     &X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }

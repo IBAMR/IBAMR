@@ -641,7 +641,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, domain_lower, domain_upper);
+        const Index<NDIM> X_idx = IndexUtilities::getCellIndexLocal(X, x_lower, x_upper, dx, domain_lower, domain_upper);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.

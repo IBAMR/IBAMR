@@ -837,7 +837,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
 
                 // Determine the approximate source stencil box.
                 const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                    IndexUtilities::getCellIndexLocal(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1037,7 +1037,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
 
                 // Determine the approximate source stencil box.
                 const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                    IndexUtilities::getCellIndexLocal(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1366,7 +1366,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center = IndexUtilities::getCellIndex(
+            const Index<NDIM> i_center = IndexUtilities::getCellIndexLocal(
                 d_X_src[finer_level_number][n], xLower, xUpper, dx_finer.data(), lower, upper);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)

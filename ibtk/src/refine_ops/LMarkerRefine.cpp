@@ -150,7 +150,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
 
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(
+                const Index<NDIM> fine_i = IndexUtilities::getCellIndexLocal(
                     X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
                 if (fine_box.contains(fine_i))
                 {
