@@ -69,6 +69,14 @@ namespace IBAMR
 class StaggeredStokesBlockFactorizationPreconditioner : public StaggeredStokesBlockPreconditioner
 {
 public:
+    enum FactorizationType
+    {
+        LOWER_TRIANGULAR,
+        UPPER_TRIANGULAR,
+        SYMMETRIC,
+        DIAGONAL
+    };
+
     /*!
      * \brief Class constructor
      */
@@ -92,6 +100,11 @@ public:
     {
         return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * Set the factorization type.
+     */
+    void setFactorizationType(FactorizationType factorization_type);
 
     /*!
      * \name Linear solver functionality.
@@ -184,6 +197,23 @@ private:
     StaggeredStokesBlockFactorizationPreconditioner&
     operator=(const StaggeredStokesBlockFactorizationPreconditioner& that);
 
+    /*!
+     * \brief Solve the pressure subsystem.
+     */
+    void solvePressureSubsystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+                                bool initial_guess_nonzero);
+
+    /*!
+     * \brief Solve the velocity subsystem.
+     */
+    void solveVelocitySubsystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+                                bool initial_guess_nonzero);
+
+    // Solver configuration
+    FactorizationType d_factorization_type;
+
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
@@ -191,7 +221,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_F_U_mod_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
-    int d_P_scratch_idx;
+    int d_P_scratch_idx, d_F_P_mod_idx;
 };
 } // namespace IBAMR
 

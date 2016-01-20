@@ -338,8 +338,8 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 {
 
     clock_t end_t = 0, start_med = 0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     const int rank = SAMRAI_MPI::getRank();
 
@@ -362,16 +362,16 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         check_time = d_current_time;
     }
 
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        end_t = clock();
-        pout << std::setprecision(4)
-             << "         PCApply:DirectMobilitySolver: M^-1 Initializing CPU time taken for the time step is:"
-             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
-        ;
-    }
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0)
+    // {
+    //     end_t = clock();
+    //     pout << std::setprecision(4)
+    //          << "         PCApply:DirectMobilitySolver: M^-1 Initializing CPU time taken for the time step is:"
+    //          << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+    //     ;
+    // }
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     double* all_rhs = NULL;
     std::map<std::string, std::vector<bool> > skip_struct_map;
@@ -422,16 +422,16 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
 
     d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM);
 
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        end_t = clock();
-        pout << std::setprecision(4)
-             << "         PCApply:DirectMobilitySolver: copyAllVecToArray CPU time taken for the time step is:"
-             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
-        ;
-    }
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0)
+    // {
+    //     end_t = clock();
+    //     pout << std::setprecision(4)
+    //          << "         PCApply:DirectMobilitySolver: copyAllVecToArray CPU time taken for the time step is:"
+    //          << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+    //     ;
+    // }
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     unsigned offset = 0;
     for (std::map<std::string, double*>::iterator it = d_managed_mat_map.begin(); it != d_managed_mat_map.end(); ++it)
@@ -469,31 +469,30 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         }
     }
 
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        end_t = clock();
-        pout << std::setprecision(4)
-             << "         PCApply:DirectMobilitySolver: M^-1*u at proc 0 CPU time taken for the time step is:"
-             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
-        ;
-    }
-
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0)
+    // {
+    //     end_t = clock();
+    //     pout << std::setprecision(4)
+    //          << "         PCApply:DirectMobilitySolver: M^-1*u at proc 0 CPU time taken for the time step is:"
+    //          << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+    //     ;
+    // }
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     d_cib_strategy->copyAllArrayToVec(x, all_rhs, all_rhs_struct_ids, NDIM);
 
     if (node_counter) delete[] all_rhs;
 
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        end_t = clock();
-        pout << std::setprecision(4)
-             << "         PCApply:DirectMobilitySolver: copyArrayToVec CPU time taken for the time step is:"
-             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
-        ;
-    }
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0)
+    // {
+    //     end_t = clock();
+    //     pout << std::setprecision(4)
+    //          << "         PCApply:DirectMobilitySolver: copyArrayToVec CPU time taken for the time step is:"
+    //          << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+    //     ;
+    // }
 
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
@@ -725,8 +724,8 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     if (d_is_initialized) return;
 
     clock_t start_med=0, end_t=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     if (d_submat_type != CODE_CUSTOM) runMobilityMatManager();
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
@@ -749,14 +748,14 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
 
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"         DirectsSolver:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0)
+    // {
+    // 	end_t = clock();
+    // 	pout<< std::setprecision(4)<<"         DirectsSolver:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    // }
+    // SAMRAI_MPI::barrier();
+    // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
     return;
 } // initializeSolverState
