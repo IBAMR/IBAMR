@@ -428,6 +428,9 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
 
+    // The processor mapping determines which patches are assigned to which processors.
+    const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
+
     // Determine the matrix dimensions and index ranges.
     int m_local;
     ierr = VecGetLocalSize(X_vec, &m_local);
@@ -472,18 +475,26 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #endif
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
-        Box<NDIM> box(X_idx, X_idx);
-        Array<int> patch_num_arr;
-        patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-        if (patch_num_arr.size() == 0)
+        bool found_local_patch = false;
+        for (int growth_size = 0; growth_size <= 1; ++growth_size)
         {
-            box.grow(IntVector<NDIM>(1));
+            Box<NDIM> box(X_idx, X_idx);
+            box.grow(IntVector<NDIM>(growth_size));
+            Array<int> patch_num_arr;
             patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(patch_num_arr.size() != 0);
-#endif
+            for (int j = 0; j < patch_num_arr.size() && !found_local_patch; ++j)
+            {
+                const int n = patch_num_arr[j];
+                if (proc_mapping.isMappingLocal(n))
+                {
+                    patch_num[k] = n;
+                    found_local_patch = true;
+                }
+            }
         }
-        patch_num[k] = patch_num_arr[0];
+#if !defined(NDEBUG)
+        TBOX_ASSERT(found_local_patch);
+#endif
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(patch_num[k]);
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
 #if !defined(NDEBUG)
