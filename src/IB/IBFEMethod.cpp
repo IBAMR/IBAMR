@@ -1716,8 +1716,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     }
                     side_elem->point(k) = X;
                 }
-                Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
-                              IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
+                Box<NDIM> box(IndexUtilities::getCellIndexLocal(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
+                              IndexUtilities::getCellIndexLocal(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
                 box.grow(IntVector<NDIM>(1));
                 box = box * patch_box;
 

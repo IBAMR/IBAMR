@@ -3132,7 +3132,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     {
         const double* const X = &X_data[NDIM * k];
         const Index<NDIM> i =
-            IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+            IndexUtilities::getCellIndexLocal(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;

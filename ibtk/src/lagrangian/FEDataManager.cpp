@@ -808,10 +808,10 @@ void FEDataManager::prolongData(const int f_data_idx,
                 }
                 elem->point(k) = X;
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                       patch_upper),
-                          IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                       patch_upper));
+            Box<NDIM> box(IndexUtilities::getCellIndexLocal(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                            patch_upper),
+                          IndexUtilities::getCellIndexLocal(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                            patch_upper));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1261,10 +1261,10 @@ void FEDataManager::restrictData(const int f_data_idx,
                 }
                 elem->point(k) = X_node_cache[k];
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                       patch_upper),
-                          IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                       patch_upper));
+            Box<NDIM> box(IndexUtilities::getCellIndexLocal(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                            patch_upper),
+                          IndexUtilities::getCellIndexLocal(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
+                                                            patch_upper));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1909,8 +1909,8 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
-                                                                       patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndexLocal(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                            patch_lower, patch_upper);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
                 }
             }
@@ -2135,8 +2135,8 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
-                                                                       patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndexLocal(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                            patch_lower, patch_upper);
                     if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
             }
@@ -2364,8 +2364,8 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
                 for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
-                                                                       patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndexLocal(X_qp, patch_x_lower, patch_x_upper, patch_dx,
+                                                                            patch_lower, patch_upper);
                     if (ghost_box.contains(i))
                     {
                         local_elems.insert(elem);
