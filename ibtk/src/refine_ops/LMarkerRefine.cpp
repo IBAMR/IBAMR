@@ -149,9 +149,28 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
-
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndexLocal(
+                Index<NDIM> fine_i = IndexUtilities::getCellIndexLocal(
                     X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
+                
+                // Catch corner cases in which roundoff error can cause problems.
+                //
+                // NOTE: This can permit markers to "escape" out the "top" of the domain if
+                // the marker position is equal to the upper domain extent.  The marker
+                // advection code needs to keep markers from hitting the domain boundaries.
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXLower[d]))
+                    {
+                        X_shifted[d] = fine_patchXLower[d];
+                        fine_i(d) = fine_patch_lower(d);
+                    }
+                    else if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXUpper[d]))
+                    {
+                        X_shifted[d] = fine_patchXUpper[d];
+                        fine_i(d) = fine_patch_upper(d) + 1;
+                    }
+                }
+                
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))
