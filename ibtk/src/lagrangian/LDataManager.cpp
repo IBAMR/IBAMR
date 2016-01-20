@@ -2428,15 +2428,11 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
         // Tag cells for refinement within the bounding boxes of any displaced
         // structures on finer levels of the patch hierarchy.
+        const IndexUtilities indexer(level->getGridGeometry());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
@@ -2452,10 +2448,10 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
-                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndexLocal(
-                        bounding_box.first, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndexLocal(
-                        bounding_box.second, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Point& X_lower = bounding_box.first;
+                    const Point& X_upper = bounding_box.second;
+                    const CellIndex<NDIM> bbox_lower = indexer.getCellIndexGlobal(X_lower, patch_dx);
+                    const CellIndex<NDIM> bbox_upper = indexer.getCellIndexGlobal(X_upper, patch_dx);
                     const Box<NDIM> tag_box(bbox_lower, bbox_upper);
                     tag_data->fillAll(1, tag_box);
                 }

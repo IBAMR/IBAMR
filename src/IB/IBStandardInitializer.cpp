@@ -580,10 +580,6 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const x_lower = patch_geom->getXLower();
-        const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
         Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
@@ -607,8 +603,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const CellIndex<NDIM> i =
-                    IndexUtilities::getCellIndexLocal(X, x_lower, x_upper, dx, patch_lower, patch_upper);
+                const CellIndex<NDIM> i = indexer.getCellIndexGlobal(X, dx);
 
                 // Tag the cell for refinement.
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;

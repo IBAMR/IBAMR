@@ -1647,6 +1647,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<std::pair<double, libMesh::Point> > intersections;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
+    const IndexUtilities indexer(d_hierarchy->getGridGeometry());
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
@@ -1716,8 +1717,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     }
                     side_elem->point(k) = X;
                 }
-                Box<NDIM> box(IndexUtilities::getCellIndexLocal(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
-                              IndexUtilities::getCellIndexLocal(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
+                Box<NDIM> box(indexer.getCellIndexGlobal(&X_min[0], dx), indexer.getCellIndexGlobal(&X_max[0], dx));
                 box.grow(IntVector<NDIM>(1));
                 box = box * patch_box;
 
