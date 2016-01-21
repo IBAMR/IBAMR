@@ -642,16 +642,21 @@ private:
     void readSourceFiles(const std::string& file_extension);
 
     /*!
-     * \brief Determine the indices of any vertices initially located within the
+     * \brief Determine the indices of any vertices initially owned by the
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                          int level_number,
-                          bool can_be_refined,
-                          const double* domain_x_lower,
-                          const double* domain_x_upper,
-                          const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) const;
+
+    /*!
+     * \brief Determine the indices of any vertices associated with a given
+     * level number initially located within the specified patch.
+     */
+    void getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& point_indices,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 int level_number) const;
 
     /*!
      * \return The canonical Lagrangian index of the specified vertex.

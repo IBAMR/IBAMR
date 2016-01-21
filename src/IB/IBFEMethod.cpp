@@ -1646,6 +1646,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<SideIndex<NDIM> > intersection_indices;
     std::vector<std::pair<double, libMesh::Point> > intersections;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1658,10 +1660,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
-        const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
         SideData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(0));
@@ -1716,8 +1716,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     }
                     side_elem->point(k) = X;
                 }
-                Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
-                              IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
+                Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
+                              IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
                 box.grow(IntVector<NDIM>(1));
                 box = box * patch_box;
 

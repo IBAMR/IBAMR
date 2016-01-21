@@ -814,15 +814,15 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
 #endif
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
-            const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
             const Pointer<CellData<NDIM, double> > q_data = patch->getPatchData(q_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
@@ -836,8 +836,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1014,15 +1013,15 @@ void IBMethod::interpolatePressure(int p_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
-            const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
             const Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
@@ -1036,8 +1035,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1340,15 +1338,11 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
     {
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
-
-        const Index<NDIM>& lower = grid_geom->getPhysicalDomain()[0].lower();
-        const Index<NDIM>& upper = grid_geom->getPhysicalDomain()[0].upper();
-        const double* const xLower = grid_geom->getXLower();
-        const double* const xUpper = grid_geom->getXUpper();
         const double* const dx = grid_geom->getDx();
 
         const int finer_level_number = level_number + 1;
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(finer_level_number);
+        const IntVector<NDIM>& finer_ratio = finer_level->getRatio();
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
@@ -1367,7 +1361,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
 
             // Determine the approximate source stencil box.
             const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                d_X_src[finer_level_number][n], xLower, xUpper, dx_finer.data(), lower, upper);
+                d_X_src[finer_level_number][n], grid_geom, finer_ratio);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {

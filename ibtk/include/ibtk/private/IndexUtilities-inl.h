@@ -37,6 +37,7 @@
 
 #include <cmath>
 
+#include "boost/math/special_functions/round.hpp"
 #include "ibtk/IndexUtilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -70,7 +71,7 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
                                                               const SAMRAI::hier::Index<NDIM>& ilower,
                                                               const SAMRAI::hier::Index<NDIM>& iupper)
 {
-    // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
+    // NOTE: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.
     SAMRAI::hier::Index<NDIM> idx;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -86,8 +87,37 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
         }
     }
     return idx;
+}// getCellIndex
+
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
+                                                              const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
+                                                              const SAMRAI::hier::Box<NDIM>& patch_box)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(patch_geom);
+#endif
+    return getCellIndex(X, patch_geom->getXLower(), patch_geom->getXUpper(), patch_geom->getDx(), patch_box.lower(), patch_box.upper());
 } // getCellIndex
 
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
+                                                              const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                                                              const SAMRAI::hier::IntVector<NDIM>& ratio)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(grid_geom);
+#endif
+    const double* const dx0 = grid_geom->getDx();
+    double dx[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        dx[d] = dx0[d] / static_cast<double>(ratio(d));
+    }
+    const SAMRAI::hier::Box<NDIM>& domain_box = SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
+} // getCellIndex
+ 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
