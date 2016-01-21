@@ -66,16 +66,25 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Inde
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
                                                               const double* const x_lower,
-                                                              const double* const /*x_upper*/,
+                                                              const double* const x_upper,
                                                               const double* const dx,
                                                               const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& /*iupper*/)
+                                                              const SAMRAI::hier::Index<NDIM>& iupper)
 {
+    // NOTE: This expression guarantees consistency between neighboring patches, but it is still possible to get
+    // inconsitent mappings on disjoint patches.
     SAMRAI::hier::Index<NDIM> idx;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const double dX_lower = X[d] - x_lower[d];
-        idx(d) = ilower(d) + std::floor(dX_lower / dx[d]);
+        double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
+        if (std::abs(dX_lower) <= std::abs(dX_upper))
+        {
+            idx(d) = ilower(d) + floor(dX_lower / dx[d]);
+        }
+        else
+        {
+            idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
+        }
     }
     return idx;
 }// getCellIndex
