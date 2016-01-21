@@ -3119,20 +3119,12 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     if (upper_bound == 0) return;
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const CellIndex<NDIM>& patch_lower = patch_box.lower();
-    const CellIndex<NDIM>& patch_upper = patch_box.upper();
-
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* const patch_x_lower = patch_geom->getXLower();
-    const double* const patch_x_upper = patch_geom->getXUpper();
-    const double* const patch_dx = patch_geom->getDx();
-
     local_indices.reserve(upper_bound);
     for (int k = 0; k < X_size / X_depth; ++k)
     {
         const double* const X = &X_data[NDIM * k];
-        const Index<NDIM> i =
-            IndexUtilities::getCellIndexLocal(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+        const Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;
