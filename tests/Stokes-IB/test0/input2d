@@ -94,6 +94,7 @@ IBHierarchyIntegrator {
 
    // Setting for implicit integrator
     eliminate_eulerian_vars  = TRUE
+    jacobian_delta_fcn       = "IB_4"
 }
 
 stokes_ib_precond_db

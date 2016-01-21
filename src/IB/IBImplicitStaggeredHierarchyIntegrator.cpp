@@ -110,6 +110,7 @@ namespace
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
+// IB-4 interpolation function.
 static void ib_4_interp_fcn(const double r, double* const w)
 {
     const double q = sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
@@ -119,18 +120,28 @@ static void ib_4_interp_fcn(const double r, double* const w)
     w[3] = 0.125 * (-1.0 + 2.0 * r - q);
     return;
 } // ib_4_interp_fcn
-
 static const int ib_4_interp_stencil = 4;
+
+// Piecewise linear interpolation function
+static void pwl_interp_fcn(const double r, double* const w)
+{
+    w[0] = 1.0 - r;
+    w[1] = r;
+    return;
+} // pwl_interp_fcn
+static const int pwl_interp_stencil = 2;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBImplicitStrategy> ib_implicit_ops,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
-    bool register_for_restart)
+IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
+                                                                               Pointer<Database>
+                                                                                   input_db,
+                                                                               Pointer<IBImplicitStrategy>
+                                                                                   ib_implicit_ops,
+                                                                               Pointer<INSStaggeredHierarchyIntegrator>
+                                                                                   ins_hier_integrator,
+                                                                               bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
       d_ib_implicit_ops(ib_implicit_ops)
 {
@@ -140,6 +151,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     // Set default configuration options.
     d_solve_for_position = false;
+    d_jac_delta_fcn = "IB_4";
 
     // Set options from input.
     if (input_db)
@@ -148,6 +160,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
             d_solve_for_position = input_db->getBool("eliminate_eulerian_vars");
         else if (input_db->keyExists("eliminate_lagrangian_vars"))
             d_solve_for_position = !input_db->getBool("eliminate_lagrangian_vars");
+
+        if (input_db->keyExists("jacobian_delta_fcn")) d_jac_delta_fcn = input_db->getString("jacobian_delta_fcn");
     }
 
     if (!d_solve_for_position)
@@ -304,7 +318,8 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
-                                 "point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
+                                 "point displacement since last regrid = "
+             << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
@@ -335,9 +350,9 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     return;
 } // postprocessIntegrateHierarchy
 
-void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                           Pointer<GriddingAlgorithm<NDIM> >
+                                                                               gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -646,8 +661,21 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ);
     p_stokes_solver->d_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = NULL;
-    d_ib_implicit_ops->constructInterpOp(interp_op, ib_4_interp_fcn, ib_4_interp_stencil,
-                                         d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
+    if (d_jac_delta_fcn == "IB_4")
+    {
+        d_ib_implicit_ops->constructInterpOp(interp_op, ib_4_interp_fcn, ib_4_interp_stencil,
+                                             d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
+    }
+    else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
+    {
+        d_ib_implicit_ops->constructInterpOp(interp_op, pwl_interp_fcn, pwl_interp_stencil,
+                                             d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
+    }
+    else
+    {
+        TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
+                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
+    }
     p_stokes_solver->d_fac_op->setIBInterpOp(interp_op);
 
     // FAC PC
