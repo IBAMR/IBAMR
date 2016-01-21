@@ -750,8 +750,9 @@ void FEDataManager::prolongData(const int f_data_idx,
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    const IndexUtilities indexer(level->getGridGeometry());
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
@@ -764,10 +765,8 @@ void FEDataManager::prolongData(const int f_data_idx,
         if (!accumulate_on_grid) f_data->fillAll(0.0);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
         boost::array<Box<NDIM>, NDIM> side_boxes;
@@ -809,8 +808,8 @@ void FEDataManager::prolongData(const int f_data_idx,
                 }
                 elem->point(k) = X;
             }
-            Box<NDIM> box(indexer.getCellIndexGlobal(&X_min[0], patch_dx),
-                          indexer.getCellIndexGlobal(&X_max[0], patch_dx));
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1201,8 +1200,9 @@ void FEDataManager::restrictData(const int f_data_idx,
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    const IndexUtilities indexer(level->getGridGeometry());
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
@@ -1214,10 +1214,8 @@ void FEDataManager::restrictData(const int f_data_idx,
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
@@ -1261,8 +1259,8 @@ void FEDataManager::restrictData(const int f_data_idx,
                 }
                 elem->point(k) = X_node_cache[k];
             }
-            Box<NDIM> box(indexer.getCellIndexGlobal(&X_min[0], patch_dx),
-                          indexer.getCellIndexGlobal(&X_max[0], patch_dx));
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
@@ -1864,8 +1862,9 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
         boost::multi_array<double, 2> X_node;
         Point X_qp;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         int local_patch_num = 0;
-        const IndexUtilities indexer(level->getGridGeometry());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
@@ -1903,7 +1902,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = indexer.getCellIndexGlobal(X_qp, patch_dx);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
                 }
             }
@@ -2054,11 +2053,12 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
         if (ln != d_level_number) continue;
-        const IndexUtilities indexer(level->getGridGeometry());
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
@@ -2125,7 +2125,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = indexer.getCellIndexGlobal(X_qp, patch_dx);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
             }
@@ -2233,7 +2233,8 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-    const IndexUtilities indexer(level->getGridGeometry());
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
@@ -2320,11 +2321,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box, ghost_width);
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -2354,7 +2351,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
                 for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index<NDIM> i = indexer.getCellIndexGlobal(X_qp, patch_dx);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (ghost_box.contains(i))
                     {
                         local_elems.insert(elem);

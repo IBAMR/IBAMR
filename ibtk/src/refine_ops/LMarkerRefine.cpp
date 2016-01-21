@@ -127,7 +127,6 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
     const Index<NDIM>& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patchXLower = fine_patch_geom->getXLower();
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
-    const double* const fine_patchDx = fine_patch_geom->getDx();
 
     const Pointer<CartesianPatchGeometry<NDIM> > coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patchDx = coarse_patch_geom->getDx();
@@ -149,8 +148,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
-                Index<NDIM> fine_i = IndexUtilities::getCellIndexLocal(
-                    X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
+                Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
                 
                 // Catch edge cases in which roundoff error can cause problems.
                 //

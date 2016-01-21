@@ -636,11 +636,10 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     std::vector<int> patch_num(n_local_points);
     std::vector<std::vector<Box<NDIM> > > stencil_box(n_local_points, std::vector<Box<NDIM> >(NDIM));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
-    const IndexUtilities indexer(grid_geom);
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = indexer.getCellIndexGlobal(X, dx);
+        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.
