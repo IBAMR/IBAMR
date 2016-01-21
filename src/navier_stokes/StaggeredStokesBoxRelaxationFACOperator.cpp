@@ -322,19 +322,15 @@ void modifyRhsForBcs(Vec& v,
                 const Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
-                                           (dx[d] * dx[d]),
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
+                                                   (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
-                                           (dx[d] * dx[d]),
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
+                                                   (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
@@ -537,8 +533,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
                     {
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -627,11 +622,12 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>&
+                                                                                 /*solution*/,
+                                                                                 const SAMRAIVectorReal<NDIM, double>&
+                                                                                 /*rhs*/,
+                                                                                 const int coarsest_reset_ln,
+                                                                                 const int finest_reset_ln)
 {
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln + 1);
@@ -651,7 +647,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         }
         buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
-        ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
+        ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
