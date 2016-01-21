@@ -117,7 +117,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     {
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
-    const SAMRAI::hier::Box<NDIM>& domain_box =
+    const SAMRAI::hier::Box<NDIM> domain_box =
         SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
     return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
 } // getCellIndex
