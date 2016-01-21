@@ -37,6 +37,7 @@
 
 #include <cmath>
 
+#include "boost/math/special_functions/round.hpp"
 #include "ibtk/IndexUtilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -63,12 +64,12 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Inde
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexLocal(const DoubleArray& X,
-                                                                   const double* const x_lower,
-                                                                   const double* const x_upper,
-                                                                   const double* const dx,
-                                                                   const SAMRAI::hier::Index<NDIM>& ilower,
-                                                                   const SAMRAI::hier::Index<NDIM>& iupper)
+inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
+                                                              const double* const x_lower,
+                                                              const double* const x_upper,
+                                                              const double* const dx,
+                                                              const SAMRAI::hier::Index<NDIM>& ilower,
+                                                              const SAMRAI::hier::Index<NDIM>& iupper)
 {
     // NOTE: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.
@@ -78,15 +79,48 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexLocal(const DoubleA
         double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
         if (std::abs(dX_lower) <= std::abs(dX_upper))
         {
-            idx(d) = ilower(d) + std::floor(dX_lower / dx[d]);
+            idx(d) = ilower(d) + floor(dX_lower / dx[d]);
         }
         else
         {
-            idx(d) = iupper(d) + std::floor(dX_upper / dx[d]) + 1;
+            idx(d) = iupper(d) + floor(dX_upper / dx[d]) + 1;
         }
     }
     return idx;
-} // getCellIndexLocal
+} // getCellIndex
+
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
+                             const SAMRAI::hier::Box<NDIM>& patch_box)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(patch_geom);
+#endif
+    return getCellIndex(X, patch_geom->getXLower(), patch_geom->getXUpper(), patch_geom->getDx(), patch_box.lower(),
+                        patch_box.upper());
+} // getCellIndex
+
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                             const SAMRAI::hier::IntVector<NDIM>& ratio)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(grid_geom);
+#endif
+    const double* const dx0 = grid_geom->getDx();
+    double dx[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        dx[d] = dx0[d] / static_cast<double>(ratio(d));
+    }
+    const SAMRAI::hier::Box<NDIM>& domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
+} // getCellIndex
 
 inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
                                              const SAMRAI::hier::Index<NDIM>& domain_lower,
@@ -97,10 +131,10 @@ inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 #if (NDIM == 1)
     return (i(0) - domain_lower(0) + depth * num_cells(0) + offset);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) + depth * num_cells(0) * num_cells(1) +
             offset);
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) +
             (i(2) - domain_lower(2)) * num_cells(0) * num_cells(1) +
             depth * num_cells(0) * num_cells(1) * num_cells(2) + offset);
@@ -155,7 +189,7 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap
         }
         j_lower += height;
     }
-#elif(NDIM == 3)
+#elif (NDIM == 3)
 
     const int Nx = subdomains(0);
     const int Ny = subdomains(1);
@@ -200,48 +234,6 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap
     return subdomains;
 } // partitionPatchBox
 
-inline IndexUtilities::IndexUtilities(SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom) : d_grid_geom(grid_geom)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_grid_geom);
-#endif
-    // intentionally blank
-    return;
-}// IndexUtilities
-
-inline IndexUtilities::~IndexUtilities()
-{
-    // intentionally blank
-    return;
-}// ~IndexUtilities
-
-template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexGlobal(const DoubleArray& X,
-                                                                    const double* const dx) const
-{
-    const double* const x_lower = d_grid_geom->getXLower();
-    const double* const dx0 = d_grid_geom->getDx();
-    SAMRAI::hier::Index<NDIM> ratio;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        ratio(d) = round(dx0[d] / dx[d]);
-#if !defined(NDEBUG)
-        TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(dx0[d], ratio(d) * dx[d]));
-#endif
-    }
-    const SAMRAI::hier::Box<NDIM> domain_box = d_grid_geom->getPhysicalDomain()[0];
-    const SAMRAI::hier::Index<NDIM> ilower0 = domain_box.lower();
-    const SAMRAI::hier::Index<NDIM> ilower = IndexUtilities::refine(ilower0, ratio);
-
-    SAMRAI::hier::Index<NDIM> idx;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        const double dX_lower = X[d] - x_lower[d];
-        idx(d) = ilower(d) + std::floor(dX_lower / dx[d]);
-    }
-    return idx;
-} // getCellIndexGlobal
- 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

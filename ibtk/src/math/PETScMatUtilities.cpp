@@ -35,8 +35,8 @@
 #include <algorithm>
 #include <numeric>
 #include <ostream>
-#include <vector>
 #include <set>
+#include <vector>
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -51,21 +51,21 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
+#include "RefineAlgorithm.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "RefineAlgorithm.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "boost/array.hpp"
-#include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -112,7 +112,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+                                                       Pointer<PatchLevel<NDIM> >
+                                                           patch_level)
 {
     constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef), data_time,
                                    num_dofs_per_proc, dof_index_idx, patch_level);
@@ -125,7 +126,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+                                                       Pointer<PatchLevel<NDIM> >
+                                                           patch_level)
 {
     int ierr;
     if (mat)
@@ -264,7 +266,8 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+                                                       Pointer<PatchLevel<NDIM> >
+                                                           patch_level)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -400,7 +403,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                       Vec& X_vec,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+                                                      Pointer<PatchLevel<NDIM> >
+                                                          patch_level)
 {
     // \todo Properly support odd stencil sizes.
     if (interp_stencil % 2 != 0) interp_stencil += 1;
@@ -456,11 +460,10 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     std::vector<int> patch_num(n_local_points);
     std::vector<std::vector<Box<NDIM> > > stencil_box(n_local_points, std::vector<Box<NDIM> >(NDIM));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
-    const IndexUtilities indexer(grid_geom);
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = indexer.getCellIndexGlobal(X, dx);
+        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.
@@ -629,8 +632,10 @@ void PETScMatUtilities::constructProlongationOp(Mat& mat,
                                                 int dof_index_idx,
                                                 const std::vector<int>& num_fine_dofs_per_proc,
                                                 const std::vector<int>& num_coarse_dofs_per_proc,
-                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                Pointer<PatchLevel<NDIM> >
+                                                    fine_patch_level,
+                                                Pointer<PatchLevel<NDIM> >
+                                                    coarse_patch_level,
                                                 const AO& coarse_level_ao,
                                                 const int coarse_ao_offset)
 {
@@ -726,8 +731,10 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_ove
                                                          const IntVector<NDIM>& overlap_size,
                                                          const std::vector<int>& num_dofs_per_proc,
                                                          int dof_index_idx,
-                                                         Pointer<PatchLevel<NDIM> > patch_level,
-                                                         Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+                                                         Pointer<PatchLevel<NDIM> >
+                                                             patch_level,
+                                                         Pointer<CoarseFineBoundary<NDIM> >
+                                                             cf_boundary)
 {
     int ierr;
     for (unsigned int k = 0; k < is_overlap.size(); ++k)
@@ -775,8 +782,10 @@ void PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
                                                      int dof_index_idx,
                                                      const std::vector<int>& num_fine_dofs_per_proc,
                                                      const std::vector<int>& num_coarse_dofs_per_proc,
-                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                     Pointer<PatchLevel<NDIM> >
+                                                         fine_patch_level,
+                                                     Pointer<PatchLevel<NDIM> >
+                                                         coarse_patch_level,
                                                      const AO& coarse_level_ao,
                                                      const int coarse_ao_offset)
 {
@@ -907,8 +916,10 @@ void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
                                                      int dof_index_idx,
                                                      const std::vector<int>& num_fine_dofs_per_proc,
                                                      const std::vector<int>& num_coarse_dofs_per_proc,
-                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                     Pointer<PatchLevel<NDIM> >
+                                                         fine_patch_level,
+                                                     Pointer<PatchLevel<NDIM> >
+                                                         coarse_patch_level,
                                                      const AO& coarse_level_ao,
                                                      const int coarse_ao_offset)
 {
@@ -1116,7 +1127,8 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
                                                               const IntVector<NDIM>& overlap_size,
                                                               const std::vector<int>& /*num_dofs_per_proc*/,
                                                               int dof_index_idx,
-                                                              Pointer<PatchLevel<NDIM> > patch_level,
+                                                              Pointer<PatchLevel<NDIM> >
+                                                                  patch_level,
                                                               Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
 {
     // Check if there is an overlap.
@@ -1214,8 +1226,10 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& i
                                                               const IntVector<NDIM>& overlap_size,
                                                               const std::vector<int>& /*num_dofs_per_proc*/,
                                                               int dof_index_idx,
-                                                              Pointer<PatchLevel<NDIM> > patch_level,
-                                                              Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+                                                              Pointer<PatchLevel<NDIM> >
+                                                                  patch_level,
+                                                              Pointer<CoarseFineBoundary<NDIM> >
+                                                                  cf_boundary)
 {
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();

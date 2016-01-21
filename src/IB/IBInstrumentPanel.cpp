@@ -878,14 +878,14 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index<NDIM> i = IndexUtilities::getCellIndexLocal(
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(
                         X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndexLocal(X,
-                                                                                  domainXLower,
-                                                                                  domainXUpper,
-                                                                                  finer_dx.data(),
-                                                                                  finer_domain_box_level_lower,
-                                                                                  finer_domain_box_level_upper);
+                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+                                                                             domainXLower,
+                                                                             domainXUpper,
+                                                                             finer_dx.data(),
+                                                                             finer_domain_box_level_lower,
+                                                                             finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -900,14 +900,14 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index<NDIM> i = IndexUtilities::getCellIndexLocal(
+            const Index<NDIM> i = IndexUtilities::getCellIndex(
                 X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndexLocal(X,
-                                                                          domainXLower,
-                                                                          domainXUpper,
-                                                                          finer_dx.data(),
-                                                                          finer_domain_box_level_lower,
-                                                                          finer_domain_box_level_upper);
+            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+                                                                     domainXLower,
+                                                                     domainXUpper,
+                                                                     finer_dx.data(),
+                                                                     finer_domain_box_level_lower,
+                                                                     finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;
