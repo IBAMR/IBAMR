@@ -346,10 +346,10 @@ int main(int argc, char* argv[])
         string block_elem_type = input_db->getStringWithDefault("BLOCK_ELEM_TYPE", "QUAD9");
         string beam_elem_type = input_db->getStringWithDefault("BEAM_ELEM_TYPE", "QUAD9");
 
-        Mesh block1_mesh(NDIM);
+        Mesh block1_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(block1_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 0.0, 0.5, 0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
-        Mesh block2_mesh(NDIM);
+        Mesh block2_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(block2_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 1.5, 2.0, 0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
 
@@ -373,7 +373,7 @@ int main(int argc, char* argv[])
         const double beam_y_lower = 0.5 - 0.016;
         const double beam_y_upper = 0.5;
         int n_beam_y = max(static_cast<int>(ceil(beam_y_upper - beam_y_lower / ds_beam)), 4);
-        Mesh beam_mesh(NDIM);
+        Mesh beam_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower,
                                             beam_y_upper, QUAD4);
         if (beam_use_mapped_grid)

@@ -199,7 +199,7 @@ void PETScKrylovLinearSolver::setNullspace(
 {
     deallocateNullspaceData();
     KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
-    resetKSPNullspace();
+    resetMatNullspace();
     return;
 } // setNullspace
 
@@ -380,7 +380,7 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
-    resetKSPNullspace();
+    resetMatNullspace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -688,7 +688,7 @@ void PETScKrylovLinearSolver::resetKSPPC()
     return;
 } // resetKSPPC
 
-void PETScKrylovLinearSolver::resetKSPNullspace()
+void PETScKrylovLinearSolver::resetMatNullspace()
 {
     if (!d_petsc_ksp) return;
     int ierr;
@@ -750,7 +750,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // resetKSPNullspace
+} // resetMatNullspace
 
 void PETScKrylovLinearSolver::deallocateNullspaceData()
 {

@@ -23165,14 +23165,14 @@ else
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.4 or 0.9.5" >&5
-$as_echo_n "checking for libMesh version 0.9.4 or 0.9.5... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.5 or newer" >&5
+$as_echo_n "checking for libMesh version 0.9.5 or newer... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && ((LIBMESH_MICRO_VERSION >= 4) && (LIBMESH_MICRO_VERSION <= 5)))
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION >= 5))
 #else
 asdf
 #endif
@@ -23202,45 +23202,8 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_VERSION_VALID}" >&5
 $as_echo "${LIBMESH_VERSION_VALID}" >&6; }
   if test "$LIBMESH_VERSION_VALID" = no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a prereleased version of libMesh" >&5
-$as_echo_n "checking for a prereleased version of libMesh... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-    #include <libmesh/libmesh_config.h>
-    #if ((LIBMESH_MAJOR_VERSION == 1) && (LIBMESH_MINOR_VERSION == 0) && (LIBMESH_MICRO_VERSION == 0))
-    #else
-    asdf
-    #endif
-
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
-  LIBMESH_PRERELEASED_VERSION=yes
-else
-  LIBMESH_PRERELEASED_VERSION=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_PRERELEASED_VERSION}" >&5
-$as_echo "${LIBMESH_PRERELEASED_VERSION}" >&6; }
-    if test "$LIBMESH_PRERELEASED_VERSION" = no; then
-      as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.4 or 0.9.5 or latest master branch from github" "$LINENO" 5
-    fi
- fi
+    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.5 or newer" "$LINENO" 5
+  fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
   if test "$cross_compiling" = yes; then :
@@ -27459,7 +27422,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide HDF5; using PETSc HDF5 library" >&5
 $as_echo "$as_me: PETSc appears to provide HDF5; using PETSc HDF5 library" >&6;}
   PETSC_BUNDLES_HDF5=yes
@@ -30648,7 +30611,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.5" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.6" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"

@@ -395,14 +395,14 @@ int main(int argc, char* argv[])
             // Do the same thing for the FE data.
             string file_name;
 
-            Mesh mesh_coarse(NDIM);
+            Mesh mesh_coarse(init.comm(), NDIM);
             file_name = coarse_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", coarse_iteration_num);
             file_name += temp_buf;
             file_name += ".xda";
             mesh_coarse.read(file_name);
 
-            Mesh mesh_fine(NDIM);
+            Mesh mesh_fine(init.comm(), NDIM);
             file_name = fine_hier_dump_dirname + "/" + "fe_mesh.";
             sprintf(temp_buf, "%05d", fine_iteration_num);
             file_name += temp_buf;

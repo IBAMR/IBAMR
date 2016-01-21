@@ -372,10 +372,10 @@ private:
     void resetKSPPC();
 
     /*!
-     * \brief Reset the KSP nullspace object to correspond to the supplied
+     * \brief Reset the Mat nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
-    void resetKSPNullspace();
+    void resetMatNullspace();
 
     /*!
      * \brief Destroy data allocated to describe nullspace.
