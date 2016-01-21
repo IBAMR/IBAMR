@@ -224,7 +224,7 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndexGlobal(const Double
     SAMRAI::hier::Index<NDIM> ratio;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ratio(d) = std::round(dx0[d] / dx[d]);
+        ratio(d) = round(dx0[d] / dx[d]);
 #if !defined(NDEBUG)
         TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(dx0[d], ratio(d) * dx[d]));
 #endif
