@@ -96,14 +96,16 @@ SideDataSynchronization::~SideDataSynchronization()
     return;
 } // ~SideDataSynchronization
 
-void SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void SideDataSynchronization::initializeOperatorState(
+void
+SideDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -195,7 +197,8 @@ void SideDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -210,7 +213,8 @@ void SideDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void SideDataSynchronization::resetTransactionComponents(
+void
+SideDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -290,7 +294,8 @@ void SideDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void SideDataSynchronization::deallocateOperatorState()
+void
+SideDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -306,7 +311,8 @@ void SideDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void SideDataSynchronization::synchronizeData(const double fill_time)
+void
+SideDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

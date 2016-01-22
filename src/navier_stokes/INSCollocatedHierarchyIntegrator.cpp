@@ -452,7 +452,8 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     return;
 } // ~INSCollocatedHierarchyIntegrator
 
-Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOperator()
+Pointer<ConvectiveOperator>
+INSCollocatedHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -472,7 +473,8 @@ Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOpera
     return d_convective_op;
 } // getConvectiveOperator
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
@@ -489,7 +491,8 @@ Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSol
     return d_velocity_solver;
 } // getVelocitySubdomainSolver
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
@@ -506,8 +509,9 @@ Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSol
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -833,8 +837,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     return;
 } // initializeHierarchyIntegrator
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -862,9 +867,10 @@ void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHie
     return;
 } // initializePatchHierarhcy
 
-void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                    const double new_time,
-                                                                    const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                               const double new_time,
+                                                               const int num_cycles)
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -1041,9 +1047,10 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     return;
 } // preprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                          const double new_time,
-                                                          const int cycle_num)
+void
+INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const int cycle_num)
 {
     INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const int coarsest_ln = 0;
@@ -1414,10 +1421,11 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     return;
 } // integrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                     const double new_time,
-                                                                     const bool skip_synchronize_new_state_data,
-                                                                     const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                const double new_time,
+                                                                const bool skip_synchronize_new_state_data,
+                                                                const int num_cycles)
 {
     INSHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -1497,7 +1505,8 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
     return;
 } // postprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::regridHierarchy()
+void
+INSCollocatedHierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
@@ -1531,7 +1540,8 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
+void
+INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1624,7 +1634,8 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     return;
 } // initializeLevelDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1704,13 +1715,13 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double /*error_data_time*/,
-    const int tag_index,
-    const bool /*initial_time*/,
-    const bool /*uses_richardson_extrapolation_too*/)
+void
+INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                                   const int level_number,
+                                                                   const double /*error_data_time*/,
+                                                                   const int tag_index,
+                                                                   const bool /*initial_time*/,
+                                                                   const bool /*uses_richardson_extrapolation_too*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -1775,7 +1786,8 @@ void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
     return;
 } // applyGradientDetectorSpecialized
 
-void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
+void
+INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1819,7 +1831,8 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::regridProjection()
+void
+INSCollocatedHierarchyIntegrator::regridProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1950,7 +1963,8 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     return;
 } // regridProjection
 
-double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+double
+INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -1993,7 +2007,8 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> >
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
+void
+INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2163,7 +2178,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     return;
 } // reinitializeOperatorsAndSolvers
 
-void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
+void
+INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

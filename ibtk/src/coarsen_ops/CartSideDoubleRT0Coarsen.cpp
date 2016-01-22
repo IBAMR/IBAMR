@@ -127,34 +127,38 @@ CartSideDoubleRT0Coarsen::~CartSideDoubleRT0Coarsen()
     return;
 } // ~CartSideDoubleRT0Coarsen
 
-bool CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
-                                                   const std::string& op_name) const
+bool
+CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
-const std::string& CartSideDoubleRT0Coarsen::getOperatorName() const
+const std::string&
+CartSideDoubleRT0Coarsen::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int CartSideDoubleRT0Coarsen::getOperatorPriority() const
+int
+CartSideDoubleRT0Coarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> CartSideDoubleRT0Coarsen::getStencilWidth() const
+IntVector<NDIM>
+CartSideDoubleRT0Coarsen::getStencilWidth() const
 {
     return d_gcw;
 } // getStencilWidth
 
-void CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
-                                       const Patch<NDIM>& fine,
-                                       const int dst_component,
-                                       const int src_component,
-                                       const Box<NDIM>& coarse_box,
-                                       const IntVector<NDIM>& ratio) const
+void
+CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
+                                  const Patch<NDIM>& fine,
+                                  const int dst_component,
+                                  const int src_component,
+                                  const Box<NDIM>& coarse_box,
+                                  const IntVector<NDIM>& ratio) const
 {
     Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
     Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(src_component);

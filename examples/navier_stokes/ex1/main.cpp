@@ -67,7 +67,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -270,11 +271,12 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> ins_integrator,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> ins_integrator,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

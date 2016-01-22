@@ -64,7 +64,8 @@ Streamable::~Streamable()
     return;
 } // ~Streamable
 
-void Streamable::registerPeriodicShift(const IntVector<NDIM>& /*offset*/, const Vector& /*displacement*/)
+void
+Streamable::registerPeriodicShift(const IntVector<NDIM>& /*offset*/, const Vector& /*displacement*/)
 {
     // intentionally blank
     return;

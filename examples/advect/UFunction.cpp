@@ -75,12 +75,13 @@ UFunction::~UFunction()
     return;
 } // ~UFunction
 
-void UFunction::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
-                               const double /*data_time*/,
-                               const bool /*initial_time*/,
-                               Pointer<PatchLevel<NDIM> > /*level*/)
+void
+UFunction::setDataOnPatch(const int data_idx,
+                          Pointer<Variable<NDIM> > /*var*/,
+                          Pointer<Patch<NDIM> > patch,
+                          const double /*data_time*/,
+                          const bool /*initial_time*/,
+                          Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -148,7 +149,8 @@ void UFunction::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void UFunction::getFromInput(Pointer<Database> db)
+void
+UFunction::getFromInput(Pointer<Database> db)
 {
     if (db)
     {

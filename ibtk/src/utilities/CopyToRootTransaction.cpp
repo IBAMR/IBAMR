@@ -88,22 +88,26 @@ CopyToRootTransaction::~CopyToRootTransaction()
     return;
 } // CopyToRootTransaction
 
-Pointer<PatchData<NDIM> > CopyToRootTransaction::getRootPatchData() const
+Pointer<PatchData<NDIM> >
+CopyToRootTransaction::getRootPatchData() const
 {
     return d_dst_patch_data;
 } // getRootPatchData
 
-bool CopyToRootTransaction::canEstimateIncomingMessageSize()
+bool
+CopyToRootTransaction::canEstimateIncomingMessageSize()
 {
     return false;
 } // canEstimateIncomingMessageSize
 
-int CopyToRootTransaction::computeIncomingMessageSize()
+int
+CopyToRootTransaction::computeIncomingMessageSize()
 {
     return 0;
 } // computeIncomingMessageSize
 
-int CopyToRootTransaction::computeOutgoingMessageSize()
+int
+CopyToRootTransaction::computeOutgoingMessageSize()
 {
     Pointer<PatchDataFactory<NDIM> > pdat_factory =
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
@@ -133,17 +137,20 @@ int CopyToRootTransaction::computeOutgoingMessageSize()
     return size;
 } // computeOutgoingMessageSize
 
-int CopyToRootTransaction::getSourceProcessor()
+int
+CopyToRootTransaction::getSourceProcessor()
 {
     return d_src_proc;
 } // getSourceProcessor
 
-int CopyToRootTransaction::getDestinationProcessor()
+int
+CopyToRootTransaction::getDestinationProcessor()
 {
     return d_dst_proc;
 } // getDestinationProcessor
 
-void CopyToRootTransaction::packStream(AbstractStream& stream)
+void
+CopyToRootTransaction::packStream(AbstractStream& stream)
 {
     Pointer<PatchDataFactory<NDIM> > pdat_factory =
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
@@ -179,7 +186,8 @@ void CopyToRootTransaction::packStream(AbstractStream& stream)
     return;
 } // packStream
 
-void CopyToRootTransaction::unpackStream(AbstractStream& stream)
+void
+CopyToRootTransaction::unpackStream(AbstractStream& stream)
 {
     Pointer<PatchDataFactory<NDIM> > pdat_factory =
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
@@ -209,7 +217,8 @@ void CopyToRootTransaction::unpackStream(AbstractStream& stream)
     return;
 } // unpackStream
 
-void CopyToRootTransaction::copyLocalData()
+void
+CopyToRootTransaction::copyLocalData()
 {
     Pointer<PatchDataFactory<NDIM> > pdat_factory =
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
@@ -237,7 +246,8 @@ void CopyToRootTransaction::copyLocalData()
     return;
 } // copyLocalData
 
-void CopyToRootTransaction::printClassData(std::ostream& stream) const
+void
+CopyToRootTransaction::printClassData(std::ostream& stream) const
 {
     stream << "CopyToRootTransaction::printClassData() is not implemented\n";
     return;

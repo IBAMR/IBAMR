@@ -135,7 +135,8 @@ namespace
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
-inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+inline short int
+get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
     for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
@@ -155,10 +156,11 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
     return dirichlet_bdry_ids;
 }
 
-inline bool is_physical_bdry(const Elem* elem,
-                             const unsigned short int side,
-                             const BoundaryInfo& boundary_info,
-                             const DofMap& dof_map)
+inline bool
+is_physical_bdry(const Elem* elem,
+                 const unsigned short int side,
+                 const BoundaryInfo& boundary_info,
+                 const DofMap& dof_map)
 {
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     bool at_physical_bdry = !elem->neighbor(side);
@@ -169,17 +171,19 @@ inline bool is_physical_bdry(const Elem* elem,
     return at_physical_bdry;
 }
 
-inline bool is_dirichlet_bdry(const Elem* elem,
-                              const unsigned short int side,
-                              const BoundaryInfo& boundary_info,
-                              const DofMap& dof_map)
+inline bool
+is_dirichlet_bdry(const Elem* elem,
+                  const unsigned short int side,
+                  const BoundaryInfo& boundary_info,
+                  const DofMap& dof_map)
 {
     if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     return get_dirichlet_bdry_ids(bdry_ids) != 0;
 }
 
-inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
+inline bool
+has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
 {
     bool has_physical_bdry = false;
     for (unsigned short int side = 0; side < elem->n_sides() && !has_physical_bdry; ++side)
@@ -189,10 +193,11 @@ inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_inf
     return has_physical_bdry;
 }
 
-std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
-                                      unsigned int time_step_number,
-                                      unsigned int part,
-                                      const std::string& extension)
+std::string
+libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                          unsigned int time_step_number,
+                          unsigned int part,
+                          const std::string& extension)
 {
     std::ostringstream file_name_prefix;
     file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
@@ -261,40 +266,43 @@ IBFEMethod::~IBFEMethod()
     return;
 } // ~IBFEMethod
 
-FEDataManager* IBFEMethod::getFEDataManager(const unsigned int part) const
+FEDataManager*
+IBFEMethod::getFEDataManager(const unsigned int part) const
 {
     TBOX_ASSERT(part < d_num_parts);
     return d_fe_data_managers[part];
 } // getFEDataManager
 
-void IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
-                                                          void* ctx,
-                                                          const unsigned int part)
+void
+IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
     return;
 } // registerInitialCoordinateMappingFunction
 
-void IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_coordinate_mapping_fcn_data[part] = data;
     return;
 } // registerInitialCoordinateMappingFunction
 
-void IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
-                                           const std::vector<unsigned int>& systems,
-                                           void* ctx,
-                                           QuadratureType quad_type,
-                                           Order quad_order,
-                                           const unsigned int part)
+void
+IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
+                                      const std::vector<unsigned int>& systems,
+                                      void* ctx,
+                                      QuadratureType quad_type,
+                                      Order quad_order,
+                                      const unsigned int part)
 {
     registerPK1StressFunction(PK1StressFcnData(fcn, systems, ctx, quad_type, quad_order), part);
     return;
 } // registerPK1StressFunction
 
-void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_PK1_stress_fcn_data[part].push_back(data);
@@ -311,16 +319,18 @@ void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const u
     return;
 } // registerPK1StressFunction
 
-void IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
-                                              const std::vector<unsigned int>& systems,
-                                              void* ctx,
-                                              const unsigned int part)
+void
+IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
+                                         const std::vector<unsigned int>& systems,
+                                         void* ctx,
+                                         const unsigned int part)
 {
     registerLagBodyForceFunction(LagBodyForceFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagBodyForceFunction
 
-void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_body_force_fcn_data[part] = data;
@@ -329,16 +339,18 @@ void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, c
     return;
 } // registerLagBodyForceFunction
 
-void IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
-                                                    const std::vector<unsigned int>& systems,
-                                                    void* ctx,
-                                                    const unsigned int part)
+void
+IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
+                                               const std::vector<unsigned int>& systems,
+                                               void* ctx,
+                                               const unsigned int part)
 {
     registerLagSurfacePressureFunction(LagSurfacePressureFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagSurfacePressureFunction
 
-void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_pressure_fcn_data[part] = data;
@@ -347,16 +359,18 @@ void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnD
     return;
 } // registerLagSurfacePressureFunction
 
-void IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
-                                                 const std::vector<unsigned int>& systems,
-                                                 void* ctx,
-                                                 const unsigned int part)
+void
+IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
+                                            const std::vector<unsigned int>& systems,
+                                            void* ctx,
+                                            const unsigned int part)
 {
     registerLagSurfaceForceFunction(LagSurfaceForceFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagSurfaceForceFunction
 
-void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_force_fcn_data[part] = data;
@@ -365,12 +379,14 @@ void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& d
     return;
 } // registerLagSurfaceForceFunction
 
-const IntVector<NDIM>& IBFEMethod::getMinimumGhostCellWidth() const
+const IntVector<NDIM>&
+IBFEMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void
+IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -393,7 +409,8 @@ void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorith
     return;
 } // setupTagBuffer
 
-void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void
+IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -456,7 +473,8 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
     return;
 } // preprocessIntegrateData
 
-void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
+void
+IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -506,10 +524,11 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     return;
 } // postprocessIntegrateData
 
-void IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                     const double data_time)
+void
+IBFEMethod::interpolateVelocity(const int u_data_idx,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -538,7 +557,8 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
     return;
 } // interpolateVelocity
 
-void IBFEMethod::eulerStep(const double current_time, const double new_time)
+void
+IBFEMethod::eulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -555,7 +575,8 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
     return;
 } // eulerStep
 
-void IBFEMethod::midpointStep(const double current_time, const double new_time)
+void
+IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -572,7 +593,8 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
     return;
 } // midpointStep
 
-void IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
+void
+IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -592,7 +614,8 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
     return;
 } // trapezoidalStep
 
-void IBFEMethod::computeLagrangianForce(const double data_time)
+void
+IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -602,10 +625,11 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void IBFEMethod::spreadForce(const int f_data_idx,
-                             RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-                             const double data_time)
+void
+IBFEMethod::spreadForce(const int f_data_idx,
+                        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                        const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                        const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -633,7 +657,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
-void IBFEMethod::initializeFEData()
+void
+IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -728,14 +753,15 @@ void IBFEMethod::initializeFEData()
     return;
 } // initializeFEData
 
-void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                          int /*u_data_idx*/,
-                                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                                          int /*integrator_step*/,
-                                          double /*init_data_time*/,
-                                          bool /*initial_time*/)
+void
+IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                     int /*u_data_idx*/,
+                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     int /*integrator_step*/,
+                                     double /*init_data_time*/,
+                                     bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -751,7 +777,8 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
     return;
 } // initializePatchHierarchy
 
-void IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+void
+IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -764,7 +791,8 @@ void IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer
     return;
 } // registerLoadBalancer
 
-void IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+void
+IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -793,13 +821,14 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     return;
 } // endDataRedistribution
 
-void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                     int level_number,
-                                     double init_data_time,
-                                     bool can_be_refined,
-                                     bool initial_time,
-                                     Pointer<BasePatchLevel<NDIM> > old_level,
-                                     bool allocate_data)
+void
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                int level_number,
+                                double init_data_time,
+                                bool can_be_refined,
+                                bool initial_time,
+                                Pointer<BasePatchLevel<NDIM> > old_level,
+                                bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -817,9 +846,10 @@ void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarch
     return;
 } // initializeLevelData
 
-void IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                             int coarsest_level,
-                                             int /*finest_level*/)
+void
+IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                        int coarsest_level,
+                                        int /*finest_level*/)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -831,12 +861,13 @@ void IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > 
     return;
 } // resetHierarchyConfiguration
 
-void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                       int level_number,
-                                       double error_data_time,
-                                       int tag_index,
-                                       bool initial_time,
-                                       bool uses_richardson_extrapolation_too)
+void
+IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+                                  int level_number,
+                                  double error_data_time,
+                                  int tag_index,
+                                  bool initial_time,
+                                  bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
@@ -850,7 +881,8 @@ void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_h
     return;
 } // applyGradientDetector
 
-void IBFEMethod::putToDatabase(Pointer<Database> db)
+void
+IBFEMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putInteger("d_num_parts", d_num_parts);
@@ -865,7 +897,8 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
-void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+void
+IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -880,10 +913,11 @@ void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
-                                             PetscVector<double>& X_vec,
-                                             const double data_time,
-                                             const unsigned int part)
+void
+IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
+                                        PetscVector<double>& X_vec,
+                                        const double data_time,
+                                        const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -1300,11 +1334,12 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     return;
 } // computeInteriorForceDensity
 
-void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
-                                                PetscVector<double>& X_ghost_vec,
-                                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                                const double data_time,
-                                                const unsigned int part)
+void
+IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
+                                           PetscVector<double>& X_ghost_vec,
+                                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                           const double data_time,
+                                           const unsigned int part)
 {
     if (!d_split_forces) return;
 
@@ -1588,11 +1623,12 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     return;
 } // spreadTransmissionForceDensity
 
-void IBFEMethod::imposeJumpConditions(const int f_data_idx,
-                                      PetscVector<double>& F_ghost_vec,
-                                      PetscVector<double>& X_ghost_vec,
-                                      const double data_time,
-                                      const unsigned int part)
+void
+IBFEMethod::imposeJumpConditions(const int f_data_idx,
+                                 PetscVector<double>& F_ghost_vec,
+                                 PetscVector<double>& X_ghost_vec,
+                                 const double data_time,
+                                 const unsigned int part)
 {
     if (!d_split_forces) return;
 
@@ -1981,7 +2017,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
-void IBFEMethod::initializeCoordinates(const unsigned int part)
+void
+IBFEMethod::initializeCoordinates(const unsigned int part)
 {
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
@@ -2013,7 +2050,8 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
     return;
 } // initializeCoordinates
 
-void IBFEMethod::updateCoordinateMapping(const unsigned int part)
+void
+IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
@@ -2045,13 +2083,14 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   Pointer<Database> input_db,
-                                   const std::vector<libMesh::Mesh*>& meshes,
-                                   int max_level_number,
-                                   bool register_for_restart,
-                                   const std::string& restart_read_dirname,
-                                   unsigned int restart_restore_number)
+void
+IBFEMethod::commonConstructor(const std::string& object_name,
+                              Pointer<Database> input_db,
+                              const std::vector<libMesh::Mesh*>& meshes,
+                              int max_level_number,
+                              bool register_for_restart,
+                              const std::string& restart_read_dirname,
+                              unsigned int restart_restore_number)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -2224,7 +2263,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     return;
 } // commonConstructor
 
-void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void
+IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -2323,7 +2363,8 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     return;
 } // getFromInput
 
-void IBFEMethod::getFromRestart()
+void
+IBFEMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;

@@ -93,12 +93,13 @@ QInit::~QInit()
     return;
 } // ~QInit
 
-void QInit::setDataOnPatch(const int data_idx,
-                           Pointer<Variable<NDIM> > /*var*/,
-                           Pointer<Patch<NDIM> > patch,
-                           const double data_time,
-                           const bool /*initial_time*/,
-                           Pointer<PatchLevel<NDIM> > /*level*/)
+void
+QInit::setDataOnPatch(const int data_idx,
+                      Pointer<Variable<NDIM> > /*var*/,
+                      Pointer<Patch<NDIM> > patch,
+                      const double data_time,
+                      const bool /*initial_time*/,
+                      Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -184,7 +185,8 @@ void QInit::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void QInit::getFromInput(Pointer<Database> db)
+void
+QInit::getFromInput(Pointer<Database> db)
 {
     if (db)
     {

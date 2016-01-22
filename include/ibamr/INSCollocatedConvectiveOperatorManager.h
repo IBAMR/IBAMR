@@ -103,7 +103,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator>(*OperatorMaker)(
+    typedef SAMRAI::tbox::Pointer<ConvectiveOperator> (*OperatorMaker)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,

@@ -127,9 +127,10 @@ CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
     return;
 } // ~CartSideDoubleDivPreservingRefine
 
-void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                                      const double fill_time,
-                                                                      const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                                 const double fill_time,
+                                                                 const IntVector<NDIM>& ghost_width_to_fill)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
@@ -138,24 +139,27 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                         const Patch<NDIM>& /*coarse*/,
-                                                         const Box<NDIM>& /*fine_box*/,
-                                                         const IntVector<NDIM>& /*ratio*/)
+void
+CartSideDoubleDivPreservingRefine::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                    const Patch<NDIM>& /*coarse*/,
+                                                    const Box<NDIM>& /*fine_box*/,
+                                                    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
-void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
-                                                          const Patch<NDIM>& coarse,
-                                                          const Box<NDIM>& unrestricted_fine_box,
-                                                          const IntVector<NDIM>& ratio)
+void
+CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
+                                                     const Patch<NDIM>& coarse,
+                                                     const Box<NDIM>& unrestricted_fine_box,
+                                                     const IntVector<NDIM>& ratio)
 {
     // NOTE: This operator cannot fill the full ghost cell width of the
     // destination data.  We instead restrict the size of the fine box to ensure

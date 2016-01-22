@@ -148,34 +148,39 @@ CartSideDoubleSpecializedLinearRefine::~CartSideDoubleSpecializedLinearRefine()
     return;
 } // ~CartSideDoubleSpecializedLinearRefine
 
-bool CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                                               const std::string& op_name) const
+bool
+CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                                          const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string& CartSideDoubleSpecializedLinearRefine::getOperatorName() const
+const std::string&
+CartSideDoubleSpecializedLinearRefine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int CartSideDoubleSpecializedLinearRefine::getOperatorPriority() const
+int
+CartSideDoubleSpecializedLinearRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> CartSideDoubleSpecializedLinearRefine::getStencilWidth() const
+IntVector<NDIM>
+CartSideDoubleSpecializedLinearRefine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void CartSideDoubleSpecializedLinearRefine::refine(Patch<NDIM>& fine,
-                                                   const Patch<NDIM>& coarse,
-                                                   const int dst_component,
-                                                   const int src_component,
-                                                   const Box<NDIM>& fine_box,
-                                                   const IntVector<NDIM>& ratio) const
+void
+CartSideDoubleSpecializedLinearRefine::refine(Patch<NDIM>& fine,
+                                              const Patch<NDIM>& coarse,
+                                              const int dst_component,
+                                              const int src_component,
+                                              const Box<NDIM>& fine_box,
+                                              const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
     Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);

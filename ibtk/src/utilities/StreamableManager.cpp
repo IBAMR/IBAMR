@@ -56,7 +56,8 @@ int StreamableManager::s_current_id_number = 0;
 const int StreamableManager::s_unregistered_id_number = -1;
 unsigned char StreamableManager::s_shutdown_priority = 200;
 
-StreamableManager* StreamableManager::getManager()
+StreamableManager*
+StreamableManager::getManager()
 {
     if (!s_data_manager_instance)
     {
@@ -70,21 +71,24 @@ StreamableManager* StreamableManager::getManager()
     return s_data_manager_instance;
 } // getManager
 
-void StreamableManager::freeManager()
+void
+StreamableManager::freeManager()
 {
     delete s_data_manager_instance;
     s_data_manager_instance = NULL;
     return;
 } // freeManager
 
-int StreamableManager::getUnregisteredID()
+int
+StreamableManager::getUnregisteredID()
 {
     return s_unregistered_id_number;
 } // getUnregisteredID
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
+bool
+StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);
@@ -92,7 +96,8 @@ bool StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> fact
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
 } // checkFactoryRegistration
 
-int StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
+int
+StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);
@@ -122,7 +127,8 @@ StreamableManager::~StreamableManager()
     return;
 } // ~StreamableManager
 
-int StreamableManager::createUniqueID()
+int
+StreamableManager::createUniqueID()
 {
     return s_current_id_number++;
 } // createUniqueID

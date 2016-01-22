@@ -77,7 +77,8 @@ namespace IBAMR
 
 namespace
 {
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
@@ -149,17 +150,19 @@ StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
     return;
 } // ~StaggeredStokesOpenBoundaryStabilizer
 
-bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
+bool
+StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           Pointer<Variable<NDIM> > /*var*/,
-                                                           Pointer<Patch<NDIM> > patch,
-                                                           const double /*data_time*/,
-                                                           const bool initial_time,
-                                                           Pointer<PatchLevel<NDIM> > /*level*/)
+void
+StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
+                                                      Pointer<Variable<NDIM> > /*var*/,
+                                                      Pointer<Patch<NDIM> > patch,
+                                                      const double /*data_time*/,
+                                                      const bool initial_time,
+                                                      Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

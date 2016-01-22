@@ -58,7 +58,8 @@ ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
     return;
 } // ~ExtendedRobinBcCoefStrategy
 
-void ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
+void
+ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(target_data_idx >= 0);
@@ -67,13 +68,15 @@ void ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
     return;
 } // setTargetPatchDataIndex
 
-void ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
+void
+ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
 {
     d_target_data_idx = -1;
     return;
 } // clearTargetPatchDataIndex
 
-void ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
+void
+ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;

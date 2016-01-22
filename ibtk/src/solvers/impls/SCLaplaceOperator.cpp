@@ -130,7 +130,8 @@ SCLaplaceOperator::~SCLaplaceOperator()
     return;
 } // ~SCLaplaceOperator()
 
-void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -206,8 +207,9 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     return;
 } // apply
 
-void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                const SAMRAIVectorReal<NDIM, double>& out)
+void
+SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                           const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -285,7 +287,8 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     return;
 } // initializeOperatorState
 
-void SCLaplaceOperator::deallocateOperatorState()
+void
+SCLaplaceOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

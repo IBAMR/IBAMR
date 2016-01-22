@@ -72,12 +72,14 @@ PETScPCLSWrapper::~PETScPCLSWrapper()
     return;
 } // ~PETScPCLSWrapper()
 
-const PC& PETScPCLSWrapper::getPETScPC() const
+const PC&
+PETScPCLSWrapper::getPETScPC() const
 {
     return d_petsc_pc;
 } // getPETScPC
 
-bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     if (!d_is_initialized) initializeSolverState(x, b);
 
@@ -91,8 +93,9 @@ bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     return true;
 } // solveSystem
 
-void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                             const SAMRAIVectorReal<NDIM, double>& b)
+void
+PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                        const SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");
@@ -106,7 +109,8 @@ void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     return;
 } // initializeSolverState
 
-void PETScPCLSWrapper::deallocateSolverState()
+void
+PETScPCLSWrapper::deallocateSolverState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
@@ -119,61 +123,71 @@ void PETScPCLSWrapper::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void PETScPCLSWrapper::setInitialGuessNonzero(bool /*initial_guess_nonzero*/)
+void
+PETScPCLSWrapper::setInitialGuessNonzero(bool /*initial_guess_nonzero*/)
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported" << std::endl););
     return;
 } // setInitialGuessNonzero
 
-bool PETScPCLSWrapper::getInitialGuessNonzero() const
+bool
+PETScPCLSWrapper::getInitialGuessNonzero() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported" << std::endl););
     return true;
 } // getInitialGuessNonzero
 
-void PETScPCLSWrapper::setMaxIterations(int /*max_iterations*/)
+void
+PETScPCLSWrapper::setMaxIterations(int /*max_iterations*/)
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl););
     return;
 } // setMaxIterations
 
-int PETScPCLSWrapper::getMaxIterations() const
+int
+PETScPCLSWrapper::getMaxIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl););
     return 0;
 } // getMaxIterations
 
-void PETScPCLSWrapper::setAbsoluteTolerance(double /*abs_residual_tol*/)
+void
+PETScPCLSWrapper::setAbsoluteTolerance(double /*abs_residual_tol*/)
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl););
     return;
 } // setAbsoluteTolerance
 
-double PETScPCLSWrapper::getAbsoluteTolerance() const
+double
+PETScPCLSWrapper::getAbsoluteTolerance() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl););
     return 0.0;
 } // getAbsoluteTolerance
 
-void PETScPCLSWrapper::setRelativeTolerance(double /*rel_residual_tol*/)
+void
+PETScPCLSWrapper::setRelativeTolerance(double /*rel_residual_tol*/)
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl););
     return;
 } // setRelativeTolerance
 
-double PETScPCLSWrapper::getRelativeTolerance() const
+double
+PETScPCLSWrapper::getRelativeTolerance() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl););
     return 0.0;
 } // getRelativeTolerance
 
-int PETScPCLSWrapper::getNumIterations() const
+int
+PETScPCLSWrapper::getNumIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl););
     return 0;
 } // getNumIterations
 
-double PETScPCLSWrapper::getResidualNorm() const
+double
+PETScPCLSWrapper::getResidualNorm() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;

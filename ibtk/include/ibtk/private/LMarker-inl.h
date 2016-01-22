@@ -83,68 +83,80 @@ inline LMarker& LMarker::operator=(const LMarker& that)
     return *this;
 } // operator=
 
-inline const int& LMarker::getIndex() const
+inline const int&
+LMarker::getIndex() const
 {
     return d_idx;
 } // getIndex
 
-inline int& LMarker::getIndex()
+inline int&
+LMarker::getIndex()
 {
     return d_idx;
 } // getIndex
 
-inline void LMarker::setIndex(int idx)
+inline void
+LMarker::setIndex(int idx)
 {
     d_idx = idx;
     return;
 } // setIndex
 
-inline const Point& LMarker::getPosition() const
+inline const Point&
+LMarker::getPosition() const
 {
     return d_X;
 } // getPosition
 
-inline Point& LMarker::getPosition()
+inline Point&
+LMarker::getPosition()
 {
     return d_X;
 } // getPosition
 
-inline void LMarker::setPosition(const Point& X)
+inline void
+LMarker::setPosition(const Point& X)
 {
     d_X = X;
     return;
 } // setPosition
 
-inline const Vector& LMarker::getVelocity() const
+inline const Vector&
+LMarker::getVelocity() const
 {
     return d_U;
 } // getVelocity
 
-inline Vector& LMarker::getVelocity()
+inline Vector&
+LMarker::getVelocity()
 {
     return d_U;
 } // getVelocity
 
-inline void LMarker::setVelocity(const Vector& U)
+inline void
+LMarker::setVelocity(const Vector& U)
 {
     d_U = U;
     return;
 } // setVelocity
 
-inline const SAMRAI::hier::IntVector<NDIM>& LMarker::getPeriodicOffset() const
+inline const SAMRAI::hier::IntVector<NDIM>&
+LMarker::getPeriodicOffset() const
 {
     return d_offset;
 } // getPeriodicOffset
 
-inline void LMarker::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
+inline void
+LMarker::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     d_offset = offset;
     return;
 } // setPeriodicOffset
 
-inline void LMarker::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-                                    const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                                    const LMarker& src_item)
+inline void
+LMarker::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
+                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                        const LMarker& src_item)
 {
     d_idx = src_item.d_idx;
     d_X = src_item.d_X;
@@ -153,12 +165,14 @@ inline void LMarker::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index
     return;
 } // copySourceItem
 
-inline size_t LMarker::getDataStreamSize() const
+inline size_t
+LMarker::getDataStreamSize() const
 {
     return (1 * SAMRAI::tbox::AbstractStream::sizeofInt() + 2 * NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 
-inline void LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_idx, 1);
     stream.pack(d_X.data(), NDIM);
@@ -166,7 +180,8 @@ inline void LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
     return;
 } // packStream
 
-inline void LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
+inline void
+LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
 {
     stream.unpack(&d_idx, 1);
     stream.unpack(d_X.data(), NDIM);

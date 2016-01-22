@@ -46,33 +46,39 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline void* FixedSizedStream::getBufferStart()
+inline void*
+FixedSizedStream::getBufferStart()
 {
     return static_cast<void*>(&d_buffer[0]);
 } // getBufferStart
 
-inline const void* FixedSizedStream::getBufferStart() const
+inline const void*
+FixedSizedStream::getBufferStart() const
 {
     return static_cast<const void*>(&d_buffer[0]);
 } // getBufferStart
 
-inline int FixedSizedStream::getCurrentSize() const
+inline int
+FixedSizedStream::getCurrentSize() const
 {
     return d_current_size;
 } // getCurrentSize
 
-inline int FixedSizedStream::getCurrentIndex() const
+inline int
+FixedSizedStream::getCurrentIndex() const
 {
     return d_buffer_index;
 } // getCurrentIndex
 
-inline void FixedSizedStream::setCurrentIndex(const int index)
+inline void
+FixedSizedStream::setCurrentIndex(const int index)
 {
     d_buffer_index = index;
     return;
 } // setCurrentIndex
 
-inline void FixedSizedStream::resetIndex()
+inline void
+FixedSizedStream::resetIndex()
 {
     setCurrentIndex(0);
     return;
@@ -100,7 +106,8 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(bool& data)
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const bool* data, const int n)
+inline void
+FixedSizedStream::pack(const bool* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void* ptr = getPointerAndAdvanceCursor(bytes);
@@ -112,7 +119,8 @@ inline void FixedSizedStream::pack(const bool* data, const int n)
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(bool* data, const int n)
+inline void
+FixedSizedStream::unpack(bool* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofBool(n);
     void* ptr = getPointerAndAdvanceCursor(bytes);
@@ -144,14 +152,16 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(char& data)
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const char* data, const int n)
+inline void
+FixedSizedStream::pack(const char* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofChar(n);
     __pack(data, bytes);
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(char* data, const int n)
+inline void
+FixedSizedStream::unpack(char* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofChar(n);
     __unpack(data, bytes);
@@ -178,14 +188,16 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(dcomplex& data
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const dcomplex* data, const int n)
+inline void
+FixedSizedStream::pack(const dcomplex* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     __pack(data, bytes);
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(dcomplex* data, const int n)
+inline void
+FixedSizedStream::unpack(dcomplex* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
     __unpack(data, bytes);
@@ -212,14 +224,16 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(double& data)
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const double* data, const int n)
+inline void
+FixedSizedStream::pack(const double* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDouble(n);
     __pack(data, bytes);
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(double* data, const int n)
+inline void
+FixedSizedStream::unpack(double* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofDouble(n);
     __unpack(data, bytes);
@@ -246,14 +260,16 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(float& data)
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const float* data, const int n)
+inline void
+FixedSizedStream::pack(const float* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofFloat(n);
     __pack(data, bytes);
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(float* data, const int n)
+inline void
+FixedSizedStream::unpack(float* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofFloat(n);
     __unpack(data, bytes);
@@ -280,14 +296,16 @@ inline SAMRAI::tbox::AbstractStream& FixedSizedStream::operator>>(int& data)
     return *this;
 } // operator>>
 
-inline void FixedSizedStream::pack(const int* data, const int n)
+inline void
+FixedSizedStream::pack(const int* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofInt(n);
     __pack(data, bytes);
     return;
 } // pack
 
-inline void FixedSizedStream::unpack(int* data, const int n)
+inline void
+FixedSizedStream::unpack(int* data, const int n)
 {
     const int bytes = SAMRAI::tbox::AbstractStream::sizeofInt(n);
     __unpack(data, bytes);
@@ -308,7 +326,8 @@ inline void FixedSizedStream::unpack(int* data, const int n)
 *************************************************************************
 */
 
-inline void* FixedSizedStream::getPointerAndAdvanceCursor(const int bytes)
+inline void*
+FixedSizedStream::getPointerAndAdvanceCursor(const int bytes)
 {
     void* ptr = &d_buffer[d_buffer_index];
     d_buffer_index += bytes;
@@ -318,14 +337,16 @@ inline void* FixedSizedStream::getPointerAndAdvanceCursor(const int bytes)
         if (d_buffer_index > d_buffer_size)
         {
             TBOX_ERROR("FixedSizedStream::getPointerAndAdvanceCursor():\n"
-                       << "  buffer overrun." << std::endl);
+                       << "  buffer overrun."
+                       << std::endl);
         }
     }
     return ptr;
 } // getPointerAndAdvanceCursor
 
 template <typename T>
-inline void FixedSizedStream::__pack(const T* const m_data, unsigned int m_bytes)
+inline void
+FixedSizedStream::__pack(const T* const m_data, unsigned int m_bytes)
 {
     void* const ptr = getPointerAndAdvanceCursor(m_bytes);
     memcpy(ptr, static_cast<const void*>(m_data), m_bytes);
@@ -333,7 +354,8 @@ inline void FixedSizedStream::__pack(const T* const m_data, unsigned int m_bytes
 } // _pack
 
 template <typename T>
-inline void FixedSizedStream::__unpack(T* const m_data, unsigned int m_bytes)
+inline void
+FixedSizedStream::__unpack(T* const m_data, unsigned int m_bytes)
 {
     const void* const ptr = getPointerAndAdvanceCursor(m_bytes);
     memcpy(static_cast<void*>(m_data), ptr, m_bytes);

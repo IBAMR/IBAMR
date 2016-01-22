@@ -54,7 +54,8 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);

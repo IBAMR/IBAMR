@@ -99,7 +99,8 @@ namespace IBAMR
 
 namespace
 {
-inline std::string discard_comments(const std::string& input_string)
+inline std::string
+discard_comments(const std::string& input_string)
 {
     // Create a copy of the input string, but without any text following a '!',
     // '#', or '%' character.
@@ -254,7 +255,8 @@ IBStandardInitializer::~IBStandardInitializer()
     return;
 } // ~IBStandardInitializer
 
-void IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void
+IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -282,7 +284,8 @@ void IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> sil
     return;
 } // registerLSiloDataWriter
 
-bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
+bool
+IBStandardInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
@@ -297,11 +300,12 @@ IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHie
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
-unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                      const int level_number,
-                                                                      const double /*init_data_time*/,
-                                                                      const bool /*can_be_refined*/,
-                                                                      const bool /*initial_time*/)
+unsigned int
+IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const int level_number,
+                                                         const double /*init_data_time*/,
+                                                         const bool /*can_be_refined*/,
+                                                         const bool /*initial_time*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -323,7 +327,8 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Poin
     return local_node_count;
 } // computeLocalNodeCountOnPatchLevel
 
-void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
+void
+IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
     std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
     const int level_number,
@@ -342,17 +347,18 @@ void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     return;
 } // initializeStructureIndexingOnPatchLevel
 
-unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
-                                                               const unsigned int global_index_offset,
-                                                               const unsigned int local_index_offset,
-                                                               Pointer<LData> X_data,
-                                                               Pointer<LData> U_data,
-                                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                               const int level_number,
-                                                               const double /*init_data_time*/,
-                                                               const bool /*can_be_refined*/,
-                                                               const bool /*initial_time*/,
-                                                               LDataManager* const /*l_data_manager*/)
+unsigned int
+IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
+                                                  const unsigned int global_index_offset,
+                                                  const unsigned int local_index_offset,
+                                                  Pointer<LData> X_data,
+                                                  Pointer<LData> U_data,
+                                                  const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  const int level_number,
+                                                  const double /*init_data_time*/,
+                                                  const bool /*can_be_refined*/,
+                                                  const bool /*initial_time*/,
+                                                  LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -479,16 +485,17 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     return local_node_count;
 } // initializeDataOnPatchLevel
 
-unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
-                                                                   const unsigned int local_index_offset,
-                                                                   Pointer<LData> M_data,
-                                                                   Pointer<LData> K_data,
-                                                                   const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                   const int level_number,
-                                                                   const double /*init_data_time*/,
-                                                                   const bool /*can_be_refined*/,
-                                                                   const bool /*initial_time*/,
-                                                                   LDataManager* const /*l_data_manager*/)
+unsigned int
+IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
+                                                      const unsigned int local_index_offset,
+                                                      Pointer<LData> M_data,
+                                                      Pointer<LData> K_data,
+                                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                      const int level_number,
+                                                      const double /*init_data_time*/,
+                                                      const bool /*can_be_refined*/,
+                                                      const bool /*initial_time*/,
+                                                      LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -539,15 +546,16 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     return local_node_count;
 } // initializeMassOnPatchLevel
 
-unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
-                                                                       const unsigned int local_index_offset,
-                                                                       Pointer<LData> D_data,
-                                                                       const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                       const int level_number,
-                                                                       const double /*init_data_time*/,
-                                                                       const bool /*can_be_refined*/,
-                                                                       const bool /*initial_time*/,
-                                                                       LDataManager* const /*l_data_manager*/)
+unsigned int
+IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
+                                                          const unsigned int local_index_offset,
+                                                          Pointer<LData> D_data,
+                                                          const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                          const int level_number,
+                                                          const double /*init_data_time*/,
+                                                          const bool /*can_be_refined*/,
+                                                          const bool /*initial_time*/,
+                                                          LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -585,10 +593,11 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     return local_node_count;
 } // initializeDirectorOnPatchLevel
 
-void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                         const int level_number,
-                                                         const double /*error_data_time*/,
-                                                         const int tag_index)
+void
+IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                    const int level_number,
+                                                    const double /*error_data_time*/,
+                                                    const int tag_index)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -641,7 +650,8 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
+void
+IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
@@ -708,7 +718,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
     return;
 } // initializeLSiloDataWriter
 
-void IBStandardInitializer::readVertexFiles(const std::string& extension)
+void
+IBStandardInitializer::readVertexFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -829,7 +840,8 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
     return;
 } // readVertexFiles
 
-void IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
+void
+IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1067,7 +1079,8 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
     return;
 } // readSpringFiles
 
-void IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
+void
+IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1306,7 +1319,8 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
     return;
 } // readXSpringFiles
 
-void IBStandardInitializer::readBeamFiles(const std::string& extension, const bool input_uses_global_idxs)
+void
+IBStandardInitializer::readBeamFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1551,7 +1565,8 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
     return;
 } // readBeamFiles
 
-void IBStandardInitializer::readRodFiles(const std::string& extension, const bool input_uses_global_idxs)
+void
+IBStandardInitializer::readRodFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1901,7 +1916,8 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
     return;
 } // readRodFiles
 
-void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
+void
+IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2100,7 +2116,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
     return;
 } // readTargetPointFiles
 
-void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
+void
+IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2220,7 +2237,8 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
     return;
 } // readAnchorPointFiles
 
-void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
+void
+IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2402,7 +2420,8 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
     return;
 } // readBoundaryMassFiles
 
-void IBStandardInitializer::readDirectorFiles(const std::string& extension)
+void
+IBStandardInitializer::readDirectorFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2526,7 +2545,8 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
     return;
 } // readDirectorFiles
 
-void IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
+void
+IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2817,7 +2837,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
     return;
 } // readInstrumentationFiles
 
-void IBStandardInitializer::readSourceFiles(const std::string& extension)
+void
+IBStandardInitializer::readSourceFiles(const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -3049,9 +3070,10 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
     return;
 } // readSourceFiles
 
-void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                             const Pointer<Patch<NDIM> > patch,
-                                             const Pointer<PatchHierarchy<NDIM> > hierarchy) const
+void
+IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+                                        const Pointer<Patch<NDIM> > patch,
+                                        const Pointer<PatchHierarchy<NDIM> > hierarchy) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch->inHierarchy());
@@ -3061,10 +3083,11 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
     return;
 } // getPatchVertices
 
-void IBStandardInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& patch_vertices,
-                                                    const Pointer<Patch<NDIM> > patch,
-                                                    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                    const int vertex_level_number) const
+void
+IBStandardInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& patch_vertices,
+                                               const Pointer<Patch<NDIM> > patch,
+                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                               const int vertex_level_number) const
 {
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
@@ -3098,22 +3121,24 @@ void IBStandardInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, i
     return;
 } // getPatchVerticesAtLevel
 
-int IBStandardInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index,
-                                                       const int level_number) const
+int
+IBStandardInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_vertex_offset[level_number][point_index.first] + point_index.second;
 } // getCanonicalLagrangianIndex
 
-Point IBStandardInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int level_number) const
+Point
+IBStandardInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_vertex_posn[level_number][point_index.first][point_index.second];
 } // getVertexPosn
 
-Point IBStandardInitializer::getShiftedVertexPosn(const std::pair<int, int>& point_index,
-                                                  const int level_number,
-                                                  const double* const domain_x_lower,
-                                                  const double* const domain_x_upper,
-                                                  const IntVector<NDIM>& periodic_shift) const
+Point
+IBStandardInitializer::getShiftedVertexPosn(const std::pair<int, int>& point_index,
+                                            const int level_number,
+                                            const double* const domain_x_lower,
+                                            const double* const domain_x_upper,
+                                            const IntVector<NDIM>& periodic_shift) const
 {
     Point X = getVertexPosn(point_index, level_number);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -3149,14 +3174,15 @@ IBStandardInitializer::getVertexBdryMassSpec(const std::pair<int, int>& point_in
     return d_bdry_mass_spec_data[level_number][point_index.first][point_index.second];
 } // getVertexBdryMassSpec
 
-const std::vector<double>& IBStandardInitializer::getVertexDirectors(const std::pair<int, int>& point_index,
-                                                                     const int level_number) const
+const std::vector<double>&
+IBStandardInitializer::getVertexDirectors(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_directors[level_number][point_index.first][point_index.second];
 } // getVertexDirectors
 
-std::pair<int, int> IBStandardInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
-                                                                           const int level_number) const
+std::pair<int, int>
+IBStandardInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
+                                                       const int level_number) const
 {
     std::map<int, std::pair<int, int> >::const_iterator it =
         d_instrument_idx[level_number][point_index.first].find(point_index.second);
@@ -3170,7 +3196,8 @@ std::pair<int, int> IBStandardInitializer::getVertexInstrumentationIndices(const
     }
 } // getVertexInstrumentationIndices
 
-int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& point_index, const int level_number) const
+int
+IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& point_index, const int level_number) const
 {
     std::map<int, int>::const_iterator it = d_source_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_source_idx[level_number][point_index.first].end())
@@ -3183,9 +3210,10 @@ int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& poi
     }
 } // getVertexSourceIndices
 
-std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
-                                                                            const unsigned int global_index_offset,
-                                                                            const int level_number) const
+std::vector<Pointer<Streamable> >
+IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
+                                          const unsigned int global_index_offset,
+                                          const int level_number) const
 {
     std::vector<Pointer<Streamable> > node_data;
 
@@ -3360,7 +3388,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
     return node_data;
 } // initializeNodeData
 
-void IBStandardInitializer::getFromInput(Pointer<Database> db)
+void
+IBStandardInitializer::getFromInput(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);

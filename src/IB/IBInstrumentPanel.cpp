@@ -196,10 +196,11 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     return;
 } // init_meter_elements
 
-double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
-                               const Vector& U_centroid,
-                               const boost::multi_array<Point, 1>& X_perimeter,
-                               const Point& X_centroid)
+double
+compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
+                        const Vector& U_centroid,
+                        const boost::multi_array<Point, 1>& X_perimeter,
+                        const Point& X_centroid)
 {
     double U_dot_dA = 0.0;
 #if (NDIM == 2)
@@ -237,12 +238,13 @@ double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
 /*!
  * \brief Build a local mesh database entry corresponding to a meter web.
  */
-void build_meter_web(DBfile* dbfile,
-                     std::string& dirname,
-                     const boost::multi_array<Point, 2>& X_web,
-                     const boost::multi_array<Vector, 2>& dA_web,
-                     const int timestep,
-                     const double simulation_time)
+void
+build_meter_web(DBfile* dbfile,
+                std::string& dirname,
+                const boost::multi_array<Point, 2>& X_web,
+                const boost::multi_array<Vector, 2>& dA_web,
+                const int timestep,
+                const double simulation_time)
 {
     const int npoints = static_cast<int>(X_web.num_elements());
 
@@ -316,15 +318,16 @@ void build_meter_web(DBfile* dbfile,
 } // build_meter_web
 #endif
 
-double linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
-                     const Point& X_cell,
-                     const CellData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
-                     const double* const /*x_lower*/,
-                     const double* const /*x_upper*/,
-                     const double* const dx)
+double
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const CellData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
     boost::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -373,15 +376,16 @@ double linear_interp(const Point& X,
 } // linear_interp
 
 template <int N>
-Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
-                                          const Index<NDIM>& i_cell,
-                                          const Point& X_cell,
-                                          const CellData<NDIM, double>& v,
-                                          const Index<NDIM>& /*patch_lower*/,
-                                          const Index<NDIM>& /*patch_upper*/,
-                                          const double* const /*x_lower*/,
-                                          const double* const /*x_upper*/,
-                                          const double* const dx)
+Eigen::Matrix<double, N, 1>
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const CellData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
@@ -435,15 +439,16 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
     return U;
 } // linear_interp
 
-Vector linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
-                     const Point& X_cell,
-                     const SideData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
-                     const double* const /*x_lower*/,
-                     const double* const /*x_upper*/,
-                     const double* const dx)
+Vector
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const SideData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == 1);
@@ -564,32 +569,38 @@ IBInstrumentPanel::~IBInstrumentPanel()
     return;
 } // ~IBInstrumentPanel
 
-const std::vector<std::string>& IBInstrumentPanel::getInstrumentNames() const
+const std::vector<std::string>&
+IBInstrumentPanel::getInstrumentNames() const
 {
     return d_instrument_names;
 } // getInstrumentNames
 
-const double& IBInstrumentPanel::getInstrumentDataReadTime() const
+const double&
+IBInstrumentPanel::getInstrumentDataReadTime() const
 {
     return d_instrument_read_time;
 } // getInstrumentDataReadTime
 
-const std::vector<double>& IBInstrumentPanel::getFlowValues() const
+const std::vector<double>&
+IBInstrumentPanel::getFlowValues() const
 {
     return d_flow_values;
 } // getFlowValues
 
-const std::vector<double>& IBInstrumentPanel::getMeanPressureValues() const
+const std::vector<double>&
+IBInstrumentPanel::getMeanPressureValues() const
 {
     return d_mean_pres_values;
 } // getMeanPressureValues
 
-const std::vector<double>& IBInstrumentPanel::getPointwisePressureValues() const
+const std::vector<double>&
+IBInstrumentPanel::getPointwisePressureValues() const
 {
     return d_point_pres_values;
 } // getPointwisePressureValues
 
-bool IBInstrumentPanel::isInstrumented() const
+bool
+IBInstrumentPanel::isInstrumented() const
 {
     if (!d_initialized)
     {
@@ -601,8 +612,9 @@ bool IBInstrumentPanel::isInstrumented() const
     return (d_num_meters > 0);
 } // isInstrumented
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           LDataManager* const l_data_manager)
+void
+IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                      LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
 
@@ -719,10 +731,11 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     return;
 } // initializeHierarchyIndependentData
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                         LDataManager* const l_data_manager,
-                                                         const int timestep_num,
-                                                         const double data_time)
+void
+IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                    LDataManager* const l_data_manager,
+                                                    const int timestep_num,
+                                                    const double data_time)
 {
     if (!d_initialized)
     {
@@ -946,12 +959,13 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     return;
 } // initializeHierarchyDependentData
 
-void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
-                                           const int P_data_idx,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           LDataManager* const l_data_manager,
-                                           const int timestep_num,
-                                           const double data_time)
+void
+IBInstrumentPanel::readInstrumentData(const int U_data_idx,
+                                      const int P_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      LDataManager* const l_data_manager,
+                                      const int timestep_num,
+                                      const double data_time)
 {
     if (d_num_meters == 0) return;
 
@@ -1210,13 +1224,15 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     return;
 } // readInstrumentData
 
-void IBInstrumentPanel::setPlotDirectory(const std::string& plot_directory_name)
+void
+IBInstrumentPanel::setPlotDirectory(const std::string& plot_directory_name)
 {
     d_plot_directory_name = plot_directory_name;
     return;
 } // setPlotDirectory
 
-void IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation_time)
+void
+IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation_time)
 {
     if (d_num_meters == 0) return;
 
@@ -1381,7 +1397,8 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBInstrumentPanel::getFromInput(Pointer<Database> db)
+void
+IBInstrumentPanel::getFromInput(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1399,7 +1416,8 @@ void IBInstrumentPanel::getFromInput(Pointer<Database> db)
     return;
 } // getFromInput
 
-void IBInstrumentPanel::outputLogData(std::ostream& os)
+void
+IBInstrumentPanel::outputLogData(std::ostream& os)
 {
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {

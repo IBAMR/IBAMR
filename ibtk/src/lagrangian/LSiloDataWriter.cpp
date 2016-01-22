@@ -98,18 +98,19 @@ static const int LAG_SILO_DATA_WRITER_VERSION = 1;
  * \brief Build a local mesh database entry corresponding to a cloud of marker
  * points.
  */
-void build_local_marker_cloud(DBfile* dbfile,
-                              std::string& dirname,
-                              const int nmarks,
-                              const double* const X,
-                              const int nvars,
-                              const std::vector<std::string>& varnames,
-                              const std::vector<int>& varstartdepths,
-                              const std::vector<int>& varplotdepths,
-                              const std::vector<int>& vardepths,
-                              const std::vector<const double*> varvals,
-                              const int time_step,
-                              const double simulation_time)
+void
+build_local_marker_cloud(DBfile* dbfile,
+                         std::string& dirname,
+                         const int nmarks,
+                         const double* const X,
+                         const int nvars,
+                         const std::vector<std::string>& varnames,
+                         const std::vector<int>& varstartdepths,
+                         const std::vector<int>& varplotdepths,
+                         const std::vector<int>& vardepths,
+                         const std::vector<const double*> varvals,
+                         const int time_step,
+                         const double simulation_time)
 {
     std::vector<float> block_X(NDIM * nmarks);
     std::vector<std::vector<float> > block_varvals(nvars);
@@ -209,19 +210,20 @@ void build_local_marker_cloud(DBfile* dbfile,
  * \brief Build a local mesh database entry corresponding to a quadrilateral
  * curvilinear block.
  */
-void build_local_curv_block(DBfile* dbfile,
-                            std::string& dirname,
-                            const IntVector<NDIM>& nelem_in,
-                            const IntVector<NDIM>& periodic,
-                            const double* const X,
-                            const int nvars,
-                            const std::vector<std::string>& varnames,
-                            const std::vector<int>& varstartdepths,
-                            const std::vector<int>& varplotdepths,
-                            const std::vector<int>& vardepths,
-                            const std::vector<const double*> varvals,
-                            const int time_step,
-                            const double simulation_time)
+void
+build_local_curv_block(DBfile* dbfile,
+                       std::string& dirname,
+                       const IntVector<NDIM>& nelem_in,
+                       const IntVector<NDIM>& periodic,
+                       const double* const X,
+                       const int nvars,
+                       const std::vector<std::string>& varnames,
+                       const std::vector<int>& varstartdepths,
+                       const std::vector<int>& varplotdepths,
+                       const std::vector<int>& vardepths,
+                       const std::vector<const double*> varvals,
+                       const int time_step,
+                       const double simulation_time)
 {
     // Check for co-dimension 1 or 2 data.
     IntVector<NDIM> nelem, degenerate;
@@ -413,19 +415,20 @@ void build_local_curv_block(DBfile* dbfile,
  * \brief Build a local mesh database entry corresponding to an unstructured
  * mesh.
  */
-void build_local_ucd_mesh(DBfile* dbfile,
-                          std::string& dirname,
-                          const std::set<int>& vertices,
-                          const std::multimap<int, std::pair<int, int> >& edge_map,
-                          const double* const X,
-                          const int nvars,
-                          const std::vector<std::string>& varnames,
-                          const std::vector<int>& varstartdepths,
-                          const std::vector<int>& varplotdepths,
-                          const std::vector<int>& vardepths,
-                          const std::vector<const double*> varvals,
-                          const int time_step,
-                          const double simulation_time)
+void
+build_local_ucd_mesh(DBfile* dbfile,
+                     std::string& dirname,
+                     const std::set<int>& vertices,
+                     const std::multimap<int, std::pair<int, int> >& edge_map,
+                     const double* const X,
+                     const int nvars,
+                     const std::vector<std::string>& varnames,
+                     const std::vector<int>& varstartdepths,
+                     const std::vector<int>& varplotdepths,
+                     const std::vector<int>& vardepths,
+                     const std::vector<const double*> varvals,
+                     const int time_step,
+                     const double simulation_time)
 {
     // Rearrange the data into the format required by Silo.
     const int ntot = static_cast<int>(vertices.size());
@@ -730,7 +733,8 @@ LSiloDataWriter::~LSiloDataWriter()
     return;
 } // ~LSiloDataWriter
 
-void LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -741,7 +745,8 @@ void LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
     return;
 } // setPatchHierarchy
 
-void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
+void
+LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
@@ -840,10 +845,11 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     return;
 } // resetLevels
 
-void LSiloDataWriter::registerMarkerCloud(const std::string& name,
-                                          const int nmarks,
-                                          const int first_lag_idx,
-                                          const int level_number)
+void
+LSiloDataWriter::registerMarkerCloud(const std::string& name,
+                                     const int nmarks,
+                                     const int first_lag_idx,
+                                     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -904,11 +910,12 @@ void LSiloDataWriter::registerMarkerCloud(const std::string& name,
     return;
 } // registerMarkerCloud
 
-void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
-                                                      const IntVector<NDIM>& nelem,
-                                                      const IntVector<NDIM>& periodic,
-                                                      const int first_lag_idx,
-                                                      const int level_number)
+void
+LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
+                                                 const IntVector<NDIM>& nelem,
+                                                 const IntVector<NDIM>& periodic,
+                                                 const int first_lag_idx,
+                                                 const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -975,11 +982,12 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
     return;
 } // registerLogicallyCartesianBlock
 
-void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
-                                                           const std::vector<IntVector<NDIM> >& nelem,
-                                                           const std::vector<IntVector<NDIM> >& periodic,
-                                                           const std::vector<int>& first_lag_idx,
-                                                           const int level_number)
+void
+LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
+                                                      const std::vector<IntVector<NDIM> >& nelem,
+                                                      const std::vector<IntVector<NDIM> >& periodic,
+                                                      const std::vector<int>& first_lag_idx,
+                                                      const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1055,9 +1063,10 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
     return;
 } // registerLogicallyCartesianMultiblock
 
-void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
-                                               const std::multimap<int, std::pair<int, int> >& edge_map,
-                                               const int level_number)
+void
+LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
+                                          const std::multimap<int, std::pair<int, int> >& edge_map,
+                                          const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1127,7 +1136,8 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     return;
 } // registerUnstructuredMesh
 
-void LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_number)
+void
+LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1142,7 +1152,8 @@ void LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int l
     return;
 } // registerCoordsData
 
-void LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData> var_data, const int level_number)
+void
+LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData> var_data, const int level_number)
 {
     const int start_depth = 0;
     const int var_depth = var_data->getDepth();
@@ -1150,11 +1161,12 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<
     return;
 } // registerVariableData
 
-void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           Pointer<LData> var_data,
-                                           const int start_depth,
-                                           const int var_depth,
-                                           const int level_number)
+void
+LSiloDataWriter::registerVariableData(const std::string& var_name,
+                                      Pointer<LData> var_data,
+                                      const int start_depth,
+                                      const int var_depth,
+                                      const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1186,7 +1198,8 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name,
     return;
 } // registerVariableData
 
-void LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
+void
+LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1201,7 +1214,8 @@ void LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
     return;
 } // registerLagrangianAO
 
-void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarsest_ln, const int finest_ln)
+void
+LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= finest_ln);
@@ -1223,7 +1237,8 @@ void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarse
     return;
 } // registerLagrangianAO
 
-void LSiloDataWriter::writePlotData(const int time_step_number, const double simulation_time)
+void
+LSiloDataWriter::writePlotData(const int time_step_number, const double simulation_time)
 {
 #if defined(IBTK_HAVE_SILO)
 #if !defined(NDEBUG)
@@ -2088,7 +2103,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     return;
 } // writePlotData
 
-void LSiloDataWriter::putToDatabase(Pointer<Database> db)
+void
+LSiloDataWriter::putToDatabase(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -2251,7 +2267,8 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
+void
+LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 {
     if (!d_coords_data[level_number]) return;
 
@@ -2372,7 +2389,8 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     return;
 } // buildVecScatters
 
-void LSiloDataWriter::getFromRestart()
+void
+LSiloDataWriter::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;

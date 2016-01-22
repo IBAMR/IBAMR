@@ -106,13 +106,14 @@ static const int UPPER = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
-                                                       const PoissonSpecifications& poisson_spec,
-                                                       RobinBcCoefStrategy<NDIM>* bc_coef,
-                                                       double data_time,
-                                                       const std::vector<int>& num_dofs_per_proc,
-                                                       const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                  double data_time,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
     constructPatchLevelCCLaplaceOp(mat,
                                    poisson_spec,
@@ -124,13 +125,14 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelCCLaplaceOp
 
-void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
-                                                       const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                                       double data_time,
-                                                       const std::vector<int>& num_dofs_per_proc,
-                                                       const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     if (mat)
@@ -271,13 +273,14 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelCCLaplaceOp
 
-void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
-                                                       const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                                       double data_time,
-                                                       const std::vector<int>& num_dofs_per_proc,
-                                                       const int dof_index_idx,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -415,13 +418,14 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelSCLaplaceOp
 
-void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
-                                                      void (*interp_fcn)(double r_lower, double* w),
-                                                      int interp_stencil,
-                                                      Vec& X_vec,
-                                                      const std::vector<int>& num_dofs_per_proc,
-                                                      const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
+                                                 void (*interp_fcn)(double r_lower, double* w),
+                                                 int interp_stencil,
+                                                 Vec& X_vec,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 const int dof_index_idx,
+                                                 Pointer<PatchLevel<NDIM> > patch_level)
 {
     // \todo Properly support odd stencil sizes.
     if (interp_stencil % 2 != 0) interp_stencil += 1;
@@ -653,14 +657,15 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     return;
 } // constructPatchLevelSCInterpOp
 
-void PETScMatUtilities::constructProlongationOp(Mat& mat,
-                                                int dof_index_idx,
-                                                const std::vector<int>& num_fine_dofs_per_proc,
-                                                const std::vector<int>& num_coarse_dofs_per_proc,
-                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                const AO& coarse_level_ao,
-                                                const int coarse_ao_offset)
+void
+PETScMatUtilities::constructProlongationOp(Mat& mat,
+                                           int dof_index_idx,
+                                           const std::vector<int>& num_fine_dofs_per_proc,
+                                           const std::vector<int>& num_coarse_dofs_per_proc,
+                                           Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                           Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                           const AO& coarse_level_ao,
+                                           const int coarse_ao_offset)
 {
     // Determine the data-centering type.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -700,7 +705,8 @@ void PETScMatUtilities::constructProlongationOp(Mat& mat,
 
 } // constructPatchLevelProlongationOp
 
-void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
+void
+PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
 {
     // Note that enteries of P are positive, so we will use column norm-1 function
     // of PETSc which appears to be faster than row sum call from the documentation.
@@ -762,14 +768,15 @@ void PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
     return;
 } // constructRestrictionScalingOp
 
-void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
-                                                         std::vector<IS>& is_nonoverlap,
-                                                         const IntVector<NDIM>& box_size,
-                                                         const IntVector<NDIM>& overlap_size,
-                                                         const std::vector<int>& num_dofs_per_proc,
-                                                         int dof_index_idx,
-                                                         Pointer<PatchLevel<NDIM> > patch_level,
-                                                         Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+void
+PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                                    std::vector<IS>& is_nonoverlap,
+                                                    const IntVector<NDIM>& box_size,
+                                                    const IntVector<NDIM>& overlap_size,
+                                                    const std::vector<int>& num_dofs_per_proc,
+                                                    int dof_index_idx,
+                                                    Pointer<PatchLevel<NDIM> > patch_level,
+                                                    Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
     for (unsigned int k = 0; k < is_overlap.size(); ++k)
@@ -827,14 +834,15 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_ove
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
-                                                     int dof_index_idx,
-                                                     const std::vector<int>& num_fine_dofs_per_proc,
-                                                     const std::vector<int>& num_coarse_dofs_per_proc,
-                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                     const AO& coarse_level_ao,
-                                                     const int coarse_ao_offset)
+void
+PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
+                                                int dof_index_idx,
+                                                const std::vector<int>& num_fine_dofs_per_proc,
+                                                const std::vector<int>& num_coarse_dofs_per_proc,
+                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                const AO& coarse_level_ao,
+                                                const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -966,14 +974,15 @@ void PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
 
 } // constructProlongationOp_cell
 
-void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
-                                                     int dof_index_idx,
-                                                     const std::vector<int>& num_fine_dofs_per_proc,
-                                                     const std::vector<int>& num_coarse_dofs_per_proc,
-                                                     Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                     Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                     const AO& coarse_level_ao,
-                                                     const int coarse_ao_offset)
+void
+PETScMatUtilities::constructProlongationOp_side(Mat& mat,
+                                                int dof_index_idx,
+                                                const std::vector<int>& num_fine_dofs_per_proc,
+                                                const std::vector<int>& num_coarse_dofs_per_proc,
+                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                const AO& coarse_level_ao,
+                                                const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -1181,14 +1190,15 @@ void PETScMatUtilities::constructProlongationOp_side(Mat& mat,
     return;
 } // constructProlongationOp_side
 
-void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
-                                                              std::vector<IS>& is_nonoverlap,
-                                                              const IntVector<NDIM>& box_size,
-                                                              const IntVector<NDIM>& overlap_size,
-                                                              const std::vector<int>& /*num_dofs_per_proc*/,
-                                                              int dof_index_idx,
-                                                              Pointer<PatchLevel<NDIM> > patch_level,
-                                                              Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
+void
+PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,
+                                                         std::vector<IS>& is_nonoverlap,
+                                                         const IntVector<NDIM>& box_size,
+                                                         const IntVector<NDIM>& overlap_size,
+                                                         const std::vector<int>& /*num_dofs_per_proc*/,
+                                                         int dof_index_idx,
+                                                         Pointer<PatchLevel<NDIM> > patch_level,
+                                                         Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
 {
     // Check if there is an overlap.
     const bool there_is_overlap = overlap_size.max();
@@ -1279,14 +1289,15 @@ void PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& i
     return;
 } // constructPatchLevelASMSubdomains_cell
 
-void PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_overlap,
-                                                              std::vector<IS>& is_nonoverlap,
-                                                              const IntVector<NDIM>& box_size,
-                                                              const IntVector<NDIM>& overlap_size,
-                                                              const std::vector<int>& /*num_dofs_per_proc*/,
-                                                              int dof_index_idx,
-                                                              Pointer<PatchLevel<NDIM> > patch_level,
-                                                              Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+void
+PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_overlap,
+                                                         std::vector<IS>& is_nonoverlap,
+                                                         const IntVector<NDIM>& box_size,
+                                                         const IntVector<NDIM>& overlap_size,
+                                                         const std::vector<int>& /*num_dofs_per_proc*/,
+                                                         int dof_index_idx,
+                                                         Pointer<PatchLevel<NDIM> > patch_level,
+                                                         Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();

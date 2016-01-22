@@ -65,7 +65,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // Basic 4-point kernel function kernel.
-inline double ib4_kernel_fcn(double r)
+inline double
+ib4_kernel_fcn(double r)
 {
     r = std::abs(r);
     if (r < 1.0)
@@ -90,7 +91,8 @@ inline double ib4_kernel_fcn(double r)
 double W = 4.0;
 
 // Re-scaled 4-point kernel function kernel
-inline double scaled_ib4_kernel_fcn(double r)
+inline double
+scaled_ib4_kernel_fcn(double r)
 {
     return ib4_kernel_fcn(r / (W / 4.0)) / (W / 4.0);
 } // scaled_ib4_kernel_fcn
@@ -106,7 +108,8 @@ inline double scaled_ib4_kernel_fcn(double r)
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -360,12 +363,13 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 LDataManager* l_data_manager,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            LDataManager* l_data_manager,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

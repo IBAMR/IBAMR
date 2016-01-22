@@ -222,7 +222,8 @@ CCPoissonHypreLevelSolver::~CCPoissonHypreLevelSolver()
     return;
 } // ~CCPoissonHypreLevelSolver
 
-bool CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -255,8 +256,9 @@ bool CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, S
     return converged;
 } // solveSystem
 
-void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                      const SAMRAIVectorReal<NDIM, double>& b)
+void
+CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                 const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -376,7 +378,8 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
     return;
 } // initializeSolverState
 
-void CCPoissonHypreLevelSolver::deallocateSolverState()
+void
+CCPoissonHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -397,7 +400,8 @@ void CCPoissonHypreLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CCPoissonHypreLevelSolver::allocateHypreData()
+void
+CCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
@@ -519,7 +523,8 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     return;
 } // allocateHypreData
 
-void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
+void
+CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 {
     // Set matrix entries and copy them to the hypre matrix structures.
     const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
@@ -558,7 +563,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     return;
 } // setMatrixCoefficients_aligned
 
-void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
+void
+CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector<NDIM> no_ghosts = 0;
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
@@ -765,7 +771,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     return;
 } // setMatrixCoefficients_nonaligned
 
-void CCPoissonHypreLevelSolver::setupHypreSolver()
+void
+CCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
@@ -1056,7 +1063,8 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
     return;
 } // setupHypreSolver
 
-bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
+bool
+CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     const bool level_zero = (d_level_num == 0);
 
@@ -1207,9 +1215,10 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
-void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                                            const CellData<NDIM, double>& src_data,
-                                            const Box<NDIM>& box)
+void
+CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
+                                       const CellData<NDIM, double>& src_data,
+                                       const Box<NDIM>& box)
 {
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
@@ -1232,9 +1241,10 @@ void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector
     return;
 } // copyToHypre
 
-void CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
-                                              const std::vector<HYPRE_StructVector>& vectors,
-                                              const Box<NDIM>& box)
+void
+CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
+                                         const std::vector<HYPRE_StructVector>& vectors,
+                                         const Box<NDIM>& box)
 {
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
@@ -1257,7 +1267,8 @@ void CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
     return;
 } // copyFromHypre
 
-void CCPoissonHypreLevelSolver::destroyHypreSolver()
+void
+CCPoissonHypreLevelSolver::destroyHypreSolver()
 {
     for (unsigned int k = 0; k < d_depth; ++k)
     {
@@ -1316,7 +1327,8 @@ void CCPoissonHypreLevelSolver::destroyHypreSolver()
     return;
 } // destroyHypreSolver
 
-void CCPoissonHypreLevelSolver::deallocateHypreData()
+void
+CCPoissonHypreLevelSolver::deallocateHypreData()
 {
     if (d_grid) HYPRE_StructGridDestroy(d_grid);
     if (d_stencil) HYPRE_StructStencilDestroy(d_stencil);

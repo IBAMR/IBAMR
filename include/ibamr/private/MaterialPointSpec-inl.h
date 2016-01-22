@@ -46,7 +46,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool MaterialPointSpec::getIsRegisteredWithStreamableManager()
+inline bool
+MaterialPointSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
@@ -76,58 +77,69 @@ inline MaterialPointSpec::~MaterialPointSpec()
     return;
 } // ~MaterialPointSpec
 
-inline const int& MaterialPointSpec::getPointIndex() const
+inline const int&
+MaterialPointSpec::getPointIndex() const
 {
     return d_point_idx;
 } // getPointIndex
 
-inline int& MaterialPointSpec::getPointIndex()
+inline int&
+MaterialPointSpec::getPointIndex()
 {
     return d_point_idx;
 } // getPointIndex
 
-inline const double& MaterialPointSpec::getWeight() const
+inline const double&
+MaterialPointSpec::getWeight() const
 {
     return d_weight;
 } // getWeight
 
-inline double& MaterialPointSpec::getWeight()
+inline double&
+MaterialPointSpec::getWeight()
 {
     return d_weight;
 } // getWeight
 
-inline const libMesh::subdomain_id_type& MaterialPointSpec::getSubdomainId() const
+inline const libMesh::subdomain_id_type&
+MaterialPointSpec::getSubdomainId() const
 {
     return d_subdomain_id;
 } // getSubdomainId
 
-inline libMesh::subdomain_id_type& MaterialPointSpec::getSubdomainId()
+inline libMesh::subdomain_id_type&
+MaterialPointSpec::getSubdomainId()
 {
     return d_subdomain_id;
 } // getSubdomainId
 
-inline const std::vector<double>& MaterialPointSpec::getInternalVariables() const
+inline const std::vector<double>&
+MaterialPointSpec::getInternalVariables() const
 {
     return d_internal_vars;
 } // getInternalVariables
 
-inline std::vector<double>& MaterialPointSpec::getInternalVariables()
+inline std::vector<double>&
+MaterialPointSpec::getInternalVariables()
 {
     return d_internal_vars;
 } // getInternalVariables
 
-inline int MaterialPointSpec::getStreamableClassID() const
+inline int
+MaterialPointSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t MaterialPointSpec::getDataStreamSize() const
+inline size_t
+MaterialPointSpec::getDataStreamSize() const
 {
     return (3 * SAMRAI::tbox::AbstractStream::sizeofInt() +
             (1 + d_internal_vars.size()) * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 
-inline void MaterialPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+MaterialPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_point_idx, 1);
     stream.pack(&d_weight, 1);

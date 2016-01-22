@@ -82,7 +82,8 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box<NDIM>
+compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
     Box<NDIM> extended_box = box;
     extended_box.upper()(data_axis) += 1;
@@ -106,7 +107,8 @@ static const int UPPER = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     Mat& mat,
     const PoissonSpecifications& u_problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -613,15 +615,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     return;
 } // constructPatchLevelMACStokesOp
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
-                                                                        std::vector<IS>& is_nonoverlap,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& /*num_dofs_per_proc*/,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level,
-                                                                        Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                                                   std::vector<IS>& is_nonoverlap,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& /*num_dofs_per_proc*/,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level,
+                                                                   Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
     for (unsigned int k = 0; k < is_overlap.size(); ++k)
@@ -822,14 +825,15 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vec
     return;
 } // constructPatchLevelASMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
-                                                                        std::vector<IS>& is_col,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& num_dofs_per_proc,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
+                                                                   std::vector<IS>& is_col,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& num_dofs_per_proc,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Destroy the previously stored IS'es
     int ierr;
@@ -958,16 +962,17 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     return;
 } // constructPatchLevelMSMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
-                                                                        std::vector<IS>& is_red_col,
-                                                                        std::vector<IS>& is_black_row,
-                                                                        std::vector<IS>& is_black_col,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& num_dofs_per_proc,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
+                                                                   std::vector<IS>& is_red_col,
+                                                                   std::vector<IS>& is_black_row,
+                                                                   std::vector<IS>& is_black_col,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& num_dofs_per_proc,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Destroy the previously stored IS'es
     int ierr;
@@ -1180,7 +1185,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     return;
 } // constructPatchLevelMSMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     std::vector<IS>& is_field,
     std::vector<std::string>& is_field_name,
     const std::vector<int>& num_dofs_per_proc,

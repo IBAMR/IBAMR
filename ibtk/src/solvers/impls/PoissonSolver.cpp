@@ -66,19 +66,22 @@ PoissonSolver::~PoissonSolver()
     return;
 } // ~PoissonSolver()
 
-void PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+void
+PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
 
-void PoissonSolver::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
+void
+PoissonSolver::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
     return;
 } // setPhysicalBcCoef
 
-void PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -95,7 +98,8 @@ void PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDI
     return;
 } // setPhysicalBcCoefs
 
-void PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homogeneous_bc*/)
+void
+PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homogeneous_bc*/)
 {
     // Initialize the Poisson specifications.
     PoissonSpecifications poisson_spec(object_name + "::poisson_spec");

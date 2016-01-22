@@ -101,7 +101,8 @@ namespace IBTK
 
 namespace
 {
-inline std::string discard_comments(const std::string& input_string)
+inline std::string
+discard_comments(const std::string& input_string)
 {
     // Create a copy of the input string, but without any text following a '!',
     // '#', or '%' character.
@@ -128,9 +129,10 @@ inline std::string discard_comments(const std::string& input_string)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
-                                                   const std::string& mark_input_file_name,
-                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+unsigned int
+LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
+                                      const std::string& mark_input_file_name,
+                                      Pointer<CartesianGridGeometry<NDIM> > grid_geom)
 {
     if (mark_input_file_name.empty()) return 0;
 
@@ -266,14 +268,15 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
     return num_mark;
 } // readMarkerPositions
 
-void LMarkerUtilities::eulerStep(const int mark_current_idx,
-                                 const int mark_new_idx,
-                                 const int u_current_idx,
-                                 const double dt,
-                                 const std::string& weighting_fcn,
-                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                 const int coarsest_ln_in,
-                                 const int finest_ln_in)
+void
+LMarkerUtilities::eulerStep(const int mark_current_idx,
+                            const int mark_new_idx,
+                            const int u_current_idx,
+                            const double dt,
+                            const std::string& weighting_fcn,
+                            Pointer<PatchHierarchy<NDIM> > hierarchy,
+                            const int coarsest_ln_in,
+                            const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -329,14 +332,15 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
     return;
 } // eulerStep
 
-void LMarkerUtilities::midpointStep(const int mark_current_idx,
-                                    const int mark_new_idx,
-                                    const int u_half_idx,
-                                    const double dt,
-                                    const std::string& weighting_fcn,
-                                    Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    const int coarsest_ln_in,
-                                    const int finest_ln_in)
+void
+LMarkerUtilities::midpointStep(const int mark_current_idx,
+                               const int mark_new_idx,
+                               const int u_half_idx,
+                               const double dt,
+                               const std::string& weighting_fcn,
+                               Pointer<PatchHierarchy<NDIM> > hierarchy,
+                               const int coarsest_ln_in,
+                               const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -399,14 +403,15 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
     return;
 } // midpointStep
 
-void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
-                                       const int mark_new_idx,
-                                       const int u_new_idx,
-                                       const double dt,
-                                       const std::string& weighting_fcn,
-                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                       const int coarsest_ln_in,
-                                       const int finest_ln_in)
+void
+LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
+                                  const int mark_new_idx,
+                                  const int u_new_idx,
+                                  const double dt,
+                                  const std::string& weighting_fcn,
+                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                  const int coarsest_ln_in,
+                                  const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -475,7 +480,8 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
     return;
 } // trapezoidalStep
 
-void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -637,12 +643,13 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
     return;
 } // collectMarkersOnPatchHierarchy
 
-void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
-                                                const std::vector<Point>& mark_init_posns,
-                                                const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                const int level_number,
-                                                const bool initial_time,
-                                                const Pointer<BasePatchLevel<NDIM> > old_level)
+void
+LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
+                                           const std::vector<Point>& mark_init_posns,
+                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const int level_number,
+                                           const bool initial_time,
+                                           const Pointer<BasePatchLevel<NDIM> > old_level)
 {
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
@@ -712,10 +719,11 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
     return;
 } // initializeMarkersOnLevel
 
-void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
-                                           Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           const int coarsest_ln_in,
-                                           const int finest_ln_in)
+void
+LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
+                                      Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const int coarsest_ln_in,
+                                      const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -746,10 +754,11 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
     return;
 } // pruneInvalidMarkers
 
-unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
-                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                            const int coarsest_ln_in,
-                                            const int finest_ln_in)
+unsigned int
+LMarkerUtilities::countMarkers(const int mark_idx,
+                               Pointer<PatchHierarchy<NDIM> > hierarchy,
+                               const int coarsest_ln_in,
+                               const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -771,7 +780,8 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-unsigned int LMarkerUtilities::countMarkersOnPatch(Pointer<LMarkerSetData> mark_data)
+unsigned int
+LMarkerUtilities::countMarkersOnPatch(Pointer<LMarkerSetData> mark_data)
 {
     const Box<NDIM> patch_box = mark_data->getBox();
     unsigned int num_marks = 0;
@@ -785,7 +795,8 @@ unsigned int LMarkerUtilities::countMarkersOnPatch(Pointer<LMarkerSetData> mark_
     return num_marks;
 } // countMarkersOnPatch
 
-void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark, Pointer<LMarkerSetData> mark_data)
+void
+LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark, Pointer<LMarkerSetData> mark_data)
 {
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -802,7 +813,8 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
     return;
 } // collectMarkerPositionsOnPatch
 
-void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark, Pointer<LMarkerSetData> mark_data)
+void
+LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark, Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
@@ -818,7 +830,8 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
     return;
 } // resetMarkerPositionsOnPatch
 
-void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark, Pointer<LMarkerSetData> mark_data)
+void
+LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark, Pointer<LMarkerSetData> mark_data)
 {
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -835,8 +848,8 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
     return;
 } // collectMarkerVelocitiesOnPatch
 
-void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark,
-                                                    Pointer<LMarkerSetData> mark_data)
+void
+LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark, Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
@@ -852,7 +865,8 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
     return;
 } // resetMarkerVelocitiesOnPatch
 
-void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+void
+LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, Pointer<CartesianGridGeometry<NDIM> > grid_geom)
 {
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() > 0) return;

@@ -96,28 +96,32 @@ FACPreconditioner::~FACPreconditioner()
     return;
 } // ~FACPreconditioner
 
-void FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
+void
+FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     d_fac_strategy->setHomogeneousBc(homogeneous_bc);
     return;
 } // setHomogeneousBc
 
-void FACPreconditioner::setSolutionTime(const double solution_time)
+void
+FACPreconditioner::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     d_fac_strategy->setSolutionTime(solution_time);
     return;
 } // setSolutionTime
 
-void FACPreconditioner::setTimeInterval(const double current_time, const double new_time)
+void
+FACPreconditioner::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
 } // setTimeInterval
 
-bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f)
+bool
+FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -179,8 +183,9 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVec
     return true;
 } // solveSystem
 
-void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                              const SAMRAIVectorReal<NDIM, double>& rhs)
+void
+FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                         const SAMRAIVectorReal<NDIM, double>& rhs)
 {
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
@@ -212,7 +217,8 @@ void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, doubl
     return;
 } // initializeSolverState
 
-void FACPreconditioner::deallocateSolverState()
+void
+FACPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -237,7 +243,8 @@ void FACPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
@@ -248,7 +255,8 @@ void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     return;
 } // setInitialGuessNonzero
 
-void FACPreconditioner::setMaxIterations(int max_iterations)
+void
+FACPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
@@ -259,44 +267,51 @@ void FACPreconditioner::setMaxIterations(int max_iterations)
     return;
 } // setMaxIterations
 
-void FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
+void
+FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
 {
     d_cycle_type = cycle_type;
     return;
 } // setMGCycleType
 
-MGCycleType FACPreconditioner::getMGCycleType() const
+MGCycleType
+FACPreconditioner::getMGCycleType() const
 {
     return d_cycle_type;
 } // getMGCycleType
 
-void FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
+void
+FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
 {
     d_num_pre_sweeps = num_pre_sweeps;
     return;
 } // setNumPreSmoothingSweeps
 
-int FACPreconditioner::getNumPreSmoothingSweeps() const
+int
+FACPreconditioner::getNumPreSmoothingSweeps() const
 {
     return d_num_pre_sweeps;
 } // getNumPreSmoothingSweeps
 
-void FACPreconditioner::setNumPostSmoothingSweeps(int num_post_sweeps)
+void
+FACPreconditioner::setNumPostSmoothingSweeps(int num_post_sweeps)
 {
     d_num_post_sweeps = num_post_sweeps;
     return;
 } // setNumPostSmoothingSweeps
 
-int FACPreconditioner::getNumPostSmoothingSweeps() const
+int
+FACPreconditioner::getNumPostSmoothingSweeps() const
 {
     return d_num_post_sweeps;
 } // getNumPostSmoothingSweeps
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
-                                                SAMRAIVectorReal<NDIM, double>& f,
-                                                int level_num)
+void
+FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
+                                           SAMRAIVectorReal<NDIM, double>& f,
+                                           int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -325,7 +340,8 @@ void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& 
     return;
 } // FACVCycleNoPreSmoothing
 
-void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void
+FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -371,7 +387,8 @@ void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVecto
     return;
 } // FACVCycle
 
-void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void
+FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -418,7 +435,8 @@ void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVecto
     return;
 } // FACWCycle
 
-void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void
+FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -467,7 +485,8 @@ void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVecto
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
+void
+FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
 

@@ -150,8 +150,9 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                       const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void
+StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                                  const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     if (!d_level->checkAllocated(d_u_dof_index_idx)) d_level->allocatePatchData(d_u_dof_index_idx);
@@ -264,7 +265,8 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     return;
 } // initializeSolverStateSpecialized
 
-void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
+void
+StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
@@ -272,7 +274,8 @@ void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     return;
 } // deallocateSolverStateSpecialized
 
-void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -281,7 +284,8 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorR
     return;
 } // copyToPETScVec
 
-void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -290,10 +294,11 @@ void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVecto
     return;
 } // copyFromPETScVec
 
-void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                                   Vec& petsc_b,
-                                                   SAMRAIVectorReal<NDIM, double>& x,
-                                                   SAMRAIVectorReal<NDIM, double>& b)
+void
+StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                              Vec& petsc_b,
+                                              SAMRAIVectorReal<NDIM, double>& x,
+                                              SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);

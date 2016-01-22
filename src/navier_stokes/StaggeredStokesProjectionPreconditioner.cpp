@@ -167,8 +167,9 @@ StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditione
     return;
 } // ~StaggeredStokesProjectionPreconditioner
 
-bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                                          SAMRAIVectorReal<NDIM, double>& b)
+bool
+StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
+                                                     SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
@@ -332,8 +333,9 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     return true;
 } // solveSystem
 
-void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                    const SAMRAIVectorReal<NDIM, double>& b)
+void
+StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                               const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -377,7 +379,8 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     return;
 } // initializeSolverState
 
-void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
+void
+StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -409,7 +412,8 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
@@ -421,7 +425,8 @@ void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initia
     return;
 } // setInitialGuessNonzero
 
-void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
+void
+StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {

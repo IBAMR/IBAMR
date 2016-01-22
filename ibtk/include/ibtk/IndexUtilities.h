@@ -55,9 +55,11 @@ struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );
@@ -118,9 +120,10 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
-                                                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
-                                                  const SAMRAI::hier::Box<NDIM>& patch_box);
+    static SAMRAI::hier::Index<NDIM>
+    getCellIndex(const DoubleArray& X,
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
+                 const SAMRAI::hier::Box<NDIM>& patch_box);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -130,9 +133,10 @@ public:
      * \see SAMRAI::geom::CartesianGridGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
-                                                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                                                  const SAMRAI::hier::IntVector<NDIM>& ratio);
+    static SAMRAI::hier::Index<NDIM>
+    getCellIndex(const DoubleArray& X,
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                 const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable

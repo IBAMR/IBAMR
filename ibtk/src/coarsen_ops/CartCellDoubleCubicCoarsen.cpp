@@ -120,34 +120,38 @@ CartCellDoubleCubicCoarsen::~CartCellDoubleCubicCoarsen()
     return;
 } // ~CartCellDoubleCubicCoarsen
 
-bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
-                                                     const std::string& op_name) const
+bool
+CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
-const std::string& CartCellDoubleCubicCoarsen::getOperatorName() const
+const std::string&
+CartCellDoubleCubicCoarsen::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int CartCellDoubleCubicCoarsen::getOperatorPriority() const
+int
+CartCellDoubleCubicCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> CartCellDoubleCubicCoarsen::getStencilWidth() const
+IntVector<NDIM>
+CartCellDoubleCubicCoarsen::getStencilWidth() const
 {
     return d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
-void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
-                                         const Patch<NDIM>& fine,
-                                         const int dst_component,
-                                         const int src_component,
-                                         const Box<NDIM>& coarse_box,
-                                         const IntVector<NDIM>& ratio) const
+void
+CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
+                                    const Patch<NDIM>& fine,
+                                    const int dst_component,
+                                    const int src_component,
+                                    const Box<NDIM>& coarse_box,
+                                    const IntVector<NDIM>& ratio) const
 {
     if (ratio.min() < 4)
     {

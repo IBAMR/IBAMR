@@ -137,7 +137,8 @@ StaggeredStokesLevelRelaxationFACOperator::~StaggeredStokesLevelRelaxationFACOpe
     return;
 } // ~StaggeredStokesLevelRelaxationFACOperator
 
-void StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
+void
+StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
 {
     StaggeredStokesFACPreconditionerStrategy::setSmootherType(level_solver_type);
 
@@ -150,12 +151,13 @@ void StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::strin
     return;
 } // setSmootherType
 
-void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                            const SAMRAIVectorReal<NDIM, double>& residual,
-                                                            int level_num,
-                                                            int num_sweeps,
-                                                            bool /*performing_pre_sweeps*/,
-                                                            bool /*performing_post_sweeps*/)
+void
+StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                       const SAMRAIVectorReal<NDIM, double>& residual,
+                                                       int level_num,
+                                                       int num_sweeps,
+                                                       bool /*performing_pre_sweeps*/,
+                                                       bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -292,7 +294,8 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
+void
+StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const SAMRAIVectorReal<NDIM, double>& /*solution*/,
     const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
     const int coarsest_reset_ln,
@@ -369,8 +372,9 @@ void StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecializ
     return;
 } // initializeOperatorStateSpecialized
 
-void StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                                   const int finest_reset_ln)
+void
+StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                              const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)

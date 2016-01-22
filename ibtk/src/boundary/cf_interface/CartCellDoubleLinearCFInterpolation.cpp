@@ -117,15 +117,17 @@ CartCellDoubleLinearCFInterpolation::~CartCellDoubleLinearCFInterpolation()
     return;
 } // ~CartCellDoubleLinearCFInterpolation
 
-void CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
-                                                                        const double /*fill_time*/,
-                                                                        const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void
+CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
+                                                                   const double /*fill_time*/,
+                                                                   const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
@@ -133,19 +135,21 @@ IntVector<NDIM> CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() c
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartCellDoubleLinearCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                           const Patch<NDIM>& /*coarse*/,
-                                                           const Box<NDIM>& /*fine_box*/,
-                                                           const IntVector<NDIM>& /*ratio*/)
+void
+CartCellDoubleLinearCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                      const Patch<NDIM>& /*coarse*/,
+                                                      const Box<NDIM>& /*fine_box*/,
+                                                      const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
-void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
-                                                            const Patch<NDIM>& coarse,
-                                                            const Box<NDIM>& fine_box,
-                                                            const IntVector<NDIM>& ratio)
+void
+CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
+                                                       const Patch<NDIM>& coarse,
+                                                       const Box<NDIM>& fine_box,
+                                                       const IntVector<NDIM>& ratio)
 {
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
@@ -155,13 +159,15 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
     return;
 } // postprocessRefine
 
-void CartCellDoubleLinearCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+void
+CartCellDoubleLinearCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
 {
     d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
 } // setConsistentInterpolationScheme
 
-void CartCellDoubleLinearCFInterpolation::setPatchDataIndex(const int patch_data_index)
+void
+CartCellDoubleLinearCFInterpolation::setPatchDataIndex(const int patch_data_index)
 {
     std::set<int> patch_data_indices;
     patch_data_indices.insert(patch_data_index);
@@ -169,14 +175,16 @@ void CartCellDoubleLinearCFInterpolation::setPatchDataIndex(const int patch_data
     return;
 } // setPatchDataIndex
 
-void CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
+void
+CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
 } // setPatchDataIndices
 
-void CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+void
+CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -191,7 +199,8 @@ void CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSel
     return;
 } // setPatchDataIndices
 
-void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -223,7 +232,8 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarc
     return;
 } // setPatchHierarchy
 
-void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
+void
+CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
@@ -242,9 +252,10 @@ void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
     return;
 } // clearPatchHierarchy
 
-void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
-                                                                 const IntVector<NDIM>& ratio,
-                                                                 const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void
+CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
+                                                            const IntVector<NDIM>& ratio,
+                                                            const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);

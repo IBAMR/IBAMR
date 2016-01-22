@@ -65,14 +65,15 @@ namespace ModelData
 {
 // Stress tensor function.
 static double mu_s, lambda_s;
-void upper_PK1_stress_function(TensorValue<double>& PP,
-                               const TensorValue<double>& FF,
-                               const libMesh::Point& /*X*/,
-                               const libMesh::Point& s,
-                               Elem* const /*elem*/,
-                               const vector<NumericVector<double>*>& /*system_data*/,
-                               double /*time*/,
-                               void* /*ctx*/)
+void
+upper_PK1_stress_function(TensorValue<double>& PP,
+                          const TensorValue<double>& FF,
+                          const libMesh::Point& /*X*/,
+                          const libMesh::Point& s,
+                          Elem* const /*elem*/,
+                          const vector<NumericVector<double>*>& /*system_data*/,
+                          double /*time*/,
+                          void* /*ctx*/)
 {
     if (s(0) > 5.0 && s(0) < 10.0)
     {
@@ -91,27 +92,29 @@ void upper_PK1_stress_function(TensorValue<double>& PP,
 
 // Tether (penalty) force functions for lower and upper blocks.
 static double kappa_s = 1.0e6;
-void lower_tether_force_function(VectorValue<double>& F,
-                                 const TensorValue<double>& /*FF*/,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
-                                 double /*time*/,
-                                 void* /*ctx*/)
+void
+lower_tether_force_function(VectorValue<double>& F,
+                            const TensorValue<double>& /*FF*/,
+                            const libMesh::Point& X,
+                            const libMesh::Point& s,
+                            Elem* const /*elem*/,
+                            const vector<NumericVector<double>*>& /*system_data*/,
+                            double /*time*/,
+                            void* /*ctx*/)
 {
     F = kappa_s * (s - X);
     return;
 } // lower_tether_force_function
 
-void upper_tether_force_function(VectorValue<double>& F,
-                                 const TensorValue<double>& /*FF*/,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
-                                 double /*time*/,
-                                 void* /*ctx*/)
+void
+upper_tether_force_function(VectorValue<double>& F,
+                            const TensorValue<double>& /*FF*/,
+                            const libMesh::Point& X,
+                            const libMesh::Point& s,
+                            Elem* const /*elem*/,
+                            const vector<NumericVector<double>*>& /*system_data*/,
+                            double /*time*/,
+                            void* /*ctx*/)
 {
     if (s(0) > 5.0 && s(0) < 10.0)
     {
@@ -146,7 +149,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -484,13 +488,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            Mesh& mesh,
+            EquationSystems* equation_systems,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

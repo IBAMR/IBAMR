@@ -76,7 +76,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -342,13 +343,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 LDataManager* l_data_manager,
-                 const int iteration_num,
-                 const double loop_time,
-                 const int output_level,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            LDataManager* l_data_manager,
+            const int iteration_num,
+            const double loop_time,
+            const int output_level,
+            const string& data_dump_dirname)
 {
     if (output_level >= 0)
     {

@@ -41,7 +41,6 @@
 
 namespace IBTK
 {
-
 #if IBTK_HAVE_BUILTIN_EXPECT
 #define UNLIKELY(c) __builtin_expect(!!(c), 0)
 #define LIKELY(c) __builtin_expect(!!(c), 1)
@@ -57,7 +56,7 @@ namespace IBTK
     {                                                                                                                  \
         for (int k = 0; k < static_cast<int>((n)); ++k)                                                                \
         {                                                                                                              \
-            PREFETCH_READ_NTA((a)+k);                                                                                  \
+            PREFETCH_READ_NTA((a) + k);                                                                                \
         }                                                                                                              \
     } while (0)
 #if (NDIM == 2)
@@ -65,7 +64,7 @@ namespace IBTK
     do                                                                                                                 \
     {                                                                                                                  \
         PREFETCH_READ_NTA((a));                                                                                        \
-        PREFETCH_READ_NTA((a)+1);                                                                                      \
+        PREFETCH_READ_NTA((a) + 1);                                                                                    \
     } while (0)
 #endif
 #if (NDIM == 3)
@@ -73,8 +72,8 @@ namespace IBTK
     do                                                                                                                 \
     {                                                                                                                  \
         PREFETCH_READ_NTA((a));                                                                                        \
-        PREFETCH_READ_NTA((a)+1);                                                                                      \
-        PREFETCH_READ_NTA((a)+2);                                                                                      \
+        PREFETCH_READ_NTA((a) + 1);                                                                                    \
+        PREFETCH_READ_NTA((a) + 2);                                                                                    \
     } while (0)
 #endif
 #define PREFETCH_WRITE_NTA(a) __builtin_prefetch((a), 1, 0)
@@ -83,7 +82,7 @@ namespace IBTK
     {                                                                                                                  \
         for (int k = 0; k < static_cast<int>((n)); ++k)                                                                \
         {                                                                                                              \
-            PREFETCH_WRITE_NTA((a)+k);                                                                                 \
+            PREFETCH_WRITE_NTA((a) + k);                                                                               \
         }                                                                                                              \
     } while (0)
 #if (NDIM == 2)
@@ -91,7 +90,7 @@ namespace IBTK
     do                                                                                                                 \
     {                                                                                                                  \
         PREFETCH_WRITE_NTA((a));                                                                                       \
-        PREFETCH_WRITE_NTA((a)+1);                                                                                     \
+        PREFETCH_WRITE_NTA((a) + 1);                                                                                   \
     } while (0)
 #endif
 #if (NDIM == 3)
@@ -99,8 +98,8 @@ namespace IBTK
     do                                                                                                                 \
     {                                                                                                                  \
         PREFETCH_WRITE_NTA((a));                                                                                       \
-        PREFETCH_WRITE_NTA((a)+1);                                                                                     \
-        PREFETCH_WRITE_NTA((a)+2);                                                                                     \
+        PREFETCH_WRITE_NTA((a) + 1);                                                                                   \
+        PREFETCH_WRITE_NTA((a) + 2);                                                                                   \
     } while (0)
 #endif
 #else

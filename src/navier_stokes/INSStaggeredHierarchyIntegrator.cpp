@@ -366,7 +366,8 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Copy data from a side-centered variable to a face-centered variable.
-void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -583,7 +584,8 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     return;
 } // ~INSStaggeredHierarchyIntegrator
 
-Pointer<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperator()
+Pointer<ConvectiveOperator>
+INSStaggeredHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -601,7 +603,8 @@ Pointer<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperat
     return d_convective_op;
 } // getConvectiveOperator
 
-Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
+Pointer<PoissonSolver>
+INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
@@ -613,7 +616,8 @@ Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolv
     return d_velocity_solver;
 } // getVelocitySubdomainSolver
 
-Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
+Pointer<PoissonSolver>
+INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
@@ -625,7 +629,8 @@ Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolv
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
+void
+INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_stokes_solver);
@@ -635,7 +640,8 @@ void INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSol
     return;
 } // setStokesSolver
 
-Pointer<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver()
+Pointer<StaggeredStokesSolver>
+INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (!d_stokes_solver)
     {
@@ -647,14 +653,16 @@ Pointer<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver(
     return d_stokes_solver;
 } // getStokesSolver
 
-void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
+void
+INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
 {
     d_stokes_solver_needs_init = true;
     return;
 }
 
-void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -947,8 +955,9 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     return;
 } // initializeHierarchyIntegrator
 
-void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -975,9 +984,10 @@ void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHier
     return;
 } // initializePatchHierarhcy
 
-void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                   const double new_time,
-                                                                   const int num_cycles)
+void
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                              const double new_time,
+                                                              const int num_cycles)
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -1164,9 +1174,10 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     return;
 } // preprocessIntegrateHierarchy
 
-void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                         const double new_time,
-                                                         const int cycle_num)
+void
+INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                    const double new_time,
+                                                    const int cycle_num)
 {
     INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
@@ -1248,10 +1259,11 @@ void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_ti
     return;
 } // integrateHierarchy
 
-void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                    const double new_time,
-                                                                    const bool skip_synchronize_new_state_data,
-                                                                    const int num_cycles)
+void
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                               const double new_time,
+                                                               const bool skip_synchronize_new_state_data,
+                                                               const int num_cycles)
 {
     INSHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
                                                           num_cycles);
@@ -1331,7 +1343,8 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
     return;
 } // postprocessIntegrateHierarchy
 
-void INSStaggeredHierarchyIntegrator::regridHierarchy()
+void
+INSStaggeredHierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
@@ -1385,11 +1398,12 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
     return;
 } // regridHierarchy
 
-void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-                                                         const double current_time,
-                                                         const double new_time,
-                                                         const int cycle_num)
+void
+INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
+                                                    const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+                                                    const double current_time,
+                                                    const double new_time,
+                                                    const int cycle_num)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1510,11 +1524,12 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
     return;
 } // setupSolverVectors
 
-void INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-                                                         const double current_time,
-                                                         const double /*new_time*/,
-                                                         const int cycle_num)
+void
+INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
+                                                    const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+                                                    const double current_time,
+                                                    const double /*new_time*/,
+                                                    const int cycle_num)
 {
     // Synchronize solution data after solve.
     typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
@@ -1564,14 +1579,14 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool /*can_be_refined*/,
-    const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level,
-    const bool /*allocate_data*/)
+void
+INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+                                                                const int level_number,
+                                                                const double init_data_time,
+                                                                const bool /*can_be_refined*/,
+                                                                const bool initial_time,
+                                                                const Pointer<BasePatchLevel<NDIM> > base_old_level,
+                                                                const bool /*allocate_data*/)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -1730,7 +1745,8 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
     return;
 } // initializeLevelDataSpecialized
 
-void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1800,13 +1816,13 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double /*error_data_time*/,
-    const int tag_index,
-    const bool /*initial_time*/,
-    const bool /*uses_richardson_extrapolation_too*/)
+void
+INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                                  const int level_number,
+                                                                  const double /*error_data_time*/,
+                                                                  const int tag_index,
+                                                                  const bool /*initial_time*/,
+                                                                  const bool /*uses_richardson_extrapolation_too*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -1871,7 +1887,8 @@ void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
     return;
 } // applyGradientDetectorSpecialized
 
-void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
+void
+INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
     Pointer<VariableContext> ctx = getCurrentContext();
 
@@ -1925,7 +1942,8 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void INSStaggeredHierarchyIntegrator::regridProjection()
+void
+INSStaggeredHierarchyIntegrator::regridProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2012,7 +2030,8 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     return;
 } // regridProjection
 
-double INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+double
+INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -2040,7 +2059,8 @@ double INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > 
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
+void
+INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2322,7 +2342,8 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     return;
 } // reinitializeOperatorsAndSolvers
 
-void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int U_idx)
+void
+INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int U_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2407,7 +2428,8 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
     return;
 } // computeDivSourceTerm
 
-TimeSteppingType INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
+TimeSteppingType
+INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
 {
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
