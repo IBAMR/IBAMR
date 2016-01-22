@@ -299,17 +299,19 @@ muParserCartGridFunction::~muParserCartGridFunction()
     return;
 } // ~muParserCartGridFunction
 
-bool muParserCartGridFunction::isTimeDependent() const
+bool
+muParserCartGridFunction::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
-                                              const double data_time,
-                                              const bool /*initial_time*/,
-                                              Pointer<PatchLevel<NDIM> > /*level*/)
+void
+muParserCartGridFunction::setDataOnPatch(const int data_idx,
+                                         Pointer<Variable<NDIM> > /*var*/,
+                                         Pointer<Patch<NDIM> > patch,
+                                         const double data_time,
+                                         const bool /*initial_time*/,
+                                         Pointer<PatchLevel<NDIM> > /*level*/)
 {
     d_parser_time = data_time;
 

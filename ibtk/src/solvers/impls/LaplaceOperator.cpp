@@ -84,24 +84,28 @@ LaplaceOperator::~LaplaceOperator()
     return;
 } // ~LaplaceOperator()
 
-void LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+void
+LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
 
-const PoissonSpecifications& LaplaceOperator::getPoissonSpecifications() const
+const PoissonSpecifications&
+LaplaceOperator::getPoissonSpecifications() const
 {
     return d_poisson_spec;
 } // getPoissonSpecifications
 
-void LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
+void
+LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
     return;
 } // setPhysicalBcCoef
 
-void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -118,7 +122,8 @@ void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<N
     return;
 } // setPhysicalBcCoefs
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>& LaplaceOperator::getPhysicalBcCoefs() const
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;
 } // getPhysicalBcCoefs

@@ -64,7 +64,8 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);

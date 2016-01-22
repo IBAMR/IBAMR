@@ -62,9 +62,10 @@ IBSimpleHierarchyIntegrator::~IBSimpleHierarchyIntegrator()
     return;
 } // ~IBSimpleHierarchyIntegrator
 
-void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                               const double new_time,
-                                                               const int num_cycles)
+void
+IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                          const double new_time,
+                                                          const int num_cycles)
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -98,9 +99,8 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     return;
 } // preprocessIntegrateHierarchy
 
-void IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                     const double new_time,
-                                                     const int cycle_num)
+void
+IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
@@ -181,10 +181,11 @@ void IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time,
     return;
 } // integrateHierarchy
 
-void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                const double new_time,
-                                                                const bool skip_synchronize_new_state_data,
-                                                                const int num_cycles)
+void
+IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                           const double new_time,
+                                                           const bool skip_synchronize_new_state_data,
+                                                           const int num_cycles)
 {
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -221,8 +222,9 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 } // postprocessIntegrateHierarchy
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

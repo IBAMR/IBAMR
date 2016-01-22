@@ -68,28 +68,30 @@ namespace ModelData
 static double kappa_s = 1.0e6;
 
 // Tether (penalty) force function for the solid block.
-void block_tether_force_function(VectorValue<double>& F,
-                                 const TensorValue<double>& /*FF*/,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
-                                 double /*time*/,
-                                 void* /*ctx*/)
+void
+block_tether_force_function(VectorValue<double>& F,
+                            const TensorValue<double>& /*FF*/,
+                            const libMesh::Point& X,
+                            const libMesh::Point& s,
+                            Elem* const /*elem*/,
+                            const vector<NumericVector<double>*>& /*system_data*/,
+                            double /*time*/,
+                            void* /*ctx*/)
 {
     F = kappa_s * (s - X);
     return;
 } // block_tether_force_function
 
 // Tether (penalty) force function for the thin beam.
-void beam_tether_force_function(VectorValue<double>& F,
-                                const TensorValue<double>& /*FF*/,
-                                const libMesh::Point& X,
-                                const libMesh::Point& s,
-                                Elem* const /*elem*/,
-                                const vector<NumericVector<double>*>& /*system_data*/,
-                                double /*time*/,
-                                void* /*ctx*/)
+void
+beam_tether_force_function(VectorValue<double>& F,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& X,
+                           const libMesh::Point& s,
+                           Elem* const /*elem*/,
+                           const vector<NumericVector<double>*>& /*system_data*/,
+                           double /*time*/,
+                           void* /*ctx*/)
 {
     const double r = sqrt((s(0) - 0.2) * (s(0) - 0.2) + (s(1) - 0.2) * (s(1) - 0.2));
     if (r <= 0.05)
@@ -105,14 +107,15 @@ void beam_tether_force_function(VectorValue<double>& F,
 
 // Stress tensor function for the thin beam.
 static double mu_s, lambda_s;
-void beam_PK1_stress_function(TensorValue<double>& PP,
-                              const TensorValue<double>& FF,
-                              const libMesh::Point& /*X*/,
-                              const libMesh::Point& s,
-                              Elem* const /*elem*/,
-                              const vector<NumericVector<double>*>& /*system_data*/,
-                              double /*time*/,
-                              void* /*ctx*/)
+void
+beam_PK1_stress_function(TensorValue<double>& PP,
+                         const TensorValue<double>& FF,
+                         const libMesh::Point& /*X*/,
+                         const libMesh::Point& s,
+                         Elem* const /*elem*/,
+                         const vector<NumericVector<double>*>& /*system_data*/,
+                         double /*time*/,
+                         void* /*ctx*/)
 {
     const double r = sqrt((s(0) - 0.2) * (s(0) - 0.2) + (s(1) - 0.2) * (s(1) - 0.2));
     if (r > 0.05)
@@ -155,7 +158,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -508,15 +512,16 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                      Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                      Mesh& beam_mesh,
-                      EquationSystems* beam_equation_systems,
-                      Mesh& block_mesh,
-                      EquationSystems* block_equation_systems,
-                      const int /*iteration_num*/,
-                      const double loop_time,
-                      const string& /*data_dump_dirname*/)
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 Mesh& beam_mesh,
+                 EquationSystems* beam_equation_systems,
+                 Mesh& block_mesh,
+                 EquationSystems* block_equation_systems,
+                 const int /*iteration_num*/,
+                 const double loop_time,
+                 const string& /*data_dump_dirname*/)
 {
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;

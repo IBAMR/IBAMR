@@ -365,8 +365,7 @@ private:
     /*!
      * \brief Setup F'[x].
      */
-    static PetscErrorCode
-    FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
+    static PetscErrorCode FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* p_ctx);
 
     /*!
      * \brief Compute the matrix vector product y = Ax.

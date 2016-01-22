@@ -292,7 +292,8 @@ INSStaggeredCenteredConvectiveOperator::~INSStaggeredCenteredConvectiveOperator(
     return;
 } // ~INSStaggeredCenteredConvectiveOperator
 
-void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -475,8 +476,9 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
     return;
 } // applyConvectiveOperator
 
-void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                     const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                                const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -529,7 +531,8 @@ void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRA
     return;
 } // initializeOperatorState
 
-void INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
+void
+INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

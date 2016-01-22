@@ -89,7 +89,8 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
+void
+LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();

@@ -59,18 +59,20 @@ BoussinesqForcing::~BoussinesqForcing()
     return;
 } // ~BoussinesqForcing
 
-bool BoussinesqForcing::isTimeDependent() const
+bool
+BoussinesqForcing::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                Pointer<Variable<NDIM> > var,
-                                                Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                const double data_time,
-                                                const bool initial_time,
-                                                const int coarsest_ln_in,
-                                                const int finest_ln_in)
+void
+BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
+                                           Pointer<Variable<NDIM> > var,
+                                           Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const double data_time,
+                                           const bool initial_time,
+                                           const int coarsest_ln_in,
+                                           const int finest_ln_in)
 {
     // Allocate scratch data when needed.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -131,12 +133,13 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
     return;
 } // setDataOnPatchHierarchy
 
-void BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                       Pointer<Variable<NDIM> > /*var*/,
-                                       Pointer<Patch<NDIM> > patch,
-                                       const double /*data_time*/,
-                                       const bool initial_time,
-                                       Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+BoussinesqForcing::setDataOnPatch(const int data_idx,
+                                  Pointer<Variable<NDIM> > /*var*/,
+                                  Pointer<Patch<NDIM> > patch,
+                                  const double /*data_time*/,
+                                  const bool initial_time,
+                                  Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
     F_data->fillAll(0.0);

@@ -66,18 +66,21 @@ IBSourceSpec::Factory::~Factory()
     return;
 } // ~Factory
 
-int IBSourceSpec::Factory::getStreamableClassID() const
+int
+IBSourceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-void IBSourceSpec::Factory::setStreamableClassID(const int class_id)
+void
+IBSourceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBSourceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable>
+IBSourceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBSourceSpec> ret_val = new IBSourceSpec();
     stream.unpack(&ret_val->d_master_idx, 1);

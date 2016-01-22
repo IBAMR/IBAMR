@@ -343,13 +343,14 @@ muParserRobinBcCoefs::~muParserRobinBcCoefs()
     return;
 } // ~muParserRobinBcCoefs
 
-void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                      Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                      Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                      const Pointer<Variable<NDIM> >& /*variable*/,
-                                      const Patch<NDIM>& patch,
-                                      const BoundaryBox<NDIM>& bdry_box,
-                                      double fill_time) const
+void
+muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+                                 Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                 Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                 const Pointer<Variable<NDIM> >& /*variable*/,
+                                 const Patch<NDIM>& patch,
+                                 const BoundaryBox<NDIM>& bdry_box,
+                                 double fill_time) const
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
@@ -413,7 +414,8 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_d
     return;
 } // setBcCoefs
 
-IntVector<NDIM> muParserRobinBcCoefs::numberOfExtensionsFillable() const
+IntVector<NDIM>
+muParserRobinBcCoefs::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
 } // numberOfExtensionsFillable

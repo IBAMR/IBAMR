@@ -101,13 +101,15 @@ CopyToRootSchedule::~CopyToRootSchedule()
     return;
 } // CopyToRootSchedule
 
-void CopyToRootSchedule::communicate()
+void
+CopyToRootSchedule::communicate()
 {
     d_schedule.communicate();
     return;
 } // communicate
 
-const std::vector<Pointer<PatchData<NDIM> > >& CopyToRootSchedule::getRootPatchData() const
+const std::vector<Pointer<PatchData<NDIM> > >&
+CopyToRootSchedule::getRootPatchData() const
 {
     return d_root_patch_data;
 } // getRootPatchData
@@ -116,7 +118,8 @@ const std::vector<Pointer<PatchData<NDIM> > >& CopyToRootSchedule::getRootPatchD
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CopyToRootSchedule::commonClassCtor()
+void
+CopyToRootSchedule::commonClassCtor()
 {
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)

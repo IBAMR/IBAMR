@@ -43,12 +43,12 @@
 
 namespace IBAMR
 {
-
 /*!
  * \brief Routine for converting strings to enums.
  */
 template <typename T>
-inline T string_to_enum(const std::string& /*val*/)
+inline T
+string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return -1;
@@ -76,7 +76,8 @@ enum ConvectiveDifferencingType
 };
 
 template <>
-inline ConvectiveDifferencingType string_to_enum<ConvectiveDifferencingType>(const std::string& val)
+inline ConvectiveDifferencingType
+string_to_enum<ConvectiveDifferencingType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "ADVECTION") == 0) return ADVECTIVE;
     if (strcasecmp(val.c_str(), "ADVECTIVE") == 0) return ADVECTIVE;
@@ -88,7 +89,8 @@ inline ConvectiveDifferencingType string_to_enum<ConvectiveDifferencingType>(con
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<ConvectiveDifferencingType>(ConvectiveDifferencingType val)
+inline std::string
+enum_to_string<ConvectiveDifferencingType>(ConvectiveDifferencingType val)
 {
     if (val == ADVECTIVE) return "ADVECTIVE";
     if (val == CONSERVATIVE) return "CONSERVATIVE";
@@ -114,7 +116,8 @@ enum LimiterType
 };
 
 template <>
-inline LimiterType string_to_enum<LimiterType>(const std::string& val)
+inline LimiterType
+string_to_enum<LimiterType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "CTU_ONLY") == 0) return CTU_ONLY;
     if (strcasecmp(val.c_str(), "MINMOD_LIMITED") == 0) return MINMOD_LIMITED;
@@ -133,7 +136,8 @@ inline LimiterType string_to_enum<LimiterType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<LimiterType>(LimiterType val)
+inline std::string
+enum_to_string<LimiterType>(LimiterType val)
 {
     if (val == CTU_ONLY) return "CTU_ONLY";
     if (val == MINMOD_LIMITED) return "MINMOD_LIMITED";
@@ -161,7 +165,8 @@ enum TimeSteppingType
 };
 
 template <>
-inline TimeSteppingType string_to_enum<TimeSteppingType>(const std::string& val)
+inline TimeSteppingType
+string_to_enum<TimeSteppingType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "ADAMS_BASHFORTH") == 0) return ADAMS_BASHFORTH;
     if (strcasecmp(val.c_str(), "BACKWARD_EULER") == 0) return BACKWARD_EULER;
@@ -173,7 +178,8 @@ inline TimeSteppingType string_to_enum<TimeSteppingType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<TimeSteppingType>(TimeSteppingType val)
+inline std::string
+enum_to_string<TimeSteppingType>(TimeSteppingType val)
 {
     if (val == ADAMS_BASHFORTH) return "ADAMS_BASHFORTH";
     if (val == BACKWARD_EULER) return "BACKWARD_EULER";
@@ -183,7 +189,8 @@ inline std::string enum_to_string<TimeSteppingType>(TimeSteppingType val)
     return "UNKNOWN_TIME_STEPPING_TYPE";
 } // enum_to_string
 
-inline bool is_multistep_time_stepping_type(TimeSteppingType val)
+inline bool
+is_multistep_time_stepping_type(TimeSteppingType val)
 {
     switch (val)
     {
@@ -211,7 +218,8 @@ enum TractionBcType
 };
 
 template <>
-inline TractionBcType string_to_enum<TractionBcType>(const std::string& val)
+inline TractionBcType
+string_to_enum<TractionBcType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "TRACTION") == 0) return TRACTION;
     if (strcasecmp(val.c_str(), "PSEUDO_TRACTION") == 0) return PSEUDO_TRACTION;
@@ -219,7 +227,8 @@ inline TractionBcType string_to_enum<TractionBcType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<TractionBcType>(TractionBcType val)
+inline std::string
+enum_to_string<TractionBcType>(TractionBcType val)
 {
     if (val == TRACTION) return "TRACTION";
     if (val == PSEUDO_TRACTION) return "PSEUDO_TRACTION";
@@ -238,7 +247,8 @@ enum ProjectionMethodType
 };
 
 template <>
-inline ProjectionMethodType string_to_enum<ProjectionMethodType>(const std::string& val)
+inline ProjectionMethodType
+string_to_enum<ProjectionMethodType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "PRESSURE_UPDATE") == 0) return PRESSURE_UPDATE;
     if (strcasecmp(val.c_str(), "KIM_MOIN") == 0) return PRESSURE_UPDATE;
@@ -249,7 +259,8 @@ inline ProjectionMethodType string_to_enum<ProjectionMethodType>(const std::stri
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<ProjectionMethodType>(ProjectionMethodType val)
+inline std::string
+enum_to_string<ProjectionMethodType>(ProjectionMethodType val)
 {
     if (val == PRESSURE_UPDATE) return "PRESSURE_UPDATE";
     if (val == PRESSURE_INCREMENT) return "PRESSURE_INCREMENT";
@@ -268,7 +279,8 @@ enum StochasticStressTensorType
 };
 
 template <>
-inline StochasticStressTensorType string_to_enum<StochasticStressTensorType>(const std::string& val)
+inline StochasticStressTensorType
+string_to_enum<StochasticStressTensorType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "UNCORRELATED") == 0) return UNCORRELATED;
     if (strcasecmp(val.c_str(), "SYMMETRIC") == 0) return SYMMETRIC;
@@ -277,7 +289,8 @@ inline StochasticStressTensorType string_to_enum<StochasticStressTensorType>(con
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<StochasticStressTensorType>(StochasticStressTensorType val)
+inline std::string
+enum_to_string<StochasticStressTensorType>(StochasticStressTensorType val)
 {
     if (val == UNCORRELATED) return "UNCORRELATED";
     if (val == SYMMETRIC) return "SYMMETRIC";

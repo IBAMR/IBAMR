@@ -83,7 +83,8 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     return;
 } // ~INSIntermediateVelocityBcCoef
 
-void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
@@ -92,19 +93,22 @@ void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBc
     return;
 } // setPhysicalBcCoefs
 
-void INSIntermediateVelocityBcCoef::setSolutionTime(double /*solution_time*/)
+void
+INSIntermediateVelocityBcCoef::setSolutionTime(double /*solution_time*/)
 {
     // intentionally blank
     return;
 } // setSolutionTime
 
-void INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
+void
+INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
 {
     // intentionally blank
     return;
 } // setTimeInterval
 
-void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
+void
+INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
 {
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -115,7 +119,8 @@ void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
     return;
 } // setTargetPatchDataIndex
 
-void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
+void
+INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
 {
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -126,7 +131,8 @@ void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
     return;
 } // clearTargetPatchDataIndex
 
-void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
+void
+INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -137,13 +143,14 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                               Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                               Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                               const Pointer<Variable<NDIM> >& variable,
-                                               const Patch<NDIM>& patch,
-                                               const BoundaryBox<NDIM>& bdry_box,
-                                               double fill_time) const
+void
+INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                          const Pointer<Variable<NDIM> >& variable,
+                                          const Patch<NDIM>& patch,
+                                          const BoundaryBox<NDIM>& bdry_box,
+                                          double fill_time) const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -157,7 +164,8 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >
     return;
 } // setBcCoefs
 
-IntVector<NDIM> INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
+IntVector<NDIM>
+INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)

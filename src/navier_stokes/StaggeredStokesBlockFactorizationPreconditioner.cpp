@@ -199,14 +199,16 @@ StaggeredStokesBlockFactorizationPreconditioner::~StaggeredStokesBlockFactorizat
     return;
 } // ~StaggeredStokesBlockFactorizationPreconditioner
 
-void StaggeredStokesBlockFactorizationPreconditioner::setFactorizationType(FactorizationType factorization_type)
+void
+StaggeredStokesBlockFactorizationPreconditioner::setFactorizationType(FactorizationType factorization_type)
 {
     d_factorization_type = factorization_type;
     return;
 }
 
-bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                                                  SAMRAIVectorReal<NDIM, double>& b)
+bool
+StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
+                                                             SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
@@ -365,8 +367,9 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     return true;
 }
 
-void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                            const SAMRAIVectorReal<NDIM, double>& b)
+void
+StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                                       const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -405,7 +408,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     return;
 } // initializeSolverState
 
-void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
+void
+StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -432,7 +436,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
@@ -444,7 +449,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(boo
     return;
 } // setInitialGuessNonzero
 
-void StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_iterations)
+void
+StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
@@ -460,9 +466,10 @@ void StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_i
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVectorReal<NDIM, double>& P_vec,
-                                                                             SAMRAIVectorReal<NDIM, double>& F_P_vec,
-                                                                             const bool initial_guess_nonzero)
+void
+StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVectorReal<NDIM, double>& P_vec,
+                                                                        SAMRAIVectorReal<NDIM, double>& F_P_vec,
+                                                                        const bool initial_guess_nonzero)
 {
     // Get the vector components.
     const int P_idx = P_vec.getComponentDescriptorIndex(0);
@@ -540,9 +547,10 @@ void StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAM
     return;
 }
 
-void StaggeredStokesBlockFactorizationPreconditioner::solveVelocitySubsystem(SAMRAIVectorReal<NDIM, double>& U_vec,
-                                                                             SAMRAIVectorReal<NDIM, double>& F_U_vec,
-                                                                             const bool initial_guess_nonzero)
+void
+StaggeredStokesBlockFactorizationPreconditioner::solveVelocitySubsystem(SAMRAIVectorReal<NDIM, double>& U_vec,
+                                                                        SAMRAIVectorReal<NDIM, double>& F_U_vec,
+                                                                        const bool initial_guess_nonzero)
 {
     // Solve the velocity sub-problem.
     //

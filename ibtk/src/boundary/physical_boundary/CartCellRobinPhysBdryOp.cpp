@@ -272,9 +272,10 @@ CartCellRobinPhysBdryOp::~CartCellRobinPhysBdryOp()
     return;
 } // ~CartCellRobinPhysBdryOp
 
-void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                            const double fill_time,
-                                                            const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                       const double fill_time,
+                                                       const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -339,14 +340,16 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
-                                                                 const double fill_time,
-                                                                 const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
+                                                            const double fill_time,
+                                                            const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -413,12 +416,13 @@ void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& pa
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
-                                                        const double fill_time,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
+                                                   const double fill_time,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     if (n_physical_codim1_boxes == 0) return;
@@ -553,11 +557,12 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
     return;
 } // fillGhostCellValuesCodim1
 
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim2_boxes,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        const Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim2_boxes,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   const Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     if (n_physical_codim2_boxes == 0) return;
@@ -613,11 +618,12 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
 } // fillGhostCellValuesCodim2
 
 #if (NDIM > 2)
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim3_boxes,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        const Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim3_boxes,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   const Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     if (n_physical_codim3_boxes == 0) return;

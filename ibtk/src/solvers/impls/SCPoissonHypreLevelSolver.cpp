@@ -182,7 +182,8 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
     return;
 } // ~SCPoissonHypreLevelSolver
 
-bool SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -217,8 +218,9 @@ bool SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, S
     return converged;
 } // solveSystem
 
-void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                      const SAMRAIVectorReal<NDIM, double>& b)
+void
+SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                 const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -313,7 +315,8 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
     return;
 } // initializeSolverState
 
-void SCPoissonHypreLevelSolver::deallocateSolverState()
+void
+SCPoissonHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -334,7 +337,8 @@ void SCPoissonHypreLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void SCPoissonHypreLevelSolver::allocateHypreData()
+void
+SCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
@@ -417,7 +421,8 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     return;
 } // allocateHypreData
 
-void SCPoissonHypreLevelSolver::setMatrixCoefficients()
+void
+SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
@@ -460,7 +465,8 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
     return;
 } // setMatrixCoefficients
 
-void SCPoissonHypreLevelSolver::setupHypreSolver()
+void
+SCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
@@ -699,7 +705,8 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
     return;
 } // setupHypreSolver
 
-bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
+bool
+SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     const bool level_zero = (d_level_num == 0);
 
@@ -846,9 +853,10 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
-void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                            const SideData<NDIM, double>& src_data,
-                                            const Box<NDIM>& box)
+void
+SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
+                                       const SideData<NDIM, double>& src_data,
+                                       const Box<NDIM>& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
     SideData<NDIM, double>* hypre_data =
@@ -866,9 +874,10 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     return;
 } // copyToHypre
 
-void SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
-                                              HYPRE_SStructVector vector,
-                                              const Box<NDIM>& box)
+void
+SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
+                                         HYPRE_SStructVector vector,
+                                         const Box<NDIM>& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
     SideData<NDIM, double>* hypre_data = copy_data ? new SideData<NDIM, double>(box, 1, 0) : &dst_data;
@@ -888,7 +897,8 @@ void SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
     return;
 } // copyFromHypre
 
-void SCPoissonHypreLevelSolver::destroyHypreSolver()
+void
+SCPoissonHypreLevelSolver::destroyHypreSolver()
 {
     // Destroy the solver.
     if (d_solver_type == "SysPFMG")
@@ -940,7 +950,8 @@ void SCPoissonHypreLevelSolver::destroyHypreSolver()
     return;
 } // destroyHypreSolver
 
-void SCPoissonHypreLevelSolver::deallocateHypreData()
+void
+SCPoissonHypreLevelSolver::deallocateHypreData()
 {
     if (d_graph) HYPRE_SStructGraphDestroy(d_graph);
     for (int var = 0; var < NVARS; ++var)

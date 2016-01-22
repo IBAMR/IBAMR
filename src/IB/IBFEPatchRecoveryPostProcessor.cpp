@@ -66,7 +66,8 @@ namespace IBAMR
 
 namespace
 {
-unsigned int num_polynomial_basis_fcns(const unsigned int dim, const unsigned int order)
+unsigned int
+num_polynomial_basis_fcns(const unsigned int dim, const unsigned int order)
 {
     unsigned int num_basis_fcns = 0;
     unsigned int order_p_1 = order + 1;
@@ -89,11 +90,12 @@ unsigned int num_polynomial_basis_fcns(const unsigned int dim, const unsigned in
     return num_basis_fcns;
 } // num_polynomial_basis_fcns
 
-void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
-                                    const libMesh::Point& x_center,
-                                    const libMesh::Point& x_eval,
-                                    const unsigned int dim,
-                                    const unsigned int order)
+void
+evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
+                               const libMesh::Point& x_center,
+                               const libMesh::Point& x_eval,
+                               const unsigned int dim,
+                               const unsigned int order)
 {
     TBOX_ASSERT(static_cast<unsigned int>(P.size()) == num_polynomial_basis_fcns(dim, order));
 
@@ -198,7 +200,8 @@ IBFEPatchRecoveryPostProcessor::~IBFEPatchRecoveryPostProcessor()
     return;
 } // ~IBFEPatchRecoveryPostProcessor
 
-void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const periodic_boundaries)
+void
+IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const periodic_boundaries)
 {
     d_periodic_boundaries = periodic_boundaries;
 
@@ -402,7 +405,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     return;
 } // initializeFEData
 
-System* IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
+System*
+IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System* sigma_system = &equation_systems->add_system<System>("CAUCHY_STRESS_RECOVERY_SYSTEM");
@@ -418,7 +422,8 @@ System* IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
     return sigma_system;
 } // initializeCauchyStressSystem
 
-System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
+System*
+IBFEPatchRecoveryPostProcessor::initializePressureSystem()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System* p_system = &equation_systems->add_system<System>("PRESSURE_RECOVERY_SYSTEM");
@@ -426,10 +431,11 @@ System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
     return p_system;
 } // initializePressureSystem
 
-void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
-                                                               const QBase* const qrule,
-                                                               const unsigned int qp,
-                                                               const TensorValue<double>& sigma)
+void
+IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
+                                                          const QBase* const qrule,
+                                                          const unsigned int qp,
+                                                          const TensorValue<double>& sigma)
 {
     const Parallel::Communicator& comm = d_mesh->comm();
     if (elem->processor_id() != comm.rank() || !elem->active())
@@ -446,10 +452,11 @@ void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const
     return;
 } // registerCauchyStressValue
 
-void IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const elem,
-                                                           const QBase* const qrule,
-                                                           const unsigned int qp,
-                                                           const double p)
+void
+IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const elem,
+                                                      const QBase* const qrule,
+                                                      const unsigned int qp,
+                                                      const double p)
 {
     const Parallel::Communicator& comm = d_mesh->comm();
     if (elem->processor_id() != comm.rank() || !elem->active())
@@ -466,7 +473,8 @@ void IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const ele
     return;
 } // registerPressureValue
 
-void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
+void
+IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
 {
     const unsigned int sigma_sys_num = sigma_system.number();
     NumericVector<double>& sigma_vec = *sigma_system.solution;
@@ -541,7 +549,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     return;
 } // reconstructCauchyStress
 
-void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
+void
+IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
 {
     const unsigned int p_sys_num = p_system.number();
     NumericVector<double>& p_vec = *p_system.solution;

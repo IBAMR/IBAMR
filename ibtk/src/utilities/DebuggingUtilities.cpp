@@ -71,11 +71,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+bool
+DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
+                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         const bool interior_only,
+                                         const int coarsest_ln_in,
+                                         const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -118,11 +119,12 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     return SAMRAI_MPI::minReduction(num_nans) > 0;
 } // checkCellDataForNaNs
 
-bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+bool
+DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
+                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         const bool interior_only,
+                                         const int coarsest_ln_in,
+                                         const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -169,11 +171,12 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     return SAMRAI_MPI::minReduction(num_nans) > 0;
 } // checkFaceDataForNaNs
 
-bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+bool
+DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
+                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         const bool interior_only,
+                                         const int coarsest_ln_in,
+                                         const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -217,11 +220,12 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     return SAMRAI_MPI::minReduction(num_nans) > 0;
 } // checkNodeDataForNaNs
 
-bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+bool
+DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
+                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         const bool interior_only,
+                                         const int coarsest_ln_in,
+                                         const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -268,10 +272,11 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     return SAMRAI_MPI::minReduction(num_nans) > 0;
 } // checkSideDataForNaNs
 
-void DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+void
+DebuggingUtilities::saveCellData(const int patch_data_idx,
+                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& filename,
+                                 const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -324,10 +329,11 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
     return;
 } // saveCellData
 
-void DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+void
+DebuggingUtilities::saveFaceData(const int patch_data_idx,
+                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& filename,
+                                 const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -383,10 +389,11 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
     return;
 } // saveFaceData
 
-void DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+void
+DebuggingUtilities::saveNodeData(const int patch_data_idx,
+                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& filename,
+                                 const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -439,10 +446,11 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
     return;
 } // saveNodeData
 
-void DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+void
+DebuggingUtilities::saveSideData(const int patch_data_idx,
+                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& filename,
+                                 const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -498,10 +506,11 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
     return;
 } // saveSideData
 
-void DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
-                                            const bool save_ghost_nodes,
-                                            const std::string& filename,
-                                            const std::string& dirname)
+void
+DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
+                                       const bool save_ghost_nodes,
+                                       const std::string& filename,
+                                       const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')

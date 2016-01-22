@@ -112,8 +112,9 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                 const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void
+CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                            const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -151,21 +152,24 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     return;
 } // initializeSolverStateSpecialized
 
-void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
+void
+CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_dof_index_idx)) d_level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
-void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, d_level);
     return;
 } // copyToPETScVec
 
-void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -173,10 +177,11 @@ void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<
     return;
 } // copyFromPETScVec
 
-void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                             Vec& petsc_b,
-                                             SAMRAIVectorReal<NDIM, double>& x,
-                                             SAMRAIVectorReal<NDIM, double>& b)
+void
+CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                        Vec& petsc_b,
+                                        SAMRAIVectorReal<NDIM, double>& x,
+                                        SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);

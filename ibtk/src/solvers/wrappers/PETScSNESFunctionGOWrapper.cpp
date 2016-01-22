@@ -81,7 +81,8 @@ PETScSNESFunctionGOWrapper::~PETScSNESFunctionGOWrapper()
     return;
 } // ~PETScSNESFunctionGOWrapper()
 
-const SNES& PETScSNESFunctionGOWrapper::getPETScSNES() const
+const SNES&
+PETScSNESFunctionGOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;
 } // getPETScSNES
@@ -91,12 +92,14 @@ PetscErrorCode (*PETScSNESFunctionGOWrapper::getPETScSNESFormFunction())(SNES, V
     return d_petsc_snes_form_func;
 } // getPETScSNESFormFunction
 
-void* PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
+void*
+PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
 {
     return d_petsc_snes_func_ctx;
 } // getPETScSNESFunctionContext
 
-void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
@@ -110,8 +113,9 @@ void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     return;
 } // apply
 
-void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                         const SAMRAIVectorReal<NDIM, double>& out)
+void
+PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                    const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");
@@ -125,7 +129,8 @@ void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<
     return;
 } // initializeOperatorState
 
-void PETScSNESFunctionGOWrapper::deallocateOperatorState()
+void
+PETScSNESFunctionGOWrapper::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);

@@ -64,7 +64,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-inline double kernel(double x)
+inline double
+kernel(double x)
 {
     x += 4.;
     const double x2 = x * x;
@@ -110,14 +111,15 @@ namespace ModelData
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
 MeshFunction* U_fcn;
-void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& /*FF*/,
-                           const libMesh::Point& X,
-                           const libMesh::Point& s,
-                           Elem* const /*elem*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
-                           double /*time*/,
-                           void* /*ctx*/)
+void
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& X,
+                      const libMesh::Point& s,
+                      Elem* const /*elem*/,
+                      const vector<NumericVector<double>*>& /*system_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
 {
     DenseVector<double> U(NDIM);
     (*U_fcn)(s, 0.0, U);
@@ -151,7 +153,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -514,13 +517,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                      Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                      Mesh& mesh,
-                      EquationSystems* equation_systems,
-                      const int /*iteration_num*/,
-                      const double loop_time,
-                      const string& /*data_dump_dirname*/)
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 Mesh& mesh,
+                 EquationSystems* equation_systems,
+                 const int /*iteration_num*/,
+                 const double loop_time,
+                 const string& /*data_dump_dirname*/)
 {
     const unsigned int dim = mesh.mesh_dimension();
     {

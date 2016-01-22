@@ -74,7 +74,8 @@ KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredSt
     return;
 } // ~KrylovLinearSolverStaggeredStokesSolverInterface
 
-void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
+void
+KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
@@ -89,8 +90,9 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     return;
 } // setVelocityPoissonSpecifications
 
-void KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspace(const bool has_velocity_nullspace,
-                                                                                  const bool has_pressure_nullspace)
+void
+KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+                                                                             const bool has_pressure_nullspace)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -103,7 +105,8 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspac
     return;
 } // setComponentsHaveNullspace
 
-void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
+void
+KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -119,7 +122,8 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     return;
 } // setPhysicalBcCoefs
 
-void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
+void
+KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);

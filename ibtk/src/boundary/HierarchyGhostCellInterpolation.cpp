@@ -157,16 +157,18 @@ HierarchyGhostCellInterpolation::~HierarchyGhostCellInterpolation()
     return;
 } // ~HierarchyGhostCellInterpolation
 
-void HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
+void
+HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
 } // setHomogeneousBc
 
-void HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                              const int coarsest_ln,
-                                                              const int finest_ln)
+void
+HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
+                                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const int coarsest_ln,
+                                                         const int finest_ln)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -177,7 +179,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
     return;
 } // initializeOperatorState
 
-void HierarchyGhostCellInterpolation::initializeOperatorState(
+void
+HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_ln,
@@ -358,8 +361,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void HierarchyGhostCellInterpolation::resetTransactionComponent(
-    const InterpolationTransactionComponent& transaction_comp)
+void
+HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTransactionComponent& transaction_comp)
 {
     IBTK_TIMER_START(t_reset_transaction_component);
 
@@ -378,7 +381,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponent(
     return;
 } // resetTransactionComponent
 
-void HierarchyGhostCellInterpolation::resetTransactionComponents(
+void
+HierarchyGhostCellInterpolation::resetTransactionComponents(
     const std::vector<InterpolationTransactionComponent>& transaction_comps)
 {
     IBTK_TIMER_START(t_reset_transaction_components);
@@ -529,7 +533,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     if (!d_is_initialized) return;
 
@@ -541,7 +546,8 @@ void HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHie
     return;
 } // reinitializeOperatorState
 
-void HierarchyGhostCellInterpolation::deallocateOperatorState()
+void
+HierarchyGhostCellInterpolation::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -571,7 +577,8 @@ void HierarchyGhostCellInterpolation::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void HierarchyGhostCellInterpolation::fillData(double fill_time)
+void
+HierarchyGhostCellInterpolation::fillData(double fill_time)
 {
     IBTK_TIMER_START(t_fill_data);
 

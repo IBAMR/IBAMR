@@ -66,7 +66,8 @@
 namespace ModelData
 {
 // Coordinate mapping function.
-void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+void
+coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
     X(0) = s(0) + 0.6;
     X(1) = s(1) + 0.5;
@@ -80,27 +81,29 @@ void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, voi
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
-void PK1_dev_stress_function(TensorValue<double>& PP,
-                             const TensorValue<double>& FF,
-                             const libMesh::Point& /*X*/,
-                             const libMesh::Point& /*s*/,
-                             Elem* const /*elem*/,
-                             const std::vector<NumericVector<double>*>& /*system_data*/,
-                             double /*time*/,
-                             void* /*ctx*/)
+void
+PK1_dev_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
 {
     PP = 2.0 * c1_s * FF;
     return;
 } // PK1_dev_stress_function
 
-void PK1_dil_stress_function(TensorValue<double>& PP,
-                             const TensorValue<double>& FF,
-                             const libMesh::Point& /*X*/,
-                             const libMesh::Point& /*s*/,
-                             Elem* const /*elem*/,
-                             const std::vector<NumericVector<double>*>& /*system_data*/,
-                             double /*time*/,
-                             void* /*ctx*/)
+void
+PK1_dil_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
 {
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
@@ -128,7 +131,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -542,13 +546,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            Mesh& mesh,
+            EquationSystems* equation_systems,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

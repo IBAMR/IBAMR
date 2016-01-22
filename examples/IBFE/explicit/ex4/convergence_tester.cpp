@@ -69,7 +69,8 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

@@ -269,15 +269,17 @@ StaggeredStokesIBBoxRelaxationFACOperator::~StaggeredStokesIBBoxRelaxationFACOpe
     return;
 } // ~StaggeredStokesIBBoxRelaxationFACOperator
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setVelocityPoissonSpecifications(
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setComponentsHaveNullspace(const bool has_velocity_nullspace,
-                                                                           const bool has_pressure_nullspace)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+                                                                      const bool has_pressure_nullspace)
 {
     d_has_velocity_nullspace = has_velocity_nullspace;
     d_has_pressure_nullspace = has_pressure_nullspace;
@@ -285,9 +287,9 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setComponentsHaveNullspace(const
     return;
 } // setComponentsHaveNullspace
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                                              RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -316,7 +318,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBcCoefs(
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBoundaryHelper(
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -326,7 +329,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setPhysicalBoundaryHelper(
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setResetLevels(const int coarsest_ln, const int finest_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) || (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
@@ -339,7 +343,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setResetLevels(const int coarses
     return;
 } // setResetLevels
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
@@ -353,7 +358,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setSmootherType(const std::strin
     return;
 } // setSmootherType
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
@@ -374,26 +380,30 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverType(const std::s
     return;
 } // setCoarseSolverType
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
 {
     d_coarse_solver_max_iterations = coarse_solver_max_iterations;
     return;
 } // setCoarseSolverMaxIterations
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
 {
     d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
 } // setCoarseSolverAbsoluteTolerance
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
 {
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
 } // setCoarseSolverRelativeTolerance
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setProlongationMethods(const std::string& U_prolongation_method,
-                                                                       const std::string& P_prolongation_method)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setProlongationMethods(const std::string& U_prolongation_method,
+                                                                  const std::string& P_prolongation_method)
 {
     if (d_is_initialized)
     {
@@ -406,8 +416,9 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setProlongationMethods(const std
     return;
 } // setProlongationMethods
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setRestrictionMethods(const std::string& U_restriction_method,
-                                                                      const std::string& P_restriction_method)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setRestrictionMethods(const std::string& U_restriction_method,
+                                                                 const std::string& P_restriction_method)
 {
     if (d_is_initialized)
     {
@@ -420,7 +431,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setRestrictionMethods(const std:
     return;
 } // setRestrictionMethods
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setIBForceJacobian(Mat& A)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setIBForceJacobian(Mat& A)
 {
     if (d_is_initialized)
     {
@@ -437,7 +449,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::setIBForceJacobian(Mat& A)
     return;
 } // setIBForceJacobian
 
-void StaggeredStokesIBBoxRelaxationFACOperator::setIBInterpOp(Mat& J)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::setIBInterpOp(Mat& J)
 {
     if (d_is_initialized)
     {
@@ -463,7 +476,8 @@ StaggeredStokesIBBoxRelaxationFACOperator::getStaggeredStokesIBLevelSolver(const
     return d_level_solvers[ln];
 } // getStaggeredStokesIBLevelSolver
 
-Mat StaggeredStokesIBBoxRelaxationFACOperator::getGalerkinElasticityLevelOp(const int ln) const
+Mat
+StaggeredStokesIBBoxRelaxationFACOperator::getGalerkinElasticityLevelOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln <= d_finest_ln);
@@ -471,7 +485,8 @@ Mat StaggeredStokesIBBoxRelaxationFACOperator::getGalerkinElasticityLevelOp(cons
     return d_SAJ_mat[ln];
 } // getGalerkinElasticityLevelOp
 
-Mat StaggeredStokesIBBoxRelaxationFACOperator::getProlongationOp(const int ln) const
+Mat
+StaggeredStokesIBBoxRelaxationFACOperator::getProlongationOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
@@ -479,7 +494,8 @@ Mat StaggeredStokesIBBoxRelaxationFACOperator::getProlongationOp(const int ln) c
     return d_prolongation_mat[ln];
 } // getProlongationOp
 
-Vec StaggeredStokesIBBoxRelaxationFACOperator::getRestrictionScalingOp(const int ln) const
+Vec
+StaggeredStokesIBBoxRelaxationFACOperator::getRestrictionScalingOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
@@ -487,9 +503,10 @@ Vec StaggeredStokesIBBoxRelaxationFACOperator::getRestrictionScalingOp(const int
     return d_scale_restriction_mat[ln];
 } // getRestrictionScalingOp
 
-void StaggeredStokesIBBoxRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                 SAMRAIVectorReal<NDIM, double>& dst,
-                                                                 int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
+                                                            SAMRAIVectorReal<NDIM, double>& dst,
+                                                            int dst_ln)
 {
     IBAMR_TIMER_START(t_restrict_residual);
 
@@ -519,9 +536,10 @@ void StaggeredStokesIBBoxRelaxationFACOperator::restrictResidual(const SAMRAIVec
     return;
 } // restrictResidual
 
-void StaggeredStokesIBBoxRelaxationFACOperator::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
-                                                             SAMRAIVectorReal<NDIM, double>& dst,
-                                                             int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
+                                                        SAMRAIVectorReal<NDIM, double>& dst,
+                                                        int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error);
 
@@ -541,9 +559,10 @@ void StaggeredStokesIBBoxRelaxationFACOperator::prolongError(const SAMRAIVectorR
     return;
 } // prolongError
 
-void StaggeredStokesIBBoxRelaxationFACOperator::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                       SAMRAIVectorReal<NDIM, double>& dst,
-                                                                       int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
+                                                                  SAMRAIVectorReal<NDIM, double>& dst,
+                                                                  int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error_and_correct);
 
@@ -579,9 +598,10 @@ void StaggeredStokesIBBoxRelaxationFACOperator::prolongErrorAndCorrect(const SAM
     return;
 } // prolongErrorAndCorrect
 
-bool StaggeredStokesIBBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                                   const SAMRAIVectorReal<NDIM, double>& residual,
-                                                                   int coarsest_ln)
+bool
+StaggeredStokesIBBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                              const SAMRAIVectorReal<NDIM, double>& residual,
+                                                              int coarsest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
@@ -607,11 +627,12 @@ bool StaggeredStokesIBBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorR
     return true;
 } // solveCoarsestLevel
 
-void StaggeredStokesIBBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                                const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                                int coarsest_level_num,
-                                                                int finest_level_num)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                           const SAMRAIVectorReal<NDIM, double>& solution,
+                                                           const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                           int coarsest_level_num,
+                                                           int finest_level_num)
 {
     IBAMR_TIMER_START(t_compute_residual);
 
@@ -672,12 +693,13 @@ void StaggeredStokesIBBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal
     return;
 } // computeResidual
 
-void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                            const SAMRAIVectorReal<NDIM, double>& residual,
-                                                            int level_num,
-                                                            int num_sweeps,
-                                                            bool performing_pre_sweeps,
-                                                            bool performing_post_sweeps)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                       const SAMRAIVectorReal<NDIM, double>& residual,
+                                                       int level_num,
+                                                       int num_sweeps,
+                                                       bool performing_pre_sweeps,
+                                                       bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
 
@@ -707,8 +729,9 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
     return;
 } // smoothError
 
-void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                        const SAMRAIVectorReal<NDIM, double>& rhs)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                   const SAMRAIVectorReal<NDIM, double>& rhs)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -1183,7 +1206,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorState(const SA
     return;
 } // initializeOperatorState
 
-void StaggeredStokesIBBoxRelaxationFACOperator::deallocateOperatorState()
+void
+StaggeredStokesIBBoxRelaxationFACOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -1355,14 +1379,16 @@ void StaggeredStokesIBBoxRelaxationFACOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void StaggeredStokesIBBoxRelaxationFACOperator::allocateScratchData()
+void
+StaggeredStokesIBBoxRelaxationFACOperator::allocateScratchData()
 {
     if (d_solution) d_solution->allocateVectorData();
     if (d_rhs) d_rhs->allocateVectorData();
     return;
 }
 
-void StaggeredStokesIBBoxRelaxationFACOperator::deallocateScratchData()
+void
+StaggeredStokesIBBoxRelaxationFACOperator::deallocateScratchData()
 {
     if (d_solution) d_solution->deallocateVectorData();
     if (d_rhs) d_rhs->deallocateVectorData();
@@ -1373,9 +1399,10 @@ void StaggeredStokesIBBoxRelaxationFACOperator::deallocateScratchData()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
-                                                                        const std::pair<int, int>& src_idxs,
-                                                                        const int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
+                                                                   const std::pair<int, int>& src_idxs,
+                                                                   const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -1400,9 +1427,10 @@ void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleProlongation(const st
     return;
 } // xeqScheduleProlongation
 
-void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
-                                                                       const std::pair<int, int>& src_idxs,
-                                                                       const int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
+                                                                  const std::pair<int, int>& src_idxs,
+                                                                  const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -1419,8 +1447,9 @@ void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleRestriction(const std
     return;
 } // xeqScheduleRestriction
 
-void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
-                                                                             const int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
+                                                                        const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     d_U_bc_op->setPatchDataIndex(U_dst_idx);
@@ -1441,7 +1470,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(con
     return;
 } // xeqScheduleGhostFillNoCoarse
 
-void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(
@@ -1452,13 +1482,13 @@ void StaggeredStokesIBBoxRelaxationFACOperator::xeqScheduleDataSynch(const int U
     return;
 } // xeqScheduleDataSynch
 
-void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorMultiplicative(
-    SAMRAIVectorReal<NDIM, double>& error,
-    const SAMRAIVectorReal<NDIM, double>& residual,
-    int level_num,
-    int num_sweeps,
-    bool /*performing_pre_sweeps*/,
-    bool /*performing_post_sweeps*/)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorMultiplicative(SAMRAIVectorReal<NDIM, double>& error,
+                                                                     const SAMRAIVectorReal<NDIM, double>& residual,
+                                                                     int level_num,
+                                                                     int num_sweeps,
+                                                                     bool /*performing_pre_sweeps*/,
+                                                                     bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -1670,7 +1700,8 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorMultiplicative(
     return;
 } // smoothErrorMultiplicative
 
-void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorRedBlackMultiplicative(
+void
+StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorRedBlackMultiplicative(
     SAMRAIVectorReal<NDIM, double>& error,
     const SAMRAIVectorReal<NDIM, double>& residual,
     int level_num,
@@ -2041,12 +2072,13 @@ void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorRedBlackMultiplicativ
     return;
 } // smoothErrorRedBlackMultiplicative
 
-void StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorAdditive(SAMRAIVectorReal<NDIM, double>& error,
-                                                                    const SAMRAIVectorReal<NDIM, double>& residual,
-                                                                    int level_num,
-                                                                    int num_sweeps,
-                                                                    bool /*performing_pre_sweeps*/,
-                                                                    bool /*performing_post_sweeps*/)
+void
+StaggeredStokesIBBoxRelaxationFACOperator::smoothErrorAdditive(SAMRAIVectorReal<NDIM, double>& error,
+                                                               const SAMRAIVectorReal<NDIM, double>& residual,
+                                                               int level_num,
+                                                               int num_sweeps,
+                                                               bool /*performing_pre_sweeps*/,
+                                                               bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 

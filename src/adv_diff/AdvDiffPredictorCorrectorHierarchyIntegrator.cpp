@@ -190,9 +190,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
     return d_hyp_patch_ops;
 } // getHyperbolicPatchStrategy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                                const double new_time,
-                                                                                const int num_cycles)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                                           const double new_time,
+                                                                           const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -201,7 +202,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
     return;
 } // preprocessIntegrateHierarchy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -323,9 +325,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     return;
 } // initializeHierarchyIntegrator
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                      const double new_time,
-                                                                      const int cycle_num)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                                 const double new_time,
+                                                                 const int cycle_num)
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
@@ -658,11 +661,11 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     return;
 } // integrateHierarchy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const bool skip_synchronize_new_state_data,
-    const int num_cycles)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                            const double new_time,
+                                                                            const bool skip_synchronize_new_state_data,
+                                                                            const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -707,7 +710,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+double
+AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -719,7 +723,8 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -740,7 +745,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDa
     return;
 } // resetTimeDependentHierarchyDataSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
     // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
@@ -752,7 +758,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
     return;
 } // resetIntegratorToPreadvanceStateSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -838,7 +845,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     return;
 } // initializeLevelDataSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -849,7 +857,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSp
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,

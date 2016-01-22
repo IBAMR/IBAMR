@@ -70,7 +70,8 @@ static const double gamma = 0.1;
 static const double mu = 1.0;
 
 // Coordinate mapping function.
-void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+void
+coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
     X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
     X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
@@ -79,14 +80,15 @@ void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, voi
 
 // Stress tensor function.
 bool smooth_case = false;
-void PK1_stress_function(TensorValue<double>& PP,
-                         const TensorValue<double>& FF,
-                         const libMesh::Point& /*X*/,
-                         const libMesh::Point& /*s*/,
-                         Elem* const /*elem*/,
-                         const std::vector<NumericVector<double>*>& /*system_data*/,
-                         double /*time*/,
-                         void* /*ctx*/)
+void
+PK1_stress_function(TensorValue<double>& PP,
+                    const TensorValue<double>& FF,
+                    const libMesh::Point& /*X*/,
+                    const libMesh::Point& /*s*/,
+                    Elem* const /*elem*/,
+                    const std::vector<NumericVector<double>*>& /*system_data*/,
+                    double /*time*/,
+                    void* /*ctx*/)
 {
     PP = (mu / w) * FF;
     if (smooth_case)
@@ -119,7 +121,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -466,13 +469,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            Mesh& mesh,
+            EquationSystems* equation_systems,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

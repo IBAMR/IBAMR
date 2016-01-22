@@ -133,25 +133,29 @@ PETScLevelSolver::~PETScLevelSolver()
     return;
 } // ~PETScLevelSolver
 
-void PETScLevelSolver::setKSPType(const std::string& ksp_type)
+void
+PETScLevelSolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
     return;
 } // setKSPType
 
-void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
+void
+PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
 } // setOptionsPrefix
 
-const KSP& PETScLevelSolver::getPETScKSP() const
+const KSP&
+PETScLevelSolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 } // getPETScKSP
 
-void PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
-                                        std::vector<IS>** overlapping_subdomains)
+void
+PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
+                                   std::vector<IS>** overlapping_subdomains)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -162,7 +166,8 @@ void PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdoma
     return;
 } // getASMSubdomains
 
-void PETScLevelSolver::getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains)
+void
+PETScLevelSolver::getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -173,10 +178,11 @@ void PETScLevelSolver::getMSMSubdomains(std::vector<IS>** rows_subdomains, std::
     return;
 } // getMSMSubdomains
 
-void PETScLevelSolver::getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
-                                        std::vector<IS>** red_cols_subdomains,
-                                        std::vector<IS>** black_rows_subdomains,
-                                        std::vector<IS>** black_cols_subdomains)
+void
+PETScLevelSolver::getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
+                                   std::vector<IS>** red_cols_subdomains,
+                                   std::vector<IS>** black_rows_subdomains,
+                                   std::vector<IS>** black_cols_subdomains)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -189,15 +195,17 @@ void PETScLevelSolver::getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
     return;
 } // getMSMSubdomains
 
-void PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                                    const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+void
+PETScLevelSolver::setNullspace(bool contains_constant_vec,
+                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
     return;
 } // setNullspace
 
-bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -240,8 +248,9 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     return converged;
 } // solveSystem
 
-void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                             const SAMRAIVectorReal<NDIM, double>& b)
+void
+PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                        const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -572,7 +581,8 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     return;
 } // initializeSolverState
 
-void PETScLevelSolver::deallocateSolverState()
+void
+PETScLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -669,7 +679,8 @@ void PETScLevelSolver::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void PETScLevelSolver::addLinearOperator(Mat& op)
+void
+PETScLevelSolver::addLinearOperator(Mat& op)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_is_initialized);
@@ -681,7 +692,8 @@ void PETScLevelSolver::addLinearOperator(Mat& op)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+void
+PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)
@@ -706,7 +718,8 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
     return;
 } // init
 
-void PETScLevelSolver::setupNullspace()
+void
+PETScLevelSolver::setupNullspace()
 {
     int ierr;
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
@@ -739,7 +752,8 @@ void PETScLevelSolver::setupNullspace()
 } // setupNullspace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-PetscErrorCode PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
+PetscErrorCode
+PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
 {
     int ierr;
     void* ctx;
@@ -850,7 +864,8 @@ PetscErrorCode PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     PetscFunctionReturn(0);
 } // PCApply_Additive
 
-PetscErrorCode PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
+PetscErrorCode
+PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
 {
     int ierr;
     void* ctx;

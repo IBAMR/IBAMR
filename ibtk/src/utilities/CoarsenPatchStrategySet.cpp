@@ -67,7 +67,8 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     return;
 } // ~CoarsenPatchStrategySet
 
-IntVector<NDIM> CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
+IntVector<NDIM>
+CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
     IntVector<NDIM> width = 0;
     typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
@@ -78,10 +79,11 @@ IntVector<NDIM> CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
     return width;
 } // getCoarsenOpStencilWidth
 
-void CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
-                                                const Patch<NDIM>& fine,
-                                                const Box<NDIM>& coarse_box,
-                                                const IntVector<NDIM>& ratio)
+void
+CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
+                                           const Patch<NDIM>& fine,
+                                           const Box<NDIM>& coarse_box,
+                                           const IntVector<NDIM>& ratio)
 {
     typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
     for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -91,10 +93,11 @@ void CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
     return;
 } // preprocessCoarsen
 
-void CoarsenPatchStrategySet::postprocessCoarsen(Patch<NDIM>& coarse,
-                                                 const Patch<NDIM>& fine,
-                                                 const Box<NDIM>& coarse_box,
-                                                 const IntVector<NDIM>& ratio)
+void
+CoarsenPatchStrategySet::postprocessCoarsen(Patch<NDIM>& coarse,
+                                            const Patch<NDIM>& fine,
+                                            const Box<NDIM>& coarse_box,
+                                            const IntVector<NDIM>& ratio)
 {
     typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
     for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)

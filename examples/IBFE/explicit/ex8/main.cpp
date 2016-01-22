@@ -65,14 +65,15 @@ namespace ModelData
 {
 // Tether (penalty) force function for the solid blocks.
 static double block_kappa_s = 1.0e6;
-void block_tether_force_function(VectorValue<double>& F,
-                                 const TensorValue<double>& /*FF*/,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 Elem* const /*elem*/,
-                                 const vector<NumericVector<double>*>& /*system_data*/,
-                                 double /*time*/,
-                                 void* /*ctx*/)
+void
+block_tether_force_function(VectorValue<double>& F,
+                            const TensorValue<double>& /*FF*/,
+                            const libMesh::Point& X,
+                            const libMesh::Point& s,
+                            Elem* const /*elem*/,
+                            const vector<NumericVector<double>*>& /*system_data*/,
+                            double /*time*/,
+                            void* /*ctx*/)
 {
     F = block_kappa_s * (s - X);
     return;
@@ -80,15 +81,16 @@ void block_tether_force_function(VectorValue<double>& F,
 
 // Tether (penalty) force function for the thin beam.
 static double beam_kappa_s = 1.0e6;
-void beam_tether_force_function(VectorValue<double>& F,
-                                const TensorValue<double>& /*FF*/,
-                                const libMesh::Point& X,
-                                const libMesh::Point& s,
-                                Elem* const /*elem*/,
-                                const unsigned short int side,
-                                const vector<NumericVector<double>*>& /*system_data*/,
-                                double /*time*/,
-                                void* /*ctx*/)
+void
+beam_tether_force_function(VectorValue<double>& F,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& X,
+                           const libMesh::Point& s,
+                           Elem* const /*elem*/,
+                           const unsigned short int side,
+                           const vector<NumericVector<double>*>& /*system_data*/,
+                           double /*time*/,
+                           void* /*ctx*/)
 {
     if (side == 1 || side == 3)
     {
@@ -103,14 +105,15 @@ void beam_tether_force_function(VectorValue<double>& F,
 
 // Stress tensor functions for the thin beam.
 static double mu_s, beta_s;
-void beam_PK1_dev_stress_function(TensorValue<double>& PP,
-                                  const TensorValue<double>& FF,
-                                  const libMesh::Point& /*X*/,
-                                  const libMesh::Point& /*s*/,
-                                  Elem* const /*elem*/,
-                                  const vector<NumericVector<double>*>& /*system_data*/,
-                                  double /*time*/,
-                                  void* /*ctx*/)
+void
+beam_PK1_dev_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const vector<NumericVector<double>*>& /*system_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     PP = mu_s * (FF - FF_inv_trans);
@@ -118,14 +121,15 @@ void beam_PK1_dev_stress_function(TensorValue<double>& PP,
 } // beam_PK1_dev_stress_function
 
 double J_dil_min, J_dil_max;
-void beam_PK1_dil_stress_function(TensorValue<double>& PP,
-                                  const TensorValue<double>& FF,
-                                  const libMesh::Point& /*X*/,
-                                  const libMesh::Point& /*s*/,
-                                  Elem* const /*elem*/,
-                                  const vector<NumericVector<double>*>& /*system_data*/,
-                                  double /*time*/,
-                                  void* /*ctx*/)
+void
+beam_PK1_dil_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const vector<NumericVector<double>*>& /*system_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
     double J = FF.det();
     J_dil_min = std::min(J, J_dil_min);
@@ -148,7 +152,8 @@ struct node_x_comp : std::binary_function<const libMesh::Node*, const libMesh::N
 };
 
 template <class node_set>
-double compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
+double
+compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -192,7 +197,8 @@ double compute_deformed_length(node_set& nodes, EquationSystems* equation_system
 }
 
 template <class node_set>
-double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems)
+double
+compute_displaced_area(node_set& nodes, EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -228,7 +234,8 @@ double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems
     return 0.5 * abs(A2);
 }
 
-double compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_idx, const int wgt_sc_idx)
+double
+compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_idx, const int wgt_sc_idx)
 {
     double Q_in = 0.0;
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -288,7 +295,8 @@ double compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const
     return Q_in;
 }
 
-inline double cheby(double t, double a, double b)
+inline double
+cheby(double t, double a, double b)
 {
     return 0.5 * (a + b) + 0.5 * (a - b) * cos(t * M_PI);
 }
@@ -306,7 +314,8 @@ using namespace ModelData;
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

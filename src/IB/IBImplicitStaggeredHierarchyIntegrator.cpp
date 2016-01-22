@@ -111,7 +111,8 @@ namespace
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
 // IB-4 interpolation function.
-static void ib_4_interp_fcn(const double r, double* const w)
+static void
+ib_4_interp_fcn(const double r, double* const w)
 {
     const double q = sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
     w[0] = 0.125 * (5.0 - 2.0 * r - q);
@@ -123,7 +124,8 @@ static void ib_4_interp_fcn(const double r, double* const w)
 static const int ib_4_interp_stencil = 4;
 
 // Piecewise linear interpolation function
-static void pwl_interp_fcn(const double r, double* const w)
+static void
+pwl_interp_fcn(const double r, double* const w)
 {
     w[0] = 1.0 - r;
     w[1] = r;
@@ -181,9 +183,10 @@ IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator(
     return;
 } // ~IBImplicitStaggeredHierarchyIntegrator
 
-void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                          const double new_time,
-                                                                          const int num_cycles)
+void
+IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                                     const double new_time,
+                                                                     const int num_cycles)
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -244,9 +247,10 @@ void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     return;
 } // preprocessIntegrateHierarchy
 
-void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                const double new_time,
-                                                                const int cycle_num)
+void
+IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                           const double new_time,
+                                                           const int cycle_num)
 {
     if (d_solve_for_position)
     {
@@ -260,10 +264,11 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     return;
 } // integrateHierarchy
 
-void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                           const double new_time,
-                                                                           const bool skip_synchronize_new_state_data,
-                                                                           const int num_cycles)
+void
+IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                      const double new_time,
+                                                                      const bool skip_synchronize_new_state_data,
+                                                                      const int num_cycles)
 {
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -353,9 +358,9 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     return;
 } // postprocessIntegrateHierarchy
 
-void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -375,14 +380,16 @@ void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 } // initializeHierarchyIntegrator
 
-int IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
+int
+IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
 {
     return d_ins_hier_integrator->getNumberOfCycles();
 } // getNumberOfCycles
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void
+IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
@@ -392,7 +399,8 @@ void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Da
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
+void
+IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -414,9 +422,10 @@ void IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
     return;
 } // getFromRestart
 
-void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double current_time,
-                                                                         const double new_time,
-                                                                         const int cycle_num)
+void
+IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double current_time,
+                                                                    const double new_time,
+                                                                    const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
@@ -596,9 +605,10 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const d
     return;
 } // integrateHierarchy_position
 
-void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double current_time,
-                                                                         const double new_time,
-                                                                         const int cycle_num)
+void
+IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double current_time,
+                                                                    const double new_time,
+                                                                    const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
@@ -799,7 +809,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     return;
 } // integrateHierarchy_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
@@ -816,7 +827,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_SAMRAI(SNES sn
     return ierr;
 } // IBFunction_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x, Vec f)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x, Vec f)
 {
     PetscErrorCode ierr;
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
@@ -879,7 +891,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES 
     return ierr;
 } // IBFunction_position
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x, Vec f)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x, Vec f)
 {
     PetscErrorCode ierr;
     const double current_time = d_integrator_time;
@@ -927,7 +940,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES 
     return ierr;
 } // IBFunction_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat A, Mat B, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
 
@@ -944,7 +958,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_SAMRAI(SN
     return ierr;
 } // IBJacobianSetup_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
@@ -961,7 +976,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(
     return ierr;
 } // IBJacobianSetup_position
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
@@ -997,7 +1013,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(
     return ierr;
 } // IBJacobianSetup_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_SAMRAI(Mat A, Vec x, Vec f)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_SAMRAI(Mat A, Vec x, Vec f)
 {
     PetscErrorCode ierr = 1;
     void* ctx;
@@ -1016,7 +1033,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_SAMRAI(Ma
     return ierr;
 } // IBJacobianApply_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
 {
     PetscErrorCode ierr;
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
@@ -1073,7 +1091,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(
     return ierr;
 } // IBJacobianApply_position
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
 {
     PetscErrorCode ierr;
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
@@ -1120,7 +1139,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(
 
 } // IBJacobianApply_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
 {
     PetscErrorCode ierr = 1;
     void* ctx;
@@ -1139,7 +1159,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, V
     return ierr;
 } // IBPCApply_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 {
     PetscErrorCode ierr;
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
@@ -1247,7 +1268,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x,
     return ierr;
 } // IBPCApply_position
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 {
     Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(x);
     Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(y);
@@ -1258,7 +1280,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x,
     return ierr;
 } // IBPCApply_velocity
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x, Vec y)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x, Vec y)
 {
     PetscErrorCode ierr;
     void* ctx;
@@ -1269,7 +1292,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMR
     return ierr;
 } // lagrangianSchurApply_SAMRAI
 
-PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
 {
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
 

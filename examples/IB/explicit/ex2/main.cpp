@@ -74,7 +74,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -325,11 +326,12 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                      LDataManager* l_data_manager,
-                      const double loop_time,
-                      ostream& C_D_stream,
-                      ostream& C_L_stream)
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                 LDataManager* l_data_manager,
+                 const double loop_time,
+                 ostream& C_D_stream,
+                 ostream& C_L_stream)
 {
     // Compute lift and drag forces.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();

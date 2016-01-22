@@ -215,7 +215,8 @@ CCPoissonLevelRelaxationFACOperator::~CCPoissonLevelRelaxationFACOperator()
     return;
 }
 
-void CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
+void
+CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
 {
     if (d_is_initialized)
     {
@@ -231,7 +232,8 @@ void CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& lev
     return;
 }
 
-void CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
@@ -251,12 +253,13 @@ void CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string&
     return;
 }
 
-void CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                      const SAMRAIVectorReal<NDIM, double>& residual,
-                                                      int level_num,
-                                                      int num_sweeps,
-                                                      bool /*performing_pre_sweeps*/,
-                                                      bool /*performing_post_sweeps*/)
+void
+CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                 const SAMRAIVectorReal<NDIM, double>& residual,
+                                                 int level_num,
+                                                 int num_sweeps,
+                                                 bool /*performing_pre_sweeps*/,
+                                                 bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -357,9 +360,10 @@ void CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
     return;
 }
 
-bool CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                             const SAMRAIVectorReal<NDIM, double>& residual,
-                                                             int coarsest_ln)
+bool
+CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                        const SAMRAIVectorReal<NDIM, double>& residual,
+                                                        int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
 #if !defined(NDEBUG)
@@ -395,11 +399,12 @@ bool CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<ND
     return true;
 }
 
-void CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                          const SAMRAIVectorReal<NDIM, double>& solution,
-                                                          const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                          int coarsest_level_num,
-                                                          int finest_level_num)
+void
+CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                     const SAMRAIVectorReal<NDIM, double>& solution,
+                                                     const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                     int coarsest_level_num,
+                                                     int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
@@ -463,11 +468,11 @@ void CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& solution,
-    const SAMRAIVectorReal<NDIM, double>& rhs,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+void
+CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                        const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                                        const int coarsest_reset_ln,
+                                                                        const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
     Pointer<CellVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
@@ -611,8 +616,9 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     return;
 }
 
-void CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int /*coarsest_reset_ln*/,
-                                                                             const int /*finest_reset_ln*/)
+void
+CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int /*coarsest_reset_ln*/,
+                                                                        const int /*finest_reset_ln*/)
 {
     if (!d_is_initialized) return;
     if (!d_in_initialize_operator_state)

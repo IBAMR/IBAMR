@@ -84,7 +84,8 @@ StaggeredStokesSolverManager* StaggeredStokesSolverManager::s_solver_manager_ins
 bool StaggeredStokesSolverManager::s_registered_callback = false;
 unsigned char StaggeredStokesSolverManager::s_shutdown_priority = 200;
 
-StaggeredStokesSolverManager* StaggeredStokesSolverManager::getManager()
+StaggeredStokesSolverManager*
+StaggeredStokesSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
@@ -98,7 +99,8 @@ StaggeredStokesSolverManager* StaggeredStokesSolverManager::getManager()
     return s_solver_manager_instance;
 } // getManager
 
-void StaggeredStokesSolverManager::freeManager()
+void
+StaggeredStokesSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
@@ -107,9 +109,10 @@ void StaggeredStokesSolverManager::freeManager()
 
 namespace
 {
-Pointer<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& object_name,
-                                                            Pointer<Database> input_db,
-                                                            const std::string& default_options_prefix)
+Pointer<StaggeredStokesSolver>
+allocate_petsc_krylov_solver(const std::string& object_name,
+                             Pointer<Database> input_db,
+                             const std::string& default_options_prefix)
 {
     Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
         new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
@@ -117,9 +120,10 @@ Pointer<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& o
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 
-Pointer<StaggeredStokesSolver> allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
-                                                                          Pointer<Database> input_db,
-                                                                          const std::string& default_options_prefix)
+Pointer<StaggeredStokesSolver>
+allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
+                                           Pointer<Database> input_db,
+                                           const std::string& default_options_prefix)
 {
     Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
         new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix);
@@ -165,8 +169,8 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
     return solver;
 } // allocateSolver
 
-void StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
-                                                                 SolverMaker solver_maker)
+void
+StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {

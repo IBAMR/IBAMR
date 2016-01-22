@@ -95,14 +95,16 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
     return;
 } // ~EdgeDataSynchronization
 
-void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void EdgeDataSynchronization::initializeOperatorState(
+void
+EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -194,7 +196,8 @@ void EdgeDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -209,7 +212,8 @@ void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void EdgeDataSynchronization::resetTransactionComponents(
+void
+EdgeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -292,7 +296,8 @@ void EdgeDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void EdgeDataSynchronization::deallocateOperatorState()
+void
+EdgeDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -311,7 +316,8 @@ void EdgeDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void EdgeDataSynchronization::synchronizeData(const double fill_time)
+void
+EdgeDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

@@ -247,7 +247,8 @@ LData::~LData()
     return;
 } // ~LData
 
-void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, const bool manage_petsc_vec)
+void
+LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, const bool manage_petsc_vec)
 {
     restoreArrays();
     int ierr;
@@ -289,7 +290,8 @@ void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, c
     return;
 } // resetData
 
-void LData::putToDatabase(Pointer<Database> db)
+void
+LData::putToDatabase(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);

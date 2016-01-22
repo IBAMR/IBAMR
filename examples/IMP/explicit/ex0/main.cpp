@@ -65,14 +65,15 @@ namespace ModelData
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
-void PK1_stress_function(TensorValue<double>& PP,
-                         const TensorValue<double>& FF,
-                         const libMesh::Point& /*x*/,
-                         const libMesh::Point& /*X*/,
-                         subdomain_id_type /*subdomain_id*/,
-                         std::vector<double>& /*internal_vars*/,
-                         double /*time*/,
-                         void* /*ctx*/)
+void
+PK1_stress_function(TensorValue<double>& PP,
+                    const TensorValue<double>& FF,
+                    const libMesh::Point& /*x*/,
+                    const libMesh::Point& /*X*/,
+                    subdomain_id_type /*subdomain_id*/,
+                    std::vector<double>& /*internal_vars*/,
+                    double /*time*/,
+                    void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     const TensorValue<double> CC = FF.transpose() * FF;
@@ -101,7 +102,8 @@ using namespace ModelData;
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);

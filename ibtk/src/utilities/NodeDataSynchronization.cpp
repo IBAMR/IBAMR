@@ -95,14 +95,16 @@ NodeDataSynchronization::~NodeDataSynchronization()
     return;
 } // ~NodeDataSynchronization
 
-void NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void NodeDataSynchronization::initializeOperatorState(
+void
+NodeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -194,7 +196,8 @@ void NodeDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+NodeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -209,7 +212,8 @@ void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void NodeDataSynchronization::resetTransactionComponents(
+void
+NodeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -292,7 +296,8 @@ void NodeDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void NodeDataSynchronization::deallocateOperatorState()
+void
+NodeDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -311,7 +316,8 @@ void NodeDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void NodeDataSynchronization::synchronizeData(const double fill_time)
+void
+NodeDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

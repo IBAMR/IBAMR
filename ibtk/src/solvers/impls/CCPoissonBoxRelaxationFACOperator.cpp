@@ -154,7 +154,8 @@ enum SmootherType
     UNKNOWN = -1
 };
 
-inline SmootherType get_smoother_type(const std::string& smoother_type_string)
+inline SmootherType
+get_smoother_type(const std::string& smoother_type_string)
 {
     if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
     if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL")
@@ -163,7 +164,8 @@ inline SmootherType get_smoother_type(const std::string& smoother_type_string)
         return UNKNOWN;
 } // get_smoother_type
 
-inline bool do_local_data_update(SmootherType smoother_type)
+inline bool
+do_local_data_update(SmootherType smoother_type)
 {
     if (smoother_type == PROCESSOR_GAUSS_SEIDEL)
     {
@@ -269,7 +271,8 @@ CCPoissonBoxRelaxationFACOperator::~CCPoissonBoxRelaxationFACOperator()
     return;
 } // ~CCPoissonBoxRelaxationFACOperator
 
-void CCPoissonBoxRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
+void
+CCPoissonBoxRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
@@ -278,7 +281,8 @@ void CCPoissonBoxRelaxationFACOperator::setSmootherType(const std::string& smoot
     return;
 } // setSmootherType
 
-void CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
@@ -298,12 +302,13 @@ void CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& c
     return;
 } // setCoarseSolverType
 
-void CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                    const SAMRAIVectorReal<NDIM, double>& residual,
-                                                    int level_num,
-                                                    int num_sweeps,
-                                                    bool /*performing_pre_sweeps*/,
-                                                    bool /*performing_post_sweeps*/)
+void
+CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                               const SAMRAIVectorReal<NDIM, double>& residual,
+                                               int level_num,
+                                               int num_sweeps,
+                                               bool /*performing_pre_sweeps*/,
+                                               bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -460,9 +465,10 @@ void CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doubl
     return;
 } // smoothError
 
-bool CCPoissonBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                           const SAMRAIVectorReal<NDIM, double>& residual,
-                                                           int coarsest_ln)
+bool
+CCPoissonBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                      const SAMRAIVectorReal<NDIM, double>& residual,
+                                                      int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
 #if !defined(NDEBUG)
@@ -491,11 +497,12 @@ bool CCPoissonBoxRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM
     return true;
 } // solveCoarsestLevel
 
-void CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                        const SAMRAIVectorReal<NDIM, double>& solution,
-                                                        const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                        int coarsest_level_num,
-                                                        int finest_level_num)
+void
+CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                   const SAMRAIVectorReal<NDIM, double>& solution,
+                                                   const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                   int coarsest_level_num,
+                                                   int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
@@ -559,11 +566,11 @@ void CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, d
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& solution,
-    const SAMRAIVectorReal<NDIM, double>& rhs,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+void
+CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                      const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                                      const int coarsest_reset_ln,
+                                                                      const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
     Pointer<CellVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
@@ -732,8 +739,9 @@ void CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     return;
 } // initializeOperatorStateSpecialized
 
-void CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                           const int finest_reset_ln)
+void
+CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                      const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
 
@@ -785,10 +793,11 @@ void CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
-                                                                  const PoissonSpecifications& poisson_spec,
-                                                                  const Pointer<Patch<NDIM> > patch,
-                                                                  const IntVector<NDIM>& ghost_cell_width)
+void
+CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
+                                                             const PoissonSpecifications& poisson_spec,
+                                                             const Pointer<Patch<NDIM> > patch,
+                                                             const IntVector<NDIM>& ghost_cell_width)
 {
 #if !defined(NDEBUG)
     if (ghost_cell_width.min() == 0)
@@ -862,11 +871,12 @@ void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     return;
 } // buildPatchLaplaceOperator
 
-void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
-                                                                          const Pointer<CellData<NDIM, double> > C_data,
-                                                                          const Pointer<SideData<NDIM, double> > D_data,
-                                                                          const Pointer<Patch<NDIM> > patch,
-                                                                          const IntVector<NDIM>& ghost_cell_width)
+void
+CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
+                                                                     const Pointer<CellData<NDIM, double> > C_data,
+                                                                     const Pointer<SideData<NDIM, double> > D_data,
+                                                                     const Pointer<Patch<NDIM> > patch,
+                                                                     const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
 
@@ -989,12 +999,12 @@ void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A
     return;
 } // buildPatchLaplaceOperator_aligned
 
-void CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
-    Mat& A,
-    const Pointer<CellData<NDIM, double> > C_data,
-    const Pointer<SideData<NDIM, double> > D_data,
-    const Pointer<Patch<NDIM> > patch,
-    const IntVector<NDIM>& ghost_cell_width)
+void
+CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
+                                                                        const Pointer<CellData<NDIM, double> > C_data,
+                                                                        const Pointer<SideData<NDIM, double> > D_data,
+                                                                        const Pointer<Patch<NDIM> > patch,
+                                                                        const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
 

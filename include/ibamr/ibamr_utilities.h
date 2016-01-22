@@ -53,32 +53,32 @@
 #define IBAMR_DEPRECATED_FUNCTION1(deprecated_function_name)                                                           \
     IBAMR_DO_ONCE(                                                                                                     \
         {                                                                                                              \
-        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
-                           << " is deprecated and may be removed in the future." << std::endl;                         \
+            SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                     \
+                               << " is deprecated and may be removed in the future." << std::endl;                     \
         });
 
 #define IBAMR_DEPRECATED_FUNCTION2(deprecated_function_name, new_function_name)                                        \
     IBAMR_DO_ONCE(                                                                                                     \
         {                                                                                                              \
-        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
-                           << " is deprecated and may be removed in the future.\n"                                     \
-                           << "Please update your code to use function " << new_function_name << "." << std::endl;     \
+            SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                     \
+                               << " is deprecated and may be removed in the future.\n"                                 \
+                               << "Please update your code to use function " << new_function_name << "." << std::endl; \
         });
 
 #define IBAMR_DEPRECATED_MEMBER_FUNCTION1(class_name, deprecated_method_name)                                          \
     IBAMR_DO_ONCE(                                                                                                     \
         {                                                                                                              \
-        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
-                           << " is deprecated and may be removed in the future." << std::endl;                         \
+            SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name  \
+                               << " is deprecated and may be removed in the future." << std::endl;                     \
         });
 
 #define IBAMR_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name, new_method_name)                         \
     IBAMR_DO_ONCE(                                                                                                     \
         {                                                                                                              \
-        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
-                           << " is deprecated and may be removed in the future.\n"                                     \
-                           << "Please update your code to use member function " << new_method_name << "."              \
-                           << std::endl;                                                                               \
+            SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name  \
+                               << " is deprecated and may be removed in the future.\n"                                 \
+                               << "Please update your code to use member function " << new_method_name << "."          \
+                               << std::endl;                                                                           \
         });
 
 namespace IBAMR

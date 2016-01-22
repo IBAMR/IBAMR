@@ -94,14 +94,16 @@ FaceDataSynchronization::~FaceDataSynchronization()
     return;
 } // ~FaceDataSynchronization
 
-void FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void FaceDataSynchronization::initializeOperatorState(
+void
+FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -190,7 +192,8 @@ void FaceDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -205,7 +208,8 @@ void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void FaceDataSynchronization::resetTransactionComponents(
+void
+FaceDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -285,7 +289,8 @@ void FaceDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void FaceDataSynchronization::deallocateOperatorState()
+void
+FaceDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -301,7 +306,8 @@ void FaceDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void FaceDataSynchronization::synchronizeData(const double fill_time)
+void
+FaceDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

@@ -421,7 +421,8 @@ INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
     return;
 } // ~INSCollocatedPPMConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -769,8 +770,9 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
     return;
 } // applyConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                 const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                            const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -834,7 +836,8 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
     return;
 } // initializeOperatorState
 
-void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
+void
+INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

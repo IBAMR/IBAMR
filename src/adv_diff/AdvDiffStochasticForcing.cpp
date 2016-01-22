@@ -85,7 +85,8 @@ namespace IBAMR
 
 namespace
 {
-void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
+void
+genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
@@ -173,18 +174,20 @@ AdvDiffStochasticForcing::~AdvDiffStochasticForcing()
     return;
 } // ~AdvDiffStochasticForcing
 
-bool AdvDiffStochasticForcing::isTimeDependent() const
+bool
+AdvDiffStochasticForcing::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                       Pointer<Variable<NDIM> > var,
-                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                       const double data_time,
-                                                       const bool initial_time,
-                                                       const int coarsest_ln_in,
-                                                       const int finest_ln_in)
+void
+AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
+                                                  Pointer<Variable<NDIM> > var,
+                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  const double data_time,
+                                                  const bool initial_time,
+                                                  const int coarsest_ln_in,
+                                                  const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -387,12 +390,13 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     return;
 } // setDataOnPatchHierarchy
 
-void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
-                                              const double /*data_time*/,
-                                              const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
+                                         Pointer<Variable<NDIM> > /*var*/,
+                                         Pointer<Patch<NDIM> > patch,
+                                         const double /*data_time*/,
+                                         const bool initial_time,
+                                         Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<CellData<NDIM, double> > divF_cc_data = patch->getPatchData(data_idx);
     divF_cc_data->fillAll(0.0);

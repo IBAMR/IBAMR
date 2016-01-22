@@ -63,7 +63,8 @@ ParallelEdgeMap::~ParallelEdgeMap()
     return;
 } // ~ParallelEdgeMap
 
-int ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
+int
+ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {
     if (mastr_idx == -1)
     {
@@ -76,7 +77,8 @@ int ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
     return mastr_idx;
 } // addEdge
 
-void ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
+void
+ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
 {
     if (mastr_idx == -1)
     {
@@ -89,7 +91,8 @@ void ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
     return;
 } // removeEdge
 
-void ParallelEdgeMap::communicateData()
+void
+ParallelEdgeMap::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -208,7 +211,8 @@ void ParallelEdgeMap::communicateData()
     return;
 } // communicateData
 
-const std::multimap<int, std::pair<int, int> >& ParallelEdgeMap::getEdgeMap() const
+const std::multimap<int, std::pair<int, int> >&
+ParallelEdgeMap::getEdgeMap() const
 {
     return d_edge_map;
 } // getEdgeMap

@@ -49,7 +49,8 @@ namespace IBAMR
 
 int MaterialPointSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
-void MaterialPointSpec::registerWithStreamableManager()
+void
+MaterialPointSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
