@@ -93,7 +93,7 @@ public:
     /*!
      * Typedef for functions to construct KrylovLinearSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<KrylovLinearSolver>(*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<KrylovLinearSolver> (*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);

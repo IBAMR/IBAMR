@@ -97,16 +97,22 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
-    : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
+    : LinearOperator(object_name, homogeneous_bc),
+      d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
-      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
-      d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
+      d_P_bc_coef(d_default_P_bc_coef),
+      d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
+      d_U_fill_pattern(NULL),
+      d_P_fill_pattern(NULL),
+      d_transaction_comps(),
       d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
-      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)), d_x(NULL), d_b(NULL)
+      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
+      d_x(NULL),
+      d_b(NULL)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
@@ -145,19 +151,22 @@ StaggeredStokesOperator::~StaggeredStokesOperator()
     return;
 } // ~StaggeredStokesOperator
 
-void StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+void
+StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
 
-const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecifications() const
+const PoissonSpecifications&
+StaggeredStokesOperator::getVelocityPoissonSpecifications() const
 {
     return d_U_problem_coefs;
 } // getVelocityPoissonSpecifications
 
-void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                 RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void
+StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                            RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -185,7 +194,8 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
@@ -194,7 +204,8 @@ void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesP
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBAMR_TIMER_START(t_apply);
 
@@ -274,8 +285,9 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVec
     return;
 } // apply
 
-void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                      const SAMRAIVectorReal<NDIM, double>& out)
+void
+StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                 const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -336,7 +348,8 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDI
     return;
 } // initializeOperatorState
 
-void StaggeredStokesOperator::deallocateOperatorState()
+void
+StaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

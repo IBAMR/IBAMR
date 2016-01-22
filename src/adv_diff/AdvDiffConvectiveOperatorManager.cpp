@@ -75,7 +75,8 @@ AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::s_operator_m
 bool AdvDiffConvectiveOperatorManager::s_registered_callback = false;
 unsigned char AdvDiffConvectiveOperatorManager::s_shutdown_priority = 200;
 
-AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::getManager()
+AdvDiffConvectiveOperatorManager*
+AdvDiffConvectiveOperatorManager::getManager()
 {
     if (!s_operator_manager_instance)
     {
@@ -89,7 +90,8 @@ AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::getManager()
     return s_operator_manager_instance;
 } // getManager
 
-void AdvDiffConvectiveOperatorManager::freeManager()
+void
+AdvDiffConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
@@ -110,13 +112,16 @@ AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_t
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("AdvDiffConvectiveOperatorManager::allocateOperator():\n"
-                   << "  unrecognized operator type: " << operator_type << "\n");
+                   << "  unrecognized operator type: "
+                   << operator_type
+                   << "\n");
     }
     return (it->second)(operator_object_name, Q_var, input_db, difference_form, bc_coefs);
 } // allocateOperator
 
-void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
-                                                                       OperatorMaker operator_maker)
+void
+AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
+                                                                  OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {

@@ -90,33 +90,38 @@ LMarkerRefine::~LMarkerRefine()
     return;
 } // ~LMarkerRefine
 
-bool LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+bool
+LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string& LMarkerRefine::getOperatorName() const
+const std::string&
+LMarkerRefine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int LMarkerRefine::getOperatorPriority() const
+int
+LMarkerRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> LMarkerRefine::getStencilWidth() const
+IntVector<NDIM>
+LMarkerRefine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void LMarkerRefine::refine(Patch<NDIM>& fine,
-                           const Patch<NDIM>& coarse,
-                           const int dst_component,
-                           const int src_component,
-                           const Box<NDIM>& fine_box,
-                           const IntVector<NDIM>& ratio) const
+void
+LMarkerRefine::refine(Patch<NDIM>& fine,
+                      const Patch<NDIM>& coarse,
+                      const int dst_component,
+                      const int src_component,
+                      const Box<NDIM>& fine_box,
+                      const IntVector<NDIM>& ratio) const
 {
     Pointer<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
     Pointer<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
@@ -149,7 +154,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
                 Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
-                
+
                 // Catch edge cases in which roundoff error can cause problems.
                 //
                 // NOTE: This can permit markers to "escape" out the "top" of the domain if
@@ -170,7 +175,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                         fine_i(d) = fine_patch_upper(d) + 1;
                     }
                 }
-                
+
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))

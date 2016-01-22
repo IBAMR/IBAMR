@@ -81,9 +81,16 @@ static const int EXTENSIONS_FILLABLE = 128;
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : d_grid_geom(grid_geom), d_constants(), d_acoef_function_strings(), d_bcoef_function_strings(),
-      d_gcoef_function_strings(), d_acoef_parsers(2 * NDIM), d_bcoef_parsers(2 * NDIM), d_gcoef_parsers(2 * NDIM),
-      d_parser_time(new double), d_parser_posn(new Point)
+    : d_grid_geom(grid_geom),
+      d_constants(),
+      d_acoef_function_strings(),
+      d_bcoef_function_strings(),
+      d_gcoef_function_strings(),
+      d_acoef_parsers(2 * NDIM),
+      d_bcoef_parsers(2 * NDIM),
+      d_gcoef_parsers(2 * NDIM),
+      d_parser_time(new double),
+      d_parser_posn(new Point)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -127,8 +134,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_acoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
-                         << "; using acoef = 0.0." << std::endl);
+                         << "  no function corresponding to key ``"
+                         << key_name
+                         << "'' found for side = "
+                         << d
+                         << "; using acoef = 0.0."
+                         << std::endl);
         }
         try
         {
@@ -137,8 +148,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: " << e.GetMsg() << "\n"
-                       << "  in:    " << e.GetExpr() << "\n");
+                       << "  error: "
+                       << e.GetMsg()
+                       << "\n"
+                       << "  in:    "
+                       << e.GetExpr()
+                       << "\n");
         }
         catch (...)
         {
@@ -155,8 +170,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_bcoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
-                         << "; using bcoef = 0.0." << std::endl);
+                         << "  no function corresponding to key ``"
+                         << key_name
+                         << "'' found for side = "
+                         << d
+                         << "; using bcoef = 0.0."
+                         << std::endl);
         }
         try
         {
@@ -165,8 +184,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: " << e.GetMsg() << "\n"
-                       << "  in:    " << e.GetExpr() << "\n");
+                       << "  error: "
+                       << e.GetMsg()
+                       << "\n"
+                       << "  in:    "
+                       << e.GetExpr()
+                       << "\n");
         }
         catch (...)
         {
@@ -183,8 +206,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         {
             d_gcoef_function_strings.push_back("0.0");
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
-                         << "  no function corresponding to key ``" << key_name << "'' found for side = " << d
-                         << "; using gcoef = 0.0." << std::endl);
+                         << "  no function corresponding to key ``"
+                         << key_name
+                         << "'' found for side = "
+                         << d
+                         << "; using gcoef = 0.0."
+                         << std::endl);
         }
         try
         {
@@ -193,8 +220,12 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: " << e.GetMsg() << "\n"
-                       << "  in:    " << e.GetExpr() << "\n");
+                       << "  error: "
+                       << e.GetMsg()
+                       << "\n"
+                       << "  in:    "
+                       << e.GetExpr()
+                       << "\n");
         }
         catch (...)
         {
@@ -312,13 +343,14 @@ muParserRobinBcCoefs::~muParserRobinBcCoefs()
     return;
 } // ~muParserRobinBcCoefs
 
-void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                      Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                      Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                      const Pointer<Variable<NDIM> >& /*variable*/,
-                                      const Patch<NDIM>& patch,
-                                      const BoundaryBox<NDIM>& bdry_box,
-                                      double fill_time) const
+void
+muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+                                 Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                 Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                 const Pointer<Variable<NDIM> >& /*variable*/,
+                                 const Patch<NDIM>& patch,
+                                 const BoundaryBox<NDIM>& bdry_box,
+                                 double fill_time) const
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
@@ -366,8 +398,12 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_d
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n"
-                       << "  error: " << e.GetMsg() << "\n"
-                       << "  in:    " << e.GetExpr() << "\n");
+                       << "  error: "
+                       << e.GetMsg()
+                       << "\n"
+                       << "  in:    "
+                       << e.GetExpr()
+                       << "\n");
         }
         catch (...)
         {
@@ -378,7 +414,8 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_d
     return;
 } // setBcCoefs
 
-IntVector<NDIM> muParserRobinBcCoefs::numberOfExtensionsFillable() const
+IntVector<NDIM>
+muParserRobinBcCoefs::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
 } // numberOfExtensionsFillable

@@ -43,12 +43,12 @@
 
 namespace IBTK
 {
-
 /*!
  * \brief Routine for converting strings to enums.
  */
 template <typename T>
-inline T string_to_enum(const std::string& /*val*/)
+inline T
+string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return -1;
@@ -76,7 +76,8 @@ enum MGCycleType
 };
 
 template <>
-inline MGCycleType string_to_enum<MGCycleType>(const std::string& val)
+inline MGCycleType
+string_to_enum<MGCycleType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "V") == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "V_CYCLE") == 0) return V_CYCLE;
@@ -91,7 +92,8 @@ inline MGCycleType string_to_enum<MGCycleType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<MGCycleType>(MGCycleType val)
+inline std::string
+enum_to_string<MGCycleType>(MGCycleType val)
 {
     if (val == V_CYCLE) return "V_CYCLE";
     if (val == W_CYCLE) return "W_CYCLE";
@@ -110,7 +112,8 @@ enum RegridMode
 };
 
 template <>
-inline RegridMode string_to_enum<RegridMode>(const std::string& val)
+inline RegridMode
+string_to_enum<RegridMode>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
     if (strcasecmp(val.c_str(), "AGGRESSIVE") == 0) return AGGRESSIVE;
@@ -118,7 +121,8 @@ inline RegridMode string_to_enum<RegridMode>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<RegridMode>(RegridMode val)
+inline std::string
+enum_to_string<RegridMode>(RegridMode val)
 {
     if (val == STANDARD) return "STANDARD";
     if (val == AGGRESSIVE) return "AGGRESSIVE";
@@ -137,7 +141,8 @@ enum VariableContextType
 };
 
 template <>
-inline VariableContextType string_to_enum<VariableContextType>(const std::string& val)
+inline VariableContextType
+string_to_enum<VariableContextType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
     if (strcasecmp(val.c_str(), "NEW_DATA") == 0) return NEW_DATA;
@@ -146,7 +151,8 @@ inline VariableContextType string_to_enum<VariableContextType>(const std::string
 } // string_to_enum
 
 template <>
-inline std::string enum_to_string<VariableContextType>(VariableContextType val)
+inline std::string
+enum_to_string<VariableContextType>(VariableContextType val)
 {
     if (val == CURRENT_DATA) return "CURRENT_DATA";
     if (val == NEW_DATA) return "NEW_DATA";

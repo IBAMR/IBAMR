@@ -86,34 +86,39 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPre
     return;
 } // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                                                                const std::string& op_name) const
+bool
+CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                                                           const std::string& op_name) const
 {
     const Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string& CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName() const
+const std::string&
+CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority() const
+int
+CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority() const
 {
     return d_conservative_linear_refine_op.getOperatorPriority();
 } // getOperatorPriority
 
-IntVector<NDIM> CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
+IntVector<NDIM>
+CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
 {
     return d_conservative_linear_refine_op.getStencilWidth();
 } // getStencilWidth
 
-void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine,
-                                                                    const Patch<NDIM>& coarse,
-                                                                    const int dst_component,
-                                                                    const int src_component,
-                                                                    const Box<NDIM>& fine_box,
-                                                                    const IntVector<NDIM>& ratio) const
+void
+CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine,
+                                                               const Patch<NDIM>& coarse,
+                                                               const int dst_component,
+                                                               const int src_component,
+                                                               const Box<NDIM>& fine_box,
+                                                               const IntVector<NDIM>& ratio) const
 {
     // Determine the box over which we can apply the bounds-preserving
     // correction, and construct a list of boxes that will not be corrected.

@@ -288,7 +288,7 @@ protected:
     /*
      * Refine and coarsen algorithm data.
      */
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op, *d_p_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,

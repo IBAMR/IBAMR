@@ -135,7 +135,8 @@ namespace
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
-inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+inline short int
+get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
     for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
@@ -155,10 +156,11 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
     return dirichlet_bdry_ids;
 }
 
-inline bool is_physical_bdry(const Elem* elem,
-                             const unsigned short int side,
-                             const BoundaryInfo& boundary_info,
-                             const DofMap& dof_map)
+inline bool
+is_physical_bdry(const Elem* elem,
+                 const unsigned short int side,
+                 const BoundaryInfo& boundary_info,
+                 const DofMap& dof_map)
 {
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     bool at_physical_bdry = !elem->neighbor(side);
@@ -169,17 +171,19 @@ inline bool is_physical_bdry(const Elem* elem,
     return at_physical_bdry;
 }
 
-inline bool is_dirichlet_bdry(const Elem* elem,
-                              const unsigned short int side,
-                              const BoundaryInfo& boundary_info,
-                              const DofMap& dof_map)
+inline bool
+is_dirichlet_bdry(const Elem* elem,
+                  const unsigned short int side,
+                  const BoundaryInfo& boundary_info,
+                  const DofMap& dof_map)
 {
     if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     return get_dirichlet_bdry_ids(bdry_ids) != 0;
 }
 
-inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
+inline bool
+has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
 {
     bool has_physical_bdry = false;
     for (unsigned short int side = 0; side < elem->n_sides() && !has_physical_bdry; ++side)
@@ -189,10 +193,11 @@ inline bool has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_inf
     return has_physical_bdry;
 }
 
-std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
-                                      unsigned int time_step_number,
-                                      unsigned int part,
-                                      const std::string& extension)
+std::string
+libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                          unsigned int time_step_number,
+                          unsigned int part,
+                          const std::string& extension)
 {
     std::ostringstream file_name_prefix;
     file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
@@ -210,8 +215,7 @@ const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity syst
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database>
-                           input_db,
+                       Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
                        bool register_for_restart,
@@ -219,14 +223,18 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart,
-                      restart_read_dirname, restart_restore_number);
+    commonConstructor(object_name,
+                      input_db,
+                      std::vector<Mesh*>(1, mesh),
+                      max_level_number,
+                      register_for_restart,
+                      restart_read_dirname,
+                      restart_restore_number);
     return;
 } // IBFEMethod
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database>
-                           input_db,
+                       Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart,
@@ -234,7 +242,12 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart, restart_read_dirname,
+    commonConstructor(object_name,
+                      input_db,
+                      meshes,
+                      max_level_number,
+                      register_for_restart,
+                      restart_read_dirname,
                       restart_restore_number);
     return;
 } // IBFEMethod
@@ -253,40 +266,43 @@ IBFEMethod::~IBFEMethod()
     return;
 } // ~IBFEMethod
 
-FEDataManager* IBFEMethod::getFEDataManager(const unsigned int part) const
+FEDataManager*
+IBFEMethod::getFEDataManager(const unsigned int part) const
 {
     TBOX_ASSERT(part < d_num_parts);
     return d_fe_data_managers[part];
 } // getFEDataManager
 
-void IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
-                                                          void* ctx,
-                                                          const unsigned int part)
+void
+IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
     return;
 } // registerInitialCoordinateMappingFunction
 
-void IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_coordinate_mapping_fcn_data[part] = data;
     return;
 } // registerInitialCoordinateMappingFunction
 
-void IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
-                                           const std::vector<unsigned int>& systems,
-                                           void* ctx,
-                                           QuadratureType quad_type,
-                                           Order quad_order,
-                                           const unsigned int part)
+void
+IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
+                                      const std::vector<unsigned int>& systems,
+                                      void* ctx,
+                                      QuadratureType quad_type,
+                                      Order quad_order,
+                                      const unsigned int part)
 {
     registerPK1StressFunction(PK1StressFcnData(fcn, systems, ctx, quad_type, quad_order), part);
     return;
 } // registerPK1StressFunction
 
-void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_PK1_stress_fcn_data[part].push_back(data);
@@ -303,16 +319,18 @@ void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const u
     return;
 } // registerPK1StressFunction
 
-void IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
-                                              const std::vector<unsigned int>& systems,
-                                              void* ctx,
-                                              const unsigned int part)
+void
+IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
+                                         const std::vector<unsigned int>& systems,
+                                         void* ctx,
+                                         const unsigned int part)
 {
     registerLagBodyForceFunction(LagBodyForceFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagBodyForceFunction
 
-void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_body_force_fcn_data[part] = data;
@@ -321,16 +339,18 @@ void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, c
     return;
 } // registerLagBodyForceFunction
 
-void IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
-                                                    const std::vector<unsigned int>& systems,
-                                                    void* ctx,
-                                                    const unsigned int part)
+void
+IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
+                                               const std::vector<unsigned int>& systems,
+                                               void* ctx,
+                                               const unsigned int part)
 {
     registerLagSurfacePressureFunction(LagSurfacePressureFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagSurfacePressureFunction
 
-void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_pressure_fcn_data[part] = data;
@@ -339,16 +359,18 @@ void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnD
     return;
 } // registerLagSurfacePressureFunction
 
-void IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
-                                                 const std::vector<unsigned int>& systems,
-                                                 void* ctx,
-                                                 const unsigned int part)
+void
+IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
+                                            const std::vector<unsigned int>& systems,
+                                            void* ctx,
+                                            const unsigned int part)
 {
     registerLagSurfaceForceFunction(LagSurfaceForceFcnData(fcn, systems, ctx), part);
     return;
 } // registerLagSurfaceForceFunction
 
-void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
+void
+IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_lag_surface_force_fcn_data[part] = data;
@@ -357,12 +379,14 @@ void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& d
     return;
 } // registerLagSurfaceForceFunction
 
-const IntVector<NDIM>& IBFEMethod::getMinimumGhostCellWidth() const
+const IntVector<NDIM>&
+IBFEMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void
+IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -385,7 +409,8 @@ void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorith
     return;
 } // setupTagBuffer
 
-void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void
+IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -448,7 +473,8 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
     return;
 } // preprocessIntegrateData
 
-void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
+void
+IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -498,10 +524,11 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     return;
 } // postprocessIntegrateData
 
-void IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                     const double data_time)
+void
+IBFEMethod::interpolateVelocity(const int u_data_idx,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -524,13 +551,14 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
             U_vec = d_U_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
-        d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds,
-                                         data_time);
+        d_fe_data_managers[part]->interp(
+            u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
     }
     return;
 } // interpolateVelocity
 
-void IBFEMethod::eulerStep(const double current_time, const double new_time)
+void
+IBFEMethod::eulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -538,8 +566,8 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
     {
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
-                           d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
@@ -547,7 +575,8 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
     return;
 } // eulerStep
 
-void IBFEMethod::midpointStep(const double current_time, const double new_time)
+void
+IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -555,8 +584,8 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
     {
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
-                           d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
@@ -564,7 +593,8 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
     return;
 } // midpointStep
 
-void IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
+void
+IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -575,8 +605,8 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(),
-                           d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
@@ -584,7 +614,8 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
     return;
 } // trapezoidalStep
 
-void IBFEMethod::computeLagrangianForce(const double data_time)
+void
+IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -594,10 +625,11 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void IBFEMethod::spreadForce(const int f_data_idx,
-                             RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-                             const double data_time)
+void
+IBFEMethod::spreadForce(const int f_data_idx,
+                        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                        const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                        const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -608,8 +640,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op,
-                                         data_time);
+        d_fe_data_managers[part]->spread(
+            f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
         if (d_split_forces)
         {
             if (d_use_jump_conditions)
@@ -625,7 +657,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
-void IBFEMethod::initializeFEData()
+void
+IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -720,15 +753,15 @@ void IBFEMethod::initializeFEData()
     return;
 } // initializeFEData
 
-void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> >
-                                              gridding_alg,
-                                          int /*u_data_idx*/,
-                                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                                          int /*integrator_step*/,
-                                          double /*init_data_time*/,
-                                          bool /*initial_time*/)
+void
+IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                     int /*u_data_idx*/,
+                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     int /*integrator_step*/,
+                                     double /*init_data_time*/,
+                                     bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -744,7 +777,8 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
     return;
 } // initializePatchHierarchy
 
-void IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+void
+IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -757,7 +791,8 @@ void IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer
     return;
 } // registerLoadBalancer
 
-void IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+void
+IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -786,22 +821,22 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     return;
 } // endDataRedistribution
 
-void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                     int level_number,
-                                     double init_data_time,
-                                     bool can_be_refined,
-                                     bool initial_time,
-                                     Pointer<BasePatchLevel<NDIM> >
-                                         old_level,
-                                     bool allocate_data)
+void
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                int level_number,
+                                double init_data_time,
+                                bool can_be_refined,
+                                bool initial_time,
+                                Pointer<BasePatchLevel<NDIM> > old_level,
+                                bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
-        d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined,
-                                                      initial_time, old_level, allocate_data);
+        d_fe_data_managers[part]->initializeLevelData(
+            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
         if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
         {
             d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
@@ -811,9 +846,10 @@ void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarch
     return;
 } // initializeLevelData
 
-void IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                             int coarsest_level,
-                                             int /*finest_level*/)
+void
+IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                        int coarsest_level,
+                                        int /*finest_level*/)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -825,12 +861,13 @@ void IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > 
     return;
 } // resetHierarchyConfiguration
 
-void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                       int level_number,
-                                       double error_data_time,
-                                       int tag_index,
-                                       bool initial_time,
-                                       bool uses_richardson_extrapolation_too)
+void
+IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+                                  int level_number,
+                                  double error_data_time,
+                                  int tag_index,
+                                  bool initial_time,
+                                  bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
@@ -838,13 +875,14 @@ void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_h
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_managers[part]->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index,
-                                                        initial_time, uses_richardson_extrapolation_too);
+        d_fe_data_managers[part]->applyGradientDetector(
+            hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
 } // applyGradientDetector
 
-void IBFEMethod::putToDatabase(Pointer<Database> db)
+void
+IBFEMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putInteger("d_num_parts", d_num_parts);
@@ -859,7 +897,8 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
-void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
+void
+IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -874,10 +913,11 @@ void IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
-                                             PetscVector<double>& X_vec,
-                                             const double data_time,
-                                             const unsigned int part)
+void
+IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
+                                        PetscVector<double>& X_vec,
+                                        const double data_time,
+                                        const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -899,7 +939,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
         for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
-             cit != PK1_stress_fcn_systems.end(); ++cit)
+             cit != PK1_stress_fcn_systems.end();
+             ++cit)
         {
             System& system = equation_systems->get_system(*cit);
             PK1_stress_fcn_data[k].push_back(system.current_local_solution.get());
@@ -909,7 +950,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
-         cit != lag_body_force_fcn_systems.end(); ++cit)
+         cit != lag_body_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_body_force_fcn_data.push_back(system.current_local_solution.get());
@@ -918,7 +960,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
-         cit != lag_surface_pressure_fcn_systems.end(); ++cit)
+         cit != lag_surface_pressure_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_pressure_fcn_data.push_back(system.current_local_solution.get());
@@ -927,7 +970,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
-         cit != lag_surface_force_fcn_systems.end(); ++cit)
+         cit != lag_surface_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
@@ -1019,8 +1063,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
-                                                   d_PK1_stress_fcn_data[part][k].ctx);
+                d_PK1_stress_fcn_data[part][k].fcn(
+                    PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time, d_PK1_stress_fcn_data[part][k].ctx);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -PP * dphi[k][qp] * JxW[qp];
@@ -1060,7 +1104,13 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     // force to the right-hand-side vector.
                     if (d_PK1_stress_fcn_data[part][k].fcn)
                     {
-                        d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k], data_time,
+                        d_PK1_stress_fcn_data[part][k].fcn(PP,
+                                                           FF,
+                                                           X_qp,
+                                                           s_qp,
+                                                           elem,
+                                                           PK1_stress_fcn_data[k],
+                                                           data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
                         F += PP * normal_face[qp];
                     }
@@ -1166,7 +1216,13 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     // Compute the value of the body force at the quadrature
                     // point and add the corresponding forces to the
                     // right-hand-side vector.
-                    d_lag_body_force_fcn_data[part].fcn(F_b, FF, X_qp, s_qp, elem, lag_body_force_fcn_data, data_time,
+                    d_lag_body_force_fcn_data[part].fcn(F_b,
+                                                        FF,
+                                                        X_qp,
+                                                        s_qp,
+                                                        elem,
+                                                        lag_body_force_fcn_data,
+                                                        data_time,
                                                         d_lag_body_force_fcn_data[part].ctx);
                     for (unsigned int k = 0; k < n_basis; ++k)
                     {
@@ -1209,8 +1265,14 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         // Compute the value of the pressure at the quadrature
                         // point and add the corresponding force to the
                         // right-hand-side vector.
-                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, X_qp, s_qp, elem, side,
-                                                                  lag_surface_pressure_fcn_data, data_time,
+                        d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                                  FF,
+                                                                  X_qp,
+                                                                  s_qp,
+                                                                  elem,
+                                                                  side,
+                                                                  lag_surface_pressure_fcn_data,
+                                                                  data_time,
                                                                   d_lag_surface_pressure_fcn_data[part].ctx);
                         F -= P * J * FF_inv_trans * normal_face[qp];
                     }
@@ -1220,8 +1282,14 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                         // Compute the value of the surface force at the
                         // quadrature point and add the corresponding force to
                         // the right-hand-side vector.
-                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, X_qp, s_qp, elem, side,
-                                                               lag_surface_force_fcn_data, data_time,
+                        d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                               FF,
+                                                               X_qp,
+                                                               s_qp,
+                                                               elem,
+                                                               side,
+                                                               lag_surface_force_fcn_data,
+                                                               data_time,
                                                                d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s;
                     }
@@ -1266,11 +1334,12 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     return;
 } // computeInteriorForceDensity
 
-void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
-                                                PetscVector<double>& X_ghost_vec,
-                                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                                const double data_time,
-                                                const unsigned int part)
+void
+IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
+                                           PetscVector<double>& X_ghost_vec,
+                                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                           const double data_time,
+                                           const unsigned int part)
 {
     if (!d_split_forces) return;
 
@@ -1337,7 +1406,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
         for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
-             cit != PK1_stress_fcn_systems.end(); ++cit)
+             cit != PK1_stress_fcn_systems.end();
+             ++cit)
         {
             System& system = equation_systems->get_system(*cit);
             PK1_stress_fcn_data[k].push_back(system.current_local_solution.get());
@@ -1347,7 +1417,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
-         cit != lag_body_force_fcn_systems.end(); ++cit)
+         cit != lag_body_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_body_force_fcn_data.push_back(system.current_local_solution.get());
@@ -1356,7 +1427,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
-         cit != lag_surface_pressure_fcn_systems.end(); ++cit)
+         cit != lag_surface_pressure_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_pressure_fcn_data.push_back(system.current_local_solution.get());
@@ -1365,7 +1437,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
-         cit != lag_surface_force_fcn_systems.end(); ++cit)
+         cit != lag_surface_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
@@ -1463,8 +1536,14 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                             // Compute the value of the first Piola-Kirchhoff stress
                             // tensor at the quadrature point and compute the
                             // corresponding force.
-                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k],
-                                                               data_time, d_PK1_stress_fcn_data[part][k].ctx);
+                            d_PK1_stress_fcn_data[part][k].fcn(PP,
+                                                               FF,
+                                                               X_qp,
+                                                               s_qp,
+                                                               elem,
+                                                               PK1_stress_fcn_data[k],
+                                                               data_time,
+                                                               d_PK1_stress_fcn_data[part][k].ctx);
                             F -= PP * normal_face[qp] * JxW_face[qp];
                         }
                     }
@@ -1473,8 +1552,14 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, X_qp, s_qp, elem, side,
-                                                                  lag_surface_pressure_fcn_data, data_time,
+                        d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                                  FF,
+                                                                  X_qp,
+                                                                  s_qp,
+                                                                  elem,
+                                                                  side,
+                                                                  lag_surface_pressure_fcn_data,
+                                                                  data_time,
                                                                   d_lag_surface_pressure_fcn_data[part].ctx);
                         F -= P * J * FF_inv_trans * normal_face[qp] * JxW_face[qp];
                     }
@@ -1483,8 +1568,14 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, X_qp, s_qp, elem, side,
-                                                               lag_surface_force_fcn_data, data_time,
+                        d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                               FF,
+                                                               X_qp,
+                                                               s_qp,
+                                                               elem,
+                                                               side,
+                                                               lag_surface_force_fcn_data,
+                                                               data_time,
                                                                d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s * JxW_face[qp];
                     }
@@ -1532,11 +1623,12 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     return;
 } // spreadTransmissionForceDensity
 
-void IBFEMethod::imposeJumpConditions(const int f_data_idx,
-                                      PetscVector<double>& F_ghost_vec,
-                                      PetscVector<double>& X_ghost_vec,
-                                      const double data_time,
-                                      const unsigned int part)
+void
+IBFEMethod::imposeJumpConditions(const int f_data_idx,
+                                 PetscVector<double>& F_ghost_vec,
+                                 PetscVector<double>& X_ghost_vec,
+                                 const double data_time,
+                                 const unsigned int part)
 {
     if (!d_split_forces) return;
 
@@ -1584,7 +1676,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
         for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
-             cit != PK1_stress_fcn_systems.end(); ++cit)
+             cit != PK1_stress_fcn_systems.end();
+             ++cit)
         {
             System& system = equation_systems->get_system(*cit);
             PK1_stress_fcn_data[k].push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
@@ -1594,7 +1687,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
-         cit != lag_body_force_fcn_systems.end(); ++cit)
+         cit != lag_body_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_body_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
@@ -1603,7 +1697,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
-         cit != lag_surface_pressure_fcn_systems.end(); ++cit)
+         cit != lag_surface_pressure_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
@@ -1612,7 +1707,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
     for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
-         cit != lag_surface_force_fcn_systems.end(); ++cit)
+         cit != lag_surface_force_fcn_systems.end();
+         ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
@@ -1828,8 +1924,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             // Compute the value of the first Piola-Kirchhoff
                             // stress tensor at the quadrature point and compute
                             // the corresponding force.
-                            d_PK1_stress_fcn_data[part][k].fcn(PP, FF, X_qp, s_qp, elem, PK1_stress_fcn_data[k],
-                                                               data_time, d_PK1_stress_fcn_data[part][k].ctx);
+                            d_PK1_stress_fcn_data[part][k].fcn(PP,
+                                                               FF,
+                                                               X_qp,
+                                                               s_qp,
+                                                               elem,
+                                                               PK1_stress_fcn_data[k],
+                                                               data_time,
+                                                               d_PK1_stress_fcn_data[part][k].ctx);
                             F -= PP * normal_face[qp];
                         }
                     }
@@ -1838,8 +1940,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_surface_pressure_fcn_data[part].fcn(P, FF, X_qp, s_qp, elem, side,
-                                                                  lag_surface_pressure_fcn_data, data_time,
+                        d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                                  FF,
+                                                                  X_qp,
+                                                                  s_qp,
+                                                                  elem,
+                                                                  side,
+                                                                  lag_surface_pressure_fcn_data,
+                                                                  data_time,
                                                                   d_lag_surface_pressure_fcn_data[part].ctx);
                         F -= P * J * FF_inv_trans * normal_face[qp];
                     }
@@ -1848,8 +1956,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn_data[part].fcn(F_s, FF, X_qp, s_qp, elem, side,
-                                                               lag_surface_force_fcn_data, data_time,
+                        d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                               FF,
+                                                               X_qp,
+                                                               s_qp,
+                                                               elem,
+                                                               side,
+                                                               lag_surface_force_fcn_data,
+                                                               data_time,
                                                                d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s;
                     }
@@ -1903,7 +2017,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
-void IBFEMethod::initializeCoordinates(const unsigned int part)
+void
+IBFEMethod::initializeCoordinates(const unsigned int part)
 {
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
@@ -1935,7 +2050,8 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
     return;
 } // initializeCoordinates
 
-void IBFEMethod::updateCoordinateMapping(const unsigned int part)
+void
+IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
@@ -1967,14 +2083,14 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   Pointer<Database>
-                                       input_db,
-                                   const std::vector<libMesh::Mesh*>& meshes,
-                                   int max_level_number,
-                                   bool register_for_restart,
-                                   const std::string& restart_read_dirname,
-                                   unsigned int restart_restore_number)
+void
+IBFEMethod::commonConstructor(const std::string& object_name,
+                              Pointer<Database> input_db,
+                              const std::vector<libMesh::Mesh*>& meshes,
+                              int max_level_number,
+                              bool register_for_restart,
+                              const std::string& restart_read_dirname,
+                              unsigned int restart_restore_number)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -1991,8 +2107,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
-    d_interp_spec = FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
-                                              interp_use_consistent_mass_matrix);
+    d_interp_spec = FEDataManager::InterpSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
     d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_split_forces = false;
@@ -2147,7 +2263,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     return;
 } // commonConstructor
 
-void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void
+IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -2246,7 +2363,8 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     return;
 } // getFromInput
 
-void IBFEMethod::getFromRestart()
+void
+IBFEMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -2257,7 +2375,8 @@ void IBFEMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("IBFE_METHOD_VERSION");
     if (ver != IBFE_METHOD_VERSION)

@@ -89,37 +89,43 @@ LTransaction<T>::~LTransaction()
 } // ~LTransaction
 
 template <class T>
-bool LTransaction<T>::canEstimateIncomingMessageSize()
+bool
+LTransaction<T>::canEstimateIncomingMessageSize()
 {
     return false;
 } // canEstimateIncomingMessageSize
 
 template <class T>
-int LTransaction<T>::computeIncomingMessageSize()
+int
+LTransaction<T>::computeIncomingMessageSize()
 {
     return 0;
 } // computeIncomingMessageSize
 
 template <class T>
-int LTransaction<T>::computeOutgoingMessageSize()
+int
+LTransaction<T>::computeOutgoingMessageSize()
 {
     return d_outgoing_bytes;
 } // computeOutgoingMessageSize
 
 template <class T>
-int LTransaction<T>::getSourceProcessor()
+int
+LTransaction<T>::getSourceProcessor()
 {
     return d_src_proc;
 } // getSourceProcessor
 
 template <class T>
-int LTransaction<T>::getDestinationProcessor()
+int
+LTransaction<T>::getDestinationProcessor()
 {
     return d_dst_proc;
 } // getDestinationProcessor
 
 template <class T>
-void LTransaction<T>::packStream(AbstractStream& stream)
+void
+LTransaction<T>::packStream(AbstractStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
     for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end();
@@ -134,7 +140,8 @@ void LTransaction<T>::packStream(AbstractStream& stream)
 } // packStream
 
 template <class T>
-void LTransaction<T>::unpackStream(AbstractStream& stream)
+void
+LTransaction<T>::unpackStream(AbstractStream& stream)
 {
     static const IntVector<NDIM> periodic_offset = 0;
     int num_items;
@@ -151,14 +158,16 @@ void LTransaction<T>::unpackStream(AbstractStream& stream)
 } // unpackStream
 
 template <class T>
-void LTransaction<T>::copyLocalData()
+void
+LTransaction<T>::copyLocalData()
 {
     d_dst_item_set = d_src_item_set;
     return;
 } // copyLocalData
 
 template <class T>
-void LTransaction<T>::printClassData(std::ostream& stream) const
+void
+LTransaction<T>::printClassData(std::ostream& stream) const
 {
     stream << "LNodeIndex Transaction" << std::endl;
     stream << "   number of outgoing indices: " << d_src_item_set.size() << std::endl;

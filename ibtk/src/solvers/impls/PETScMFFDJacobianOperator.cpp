@@ -68,8 +68,17 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix)
-    : JacobianOperator(object_name), d_F(NULL), d_nonlinear_solver(NULL), d_petsc_jac(NULL), d_op_u(NULL), d_op_x(NULL),
-      d_op_y(NULL), d_petsc_u(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_options_prefix(options_prefix)
+    : JacobianOperator(object_name),
+      d_F(NULL),
+      d_nonlinear_solver(NULL),
+      d_petsc_jac(NULL),
+      d_op_u(NULL),
+      d_op_x(NULL),
+      d_op_y(NULL),
+      d_petsc_u(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_options_prefix(options_prefix)
 {
     // intentionally blank
     return;
@@ -81,19 +90,22 @@ PETScMFFDJacobianOperator::~PETScMFFDJacobianOperator()
     return;
 } // ~PETScMFFDJacobianOperator()
 
-void PETScMFFDJacobianOperator::setOperator(Pointer<GeneralOperator> F)
+void
+PETScMFFDJacobianOperator::setOperator(Pointer<GeneralOperator> F)
 {
     d_F = F;
     return;
 } // setOperator
 
-void PETScMFFDJacobianOperator::setNewtonKrylovSolver(Pointer<PETScNewtonKrylovSolver> nonlinear_solver)
+void
+PETScMFFDJacobianOperator::setNewtonKrylovSolver(Pointer<PETScNewtonKrylovSolver> nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
     return;
 } // setNewtonKrylovSolver
 
-void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
+void
+PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
 {
     int ierr;
     if (d_nonlinear_solver)
@@ -126,7 +138,8 @@ void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     return;
 } // formJacobian
 
-Pointer<SAMRAIVectorReal<NDIM, double> > PETScMFFDJacobianOperator::getBaseVector() const
+Pointer<SAMRAIVectorReal<NDIM, double> >
+PETScMFFDJacobianOperator::getBaseVector() const
 {
     if (d_nonlinear_solver)
     {
@@ -143,7 +156,8 @@ Pointer<SAMRAIVectorReal<NDIM, double> > PETScMFFDJacobianOperator::getBaseVecto
     return Pointer<SAMRAIVectorReal<NDIM, double> >(NULL);
 } // getBaseVector
 
-void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     // Compute the action of the operator.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&x, false));
@@ -153,8 +167,9 @@ void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     return;
 } // apply
 
-void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                        const SAMRAIVectorReal<NDIM, double>& out)
+void
+PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                   const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
 
@@ -191,7 +206,8 @@ void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<N
     return;
 } // initializeOperatorState
 
-void PETScMFFDJacobianOperator::deallocateOperatorState()
+void
+PETScMFFDJacobianOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -223,7 +239,8 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-PetscErrorCode PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
+PetscErrorCode
+PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
 {
     PETScMFFDJacobianOperator* jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
 #if !defined(NDEBUG)

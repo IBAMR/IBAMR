@@ -72,7 +72,8 @@ PoissonFACPreconditioner::~PoissonFACPreconditioner()
     return;
 } // ~PoissonFACPreconditioner
 
-void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+void
+PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -80,7 +81,8 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
     return;
 } // setPoissonSpecifications
 
-void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+void
+PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -88,7 +90,8 @@ void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_c
     return;
 } // setPhysicalBcCoef
 
-void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

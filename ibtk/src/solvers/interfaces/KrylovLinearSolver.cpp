@@ -56,7 +56,8 @@ KrylovLinearSolver::~KrylovLinearSolver()
     return;
 } // ~KrylovLinearSolver()
 
-void KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+void
+KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     LinearSolver::setHierarchyMathOps(hier_math_ops);
     if (d_A) d_A->setHierarchyMathOps(d_hier_math_ops);
@@ -64,14 +65,16 @@ void KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math
     return;
 } // setHierarchyMathOps
 
-void KrylovLinearSolver::setHomogeneousBc(bool homogeneous_bc)
+void
+KrylovLinearSolver::setHomogeneousBc(bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
     return;
 } // setHomogeneousBc
 
-void KrylovLinearSolver::setSolutionTime(const double solution_time)
+void
+KrylovLinearSolver::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     if (d_A) d_A->setSolutionTime(solution_time);
@@ -79,7 +82,8 @@ void KrylovLinearSolver::setSolutionTime(const double solution_time)
     return;
 } // setSolutionTime
 
-void KrylovLinearSolver::setTimeInterval(const double current_time, const double new_time)
+void
+KrylovLinearSolver::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     if (d_A) d_A->setTimeInterval(current_time, new_time);
@@ -87,7 +91,8 @@ void KrylovLinearSolver::setTimeInterval(const double current_time, const double
     return;
 } // setTimeInterval
 
-void KrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
+void
+KrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
 {
     Pointer<LinearOperator> A_old = d_A;
     d_A = A;
@@ -104,12 +109,14 @@ void KrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
     return;
 } // setOperator
 
-Pointer<LinearOperator> KrylovLinearSolver::getOperator() const
+Pointer<LinearOperator>
+KrylovLinearSolver::getOperator() const
 {
     return d_A;
 } // getOperator
 
-void KrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
+void
+KrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
 {
     Pointer<LinearSolver> pc_solver_old = d_pc_solver;
     d_pc_solver = pc_solver;
@@ -126,7 +133,8 @@ void KrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
     return;
 } // setPreconditioner
 
-Pointer<LinearSolver> KrylovLinearSolver::getPreconditioner() const
+Pointer<LinearSolver>
+KrylovLinearSolver::getPreconditioner() const
 {
     return d_pc_solver;
 } // getPreconditioner

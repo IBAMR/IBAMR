@@ -104,7 +104,6 @@ namespace IBAMR
 
 namespace
 {
-
 // Ghost cell width for pressure
 static const int SIDEG = 1;
 static const int CELLG = 1;
@@ -268,15 +267,17 @@ StaggeredStokesIBLevelRelaxationFACOperator::~StaggeredStokesIBLevelRelaxationFA
     return;
 } // ~StaggeredStokesIBLevelRelaxationFACOperator
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setVelocityPoissonSpecifications(
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setComponentsHaveNullspace(const bool has_velocity_nullspace,
-                                                                             const bool has_pressure_nullspace)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+                                                                        const bool has_pressure_nullspace)
 {
     d_has_velocity_nullspace = has_velocity_nullspace;
     d_has_pressure_nullspace = has_pressure_nullspace;
@@ -284,7 +285,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setComponentsHaveNullspace(con
     return;
 } // setComponentsHaveNullspace
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBcCoefs(
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -315,7 +317,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBcCoefs(
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBoundaryHelper(
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -325,7 +328,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBoundaryHelper(
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setResetLevels(const int coarsest_ln, const int finest_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) || (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
@@ -338,12 +342,14 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setResetLevels(const int coars
     return;
 } // setResetLevels
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setSmootherType()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_level_solver_type != smoother_type)
     {
@@ -355,76 +361,87 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setSmootherType(const std::str
     return;
 } // setSmootherType
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
     if (!d_coarse_solver)
     {
-        d_coarse_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-            d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
-            d_coarse_solver_default_options_prefix);
+        d_coarse_solver =
+            StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
+                                                                       d_object_name + "::coarse_solver",
+                                                                       d_coarse_solver_db,
+                                                                       d_coarse_solver_default_options_prefix);
     }
     return;
 } // setCoarseSolverType
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
 {
     d_coarse_solver_max_iterations = coarse_solver_max_iterations;
     return;
 } // setCoarseSolverMaxIterations
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverAbsoluteTolerance(
-    double coarse_solver_abs_residual_tol)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
 {
     d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
 } // setCoarseSolverAbsoluteTolerance
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverRelativeTolerance(
-    double coarse_solver_rel_residual_tol)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
 {
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
 } // setCoarseSolverRelativeTolerance
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setProlongationMethods(const std::string& U_prolongation_method,
-                                                                         const std::string& P_prolongation_method)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setProlongationMethods(const std::string& U_prolongation_method,
+                                                                    const std::string& P_prolongation_method)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setProlongationMethods()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     d_U_prolongation_method = U_prolongation_method;
     d_P_prolongation_method = P_prolongation_method;
     return;
 } // setProlongationMethods
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setRestrictionMethods(const std::string& U_restriction_method,
-                                                                        const std::string& P_restriction_method)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setRestrictionMethods(const std::string& U_restriction_method,
+                                                                   const std::string& P_restriction_method)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setRestrictionMethods()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     d_U_restriction_method = U_restriction_method;
     d_P_restriction_method = P_restriction_method;
     return;
 } // setRestrictionMethods
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBForceJacobian()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
 
 #if !defined(NDEBUG)
@@ -435,12 +452,14 @@ void StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
     return;
 } // setIBForceJacobian
 
-void StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBInterpOp()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
 
 #if !defined(NDEBUG)
@@ -460,7 +479,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::getStaggeredStokesIBLevelSolver(con
     return d_level_solvers[ln];
 } // getStaggeredStokesIBLevelSolver
 
-Mat StaggeredStokesIBLevelRelaxationFACOperator::getGalerkinElasticityLevelOp(const int ln) const
+Mat
+StaggeredStokesIBLevelRelaxationFACOperator::getGalerkinElasticityLevelOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln <= d_finest_ln);
@@ -468,7 +488,8 @@ Mat StaggeredStokesIBLevelRelaxationFACOperator::getGalerkinElasticityLevelOp(co
     return d_SAJ_mat[ln];
 } // getGalerkinElasticityLevelOp
 
-Mat StaggeredStokesIBLevelRelaxationFACOperator::getProlongationOp(const int ln) const
+Mat
+StaggeredStokesIBLevelRelaxationFACOperator::getProlongationOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
@@ -476,7 +497,8 @@ Mat StaggeredStokesIBLevelRelaxationFACOperator::getProlongationOp(const int ln)
     return d_prolongation_mat[ln];
 } // getProlongationOp
 
-Vec StaggeredStokesIBLevelRelaxationFACOperator::getRestrictionScalingOp(const int ln) const
+Vec
+StaggeredStokesIBLevelRelaxationFACOperator::getRestrictionScalingOp(const int ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ln >= 0 && ln < d_finest_ln);
@@ -484,9 +506,10 @@ Vec StaggeredStokesIBLevelRelaxationFACOperator::getRestrictionScalingOp(const i
     return d_scale_restriction_mat[ln];
 } // getRestrictionScalingOp
 
-void StaggeredStokesIBLevelRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                   SAMRAIVectorReal<NDIM, double>& dst,
-                                                                   int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
+                                                              SAMRAIVectorReal<NDIM, double>& dst,
+                                                              int dst_ln)
 {
     IBAMR_TIMER_START(t_restrict_residual);
 
@@ -516,9 +539,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::restrictResidual(const SAMRAIV
     return;
 } // restrictResidual
 
-void StaggeredStokesIBLevelRelaxationFACOperator::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
-                                                               SAMRAIVectorReal<NDIM, double>& dst,
-                                                               int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
+                                                          SAMRAIVectorReal<NDIM, double>& dst,
+                                                          int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error);
 
@@ -538,9 +562,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::prolongError(const SAMRAIVecto
     return;
 } // prolongError
 
-void StaggeredStokesIBLevelRelaxationFACOperator::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                         SAMRAIVectorReal<NDIM, double>& dst,
-                                                                         int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
+                                                                    SAMRAIVectorReal<NDIM, double>& dst,
+                                                                    int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error_and_correct);
 
@@ -576,9 +601,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::prolongErrorAndCorrect(const S
     return;
 } // prolongErrorAndCorrect
 
-bool StaggeredStokesIBLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                                     const SAMRAIVectorReal<NDIM, double>& residual,
-                                                                     int coarsest_ln)
+bool
+StaggeredStokesIBLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                                const SAMRAIVectorReal<NDIM, double>& residual,
+                                                                int coarsest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
@@ -604,11 +630,12 @@ bool StaggeredStokesIBLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVecto
     return true;
 } // solveCoarsestLevel
 
-void StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                                  const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                  const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                                  int coarsest_level_num,
-                                                                  int finest_level_num)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                             const SAMRAIVectorReal<NDIM, double>& solution,
+                                                             const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                             int coarsest_level_num,
+                                                             int finest_level_num)
 {
     IBAMR_TIMER_START(t_compute_residual);
 
@@ -637,10 +664,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRe
         ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &rhs_vec);
         IBTK_CHKERRQ(ierr);
 
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx,
-                                                              d_p_dof_index_idx, level);
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx,
-                                                              d_p_dof_index_idx, level);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx, d_p_dof_index_idx, level);
 
         const KSP& level_ksp =
             (ln == d_coarsest_ln) ? d_coarse_solver->getPETScKSP() : d_level_solvers[ln]->getPETScKSP();
@@ -652,8 +679,13 @@ void StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRe
         ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
         IBTK_CHKERRQ(ierr);
 
-        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx,
-                                                                d_p_dof_index_idx, level, d_synch_refine_schedules[ln],
+        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(residual_vec,
+                                                                U_res_idx,
+                                                                d_u_dof_index_idx,
+                                                                P_res_idx,
+                                                                d_p_dof_index_idx,
+                                                                level,
+                                                                d_synch_refine_schedules[ln],
                                                                 d_ghostfill_nocoarse_refine_schedules[ln]);
 
         ierr = VecDestroy(&solution_vec);
@@ -669,12 +701,13 @@ void StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRe
     return;
 } // computeResidual
 
-void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                              const SAMRAIVectorReal<NDIM, double>& residual,
-                                                              int level_num,
-                                                              int num_sweeps,
-                                                              bool /*performing_pre_sweeps*/,
-                                                              bool /*performing_post_sweeps*/)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                         const SAMRAIVectorReal<NDIM, double>& residual,
+                                                         int level_num,
+                                                         int num_sweeps,
+                                                         bool /*performing_pre_sweeps*/,
+                                                         bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -747,7 +780,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
                     {
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector<NDIM>(0));
+                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                                  IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -797,9 +831,9 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
     return;
 } // smoothError
 
-void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM, double>& solution,
-    const SAMRAIVectorReal<NDIM, double>& rhs)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                     const SAMRAIVectorReal<NDIM, double>& rhs)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -847,8 +881,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
         if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
         // Construct DOF indices and SAMRAI to PETSc ordering.
-        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc[ln], d_u_dof_index_idx,
-                                                                        d_p_dof_index_idx, level);
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+            d_num_dofs_per_proc[ln], d_u_dof_index_idx, d_p_dof_index_idx, level);
     }
 
     // Setup application ordering for the velocity DOFs.
@@ -856,10 +890,9 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln - 1, finest_reset_ln);
          ++ln)
     {
-
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        PETScVecUtilities::constructPatchLevelAO(d_u_app_ordering[ln], d_num_dofs_per_proc[ln], d_u_dof_index_idx,
-                                                 level, /*ao offset*/ 0);
+        PETScVecUtilities::constructPatchLevelAO(
+            d_u_app_ordering[ln], d_num_dofs_per_proc[ln], d_u_dof_index_idx, level, /*ao offset*/ 0);
     }
 
     // Construct prolongation matrix and scaling for restriction matrix for various levels.
@@ -868,13 +901,16 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
     for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
          --ln)
     {
-
         Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(ln + 1);
         Pointer<PatchLevel<NDIM> > coarse_level = d_hierarchy->getPatchLevel(ln);
 
-        PETScMatUtilities::constructProlongationOp(d_prolongation_mat[ln], d_u_dof_index_idx,
-                                                   d_num_dofs_per_proc[ln + 1], d_num_dofs_per_proc[ln], fine_level,
-                                                   coarse_level, d_u_app_ordering[ln]);
+        PETScMatUtilities::constructProlongationOp(d_prolongation_mat[ln],
+                                                   d_u_dof_index_idx,
+                                                   d_num_dofs_per_proc[ln + 1],
+                                                   d_num_dofs_per_proc[ln],
+                                                   fine_level,
+                                                   coarse_level,
+                                                   d_u_app_ordering[ln]);
 
         // Get the scaling for restriction operator R = P^T.
         PETScMatUtilities::constructRestrictionScalingOp(d_prolongation_mat[ln], d_scale_restriction_mat[ln]);
@@ -1021,28 +1057,38 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
     d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm<NDIM>();
     d_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
 
-    d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx, solution.getComponentDescriptorIndex(0),
-                                                    d_side_scratch_idx, d_U_prolongation_refine_operator,
+    d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx,
+                                                    solution.getComponentDescriptorIndex(0),
+                                                    d_side_scratch_idx,
+                                                    d_U_prolongation_refine_operator,
                                                     d_U_op_stencil_fill_pattern);
-    d_prolongation_refine_algorithm->registerRefine(d_cell_scratch_idx, solution.getComponentDescriptorIndex(1),
-                                                    d_cell_scratch_idx, d_P_prolongation_refine_operator,
+    d_prolongation_refine_algorithm->registerRefine(d_cell_scratch_idx,
+                                                    solution.getComponentDescriptorIndex(1),
+                                                    d_cell_scratch_idx,
+                                                    d_P_prolongation_refine_operator,
                                                     d_P_op_stencil_fill_pattern);
 
-    d_restriction_coarsen_algorithm->registerCoarsen(d_side_scratch_idx, rhs.getComponentDescriptorIndex(0),
-                                                     d_U_restriction_coarsen_operator);
-    d_restriction_coarsen_algorithm->registerCoarsen(d_cell_scratch_idx, rhs.getComponentDescriptorIndex(1),
-                                                     d_P_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(
+        d_side_scratch_idx, rhs.getComponentDescriptorIndex(0), d_U_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(
+        d_cell_scratch_idx, rhs.getComponentDescriptorIndex(1), d_P_restriction_coarsen_operator);
 
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0), Pointer<RefineOperator<NDIM> >(), d_U_op_stencil_fill_pattern);
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(1), solution.getComponentDescriptorIndex(1),
-        solution.getComponentDescriptorIndex(1), Pointer<RefineOperator<NDIM> >(), d_P_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
+                                                          solution.getComponentDescriptorIndex(0),
+                                                          solution.getComponentDescriptorIndex(0),
+                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          d_U_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(1),
+                                                          solution.getComponentDescriptorIndex(1),
+                                                          solution.getComponentDescriptorIndex(1),
+                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          d_P_op_stencil_fill_pattern);
 
-    d_synch_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0), Pointer<RefineOperator<NDIM> >(), d_U_synch_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
+                                             solution.getComponentDescriptorIndex(0),
+                                             solution.getComponentDescriptorIndex(0),
+                                             Pointer<RefineOperator<NDIM> >(),
+                                             d_U_synch_fill_pattern);
 
     std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
@@ -1051,9 +1097,12 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
 
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        d_prolongation_refine_schedules[dst_ln] = d_prolongation_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(dst_ln), Pointer<PatchLevel<NDIM> >(), dst_ln - 1, d_hierarchy,
-            d_prolongation_refine_patch_strategy.getPointer());
+        d_prolongation_refine_schedules[dst_ln] =
+            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
+                                                            Pointer<PatchLevel<NDIM> >(),
+                                                            dst_ln - 1,
+                                                            d_hierarchy,
+                                                            d_prolongation_refine_patch_strategy.getPointer());
 
         d_ghostfill_nocoarse_refine_schedules[dst_ln] =
             d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
@@ -1123,7 +1172,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
+void
+StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -1248,14 +1298,16 @@ void StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void StaggeredStokesIBLevelRelaxationFACOperator::allocateScratchData()
+void
+StaggeredStokesIBLevelRelaxationFACOperator::allocateScratchData()
 {
     if (d_solution) d_solution->allocateVectorData();
     if (d_rhs) d_rhs->allocateVectorData();
     return;
 }
 
-void StaggeredStokesIBLevelRelaxationFACOperator::deallocateScratchData()
+void
+StaggeredStokesIBLevelRelaxationFACOperator::deallocateScratchData()
 {
     if (d_solution) d_solution->deallocateVectorData();
     if (d_rhs) d_rhs->deallocateVectorData();
@@ -1266,9 +1318,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::deallocateScratchData()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
-                                                                          const std::pair<int, int>& src_idxs,
-                                                                          const int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
+                                                                     const std::pair<int, int>& src_idxs,
+                                                                     const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -1283,19 +1336,20 @@ void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleProlongation(const 
     d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
 
     RefineAlgorithm<NDIM> refine_alg;
-    refine_alg.registerRefine(U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator,
-                              d_U_op_stencil_fill_pattern);
-    refine_alg.registerRefine(P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator,
-                              d_P_op_stencil_fill_pattern);
+    refine_alg.registerRefine(
+        U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
+    refine_alg.registerRefine(
+        P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator, d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_new_time);
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     return;
 } // xeqScheduleProlongation
 
-void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
-                                                                         const std::pair<int, int>& src_idxs,
-                                                                         const int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
+                                                                    const std::pair<int, int>& src_idxs,
+                                                                    const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -1312,8 +1366,9 @@ void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleRestriction(const s
     return;
 } // xeqScheduleRestriction
 
-void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
-                                                                               const int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
+                                                                          const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     d_U_bc_op->setPatchDataIndex(U_dst_idx);
@@ -1324,21 +1379,22 @@ void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(c
     d_P_bc_op->setHomogeneousBc(true);
 
     RefineAlgorithm<NDIM> refine_alg;
-    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(),
-                              d_U_op_stencil_fill_pattern);
-    refine_alg.registerRefine(P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM> >(),
-                              d_P_op_stencil_fill_pattern);
+    refine_alg.registerRefine(
+        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_op_stencil_fill_pattern);
+    refine_alg.registerRefine(
+        P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM> >(), d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     return;
 } // xeqScheduleGhostFillNoCoarse
 
-void StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
+void
+StaggeredStokesIBLevelRelaxationFACOperator::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm<NDIM> refine_alg;
-    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(),
-                              d_U_synch_fill_pattern);
+    refine_alg.registerRefine(
+        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_synch_fill_pattern);
     refine_alg.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

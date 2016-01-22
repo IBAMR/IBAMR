@@ -46,7 +46,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool IBSourceSpec::getIsRegisteredWithStreamableManager()
+inline bool
+IBSourceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
@@ -73,37 +74,44 @@ inline IBSourceSpec::~IBSourceSpec()
     return;
 } // ~IBSourceSpec
 
-inline const int& IBSourceSpec::getMasterNodeIndex() const
+inline const int&
+IBSourceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline int& IBSourceSpec::getMasterNodeIndex()
+inline int&
+IBSourceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline const int& IBSourceSpec::getSourceIndex() const
+inline const int&
+IBSourceSpec::getSourceIndex() const
 {
     return d_source_idx;
 } // getSourceIndex
 
-inline int& IBSourceSpec::getSourceIndex()
+inline int&
+IBSourceSpec::getSourceIndex()
 {
     return d_source_idx;
 } // getSourceIndex
 
-inline int IBSourceSpec::getStreamableClassID() const
+inline int
+IBSourceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t IBSourceSpec::getDataStreamSize() const
+inline size_t
+IBSourceSpec::getDataStreamSize() const
 {
     return 2 * SAMRAI::tbox::AbstractStream::sizeofInt();
 } // getDataStreamSize
 
-inline void IBSourceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+IBSourceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_source_idx, 1);

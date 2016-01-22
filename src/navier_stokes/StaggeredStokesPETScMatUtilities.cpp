@@ -82,7 +82,8 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box<NDIM>
+compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
     Box<NDIM> extended_box = box;
     extended_box.upper()(data_axis) += 1;
@@ -106,7 +107,8 @@ static const int UPPER = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     Mat& mat,
     const PoissonSpecifications& u_problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -239,8 +241,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, 0,
-                        nlocal ? &d_nnz[0] : NULL, 0, nlocal ? &o_nnz[0] : NULL, &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        nlocal,
+                        nlocal,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        nlocal ? &d_nnz[0] : NULL,
+                        0,
+                        nlocal ? &o_nnz[0] : NULL,
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -360,9 +370,12 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(
-                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry,
-                                                     dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower.data(),
+                                                                         shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -373,8 +386,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
-                                             data_time);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -476,8 +489,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
-                                             data_time);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
@@ -602,15 +615,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     return;
 } // constructPatchLevelMACStokesOp
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
-                                                                        std::vector<IS>& is_nonoverlap,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& /*num_dofs_per_proc*/,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level,
-                                                                        Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
+                                                                   std::vector<IS>& is_nonoverlap,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& /*num_dofs_per_proc*/,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level,
+                                                                   Pointer<CoarseFineBoundary<NDIM> > cf_boundary)
 {
     int ierr;
     for (unsigned int k = 0; k < is_overlap.size(); ++k)
@@ -634,8 +648,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vec
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box,
-                                          box_size, overlap_size);
+        IndexUtilities::partitionPatchBox(
+            overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box, box_size, overlap_size);
         subdomain_counter += overlap_boxes[patch_counter].size();
     }
     is_overlap.resize(subdomain_counter);
@@ -753,8 +767,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vec
             }
             std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_local = static_cast<int>(box_local_dofs.size());
-            ISCreateGeneral(PETSC_COMM_SELF, n_local, &box_local_dofs[0], PETSC_COPY_VALUES,
-                            &is_nonoverlap[subdomain_counter]);
+            ISCreateGeneral(
+                PETSC_COMM_SELF, n_local, &box_local_dofs[0], PETSC_COPY_VALUES, &is_nonoverlap[subdomain_counter]);
 
             // The overlapping subdomains.
             const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][k];
@@ -804,23 +818,23 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vec
             box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
                                    box_overlap_dofs.end());
             const int n_overlap = static_cast<int>(box_overlap_dofs.size());
-            ISCreateGeneral(PETSC_COMM_SELF, n_overlap, &box_overlap_dofs[0], PETSC_COPY_VALUES,
-                            &is_overlap[subdomain_counter]);
+            ISCreateGeneral(
+                PETSC_COMM_SELF, n_overlap, &box_overlap_dofs[0], PETSC_COPY_VALUES, &is_overlap[subdomain_counter]);
         }
     }
     return;
 } // constructPatchLevelASMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
-                                                                        std::vector<IS>& is_col,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& num_dofs_per_proc,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
+                                                                   std::vector<IS>& is_col,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& num_dofs_per_proc,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
-
     // Destroy the previously stored IS'es
     int ierr;
     for (unsigned int k = 0; k < is_row.size(); ++k)
@@ -844,8 +858,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        IndexUtilities::partitionPatchBox(overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box,
-                                          box_size, overlap_size);
+        IndexUtilities::partitionPatchBox(
+            overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box, box_size, overlap_size);
 
         // Keep only local part of overlap boxes.
         const int patch_subdomains = static_cast<int>(overlap_boxes[patch_counter].size());
@@ -932,7 +946,10 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
             // Create the list of cols.
             const int n_cols = n_local_dofs - n_rows;
             std::vector<int> box_col_dofs(n_cols);
-            std::set_difference(all_local_dofs.begin(), all_local_dofs.end(), box_row_dofs.begin(), box_row_dofs.end(),
+            std::set_difference(all_local_dofs.begin(),
+                                all_local_dofs.end(),
+                                box_row_dofs.begin(),
+                                box_row_dofs.end(),
                                 box_col_dofs.begin());
             ISCreateGeneral(PETSC_COMM_SELF, n_cols, &box_col_dofs[0], PETSC_COPY_VALUES, &is_col[subdomain_counter]);
         }
@@ -945,18 +962,18 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     return;
 } // constructPatchLevelMSMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
-                                                                        std::vector<IS>& is_red_col,
-                                                                        std::vector<IS>& is_black_row,
-                                                                        std::vector<IS>& is_black_col,
-                                                                        const IntVector<NDIM>& box_size,
-                                                                        const IntVector<NDIM>& overlap_size,
-                                                                        const std::vector<int>& num_dofs_per_proc,
-                                                                        int u_dof_index_idx,
-                                                                        int p_dof_index_idx,
-                                                                        Pointer<PatchLevel<NDIM> > patch_level)
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
+                                                                   std::vector<IS>& is_red_col,
+                                                                   std::vector<IS>& is_black_row,
+                                                                   std::vector<IS>& is_black_col,
+                                                                   const IntVector<NDIM>& box_size,
+                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const std::vector<int>& num_dofs_per_proc,
+                                                                   int u_dof_index_idx,
+                                                                   int p_dof_index_idx,
+                                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
-
     // Destroy the previously stored IS'es
     int ierr;
     for (unsigned int k = 0; k < is_red_row.size(); ++k)
@@ -1115,14 +1132,23 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
                     const int n_rows = static_cast<int>(box_row_dofs.size());
                     const int n_cols = n_local_dofs - n_rows;
                     std::vector<int> box_col_dofs(n_cols);
-                    std::set_difference(all_local_dofs.begin(), all_local_dofs.end(), box_row_dofs.begin(),
-                                        box_row_dofs.end(), box_col_dofs.begin());
+                    std::set_difference(all_local_dofs.begin(),
+                                        all_local_dofs.end(),
+                                        box_row_dofs.begin(),
+                                        box_row_dofs.end(),
+                                        box_col_dofs.begin());
 
                     if ((K % 2 == 0 && (I + J) % 2 == 0) || (K % 2 == 1 && (I + J) % 2 == 1))
                     {
-                        ISCreateGeneral(PETSC_COMM_SELF, n_rows, &box_row_dofs[0], PETSC_COPY_VALUES,
+                        ISCreateGeneral(PETSC_COMM_SELF,
+                                        n_rows,
+                                        &box_row_dofs[0],
+                                        PETSC_COPY_VALUES,
                                         &is_red_row[red_subdomain_counter]);
-                        ISCreateGeneral(PETSC_COMM_SELF, n_cols, &box_col_dofs[0], PETSC_COPY_VALUES,
+                        ISCreateGeneral(PETSC_COMM_SELF,
+                                        n_cols,
+                                        &box_col_dofs[0],
+                                        PETSC_COPY_VALUES,
                                         &is_red_col[red_subdomain_counter]);
 
                         red_subdomain_counter += 1;
@@ -1130,9 +1156,15 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
 
                     if ((K % 2 == 0 && (I + J) % 2 == 1) || (K % 2 == 1 && (I + J) % 2 == 0))
                     {
-                        ISCreateGeneral(PETSC_COMM_SELF, n_rows, &box_row_dofs[0], PETSC_COPY_VALUES,
+                        ISCreateGeneral(PETSC_COMM_SELF,
+                                        n_rows,
+                                        &box_row_dofs[0],
+                                        PETSC_COPY_VALUES,
                                         &is_black_row[black_subdomain_counter]);
-                        ISCreateGeneral(PETSC_COMM_SELF, n_cols, &box_col_dofs[0], PETSC_COPY_VALUES,
+                        ISCreateGeneral(PETSC_COMM_SELF,
+                                        n_cols,
+                                        &box_col_dofs[0],
+                                        PETSC_COPY_VALUES,
                                         &is_black_col[black_subdomain_counter]);
 
                         black_subdomain_counter += 1;
@@ -1153,7 +1185,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(std::vec
     return;
 } // constructPatchLevelMSMSubdomains
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     std::vector<IS>& is_field,
     std::vector<std::string>& is_field_name,
     const std::vector<int>& num_dofs_per_proc,

@@ -99,12 +99,9 @@ public:
      * manager when requested.
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
-                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-                                               input_db,
-                                           SAMRAI::tbox::Pointer<IBImplicitStrategy>
-                                               ib_method_ops,
-                                           SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator>
-                                               ins_hier_integrator,
+                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                           SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
+                                           SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
                                            bool register_for_restart = true);
 
     /*!
@@ -143,8 +140,7 @@ public:
      * to calling initializePatchHierarchy().
      */
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-                                           gridding_alg);
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -165,14 +161,12 @@ private:
          */
     class NoOpStaggeredStokesSolver : public IBAMR::StaggeredStokesSolver
     {
-
     public:
         /*!
                  * \brief Default constructor of the class.
                  */
         NoOpStaggeredStokesSolver(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-                                      input_db)
+                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
             : StaggeredStokesSolver()
         {
             d_stokes_op = new StaggeredStokesOperator(object_name + "::stokes_op", false);

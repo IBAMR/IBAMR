@@ -182,7 +182,8 @@ struct ElemComp : std::binary_function<Elem*, Elem*, bool>
 };
 
 template <class ContainerOfContainers>
-inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
+inline void
+collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
     std::set<Elem*, ElemComp> elem_set;
     for (typename ContainerOfContainers::const_iterator it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
@@ -193,7 +194,8 @@ inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfCon
     return;
 } // collect_unique_elems
 
-inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+inline short int
+get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
     for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
@@ -213,7 +215,8 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
 
-inline double get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
+inline double
+get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
     const unsigned int max_nodes = (elem->dim() == 3 ? 27 : 9);
     std::vector<libMesh::Point> s_node_cache(max_nodes);
@@ -262,11 +265,12 @@ std::map<std::string, FEDataManager*> FEDataManager::s_data_manager_instances;
 bool FEDataManager::s_registered_callback = false;
 unsigned char FEDataManager::s_shutdown_priority = 200;
 
-FEDataManager* FEDataManager::getManager(const std::string& name,
-                                         const FEDataManager::InterpSpec& default_interp_spec,
-                                         const FEDataManager::SpreadSpec& default_spread_spec,
-                                         const IntVector<NDIM>& min_ghost_width,
-                                         bool register_for_restart)
+FEDataManager*
+FEDataManager::getManager(const std::string& name,
+                          const FEDataManager::InterpSpec& default_interp_spec,
+                          const FEDataManager::SpreadSpec& default_spread_spec,
+                          const IntVector<NDIM>& min_ghost_width,
+                          bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
@@ -285,10 +289,12 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
     return s_data_manager_instances[name];
 } // getManager
 
-void FEDataManager::freeAllManagers()
+void
+FEDataManager::freeAllManagers()
 {
     for (std::map<std::string, FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end(); ++it)
+         it != s_data_manager_instances.end();
+         ++it)
     {
         if (it->second)
         {
@@ -301,7 +307,8 @@ void FEDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void FEDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+void
+FEDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -309,7 +316,8 @@ void FEDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balan
     return;
 } // registerLoadBalancer
 
-void FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
@@ -317,12 +325,14 @@ void FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchy<NDIM> > FEDataManager::getPatchHierarchy() const
+Pointer<PatchHierarchy<NDIM> >
+FEDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-void FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
+void
+FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
 {
     // Reset the level numbers.
     TBOX_ASSERT(d_hierarchy);
@@ -332,49 +342,58 @@ void FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     return;
 } // setPatchLevels
 
-std::pair<int, int> FEDataManager::getPatchLevels() const
+std::pair<int, int>
+FEDataManager::getPatchLevels() const
 {
     return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
 } // getPatchLevels
 
-void FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
+void
+FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
 {
     d_es = equation_systems;
     d_level_number = level_number;
     return;
 } // setEquationSystems
 
-EquationSystems* FEDataManager::getEquationSystems() const
+EquationSystems*
+FEDataManager::getEquationSystems() const
 {
     return d_es;
 } // getEquationSystems
 
-int FEDataManager::getLevelNumber() const
+int
+FEDataManager::getLevelNumber() const
 {
     return d_level_number;
 } // getLevelNumber
 
-const IntVector<NDIM>& FEDataManager::getGhostCellWidth() const
+const IntVector<NDIM>&
+FEDataManager::getGhostCellWidth() const
 {
     return d_ghost_width;
 } // getGhostCellWidth
 
-const FEDataManager::InterpSpec& FEDataManager::getDefaultInterpSpec() const
+const FEDataManager::InterpSpec&
+FEDataManager::getDefaultInterpSpec() const
 {
     return d_default_interp_spec;
 } // getDefaultInterpSpec
 
-const FEDataManager::SpreadSpec& FEDataManager::getDefaultSpreadSpec() const
+const FEDataManager::SpreadSpec&
+FEDataManager::getDefaultSpreadSpec() const
 {
     return d_default_spread_spec;
 } // getDefaultSpreadSpec
 
-const std::vector<std::vector<Elem*> >& FEDataManager::getActivePatchElementMap() const
+const std::vector<std::vector<Elem*> >&
+FEDataManager::getActivePatchElementMap() const
 {
     return d_active_patch_elem_map;
 } // getActivePatchElementMap
 
-void FEDataManager::reinitElementMappings()
+void
+FEDataManager::reinitElementMappings()
 {
     IBTK_TIMER_START(t_reinit_element_mappings);
 
@@ -382,7 +401,8 @@ void FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_ghost_dofs.clear();
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+         it != d_system_ghost_vec.end();
+         ++it)
     {
         delete it->second;
     }
@@ -395,13 +415,14 @@ void FEDataManager::reinitElementMappings()
     return;
 } // reinitElementMappings
 
-NumericVector<double>* FEDataManager::getSolutionVector(const std::string& system_name) const
+NumericVector<double>*
+FEDataManager::getSolutionVector(const std::string& system_name) const
 {
     return d_es->get_system(system_name).solution.get();
 } // getSolutionVector
 
-NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::string& system_name,
-                                                                 const bool localize_data)
+NumericVector<double>*
+FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const bool localize_data)
 {
     IBTK_TIMER_START(t_build_ghosted_solution_vector);
 
@@ -422,8 +443,8 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
         AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
-        sol_ghost_vec->init(sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true,
-                            GHOSTED);
+        sol_ghost_vec->init(
+            sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
     }
     NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
@@ -433,34 +454,38 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
     return sol_ghost_vec;
 } // buildGhostedSolutionVector
 
-NumericVector<double>* FEDataManager::getCoordsVector() const
+NumericVector<double>*
+FEDataManager::getCoordsVector() const
 {
     return getSolutionVector(COORDINATES_SYSTEM_NAME);
 } // getCoordsVector
 
-NumericVector<double>* FEDataManager::buildGhostedCoordsVector(const bool localize_data)
+NumericVector<double>*
+FEDataManager::buildGhostedCoordsVector(const bool localize_data)
 {
     return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
 } // buildGhostedCoordsVector
 
-void FEDataManager::spread(const int f_data_idx,
-                           NumericVector<double>& F_vec,
-                           NumericVector<double>& X_vec,
-                           const std::string& system_name,
-                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const double fill_data_time)
+void
+FEDataManager::spread(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                      const double fill_data_time)
 {
     spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time);
     return;
 } // spread
 
-void FEDataManager::spread(const int f_data_idx,
-                           NumericVector<double>& F_vec,
-                           NumericVector<double>& X_vec,
-                           const std::string& system_name,
-                           const FEDataManager::SpreadSpec& spread_spec,
-                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const double fill_data_time)
+void
+FEDataManager::spread(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const FEDataManager::SpreadSpec& spread_spec,
+                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                      const double fill_data_time)
 {
     IBTK_TIMER_START(t_spread);
 
@@ -675,12 +700,13 @@ void FEDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void FEDataManager::prolongData(const int f_data_idx,
-                                NumericVector<double>& F_vec,
-                                NumericVector<double>& X_vec,
-                                const std::string& system_name,
-                                const bool is_density,
-                                const bool accumulate_on_grid)
+void
+FEDataManager::prolongData(const int f_data_idx,
+                           NumericVector<double>& F_vec,
+                           NumericVector<double>& X_vec,
+                           const std::string& system_name,
+                           const bool is_density,
+                           const bool accumulate_on_grid)
 {
     IBTK_TIMER_START(t_prolong_data);
 
@@ -892,24 +918,26 @@ void FEDataManager::prolongData(const int f_data_idx,
     return;
 } // prolongData
 
-void FEDataManager::interp(const int f_data_idx,
-                           NumericVector<double>& F_vec,
-                           NumericVector<double>& X_vec,
-                           const std::string& system_name,
-                           const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                           const double fill_data_time)
+void
+FEDataManager::interp(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                      const double fill_data_time)
 {
     interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
     return;
 } // interp
 
-void FEDataManager::interp(const int f_data_idx,
-                           NumericVector<double>& F_vec,
-                           NumericVector<double>& X_vec,
-                           const std::string& system_name,
-                           const FEDataManager::InterpSpec& interp_spec,
-                           const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                           const double fill_data_time)
+void
+FEDataManager::interp(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const FEDataManager::InterpSpec& interp_spec,
+                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                      const double fill_data_time)
 {
     IBTK_TIMER_START(t_interp);
 
@@ -1133,11 +1161,12 @@ void FEDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
-void FEDataManager::restrictData(const int f_data_idx,
-                                 NumericVector<double>& F_vec,
-                                 NumericVector<double>& X_vec,
-                                 const std::string& system_name,
-                                 const bool use_consistent_mass_matrix)
+void
+FEDataManager::restrictData(const int f_data_idx,
+                            NumericVector<double>& F_vec,
+                            NumericVector<double>& X_vec,
+                            const std::string& system_name,
+                            const bool use_consistent_mass_matrix)
 {
     IBTK_TIMER_START(t_restrict_data);
 
@@ -1449,7 +1478,8 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
-                                     cit != dof_indices.end(); ++cit)
+                                     cit != dof_indices.end();
+                                     ++cit)
                                 {
                                     const unsigned int k = *cit;
                                     M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
@@ -1479,7 +1509,8 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
     return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
 } // buildL2ProjectionSolver
 
-NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
+NumericVector<double>*
+FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
 
@@ -1540,7 +1571,8 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
                 else
                 {
                     TBOX_ERROR("FEDataManager::buildDiagonalL2MassMatrix():\n"
-                               << "  unsupported element type: " << Utility::enum_to_string<ElemType>(elem_type)
+                               << "  unsupported element type: "
+                               << Utility::enum_to_string<ElemType>(elem_type)
                                << "\n");
                 }
             }
@@ -1620,14 +1652,15 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
     return d_L2_proj_matrix_diag[system_name];
 } // buildDiagonalL2MassMatrix
 
-bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
-                                        NumericVector<double>& F_vec,
-                                        const std::string& system_name,
-                                        const bool consistent_mass_matrix,
-                                        const QuadratureType quad_type,
-                                        const Order quad_order,
-                                        const double tol,
-                                        const unsigned int max_its)
+bool
+FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
+                                   NumericVector<double>& F_vec,
+                                   const std::string& system_name,
+                                   const bool consistent_mass_matrix,
+                                   const QuadratureType quad_type,
+                                   const Order quad_order,
+                                   const double tol,
+                                   const unsigned int max_its)
 {
     IBTK_TIMER_START(t_compute_l2_projection);
 
@@ -1661,8 +1694,8 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
-        solver->solve(*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol,
-                      max_it_set ? runtime_max_it : max_its);
+        solver->solve(
+            *M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
@@ -1685,14 +1718,15 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     return converged;
 } // computeL2Projection
 
-bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
-                                         QuadratureType type,
-                                         Order order,
-                                         bool use_adaptive_quadrature,
-                                         double point_density,
-                                         Elem* const elem,
-                                         const boost::multi_array<double, 2>& X_node,
-                                         const double dx_min)
+bool
+FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
+                                    QuadratureType type,
+                                    Order order,
+                                    bool use_adaptive_quadrature,
+                                    double point_density,
+                                    Elem* const elem,
+                                    const boost::multi_array<double, 2>& X_node,
+                                    const double dx_min)
 {
     unsigned int dim = elem->dim();
     if (use_adaptive_quadrature)
@@ -1727,27 +1761,30 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
     return qrule_needs_reinit;
 }
 
-bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
-                                               const FEDataManager::InterpSpec& spec,
-                                               Elem* const elem,
-                                               const boost::multi_array<double, 2>& X_node,
-                                               const double dx_min)
+bool
+FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
+                                          const FEDataManager::InterpSpec& spec,
+                                          Elem* const elem,
+                                          const boost::multi_array<double, 2>& X_node,
+                                          const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature,
-                                spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(
+        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
 }
 
-bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
-                                               const FEDataManager::SpreadSpec& spec,
-                                               Elem* const elem,
-                                               const boost::multi_array<double, 2>& X_node,
-                                               const double dx_min)
+bool
+FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
+                                          const FEDataManager::SpreadSpec& spec,
+                                          Elem* const elem,
+                                          const boost::multi_array<double, 2>& X_node,
+                                          const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature,
-                                spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(
+        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
 }
 
-void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
+void
+FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
     if (!d_load_balancer) return;
 
@@ -1772,14 +1809,14 @@ void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int 
     return;
 } // updateWorkloadEstimates
 
-void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                        const int level_number,
-                                        const double /*init_data_time*/,
-                                        const bool /*can_be_refined*/,
-                                        const bool /*initial_time*/,
-                                        const Pointer<BasePatchLevel<NDIM> >
-                                            old_level,
-                                        const bool /*allocate_data*/)
+void
+FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                   const int level_number,
+                                   const double /*init_data_time*/,
+                                   const bool /*can_be_refined*/,
+                                   const bool /*initial_time*/,
+                                   const Pointer<BasePatchLevel<NDIM> > old_level,
+                                   const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
@@ -1795,9 +1832,10 @@ void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> >
     return;
 } // initializeLevelData
 
-void FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                const int coarsest_ln,
-                                                const int finest_ln)
+void
+FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                           const int coarsest_ln,
+                                           const int finest_ln)
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
@@ -1816,12 +1854,13 @@ void FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy
     return;
 } // resetHierarchyConfiguration
 
-void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                          const int level_number,
-                                          const double /*error_data_time*/,
-                                          const int tag_index,
-                                          const bool initial_time,
-                                          const bool /*uses_richardson_extrapolation_too*/)
+void
+FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                     const int level_number,
+                                     const double /*error_data_time*/,
+                                     const int tag_index,
+                                     const bool initial_time,
+                                     const bool /*uses_richardson_extrapolation_too*/)
 {
     if (level_number >= d_level_number) return;
 
@@ -1959,7 +1998,8 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
     return;
 } // applyGradientDetector
 
-void FEDataManager::putToDatabase(Pointer<Database> db)
+void
+FEDataManager::putToDatabase(Pointer<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
 
@@ -1979,11 +2019,24 @@ FEDataManager::FEDataManager(const std::string& object_name,
                              const FEDataManager::SpreadSpec& default_spread_spec,
                              const IntVector<NDIM>& ghost_width,
                              bool register_for_restart)
-    : COORDINATES_SYSTEM_NAME("coordinates system"), d_object_name(object_name),
-      d_registered_for_restart(register_for_restart), d_load_balancer(NULL), d_hierarchy(NULL), d_coarsest_ln(-1),
-      d_finest_ln(-1), d_default_interp_spec(default_interp_spec), d_default_spread_spec(default_spread_spec),
-      d_ghost_width(ghost_width), d_es(NULL), d_level_number(-1), d_active_patch_ghost_dofs(), d_L2_proj_solver(),
-      d_L2_proj_matrix(), d_L2_proj_matrix_diag(), d_L2_proj_quad_type(), d_L2_proj_quad_order()
+    : COORDINATES_SYSTEM_NAME("coordinates system"),
+      d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_load_balancer(NULL),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_default_interp_spec(default_interp_spec),
+      d_default_spread_spec(default_spread_spec),
+      d_ghost_width(ghost_width),
+      d_es(NULL),
+      d_level_number(-1),
+      d_active_patch_ghost_dofs(),
+      d_L2_proj_solver(),
+      d_L2_proj_matrix(),
+      d_L2_proj_matrix_diag(),
+      d_L2_proj_quad_type(),
+      d_L2_proj_quad_order()
 {
     TBOX_ASSERT(!object_name.empty());
 
@@ -2035,22 +2088,26 @@ FEDataManager::FEDataManager(const std::string& object_name,
 FEDataManager::~FEDataManager()
 {
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+         it != d_system_ghost_vec.end();
+         ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end(); ++it)
+         it != d_L2_proj_solver.end();
+         ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end(); ++it)
+         it != d_L2_proj_matrix.end();
+         ++it)
     {
         delete it->second;
     }
     for (std::map<std::string, NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end(); ++it)
+         it != d_L2_proj_matrix_diag.end();
+         ++it)
     {
         delete it->second;
     }
@@ -2059,7 +2116,8 @@ FEDataManager::~FEDataManager()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_ln)
+void
+FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_ln)
 {
     // Set the node count data on the specified range of levels of the
     // hierarchy.
@@ -2150,7 +2208,8 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
     return;
 } // updateQuadPointCountData
 
-std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundingBoxes()
+std::vector<std::pair<Point, Point> >*
+FEDataManager::computeActiveElementBoundingBoxes()
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
@@ -2225,9 +2284,10 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
     return &d_active_elem_bboxes;
 } // computeActiveElementBoundingBoxes
 
-void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
-                                               const int level_number,
-                                               const IntVector<NDIM>& ghost_width)
+void
+FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
+                                          const int level_number,
+                                          const IntVector<NDIM>& ghost_width)
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
@@ -2432,9 +2492,10 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     return;
 } // collectActivePatchElements
 
-void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
-                                           const std::vector<Elem*>& active_elems,
-                                           const std::string& system_name)
+void
+FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
+                                      const std::vector<Elem*>& active_elems,
+                                      const std::string& system_name)
 {
     System& system = d_es->get_system(system_name);
     const unsigned int sys_num = system.number();
@@ -2503,7 +2564,8 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
     return;
 } // collectGhostDOFIndices
 
-void FEDataManager::getFromRestart()
+void
+FEDataManager::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
 

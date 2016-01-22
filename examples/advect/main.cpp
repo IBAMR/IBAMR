@@ -64,7 +64,8 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
@@ -127,23 +128,34 @@ int main(int argc, char* argv[])
             new AdvectorPredictorCorrectorHyperbolicPatchOps(
                 "AdvectorPredictorCorrectorHyperbolicPatchOps",
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
-                explicit_predictor, grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
-            "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
-            hyp_patch_ops, true, using_refined_timestepping);
+                explicit_predictor,
+                grid_geometry);
+        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
+            new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
+                                                app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
+                                                hyp_patch_ops,
+                                                true,
+                                                using_refined_timestepping);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", hyp_level_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               hyp_level_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator = new TimeRefinementIntegrator<NDIM>(
-            "TimeRefinementIntegrator", app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
-            patch_hierarchy, hyp_level_integrator, gridding_algorithm);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
+        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator =
+            new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
+                                               app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
+                                               patch_hierarchy,
+                                               hyp_level_integrator,
+                                               gridding_algorithm);
 
         // Setup the advection velocity.
         const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);

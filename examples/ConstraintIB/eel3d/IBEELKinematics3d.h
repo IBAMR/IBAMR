@@ -50,7 +50,6 @@ class Parser;
 
 namespace IBAMR
 {
-
 /*!
  * \brief IBEELKinematics3d Class.
  *
@@ -60,7 +59,6 @@ namespace IBAMR
 
 class IBEELKinematics3d : public IBAMR::ConstraintIBKinematics
 {
-
 public:
     /*!
      * \brief Constructor.

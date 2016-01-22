@@ -164,8 +164,11 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
-    : d_patch_data_indices(), d_consistent_type_2_bdry(false),
-      d_refine_op(new CartesianSideDoubleConservativeLinearRefine<NDIM>()), d_hierarchy(NULL), d_cf_boundary(),
+    : d_patch_data_indices(),
+      d_consistent_type_2_bdry(false),
+      d_refine_op(new CartesianSideDoubleConservativeLinearRefine<NDIM>()),
+      d_hierarchy(NULL),
+      d_cf_boundary(),
       d_sc_indicator_var(new SideVariable<NDIM, int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
 {
     // Setup scratch variables.
@@ -198,7 +201,8 @@ CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
@@ -206,19 +210,21 @@ IntVector<NDIM> CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth(
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                              const Patch<NDIM>& /*coarse*/,
-                                                              const Box<NDIM>& /*fine_box*/,
-                                                              const IntVector<NDIM>& /*ratio*/)
+void
+CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                         const Patch<NDIM>& /*coarse*/,
+                                                         const Box<NDIM>& /*fine_box*/,
+                                                         const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
-void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
-                                                               const Patch<NDIM>& coarse,
-                                                               const Box<NDIM>& fine_box,
-                                                               const IntVector<NDIM>& ratio)
+void
+CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
+                                                          const Patch<NDIM>& coarse,
+                                                          const Box<NDIM>& fine_box,
+                                                          const IntVector<NDIM>& ratio)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -273,12 +279,14 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
         if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
@@ -354,13 +362,15 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
     return;
 } // postprocessRefine
 
-void CartSideDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+void
+CartSideDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
 {
     d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
 } // setConsistentInterpolationScheme
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_data_index)
+void
+CartSideDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_data_index)
 {
     std::set<int> patch_data_indices;
     patch_data_indices.insert(patch_data_index);
@@ -368,14 +378,16 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_d
     return;
 } // setPatchDataIndex
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
+void
+CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
 } // setPatchDataIndices
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+void
+CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -390,7 +402,8 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     return;
 } // setPatchDataIndices
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -435,7 +448,8 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHier
     return;
 } // setPatchHierarchy
 
-void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
+void
+CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
@@ -447,9 +461,10 @@ void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     return;
 } // clearPatchHierarchy
 
-void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
-                                                                    const IntVector<NDIM>& ratio,
-                                                                    const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void
+CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
+                                                               const IntVector<NDIM>& ratio,
+                                                               const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -499,12 +514,14 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>&
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
         if (W_ghosts != (data_copy.getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);

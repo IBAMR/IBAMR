@@ -69,7 +69,8 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -413,15 +414,17 @@ int main(int argc, char* argv[])
             file_name = coarse_hier_dump_dirname + "/" + "fe_equation_systems.";
             sprintf(temp_buf, "%05d", coarse_iteration_num);
             file_name += temp_buf;
-            equation_systems_coarse.read(file_name, (EquationSystems::READ_HEADER | EquationSystems::READ_DATA |
-                                                     EquationSystems::READ_ADDITIONAL_DATA));
+            equation_systems_coarse.read(
+                file_name,
+                (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             EquationSystems equation_systems_fine(mesh_fine);
             file_name = fine_hier_dump_dirname + "/" + "fe_equation_systems.";
             sprintf(temp_buf, "%05d", fine_iteration_num);
             file_name += temp_buf;
-            equation_systems_fine.read(file_name, (EquationSystems::READ_HEADER | EquationSystems::READ_DATA |
-                                                   EquationSystems::READ_ADDITIONAL_DATA));
+            equation_systems_fine.read(
+                file_name,
+                (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             ExactSolution error_estimator(equation_systems_coarse);
             error_estimator.attach_reference_solution(&equation_systems_fine);

@@ -46,8 +46,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
-                                                         const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine, const SAMRAI::hier::Index<NDIM>& ratio)
 {
     SAMRAI::hier::Index<NDIM> i_coarse;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -57,19 +57,20 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Ind
     return i_coarse;
 } // coarsen
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse,
-                                                        const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse, const SAMRAI::hier::Index<NDIM>& ratio)
 {
     return i_coarse * ratio;
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
-                                                              const double* const x_lower,
-                                                              const double* const x_upper,
-                                                              const double* const dx,
-                                                              const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& iupper)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const double* const x_lower,
+                             const double* const x_upper,
+                             const double* const dx,
+                             const SAMRAI::hier::Index<NDIM>& ilower,
+                             const SAMRAI::hier::Index<NDIM>& iupper)
 {
     // NOTE: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.
@@ -98,8 +99,8 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch_geom);
 #endif
-    return getCellIndex(X, patch_geom->getXLower(), patch_geom->getXUpper(), patch_geom->getDx(), patch_box.lower(),
-                        patch_box.upper());
+    return getCellIndex(
+        X, patch_geom->getXLower(), patch_geom->getXUpper(), patch_geom->getDx(), patch_box.lower(), patch_box.upper());
 } // getCellIndex
 
 template <class DoubleArray>
@@ -122,19 +123,19 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
 } // getCellIndex
 
-inline int IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
-                                             const SAMRAI::hier::Index<NDIM>& domain_lower,
-                                             const SAMRAI::hier::Index<NDIM>& num_cells,
-                                             const int depth,
-                                             const int offset)
+inline int
+IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
+                                  const SAMRAI::hier::Index<NDIM>& domain_lower,
+                                  const SAMRAI::hier::Index<NDIM>& num_cells,
+                                  const int depth,
+                                  const int offset)
 {
-
 #if (NDIM == 1)
     return (i(0) - domain_lower(0) + depth * num_cells(0) + offset);
-#elif (NDIM == 2)
+#elif(NDIM == 2)
     return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) + depth * num_cells(0) * num_cells(1) +
             offset);
-#elif (NDIM == 3)
+#elif(NDIM == 3)
     return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) +
             (i(2) - domain_lower(2)) * num_cells(0) * num_cells(1) +
             depth * num_cells(0) * num_cells(1) * num_cells(2) + offset);
@@ -189,7 +190,7 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap
         }
         j_lower += height;
     }
-#elif (NDIM == 3)
+#elif(NDIM == 3)
 
     const int Nx = subdomains(0);
     const int Ny = subdomains(1);

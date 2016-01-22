@@ -92,12 +92,13 @@ IBFECentroidPostProcessor::~IBFECentroidPostProcessor()
     return;
 } // ~IBFECentroidPostProcessor
 
-void IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_name,
-                                                       libMesh::FEFamily var_fe_family,
-                                                       libMesh::Order var_fe_order,
-                                                       ScalarMeshFcnPtr var_fcn,
-                                                       std::vector<unsigned int> var_fcn_systems,
-                                                       void* var_fcn_ctx)
+void
+IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_name,
+                                                  libMesh::FEFamily var_fe_family,
+                                                  libMesh::Order var_fe_order,
+                                                  ScalarMeshFcnPtr var_fcn,
+                                                  std::vector<unsigned int> var_fcn_systems,
+                                                  void* var_fcn_ctx)
 {
     TBOX_ASSERT(var_fe_family == MONOMIAL);
     TBOX_ASSERT(var_fe_order == CONSTANT);
@@ -106,13 +107,14 @@ void IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_na
     return;
 } // registerScalarVariable
 
-void IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_name,
-                                                       libMesh::FEFamily var_fe_family,
-                                                       libMesh::Order var_fe_order,
-                                                       VectorMeshFcnPtr var_fcn,
-                                                       std::vector<unsigned int> var_fcn_systems,
-                                                       void* var_fcn_ctx,
-                                                       unsigned int var_dim)
+void
+IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_name,
+                                                  libMesh::FEFamily var_fe_family,
+                                                  libMesh::Order var_fe_order,
+                                                  VectorMeshFcnPtr var_fcn,
+                                                  std::vector<unsigned int> var_fcn_systems,
+                                                  void* var_fcn_ctx,
+                                                  unsigned int var_dim)
 {
     TBOX_ASSERT(var_fe_family == MONOMIAL);
     TBOX_ASSERT(var_fe_order == CONSTANT);
@@ -121,13 +123,14 @@ void IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_na
     return;
 } // registerVectorVariable
 
-void IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_name,
-                                                       libMesh::FEFamily var_fe_family,
-                                                       libMesh::Order var_fe_order,
-                                                       TensorMeshFcnPtr var_fcn,
-                                                       std::vector<unsigned int> var_fcn_systems,
-                                                       void* var_fcn_ctx,
-                                                       unsigned int var_dim)
+void
+IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_name,
+                                                  libMesh::FEFamily var_fe_family,
+                                                  libMesh::Order var_fe_order,
+                                                  TensorMeshFcnPtr var_fcn,
+                                                  std::vector<unsigned int> var_fcn_systems,
+                                                  void* var_fcn_ctx,
+                                                  unsigned int var_dim)
 {
     TBOX_ASSERT(var_fe_family == MONOMIAL);
     TBOX_ASSERT(var_fe_order == CONSTANT);
@@ -138,7 +141,8 @@ void IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_na
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBFECentroidPostProcessor::reconstructVariables(double data_time)
+void
+IBFECentroidPostProcessor::reconstructVariables(double data_time)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();

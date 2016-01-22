@@ -62,9 +62,10 @@ IBSimpleHierarchyIntegrator::~IBSimpleHierarchyIntegrator()
     return;
 } // ~IBSimpleHierarchyIntegrator
 
-void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                               const double new_time,
-                                                               const int num_cycles)
+void
+IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                          const double new_time,
+                                                          const int num_cycles)
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -134,7 +135,11 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     // Spread the forces to the grid.  We use the "current" Lagrangian position
     // data to define the locations from where the forces are spread.
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op, finest_level_num,
+    l_data_manager->spread(d_f_idx,
+                           d_F_data,
+                           d_X_current_data,
+                           d_u_phys_bdry_op,
+                           finest_level_num,
                            getProlongRefineSchedules(d_object_name + "::f"),
                            /*F_needs_ghost_fill*/ true,
                            /*X_needs_ghost_fill*/ true);
@@ -164,21 +169,26 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    l_data_manager->interp(d_u_idx, d_U_data, d_X_current_data, finest_level_num,
+    l_data_manager->interp(d_u_idx,
+                           d_U_data,
+                           d_X_current_data,
+                           finest_level_num,
                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                           getGhostfillRefineSchedules(d_object_name + "::u"), current_time);
+                           getGhostfillRefineSchedules(d_object_name + "::u"),
+                           current_time);
     ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());
     IBTK_CHKERRQ(ierr);
     return;
 } // integrateHierarchy
 
-void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                const double new_time,
-                                                                const bool skip_synchronize_new_state_data,
-                                                                const int num_cycles)
+void
+IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                           const double new_time,
+                                                           const bool skip_synchronize_new_state_data,
+                                                           const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
@@ -196,8 +206,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         ins_num_cycles);
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Reset and deallocate IB data.
     //
@@ -212,8 +222,9 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 } // postprocessIntegrateHierarchy
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

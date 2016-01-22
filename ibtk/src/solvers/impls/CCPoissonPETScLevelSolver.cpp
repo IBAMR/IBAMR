@@ -112,8 +112,9 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                 const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void
+CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                            const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -133,11 +134,17 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time,
-                                                      d_num_dofs_per_proc, d_dof_index_idx, d_level);
+    PETScMatUtilities::constructPatchLevelCCLaplaceOp(
+        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, d_level);
     d_petsc_pc = d_petsc_mat;
-    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size,
-                                                        d_num_dofs_per_proc, d_dof_index_idx, d_level, d_cf_boundary);
+    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
+                                                        d_nonoverlap_is,
+                                                        d_box_size,
+                                                        d_overlap_size,
+                                                        d_num_dofs_per_proc,
+                                                        d_dof_index_idx,
+                                                        d_level,
+                                                        d_cf_boundary);
 
     // Setup SAMRAI communication objects.
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
@@ -145,32 +152,36 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     return;
 } // initializeSolverStateSpecialized
 
-void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
+void
+CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_dof_index_idx)) d_level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
-void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, d_level);
     return;
 } // copyToPETScVec
 
-void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
+void
+CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
-    PETScVecUtilities::copyFromPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, d_level, d_data_synch_sched,
-                                             d_ghost_fill_sched);
+    PETScVecUtilities::copyFromPatchLevelVec(
+        petsc_x, x_idx, d_dof_index_idx, d_level, d_data_synch_sched, d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
 
-void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                             Vec& petsc_b,
-                                             SAMRAIVectorReal<NDIM, double>& x,
-                                             SAMRAIVectorReal<NDIM, double>& b)
+void
+CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                        Vec& petsc_b,
+                                        SAMRAIVectorReal<NDIM, double>& x,
+                                        SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
@@ -191,8 +202,8 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
         {
-            PoissonUtilities::adjustRHSAtPhysicalBoundary(*b_adj_data, patch, d_poisson_spec, d_bc_coefs,
-                                                          d_solution_time, d_homogeneous_bc);
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
@@ -200,8 +211,8 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            PoissonUtilities::adjustRHSAtCoarseFineBoundary(*b_adj_data, *x_data, patch, d_poisson_spec,
-                                                            type_1_cf_bdry);
+            PoissonUtilities::adjustRHSAtCoarseFineBoundary(
+                *b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);

@@ -64,7 +64,6 @@ namespace IBAMR
 class IBEELKinematics : public ConstraintIBKinematics
 
 {
-
 public:
     /*!
      * \brief ctor. This is the only ctor for this object.

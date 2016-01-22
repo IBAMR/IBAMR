@@ -77,7 +77,8 @@ namespace IBAMR
 
 namespace
 {
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
@@ -90,9 +91,13 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     Pointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
-    : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
+    : CartGridFunction(object_name),
+      d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_width(array_constant<double, 2 * NDIM>(0.0)),
+      d_fluid_solver(fluid_solver),
+      d_grid_geometry(grid_geometry)
 {
     if (input_db)
     {
@@ -121,7 +126,9 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                     TBOX_ERROR(
                         "StaggeredStokesOpenBoundaryStabilizer::"
                         "StaggeredStokesOpenBoundaryStabilizer():\n"
-                        << "  unsupported stabilization type: ``" << stabilization_type << "''\n"
+                        << "  unsupported stabilization type: ``"
+                        << stabilization_type
+                        << "''\n"
                         << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }
@@ -143,17 +150,19 @@ StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
     return;
 } // ~StaggeredStokesOpenBoundaryStabilizer
 
-bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
+bool
+StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           Pointer<Variable<NDIM> > /*var*/,
-                                                           Pointer<Patch<NDIM> > patch,
-                                                           const double /*data_time*/,
-                                                           const bool initial_time,
-                                                           Pointer<PatchLevel<NDIM> > /*level*/)
+void
+StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
+                                                      Pointer<Variable<NDIM> > /*var*/,
+                                                      Pointer<Patch<NDIM> > patch,
+                                                      const double /*data_time*/,
+                                                      const bool initial_time,
+                                                      Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
