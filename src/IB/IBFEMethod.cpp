@@ -210,7 +210,8 @@ const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity syst
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database> input_db,
+                       Pointer<Database>
+                           input_db,
                        Mesh* mesh,
                        int max_level_number,
                        bool register_for_restart,
@@ -224,7 +225,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 } // IBFEMethod
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database> input_db,
+                       Pointer<Database>
+                           input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart,
@@ -719,7 +721,8 @@ void IBFEMethod::initializeFEData()
 } // initializeFEData
 
 void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                          Pointer<GriddingAlgorithm<NDIM> >
+                                              gridding_alg,
                                           int /*u_data_idx*/,
                                           const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
                                           const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
@@ -788,7 +791,8 @@ void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarch
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     Pointer<BasePatchLevel<NDIM> > old_level,
+                                     Pointer<BasePatchLevel<NDIM> >
+                                         old_level,
                                      bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1964,7 +1968,8 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   Pointer<Database> input_db,
+                                   Pointer<Database>
+                                       input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
                                    bool register_for_restart,
@@ -2032,7 +2037,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements" << std::endl);
+                                    "or only SECOND order elements"
+                                 << std::endl);
     }
     if (mesh_has_first_order_elems)
     {

@@ -438,8 +438,8 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = cubiccoarsen2d.f.m4 cubiccoarsen3d.f.m4
-BUILT_SOURCES = cubiccoarsen2d.f cubiccoarsen3d.f
+EXTRA_DIST = cubiccoarsen2d.f.m4 cubiccoarsen3d.f.m4 rt0coarsen2d.f.m4 rt0coarsen3d.f.m4
+BUILT_SOURCES = cubiccoarsen2d.f cubiccoarsen3d.f rt0coarsen2d.f rt0coarsen3d.f.m4
 CLEANFILES = ${BUILT_SOURCES}
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am

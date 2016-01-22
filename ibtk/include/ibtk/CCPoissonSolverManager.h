@@ -69,6 +69,8 @@ public:
      * class.
      */
     static const std::string DEFAULT_FAC_PRECONDITIONER;
+    static const std::string BOX_RELAXATION_FAC_PRECONDITIONER;
+    static const std::string LEVEL_RELAXATION_FAC_PRECONDITIONER;
     static const std::string POINT_RELAXATION_FAC_PRECONDITIONER;
 
     /*!

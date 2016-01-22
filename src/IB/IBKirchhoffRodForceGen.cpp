@@ -225,16 +225,8 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<ND
     // Create new MPI block AIJ matrices and set the values of the non-zero
     // entries.
     {
-        ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
-                             3 * 3,
-                             3 * 3 * local_sz,
-                             3 * 3 * num_local_nodes,
-                             PETSC_DETERMINE,
-                             PETSC_DETERMINE,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_d_nz[0] : NULL,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_o_nz[0] : NULL,
+        ierr = MatCreateBAIJ(PETSC_COMM_WORLD, 3 * 3, 3 * 3 * local_sz, 3 * 3 * num_local_nodes, PETSC_DETERMINE,
+                             PETSC_DETERMINE, 0, local_sz ? &next_d_nz[0] : NULL, 0, local_sz ? &next_o_nz[0] : NULL,
                              &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -267,16 +259,8 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<ND
     }
 
     {
-        ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
-                             NDIM,
-                             NDIM * local_sz,
-                             NDIM * num_local_nodes,
-                             PETSC_DETERMINE,
-                             PETSC_DETERMINE,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_d_nz[0] : NULL,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_o_nz[0] : NULL,
+        ierr = MatCreateBAIJ(PETSC_COMM_WORLD, NDIM, NDIM * local_sz, NDIM * num_local_nodes, PETSC_DETERMINE,
+                             PETSC_DETERMINE, 0, local_sz ? &next_d_nz[0] : NULL, 0, local_sz ? &next_o_nz[0] : NULL,
                              &X_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -488,29 +472,17 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_da
     Vec N_vec = N_data->getVec();
     if (local_sz > 0)
     {
-        ierr = VecSetValuesBlocked(F_vec,
-                                   static_cast<int>(petsc_curr_node_idxs.size()),
-                                   &petsc_curr_node_idxs[0],
-                                   &F_curr_node_vals[0],
-                                   ADD_VALUES);
+        ierr = VecSetValuesBlocked(F_vec, static_cast<int>(petsc_curr_node_idxs.size()), &petsc_curr_node_idxs[0],
+                                   &F_curr_node_vals[0], ADD_VALUES);
         IBTK_CHKERRQ(ierr);
-        ierr = VecSetValuesBlocked(F_vec,
-                                   static_cast<int>(petsc_next_node_idxs.size()),
-                                   &petsc_next_node_idxs[0],
-                                   &F_next_node_vals[0],
-                                   ADD_VALUES);
+        ierr = VecSetValuesBlocked(F_vec, static_cast<int>(petsc_next_node_idxs.size()), &petsc_next_node_idxs[0],
+                                   &F_next_node_vals[0], ADD_VALUES);
         IBTK_CHKERRQ(ierr);
-        ierr = VecSetValuesBlocked(N_vec,
-                                   static_cast<int>(petsc_curr_node_idxs.size()),
-                                   &petsc_curr_node_idxs[0],
-                                   &N_curr_node_vals[0],
-                                   ADD_VALUES);
+        ierr = VecSetValuesBlocked(N_vec, static_cast<int>(petsc_curr_node_idxs.size()), &petsc_curr_node_idxs[0],
+                                   &N_curr_node_vals[0], ADD_VALUES);
         IBTK_CHKERRQ(ierr);
-        ierr = VecSetValuesBlocked(N_vec,
-                                   static_cast<int>(petsc_next_node_idxs.size()),
-                                   &petsc_next_node_idxs[0],
-                                   &N_next_node_vals[0],
-                                   ADD_VALUES);
+        ierr = VecSetValuesBlocked(N_vec, static_cast<int>(petsc_next_node_idxs.size()), &petsc_next_node_idxs[0],
+                                   &N_next_node_vals[0], ADD_VALUES);
         IBTK_CHKERRQ(ierr);
     }
     ierr = VecAssemblyBegin(F_vec);

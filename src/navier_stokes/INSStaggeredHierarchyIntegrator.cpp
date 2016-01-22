@@ -95,6 +95,7 @@
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSStaggeredVelocityBcCoef.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
@@ -2251,6 +2252,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
+	d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
     LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
@@ -2261,18 +2263,35 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     {
         StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
             dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
-        if (!p_stokes_block_pc)
+		StaggeredStokesFACPreconditioner* p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
             KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
+			{
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
+				
+				p_stokes_fac_pc = dynamic_cast<
+					StaggeredStokesFACPreconditioner*>(
+					p_stokes_krylov_solver->getPreconditioner().getPointer());
+			}
         }
         if (p_stokes_block_pc)
         {
             p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
+			p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
         }
+		else if (p_stokes_fac_pc)
+		{
+            p_stokes_fac_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
+			p_stokes_fac_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+		}
+		else
+		{
+			TBOX_WARNING("No special BCs set for the preconditioner \n");
+		}
     }
     if (d_stokes_solver_needs_init)
     {

@@ -72,7 +72,7 @@ class LSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * \brief The continer class.
+     * \brief The container class.
      */
     typedef std::vector<SAMRAI::tbox::Pointer<T> > DataSet;
 

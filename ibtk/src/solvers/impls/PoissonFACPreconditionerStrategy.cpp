@@ -420,6 +420,8 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_synch_refine_algorithm->registerRefine(
         sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM> >(), d_synch_fill_pattern);
 
+	// TODO: Here we take a pessimistic approach and are recreating refine schedule for
+    // (coarsest_reset_ln - 1) level as well.
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =

@@ -79,6 +79,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBTargetPointForceSpec.cpp \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
+../src/IB/StaggeredStokesIBBoxRelaxationFACOperator.cpp \
+../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -115,6 +117,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.cpp \
 ../src/navier_stokes/StaggeredStokesFACPreconditioner.cpp \
 ../src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp \
+../src/navier_stokes/StaggeredStokesLevelRelaxationFACOperator.cpp \
 ../src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.cpp \
 ../src/navier_stokes/StaggeredStokesOperator.cpp \
 ../src/navier_stokes/StaggeredStokesPETScLevelSolver.cpp \
@@ -204,6 +207,9 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+../include/ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 ../include/ibamr/StaggeredStokesOperator.h \
 ../include/ibamr/StaggeredStokesPETScLevelSolver.h \

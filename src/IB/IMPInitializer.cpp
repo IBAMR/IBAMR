@@ -248,7 +248,7 @@ bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const boo
 {
     return !d_meshes[level_number].empty();
 } // getLevelHasLagrangianData
-    
+
 unsigned int IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                                 const int level_number,
                                                                 const double /*init_data_time*/,
@@ -379,12 +379,11 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
             static const IntVector<NDIM> periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             Pointer<MaterialPointSpec> point_spec =
-                new MaterialPointSpec(lagrangian_idx,
-                                      d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                                       d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
-            node_set->push_back(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset,
+                                          periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -431,8 +430,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<N
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
             for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+                 it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
@@ -443,6 +441,39 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<N
     }
     return;
 } // tagCellsForInitialRefinement
+
+void IMPInitializer::writeVertexFile(std::string filename, int mesh_no, int level_number)
+{
+    const int max_levels = d_gridding_alg->getMaxLevels();
+    if (level_number < 0) level_number = max_levels - 1;
+    level_number = std::min(level_number, max_levels - 1);
+
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    if (mpi_rank == 0)
+    {
+        if (filename.find(".vertex") == std::string::npos)
+        {
+            filename += ".vertex";
+        }
+        std::ofstream vertex_file(filename.c_str(), std::fstream::out);
+
+        const int num_vertices = d_num_vertex[level_number][mesh_no];
+        vertex_file << num_vertices << "\n";
+        for (int k = 0; k < num_vertices; ++k)
+        {
+            const libMesh::Point& X = d_vertex_posn[level_number][mesh_no][k];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                vertex_file << X(d) << "\t";
+            }
+            vertex_file << "\n";
+        }
+
+        vertex_file.close();
+    }
+
+    return;
+} // writeVertexFile
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -467,8 +498,8 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
                 std::ostringstream name_stream;
                 name_stream << "mesh_" << j;
                 const std::string vertices_name = name_stream.str() + "_vertices";
-                d_silo_writer->registerMarkerCloud(
-                    vertices_name, d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+                d_silo_writer->registerMarkerCloud(vertices_name, d_num_vertex[level_number][j],
+                                                   d_vertex_offset[level_number][j], level_number);
             }
         }
     }
