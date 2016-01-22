@@ -145,24 +145,24 @@ public:
                                                    int level_number,
                                                    IBTK::LDataManager* l_data_manager);
 
-    /*!
-     * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
-     *
-     * \note The elements of the Jacobian should be "accumulated" in the
-     * provided matrix J.
-     */
-    void computeLagrangianForceJacobian(Mat& J_mat,
-                                        MatAssemblyType assembly_type,
-                                        double X_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                        double U_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double data_time,
-                                        IBTK::LDataManager* l_data_manager);
-
+	/*!
+	 * \brief Compute the Jacobian of the force with respect to the present
+	 * structure configuration.
+	 *
+	 * \note The elements of the Jacobian should be "accumulated" in the
+	 * provided matrix J.
+	 */
+	void computeLagrangianForceJacobian(Mat& J_mat,
+										MatAssemblyType assembly_type,
+										double X_coef,
+										SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+										double U_coef,
+										SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+										SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+										int level_number,
+										double data_time,
+										IBTK::LDataManager* l_data_manager);
+	
     /*!
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
@@ -203,6 +203,7 @@ private:
     {
         std::vector<int> lag_mastr_node_idxs, lag_slave_node_idxs;
         std::vector<int> petsc_mastr_node_idxs, petsc_slave_node_idxs;
+		std::vector<int> petsc_global_mastr_node_idxs, petsc_global_slave_node_idxs;
         std::vector<SpringForceFcnPtr> force_fcns;
         std::vector<SpringForceDerivFcnPtr> force_deriv_fcns;
         std::vector<const double*> parameters;
@@ -212,6 +213,8 @@ private:
     struct BeamData
     {
         std::vector<int> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
+		std::vector<int> petsc_global_mastr_node_idxs, petsc_global_next_node_idxs,
+			petsc_global_prev_node_idxs;
         std::vector<const double*> rigidities;
         std::vector<const IBTK::Vector*> curvatures;
     };
@@ -219,7 +222,7 @@ private:
 
     struct TargetPointData
     {
-        std::vector<int> petsc_node_idxs;
+        std::vector<int> petsc_node_idxs, petsc_global_node_idxs;
         std::vector<const double*> kappa, eta;
         std::vector<const IBTK::Point*> X0;
     };

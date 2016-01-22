@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "petscvec.h"
+#include "petscao.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -122,6 +123,24 @@ public:
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
+    /*!
+     * \brief Create an application ordering object (AO) that creates a mapping
+     * between global PETSc indices and mapping of SAMRAI data indices for patch
+     * data index \em dof_index_idx to a nonnegative integer \f$ (i,j,k,d):-> p \f$
+     * on a SAMRAI::hier::PatchLevel.
+     *
+     *\see IndexUtilities::mapIndexToInteger() for
+     * details on the integer mapping of SAMRAI data indices.
+     *
+     * \param ao_offset An integer offset used for integer mapping of SAMRAI
+     * data indices.
+     */
+    static void constructPatchLevelAO(AO& ao,
+                                      std::vector<int>& num_dofs_per_proc,
+                                      int dof_index_idx,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                      const int ao_offset = 0);
+
     //\}
 
 protected:
@@ -200,6 +219,24 @@ private:
     static void constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_proc,
                                                    int dof_index_idx,
                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Implementation of constructPatchLevelAO for cell-centered data.
+     */
+    static void constructPatchLevelAO_cell(AO& ao,
+                                           std::vector<int>& num_dofs_per_proc,
+                                           const int dof_index_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                           const int ao_offset);
+
+    /*!
+     * \brief Implementation of constructPatchLevelAO for side-centered data.
+     */
+    static void constructPatchLevelAO_side(AO& ao,
+                                           std::vector<int>& num_dofs_per_proc,
+                                           const int dof_index_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                           const int ao_offset);
 };
 } // namespace IBTK
 

@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "CoarseFineBoundary.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
@@ -109,20 +110,40 @@ public:
     void setOptionsPrefix(const std::string& options_prefix);
 
     /*!
+     * \brief Get the PETSc KSP object.
+     */
+    const KSP& getPETScKSP() const;
+
+    /*!
+     * \brief Get ASM subdomains.
+     */
+    void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
+
+    /*!
+     * \brief Get MSM subdomains.
+     */
+    void getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains);
+
+    /*!
+     * \brief Get MSM subdomains with red-black ordering.
+     */
+    void getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
+                          std::vector<IS>** red_cols_subdomains,
+                          std::vector<IS>** black_rows_subdomains,
+                          std::vector<IS>** black_cols_subdomains);
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
-                                                                                       // for
-                                                                                       // g++ 4.2
-
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void setNullspace(bool contains_constant_vec,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    void setNullspace(
+        bool contains_constant_vec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -222,6 +243,16 @@ public:
      */
     void deallocateSolverState();
 
+    /*!
+     * \brief Add an additional linear operator to the existing operator.
+     * \NOTE this function should be called prior to initializing the solver
+     * state.
+     *
+     * \param op PETSc Mat to add to the existing matrix.
+     *
+     */
+    void addLinearOperator(Mat& op);
+
     //\}
 
 protected:
@@ -245,16 +276,12 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    virtual void copyToPETScVec(Vec& petsc_x,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    virtual void copyFromPETScVec(Vec& petsc_x,
-                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -264,8 +291,7 @@ protected:
     virtual void setupKSPVecs(Vec& petsc_x,
                               Vec& petsc_b,
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).
@@ -278,20 +304,55 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     /*!
-     * \brief Associated level number.
+     * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type;
+    bool d_use_ksp_as_smoother;
+    std::string d_ksp_type, d_pc_type, d_shell_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc;
+    Mat d_petsc_extern_mat;
     MatNullSpace d_petsc_nullsp;
     Vec d_petsc_x, d_petsc_b;
+    //\}
+
+    /*!
+     * \name Domain decomposing preconditioners
+     */
+    //\{
+    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
+
+    // ASM and MSM type preconditioners.
+    std::vector<IS> d_overlap_is, d_nonoverlap_is;
+    std::vector<IS> d_subdomain_row_is, d_subdomain_col_is;
+    std::vector<IS> d_red_subdomain_row_is, d_red_subdomain_col_is;
+    std::vector<IS> d_black_subdomain_row_is, d_black_subdomain_col_is;
+    int d_no_subdomains, d_no_red_subdomains, d_no_black_subdomains;
+
+    // Various matrices for ASM and MSM type preconditioners.
+    Mat d_diagonal_mat;
+    Mat *d_subdomain_bc_mat, *d_subdomain_mat;
+    Mat *d_red_subdomain_bc_mat, *d_red_subdomain_mat;
+    Mat *d_black_subdomain_bc_mat, *d_black_subdomain_mat;
+
+    // Various KSPs.
+    std::vector<KSP> d_subdomain_ksp, d_red_subdomain_ksp, d_black_subdomain_ksp;
+    //\}
+
+    /*!
+     * \name Field split preconditioner.
+     */
+    //\{
+    std::vector<std::string> d_field_name;
+    std::vector<IS> d_field_is;
     //\}
 
 private:
@@ -314,6 +375,21 @@ private:
      * \return A reference to this object.
      */
     PETScLevelSolver& operator=(const PETScLevelSolver& that);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
 };
 } // namespace IBTK
 

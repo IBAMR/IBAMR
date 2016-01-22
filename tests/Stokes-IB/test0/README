@@ -1,0 +1,20 @@
+This is a test case for two levels of grid hierarchy (AMR or uniform refinement).
+
+(1) The linearized Stokes-IB equations are solved by the StokesIBSolver class to
+test the FAC preconditioner/operator.
+
+(2) Matrix and matrix-free SAJ at the finest level (level 1) can be tested by
+choosing a suitable version of the Mat-Vec multiply routine in 
+StokesIBSolver::initializeSolver() routine. The FAC op uses matrix version of SAJ. The
+Krylov solver should converge in a single iteration (with tight tolerances) for
+the uniform refinement case, if StokesIBSolver class uses matrix version of SAJ in doing
+matrix-vector multiplication for doing the IB part. The matrix-free version should only take
+a couple of iterations to converge. Read more comments in the code for the StokesIBSolver
+class description.
+
+(3) SAJ matrix at the coarsest level is obtained by two methods: (a) from PETSc
+routine MatPtAP() and from (b) buildSAJCoarsestFromSAMRAIOperators() routine
+that uses SAMRAI operators (RT0 types) to prolong and restrict basis vectors.
+They should be the same when viewed in MATLAB.
+
+mpiexec -np 1 ./main2d input2d -ib_ksp_monitor_true_residual  -stokes_ib_pc_level_sub_pc_factor_shift_type nonzero -stokes_ib_pc_level_sub_pc_type lu -stokes_ib_pc_level_0_ksp_type preonly

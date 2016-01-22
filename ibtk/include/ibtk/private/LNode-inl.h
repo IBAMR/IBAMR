@@ -228,8 +228,7 @@ inline void LNode::setupNodeDataTypeArray()
     Streamable* it_val;
     int class_id;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end();
-         ++cit)
+         cit != d_node_data.end(); ++cit)
     {
         it_val = *cit;
         class_id = it_val->getStreamableClassID();

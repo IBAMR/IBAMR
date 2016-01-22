@@ -32,11 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
 #include <math.h>
+#include <ostream>
 #include <stddef.h>
 #include <string.h>
-#include <algorithm>
-#include <ostream>
 #include <string>
 #include <vector>
 
@@ -88,7 +88,8 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
-                                                 Pointer<Database> input_db,
+                                                 Pointer<Database>
+                                                     input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES), d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL),
@@ -338,7 +339,8 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  cannot initialize solver state for wrapped PETSc KSP object "
-                                    "if the wrapped object is NULL" << std::endl);
+                                    "if the wrapped object is NULL"
+                                 << std::endl);
     }
 
     // Setup solution and rhs vectors.
@@ -641,7 +643,11 @@ void PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
+#if (!PETSC_VERSION_RELEASE)
+    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#else
     ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#endif
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -687,7 +693,11 @@ void PETScKrylovLinearSolver::resetMatNullspace()
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
+#if (!PETSC_VERSION_RELEASE)
+    ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+#else
     ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+#endif
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())

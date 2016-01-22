@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stdbool.h>
-#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <functional>
@@ -41,6 +39,8 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <stdbool.h>
+#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -410,11 +410,13 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
     {
         plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution "
                 "vector for "
-                "system: " << system_name << "\n";
+                "system: "
+             << system_name << "\n";
         if (!d_active_patch_ghost_dofs.count(system_name))
         {
             plog << "FEDataManager::buildGhostedSolutionVector(): constructing ghost DOF index "
-                    "list for system: " << system_name << "\n";
+                    "list for system: "
+                 << system_name << "\n";
             std::vector<Elem*> active_elems;
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
@@ -875,7 +877,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                     jacobian(dX_ds, qp, X_node, dphi_X);
                     F_qp /= std::abs(dX_ds.det());
                 }
-                (*f_data)(i_s) += F_qp/static_cast<double>(num_intersections(i_s));
+                (*f_data)(i_s) += F_qp / static_cast<double>(num_intersections(i_s));
             }
         }
     }
@@ -1356,7 +1358,8 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         (d_L2_proj_quad_type[system_name] != quad_type) || (d_L2_proj_quad_order[system_name] != quad_order))
     {
         plog << "FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for "
-                "system: " << system_name << "\n";
+                "system: "
+             << system_name << "\n";
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
@@ -1484,7 +1487,8 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
     {
         plog << "FEDataManager::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix "
                 "for "
-                "system: " << system_name << "\n";
+                "system: "
+             << system_name << "\n";
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
@@ -1641,11 +1645,19 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         PetscMatrix<double>* M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
         PetscBool rtol_set;
         double runtime_rtol;
+#if (!PETSC_VERSION_RELEASE)
+        ierr = PetscOptionsGetReal(NULL, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
+#else
         ierr = PetscOptionsGetReal("", "-ksp_rtol", &runtime_rtol, &rtol_set);
+#endif
         IBTK_CHKERRQ(ierr);
         PetscBool max_it_set;
         int runtime_max_it;
+#if (!PETSC_VERSION_RELEASE)
+        ierr = PetscOptionsGetInt(NULL, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
+#else
         ierr = PetscOptionsGetInt("", "-ksp_max_it", &runtime_max_it, &max_it_set);
+#endif
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
@@ -1765,7 +1777,8 @@ void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> >
                                         const double /*init_data_time*/,
                                         const bool /*can_be_refined*/,
                                         const bool /*initial_time*/,
-                                        const Pointer<BasePatchLevel<NDIM> > old_level,
+                                        const Pointer<BasePatchLevel<NDIM> >
+                                            old_level,
                                         const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -2411,7 +2424,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
+        for (std::set<Elem *>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems[k] = *cit;
         }
