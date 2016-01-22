@@ -90,17 +90,17 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
 } // setVelocityPoissonSpecifications
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspace(const bool has_velocity_nullspace,
-																				  const bool has_pressure_nullspace)
+                                                                                  const bool has_pressure_nullspace)
 {
-	KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
-	TBOX_ASSERT(p_this);
+    TBOX_ASSERT(p_this);
 #endif
-	StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
-	Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
-	if (p_preconditioner) p_preconditioner->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    if (p_preconditioner) p_preconditioner->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
 
-	return;
+    return;
 } // setComponentsHaveNullspace
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(

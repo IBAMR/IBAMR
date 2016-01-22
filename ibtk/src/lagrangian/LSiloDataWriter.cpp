@@ -144,7 +144,9 @@ void build_local_marker_cloud(DBfile* dbfile,
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_marker_cloud()\n"
-                   << "  Could not set directory " << dirname << std::endl);
+                   << "  Could not set directory "
+                   << dirname
+                   << std::endl);
     }
 
     // Write out the variables.
@@ -196,7 +198,9 @@ void build_local_marker_cloud(DBfile* dbfile,
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_marker_cloud()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
+                   << "  Could not return to the base directory from subdirectory "
+                   << dirname
+                   << std::endl);
     }
     return;
 } // build_local_marker_cloud
@@ -305,7 +309,9 @@ void build_local_curv_block(DBfile* dbfile,
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_curv_block()\n"
-                   << "  Could not set directory " << dirname << std::endl);
+                   << "  Could not set directory "
+                   << dirname
+                   << std::endl);
     }
 
     // Write out the variables.
@@ -396,7 +402,9 @@ void build_local_curv_block(DBfile* dbfile,
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_curv_block()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
+                   << "  Could not return to the base directory from subdirectory "
+                   << dirname
+                   << std::endl);
     }
     return;
 } // build_local_curv_block
@@ -488,7 +496,9 @@ void build_local_ucd_mesh(DBfile* dbfile,
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_ucd_mesh()\n"
-                   << "  Could not set directory " << dirname << std::endl);
+                   << "  Could not set directory "
+                   << dirname
+                   << std::endl);
     }
 
     // Node coordinates.
@@ -615,7 +625,9 @@ void build_local_ucd_mesh(DBfile* dbfile,
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("LSiloDataWriter::build_local_ucd_mesh()\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
+                   << "  Could not return to the base directory from subdirectory "
+                   << dirname
+                   << std::endl);
     }
     return;
 } // build_local_ucd_mesh
@@ -627,19 +639,44 @@ void build_local_ucd_mesh(DBfile* dbfile,
 LSiloDataWriter::LSiloDataWriter(const std::string& object_name,
                                  const std::string& dump_directory_name,
                                  bool register_for_restart)
-    : d_object_name(object_name), d_registered_for_restart(register_for_restart),
-      d_dump_directory_name(dump_directory_name), d_time_step_number(-1), d_hierarchy(), d_coarsest_ln(0),
-      d_finest_ln(0), d_nclouds(d_finest_ln + 1, 0), d_cloud_names(d_finest_ln + 1), d_cloud_nmarks(d_finest_ln + 1),
-      d_cloud_first_lag_idx(d_finest_ln + 1), d_nblocks(d_finest_ln + 1, 0), d_block_names(d_finest_ln + 1),
-      d_block_nelems(d_finest_ln + 1), d_block_periodic(d_finest_ln + 1), d_block_first_lag_idx(d_finest_ln + 1),
-      d_nmbs(d_finest_ln + 1, 0), d_mb_names(d_finest_ln + 1), d_mb_nblocks(d_finest_ln + 1),
-      d_mb_nelems(d_finest_ln + 1), d_mb_periodic(d_finest_ln + 1), d_mb_first_lag_idx(d_finest_ln + 1),
-      d_nucd_meshes(d_finest_ln + 1, 0), d_ucd_mesh_names(d_finest_ln + 1), d_ucd_mesh_vertices(d_finest_ln + 1),
-      d_ucd_mesh_edge_maps(d_finest_ln + 1), d_coords_data(d_finest_ln + 1, Pointer<LData>(NULL)),
-      d_nvars(d_finest_ln + 1, 0), d_var_names(d_finest_ln + 1), d_var_start_depths(d_finest_ln + 1),
-      d_var_plot_depths(d_finest_ln + 1), d_var_depths(d_finest_ln + 1), d_var_data(d_finest_ln + 1),
-      d_ao(d_finest_ln + 1), d_build_vec_scatters(d_finest_ln + 1), d_src_vec(d_finest_ln + 1),
-      d_dst_vec(d_finest_ln + 1), d_vec_scatter(d_finest_ln + 1)
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_dump_directory_name(dump_directory_name),
+      d_time_step_number(-1),
+      d_hierarchy(),
+      d_coarsest_ln(0),
+      d_finest_ln(0),
+      d_nclouds(d_finest_ln + 1, 0),
+      d_cloud_names(d_finest_ln + 1),
+      d_cloud_nmarks(d_finest_ln + 1),
+      d_cloud_first_lag_idx(d_finest_ln + 1),
+      d_nblocks(d_finest_ln + 1, 0),
+      d_block_names(d_finest_ln + 1),
+      d_block_nelems(d_finest_ln + 1),
+      d_block_periodic(d_finest_ln + 1),
+      d_block_first_lag_idx(d_finest_ln + 1),
+      d_nmbs(d_finest_ln + 1, 0),
+      d_mb_names(d_finest_ln + 1),
+      d_mb_nblocks(d_finest_ln + 1),
+      d_mb_nelems(d_finest_ln + 1),
+      d_mb_periodic(d_finest_ln + 1),
+      d_mb_first_lag_idx(d_finest_ln + 1),
+      d_nucd_meshes(d_finest_ln + 1, 0),
+      d_ucd_mesh_names(d_finest_ln + 1),
+      d_ucd_mesh_vertices(d_finest_ln + 1),
+      d_ucd_mesh_edge_maps(d_finest_ln + 1),
+      d_coords_data(d_finest_ln + 1, Pointer<LData>(NULL)),
+      d_nvars(d_finest_ln + 1, 0),
+      d_var_names(d_finest_ln + 1),
+      d_var_start_depths(d_finest_ln + 1),
+      d_var_plot_depths(d_finest_ln + 1),
+      d_var_depths(d_finest_ln + 1),
+      d_var_data(d_finest_ln + 1),
+      d_ao(d_finest_ln + 1),
+      d_build_vec_scatters(d_finest_ln + 1),
+      d_src_vec(d_finest_ln + 1),
+      d_dst_vec(d_finest_ln + 1),
+      d_vec_scatter(d_finest_ln + 1)
 {
 #if defined(IBTK_HAVE_SILO)
 // intentionally blank
@@ -824,14 +861,18 @@ void LSiloDataWriter::registerMarkerCloud(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
                                  << "  marker clouds must have unique names.\n"
-                                 << "  a Cartesian block named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian block named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_mb_names[level_number].begin(), d_mb_names[level_number].end(), name) != d_mb_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
                                  << "  marker clouds must have unique names.\n"
-                                 << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian multiblock named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(), name) !=
@@ -839,7 +880,9 @@ void LSiloDataWriter::registerMarkerCloud(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
                                  << "  marker clouds must have unique names.\n"
-                                 << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
+                                 << "  an unstructured mesh named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     // Check to see if we are updating a previously registered cloud.
@@ -887,14 +930,18 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianBlock()\n"
                                  << "  Cartesian blocks must have unique names.\n"
-                                 << "  a marker cloud named ``" << name << "'' has already been registered.\n");
+                                 << "  a marker cloud named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_mb_names[level_number].begin(), d_mb_names[level_number].end(), name) != d_mb_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianBlock()\n"
                                  << "  Cartesian blocks must have unique names.\n"
-                                 << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian multiblock named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(), name) !=
@@ -902,7 +949,9 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianBlock()\n"
                                  << "  Cartesian blocks must have unique names.\n"
-                                 << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
+                                 << "  an unstructured mesh named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     // Check to see if we are updating a previously registered block.
@@ -958,7 +1007,9 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
                                  << "  Cartesian multiblocks must have unique names.\n"
-                                 << "  a marker cloud named ``" << name << "'' has already been registered.\n");
+                                 << "  a marker cloud named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_block_names[level_number].begin(), d_block_names[level_number].end(), name) !=
@@ -966,7 +1017,9 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
                                  << "  Cartesian multiblocks must have unique names.\n"
-                                 << "  a Cartesian block named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian block named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(), name) !=
@@ -974,7 +1027,9 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
                                  << "  Cartesian multiblocks must have unique names.\n"
-                                 << "  an unstructured mesh named ``" << name << "'' has already been registered.\n");
+                                 << "  an unstructured mesh named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     // Check to see if we are updating a previously registered multiblock.
@@ -1019,7 +1074,9 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerUnstructuredMesh()\n"
                                  << "  unstructured meshes must have unique names.\n"
-                                 << "  a marker cloud named ``" << name << "'' has already been registered.\n");
+                                 << "  a marker cloud named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_block_names[level_number].begin(), d_block_names[level_number].end(), name) !=
@@ -1027,14 +1084,18 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     {
         TBOX_ERROR(d_object_name << "::registerUnstructuredMesh()\n"
                                  << "  unstructured meshes must have unique names.\n"
-                                 << "  a Cartesian block named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian block named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     if (find(d_mb_names[level_number].begin(), d_mb_names[level_number].end(), name) != d_mb_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerUnstructuredMesh()\n"
                                  << "  unstructured meshes must have unique names.\n"
-                                 << "  a Cartesian multiblock named ``" << name << "'' has already been registered.\n");
+                                 << "  a Cartesian multiblock named ``"
+                                 << name
+                                 << "'' has already been registered.\n");
     }
 
     // Extract the list of vertices from the list of edges.
@@ -1109,8 +1170,12 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name,
         d_var_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerVariableData()\n"
-                                 << "  variable with name " << var_name << " already registered for plotting\n"
-                                 << "  on patch level " << level_number << std::endl);
+                                 << "  variable with name "
+                                 << var_name
+                                 << " already registered for plotting\n"
+                                 << "  on patch level "
+                                 << level_number
+                                 << std::endl);
     }
     ++d_nvars[level_number];
     d_var_names[level_number].push_back(var_name);
@@ -1169,17 +1234,25 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     if (time_step_number <= d_time_step_number)
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                 << "  data writer with name " << d_object_name << "\n"
-                                 << "  time step number: " << time_step_number
-                                 << " is <= last time step number: " << d_time_step_number << std::endl);
+                                 << "  data writer with name "
+                                 << d_object_name
+                                 << "\n"
+                                 << "  time step number: "
+                                 << time_step_number
+                                 << " is <= last time step number: "
+                                 << d_time_step_number
+                                 << std::endl);
     }
     d_time_step_number = time_step_number;
 
     if (d_dump_directory_name.empty())
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                 << "  data writer with name " << d_object_name << "\n"
-                                 << "  dump directory name is empty" << std::endl);
+                                 << "  data writer with name "
+                                 << d_object_name
+                                 << "\n"
+                                 << "  dump directory name is empty"
+                                 << std::endl);
     }
 
     int ierr;
@@ -1215,7 +1288,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
     {
         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                 << "  Could not create DBfile named " << current_file_name << std::endl);
+                                 << "  Could not create DBfile named "
+                                 << current_file_name
+                                 << std::endl);
     }
 
     std::vector<std::vector<int> > meshtype(d_finest_ln + 1), vartype(d_finest_ln + 1);
@@ -1282,7 +1357,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                             << "  Could not create directory named " << dirname << std::endl);
+                                             << "  Could not create directory named "
+                                             << dirname
+                                             << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM * offset;
@@ -1322,7 +1399,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                             << "  Could not create directory named " << dirname << std::endl);
+                                             << "  Could not create directory named "
+                                             << dirname
+                                             << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM * offset;
@@ -1369,7 +1448,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     if (DBMkDir(dbfile, dirname.c_str()) == -1)
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                                 << "  Could not create directory named " << dirname << std::endl);
+                                                 << "  Could not create directory named "
+                                                 << dirname
+                                                 << std::endl);
                     }
 
                     const double* const X = local_X_arr + NDIM * offset;
@@ -1413,7 +1494,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 if (DBMkDir(dbfile, dirname.c_str()) == -1)
                 {
                     TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                             << "  Could not create directory named " << dirname << std::endl);
+                                             << "  Could not create directory named "
+                                             << dirname
+                                             << std::endl);
                 }
 
                 const double* const X = local_X_arr + NDIM * offset;
@@ -1726,7 +1809,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
         if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                     << "  Could not create DBfile named " << summary_file_name << std::endl);
+                                     << "  Could not create DBfile named "
+                                     << summary_file_name
+                                     << std::endl);
         }
 
         int cycle = time_step_number;
@@ -1763,7 +1848,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     if (DBMkDir(dbfile, cloud_name.c_str()) == -1)
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                                 << "  Could not create directory named " << cloud_name << std::endl);
+                                                 << "  Could not create directory named "
+                                                 << cloud_name
+                                                 << std::endl);
                     }
                 }
 
@@ -1787,7 +1874,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     if (DBMkDir(dbfile, block_name.c_str()) == -1)
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                                 << "  Could not create directory named " << block_name << std::endl);
+                                                 << "  Could not create directory named "
+                                                 << block_name
+                                                 << std::endl);
                     }
                 }
 
@@ -1799,7 +1888,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                    char** meshnames = new char* [nblocks];
+                    char** meshnames = new char*[nblocks];
 
                     for (int block = 0; block < nblocks; ++block)
                     {
@@ -1820,7 +1909,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     if (DBMkDir(dbfile, mb_name.c_str()) == -1)
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                                 << "  Could not create directory named " << mb_name << std::endl);
+                                                 << "  Could not create directory named "
+                                                 << mb_name
+                                                 << std::endl);
                     }
 
                     for (int block = 0; block < nblocks; ++block)
@@ -1850,7 +1941,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     if (DBMkDir(dbfile, mesh_name.c_str()) == -1)
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
-                                                 << "  Could not create directory named " << mesh_name << std::endl);
+                                                 << "  Could not create directory named "
+                                                 << mesh_name
+                                                 << std::endl);
                     }
                 }
 
@@ -1910,7 +2003,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                        char** varnames = new char* [nblocks];
+                        char** varnames = new char*[nblocks];
 
                         for (int block = 0; block < nblocks; ++block)
                         {

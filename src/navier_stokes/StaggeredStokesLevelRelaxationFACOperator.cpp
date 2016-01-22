@@ -228,7 +228,8 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
                     {
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector<NDIM>(0));
+                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                                  IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);

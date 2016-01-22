@@ -113,8 +113,8 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
     return d_init_convective_time_stepping_type;
 } // getInitialConvectiveTimeSteppingType
 
-void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);
@@ -411,10 +411,17 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Variable<NDIM> > F_var,
                                                Pointer<Variable<NDIM> > Q_var,
                                                bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
-      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_U_var(U_var),
+      d_P_var(P_var),
+      d_F_var(F_var),
+      d_Q_var(Q_var),
+      d_U_init(NULL),
+      d_P_init(NULL),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_traction_bc_type(TRACTION),
+      d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
     // Set some default values.
@@ -714,7 +721,8 @@ void INSHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("INS_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != INS_HIERARCHY_INTEGRATOR_VERSION)

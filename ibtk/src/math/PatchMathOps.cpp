@@ -1206,19 +1206,22 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1227,7 +1230,8 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     const int W_depth = dst->getDepth();
@@ -1242,7 +1246,8 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                 )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     const int U_depth = src->getDepth();
@@ -1250,26 +1255,36 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (U_depth != NDIM)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has incorrect depth" << std::endl);
+                   << "  src has incorrect depth"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    C_TO_C_CURL_FC(W, W_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+    C_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   U,
+                   U_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
                    patch_box.upper(1),
 #if (NDIM == 3)
-                   patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
                    dx);
     return;
@@ -1298,19 +1313,22 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1319,7 +1337,8 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     const int W_depth = dst->getDepth();
@@ -1334,29 +1353,40 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                 )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    F_TO_C_CURL_FC(W, W_ghosts, u0, u1,
+    F_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   u0,
+                   u1,
 #if (NDIM == 3)
                    u2,
 #endif
-                   u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
 #if (NDIM == 3)
-                   patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
                    dx);
     return;
@@ -1368,7 +1398,8 @@ void PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
-               << "  not implemented for NDIM != 3" << std::endl);
+               << "  not implemented for NDIM != 3"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1393,19 +1424,22 @@ void PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1414,24 +1448,40 @@ void PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    F_TO_F_CURL_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
-                   patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+    F_TO_F_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
 } // curl
@@ -1459,19 +1509,22 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1480,7 +1533,8 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     const int W_depth = dst->getDepth();
@@ -1495,29 +1549,40 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
                 )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_C_CURL_FC(W, W_ghosts, u0, u1,
+    S_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   u0,
+                   u1,
 #if (NDIM == 3)
                    u2,
 #endif
-                   u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
 #if (NDIM == 3)
-                   patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
                    dx);
     return;
@@ -1529,7 +1594,8 @@ void PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
-               << "  not implemented for NDIM != 3" << std::endl);
+               << "  not implemented for NDIM != 3"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1554,19 +1620,22 @@ void PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1575,24 +1644,40 @@ void PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_S_CURL_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
-                   patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+    S_TO_S_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
 } // curl
@@ -1603,7 +1688,8 @@ void PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::curl():\n"
-               << "  not implemented for NDIM != 2" << std::endl);
+               << "  not implemented for NDIM != 2"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1625,19 +1711,22 @@ void PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1646,24 +1735,35 @@ void PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_N_CURL_FC(w0, w_ghosts, u0, u1, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                   patch_box.upper(1), dx);
+    S_TO_N_CURL_FC(w0,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   dx);
 #endif
     return;
 } // curl
@@ -1674,7 +1774,8 @@ void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
-               << "  not implemented for NDIM != 3" << std::endl);
+               << "  not implemented for NDIM != 3"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1699,19 +1800,22 @@ void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1720,24 +1824,40 @@ void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_E_CURL_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
-                   patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+    S_TO_E_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
 } // curl
@@ -1750,7 +1870,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
-               << "  not implemented for NDIM != 2" << std::endl);
+               << "  not implemented for NDIM != 2"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1774,38 +1895,51 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!bc_op)
     {
-        N_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                      patch_box.upper(1), dx);
+        N_TO_S_ROT_FC(w0,
+                      w1,
+                      w_ghosts,
+                      u0,
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
+                      dx);
     }
     else
     {
@@ -1834,8 +1968,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 
         const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
 
-        N_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
-                      op_box.upper(1), dx);
+        N_TO_S_ROT_FC(
+            w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1), op_box.upper(1), dx);
 
         dst->copyOnBox(w_data, op_box);
 
@@ -1853,7 +1987,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
-               << "  not implemented for NDIM != 2" << std::endl);
+               << "  not implemented for NDIM != 2"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1877,31 +2012,36 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -1910,14 +2050,23 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 #endif
 
     if (!bc_op)
     {
-        C_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                      patch_box.upper(1), dx);
+        C_TO_S_ROT_FC(w0,
+                      w1,
+                      w_ghosts,
+                      u0,
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
+                      dx);
     }
     else
     {
@@ -1946,8 +2095,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 
         const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
 
-        C_TO_S_ROT_FC(w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
-                      op_box.upper(1), dx);
+        C_TO_S_ROT_FC(
+            w0, w1, w_ghosts, u0, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1), op_box.upper(1), dx);
 
         dst->copyOnBox(w_data, op_box);
 
@@ -1965,7 +2114,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::rot():\n"
-               << "  not implemented for NDIM != 3" << std::endl);
+               << "  not implemented for NDIM != 3"
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(src);
     NULL_USE(patch);
@@ -1992,38 +2142,56 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src == dst)
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
+                   << "  src == dst."
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!bc_op)
     {
-        E_TO_S_ROT_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, patch_box.lower(0), patch_box.upper(0),
-                      patch_box.lower(1), patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), dx);
+        E_TO_S_ROT_FC(w0,
+                      w1,
+                      w2,
+                      w_ghosts,
+                      u0,
+                      u1,
+                      u2,
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
+                      dx);
     }
     else
     {
@@ -2055,8 +2223,21 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
 
         const Box<NDIM> op_box = Box<NDIM>::grow(patch_box, op_gcw);
 
-        E_TO_S_ROT_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
-                      op_box.upper(1), op_box.lower(2), op_box.upper(2), dx);
+        E_TO_S_ROT_FC(w0,
+                      w1,
+                      w2,
+                      w_ghosts,
+                      u0,
+                      u1,
+                      u2,
+                      u_ghosts,
+                      op_box.lower(0),
+                      op_box.upper(0),
+                      op_box.lower(1),
+                      op_box.upper(1),
+                      op_box.lower(2),
+                      op_box.upper(2),
+                      dx);
 
         dst->copyOnBox(w_data, op_box);
 
@@ -2080,7 +2261,8 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     {
 #if (NDIM != 3)
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  not implemented for NDIM != 3" << std::endl);
+                   << "  not implemented for NDIM != 3"
+                   << std::endl);
         NULL_USE(dst);
         NULL_USE(src);
         NULL_USE(patch);
@@ -2114,19 +2296,22 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         if (w_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (u_ghosts != (src->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  src does not have uniform ghost cell widths" << std::endl);
+                       << "  src does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (src == dst)
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  src == dst." << std::endl);
+                       << "  src == dst."
+                       << std::endl);
         }
 
         const Box<NDIM>& U_box = src->getGhostBox();
@@ -2135,24 +2320,40 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
         if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  src has insufficient ghost cell width" << std::endl);
+                       << "  src has insufficient ghost cell width"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  dst and src must live on the same patch" << std::endl);
+                       << "  dst and src must live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src->getBox())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  dst and src must live on the same patch" << std::endl);
+                       << "  dst and src must live on the same patch"
+                       << std::endl);
         }
 #endif
 
-        S_TO_S_CURL_FC(w0, w1, w2, w_ghosts, u0, u1, u2, u_ghosts, op_box.lower(0), op_box.upper(0), op_box.lower(1),
-                       op_box.upper(1), op_box.lower(2), op_box.upper(2), dx);
+        S_TO_S_CURL_FC(w0,
+                       w1,
+                       w2,
+                       w_ghosts,
+                       u0,
+                       u1,
+                       u2,
+                       u_ghosts,
+                       op_box.lower(0),
+                       op_box.upper(0),
+                       op_box.lower(1),
+                       op_box.upper(1),
+                       op_box.lower(2),
+                       op_box.upper(2),
+                       dx);
 
         dst->copyOnBox(w_data, op_box);
 
@@ -2186,25 +2387,29 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (beta != 0.0))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 == src2 but beta is nonzero." << std::endl);
+                   << "  src1 == src2 but beta is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -2213,7 +2418,8 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     const int U_depth = src1->getDepth();
@@ -2221,28 +2427,39 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     if (U_depth != NDIM)
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 has incorrect depth" << std::endl);
+                   << "  src1 has incorrect depth"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_C_DIV_FC(D, D_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+        C_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      U,
+                      U_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
                       patch_box.upper(1),
 #if (NDIM == 3)
-                      patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
                       dx);
     }
@@ -2255,19 +2472,32 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_C_DIV_ADD_FC(D, D_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, patch_box.lower(0), patch_box.upper(0),
-                          patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          U,
+                          U_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
+                          patch_box.upper(1),
 #if (NDIM == 3)
-                          patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
                           dx);
     }
@@ -2302,37 +2532,50 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        F_TO_C_DIV_FC(D, D_ghosts, alpha, u0, u1,
+        F_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      u0,
+                      u1,
 #if (NDIM == 3)
                       u2,
 #endif
-                      u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
 #if (NDIM == 3)
-                      patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
                       dx);
     }
@@ -2345,23 +2588,36 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        F_TO_C_DIV_ADD_FC(D, D_ghosts, alpha, u0, u1,
+        F_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          u0,
+                          u1,
 #if (NDIM == 3)
                           u2,
 #endif
-                          u_ghosts, beta, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                          u_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
                           patch_box.upper(1),
 #if (NDIM == 3)
-                          patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
                           dx);
     }
@@ -2396,37 +2652,50 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        S_TO_C_DIV_FC(D, D_ghosts, alpha, u0, u1,
+        S_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      u0,
+                      u1,
 #if (NDIM == 3)
                       u2,
 #endif
-                      u_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
 #if (NDIM == 3)
-                      patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
                       dx);
     }
@@ -2439,23 +2708,36 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        S_TO_C_DIV_ADD_FC(D, D_ghosts, alpha, u0, u1,
+        S_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          u0,
+                          u1,
 #if (NDIM == 3)
                           u2,
 #endif
-                          u_ghosts, beta, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                          u_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
                           patch_box.upper(1),
 #if (NDIM == 3)
-                          patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
                           dx);
     }
@@ -2485,7 +2767,8 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
     if (G_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int G_depth = dst->getDepth();
@@ -2493,25 +2776,29 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
     if (G_depth != NDIM)
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (beta != 0.0))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 == src2 but beta is nonzero." << std::endl);
+                   << "  src1 == src2 but beta is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -2520,28 +2807,39 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_C_GRAD_FC(G, G_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+        C_TO_C_GRAD_FC(G,
+                       G_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
     }
@@ -2554,7 +2852,8 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         const int V_depth = src2->getDepth();
@@ -2562,19 +2861,32 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
         if (V_depth != NDIM)
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  src2 has incorrect depth" << std::endl);
+                       << "  src2 has incorrect depth"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_C_GRAD_ADD_FC(G, G_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, patch_box.lower(0), patch_box.upper(0),
-                           patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_GRAD_ADD_FC(G,
+                           G_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           V,
+                           V_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-                           patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
                            dx);
     }
@@ -2609,13 +2921,15 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -2624,32 +2938,43 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_F_GRAD_FC(g0, g1,
+        C_TO_F_GRAD_FC(g0,
+                       g1,
 #if (NDIM == 3)
                        g2,
 #endif
-                       g_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                       g_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
     }
@@ -2666,26 +2991,40 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_F_GRAD_ADD_FC(g0, g1,
+        C_TO_F_GRAD_ADD_FC(g0,
+                           g1,
 #if (NDIM == 3)
                            g2,
 #endif
-                           g_ghosts, alpha, U, U_ghosts, beta, v0, v1,
+                           g_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           v0,
+                           v1,
 #if (NDIM == 3)
                            v2,
 #endif
-                           v_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                           v_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-                           patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
                            dx);
     }
@@ -2720,13 +3059,15 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -2735,32 +3076,43 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_S_GRAD_FC(g0, g1,
+        C_TO_S_GRAD_FC(g0,
+                       g1,
 #if (NDIM == 3)
                        g2,
 #endif
-                       g_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                       g_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
     }
@@ -2777,26 +3129,40 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_S_GRAD_ADD_FC(g0, g1,
+        C_TO_S_GRAD_ADD_FC(g0,
+                           g1,
 #if (NDIM == 3)
                            g2,
 #endif
-                           g_ghosts, alpha, U, U_ghosts, beta, v0, v1,
+                           g_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           v0,
+                           v1,
 #if (NDIM == 3)
                            v2,
 #endif
-                           v_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                           v_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-                           patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
                            dx);
     }
@@ -2838,7 +3204,8 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int g_depth = dst->getDepth();
@@ -2846,13 +3213,15 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if (g_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     if (alpha_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int a_depth = alpha->getDepth();
@@ -2860,13 +3229,15 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if (a_depth != 1 && a_depth != NDIM)
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  alpha has incorrect depth" << std::endl);
+                   << "  alpha has incorrect depth"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -2875,41 +3246,54 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_F_FLUX_FC(g0, g1,
+        C_TO_F_FLUX_FC(g0,
+                       g1,
 #if (NDIM == 3)
                        g2,
 #endif
-                       g_ghosts, alpha0, alpha1,
+                       g_ghosts,
+                       alpha0,
+                       alpha1,
 #if (NDIM == 3)
                        alpha2,
 #endif
-                       alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                       alpha_ghosts,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
 
@@ -2921,7 +3305,8 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             const int v_depth = dst->getDepth();
@@ -2929,13 +3314,15 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (v_depth != 1)
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 has incorrect depth" << std::endl);
+                           << "  src2 has incorrect depth"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
             PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
@@ -2944,18 +3331,27 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     }
     else
     {
-        C_TO_F_ANISO_FLUX_FC(g0, g1,
+        C_TO_F_ANISO_FLUX_FC(g0,
+                             g1,
 #if (NDIM == 3)
                              g2,
 #endif
-                             g_ghosts, alpha0, alpha1,
+                             g_ghosts,
+                             alpha0,
+                             alpha1,
 #if (NDIM == 3)
                              alpha2,
 #endif
-                             alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                             alpha_ghosts,
+                             U,
+                             U_ghosts,
+                             patch_box.lower(0),
+                             patch_box.upper(0),
+                             patch_box.lower(1),
                              patch_box.upper(1),
 #if (NDIM == 3)
-                             patch_box.lower(2), patch_box.upper(2),
+                             patch_box.lower(2),
+                             patch_box.upper(2),
 #endif
                              dx);
 
@@ -2968,7 +3364,8 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             const int v_depth = dst->getDepth();
@@ -2976,13 +3373,15 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (v_depth != 1)
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 has incorrect depth" << std::endl);
+                           << "  src2 has incorrect depth"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
             PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
@@ -3027,7 +3426,8 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int g_depth = dst->getDepth();
@@ -3035,19 +3435,22 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if (g_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst has incorrect depth" << std::endl);
+                   << "  dst has incorrect depth"
+                   << std::endl);
     }
 
     if (alpha_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -3056,41 +3459,54 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_S_FLUX_FC(g0, g1,
+        C_TO_S_FLUX_FC(g0,
+                       g1,
 #if (NDIM == 3)
                        g2,
 #endif
-                       g_ghosts, alpha0, alpha1,
+                       g_ghosts,
+                       alpha0,
+                       alpha1,
 #if (NDIM == 3)
                        alpha2,
 #endif
-                       alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                       alpha_ghosts,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
 
@@ -3102,7 +3518,8 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             const int v_depth = dst->getDepth();
@@ -3110,13 +3527,15 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (v_depth != 1)
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 has incorrect depth" << std::endl);
+                           << "  src2 has incorrect depth"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
             PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
@@ -3125,18 +3544,27 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     }
     else
     {
-        C_TO_S_ANISO_FLUX_FC(g0, g1,
+        C_TO_S_ANISO_FLUX_FC(g0,
+                             g1,
 #if (NDIM == 3)
                              g2,
 #endif
-                             g_ghosts, alpha0, alpha1,
+                             g_ghosts,
+                             alpha0,
+                             alpha1,
 #if (NDIM == 3)
                              alpha2,
 #endif
-                             alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                             alpha_ghosts,
+                             U,
+                             U_ghosts,
+                             patch_box.lower(0),
+                             patch_box.upper(0),
+                             patch_box.lower(1),
                              patch_box.upper(1),
 #if (NDIM == 3)
-                             patch_box.lower(2), patch_box.upper(2),
+                             patch_box.lower(2),
+                             patch_box.upper(2),
 #endif
                              dx);
 
@@ -3149,7 +3577,8 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             const int v_depth = dst->getDepth();
@@ -3157,13 +3586,15 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (v_depth != 1)
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  src2 has incorrect depth" << std::endl);
+                           << "  src2 has incorrect depth"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
             PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
@@ -3186,31 +3617,36 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
     if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src and dst have incompatible depths" << std::endl);
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
     }
 
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (v_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3225,14 +3661,22 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
         const double* const v2 = src->getPointer(2, depth);
 #endif
 
-        F_TO_C_INTERP_FC(U, U_ghosts, v0, v1,
+        F_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         v0,
+                         v1,
 #if (NDIM == 3)
                          v2,
 #endif
-                         v_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1)
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-                                                                                                   ,
-                         patch_box.lower(2), patch_box.upper(2)
+                             ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -3252,31 +3696,36 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
     if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src and dst have incompatible depths" << std::endl);
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
     }
 
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (v_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3291,14 +3740,22 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
         const double* const v2 = src->getPointer(2, depth);
 #endif
 
-        S_TO_C_INTERP_FC(U, U_ghosts, v0, v1,
+        S_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         v0,
+                         v1,
 #if (NDIM == 3)
                          v2,
 #endif
-                         v_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1)
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-                                                                                                   ,
-                         patch_box.lower(2), patch_box.upper(2)
+                             ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -3318,19 +3775,22 @@ void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
     if (NDIM * dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src and dst have incompatible depths" << std::endl);
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
     }
 
     if (u_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& V_box = src->getGhostBox();
@@ -3339,19 +3799,22 @@ void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3365,15 +3828,22 @@ void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
 #endif
         const double* const V = src->getPointer(NDIM * depth);
 
-        C_TO_F_INTERP_FC(u0, u1,
+        C_TO_F_INTERP_FC(u0,
+                         u1,
 #if (NDIM == 3)
                          u2,
 #endif
-                         u_ghosts, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                         u_ghosts,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         patch_box.lower(2), patch_box.upper(2)
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -3393,19 +3863,22 @@ void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
     if (NDIM * dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src and dst have incompatible depths" << std::endl);
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
     }
 
     if (u_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const Box<NDIM>& V_box = src->getGhostBox();
@@ -3414,19 +3887,22 @@ void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src has insufficient ghost cell width" << std::endl);
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3440,15 +3916,22 @@ void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
 #endif
         const double* const V = src->getPointer(NDIM * depth);
 
-        C_TO_S_INTERP_FC(u0, u1,
+        C_TO_S_INTERP_FC(u0,
+                         u1,
 #if (NDIM == 3)
                          u2,
 #endif
-                         u_ghosts, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                         u_ghosts,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         patch_box.lower(2), patch_box.upper(2)
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -3481,25 +3964,29 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (gamma != 0.0))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == src2 but gamma is nonzero." << std::endl);
+                   << "  src1 == src2 but gamma is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -3508,19 +3995,22 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3528,19 +4018,36 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     {
         if (beta == 0.0)
         {
-            LAPLACE_FC(F, F_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+            LAPLACE_FC(F,
+                       F_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
                        patch_box.upper(1),
 #if (NDIM == 3)
-                       patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
                        dx);
         }
         else
         {
-            DAMPED_LAPLACE_FC(F, F_ghosts, alpha, beta, U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
-                              patch_box.lower(1), patch_box.upper(1),
+            DAMPED_LAPLACE_FC(F,
+                              F_ghosts,
+                              alpha,
+                              beta,
+                              U,
+                              U_ghosts,
+                              patch_box.lower(0),
+                              patch_box.upper(0),
+                              patch_box.lower(1),
+                              patch_box.upper(1),
 #if (NDIM == 3)
-                              patch_box.lower(2), patch_box.upper(2),
+                              patch_box.lower(2),
+                              patch_box.upper(2),
 #endif
                               dx);
         }
@@ -3554,30 +4061,55 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            LAPLACE_ADD_FC(F, F_ghosts, alpha, U, U_ghosts, gamma, V, V_ghosts, patch_box.lower(0), patch_box.upper(0),
-                           patch_box.lower(1), patch_box.upper(1),
+            LAPLACE_ADD_FC(F,
+                           F_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           gamma,
+                           V,
+                           V_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-                           patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
                            dx);
         }
         else
         {
-            DAMPED_LAPLACE_ADD_FC(F, F_ghosts, alpha, beta, U, U_ghosts, gamma, V, V_ghosts, patch_box.lower(0),
-                                  patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+            DAMPED_LAPLACE_ADD_FC(F,
+                                  F_ghosts,
+                                  alpha,
+                                  beta,
+                                  U,
+                                  U_ghosts,
+                                  gamma,
+                                  V,
+                                  V_ghosts,
+                                  patch_box.lower(0),
+                                  patch_box.upper(0),
+                                  patch_box.lower(1),
+                                  patch_box.upper(1),
 #if (NDIM == 3)
-                                  patch_box.lower(2), patch_box.upper(2),
+                                  patch_box.lower(2),
+                                  patch_box.upper(2),
 #endif
                                   dx);
         }
@@ -3619,25 +4151,29 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (gamma != 0.0))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == src2 but gamma is nonzero." << std::endl);
+                   << "  src1 == src2 but gamma is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -3646,19 +4182,22 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
@@ -3676,18 +4215,36 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
 
             if (beta == 0.0)
             {
-                LAPLACE_FC(F[d], F_ghosts, alpha, U[d], U_ghosts, ilower[0], iupper[0], ilower[1], iupper[1],
+                LAPLACE_FC(F[d],
+                           F_ghosts,
+                           alpha,
+                           U[d],
+                           U_ghosts,
+                           ilower[0],
+                           iupper[0],
+                           ilower[1],
+                           iupper[1],
 #if (NDIM == 3)
-                           ilower[2], iupper[2],
+                           ilower[2],
+                           iupper[2],
 #endif
                            dx);
             }
             else
             {
-                DAMPED_LAPLACE_FC(F[d], F_ghosts, alpha, beta, U[d], U_ghosts, ilower[0], iupper[0], ilower[1],
+                DAMPED_LAPLACE_FC(F[d],
+                                  F_ghosts,
+                                  alpha,
+                                  beta,
+                                  U[d],
+                                  U_ghosts,
+                                  ilower[0],
+                                  iupper[0],
+                                  ilower[1],
                                   iupper[1],
 #if (NDIM == 3)
-                                  ilower[2], iupper[2],
+                                  ilower[2],
+                                  iupper[2],
 #endif
                                   dx);
             }
@@ -3706,13 +4263,15 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         boost::array<int, NDIM> ilower, iupper;
@@ -3727,19 +4286,42 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
 
             if (beta == 0.0)
             {
-                LAPLACE_ADD_FC(F[d], F_ghosts, alpha, U[d], U_ghosts, gamma, V[d], V_ghosts, ilower[0], iupper[0],
-                               ilower[1], iupper[1],
+                LAPLACE_ADD_FC(F[d],
+                               F_ghosts,
+                               alpha,
+                               U[d],
+                               U_ghosts,
+                               gamma,
+                               V[d],
+                               V_ghosts,
+                               ilower[0],
+                               iupper[0],
+                               ilower[1],
+                               iupper[1],
 #if (NDIM == 3)
-                               ilower[2], iupper[2],
+                               ilower[2],
+                               iupper[2],
 #endif
                                dx);
             }
             else
             {
-                DAMPED_LAPLACE_ADD_FC(F[d], F_ghosts, alpha, beta, U[d], U_ghosts, gamma, V[d], V_ghosts, ilower[0],
-                                      iupper[0], ilower[1], iupper[1],
+                DAMPED_LAPLACE_ADD_FC(F[d],
+                                      F_ghosts,
+                                      alpha,
+                                      beta,
+                                      U[d],
+                                      U_ghosts,
+                                      gamma,
+                                      V[d],
+                                      V_ghosts,
+                                      ilower[0],
+                                      iupper[0],
+                                      ilower[1],
+                                      iupper[1],
 #if (NDIM == 3)
-                                      ilower[2], iupper[2],
+                                      ilower[2],
+                                      iupper[2],
 #endif
                                       dx);
             }
@@ -3781,31 +4363,36 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (alpha_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (gamma != 0.0))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == src2 but gamma is nonzero." << std::endl);
+                   << "  src1 == src2 but gamma is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -3814,31 +4401,36 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (alpha->getDepth() != 1)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  alpha has invalid depth" << std::endl);
+                   << "  alpha has invalid depth"
+                   << std::endl);
     }
 #endif
 
@@ -3846,27 +4438,46 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     {
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_F_LAPLACE_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_F_LAPLACE_FC(F,
+                                      F_ghosts,
+                                      alpha0,
+                                      alpha1,
 #if (NDIM == 3)
                                       alpha2,
 #endif
-                                      alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
-                                      patch_box.lower(1), patch_box.upper(1),
+                                      alpha_ghosts,
+                                      U,
+                                      U_ghosts,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
 #if (NDIM == 3)
-                                      patch_box.lower(2), patch_box.upper(2),
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
 #endif
                                       dx);
         }
         else
         {
-            C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(F,
+                                             F_ghosts,
+                                             alpha0,
+                                             alpha1,
 #if (NDIM == 3)
                                              alpha2,
 #endif
-                                             alpha_ghosts, beta, U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
-                                             patch_box.lower(1), patch_box.upper(1),
+                                             alpha_ghosts,
+                                             beta,
+                                             U,
+                                             U_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
 #if (NDIM == 3)
-                                             patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
                                              dx);
         }
@@ -3880,39 +4491,65 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_F_LAPLACE_ADD_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_F_LAPLACE_ADD_FC(F,
+                                          F_ghosts,
+                                          alpha0,
+                                          alpha1,
 #if (NDIM == 3)
                                           alpha2,
 #endif
-                                          alpha_ghosts, U, U_ghosts, gamma, V, V_ghosts, patch_box.lower(0),
-                                          patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                                          alpha_ghosts,
+                                          U,
+                                          U_ghosts,
+                                          gamma,
+                                          V,
+                                          V_ghosts,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
 #if (NDIM == 3)
-                                          patch_box.lower(2), patch_box.upper(2),
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
 #endif
                                           dx);
         }
         else
         {
-            C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(F,
+                                                 F_ghosts,
+                                                 alpha0,
+                                                 alpha1,
 #if (NDIM == 3)
                                                  alpha2,
 #endif
-                                                 alpha_ghosts, beta, U, U_ghosts, gamma, V, V_ghosts,
-                                                 patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                                 alpha_ghosts,
+                                                 beta,
+                                                 U,
+                                                 U_ghosts,
+                                                 gamma,
+                                                 V,
+                                                 V_ghosts,
+                                                 patch_box.lower(0),
+                                                 patch_box.upper(0),
+                                                 patch_box.lower(1),
                                                  patch_box.upper(1),
 #if (NDIM == 3)
-                                                 patch_box.lower(2), patch_box.upper(2),
+                                                 patch_box.lower(2),
+                                                 patch_box.upper(2),
 #endif
                                                  dx);
         }
@@ -3953,31 +4590,36 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (alpha_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (gamma != 0.0))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 == src2 but gamma is nonzero." << std::endl);
+                   << "  src1 == src2 but gamma is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& U_box = src1->getGhostBox();
@@ -3986,31 +4628,36 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (alpha->getDepth() != 1)
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  alpha has invalid depth" << std::endl);
+                   << "  alpha has invalid depth"
+                   << std::endl);
     }
 #endif
 
@@ -4018,27 +4665,46 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     {
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_S_LAPLACE_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_S_LAPLACE_FC(F,
+                                      F_ghosts,
+                                      alpha0,
+                                      alpha1,
 #if (NDIM == 3)
                                       alpha2,
 #endif
-                                      alpha_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
-                                      patch_box.lower(1), patch_box.upper(1),
+                                      alpha_ghosts,
+                                      U,
+                                      U_ghosts,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
 #if (NDIM == 3)
-                                      patch_box.lower(2), patch_box.upper(2),
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
 #endif
                                       dx);
         }
         else
         {
-            C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(F,
+                                             F_ghosts,
+                                             alpha0,
+                                             alpha1,
 #if (NDIM == 3)
                                              alpha2,
 #endif
-                                             alpha_ghosts, beta, U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
-                                             patch_box.lower(1), patch_box.upper(1),
+                                             alpha_ghosts,
+                                             beta,
+                                             U,
+                                             U_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
 #if (NDIM == 3)
-                                             patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
                                              dx);
         }
@@ -4052,39 +4718,65 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_S_LAPLACE_ADD_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_S_LAPLACE_ADD_FC(F,
+                                          F_ghosts,
+                                          alpha0,
+                                          alpha1,
 #if (NDIM == 3)
                                           alpha2,
 #endif
-                                          alpha_ghosts, U, U_ghosts, gamma, V, V_ghosts, patch_box.lower(0),
-                                          patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                                          alpha_ghosts,
+                                          U,
+                                          U_ghosts,
+                                          gamma,
+                                          V,
+                                          V_ghosts,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
 #if (NDIM == 3)
-                                          patch_box.lower(2), patch_box.upper(2),
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
 #endif
                                           dx);
         }
         else
         {
-            C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(F, F_ghosts, alpha0, alpha1,
+            C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(F,
+                                                 F_ghosts,
+                                                 alpha0,
+                                                 alpha1,
 #if (NDIM == 3)
                                                  alpha2,
 #endif
-                                                 alpha_ghosts, beta, U, U_ghosts, gamma, V, V_ghosts,
-                                                 patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                                 alpha_ghosts,
+                                                 beta,
+                                                 U,
+                                                 U_ghosts,
+                                                 gamma,
+                                                 V,
+                                                 V_ghosts,
+                                                 patch_box.lower(0),
+                                                 patch_box.upper(0),
+                                                 patch_box.lower(1),
                                                  patch_box.upper(1),
 #if (NDIM == 3)
-                                                 patch_box.lower(2), patch_box.upper(2),
+                                                 patch_box.lower(2),
+                                                 patch_box.upper(2),
 #endif
                                                  dx);
         }
@@ -4140,37 +4832,43 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if (f_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (mu_ghosts != (coef->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  coef does not have uniform ghost cell widths" << std::endl);
+                   << "  coef does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (u_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (v_ghosts != (src2->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  src2 does not have uniform ghost cell widths" << std::endl);
+                   << "  src2 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (src1 == dst)
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  src1 == dst." << std::endl);
+                   << "  src1 == dst."
+                   << std::endl);
     }
 
     if ((src1 == src2) && (gamma != 0.0))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  src1 == src2 but gamma is nonzero." << std::endl);
+                   << "  src1 == src2 but gamma is nonzero."
+                   << std::endl);
     }
 
     const Box<NDIM>& mu_box = coef->getGhostBox();
@@ -4179,7 +4877,8 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  coef has insufficient ghost cell width" << std::endl);
+                   << "  coef has insufficient ghost cell width"
+                   << std::endl);
     }
 
     const Box<NDIM>& u_box = src1->getGhostBox();
@@ -4188,55 +4887,76 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  src1 has insufficient ghost cell width" << std::endl);
+                   << "  src1 has insufficient ghost cell width"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != coef->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_S_VC_LAPLACE_FC(f0, f1,
+    S_TO_S_VC_LAPLACE_FC(f0,
+                         f1,
 #if (NDIM == 3)
                          f2,
 #endif
-                         f_ghosts, alpha, beta, mu, mu_ghosts, u0, u1,
+                         f_ghosts,
+                         alpha,
+                         beta,
+                         mu,
+                         mu_ghosts,
+                         u0,
+                         u1,
 #if (NDIM == 3)
                          u2,
 #endif
-                         u_ghosts, gamma, v0, v1,
+                         u_ghosts,
+                         gamma,
+                         v0,
+                         v1,
 #if (NDIM == 3)
                          v2,
 #endif
-                         v_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
 #if (NDIM == 3)
-                         patch_box.lower(2), patch_box.upper(2),
+                         patch_box.lower(2),
+                         patch_box.upper(2),
 #endif
                          dx);
 #endif
 #if (NDIM == 3)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-               << "  not presently implemented for NDIM = 3." << std::endl);
+               << "  not presently implemented for NDIM = 3."
+               << std::endl);
     NULL_USE(dst);
     NULL_USE(alpha);
     NULL_USE(beta);
@@ -4274,35 +4994,47 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY1_FC(D, D_ghosts, alpha, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+        MULTIPLY1_FC(D,
+                     D_ghosts,
+                     alpha,
+                     U,
+                     U_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
                      patch_box.upper(1)
 #if (NDIM == 3)
                          ,
-                     patch_box.lower(2), patch_box.upper(2)
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                          );
     }
@@ -4315,20 +5047,33 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD1_FC(D, D_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, patch_box.lower(0), patch_box.upper(0),
-                         patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY_ADD1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-                                                 ,
-                         patch_box.lower(2), patch_box.upper(2)
+                             ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -4361,47 +5106,62 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (A_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+        MULTIPLY2_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
                      patch_box.upper(1)
 #if (NDIM == 3)
                          ,
-                     patch_box.lower(2), patch_box.upper(2)
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                          );
     }
@@ -4414,20 +5174,34 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, beta, V, V_ghosts, patch_box.lower(0),
-                         patch_box.upper(0), patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY_ADD2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-                                                                     ,
-                         patch_box.lower(2), patch_box.upper(2)
+                             ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                              );
     }
@@ -4474,69 +5248,92 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (V_ghosts != (src2->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src2 does not have uniform ghost cell widths" << std::endl);
+                   << "  src2 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (A_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (B_ghosts != (beta->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  beta does not have uniform ghost cell widths" << std::endl);
+                   << "  beta does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    MULTIPLY_ADD3_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, B, B_ghosts, V, V_ghosts, patch_box.lower(0),
-                     patch_box.upper(0), patch_box.lower(1), patch_box.upper(1)
+    MULTIPLY_ADD3_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     B,
+                     B_ghosts,
+                     V,
+                     V_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1)
 #if (NDIM == 3)
-                                                                 ,
-                     patch_box.lower(2), patch_box.upper(2)
+                         ,
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                          );
     return;
@@ -4567,35 +5364,47 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY1_FC(D, D_ghosts, alpha, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+            MULTIPLY1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         data_box.lower(2), data_box.upper(2)
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
         }
@@ -4608,20 +5417,33 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD1_FC(D, D_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0), data_box.upper(0),
-                             data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD1_FC(D,
+                             D_ghosts,
+                             alpha,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                                                    ,
-                             data_box.lower(2), data_box.upper(2)
+                                 ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                                  );
         }
@@ -4658,47 +5480,62 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (A_ghosts != (alpha->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  alpha does not have uniform ghost cell widths" << std::endl);
+                       << "  alpha does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+            MULTIPLY2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         data_box.lower(2), data_box.upper(2)
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
         }
@@ -4711,20 +5548,34 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0),
-                             data_box.upper(0), data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD2_FC(D,
+                             D_ghosts,
+                             A,
+                             A_ghosts,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                                                                       ,
-                             data_box.lower(2), data_box.upper(2)
+                                 ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                                  );
         }
@@ -4775,69 +5626,92 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (A_ghosts != (alpha->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  alpha does not have uniform ghost cell widths" << std::endl);
+                       << "  alpha does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (B_ghosts != (beta->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  beta does not have uniform ghost cell widths" << std::endl);
+                       << "  beta does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
-        MULTIPLY_ADD3_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, B, B_ghosts, V, V_ghosts, data_box.lower(0),
-                         data_box.upper(0), data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD3_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         B,
+                         B_ghosts,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                                                                   ,
-                         data_box.lower(2), data_box.upper(2)
+                             ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
     }
@@ -4867,35 +5741,47 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY1_FC(D, D_ghosts, alpha, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+        MULTIPLY1_FC(D,
+                     D_ghosts,
+                     alpha,
+                     U,
+                     U_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
                      data_box.upper(1)
 #if (NDIM == 3)
                          ,
-                     data_box.lower(2), data_box.upper(2)
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                          );
     }
@@ -4908,20 +5794,33 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD1_FC(D, D_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0), data_box.upper(0),
-                         data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                                                ,
-                         data_box.lower(2), data_box.upper(2)
+                             ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
     }
@@ -4955,47 +5854,62 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (A_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+        MULTIPLY2_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
                      data_box.upper(1)
 #if (NDIM == 3)
                          ,
-                     data_box.lower(2), data_box.upper(2)
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                          );
     }
@@ -5008,20 +5922,34 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0), data_box.upper(0),
-                         data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                                                ,
-                         data_box.lower(2), data_box.upper(2)
+                             ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
     }
@@ -5069,69 +5997,92 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (U_ghosts != (src1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+                   << "  src1 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (V_ghosts != (src2->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  src2 does not have uniform ghost cell widths" << std::endl);
+                   << "  src2 does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (A_ghosts != (alpha->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  alpha does not have uniform ghost cell widths" << std::endl);
+                   << "  alpha does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (B_ghosts != (beta->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  beta does not have uniform ghost cell widths" << std::endl);
+                   << "  beta does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    MULTIPLY_ADD3_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, B, B_ghosts, V, V_ghosts, data_box.lower(0),
-                     data_box.upper(0), data_box.lower(1), data_box.upper(1)
+    MULTIPLY_ADD3_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     B,
+                     B_ghosts,
+                     V,
+                     V_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
+                     data_box.upper(1)
 #if (NDIM == 3)
-                                                               ,
-                     data_box.lower(2), data_box.upper(2)
+                         ,
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                          );
     return;
@@ -5162,35 +6113,47 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY1_FC(D, D_ghosts, alpha, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+            MULTIPLY1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         data_box.lower(2), data_box.upper(2)
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
         }
@@ -5203,20 +6166,33 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD1_FC(D, D_ghosts, alpha, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0), data_box.upper(0),
-                             data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD1_FC(D,
+                             D_ghosts,
+                             alpha,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                                                    ,
-                             data_box.lower(2), data_box.upper(2)
+                                 ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                                  );
         }
@@ -5253,47 +6229,62 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (A_ghosts != (alpha->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  alpha does not have uniform ghost cell widths" << std::endl);
+                       << "  alpha does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+            MULTIPLY2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
                              ,
-                         data_box.lower(2), data_box.upper(2)
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
         }
@@ -5306,20 +6297,34 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  src2 does not have uniform ghost cell widths" << std::endl);
+                           << "  src2 does not have uniform ghost cell widths"
+                           << std::endl);
             }
 
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD2_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, beta, V, V_ghosts, data_box.lower(0),
-                             data_box.upper(0), data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD2_FC(D,
+                             D_ghosts,
+                             A,
+                             A_ghosts,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                                                                       ,
-                             data_box.lower(2), data_box.upper(2)
+                                 ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                                  );
         }
@@ -5370,69 +6375,92 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst does not have uniform ghost cell widths" << std::endl);
+                       << "  dst does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (U_ghosts != (src1->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src1 does not have uniform ghost cell widths" << std::endl);
+                       << "  src1 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  src2 does not have uniform ghost cell widths" << std::endl);
+                       << "  src2 does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (A_ghosts != (alpha->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  alpha does not have uniform ghost cell widths" << std::endl);
+                       << "  alpha does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (B_ghosts != (beta->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  beta does not have uniform ghost cell widths" << std::endl);
+                       << "  beta does not have uniform ghost cell widths"
+                       << std::endl);
         }
 
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
-        MULTIPLY_ADD3_FC(D, D_ghosts, A, A_ghosts, U, U_ghosts, B, B_ghosts, V, V_ghosts, data_box.lower(0),
-                         data_box.upper(0), data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD3_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         B,
+                         B_ghosts,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                                                                   ,
-                         data_box.lower(2), data_box.upper(2)
+                             ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                              );
     }
@@ -5456,40 +6484,53 @@ void PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_L1_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+    PW_L1_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
                   patch_box.upper(1)
 #if (NDIM == 3)
                       ,
-                  patch_box.lower(2), patch_box.upper(2)
+                  patch_box.lower(2),
+                  patch_box.upper(2)
 #endif
                       );
     return;
@@ -5512,40 +6553,53 @@ void PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_L2_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+    PW_L2_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
                   patch_box.upper(1)
 #if (NDIM == 3)
                       ,
-                  patch_box.lower(2), patch_box.upper(2)
+                  patch_box.lower(2),
+                  patch_box.upper(2)
 #endif
                       );
     return;
@@ -5568,40 +6622,53 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst does not have uniform ghost cell widths" << std::endl);
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  src does not have uniform ghost cell widths" << std::endl);
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_MAX_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+    PW_MAX_NORM_FC(U,
+                   U_ghosts,
+                   V,
+                   V_ghosts,
+                   V_depth,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
                    patch_box.upper(1)
 #if (NDIM == 3)
                        ,
-                   patch_box.lower(2), patch_box.upper(2)
+                   patch_box.lower(2),
+                   patch_box.upper(2)
 #endif
                        );
     return;
@@ -5625,40 +6692,53 @@ void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst does not have uniform ghost node widths" << std::endl);
+                   << "  dst does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  src does not have uniform ghost node widths" << std::endl);
+                   << "  src does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_L1_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+    PW_L1_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  data_box.lower(0),
+                  data_box.upper(0),
+                  data_box.lower(1),
                   data_box.upper(1)
 #if (NDIM == 3)
                       ,
-                  data_box.lower(2), data_box.upper(2)
+                  data_box.lower(2),
+                  data_box.upper(2)
 #endif
                       );
     return;
@@ -5682,40 +6762,53 @@ void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst does not have uniform ghost node widths" << std::endl);
+                   << "  dst does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  src does not have uniform ghost node widths" << std::endl);
+                   << "  src does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_L2_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+    PW_L2_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  data_box.lower(0),
+                  data_box.upper(0),
+                  data_box.lower(1),
                   data_box.upper(1)
 #if (NDIM == 3)
                       ,
-                  data_box.lower(2), data_box.upper(2)
+                  data_box.lower(2),
+                  data_box.upper(2)
 #endif
                       );
     return;
@@ -5739,40 +6832,53 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst does not have uniform ghost node widths" << std::endl);
+                   << "  dst does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     const int U_depth = dst->getDepth();
     if (U_depth != 1)
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst does not have depth == 1" << std::endl);
+                   << "  dst does not have depth == 1"
+                   << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  src does not have uniform ghost node widths" << std::endl);
+                   << "  src does not have uniform ghost node widths"
+                   << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    PW_MAX_NORM_FC(U, U_ghosts, V, V_ghosts, V_depth, data_box.lower(0), data_box.upper(0), data_box.lower(1),
+    PW_MAX_NORM_FC(U,
+                   U_ghosts,
+                   V,
+                   V_ghosts,
+                   V_depth,
+                   data_box.lower(0),
+                   data_box.upper(0),
+                   data_box.lower(1),
                    data_box.upper(1)
 #if (NDIM == 3)
                        ,
-                   data_box.lower(2), data_box.upper(2)
+                   data_box.lower(2),
+                   data_box.upper(2)
 #endif
                        );
     return;

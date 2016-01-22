@@ -173,21 +173,27 @@ int main(int argc, char* argv[])
         }
         Pointer<GeneralizedIBMethod> ib_method_ops = new GeneralizedIBMethod(
             "GeneralizedIBMethod", app_initializer->getComponentDatabase("GeneralizedIBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -334,8 +340,12 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
-                            loop_time, postproc_data_dump_dirname);
+                output_data(patch_hierarchy,
+                            navier_stokes_integrator,
+                            ib_method_ops->getLDataManager(),
+                            iteration_num,
+                            loop_time,
+                            postproc_data_dump_dirname);
             }
         }
 

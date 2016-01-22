@@ -63,9 +63,17 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (*const petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
     void* const petsc_snes_jac_ctx)
-    : JacobianOperator(object_name), d_petsc_snes(petsc_snes), d_petsc_snes_jac(NULL),
-      d_petsc_snes_form_jac(petsc_snes_form_jac), d_petsc_snes_jac_ctx(petsc_snes_jac_ctx), d_x(NULL), d_y(NULL),
-      d_z(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_petsc_z(NULL)
+    : JacobianOperator(object_name),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_jac(NULL),
+      d_petsc_snes_form_jac(petsc_snes_form_jac),
+      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
 {
     // intentionally blank
     return;

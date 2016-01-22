@@ -125,8 +125,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
-    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart), d_hyp_level_integrator(NULL),
-      d_hyp_level_integrator_db(NULL), d_hyp_patch_ops(NULL), d_hyp_patch_ops_db(NULL),
+    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_hyp_level_integrator(NULL),
+      d_hyp_level_integrator_db(NULL),
+      d_hyp_patch_ops(NULL),
+      d_hyp_patch_ops_db(NULL),
       d_explicit_predictor(explicit_predictor)
 {
 #if !defined(NDEBUG)
@@ -162,7 +165,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
@@ -557,7 +561,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -653,11 +658,11 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     return;
 } // integrateHierarchy
 
-void
-AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                            const double new_time,
-                                                                            const bool skip_synchronize_new_state_data,
-                                                                            const int num_cycles)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);

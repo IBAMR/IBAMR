@@ -62,8 +62,15 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
-    : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0), d_cycle_type(V_CYCLE),
-      d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
+    : d_fac_strategy(fac_strategy),
+      d_hierarchy(NULL),
+      d_coarsest_ln(0),
+      d_finest_ln(0),
+      d_cycle_type(V_CYCLE),
+      d_num_pre_sweeps(0),
+      d_num_post_sweeps(2),
+      d_f(),
+      d_r()
 {
     // Setup default options.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
@@ -155,8 +162,10 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVec
             break;
         default:
             TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                                     << "  unrecognized FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
-                                     << "." << std::endl);
+                                     << "  unrecognized FAC cycle type: "
+                                     << enum_to_string<MGCycleType>(d_cycle_type)
+                                     << "."
+                                     << std::endl);
         }
     }
 
@@ -233,7 +242,8 @@ void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
-                                 << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
+                                 << "  class IBTK::FACPreconditioner requires a zero initial guess"
+                                 << std::endl);
     }
     return;
 } // setInitialGuessNonzero
@@ -243,7 +253,8 @@ void FACPreconditioner::setMaxIterations(int max_iterations)
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
-                                 << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
+                                 << "  class IBTK::FACPreconditioner only performs a single iteration"
+                                 << std::endl);
     }
     return;
 } // setMaxIterations

@@ -39,17 +39,14 @@
 
 namespace IBAMR
 {
-
 namespace
 {
-
 } // namespace anonymous
 
 ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
-
     Array<std::string> struct_names = input_db->getStringArray("structure_names");
     Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
@@ -74,8 +71,10 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
         }
         else
         {
-            TBOX_ERROR("StructureParameters::StructureParameters() Structure "
-                       << struct_names[i] << " does not exist on level " << level << std::endl);
+            TBOX_ERROR("StructureParameters::StructureParameters() Structure " << struct_names[i]
+                                                                               << " does not exist on level "
+                                                                               << level
+                                                                               << std::endl);
         }
     }
 
@@ -92,7 +91,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
     {
         TBOX_ERROR("ERROR:: StructureParameters::StructureParameters( ) "
                    << "\n"
-                   << "Only self translating/propelling bodies can be self rotating." << std::endl);
+                   << "Only self translating/propelling bodies can be self rotating."
+                   << std::endl);
     }
 
     d_lag_position_update_method = input_db->getString("lag_position_update_method");
@@ -122,7 +122,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
     {
         TBOX_ERROR("ERROR:: StructureParameters::StructureParameters( ) "
                    << "\n"
-                   << "Could not tag Lagrangian point for this structure \n\n" << std::endl);
+                   << "Could not tag Lagrangian point for this structure \n\n"
+                   << std::endl);
     }
 
     return;
@@ -135,7 +136,6 @@ ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
                                                bool register_for_restart)
     : d_struct_param(input_db, l_data_manager)
 {
-
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
     d_registered_for_restart = false;

@@ -214,8 +214,12 @@ inline bool is_corner_point(const Index<NDIM>& i,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleQuadraticCFInterpolation::CartCellDoubleQuadraticCFInterpolation()
-    : d_patch_data_indices(), d_consistent_type_2_bdry(false), d_refine_op(new CartesianCellDoubleLinearRefine<NDIM>()),
-      d_hierarchy(NULL), d_cf_boundary(), d_periodic_shift()
+    : d_patch_data_indices(),
+      d_consistent_type_2_bdry(false),
+      d_refine_op(new CartesianCellDoubleLinearRefine<NDIM>()),
+      d_hierarchy(NULL),
+      d_cf_boundary(),
+      d_periodic_shift()
 {
     // intentionally blank
     return;
@@ -227,10 +231,10 @@ CartCellDoubleQuadraticCFInterpolation::~CartCellDoubleQuadraticCFInterpolation(
     return;
 } // ~CartCellDoubleQuadraticCFInterpolation
 
-void
-CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
-                                                                      const double /*fill_time*/,
-                                                                      const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
@@ -629,12 +633,14 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch<N
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
         if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
 #endif
         const int data_depth = fdata->getDepth();
@@ -681,10 +687,10 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch<N
     return;
 } // postprocessRefine_optimized
 
-void
-CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<NDIM>& patch,
-                                                                         const IntVector<NDIM>& ratio,
-                                                                         const IntVector<NDIM>& ghost_width_to_fill)
+void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
+    Patch<NDIM>& patch,
+    const IntVector<NDIM>& ratio,
+    const IntVector<NDIM>& ghost_width_to_fill)
 {
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = patch.getPatchNumber();
@@ -830,7 +836,8 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
 #endif
         const int data_depth = data->getDepth();

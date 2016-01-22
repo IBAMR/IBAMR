@@ -177,12 +177,12 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     std::set<int> nonlocal_petsc_idx_set;
 
     // Setup the cached data.
-    initializeSpringLevelData(nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time,
-                              l_data_manager);
-    initializeBeamLevelData(nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time,
-                            l_data_manager);
-    initializeTargetPointLevelData(nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time,
-                                   l_data_manager);
+    initializeSpringLevelData(
+        nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time, l_data_manager);
+    initializeBeamLevelData(
+        nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time, l_data_manager);
+    initializeTargetPointLevelData(
+        nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time, initial_time, l_data_manager);
 
     // Put the nonlocal PETSc indices into a vector.
     std::vector<int> nonlocal_petsc_idxs(nonlocal_petsc_idx_set.begin(), nonlocal_petsc_idx_set.end());
@@ -195,12 +195,12 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     resetLocalPETScIndices(d_beam_data[level_number].petsc_mastr_node_idxs, global_node_offset, num_local_nodes);
     resetLocalPETScIndices(d_target_point_data[level_number].petsc_node_idxs, global_node_offset, num_local_nodes);
 
-    resetLocalOrNonlocalPETScIndices(d_spring_data[level_number].petsc_slave_node_idxs, global_node_offset,
-                                     num_local_nodes, nonlocal_petsc_idxs);
-    resetLocalOrNonlocalPETScIndices(d_beam_data[level_number].petsc_next_node_idxs, global_node_offset,
-                                     num_local_nodes, nonlocal_petsc_idxs);
-    resetLocalOrNonlocalPETScIndices(d_beam_data[level_number].petsc_prev_node_idxs, global_node_offset,
-                                     num_local_nodes, nonlocal_petsc_idxs);
+    resetLocalOrNonlocalPETScIndices(
+        d_spring_data[level_number].petsc_slave_node_idxs, global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
+    resetLocalOrNonlocalPETScIndices(
+        d_beam_data[level_number].petsc_next_node_idxs, global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
+    resetLocalOrNonlocalPETScIndices(
+        d_beam_data[level_number].petsc_prev_node_idxs, global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
 
     std::ostringstream X_name_stream;
     X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
@@ -250,13 +250,16 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
 
     std::transform(d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
                    d_beam_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_beam_data[level_number].petsc_mastr_node_idxs.begin(), std::bind2nd(std::multiplies<int>(), NDIM));
+                   d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
+                   std::bind2nd(std::multiplies<int>(), NDIM));
     std::transform(d_beam_data[level_number].petsc_next_node_idxs.begin(),
                    d_beam_data[level_number].petsc_next_node_idxs.end(),
-                   d_beam_data[level_number].petsc_next_node_idxs.begin(), std::bind2nd(std::multiplies<int>(), NDIM));
+                   d_beam_data[level_number].petsc_next_node_idxs.begin(),
+                   std::bind2nd(std::multiplies<int>(), NDIM));
     std::transform(d_beam_data[level_number].petsc_prev_node_idxs.begin(),
                    d_beam_data[level_number].petsc_prev_node_idxs.end(),
-                   d_beam_data[level_number].petsc_prev_node_idxs.begin(), std::bind2nd(std::multiplies<int>(), NDIM));
+                   d_beam_data[level_number].petsc_prev_node_idxs.begin(),
+                   std::bind2nd(std::multiplies<int>(), NDIM));
     std::transform(d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
                    d_beam_data[level_number].petsc_global_mastr_node_idxs.end(),
                    d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
@@ -318,8 +321,8 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     // Compute the forces.
     computeLagrangianSpringForce(F_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
     computeLagrangianBeamForce(F_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
-    computeLagrangianTargetPointForce(F_ghost_data, X_ghost_data, U_data, hierarchy, level_number, data_time,
-                                      l_data_manager);
+    computeLagrangianTargetPointForce(
+        F_ghost_data, X_ghost_data, U_data, hierarchy, level_number, data_time, l_data_manager);
 
     // Add the locally computed forces to the Lagrangian force vector.
     //
@@ -615,11 +618,11 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             petsc_global_slave_idx /= NDIM;
 
             // Accumulate the off-diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             // Negate dF_dX to obtain the Jacobian of the force applied by the
@@ -628,11 +631,11 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             dF_dX *= -1.0;
 
             // Accumulate the diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -654,42 +657,42 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             {
                 dF_dX(alpha, alpha) = -1.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
             {
                 dF_dX(alpha, alpha) = +2.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
             {
                 dF_dX(alpha, alpha) = -4.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -708,8 +711,8 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             {
                 dF_dX(alpha, alpha) = -X_coef * K - U_coef * E;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(),
-                                       ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }

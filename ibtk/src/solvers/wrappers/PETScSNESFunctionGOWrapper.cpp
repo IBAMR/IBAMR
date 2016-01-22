@@ -62,8 +62,14 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (*const petsc_snes_form_func)(SNES, Vec, Vec, void*),
     void* const petsc_snes_func_ctx)
-    : GeneralOperator(object_name), d_petsc_snes(petsc_snes), d_petsc_snes_form_func(petsc_snes_form_func),
-      d_petsc_snes_func_ctx(petsc_snes_func_ctx), d_x(NULL), d_y(NULL), d_petsc_x(NULL), d_petsc_y(NULL)
+    : GeneralOperator(object_name),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_form_func(petsc_snes_form_func),
+      d_petsc_snes_func_ctx(petsc_snes_func_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL)
 {
     // intentionally blank
     return;

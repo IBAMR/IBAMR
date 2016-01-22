@@ -72,7 +72,10 @@ CopyToRootTransaction::CopyToRootTransaction(const int src_proc,
                                              Pointer<PatchLevel<NDIM> > patch_level,
                                              const int src_patch_data_idx,
                                              Pointer<PatchData<NDIM> > dst_patch_data)
-    : d_src_proc(src_proc), d_dst_proc(dst_proc), d_patch_level(patch_level), d_src_patch_data_idx(src_patch_data_idx),
+    : d_src_proc(src_proc),
+      d_dst_proc(dst_proc),
+      d_patch_level(patch_level),
+      d_src_patch_data_idx(src_patch_data_idx),
       d_dst_patch_data(dst_patch_data)
 {
     // intentionally blank

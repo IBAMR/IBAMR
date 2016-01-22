@@ -462,7 +462,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -475,7 +476,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -490,7 +492,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
         default:
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -1050,7 +1053,9 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
+                                 << "  at current time step, num_cycles = "
+                                 << d_current_num_cycles
+                                 << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -1129,10 +1134,12 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform " << d_current_num_cycles
+                                     << "  attempting to perform "
+                                     << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles << ".\n"
+                                     << adv_diff_num_cycles
+                                     << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -1424,8 +1431,10 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "." << std::endl);
+                                 << "  unrecognized regrid mode: "
+                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "."
+                                 << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.
@@ -1647,14 +1656,14 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                                                const int level_number,
-                                                                const double init_data_time,
-                                                                const bool /*can_be_refined*/,
-                                                                const bool initial_time,
-                                                                const Pointer<BasePatchLevel<NDIM> > base_old_level,
-                                                                const bool /*allocate_data*/)
+void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool /*can_be_refined*/,
+    const bool initial_time,
+    const Pointer<BasePatchLevel<NDIM> > base_old_level,
+    const bool /*allocate_data*/)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -1899,13 +1908,13 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void
-INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                                  const int level_number,
-                                                                  const double /*error_data_time*/,
-                                                                  const int tag_index,
-                                                                  const bool /*initial_time*/,
-                                                                  const bool /*uses_richardson_extrapolation_too*/)
+void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*error_data_time*/,
+    const int tag_index,
+    const bool /*initial_time*/,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -2363,7 +2372,8 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "velocity subdomain solver" << std::endl;
+                                         "velocity subdomain solver"
+                     << std::endl;
             LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
             if (p_velocity_solver)
             {
@@ -2385,7 +2395,8 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "pressure subdomain solver" << std::endl;
+                                         "pressure subdomain solver"
+                     << std::endl;
             LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
             if (p_pressure_solver)
             {
@@ -2403,7 +2414,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
-	d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
     LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
@@ -2414,41 +2425,42 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     {
         StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
             dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
-		StaggeredStokesFACPreconditioner* p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        StaggeredStokesFACPreconditioner* p_stokes_fac_pc =
+            dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
         if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
             KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
-			{
+            {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
-				
-				p_stokes_fac_pc = dynamic_cast<
-					StaggeredStokesFACPreconditioner*>(
-					p_stokes_krylov_solver->getPreconditioner().getPointer());
-			}
+
+                p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(
+                    p_stokes_krylov_solver->getPreconditioner().getPointer());
+            }
         }
         if (p_stokes_block_pc)
         {
             p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
-			p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+            p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
         }
-		else if (p_stokes_fac_pc)
-		{
+        else if (p_stokes_fac_pc)
+        {
             p_stokes_fac_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
-			p_stokes_fac_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
-		}
-		else
-		{
-			TBOX_WARNING("No special BCs set for the preconditioner \n");
-		}
+            p_stokes_fac_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+        }
+        else
+        {
+            TBOX_WARNING("No special BCs set for the preconditioner \n");
+        }
     }
     if (d_stokes_solver_needs_init)
     {
         if (d_enable_logging)
             plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                     "incompressible Stokes solver" << std::endl;
+                                     "incompressible Stokes solver"
+                 << std::endl;
         if (p_stokes_linear_solver)
         {
             p_stokes_linear_solver->setInitialGuessNonzero(true);
@@ -2621,11 +2633,12 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
                         );
                 break;
             default:
-                TBOX_ERROR("INSStaggeredHierarchyIntegrator::computeDivSourceTerm():\n"
-                           << "  unsupported differencing form: "
-                           << enum_to_string<ConvectiveDifferencingType>(
-                                  d_convective_op->getConvectiveDifferencingType()) << " \n"
-                           << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                TBOX_ERROR(
+                    "INSStaggeredHierarchyIntegrator::computeDivSourceTerm():\n"
+                    << "  unsupported differencing form: "
+                    << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
+                    << " \n"
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }
     }

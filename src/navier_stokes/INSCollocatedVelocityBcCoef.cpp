@@ -86,7 +86,8 @@ INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(const unsigned int comp
                                                          const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                          const TractionBcType traction_bc_type,
                                                          const bool homogeneous_bc)
-    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver),
+    : d_comp_idx(comp_idx),
+      d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -307,7 +308,8 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& 
                         "INSCollocatedVelocityBcCoef::setBcCoefs(): unrecognized or "
                         "unsupported "
                         "traction boundary condition type: "
-                        << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
+                        << enum_to_string<TractionBcType>(d_traction_bc_type)
+                        << "\n");
                 }
                 }
             }

@@ -182,12 +182,12 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<P
     return;
 } // applyRichardsonExtrapolation
 
-void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                     const int level_number,
-                                                                     const Pointer<PatchLevel<NDIM> > coarser_level,
-                                                                     const double coarsen_data_time,
-                                                                     const bool before_advance)
+void StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const Pointer<PatchLevel<NDIM> > coarser_level,
+    const double coarsen_data_time,
+    const bool before_advance)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)

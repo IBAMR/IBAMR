@@ -45,10 +45,8 @@
 
 namespace IBAMR
 {
-
 namespace
 {
-
 inline int sign(const double X)
 {
     return ((X > 0) ? 1 : ((X < 0) ? -1 : 0));
@@ -76,9 +74,16 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
                                  LDataManager* l_data_manager,
                                  Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                  bool register_for_restart)
-    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_current_time(0.0),
-      d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3), d_incremented_angle_from_reference_axis(3),
-      d_tagged_pt_position(3), d_mesh_width(NDIM), d_parser_time(new double), d_parser_posn(new double[NDIM]),
+    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
+      d_current_time(0.0),
+      d_kinematics_vel(NDIM),
+      d_shape(NDIM),
+      d_center_of_mass(3),
+      d_incremented_angle_from_reference_axis(3),
+      d_tagged_pt_position(3),
+      d_mesh_width(NDIM),
+      d_parser_time(new double),
+      d_parser_posn(new double[NDIM]),
       d_parser_normal(new double[NDIM])
 {
     // Read from inputdb
@@ -103,8 +108,12 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
         {
             deformationvel_function_strings.push_back("0.0");
             TBOX_WARNING("IBEELKinematics::IBEELKinematics() :\n"
-                         << "  no function corresponding to key ``" << key_name << " '' found for dimension = " << d
-                         << "; using def_vel = 0.0. " << std::endl);
+                         << "  no function corresponding to key ``"
+                         << key_name
+                         << " '' found for dimension = "
+                         << d
+                         << "; using def_vel = 0.0. "
+                         << std::endl);
         }
 
         d_deformationvel_parsers.push_back(new mu::Parser());
@@ -177,8 +186,8 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
 
         // At restart current and new states point to the same state.
         d_new_time = d_current_time;
-        setEelSpecificVelocity(d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass,
-                               d_tagged_pt_position);
+        setEelSpecificVelocity(
+            d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
         setShape(d_current_time, d_incremented_angle_from_reference_axis);
     }
     return;
@@ -187,7 +196,6 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
 
 IBEELKinematics::~IBEELKinematics()
 {
-
     for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
     {
         delete (*cit);
@@ -222,7 +230,8 @@ void IBEELKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

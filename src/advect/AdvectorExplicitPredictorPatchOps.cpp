@@ -519,7 +519,9 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      const bool register_for_restart)
-    : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_limiter_type(MC_LIMITED)
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_limiter_type(MC_LIMITED)
 #if (NDIM == 3)
       ,
       d_using_full_ctu(true)
@@ -902,7 +904,8 @@ int AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
         return 4;
     case UNKNOWN_LIMITER_TYPE:
         TBOX_ERROR(d_object_name << "::getNumberCellGhosts():\n"
-                                 << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                 << "  Limiter corresponding to d_limiter_type = "
+                                 << d_limiter_type
                                  << " not implemented");
         break;
     }
@@ -1101,7 +1104,8 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             break;
         case UNKNOWN_LIMITER_TYPE:
             TBOX_ERROR(d_object_name << "::predict(q_half, u_ADV, Q, patch, dt):\n"
-                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                     << "  Limiter corresponding to d_limiter_type = "
+                                     << d_limiter_type
                                      << " not implemented");
             break;
         }
@@ -1305,7 +1309,8 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, dou
             break;
         case UNKNOWN_LIMITER_TYPE:
             TBOX_ERROR(d_object_name << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n"
-                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                     << "  Limiter corresponding to d_limiter_type = "
+                                     << d_limiter_type
                                      << " not implemented");
             break;
         }
@@ -1342,7 +1347,8 @@ void AdvectorExplicitPredictorPatchOps::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << "::getFromRestart():\n"
-                                 << "  Restart database corresponding to " << d_object_name
+                                 << "  Restart database corresponding to "
+                                 << d_object_name
                                  << " not found in restart file.");
     }
 

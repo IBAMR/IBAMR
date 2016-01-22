@@ -105,8 +105,14 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
-      d_factorization_type(LOWER_TRIANGULAR), d_P_bdry_fill_op(NULL), d_no_fill_op(NULL), d_U_var(NULL),
-      d_F_U_mod_idx(-1), d_P_var(NULL), d_P_scratch_idx(-1), d_F_P_mod_idx(-1)
+      d_factorization_type(LOWER_TRIANGULAR),
+      d_P_bdry_fill_op(NULL),
+      d_no_fill_op(NULL),
+      d_U_var(NULL),
+      d_F_U_mod_idx(-1),
+      d_P_var(NULL),
+      d_P_scratch_idx(-1),
+      d_F_P_mod_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -257,39 +263,85 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     // Setup the interpolation transaction information.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_transaction_comp(P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
-                                                         d_P_bc_coef, fill_pattern);
-    InterpolationTransactionComponent P_scratch_transaction_comp(
-        d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
-        CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
+    InterpolationTransactionComponent P_transaction_comp(P_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         BDRY_EXTRAP_TYPE,
+                                                         CONSISTENT_TYPE_2_BDRY,
+                                                         d_P_bc_coef,
+                                                         fill_pattern);
+    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx,
+                                                                 DATA_REFINE_TYPE,
+                                                                 USE_CF_INTERPOLATION,
+                                                                 DATA_COARSEN_TYPE,
+                                                                 BDRY_EXTRAP_TYPE,
+                                                                 CONSISTENT_TYPE_2_BDRY,
+                                                                 d_P_bc_coef,
+                                                                 fill_pattern);
 
     switch (d_factorization_type)
     {
     case UPPER_TRIANGULAR:
         solvePressureSubsystem(*P_vec, *F_P_vec, /*initial_guess_nonzero*/ false);
         d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
-        d_hier_math_ops->grad(d_F_U_mod_idx, F_U_sc_var, /*cf_bdry_synch*/ true, -1.0, P_idx, P_cc_var,
-                              d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
+        d_hier_math_ops->grad(d_F_U_mod_idx,
+                              F_U_sc_var,
+                              /*cf_bdry_synch*/ true,
+                              -1.0,
+                              P_idx,
+                              P_cc_var,
+                              d_P_bdry_fill_op,
+                              d_pressure_solver->getSolutionTime(),
+                              1.0,
+                              F_U_idx,
+                              F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
         solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
         break;
 
     case LOWER_TRIANGULAR:
         solveVelocitySubsystem(*U_vec, *F_U_vec, /*initial_guess_nonzero*/ false);
-        d_hier_math_ops->div(d_F_P_mod_idx, F_P_cc_var, 1.0, U_idx, U_sc_var, d_no_fill_op,
-                             d_velocity_solver->getSolutionTime(), /*cf_bdry_synch*/ true, 1.0, F_P_idx, F_P_cc_var);
+        d_hier_math_ops->div(d_F_P_mod_idx,
+                             F_P_cc_var,
+                             1.0,
+                             U_idx,
+                             U_sc_var,
+                             d_no_fill_op,
+                             d_velocity_solver->getSolutionTime(),
+                             /*cf_bdry_synch*/ true,
+                             1.0,
+                             F_P_idx,
+                             F_P_cc_var);
         solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
         break;
 
     case SYMMETRIC:
         solveVelocitySubsystem(*U_vec, *F_U_vec, /*initial_guess_nonzero*/ false);
-        d_hier_math_ops->div(d_F_P_mod_idx, F_P_cc_var, 1.0, U_idx, U_sc_var, d_no_fill_op,
-                             d_velocity_solver->getSolutionTime(), /*cf_bdry_synch*/ true, 1.0, F_P_idx, F_P_cc_var);
+        d_hier_math_ops->div(d_F_P_mod_idx,
+                             F_P_cc_var,
+                             1.0,
+                             U_idx,
+                             U_sc_var,
+                             d_no_fill_op,
+                             d_velocity_solver->getSolutionTime(),
+                             /*cf_bdry_synch*/ true,
+                             1.0,
+                             F_P_idx,
+                             F_P_cc_var);
         solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
         d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
-        d_hier_math_ops->grad(d_F_U_mod_idx, F_U_sc_var, /*cf_bdry_synch*/ true, -1.0, P_idx, P_cc_var,
-                              d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
+        d_hier_math_ops->grad(d_F_U_mod_idx,
+                              F_U_sc_var,
+                              /*cf_bdry_synch*/ true,
+                              -1.0,
+                              P_idx,
+                              P_cc_var,
+                              d_P_bdry_fill_op,
+                              d_pressure_solver->getSolutionTime(),
+                              1.0,
+                              F_U_idx,
+                              F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
         solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ true);
         break;
@@ -326,9 +378,14 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef, fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx,
+                                                          DATA_REFINE_TYPE,
+                                                          USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE,
+                                                          BDRY_EXTRAP_TYPE,
+                                                          CONSISTENT_TYPE_2_BDRY,
+                                                          d_P_bc_coef,
+                                                          fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
@@ -381,7 +438,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(boo
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
                    << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner requires a "
-                      "zero initial guess" << std::endl);
+                      "zero initial guess"
+                   << std::endl);
     }
     return;
 } // setInitialGuessNonzero
@@ -392,7 +450,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_i
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
                    << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner only "
-                      "performs a single iteration" << std::endl);
+                      "performs a single iteration"
+                   << std::endl);
     }
     return;
 } // setMaxIterations
@@ -475,8 +534,8 @@ void StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAM
         LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(initial_guess_nonzero);
         d_pressure_solver->solveSystem(*P_scratch_vec, F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
-        d_pressure_data_ops->linearSum(P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(),
-                                       F_P_idx);
+        d_pressure_data_ops->linearSum(
+            P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }
     return;
 }

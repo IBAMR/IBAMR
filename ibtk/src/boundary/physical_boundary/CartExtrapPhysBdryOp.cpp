@@ -245,15 +245,20 @@ void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
     if (extrap_type != "CONSTANT" && extrap_type != "LINEAR" && extrap_type != "QUADRATIC")
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                   << "  unknown extrapolation type: " << extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     if (extrap_type == "QUADRATIC")
     {
         IBTK_DO_ONCE(TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                                  << "  extrapolation type " << extrap_type
-                                  << " generally requires large ghost cell widths" << std::endl););
+                                  << "  extrapolation type "
+                                  << extrap_type
+                                  << " generally requires large ghost cell widths"
+                                  << std::endl););
     }
 
     d_extrap_type = extrap_type;
@@ -360,8 +365,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -461,8 +469,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -569,8 +580,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -669,8 +683,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data

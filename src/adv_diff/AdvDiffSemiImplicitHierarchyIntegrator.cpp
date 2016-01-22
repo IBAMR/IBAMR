@@ -143,7 +143,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 
@@ -157,7 +158,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                                  << "  unsupported default convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -247,9 +249,9 @@ void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer
     return;
 } // registerTransportedQuantity
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(Pointer<CellVariable<NDIM, double> > Q_var,
-                                                                      TimeSteppingType convective_time_stepping_type)
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    TimeSteppingType convective_time_stepping_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -306,9 +308,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(Pointer<CellVa
     return d_Q_convective_op_type.find(Q_var)->second;
 } // getConvectiveOperatorType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(Pointer<CellVariable<NDIM, double> > Q_var,
-                                                                           Pointer<Database> input_db)
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<Database> input_db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
@@ -377,9 +379,9 @@ void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorNeedsInit(Poin
     return;
 }
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -565,7 +567,8 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -644,7 +647,9 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
                                          << "  time stepping type: "
                                          << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
                                          << " requires num_cycles > 1.\n"
-                                         << "  at current time step, num_cycles = " << num_cycles << "\n");
+                                         << "  at current time step, num_cycles = "
+                                         << num_cycles
+                                         << "\n");
             }
             if (d_Q_convective_op_needs_init[Q_var])
             {
@@ -1011,7 +1016,8 @@ void AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     d_default_convective_time_stepping_type =
         string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));

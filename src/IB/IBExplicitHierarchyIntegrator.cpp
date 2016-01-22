@@ -131,7 +131,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         if (d_error_on_dt_change)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting." << std::endl);
+                                     << "Aborting."
+                                     << std::endl);
         }
         if (d_warn_on_dt_change)
         {
@@ -166,9 +167,12 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  attempting to perform " << d_current_num_cycles
+                                 << "  attempting to perform "
+                                 << d_current_num_cycles
                                  << " cycles of fixed point iteration.\n"
-                                 << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                                 << "  number of cycles required by Navier-Stokes solver = "
+                                 << ins_num_cycles
+                                 << ".\n"
                                  << "  current implementation requires either that both solvers "
                                     "use the same number of cycles,\n"
                                  << "  or that the IB solver use only a single cycle.\n");
@@ -197,7 +201,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     default:
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -225,7 +230,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     default:
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -235,8 +241,9 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     return;
 } // preprocessIntegrateHierarchy
 
-void
-IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                       const double new_time,
+                                                       const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
@@ -294,7 +301,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     default:
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -365,7 +373,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     default:
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -398,7 +407,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                     << "\n"
                                      << "  supported time stepping types are: FORWARD_EULER, "
                                         "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
@@ -486,7 +496,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
-                                 "point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
+                                 "point displacement since last regrid = "
+             << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
@@ -553,7 +564,8 @@ void IBExplicitHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION)

@@ -100,8 +100,12 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleLinearCFInterpolation::CartCellDoubleLinearCFInterpolation()
-    : d_patch_data_indices(), d_consistent_type_2_bdry(false), d_refine_op(new CellDoubleConstantRefine<NDIM>()),
-      d_hierarchy(NULL), d_cf_boundary(), d_periodic_shift()
+    : d_patch_data_indices(),
+      d_consistent_type_2_bdry(false),
+      d_refine_op(new CellDoubleConstantRefine<NDIM>()),
+      d_hierarchy(NULL),
+      d_cf_boundary(),
+      d_periodic_shift()
 {
     // intentionally blank
     return;
@@ -279,7 +283,8 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& pa
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleLinearCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+                       << "   patch data does not have uniform ghost cell widths"
+                       << std::endl);
         }
 #endif
         const int data_depth = data->getDepth();
