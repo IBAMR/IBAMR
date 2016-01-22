@@ -502,12 +502,12 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         bool found_local_patch = false;
         for (int growth_size = 0; growth_size <= 1; ++growth_size)
         {
-        Box<NDIM> box(X_idx, X_idx);
+            Box<NDIM> box(X_idx, X_idx);
             box.grow(IntVector<NDIM>(growth_size));
-        Array<int> patch_num_arr;
-        patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
+            Array<int> patch_num_arr;
+            patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
             for (int j = 0; j < patch_num_arr.size() && !found_local_patch; ++j)
-        {
+            {
                 const int n = patch_num_arr[j];
                 if (proc_mapping.isMappingLocal(n))
                 {

@@ -644,8 +644,8 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                                                                             /*solution*/,
                                                                             const SAMRAIVectorReal<NDIM, double>&
                                                                             /*rhs*/,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+                                                                            const int coarsest_reset_ln,
+                                                                            const int finest_reset_ln)
 {
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln + 1);

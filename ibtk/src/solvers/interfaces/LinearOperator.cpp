@@ -63,7 +63,7 @@ LinearOperator::~LinearOperator()
 } // ~LinearOperator()
 
 void
-LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<NDIM, double>& y)
+LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
     if (d_homogeneous_bc) return;
 

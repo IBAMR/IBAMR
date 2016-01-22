@@ -104,10 +104,10 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                              const std::vector<Index<NDIM> >& stencil,
-                                              const PoissonSpecifications& poisson_spec,
-                                              RobinBcCoefStrategy<NDIM>* bc_coef,
-                                              double data_time)
+                                            const std::vector<Index<NDIM> >& stencil,
+                                            const PoissonSpecifications& poisson_spec,
+                                            RobinBcCoefStrategy<NDIM>* bc_coef,
+                                            double data_time)
 {
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(1, bc_coef);
     computeMatrixCoefficients(matrix_coefficients, patch, stencil, poisson_spec, bc_coefs, data_time);
@@ -117,10 +117,10 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                              const std::vector<Index<NDIM> >& stencil,
-                                              const PoissonSpecifications& poisson_spec,
-                                              const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                              double data_time)
+                                            const std::vector<Index<NDIM> >& stencil,
+                                            const PoissonSpecifications& poisson_spec,
+                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                            double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
@@ -321,10 +321,10 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                              const std::vector<Index<NDIM> >& stencil,
-                                              const PoissonSpecifications& poisson_spec,
-                                              const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                              double data_time)
+                                            const std::vector<Index<NDIM> >& stencil,
+                                            const PoissonSpecifications& poisson_spec,
+                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                            double data_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -637,10 +637,10 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                                               Pointer<Patch<NDIM> > patch,
-                                             const PoissonSpecifications& poisson_spec,
-                                             RobinBcCoefStrategy<NDIM>* bc_coef,
-                                             double data_time,
-                                             bool homogeneous_bc)
+                                              const PoissonSpecifications& poisson_spec,
+                                              RobinBcCoefStrategy<NDIM>* bc_coef,
+                                              double data_time,
+                                              bool homogeneous_bc)
 {
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(1, bc_coef);
     adjustRHSAtPhysicalBoundary(rhs_data, patch, poisson_spec, bc_coefs, data_time, homogeneous_bc);
@@ -650,10 +650,10 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                                               Pointer<Patch<NDIM> > patch,
-                                             const PoissonSpecifications& poisson_spec,
-                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                             double data_time,
-                                             bool homogeneous_bc)
+                                              const PoissonSpecifications& poisson_spec,
+                                              const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                              double data_time,
+                                              bool homogeneous_bc)
 {
     const int depth = rhs_data.getDepth();
 #if !defined(NDEBUG)
@@ -749,10 +749,10 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                                               Pointer<Patch<NDIM> > patch,
-                                             const PoissonSpecifications& poisson_spec,
-                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                             double data_time,
-                                             bool homogeneous_bc)
+                                              const PoissonSpecifications& poisson_spec,
+                                              const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                              double data_time,
+                                              bool homogeneous_bc)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);

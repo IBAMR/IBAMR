@@ -490,55 +490,55 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             // for each data depth even if different boundary conditions are
             // imposed on different components of the vector-valued solution
             // data.
-                const double& alpha = d_poisson_spec.getDConstant();
-                const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
-                for (int depth = 0; depth < error_data->getDepth(); ++depth)
+            const double& alpha = d_poisson_spec.getDConstant();
+            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            for (int depth = 0; depth < error_data->getDepth(); ++depth)
+            {
+                double* const U = error_data->getPointer(depth);
+                const int U_ghosts = (error_data->getGhostCellWidth()).max();
+                const double* const F = residual_data->getPointer(depth);
+                const int F_ghosts = (residual_data->getGhostCellWidth()).max();
+                if (red_black_ordering)
                 {
-                    double* const U = error_data->getPointer(depth);
-                    const int U_ghosts = (error_data->getGhostCellWidth()).max();
-                    const double* const F = residual_data->getPointer(depth);
-                    const int F_ghosts = (residual_data->getGhostCellWidth()).max();
-                    if (red_black_ordering)
-                    {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        RB_GS_SMOOTH_FC(U,
-                                        U_ghosts,
-                                        alpha,
-                                        beta,
-                                        F,
-                                        F_ghosts,
-                                        patch_box.lower(0),
-                                        patch_box.upper(0),
-                                        patch_box.lower(1),
-                                        patch_box.upper(1),
+                    int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                    RB_GS_SMOOTH_FC(U,
+                                    U_ghosts,
+                                    alpha,
+                                    beta,
+                                    F,
+                                    F_ghosts,
+                                    patch_box.lower(0),
+                                    patch_box.upper(0),
+                                    patch_box.lower(1),
+                                    patch_box.upper(1),
 #if (NDIM == 3)
-                                        patch_box.lower(2),
-                                        patch_box.upper(2),
+                                    patch_box.lower(2),
+                                    patch_box.upper(2),
 #endif
-                                        dx,
-                                        red_or_black);
-                    }
-                    else
-                    {
-                        GS_SMOOTH_FC(U,
-                                     U_ghosts,
-                                     alpha,
-                                     beta,
-                                     F,
-                                     F_ghosts,
-                                     patch_box.lower(0),
-                                     patch_box.upper(0),
-                                     patch_box.lower(1),
-                                     patch_box.upper(1),
+                                    dx,
+                                    red_or_black);
+                }
+                else
+                {
+                    GS_SMOOTH_FC(U,
+                                 U_ghosts,
+                                 alpha,
+                                 beta,
+                                 F,
+                                 F_ghosts,
+                                 patch_box.lower(0),
+                                 patch_box.upper(0),
+                                 patch_box.lower(1),
+                                 patch_box.upper(1),
 #if (NDIM == 3)
-                                     patch_box.lower(2),
-                                     patch_box.upper(2),
+                                 patch_box.lower(2),
+                                 patch_box.upper(2),
 #endif
-                                     dx);
-                    }
+                                 dx);
                 }
             }
         }
+    }
     IBTK_TIMER_STOP(t_smooth_error);
     return;
 } // smoothError
@@ -716,7 +716,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_bc_op = new CartCellRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false);
 
     // Setup fill pattern spec objects.
-        d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, true, false, false);
+    d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, true, false, false);
 
     // Get overlap information for setting patch boundary conditions.
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);

@@ -418,17 +418,17 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                     if (velocity_bc)
                     {
-                    if (is_lower)
-                    {
-                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
-                        uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+                        if (is_lower)
+                        {
+                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
+                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+                        }
+                        else
+                        {
+                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+                        }
                     }
-                    else
-                    {
-                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
-                        uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
-                    }
-                }
                     else if (traction_bc)
                     {
                         if (is_lower)
@@ -508,16 +508,16 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #endif
                     if (velocity_bc)
                     {
-                    uu_matrix_coefs(i_s, 0) = 1.0;
-                    for (int k = 1; k < uu_stencil_sz; ++k)
-                    {
-                        uu_matrix_coefs(i_s, k) = 0.0;
+                        uu_matrix_coefs(i_s, 0) = 1.0;
+                        for (int k = 1; k < uu_stencil_sz; ++k)
+                        {
+                            uu_matrix_coefs(i_s, k) = 0.0;
+                        }
+                        for (int k = 0; k < up_stencil_sz; ++k)
+                        {
+                            up_matrix_coefs(i_s, k) = 0.0;
+                        }
                     }
-                    for (int k = 0; k < up_stencil_sz; ++k)
-                    {
-                        up_matrix_coefs(i_s, k) = 0.0;
-                    }
-                }
                     else if (traction_bc)
                     {
                         if (is_lower)

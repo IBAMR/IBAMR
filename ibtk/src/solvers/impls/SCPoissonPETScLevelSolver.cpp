@@ -204,7 +204,7 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         {
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
-    }
+        }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);

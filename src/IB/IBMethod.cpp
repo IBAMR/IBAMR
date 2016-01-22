@@ -502,12 +502,12 @@ IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
     if (X_vec != PETSC_NULL)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
-    IBTK_CHKERRQ(ierr);
+        IBTK_CHKERRQ(ierr);
     }
     if (F_vec != PETSC_NULL)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
-    IBTK_CHKERRQ(ierr);
+        IBTK_CHKERRQ(ierr);
     }
     return;
 } // createSolverVecs
@@ -520,12 +520,12 @@ IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
     if (X_vec != PETSC_NULL)
     {
         ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
-    IBTK_CHKERRQ(ierr);
+        IBTK_CHKERRQ(ierr);
     }
     if (F_vec != PETSC_NULL)
     {
         ierr = VecSet(*F_vec, 0.0);
-    IBTK_CHKERRQ(ierr);
+        IBTK_CHKERRQ(ierr);
     }
     return;
 } // setupSolverVecs
@@ -566,19 +566,19 @@ IBMethod::setLinearizedPosition(Vec& X_vec)
         IBTK_CHKERRQ(ierr);
         d_force_jac = NULL;
     }
-        int n_local, n_global;
-        ierr = VecGetLocalSize(X_vec, &n_local);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetSize(X_vec, &n_global);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetFromOptions(d_force_jac);
-        IBTK_CHKERRQ(ierr);
+    int n_local, n_global;
+    ierr = VecGetLocalSize(X_vec, &n_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetSize(X_vec, &n_global);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetFromOptions(d_force_jac);
+    IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);

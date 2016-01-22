@@ -407,7 +407,7 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
 #endif
                                       u_dof_gcw.min(),
                                       array);
-        }
+    }
     ierr = VecRestoreArray(vec, &array);
     IBTK_CHKERRQ(ierr);
 
@@ -482,7 +482,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 #endif
                                         u_dof_gcw.min(),
                                         array);
-        }
+    }
     ierr = VecRestoreArrayRead(vec, &array);
     IBTK_CHKERRQ(ierr);
 

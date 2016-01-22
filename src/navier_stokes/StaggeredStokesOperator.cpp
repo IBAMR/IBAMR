@@ -427,7 +427,7 @@ StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
     d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     return;
-} // modifyRhsForBcs
+} // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
