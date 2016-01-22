@@ -202,7 +202,7 @@ main(int argc, char* argv[])
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
 
-        Mesh block_mesh(NDIM);
+        Mesh block_mesh(init.comm(), NDIM);
         string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
         const double R = 0.05;
         if (block_elem_type == "TRI3" || block_elem_type == "TRI6")
@@ -241,7 +241,7 @@ main(int argc, char* argv[])
             n(1) += 0.2;
         }
 
-        Mesh beam_mesh(NDIM);
+        Mesh beam_mesh(init.comm(), NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
         MeshTools::Generation::build_square(beam_mesh,
                                             ceil(0.4 / ds),

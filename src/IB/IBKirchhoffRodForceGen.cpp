@@ -236,10 +236,10 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              3 * 3 * num_local_nodes,
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_d_nz[0] : NULL,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_o_nz[0] : NULL,
+                             0,
+                             local_sz ? &next_d_nz[0] : NULL,
+                             0,
+                             local_sz ? &next_o_nz[0] : NULL,
                              &D_next_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -278,10 +278,10 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
                              NDIM * num_local_nodes,
                              PETSC_DETERMINE,
                              PETSC_DETERMINE,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_d_nz[0] : NULL,
-                             PETSC_DEFAULT,
-                             local_sz > 0 ? &next_o_nz[0] : NULL,
+                             0,
+                             local_sz ? &next_d_nz[0] : NULL,
+                             0,
+                             local_sz ? &next_o_nz[0] : NULL,
                              &X_next_mat);
         IBTK_CHKERRQ(ierr);
 

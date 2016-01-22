@@ -1,0 +1,4 @@
+This is a test for Stokes and Navier-Stokes that uses StaggeredStokesLevelRelaxationFACOperator as a preconditioner. 
+
+Command line:
+mpiexec -np 12 ./main2d input2d{.stokes} -stokes_ksp_monitor_true_residual -stokes_pc_level_sub_pc_type ilu -stokes_pc_level_0_sub_pc_type lu -stokes_pc_level_0_sub_pc_factor_nonzeros_along_diagonal -stokes_pc_level_0_pc_asm_local_type additive -stokes_pc_level_pc_asm_local_type additive

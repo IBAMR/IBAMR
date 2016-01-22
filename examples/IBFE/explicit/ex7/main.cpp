@@ -199,7 +199,7 @@ main(int argc, char* argv[])
 
         string elem_type = input_db->getString("ELEM_TYPE");
 
-        Mesh lower_mesh(NDIM);
+        Mesh lower_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(lower_mesh,
                                             static_cast<int>(ceil(L / ds)),
                                             static_cast<int>(ceil(w / ds)),
@@ -228,7 +228,7 @@ main(int argc, char* argv[])
             }
         }
 #endif
-        Mesh upper_mesh(NDIM);
+        Mesh upper_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(upper_mesh,
                                             static_cast<int>(ceil(L / ds)),
                                             static_cast<int>(ceil(w / ds)),

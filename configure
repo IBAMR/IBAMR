@@ -23019,14 +23019,14 @@ else
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.4" >&5
-$as_echo_n "checking for libMesh version 0.9.4... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.5 or newer" >&5
+$as_echo_n "checking for libMesh version 0.9.5 or newer... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION == 4))
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION >= 5))
 #else
 asdf
 #endif
@@ -23056,7 +23056,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_VERSION_VALID}" >&5
 $as_echo "${LIBMESH_VERSION_VALID}" >&6; }
   if test "$LIBMESH_VERSION_VALID" = no; then
-    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.4" "$LINENO" 5
+    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.5 or newer" "$LINENO" 5
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
@@ -27276,7 +27276,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide HDF5; using PETSc HDF5 library" >&5
 $as_echo "$as_me: PETSc appears to provide HDF5; using PETSc HDF5 library" >&6;}
   PETSC_BUNDLES_HDF5=yes
@@ -28514,7 +28514,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hypre; using PETSc hypre library" >&5
 $as_echo "$as_me: PETSc appears to provide hypre; using PETSc hypre library" >&6;}
   PETSC_BUNDLES_HYPRE=yes
@@ -30408,9 +30408,9 @@ $as_echo "$as_me: using PETSC_DIR: ${PETSC_DIR}" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: using PETSC_ARCH: ${PETSC_ARCH}" >&5
 $as_echo "$as_me: using PETSC_ARCH: ${PETSC_ARCH}" >&6;}
 
-PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
 
 CPPFLAGS="$PETSC_CC_INCLUDES $CPPFLAGS"
 
@@ -30423,8 +30423,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.5" >&5
-$as_echo_n "checking for PETSc version 3.5... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.6" >&5
+$as_echo_n "checking for PETSc version 3.6... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30447,7 +30447,7 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,5,0) && PETSC_VERSION_LT(3,6,0)) || !PETSC_VERSION_RELEASE)
+#if ((PETSC_VERSION_GE(3,6,0) && PETSC_VERSION_LT(3,7,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
@@ -30465,7 +30465,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.5" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.6" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"
@@ -44274,7 +44274,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IB/implicit/Makefile examples/IB/implicit/ex0/Makefile examples/IB/implicit/ex1/Makefile examples/IB/implicit/ex2/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/ConstraintIB/Makefile examples/ConstraintIB/eel2d/Makefile examples/ConstraintIB/eel3d/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IB/implicit/Makefile examples/IB/implicit/ex0/Makefile examples/IB/implicit/ex1/Makefile examples/IB/implicit/ex2/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile tests/Makefile tests/Stokes/Makefile tests/Stokes/test0/Makefile tests/Stokes-IB/Makefile tests/Stokes-IB/test0/Makefile tests/Stokes-IB/test1/Makefile tests/Stokes-IB/test2/Makefile"
 
 
 
@@ -45584,6 +45584,13 @@ do
     "src/navier_stokes/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/navier_stokes/fortran/Makefile" ;;
     "src/utilities/Makefile") CONFIG_FILES="$CONFIG_FILES src/utilities/Makefile" ;;
     "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
+    "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
+    "tests/Stokes/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes/Makefile" ;;
+    "tests/Stokes/test0/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes/test0/Makefile" ;;
+    "tests/Stokes-IB/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes-IB/Makefile" ;;
+    "tests/Stokes-IB/test0/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes-IB/test0/Makefile" ;;
+    "tests/Stokes-IB/test1/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes-IB/test1/Makefile" ;;
+    "tests/Stokes-IB/test2/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Stokes-IB/test2/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

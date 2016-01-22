@@ -172,7 +172,7 @@ buildBoxOperator(Mat& A,
         }
     }
 
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -213,9 +213,9 @@ buildBoxOperator(Mat& A,
                 mat_cols[2 * d + 1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2 * d + 2] = compute_side_index(u_rght, ghost_box, axis);
 
-                mat_vals[0] += 2.0 * D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 1] = -D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 2] = -D / (dx[d] * dx[d]);
+                mat_vals[0] -= 2.0 * D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 1] = D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 2] = D / (dx[d] * dx[d]);
             }
 
             Index<NDIM> shift = 0;
@@ -640,9 +640,10 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
+StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>&
+                                                                            /*solution*/,
+                                                                            const SAMRAIVectorReal<NDIM, double>&
+                                                                            /*rhs*/,
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
@@ -664,7 +665,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
         buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
-        ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
+        ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);

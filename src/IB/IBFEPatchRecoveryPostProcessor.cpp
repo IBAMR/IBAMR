@@ -205,8 +205,9 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
 {
     d_periodic_boundaries = periodic_boundaries;
 
-    const int mpi_rank = libMesh::processor_id();
-    const int mpi_size = libMesh::n_processors();
+    const Parallel::Communicator& comm = d_mesh->comm();
+    const int mpi_rank = comm.rank();
+    const int mpi_size = comm.size();
 
     // Active local elements.
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
@@ -348,7 +349,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     }
     std::vector<int> n_qp_per_proc(mpi_size);
     n_qp_per_proc[mpi_rank] = d_n_qp_local;
-    Parallel::sum(n_qp_per_proc);
+    comm.sum(n_qp_per_proc);
     d_qp_global_offset = std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
     d_n_qp_global = std::accumulate(n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -357,8 +358,8 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
         const dof_id_type elem_id = elem->id();
         d_elem_qp_global_offset[elem_id] = d_elem_qp_local_offset[elem_id] + d_qp_global_offset;
     }
-    Parallel::sum(d_elem_qp_global_offset);
-    Parallel::sum(d_elem_qp_local_offset);
+    comm.sum(d_elem_qp_global_offset);
+    comm.sum(d_elem_qp_local_offset);
 
     // Set up element patch L2 projection matrices.
     unsigned int dim = d_mesh->mesh_dimension();
@@ -436,7 +437,8 @@ IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem
                                                           const unsigned int qp,
                                                           const TensorValue<double>& sigma)
 {
-    if (elem->processor_id() != libMesh::processor_id() || !elem->active())
+    const Parallel::Communicator& comm = d_mesh->comm();
+    if (elem->processor_id() != comm.rank() || !elem->active())
     {
         TBOX_ERROR("must register stresses only for active local elements\n");
     }
@@ -456,7 +458,8 @@ IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const elem,
                                                       const unsigned int qp,
                                                       const double p)
 {
-    if (elem->processor_id() != libMesh::processor_id() || !elem->active())
+    const Parallel::Communicator& comm = d_mesh->comm();
+    if (elem->processor_id() != comm.rank() || !elem->active())
     {
         TBOX_ERROR("must register pressures only for active local elements\n");
     }
@@ -498,7 +501,8 @@ IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
             }
         }
     }
-    Parallel::sum(sigma_vals);
+    const Parallel::Communicator& comm = d_mesh->comm();
+    comm.sum(sigma_vals);
 
     // Perform element patch L2 projections.
     const unsigned int dim = d_mesh->mesh_dimension();
@@ -565,7 +569,8 @@ IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             pressure_vals[global_offset + qp] = d_elem_pressure[elem_id][qp];
         }
     }
-    Parallel::sum(pressure_vals);
+    const Parallel::Communicator& comm = d_mesh->comm();
+    comm.sum(pressure_vals);
 
     // Perform element patch L2 projections.
     const unsigned int dim = d_mesh->mesh_dimension();

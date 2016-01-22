@@ -132,7 +132,6 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
     const Index<NDIM>& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patchXLower = fine_patch_geom->getXLower();
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
-    const double* const fine_patchDx = fine_patch_geom->getDx();
 
     const Pointer<CartesianPatchGeometry<NDIM> > coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patchDx = coarse_patch_geom->getDx();
@@ -154,9 +153,29 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
+                Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
 
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(
-                    X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
+                // Catch edge cases in which roundoff error can cause problems.
+                //
+                // NOTE: This can permit markers to "escape" out the "top" of the domain if
+                // the marker position is equal to the upper domain extent.  The marker
+                // advection code needs to keep markers from hitting the domain boundaries.
+                // (Note that bad things also happen if IB points hit the domain boundaries,
+                // so this is not an issue that is unique to markers.)
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXLower[d]))
+                    {
+                        X_shifted[d] = fine_patchXLower[d];
+                        fine_i(d) = fine_patch_lower(d);
+                    }
+                    else if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXUpper[d]))
+                    {
+                        X_shifted[d] = fine_patchXUpper[d];
+                        fine_i(d) = fine_patch_upper(d) + 1;
+                    }
+                }
+
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))

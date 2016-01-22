@@ -572,15 +572,13 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
     Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(coarsest_ln);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     mark_level_fill_alg->createSchedule(level, NULL)->fillData(0.0);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const Index<NDIM>& patch_lower = patch_box.lower();
-        const Index<NDIM>& patch_upper = patch_box.upper();
         const double* const patchXLower = patch_geom->getXLower();
         const double* const patchXUpper = patch_geom->getXUpper();
         const double* const patchDx = patch_geom->getDx();
@@ -610,8 +608,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
                 ;
             if (patch_owns_mark_at_new_loc)
             {
-                const Index<NDIM> i = IndexUtilities::getCellIndex(
-                    X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                const Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, grid_geom, ratio);
                 if (!mark_data_new->isElement(i))
                 {
                     mark_data_new->appendItemPointer(i, new LMarkerSet());
@@ -655,6 +652,8 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                            const Pointer<BasePatchLevel<NDIM> > old_level)
 {
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
 
     // On the coarsest level of the patch hierarchy, copy marker data from the
     // old coarse level.  Otherwise, refine marker data from the coarsest level
@@ -664,13 +663,9 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
             const double* const patchXLower = patch_geom->getXLower();
             const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
 
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             for (unsigned int k = 0; k < mark_init_posns.size(); ++k)
@@ -687,8 +682,7 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                     ;
                 if (patch_owns_mark_at_loc)
                 {
-                    const Index<NDIM> i =
-                        IndexUtilities::getCellIndex(X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItemPointer(i, new LMarkerSet());

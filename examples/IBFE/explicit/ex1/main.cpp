@@ -167,7 +167,7 @@ main(int argc, char* argv[])
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(NDIM);
+        Mesh mesh(init.comm(), NDIM);
         const double R = 0.25;
         const double w = 0.0625;
         const double dx0 = 1.0 / 64.0;

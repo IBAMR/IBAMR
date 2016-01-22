@@ -181,13 +181,13 @@ public:
      * Create solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void createSolverVecs(Vec& X_vec, Vec& F_vec);
+    void createSolverVecs(Vec* X_vec, Vec* F_vec);
 
     /*!
      * Setup solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void setupSolverVecs(Vec& X_vec, Vec& F_vec);
+    void setupSolverVecs(Vec* X_vec, Vec* F_vec);
 
     /*!
      * Set the value of the updated position vector.
@@ -269,6 +269,11 @@ public:
     void computeLinearizedLagrangianForce(Vec& X_vec, double data_time);
 
     /*!
+     * Construct the linearized Lagrangian force Jacobian.
+     */
+    void constructLagrangianForceJacobian(Mat& A, MatType mat_type);
+
+    /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
@@ -287,6 +292,15 @@ public:
         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time);
+
+    /*!
+     * Construct the IB interpolation operator.
+     */
+    void constructInterpOp(Mat& J,
+                           void (*spread_fnc)(const double, double*),
+                           const int stencil_width,
+                           const std::vector<int>& num_dofs_per_proc,
+                           const int dof_index_idx);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -505,7 +519,6 @@ protected:
     bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_jac_needs_ghost_fill,
         d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
     bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill, d_F_jac_needs_ghost_fill;
-    bool d_X_half_needs_reinit, d_X_LE_half_needs_reinit, d_U_half_needs_reinit;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian

@@ -1,0 +1,2 @@
+./main2d input2d.cylinder -ib_ksp_monitor_true_residual -ib_snes_type ksponly -stokes_ib_pc_level_pc_asm_local_type additive -stokes_ib_pc_level_sub_pc_type lu -stokes_ib_pc_level_pc_asm_type interpolate  -stokes_ib_pc_level_sub_pc_factor_shift_type nonzero -stokes_ib_pc_level_ksp_type richardson -stokes_ib_pc_level_ksp_richardson_self_scale  -stokes_ib_pc_level_0_ksp_type fgmres
+
