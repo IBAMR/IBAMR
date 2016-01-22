@@ -80,7 +80,8 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box<NDIM>
+compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
     Box<NDIM> extended_box = box;
     extended_box.upper()(data_axis) += 1;
@@ -90,7 +91,8 @@ inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int da
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     Mat& mat,
     const PoissonSpecifications& u_problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,

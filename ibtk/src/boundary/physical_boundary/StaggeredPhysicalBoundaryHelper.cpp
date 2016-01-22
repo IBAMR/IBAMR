@@ -81,10 +81,11 @@ StaggeredPhysicalBoundaryHelper::~StaggeredPhysicalBoundaryHelper()
     return;
 } // ~StaggeredPhysicalBoundaryHelper
 
-void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_data_idx,
-                                                                    const int u_in_data_idx,
-                                                                    const int coarsest_ln,
-                                                                    const int finest_ln) const
+void
+StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_data_idx,
+                                                               const int u_in_data_idx,
+                                                               const int coarsest_ln,
+                                                               const int finest_ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -107,9 +108,10 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_
     return;
 } // copyDataAtDirichletBoundaries
 
-void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(Pointer<SideData<NDIM, double> > u_out_data,
-                                                                    Pointer<SideData<NDIM, double> > u_in_data,
-                                                                    Pointer<Patch<NDIM> > patch) const
+void
+StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(Pointer<SideData<NDIM, double> > u_out_data,
+                                                               Pointer<SideData<NDIM, double> > u_in_data,
+                                                               Pointer<Patch<NDIM> > patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
@@ -135,9 +137,10 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(Pointer<Side
     return;
 } // copyDataAtDirichletBoundaries
 
-void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
-                                                           const int coarsest_ln,
-                                                           const int finest_ln) const
+void
+StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
+                                                      const int coarsest_ln,
+                                                      const int finest_ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -163,8 +166,9 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_i
     return;
 } // setupMaskingFunction
 
-void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideData<NDIM, int> > mask_data,
-                                                           Pointer<Patch<NDIM> > patch) const
+void
+StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideData<NDIM, int> > mask_data,
+                                                      Pointer<Patch<NDIM> > patch) const
 {
     mask_data->fillAll(0);
     if (patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
@@ -187,7 +191,8 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideData<NDIM
     return;
 } // setupMaskingFunction
 
-bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(Pointer<Patch<NDIM> > patch) const
+bool
+StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(Pointer<Patch<NDIM> > patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -197,8 +202,9 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(Pointer<Patc
     return false;
 } // patchTouchesDirichletBoundary
 
-bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<Patch<NDIM> > patch,
-                                                                        const unsigned int axis) const
+bool
+StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<Patch<NDIM> > patch,
+                                                                   const unsigned int axis) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
     const int ln = patch->getPatchLevelNumber();
@@ -222,9 +228,10 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<
     return false;
 } // patchTouchesDirichletBoundaryAxis
 
-void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                                      const double fill_time,
-                                                      const Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                                 const double fill_time,
+                                                 const Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
@@ -297,7 +304,8 @@ void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcC
     return;
 } // cacheBcCoefData
 
-void StaggeredPhysicalBoundaryHelper::clearBcCoefData()
+void
+StaggeredPhysicalBoundaryHelper::clearBcCoefData()
 {
     d_hierarchy.setNull();
     d_physical_codim1_boxes.clear();
@@ -307,10 +315,11 @@ void StaggeredPhysicalBoundaryHelper::clearBcCoefData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(Box<NDIM>& bc_coef_box,
-                                                       BoundaryBox<NDIM>& trimmed_bdry_box,
-                                                       const BoundaryBox<NDIM>& bdry_box,
-                                                       Pointer<Patch<NDIM> > patch)
+void
+StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(Box<NDIM>& bc_coef_box,
+                                                  BoundaryBox<NDIM>& trimmed_bdry_box,
+                                                  const BoundaryBox<NDIM>& bdry_box,
+                                                  Pointer<Patch<NDIM> > patch)
 {
     Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const Box<NDIM>& patch_box = patch->getBox();

@@ -62,7 +62,8 @@ KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance 
 bool KrylovLinearSolverManager::s_registered_callback = false;
 unsigned char KrylovLinearSolverManager::s_shutdown_priority = 200;
 
-KrylovLinearSolverManager* KrylovLinearSolverManager::getManager()
+KrylovLinearSolverManager*
+KrylovLinearSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
@@ -76,7 +77,8 @@ KrylovLinearSolverManager* KrylovLinearSolverManager::getManager()
     return s_solver_manager_instance;
 } // getManager
 
-void KrylovLinearSolverManager::freeManager()
+void
+KrylovLinearSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
@@ -95,12 +97,15 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: " << solver_type << "\n");
+                   << "  unrecognized solver type: "
+                   << solver_type
+                   << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
+void
+KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {

@@ -51,12 +51,14 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
+inline bool
+IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
 
-inline const std::vector<std::string>& IBInstrumentationSpec::getInstrumentNames()
+inline const std::vector<std::string>&
+IBInstrumentationSpec::getInstrumentNames()
 {
     return s_instrument_names;
 } // getInstrumentNames
@@ -83,47 +85,56 @@ inline IBInstrumentationSpec::~IBInstrumentationSpec()
     return;
 } // ~IBInstrumentationSpec
 
-inline const int& IBInstrumentationSpec::getMasterNodeIndex() const
+inline const int&
+IBInstrumentationSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline int& IBInstrumentationSpec::getMasterNodeIndex()
+inline int&
+IBInstrumentationSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline const int& IBInstrumentationSpec::getMeterIndex() const
+inline const int&
+IBInstrumentationSpec::getMeterIndex() const
 {
     return d_meter_idx;
 } // getMeterIndex
 
-inline int& IBInstrumentationSpec::getMeterIndex()
+inline int&
+IBInstrumentationSpec::getMeterIndex()
 {
     return d_meter_idx;
 } // getMeterIndex
 
-inline const int& IBInstrumentationSpec::getNodeIndex() const
+inline const int&
+IBInstrumentationSpec::getNodeIndex() const
 {
     return d_node_idx;
 } // getNodeIndex
 
-inline int& IBInstrumentationSpec::getNodeIndex()
+inline int&
+IBInstrumentationSpec::getNodeIndex()
 {
     return d_node_idx;
 } // getNodeIndex
 
-inline int IBInstrumentationSpec::getStreamableClassID() const
+inline int
+IBInstrumentationSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t IBInstrumentationSpec::getDataStreamSize() const
+inline size_t
+IBInstrumentationSpec::getDataStreamSize() const
 {
     return 3 * SAMRAI::tbox::AbstractStream::sizeofInt();
 } // getDataStreamSize
 
-inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_meter_idx, 1);

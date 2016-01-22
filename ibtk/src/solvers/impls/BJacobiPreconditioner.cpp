@@ -87,8 +87,8 @@ BJacobiPreconditioner::~BJacobiPreconditioner()
     return;
 } // ~BJacobiPreconditioner()
 
-void BJacobiPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
-                                                       const unsigned int component)
+void
+BJacobiPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner, const unsigned int component)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
@@ -97,7 +97,8 @@ void BJacobiPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> pre
     return;
 } // setComponentPreconditioner
 
-bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -154,8 +155,9 @@ bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
     return ret_val;
 } // solveSystem
 
-void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                  const SAMRAIVectorReal<NDIM, double>& b)
+void
+BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                             const SAMRAIVectorReal<NDIM, double>& b)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
@@ -186,7 +188,8 @@ void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, d
     return;
 } // initializeSolverState
 
-void BJacobiPreconditioner::deallocateSolverState()
+void
+BJacobiPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -202,35 +205,41 @@ void BJacobiPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void BJacobiPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+BJacobiPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
         TBOX_ERROR("BJacobiPreconditioner::setInitialGuessNonzero()\n"
-                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess" << std::endl);
+                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess"
+                   << std::endl);
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
 } // setInitialGuessNonzero
 
-void BJacobiPreconditioner::setMaxIterations(int max_iterations)
+void
+BJacobiPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations > 1)
     {
         TBOX_ERROR("BJacobiPreconditioner::setMaxIterations()\n"
-                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1" << std::endl);
+                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1"
+                   << std::endl);
     }
     d_max_iterations = max_iterations;
     return;
 } // setMaxIterations
 
-int BJacobiPreconditioner::getNumIterations() const
+int
+BJacobiPreconditioner::getNumIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING("BJacobiPreconditioner::getNumIterations() not supported" << std::endl););
     return 0;
 } // getNumIterations
 
-double BJacobiPreconditioner::getResidualNorm() const
+double
+BJacobiPreconditioner::getResidualNorm() const
 {
     IBTK_DO_ONCE(TBOX_WARNING("BJacobiPreconditioner::getResidualNorm() not supported" << std::endl););
     return 0.0;

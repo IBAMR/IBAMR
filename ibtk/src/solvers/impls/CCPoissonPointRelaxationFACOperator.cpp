@@ -201,7 +201,8 @@ enum SmootherType
     UNKNOWN = -1
 };
 
-inline SmootherType get_smoother_type(const std::string& smoother_type_string)
+inline SmootherType
+get_smoother_type(const std::string& smoother_type_string)
 {
     if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
     if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL") return PROCESSOR_GAUSS_SEIDEL;
@@ -211,7 +212,8 @@ inline SmootherType get_smoother_type(const std::string& smoother_type_string)
         return UNKNOWN;
 } // get_smoother_type
 
-inline bool use_red_black_ordering(SmootherType smoother_type)
+inline bool
+use_red_black_ordering(SmootherType smoother_type)
 {
     if (smoother_type == RED_BLACK_GAUSS_SEIDEL)
     {
@@ -223,7 +225,8 @@ inline bool use_red_black_ordering(SmootherType smoother_type)
     }
 } // use_red_black_ordering
 
-inline bool do_local_data_update(SmootherType smoother_type)
+inline bool
+do_local_data_update(SmootherType smoother_type)
 {
     if (smoother_type == PROCESSOR_GAUSS_SEIDEL || smoother_type == RED_BLACK_GAUSS_SEIDEL)
     {
@@ -247,8 +250,14 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
           CELLG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL), d_coarse_solver_db(), d_using_petsc_smoothers(true), d_patch_vec_e(), d_patch_vec_f(),
-      d_patch_mat(), d_patch_bc_box_overlap(), d_patch_neighbor_overlap()
+      d_coarse_solver(NULL),
+      d_coarse_solver_db(),
+      d_using_petsc_smoothers(true),
+      d_patch_vec_e(),
+      d_patch_vec_f(),
+      d_patch_mat(),
+      d_patch_bc_box_overlap(),
+      d_patch_neighbor_overlap()
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
@@ -320,7 +329,8 @@ CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
     return;
 } // ~CCPoissonPointRelaxationFACOperator
 
-void CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
+void
+CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
@@ -329,12 +339,14 @@ void CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smo
     return;
 } // setSmootherType
 
-void CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -348,12 +360,13 @@ void CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
     return;
 } // setCoarseSolverType
 
-void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                      const SAMRAIVectorReal<NDIM, double>& residual,
-                                                      int level_num,
-                                                      int num_sweeps,
-                                                      bool /*performing_pre_sweeps*/,
-                                                      bool /*performing_post_sweeps*/)
+void
+CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                 const SAMRAIVectorReal<NDIM, double>& residual,
+                                                 int level_num,
+                                                 int num_sweeps,
+                                                 bool /*performing_pre_sweeps*/,
+                                                 bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -586,9 +599,10 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
     return;
 } // smoothError
 
-bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                             const SAMRAIVectorReal<NDIM, double>& residual,
-                                                             int coarsest_ln)
+bool
+CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                        const SAMRAIVectorReal<NDIM, double>& residual,
+                                                        int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
 #if !defined(NDEBUG)
@@ -617,11 +631,12 @@ bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<ND
     return true;
 } // solveCoarsestLevel
 
-void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                          const SAMRAIVectorReal<NDIM, double>& solution,
-                                                          const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                          int coarsest_level_num,
-                                                          int finest_level_num)
+void
+CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                     const SAMRAIVectorReal<NDIM, double>& solution,
+                                                     const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                     int coarsest_level_num,
+                                                     int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
@@ -709,8 +724,12 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
+                   << "  solution data depth = "
+                   << solution_pdat_fac->getDefaultDepth()
+                   << "\n"
+                   << "  rhs      data depth = "
+                   << rhs_pdat_fac->getDefaultDepth()
+                   << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -838,8 +857,9 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     return;
 } // initializeOperatorStateSpecialized
 
-void CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                             const int finest_reset_ln)
+void
+CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                        const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
 
@@ -886,16 +906,18 @@ void CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(con
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
-                                                                    const PoissonSpecifications& poisson_spec,
-                                                                    const Pointer<Patch<NDIM> > patch,
-                                                                    const IntVector<NDIM>& ghost_cell_width)
+void
+CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
+                                                               const PoissonSpecifications& poisson_spec,
+                                                               const Pointer<Patch<NDIM> > patch,
+                                                               const IntVector<NDIM>& ghost_cell_width)
 {
 #if !defined(NDEBUG)
     if (ghost_cell_width.min() == 0)
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator():\n"
-                   << "  ghost cells are required in all directions" << std::endl);
+                   << "  ghost cells are required in all directions"
+                   << std::endl);
     }
 #endif
 
@@ -911,7 +933,8 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve (C u + div D grad u) = f with non-constant C,\n"
-                       << "  C must be cell-centered double precision data" << std::endl);
+                       << "  C must be cell-centered double precision data"
+                       << std::endl);
         }
     }
     else
@@ -931,7 +954,8 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"
-                       << "  D must be side-centered double precision data" << std::endl);
+                       << "  D must be side-centered double precision data"
+                       << std::endl);
         }
     }
     else
@@ -954,7 +978,8 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     else
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
-                   << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
+                   << "  D must be side-centered patch data with either 1 or NDIM components"
+                   << std::endl);
     }
     return;
 } // buildPatchLaplaceOperator

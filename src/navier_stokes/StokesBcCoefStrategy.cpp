@@ -66,7 +66,8 @@ StokesBcCoefStrategy::~StokesBcCoefStrategy()
     return;
 } // ~StokesBcCoefStrategy
 
-void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
+void
+StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);
@@ -75,37 +76,43 @@ void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* c
     return;
 } // setStokesSpecifications
 
-void StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(int u_target_data_idx)
+void
+StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
     d_u_target_data_idx = u_target_data_idx;
     return;
 } // setTargetVelocityPatchDataIndex
 
-void StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
+void
+StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
 {
     d_u_target_data_idx = -1;
     return;
 } // clearTargetVelocityPatchDataIndex
 
-void StokesBcCoefStrategy::setTargetPressurePatchDataIndex(int p_target_data_idx)
+void
+StokesBcCoefStrategy::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
     d_p_target_data_idx = p_target_data_idx;
     return;
 } // setPressurePatchDataIndex
 
-void StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
+void
+StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
 {
     d_p_target_data_idx = -1;
     return;
 } // clearPressurePatchDataIndex
 
-void StokesBcCoefStrategy::setTractionBcType(TractionBcType bc_type)
+void
+StokesBcCoefStrategy::setTractionBcType(TractionBcType bc_type)
 {
     d_traction_bc_type = bc_type;
     return;
 } // setTractionBcType
 
-TractionBcType StokesBcCoefStrategy::getTractionBcType() const
+TractionBcType
+StokesBcCoefStrategy::getTractionBcType() const
 {
     return d_traction_bc_type;
 } // getTractionBcType

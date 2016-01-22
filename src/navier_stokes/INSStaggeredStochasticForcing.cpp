@@ -156,14 +156,16 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box<NDIM>
+compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
     Box<NDIM> extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
 
-void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
+void
+genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
@@ -181,16 +183,27 @@ void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(object_name), d_fluid_solver(fluid_solver), d_stress_tensor_type(UNCORRELATED),
-      d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
-      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0), d_traction_bc_scaling(0.0), d_context(NULL), d_W_cc_var(NULL),
-      d_W_cc_idx(-1), d_W_cc_idxs(),
+    : d_object_name(object_name),
+      d_fluid_solver(fluid_solver),
+      d_stress_tensor_type(UNCORRELATED),
+      d_std(std::numeric_limits<double>::quiet_NaN()),
+      d_num_rand_vals(0),
+      d_weights(),
+      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
+      d_traction_bc_scaling(0.0),
+      d_context(NULL),
+      d_W_cc_var(NULL),
+      d_W_cc_idx(-1),
+      d_W_cc_idxs(),
 #if (NDIM == 2)
-      d_W_nc_var(NULL), d_W_nc_idx(-1), d_W_nc_idxs()
+      d_W_nc_var(NULL),
+      d_W_nc_idx(-1),
+      d_W_nc_idxs()
 #endif
 #if (NDIM == 3)
-                                            d_W_ec_var(NULL),
-      d_W_ec_idx(-1), d_W_ec_idxs()
+          d_W_ec_var(NULL),
+      d_W_ec_idx(-1),
+      d_W_ec_idxs()
 #endif
 {
     if (input_db)
@@ -250,18 +263,20 @@ INSStaggeredStochasticForcing::~INSStaggeredStochasticForcing()
     return;
 } // ~INSStaggeredStochasticForcing
 
-bool INSStaggeredStochasticForcing::isTimeDependent() const
+bool
+INSStaggeredStochasticForcing::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                            Pointer<Variable<NDIM> > var,
-                                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                            const double data_time,
-                                                            const bool initial_time,
-                                                            const int coarsest_ln_in,
-                                                            const int finest_ln_in)
+void
+INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
+                                                       Pointer<Variable<NDIM> > var,
+                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                       const double data_time,
+                                                       const bool initial_time,
+                                                       const int coarsest_ln_in,
+                                                       const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -432,7 +447,8 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 {
                     TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                              << "  unrecognized stress tensor type: "
-                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type) << "."
+                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type)
+                                             << "."
                                              << std::endl);
                 }
 
@@ -645,12 +661,13 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     return;
 } // computeStochasticForcingOnPatchHierarchy
 
-void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
-                                                   Pointer<Variable<NDIM> > /*var*/,
-                                                   Pointer<Patch<NDIM> > patch,
-                                                   const double /*data_time*/,
-                                                   const bool initial_time,
-                                                   Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
+                                              Pointer<Variable<NDIM> > /*var*/,
+                                              Pointer<Patch<NDIM> > patch,
+                                              const double /*data_time*/,
+                                              const bool initial_time,
+                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<SideData<NDIM, double> > divW_sc_data = patch->getPatchData(data_idx);
     const IntVector<NDIM> divW_sc_ghosts = divW_sc_data->getGhostCellWidth();

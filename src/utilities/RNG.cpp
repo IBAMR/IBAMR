@@ -76,7 +76,8 @@ namespace IBAMR
 static unsigned long mt[N]; /* the array for the state vector  */
 static int mti = N + 1;     /* mti==N+1 means mt[N] is not initialized */
 
-void RNG::srandgen(unsigned long seed)
+void
+RNG::srandgen(unsigned long seed)
 {
     /*    int mti; */
 
@@ -95,7 +96,8 @@ void RNG::srandgen(unsigned long seed)
     return;
 } // srandgen
 
-void RNG::genrand(double* rn)
+void
+RNG::genrand(double* rn)
 {
     unsigned long y;
     static unsigned long mag01[2] = { 0x0, MATRIX_A };
@@ -155,7 +157,8 @@ void RNG::genrand(double* rn)
 */
 namespace
 {
-double InvNormDist(double p)
+double
+InvNormDist(double p)
 {
     static const double a[6] = { -3.969683028665376e+01, 2.209460984245205e+02,  -2.759285104469687e+02,
                                  1.383577518672690e+02,  -3.066479806614716e+01, 2.506628277459239e+00 };
@@ -220,7 +223,8 @@ double InvNormDist(double p)
 }
 }
 
-void RNG::genrandn(double* result)
+void
+RNG::genrandn(double* result)
 {
     double val;
     /*
@@ -235,7 +239,8 @@ void RNG::genrandn(double* result)
     return;
 } // genrandn
 
-void RNG::parallel_seed(int global_seed)
+void
+RNG::parallel_seed(int global_seed)
 {
     int seed;
     int size, rank;

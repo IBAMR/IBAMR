@@ -45,8 +45,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
-                                                         const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine, const SAMRAI::hier::Index<NDIM>& ratio)
 {
     SAMRAI::hier::Index<NDIM> i_coarse;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -56,19 +56,20 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Ind
     return i_coarse;
 } // coarsen
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse,
-                                                        const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse, const SAMRAI::hier::Index<NDIM>& ratio)
 {
     return i_coarse * ratio;
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
-                                                              const double* const x_lower,
-                                                              const double* const x_upper,
-                                                              const double* const dx,
-                                                              const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& iupper)
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const double* const x_lower,
+                             const double* const x_upper,
+                             const double* const dx,
+                             const SAMRAI::hier::Index<NDIM>& ilower,
+                             const SAMRAI::hier::Index<NDIM>& iupper)
 {
     // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.

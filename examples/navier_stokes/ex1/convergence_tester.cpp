@@ -48,7 +48,8 @@
  *    executable <input file name> [PETSc options]                             *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -208,10 +209,10 @@ int main(int argc, char* argv[])
             fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
         // Setup hierarchy operations objects.
-        HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(coarse_patch_hierarchy, 0,
-                                                                       coarse_patch_hierarchy->getFinestLevelNumber());
-        HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(coarse_patch_hierarchy, 0,
-                                                                       coarse_patch_hierarchy->getFinestLevelNumber());
+        HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(
+            coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
+        HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(
+            coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
         HierarchyMathOps hier_math_ops("hier_math_ops", coarse_patch_hierarchy);
         hier_math_ops.setPatchHierarchy(coarse_patch_hierarchy);
         hier_math_ops.resetLevels(0, coarse_patch_hierarchy->getFinestLevelNumber());

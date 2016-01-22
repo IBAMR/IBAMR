@@ -74,7 +74,8 @@ SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = NULL
 bool SCPoissonSolverManager::s_registered_callback = false;
 unsigned char SCPoissonSolverManager::s_shutdown_priority = 200;
 
-SCPoissonSolverManager* SCPoissonSolverManager::getManager()
+SCPoissonSolverManager*
+SCPoissonSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
@@ -88,7 +89,8 @@ SCPoissonSolverManager* SCPoissonSolverManager::getManager()
     return s_solver_manager_instance;
 } // getManager
 
-void SCPoissonSolverManager::freeManager()
+void
+SCPoissonSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
@@ -97,9 +99,10 @@ void SCPoissonSolverManager::freeManager()
 
 namespace
 {
-Pointer<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_name,
-                                                    Pointer<Database> input_db,
-                                                    const std::string& default_options_prefix)
+Pointer<PoissonSolver>
+allocate_petsc_krylov_solver(const std::string& object_name,
+                             Pointer<Database> input_db,
+                             const std::string& default_options_prefix)
 {
     Pointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
@@ -110,28 +113,32 @@ Pointer<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_na
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<PoissonSolver> SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                                              const std::string& solver_object_name,
-                                                              Pointer<Database> solver_input_db,
-                                                              const std::string& solver_default_options_prefix) const
+Pointer<PoissonSolver>
+SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                       const std::string& solver_object_name,
+                                       Pointer<Database> solver_input_db,
+                                       const std::string& solver_default_options_prefix) const
 {
     std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("SCPoissonSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: " << solver_type << "\n");
+                   << "  unrecognized solver type: "
+                   << solver_type
+                   << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-Pointer<PoissonSolver> SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                                              const std::string& solver_object_name,
-                                                              Pointer<Database> solver_input_db,
-                                                              const std::string& solver_default_options_prefix,
-                                                              const std::string& precond_type,
-                                                              const std::string& precond_object_name,
-                                                              Pointer<Database> precond_input_db,
-                                                              const std::string& precond_default_options_prefix) const
+Pointer<PoissonSolver>
+SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                       const std::string& solver_object_name,
+                                       Pointer<Database> solver_input_db,
+                                       const std::string& solver_default_options_prefix,
+                                       const std::string& precond_type,
+                                       const std::string& precond_object_name,
+                                       Pointer<Database> precond_input_db,
+                                       const std::string& precond_default_options_prefix) const
 {
     Pointer<PoissonSolver> solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
@@ -144,7 +151,8 @@ Pointer<PoissonSolver> SCPoissonSolverManager::allocateSolver(const std::string&
     return solver;
 } // allocateSolver
 
-void SCPoissonSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
+void
+SCPoissonSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {

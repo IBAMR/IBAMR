@@ -46,7 +46,8 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline Vec PETScSAMRAIVectorReal::createPETScVector(
+inline Vec
+PETScSAMRAIVectorReal::createPETScVector(
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
     MPI_Comm comm)
 {
@@ -58,7 +59,8 @@ inline Vec PETScSAMRAIVectorReal::createPETScVector(
     return psv->d_petsc_vector;
 } // createPETScVector
 
-inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
+inline void
+PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
 {
     if (petsc_vec)
     {
@@ -84,7 +86,8 @@ PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
     return psv->d_samrai_vector;
 } // getSAMRAIVector
 
-inline void PETScSAMRAIVectorReal::replaceSAMRAIVector(
+inline void
+PETScSAMRAIVectorReal::replaceSAMRAIVector(
     Vec petsc_vec,
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec)
 {

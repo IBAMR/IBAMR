@@ -111,8 +111,9 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                 const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void
+SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                            const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -141,7 +142,8 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     return;
 } // initializeSolverStateSpecialized
 
-void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
+void
+SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -149,18 +151,20 @@ void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
     return;
 } // deallocateSolverStateSpecialized
 
-void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
-                                               SAMRAIVectorReal<NDIM, double>& x,
-                                               Pointer<PatchLevel<NDIM> > patch_level)
+void
+SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
+                                          SAMRAIVectorReal<NDIM, double>& x,
+                                          Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
     return;
 } // copyToPETScVec
 
-void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
-                                                 SAMRAIVectorReal<NDIM, double>& x,
-                                                 Pointer<PatchLevel<NDIM> > patch_level)
+void
+SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
+                                            SAMRAIVectorReal<NDIM, double>& x,
+                                            Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -168,11 +172,12 @@ void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
     return;
 } // copyFromPETScVec
 
-void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                             Vec& petsc_b,
-                                             SAMRAIVectorReal<NDIM, double>& x,
-                                             SAMRAIVectorReal<NDIM, double>& b,
-                                             Pointer<PatchLevel<NDIM> > patch_level)
+void
+SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                        Vec& petsc_b,
+                                        SAMRAIVectorReal<NDIM, double>& x,
+                                        SAMRAIVectorReal<NDIM, double>& b,
+                                        Pointer<PatchLevel<NDIM> > patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);

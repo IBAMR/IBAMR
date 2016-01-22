@@ -65,9 +65,11 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
                                                    const bool include_dst_patch_box,
                                                    const bool include_edges_on_dst_level,
                                                    const bool include_edges_on_src_level)
-    : d_stencil_width(stencil_width), d_include_dst_patch_box(include_dst_patch_box),
+    : d_stencil_width(stencil_width),
+      d_include_dst_patch_box(include_dst_patch_box),
       d_include_edges_on_dst_level(include_edges_on_dst_level),
-      d_include_edges_on_src_level(include_edges_on_src_level), d_target_level_num(-1)
+      d_include_edges_on_src_level(include_edges_on_src_level),
+      d_target_level_num(-1)
 {
     // intentionally blank
     return;
@@ -79,12 +81,13 @@ CellNoCornersFillPattern::~CellNoCornersFillPattern()
     return;
 } // CellNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                                                      const BoxGeometry<NDIM>& src_geometry,
-                                                                      const Box<NDIM>& /*dst_patch_box*/,
-                                                                      const Box<NDIM>& src_mask,
-                                                                      const bool overwrite_interior,
-                                                                      const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> >
+CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
+                                           const BoxGeometry<NDIM>& src_geometry,
+                                           const Box<NDIM>& /*dst_patch_box*/,
+                                           const Box<NDIM>& src_mask,
+                                           const bool overwrite_interior,
+                                           const IntVector<NDIM>& src_offset) const
 {
     Pointer<CellOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
@@ -145,14 +148,15 @@ Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlap(const BoxG
     return new CellOverlap<NDIM>(dst_boxes, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
-                                                                             const BoxGeometry<NDIM>& src_geometry,
-                                                                             const Box<NDIM>& dst_patch_box,
-                                                                             const Box<NDIM>& src_mask,
-                                                                             const bool overwrite_interior,
-                                                                             const IntVector<NDIM>& src_offset,
-                                                                             const int dst_level_num,
-                                                                             const int /*src_level_num*/) const
+Pointer<BoxOverlap<NDIM> >
+CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
+                                                  const BoxGeometry<NDIM>& src_geometry,
+                                                  const Box<NDIM>& dst_patch_box,
+                                                  const Box<NDIM>& src_mask,
+                                                  const bool overwrite_interior,
+                                                  const IntVector<NDIM>& src_offset,
+                                                  const int dst_level_num,
+                                                  const int /*src_level_num*/) const
 {
     Pointer<CellOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
@@ -218,18 +222,21 @@ Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlapOnLevel(con
     return new CellOverlap<NDIM>(dst_boxes, src_offset);
 } // calculateOverlapOnLevel
 
-void CellNoCornersFillPattern::setTargetPatchLevelNumber(const int level_num)
+void
+CellNoCornersFillPattern::setTargetPatchLevelNumber(const int level_num)
 {
     d_target_level_num = level_num;
     return;
 } // setTargetPatchLevelNumber
 
-IntVector<NDIM>& CellNoCornersFillPattern::getStencilWidth()
+IntVector<NDIM>&
+CellNoCornersFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 } // getStencilWidth
 
-const std::string& CellNoCornersFillPattern::getPatternName() const
+const std::string&
+CellNoCornersFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
 } // getPatternName

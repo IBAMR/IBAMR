@@ -81,7 +81,8 @@ StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
     return;
 } // ~StaggeredStokesPhysicalBoundaryHelper
 
-void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
+void
+StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,
     const int p_data_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,

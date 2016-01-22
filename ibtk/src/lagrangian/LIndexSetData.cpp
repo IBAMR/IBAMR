@@ -63,10 +63,19 @@ namespace IBTK
 
 template <class T>
 LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box, ghosts), d_lag_indices(), d_interior_lag_indices(), d_ghost_lag_indices(),
-      d_global_petsc_indices(), d_interior_global_petsc_indices(), d_ghost_global_petsc_indices(),
-      d_local_petsc_indices(), d_interior_local_petsc_indices(), d_ghost_local_petsc_indices(), d_periodic_shifts(),
-      d_interior_periodic_shifts(), d_ghost_periodic_shifts()
+    : LSetData<T>(box, ghosts),
+      d_lag_indices(),
+      d_interior_lag_indices(),
+      d_ghost_lag_indices(),
+      d_global_petsc_indices(),
+      d_interior_global_petsc_indices(),
+      d_ghost_global_petsc_indices(),
+      d_local_petsc_indices(),
+      d_interior_local_petsc_indices(),
+      d_ghost_local_petsc_indices(),
+      d_periodic_shifts(),
+      d_interior_periodic_shifts(),
+      d_ghost_periodic_shifts()
 {
     // intentionally blank
     return;
@@ -80,7 +89,8 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
+void
+LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();

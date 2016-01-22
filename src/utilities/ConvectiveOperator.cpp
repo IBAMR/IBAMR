@@ -57,29 +57,34 @@ ConvectiveOperator::~ConvectiveOperator()
     return;
 } // ~ConvectiveOperator
 
-void ConvectiveOperator::setAdvectionVelocity(const int u_idx)
+void
+ConvectiveOperator::setAdvectionVelocity(const int u_idx)
 {
     d_u_idx = u_idx;
     return;
 } // setAdvectionVelocity
 
-int ConvectiveOperator::getAdvectionVelocity() const
+int
+ConvectiveOperator::getAdvectionVelocity() const
 {
     return d_u_idx;
 } // getAdvectionVelocity
 
-void ConvectiveOperator::setConvectiveDifferencingType(const ConvectiveDifferencingType difference_form)
+void
+ConvectiveOperator::setConvectiveDifferencingType(const ConvectiveDifferencingType difference_form)
 {
     d_difference_form = difference_form;
     return;
 } // setConvectiveDifferencingType
 
-ConvectiveDifferencingType ConvectiveOperator::getConvectiveDifferencingType() const
+ConvectiveDifferencingType
+ConvectiveOperator::getConvectiveDifferencingType() const
 {
     return d_difference_form;
 } // getConvectiveDifferencingType
 
-void ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);

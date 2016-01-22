@@ -330,15 +330,26 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),
-      d_bdry_extrap_type("CONSTANT"), d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL),
-      d_U_scratch_idx(-1), d_u_extrap_var(NULL), d_u_flux_var(NULL), d_u_extrap_idx(-1), d_u_flux_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(),
+      d_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_U_scratch_idx(-1),
+      d_u_extrap_var(NULL),
+      d_u_flux_var(NULL),
+      d_u_extrap_idx(-1),
+      d_u_flux_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                   << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -410,7 +421,8 @@ INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
     return;
 } // ~INSCollocatedPPMConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -758,8 +770,9 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
     return;
 } // applyConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                 const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                            const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -823,7 +836,8 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
     return;
 } // initializeOperatorState
 
-void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
+void
+INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

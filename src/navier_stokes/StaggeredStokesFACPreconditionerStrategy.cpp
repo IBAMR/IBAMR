@@ -127,26 +127,59 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     const int ghost_cell_width,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
+    : FACPreconditionerStrategy(object_name),
+      d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
-      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_gcw(ghost_cell_width), d_solution(NULL), d_rhs(NULL),
-      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_bdry_fill_ops(), d_level_math_ops(),
-      d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
-      d_smoother_type("ADDITIVE"), d_U_prolongation_method("CONSTANT_REFINE"), d_P_prolongation_method("LINEAR_REFINE"),
-      d_U_restriction_method("CONSERVATIVE_COARSEN"), d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_coarse_solver_type("BLOCK_JACOBI"), d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
-      d_coarse_solver_rel_residual_tol(1.0e-5), d_coarse_solver_abs_residual_tol(1.0e-50),
-      d_coarse_solver_max_iterations(10), d_coarse_solver(), d_coarse_solver_db(), d_context(NULL),
-      d_side_scratch_idx(-1), d_cell_scratch_idx(-1), d_U_cf_bdry_op(), d_P_cf_bdry_op(), d_U_op_stencil_fill_pattern(),
-      d_P_op_stencil_fill_pattern(), d_U_synch_fill_pattern(), d_U_prolongation_refine_operator(),
-      d_P_prolongation_refine_operator(), d_prolongation_refine_patch_strategy(), d_prolongation_refine_algorithm(),
-      d_prolongation_refine_schedules(), d_U_restriction_coarsen_operator(), d_P_restriction_coarsen_operator(),
-      d_restriction_coarsen_algorithm(), d_restriction_coarsen_schedules(), d_ghostfill_nocoarse_refine_algorithm(),
-      d_ghostfill_nocoarse_refine_schedules(), d_synch_refine_algorithm(), d_synch_refine_schedules()
+      d_P_bc_coef(d_default_P_bc_coef),
+      d_bc_helper(NULL),
+      d_gcw(ghost_cell_width),
+      d_solution(NULL),
+      d_rhs(NULL),
+      d_hierarchy(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_level_bdry_fill_ops(),
+      d_level_math_ops(),
+      d_in_initialize_operator_state(false),
+      d_coarsest_reset_ln(-1),
+      d_finest_reset_ln(-1),
+      d_smoother_type("ADDITIVE"),
+      d_U_prolongation_method("CONSTANT_REFINE"),
+      d_P_prolongation_method("LINEAR_REFINE"),
+      d_U_restriction_method("CONSERVATIVE_COARSEN"),
+      d_P_restriction_method("CONSERVATIVE_COARSEN"),
+      d_coarse_solver_type("BLOCK_JACOBI"),
+      d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
+      d_coarse_solver_rel_residual_tol(1.0e-5),
+      d_coarse_solver_abs_residual_tol(1.0e-50),
+      d_coarse_solver_max_iterations(10),
+      d_coarse_solver(),
+      d_coarse_solver_db(),
+      d_context(NULL),
+      d_side_scratch_idx(-1),
+      d_cell_scratch_idx(-1),
+      d_U_cf_bdry_op(),
+      d_P_cf_bdry_op(),
+      d_U_op_stencil_fill_pattern(),
+      d_P_op_stencil_fill_pattern(),
+      d_U_synch_fill_pattern(),
+      d_U_prolongation_refine_operator(),
+      d_P_prolongation_refine_operator(),
+      d_prolongation_refine_patch_strategy(),
+      d_prolongation_refine_algorithm(),
+      d_prolongation_refine_schedules(),
+      d_U_restriction_coarsen_operator(),
+      d_P_restriction_coarsen_operator(),
+      d_restriction_coarsen_algorithm(),
+      d_restriction_coarsen_schedules(),
+      d_ghostfill_nocoarse_refine_algorithm(),
+      d_ghostfill_nocoarse_refine_schedules(),
+      d_synch_refine_algorithm(),
+      d_synch_refine_schedules()
 {
     // Get values from the input database.
     if (input_db)
@@ -214,7 +247,8 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~StaggeredStokesFACPreconditionerStrategy()\n"
-                                 << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
+                                 << "  subclass must call deallocateOperatorState in subclass destructor"
+                                 << std::endl);
     }
     delete d_default_U_bc_coef;
     d_default_U_bc_coef = NULL;
@@ -260,7 +294,8 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<R
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
+void
+StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -270,7 +305,8 @@ void StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const int finest_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) || (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
@@ -283,23 +319,27 @@ void StaggeredStokesFACPreconditionerStrategy::setResetLevels(const int coarsest
     return;
 } // setResetLevels
 
-void StaggeredStokesFACPreconditionerStrategy::setSmootherType(const std::string& smoother_type)
+void
+StaggeredStokesFACPreconditionerStrategy::setSmootherType(const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setSmootherType()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     d_smoother_type = smoother_type;
     return;
 } // setSmootherType
 
-void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::string& coarse_solver_type)
+void
+StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -314,53 +354,61 @@ void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::st
     return;
 } // setCoarseSolverType
 
-void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
+void
+StaggeredStokesFACPreconditionerStrategy::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
 {
     d_coarse_solver_max_iterations = coarse_solver_max_iterations;
     return;
 } // setCoarseSolverMaxIterations
 
-void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
+void
+StaggeredStokesFACPreconditionerStrategy::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
 {
     d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
 } // setCoarseSolverAbsoluteTolerance
 
-void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
+void
+StaggeredStokesFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
 {
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
 } // setCoarseSolverRelativeTolerance
 
-void StaggeredStokesFACPreconditionerStrategy::setProlongationMethods(const std::string& U_prolongation_method,
-                                                                      const std::string& P_prolongation_method)
+void
+StaggeredStokesFACPreconditionerStrategy::setProlongationMethods(const std::string& U_prolongation_method,
+                                                                 const std::string& P_prolongation_method)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setProlongationMethods()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     d_U_prolongation_method = U_prolongation_method;
     d_P_prolongation_method = P_prolongation_method;
     return;
 } // setProlongationMethods
 
-void StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::string& U_restriction_method,
-                                                                     const std::string& P_restriction_method)
+void
+StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::string& U_restriction_method,
+                                                                const std::string& P_restriction_method)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setRestrictionMethods()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     d_U_restriction_method = U_restriction_method;
     d_P_restriction_method = P_restriction_method;
     return;
 } // setRestrictionMethods
 
-void StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                SAMRAIVectorReal<NDIM, double>& dst,
-                                                                int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
+                                                           SAMRAIVectorReal<NDIM, double>& dst,
+                                                           int dst_ln)
 {
     IBAMR_TIMER_START(t_restrict_residual);
 
@@ -390,9 +438,10 @@ void StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVect
     return;
 } // restrictResidual
 
-void StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
-                                                            SAMRAIVectorReal<NDIM, double>& dst,
-                                                            int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
+                                                       SAMRAIVectorReal<NDIM, double>& dst,
+                                                       int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error);
 
@@ -412,9 +461,10 @@ void StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorRe
     return;
 } // prolongError
 
-void StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                      SAMRAIVectorReal<NDIM, double>& dst,
-                                                                      int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
+                                                                 SAMRAIVectorReal<NDIM, double>& dst,
+                                                                 int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error_and_correct);
 
@@ -450,9 +500,10 @@ void StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMR
     return;
 } // prolongErrorAndCorrect
 
-bool StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                                  const SAMRAIVectorReal<NDIM, double>& residual,
-                                                                  int coarsest_ln)
+bool
+StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
+                                                             const SAMRAIVectorReal<NDIM, double>& residual,
+                                                             int coarsest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
@@ -479,11 +530,12 @@ bool StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorRe
     return true;
 } // solveCoarsestLevel
 
-void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                               const SAMRAIVectorReal<NDIM, double>& solution,
-                                                               const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                               int coarsest_level_num,
-                                                               int finest_level_num)
+void
+StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
+                                                          const SAMRAIVectorReal<NDIM, double>& solution,
+                                                          const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                          int coarsest_level_num,
+                                                          int finest_level_num)
 {
     const int U_res_idx = residual.getComponentDescriptorIndex(0);
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
@@ -598,8 +650,9 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     return;
 } // computeResidual
 
-void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                       const SAMRAIVectorReal<NDIM, double>& rhs)
+void
+StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                  const SAMRAIVectorReal<NDIM, double>& rhs)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -792,7 +845,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     return;
 } // initializeOperatorState
 
-void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
+void
+StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -870,14 +924,16 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void StaggeredStokesFACPreconditionerStrategy::allocateScratchData()
+void
+StaggeredStokesFACPreconditionerStrategy::allocateScratchData()
 {
     if (d_solution) d_solution->allocateVectorData();
     if (d_rhs) d_rhs->allocateVectorData();
     return;
 }
 
-void StaggeredStokesFACPreconditionerStrategy::deallocateScratchData()
+void
+StaggeredStokesFACPreconditionerStrategy::deallocateScratchData()
 {
     if (d_solution) d_solution->deallocateVectorData();
     if (d_rhs) d_rhs->deallocateVectorData();
@@ -886,9 +942,10 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
-                                                                       const std::pair<int, int>& src_idxs,
-                                                                       const int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
+                                                                  const std::pair<int, int>& src_idxs,
+                                                                  const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -913,9 +970,10 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std
     return;
 } // xeqScheduleProlongation
 
-void StaggeredStokesFACPreconditionerStrategy::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
-                                                                      const std::pair<int, int>& src_idxs,
-                                                                      const int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
+                                                                 const std::pair<int, int>& src_idxs,
+                                                                 const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
@@ -932,8 +990,9 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleRestriction(const std:
     return;
 } // xeqScheduleRestriction
 
-void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
-                                                                            const int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs,
+                                                                       const int dst_ln)
 {
     const int U_dst_idx = dst_idxs.first;
     d_U_bc_op->setPatchDataIndex(U_dst_idx);
@@ -954,7 +1013,8 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(cons
     return;
 } // xeqScheduleGhostFillNoCoarse
 
-void StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
+void
+StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(

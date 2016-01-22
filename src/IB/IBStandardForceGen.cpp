@@ -75,7 +75,8 @@ namespace IBAMR
 
 namespace
 {
-void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
+void
+resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
 {
 #if defined(NDEBUG)
     NULL_USE(num_local_nodes);
@@ -91,10 +92,11 @@ void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset
     return;
 } // resetLocalPETScIndices
 
-void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
-                                      const int global_node_offset,
-                                      const int num_local_nodes,
-                                      const std::vector<int>& nonlocal_petsc_idxs)
+void
+resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
+                                 const int global_node_offset,
+                                 const int num_local_nodes,
+                                 const std::vector<int>& nonlocal_petsc_idxs)
 {
     for (std::vector<int>::iterator it = inds.begin(); it != inds.end(); ++it)
     {
@@ -139,20 +141,22 @@ IBStandardForceGen::~IBStandardForceGen()
     return;
 } // ~IBStandardForceGen
 
-void IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
-                                                     const SpringForceFcnPtr spring_force_fcn_ptr,
-                                                     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr)
+void
+IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
+                                                const SpringForceFcnPtr spring_force_fcn_ptr,
+                                                const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr)
 {
     d_spring_force_fcn_map[force_fcn_index] = spring_force_fcn_ptr;
     d_spring_force_deriv_fcn_map[force_fcn_index] = spring_force_deriv_fcn_ptr;
     return;
 } // registerSpringForceFunction
 
-void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                             const int level_number,
-                                             const double init_data_time,
-                                             const bool initial_time,
-                                             LDataManager* const l_data_manager)
+void
+IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                        const int level_number,
+                                        const double init_data_time,
+                                        const bool initial_time,
+                                        LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -262,13 +266,14 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     return;
 } // initializeLevelData
 
-void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
-                                                Pointer<LData> X_data,
-                                                Pointer<LData> U_data,
-                                                const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                const int level_number,
-                                                const double data_time,
-                                                LDataManager* const l_data_manager)
+void
+IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
+                                           Pointer<LData> X_data,
+                                           Pointer<LData> U_data,
+                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const int level_number,
+                                           const double data_time,
+                                           LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -495,16 +500,17 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
     return;
 } // computeLagrangianForceJacobianNonzeroStructure
 
-void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
-                                                        MatAssemblyType assembly_type,
-                                                        const double X_coef,
-                                                        Pointer<LData> X_data,
-                                                        const double U_coef,
-                                                        Pointer<LData> /*U_data*/,
-                                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                        const int level_number,
-                                                        const double /*data_time*/,
-                                                        LDataManager* const l_data_manager)
+void
+IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
+                                                   MatAssemblyType assembly_type,
+                                                   const double X_coef,
+                                                   Pointer<LData> X_data,
+                                                   const double U_coef,
+                                                   Pointer<LData> /*U_data*/,
+                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                   const int level_number,
+                                                   const double /*data_time*/,
+                                                   LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -664,12 +670,13 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
     return;
 } // computeLagrangianForceJacobian
 
-double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
-                                                   Pointer<LData> /*U_data*/,
-                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                   const int level_number,
-                                                   const double /*data_time*/,
-                                                   LDataManager* const l_data_manager)
+double
+IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
+                                            Pointer<LData> /*U_data*/,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*data_time*/,
+                                            LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
@@ -682,12 +689,13 @@ double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                   const int level_number,
-                                                   const double /*init_data_time*/,
-                                                   const bool /*initial_time*/,
-                                                   LDataManager* const l_data_manager)
+void
+IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
+                                              const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                              const int level_number,
+                                              const double /*init_data_time*/,
+                                              const bool /*initial_time*/,
+                                              LDataManager* const l_data_manager)
 {
     std::vector<int>& lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
     std::vector<int>& lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
@@ -775,12 +783,13 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     return;
 } // initializeSpringLevelData
 
-void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
-                                                      Pointer<LData> X_data,
-                                                      const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                      const int level_number,
-                                                      const double /*data_time*/,
-                                                      LDataManager* const /*l_data_manager*/)
+void
+IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
+                                                 Pointer<LData> X_data,
+                                                 const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                 const int level_number,
+                                                 const double /*data_time*/,
+                                                 LDataManager* const /*l_data_manager*/)
 {
     const int num_springs = static_cast<int>(d_spring_data[level_number].lag_mastr_node_idxs.size());
     if (num_springs == 0) return;
@@ -891,12 +900,13 @@ void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
     return;
 } // computeLagrangianSpringForce
 
-void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                 const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                 const int level_number,
-                                                 const double /*init_data_time*/,
-                                                 const bool /*initial_time*/,
-                                                 LDataManager* const l_data_manager)
+void
+IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*init_data_time*/,
+                                            const bool /*initial_time*/,
+                                            LDataManager* const l_data_manager)
 {
     std::vector<int>& petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
     std::vector<int>& petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
@@ -987,12 +997,13 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     return;
 } // initializeBeamLevelData
 
-void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
-                                                    Pointer<LData> X_data,
-                                                    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                    const int level_number,
-                                                    const double /*data_time*/,
-                                                    LDataManager* const /*l_data_manager*/)
+void
+IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
+                                               Pointer<LData> X_data,
+                                               const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                               const int level_number,
+                                               const double /*data_time*/,
+                                               LDataManager* const /*l_data_manager*/)
 {
     const int num_beams = static_cast<int>(d_beam_data[level_number].petsc_mastr_node_idxs.size());
     if (num_beams == 0) return;
@@ -1098,12 +1109,13 @@ void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
     return;
 } // computeLagrangianBeamForce
 
-void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
-                                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                        const int level_number,
-                                                        const double /*init_data_time*/,
-                                                        const bool /*initial_time*/,
-                                                        LDataManager* const l_data_manager)
+void
+IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
+                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                   const int level_number,
+                                                   const double /*init_data_time*/,
+                                                   const bool /*initial_time*/,
+                                                   LDataManager* const l_data_manager)
 {
     std::vector<int>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
     std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
@@ -1147,13 +1159,14 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     return;
 } // initializeTargetPointLevelData
 
-void IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
-                                                           Pointer<LData> X_data,
-                                                           Pointer<LData> U_data,
-                                                           const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                           const int level_number,
-                                                           const double /*data_time*/,
-                                                           LDataManager* const /*l_data_manager*/)
+void
+IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
+                                                      Pointer<LData> X_data,
+                                                      Pointer<LData> U_data,
+                                                      const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                      const int level_number,
+                                                      const double /*data_time*/,
+                                                      LDataManager* const /*l_data_manager*/)
 {
     const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
     if (num_target_points == 0) return;

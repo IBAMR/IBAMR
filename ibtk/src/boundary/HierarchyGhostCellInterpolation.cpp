@@ -111,10 +111,23 @@ static Timer* t_fill_data_set_physical_bcs;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
-    : d_is_initialized(false), d_homogeneous_bc(false), d_transaction_comps(), d_hierarchy(NULL), d_grid_geom(NULL),
-      d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL), d_coarsen_strategy(NULL), d_coarsen_scheds(),
-      d_refine_alg(NULL), d_refine_strategy(NULL), d_refine_scheds(), d_cf_bdry_ops(), d_extrap_bc_ops(),
-      d_cc_robin_bc_ops(), d_sc_robin_bc_ops()
+    : d_is_initialized(false),
+      d_homogeneous_bc(false),
+      d_transaction_comps(),
+      d_hierarchy(NULL),
+      d_grid_geom(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_strategy(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(NULL),
+      d_refine_strategy(NULL),
+      d_refine_scheds(),
+      d_cf_bdry_ops(),
+      d_extrap_bc_ops(),
+      d_cc_robin_bc_ops(),
+      d_sc_robin_bc_ops()
 {
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -144,16 +157,18 @@ HierarchyGhostCellInterpolation::~HierarchyGhostCellInterpolation()
     return;
 } // ~HierarchyGhostCellInterpolation
 
-void HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
+void
+HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
 } // setHomogeneousBc
 
-void HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                              const int coarsest_ln,
-                                                              const int finest_ln)
+void
+HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
+                                                         const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                         const int coarsest_ln,
+                                                         const int finest_ln)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -164,7 +179,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
     return;
 } // initializeOperatorState
 
-void HierarchyGhostCellInterpolation::initializeOperatorState(
+void
+HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_ln,
@@ -291,7 +307,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::initializeOperatorState():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);
@@ -364,7 +381,8 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTr
     return;
 } // resetTransactionComponent
 
-void HierarchyGhostCellInterpolation::resetTransactionComponents(
+void
+HierarchyGhostCellInterpolation::resetTransactionComponents(
     const std::vector<InterpolationTransactionComponent>& transaction_comps)
 {
     IBTK_TIMER_START(t_reset_transaction_components);
@@ -453,7 +471,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);
@@ -514,7 +533,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     if (!d_is_initialized) return;
 
@@ -526,7 +546,8 @@ void HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHie
     return;
 } // reinitializeOperatorState
 
-void HierarchyGhostCellInterpolation::deallocateOperatorState()
+void
+HierarchyGhostCellInterpolation::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -556,7 +577,8 @@ void HierarchyGhostCellInterpolation::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void HierarchyGhostCellInterpolation::fillData(double fill_time)
+void
+HierarchyGhostCellInterpolation::fillData(double fill_time)
 {
     IBTK_TIMER_START(t_fill_data);
 

@@ -109,8 +109,13 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u
                                                                      Pointer<CoarsenOperator<NDIM> > coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategy<NDIM>* const phys_bdry_op)
-    : d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx), d_fill_time(fill_time),
-      d_phys_bdry_op(phys_bdry_op), d_refine_op(refine_op), d_coarsen_op(coarsen_op)
+    : d_u_dst_idx(u_dst_idx),
+      d_u_src_idx(u_src_idx),
+      d_indicator_idx(indicator_idx),
+      d_fill_time(fill_time),
+      d_phys_bdry_op(phys_bdry_op),
+      d_refine_op(refine_op),
+      d_coarsen_op(coarsen_op)
 {
     // intentionally blank
     return;
@@ -122,9 +127,10 @@ CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
     return;
 } // ~CartSideDoubleDivPreservingRefine
 
-void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                                      const double fill_time,
-                                                                      const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                                 const double fill_time,
+                                                                 const IntVector<NDIM>& ghost_width_to_fill)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
@@ -133,24 +139,27 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                         const Patch<NDIM>& /*coarse*/,
-                                                         const Box<NDIM>& /*fine_box*/,
-                                                         const IntVector<NDIM>& /*ratio*/)
+void
+CartSideDoubleDivPreservingRefine::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                    const Patch<NDIM>& /*coarse*/,
+                                                    const Box<NDIM>& /*fine_box*/,
+                                                    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
-void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
-                                                          const Patch<NDIM>& coarse,
-                                                          const Box<NDIM>& unrestricted_fine_box,
-                                                          const IntVector<NDIM>& ratio)
+void
+CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
+                                                     const Patch<NDIM>& coarse,
+                                                     const Box<NDIM>& unrestricted_fine_box,
+                                                     const IntVector<NDIM>& ratio)
 {
     // NOTE: This operator cannot fill the full ghost cell width of the
     // destination data.  We instead restrict the size of the fine box to ensure
@@ -165,7 +174,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
         {
             TBOX_ERROR("CartSideDoubleDivPreservingRefine::postprocessRefine():\n"
                        << "  refinement ratio must be a power of 2 for divergence- and "
-                          "curl-preserving refinement operator." << std::endl);
+                          "curl-preserving refinement operator."
+                       << std::endl);
         }
     }
 #endif
