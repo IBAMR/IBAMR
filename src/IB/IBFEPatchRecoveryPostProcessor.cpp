@@ -155,7 +155,10 @@ void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, FEDataManager* fe_data_manager)
-    : d_mesh(mesh), d_fe_data_manager(fe_data_manager), d_periodic_boundaries(NULL), d_interp_order(INVALID_ORDER),
+    : d_mesh(mesh),
+      d_fe_data_manager(fe_data_manager),
+      d_periodic_boundaries(NULL),
+      d_interp_order(INVALID_ORDER),
       d_quad_order(INVALID_ORDER)
 {
     // Active local elements.
@@ -254,7 +257,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                             const std::vector<boundary_id_type>& boundary_ids =
                                 d_mesh->boundary_info->boundary_ids(elem, i);
                             for (std::vector<boundary_id_type>::const_iterator j = boundary_ids.begin();
-                                 j != boundary_ids.end(); ++j)
+                                 j != boundary_ids.end();
+                                 ++j)
                             {
                                 const boundary_id_type boundary_id = *j;
                                 const PeriodicBoundaryBase* const periodic_boundary =
@@ -379,8 +383,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                evaluate_polynomial_basis_fcns(P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                                               dim, d_interp_order);
+                evaluate_polynomial_basis_fcns(
+                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
                 M += P * P.transpose();
             }
         }
@@ -391,7 +395,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                 "IBFEPatchRecoveryPostProcessor could not construct L2 reconstruction for "
                 "element "
                 "patch associated with node "
-                << node_id << "\n");
+                << node_id
+                << "\n");
         }
     }
     return;
@@ -501,7 +506,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end(); ++it, ++k)
+         it != d_local_elem_patches.end();
+         ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -567,7 +573,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end(); ++it, ++k)
+         it != d_local_elem_patches.end();
+         ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -585,8 +592,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                evaluate_polynomial_basis_fcns(P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                                               dim, d_interp_order);
+                evaluate_polynomial_basis_fcns(
+                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
                 f += P * pressure_vals[global_offset + qp];
             }
         }

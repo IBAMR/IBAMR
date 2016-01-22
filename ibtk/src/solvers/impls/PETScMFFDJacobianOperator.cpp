@@ -68,8 +68,17 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix)
-    : JacobianOperator(object_name), d_F(NULL), d_nonlinear_solver(NULL), d_petsc_jac(NULL), d_op_u(NULL), d_op_x(NULL),
-      d_op_y(NULL), d_petsc_u(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_options_prefix(options_prefix)
+    : JacobianOperator(object_name),
+      d_F(NULL),
+      d_nonlinear_solver(NULL),
+      d_petsc_jac(NULL),
+      d_op_u(NULL),
+      d_op_x(NULL),
+      d_op_y(NULL),
+      d_petsc_u(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_options_prefix(options_prefix)
 {
     // intentionally blank
     return;

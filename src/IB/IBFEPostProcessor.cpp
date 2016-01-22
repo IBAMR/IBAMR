@@ -79,7 +79,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : d_name(name), d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()), d_fe_data_manager(fe_data_manager),
+    : d_name(name),
+      d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
+      d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)
 {
     // intentionally blank
@@ -166,25 +168,32 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     return;
 } // registerTensorVariable
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                                   libMesh::FEFamily var_fe_family,
-                                                                   libMesh::Order var_fe_order,
-                                                                   Pointer<hier::Variable<NDIM> > var,
-                                                                   Pointer<VariableContext> ctx,
-                                                                   const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+    const std::string& var_name,
+    libMesh::FEFamily var_fe_family,
+    libMesh::Order var_fe_order,
+    Pointer<hier::Variable<NDIM> > var,
+    Pointer<VariableContext> ctx,
+    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
-    registerInterpolatedScalarEulerianVariable(
-        var_name, var_fe_family, var_fe_order, var, ctx, ghost_fill_transaction, d_fe_data_manager->getDefaultInterpSpec());
+    registerInterpolatedScalarEulerianVariable(var_name,
+                                               var_fe_family,
+                                               var_fe_order,
+                                               var,
+                                               ctx,
+                                               ghost_fill_transaction,
+                                               d_fe_data_manager->getDefaultInterpSpec());
     return;
 } //
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                                   libMesh::FEFamily var_fe_family,
-                                                                   libMesh::Order var_fe_order,
-                                                                   Pointer<hier::Variable<NDIM> > var,
-                                                                   Pointer<VariableContext> ctx,
-                                                                   const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
-                                                                   const FEDataManager::InterpSpec& interp_spec)
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+    const std::string& var_name,
+    libMesh::FEFamily var_fe_family,
+    libMesh::Order var_fe_order,
+    Pointer<hier::Variable<NDIM> > var,
+    Pointer<VariableContext> ctx,
+    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
+    const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " interpolation system");

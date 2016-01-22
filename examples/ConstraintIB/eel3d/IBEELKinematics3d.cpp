@@ -49,10 +49,8 @@
 
 namespace IBAMR
 {
-
 namespace
 {
-
 static const double PII = 3.1415926535897932384626433832795;
 
 // Set Fish Related Parameters.
@@ -207,9 +205,15 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
                                      LDataManager* l_data_manager,
                                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                      bool register_for_restart)
-    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_mesh_width(NDIM),
-      d_current_time(0.0), d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3),
-      d_incremented_angle_from_reference_axis(3), d_tagged_pt_position(3), d_interp_coefs()
+    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
+      d_mesh_width(NDIM),
+      d_current_time(0.0),
+      d_kinematics_vel(NDIM),
+      d_shape(NDIM),
+      d_center_of_mass(3),
+      d_incremented_angle_from_reference_axis(3),
+      d_tagged_pt_position(3),
+      d_interp_coefs()
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -229,8 +233,8 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
 
         // Set the new state equal to current state.
         d_new_time = d_current_time;
-        setEelSpecificVelocity(d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass,
-                               d_tagged_pt_position);
+        setEelSpecificVelocity(
+            d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
         setShape(d_current_time, d_incremented_angle_from_reference_axis);
     }
 
@@ -240,14 +244,12 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
 
 IBEELKinematics3d::~IBEELKinematics3d()
 {
-
     return;
 
 } // ~IBEELKinematics3d
 
 void IBEELKinematics3d::putToDatabase(Pointer<Database> db)
 {
-
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
     db->putDoubleArray("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
@@ -259,7 +261,6 @@ void IBEELKinematics3d::putToDatabase(Pointer<Database> db)
 
 void IBEELKinematics3d::getFromRestart()
 {
-
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
@@ -269,7 +270,8 @@ void IBEELKinematics3d::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

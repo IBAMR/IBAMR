@@ -364,7 +364,8 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
                     "conservativeDifferenceOnPatch():"
                     "\n"
                     << "  unsupported differencing form: "
-                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
+                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
+                    << " \n"
                     << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
             }

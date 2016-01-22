@@ -462,7 +462,8 @@ void PenaltyIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("PENALTY_IB_METHOD_VERSION");
     if (ver != PENALTY_IB_METHOD_VERSION)

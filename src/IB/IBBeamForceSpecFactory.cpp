@@ -56,7 +56,6 @@ class IntVector;
 
 namespace IBAMR
 {
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBBeamForceSpec::Factory::Factory()

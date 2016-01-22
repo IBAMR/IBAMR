@@ -266,7 +266,10 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
           SIDEG,
           input_db,
           default_options_prefix),
-      d_coarse_solver(NULL), d_coarse_solver_db(), d_patch_bc_box_overlap(), d_patch_neighbor_overlap()
+      d_coarse_solver(NULL),
+      d_coarse_solver_db(),
+      d_patch_bc_box_overlap(),
+      d_patch_neighbor_overlap()
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
@@ -360,7 +363,8 @@ void SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -732,11 +736,11 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                        const SAMRAIVectorReal<NDIM, double>& rhs,
-                                                                        const int coarsest_reset_ln,
-                                                                        const int finest_reset_ln)
+void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs,
+    const int coarsest_reset_ln,
+    const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
     Pointer<SideVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
@@ -756,8 +760,12 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     {
         TBOX_ERROR("SCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
+                   << "  solution data depth = "
+                   << solution_pdat_fac->getDefaultDepth()
+                   << "\n"
+                   << "  rhs      data depth = "
+                   << rhs_pdat_fac->getDefaultDepth()
+                   << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

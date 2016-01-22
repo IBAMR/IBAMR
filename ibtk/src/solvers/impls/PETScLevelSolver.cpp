@@ -77,9 +77,18 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(), d_level_num(-1), d_use_ksp_as_smoother(false), d_ksp_type(KSPGMRES), d_shell_pc_type(""),
-      d_options_prefix(""), d_petsc_ksp(NULL), d_petsc_mat(NULL), d_petsc_pc(NULL), d_petsc_extern_mat(NULL),
-      d_petsc_x(NULL), d_petsc_b(NULL)
+    : d_hierarchy(),
+      d_level_num(-1),
+      d_use_ksp_as_smoother(false),
+      d_ksp_type(KSPGMRES),
+      d_shell_pc_type(""),
+      d_options_prefix(""),
+      d_petsc_ksp(NULL),
+      d_petsc_mat(NULL),
+      d_petsc_pc(NULL),
+      d_petsc_extern_mat(NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL)
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -106,7 +115,8 @@ PETScLevelSolver::~PETScLevelSolver()
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
-                                 << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
+                                 << "  subclass must call deallocateSolverState in subclass destructor"
+                                 << std::endl);
     }
 
     int ierr;
@@ -240,38 +250,44 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components" << std::endl);
+                                 << "  vectors must have the same number of components"
+                                 << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy" << std::endl);
+                                 << "  vectors must have the same hierarchy"
+                                 << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative" << std::endl);
+                                 << "  coarsest level number must not be negative"
+                                 << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number" << std::endl);
+                                 << "  vectors must have same coarsest level number"
+                                 << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number" << std::endl);
+                                 << "  finest level number must be >= coarsest level number"
+                                 << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number" << std::endl);
+                                 << "  vectors must have same finest level number"
+                                 << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -279,14 +295,18 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
+                                     << "  hierarchy level "
+                                     << ln
+                                     << " does not exist"
+                                     << std::endl);
         }
     }
 
     if (coarsest_ln != finest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest_ln != finest_ln in PETScLevelSolver" << std::endl);
+                                 << "  coarsest_ln != finest_ln in PETScLevelSolver"
+                                 << std::endl);
     }
 #endif
     // Deallocate the solver state if the solver is already initialized.
@@ -392,11 +412,19 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
         if (d_shell_pc_type == "additive")
         {
             d_no_subdomains = static_cast<int>(d_subdomain_row_is.size());
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_subdomains, &d_subdomain_row_is[0], &d_subdomain_row_is[0],
-                                     MAT_INITIAL_MATRIX, &d_subdomain_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_subdomains,
+                                     &d_subdomain_row_is[0],
+                                     &d_subdomain_row_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_subdomain_mat);
             IBTK_CHKERRQ(ierr);
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_subdomains, &d_subdomain_row_is[0], &d_subdomain_col_is[0],
-                                     MAT_INITIAL_MATRIX, &d_subdomain_bc_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_subdomains,
+                                     &d_subdomain_row_is[0],
+                                     &d_subdomain_col_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_subdomain_bc_mat);
             IBTK_CHKERRQ(ierr);
 
             // Set up subdomain KSPs
@@ -439,17 +467,33 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
             d_no_red_subdomains = static_cast<int>(d_red_subdomain_row_is.size());
             d_no_black_subdomains = static_cast<int>(d_black_subdomain_row_is.size());
 
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_red_subdomains, &d_red_subdomain_row_is[0],
-                                     &d_red_subdomain_row_is[0], MAT_INITIAL_MATRIX, &d_red_subdomain_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_red_subdomains,
+                                     &d_red_subdomain_row_is[0],
+                                     &d_red_subdomain_row_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_red_subdomain_mat);
             IBTK_CHKERRQ(ierr);
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_red_subdomains, &d_red_subdomain_row_is[0],
-                                     &d_red_subdomain_col_is[0], MAT_INITIAL_MATRIX, &d_red_subdomain_bc_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_red_subdomains,
+                                     &d_red_subdomain_row_is[0],
+                                     &d_red_subdomain_col_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_red_subdomain_bc_mat);
             IBTK_CHKERRQ(ierr);
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_black_subdomains, &d_black_subdomain_row_is[0],
-                                     &d_black_subdomain_row_is[0], MAT_INITIAL_MATRIX, &d_black_subdomain_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_black_subdomains,
+                                     &d_black_subdomain_row_is[0],
+                                     &d_black_subdomain_row_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_black_subdomain_mat);
             IBTK_CHKERRQ(ierr);
-            ierr = MatGetSubMatrices(d_petsc_mat, d_no_black_subdomains, &d_black_subdomain_row_is[0],
-                                     &d_black_subdomain_col_is[0], MAT_INITIAL_MATRIX, &d_black_subdomain_bc_mat);
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_no_black_subdomains,
+                                     &d_black_subdomain_row_is[0],
+                                     &d_black_subdomain_col_is[0],
+                                     MAT_INITIAL_MATRIX,
+                                     &d_black_subdomain_bc_mat);
             IBTK_CHKERRQ(ierr);
 
             // Set up red subdomain KSPs
@@ -516,7 +560,8 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
         {
             TBOX_ERROR(d_object_name << " " << d_options_prefix << " PETScLevelSolver::initializeSolverState()\n"
                                      << "Unknown PCSHELL specified. Supported PCSHELL types are additive and "
-                                        "multiplicative." << std::endl);
+                                        "multiplicative."
+                                     << std::endl);
         }
     }
 
@@ -677,7 +722,8 @@ void PETScLevelSolver::setupNullspace()
         ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
+                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
                               (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);

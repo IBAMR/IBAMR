@@ -98,8 +98,9 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     return;
 } // preprocessIntegrateHierarchy
 
-void
-IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+void IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
@@ -134,7 +135,11 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     // Spread the forces to the grid.  We use the "current" Lagrangian position
     // data to define the locations from where the forces are spread.
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op, finest_level_num,
+    l_data_manager->spread(d_f_idx,
+                           d_F_data,
+                           d_X_current_data,
+                           d_u_phys_bdry_op,
+                           finest_level_num,
                            getProlongRefineSchedules(d_object_name + "::f"),
                            /*F_needs_ghost_fill*/ true,
                            /*X_needs_ghost_fill*/ true);
@@ -164,9 +169,13 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    l_data_manager->interp(d_u_idx, d_U_data, d_X_current_data, finest_level_num,
+    l_data_manager->interp(d_u_idx,
+                           d_U_data,
+                           d_X_current_data,
+                           finest_level_num,
                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                           getGhostfillRefineSchedules(d_object_name + "::u"), current_time);
+                           getGhostfillRefineSchedules(d_object_name + "::u"),
+                           current_time);
     ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());
     IBTK_CHKERRQ(ierr);
     return;
@@ -177,8 +186,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
                                                                 const bool skip_synchronize_new_state_data,
                                                                 const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
@@ -196,8 +205,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         ins_num_cycles);
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Reset and deallocate IB data.
     //

@@ -88,14 +88,24 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
-                                                 Pointer<Database>
-                                                     input_db,
+                                                 Pointer<Database> input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
-    : d_ksp_type(KSPGMRES), d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL),
-      d_options_prefix(default_options_prefix), d_petsc_comm(petsc_comm), d_petsc_ksp(NULL), d_petsc_mat(NULL),
-      d_petsc_nullsp(NULL), d_managing_petsc_ksp(true), d_user_provided_mat(false), d_user_provided_pc(false),
-      d_nullspace_constant_vec(NULL), d_petsc_nullspace_constant_vec(NULL), d_petsc_nullspace_basis_vecs(),
+    : d_ksp_type(KSPGMRES),
+      d_reinitializing_solver(false),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
+      d_options_prefix(default_options_prefix),
+      d_petsc_comm(petsc_comm),
+      d_petsc_ksp(NULL),
+      d_petsc_mat(NULL),
+      d_petsc_nullsp(NULL),
+      d_managing_petsc_ksp(true),
+      d_user_provided_mat(false),
+      d_user_provided_pc(false),
+      d_nullspace_constant_vec(NULL),
+      d_petsc_nullspace_constant_vec(NULL),
+      d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
     // Setup default values.
@@ -127,10 +137,21 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
 } // PETScKrylovLinearSolver()
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp)
-    : d_ksp_type("none"), d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL), d_options_prefix(""),
-      d_petsc_comm(PETSC_COMM_WORLD), d_petsc_ksp(petsc_ksp), d_petsc_mat(NULL), d_petsc_nullsp(NULL),
-      d_managing_petsc_ksp(false), d_user_provided_mat(false), d_user_provided_pc(false),
-      d_nullspace_constant_vec(NULL), d_petsc_nullspace_constant_vec(NULL), d_petsc_nullspace_basis_vecs(),
+    : d_ksp_type("none"),
+      d_reinitializing_solver(false),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
+      d_options_prefix(""),
+      d_petsc_comm(PETSC_COMM_WORLD),
+      d_petsc_ksp(petsc_ksp),
+      d_petsc_mat(NULL),
+      d_petsc_nullsp(NULL),
+      d_managing_petsc_ksp(false),
+      d_user_provided_mat(false),
+      d_user_provided_pc(false),
+      d_nullspace_constant_vec(NULL),
+      d_petsc_nullspace_constant_vec(NULL),
+      d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
@@ -271,38 +292,44 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components" << std::endl);
+                                 << "  vectors must have the same number of components"
+                                 << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy" << std::endl);
+                                 << "  vectors must have the same hierarchy"
+                                 << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative" << std::endl);
+                                 << "  coarsest level number must not be negative"
+                                 << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number" << std::endl);
+                                 << "  vectors must have same coarsest level number"
+                                 << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number" << std::endl);
+                                 << "  finest level number must be >= coarsest level number"
+                                 << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number" << std::endl);
+                                 << "  vectors must have same finest level number"
+                                 << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -310,7 +337,10 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
+                                     << "  hierarchy level "
+                                     << ln
+                                     << " does not exist"
+                                     << std::endl);
         }
     }
 #endif
@@ -608,12 +638,12 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
-                              &d_petsc_mat);
+        ierr = MatCreateShell(
+            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT,
-                                reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
+    ierr = MatShellSetOperation(
+        d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
     IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
@@ -651,7 +681,9 @@ void PETScKrylovLinearSolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
+                                 << "  valid values for -"
+                                 << d_options_prefix
+                                 << "pc_type are: none, shell"
                                  << std::endl);
     }
 
@@ -727,8 +759,8 @@ void PETScKrylovLinearSolver::resetMatNullspace()
         }
 
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0],
-                                  &d_petsc_nullsp);
+        ierr = MatNullSpaceCreate(
+            d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0], &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
@@ -761,8 +793,9 @@ void PETScKrylovLinearSolver::deallocateNullspaceData()
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
         d_petsc_nullspace_constant_vec = NULL;
         d_nullspace_constant_vec->resetLevels(
-            0, std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
-                        d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
+            0,
+            std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
+                     d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
         d_nullspace_constant_vec.setNull();

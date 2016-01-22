@@ -677,7 +677,9 @@ int LEInteractor::getStencilSize(const std::string& kernel_fcn)
     if (kernel_fcn == "IB_6") return 6;
     if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
-               << "  Unknown kernel function " << kernel_fcn << std::endl);
+               << "  Unknown kernel function "
+               << kernel_fcn
+               << std::endl);
     return -1;
 }
 
@@ -2419,10 +2421,18 @@ void LEInteractor::interpolate(double* const Q_data,
     if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
-                   << "  kernel function          = " << interp_fcn << "\n"
-                   << "  kernel stencil size      = " << stencil_size << "\n"
-                   << "  minimum ghost cell width = " << min_ghosts << "\n"
-                   << "  ghost cell width         = " << q_gcw_min << "\n");
+                   << "  kernel function          = "
+                   << interp_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
     }
     if (local_indices.empty()) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
@@ -2704,7 +2714,9 @@ void LEInteractor::interpolate(double* const Q_data,
     else
     {
         TBOX_ERROR("LEInteractor::interpolate()\n"
-                   << "  Unknown interpolation kernel function " << interp_fcn << std::endl);
+                   << "  Unknown interpolation kernel function "
+                   << interp_fcn
+                   << std::endl);
     }
     return;
 }
@@ -2738,10 +2750,18 @@ void LEInteractor::spread(double* const q_data,
     if (patch_touches_physical_bdry && q_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells at physical boundary:"
-                   << "  kernel function          = " << spread_fcn << "\n"
-                   << "  kernel stencil size      = " << stencil_size << "\n"
-                   << "  minimum ghost cell width = " << min_ghosts << "\n"
-                   << "  ghost cell width         = " << q_gcw_min << "\n");
+                   << "  kernel function          = "
+                   << spread_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
     }
     if (local_indices.empty()) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
@@ -3023,7 +3043,9 @@ void LEInteractor::spread(double* const q_data,
     else
     {
         TBOX_ERROR("LEInteractor::spread()\n"
-                   << "  Unknown spreading kernel function " << spread_fcn << std::endl);
+                   << "  Unknown spreading kernel function "
+                   << spread_fcn
+                   << std::endl);
     }
     return;
 }

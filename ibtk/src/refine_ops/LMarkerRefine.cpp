@@ -149,7 +149,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
                 Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
-                
+
                 // Catch edge cases in which roundoff error can cause problems.
                 //
                 // NOTE: This can permit markers to "escape" out the "top" of the domain if
@@ -170,7 +170,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                         fine_i(d) = fine_patch_upper(d) + 1;
                     }
                 }
-                
+
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))

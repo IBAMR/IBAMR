@@ -160,7 +160,8 @@ void GeneralizedIBMethod::registerEulerianVariables()
     else
     {
         TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
     registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
@@ -305,7 +306,8 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
@@ -572,21 +574,22 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::spreadForce():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
 } // spreadForce
 
-void
-GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                              int u_data_idx,
-                                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                              int integrator_step,
-                                              double init_data_time,
-                                              bool initial_time)
+void GeneralizedIBMethod::initializePatchHierarchy(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+    int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    int integrator_step,
+    double init_data_time,
+    bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
@@ -631,7 +634,8 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         else
         {
             TBOX_ERROR(d_object_name << "::initializePatchHierarchy():\n"
-                                     << "  unsupported velocity data centering" << std::endl);
+                                     << "  unsupported velocity data centering"
+                                     << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
         d_l_data_manager->interp(d_w_idx,
@@ -732,7 +736,8 @@ void GeneralizedIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("GENERALIZED_IB_METHOD_VERSION");
     if (ver != GENERALIZED_IB_METHOD_VERSION)

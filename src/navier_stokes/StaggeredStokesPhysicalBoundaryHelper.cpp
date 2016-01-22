@@ -243,12 +243,12 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     return;
 }// enforceDivergenceFreeConditionAtBoundary
 #endif
-void
-StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                                          RobinBcCoefStrategy<NDIM>* p_bc_coef,
-                                                          int u_target_data_idx,
-                                                          int p_target_data_idx,
-                                                          bool homogeneous_bc)
+void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    RobinBcCoefStrategy<NDIM>* p_bc_coef,
+    int u_target_data_idx,
+    int p_target_data_idx,
+    bool homogeneous_bc)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
@@ -283,9 +283,9 @@ StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<Robi
     return;
 } // setupBcCoefObjects
 
-void
-StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                                          RobinBcCoefStrategy<NDIM>* p_bc_coef)
+void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);

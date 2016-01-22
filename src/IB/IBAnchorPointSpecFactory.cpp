@@ -52,7 +52,6 @@ class IntVector;
 
 namespace IBAMR
 {
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBAnchorPointSpec::Factory::Factory()

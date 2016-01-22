@@ -72,8 +72,11 @@ namespace IBTK
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const int src_patch_data_idx)
-    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(1, src_patch_data_idx),
-      d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc),
+      d_patch_level(patch_level),
+      d_src_patch_data_idxs(1, src_patch_data_idx),
+      d_root_patch_data(),
+      d_schedule()
 {
     commonClassCtor();
     return;
@@ -82,8 +85,11 @@ CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const std::vector<int>& src_patch_data_idxs)
-    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(src_patch_data_idxs),
-      d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc),
+      d_patch_level(patch_level),
+      d_src_patch_data_idxs(src_patch_data_idxs),
+      d_root_patch_data(),
+      d_schedule()
 {
     commonClassCtor();
     return;

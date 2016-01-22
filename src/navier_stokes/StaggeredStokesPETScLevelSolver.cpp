@@ -84,9 +84,17 @@ static const int NOGHOST = 0;
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
                                                                  Pointer<Database> input_db,
                                                                  const std::string& default_options_prefix)
-    : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1), d_u_nullspace_idx(-1), d_p_nullspace_idx(-1),
-      d_u_dof_index_var(NULL), d_u_nullspace_var(NULL), d_p_dof_index_var(NULL), d_p_nullspace_var(NULL),
-      d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
+    : d_context(NULL),
+      d_u_dof_index_idx(-1),
+      d_p_dof_index_idx(-1),
+      d_u_nullspace_idx(-1),
+      d_p_nullspace_idx(-1),
+      d_u_dof_index_var(NULL),
+      d_u_nullspace_var(NULL),
+      d_p_dof_index_var(NULL),
+      d_p_nullspace_var(NULL),
+      d_data_synch_sched(NULL),
+      d_ghost_fill_sched(NULL)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
@@ -151,17 +159,22 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
 
     // Setup PETSc objects.
     int ierr;
-    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_u_dof_index_idx,
-                                                                    d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+        d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
     // Set KSP Mat, PC, and Vecs.
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs,
-                                                                     d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx,
-                                                                     d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                     d_U_problem_coefs,
+                                                                     d_U_bc_coefs,
+                                                                     d_new_time,
+                                                                     d_num_dofs_per_proc,
+                                                                     d_u_dof_index_idx,
+                                                                     d_p_dof_index_idx,
+                                                                     d_level);
     if (d_petsc_extern_mat)
     {
         ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_extern_mat, DIFFERENT_NONZERO_PATTERN);
@@ -170,19 +183,37 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     d_petsc_pc = d_petsc_mat;
 
     // Subdomains for ASM and MSM preconditioner
-    StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
-        d_overlap_is, d_nonoverlap_is, d_box_size, d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx,
-        d_p_dof_index_idx, d_level, d_cf_boundary);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_subdomain_row_is, d_subdomain_col_is,
-                                                                       d_box_size, d_overlap_size, d_num_dofs_per_proc,
-                                                                       d_u_dof_index_idx, d_p_dof_index_idx, d_level);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(
-        d_red_subdomain_row_is, d_red_subdomain_col_is, d_black_subdomain_row_is, d_black_subdomain_col_is, d_box_size,
-        d_overlap_size, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
+                                                                       d_nonoverlap_is,
+                                                                       d_box_size,
+                                                                       d_overlap_size,
+                                                                       d_num_dofs_per_proc,
+                                                                       d_u_dof_index_idx,
+                                                                       d_p_dof_index_idx,
+                                                                       d_level,
+                                                                       d_cf_boundary);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_subdomain_row_is,
+                                                                       d_subdomain_col_is,
+                                                                       d_box_size,
+                                                                       d_overlap_size,
+                                                                       d_num_dofs_per_proc,
+                                                                       d_u_dof_index_idx,
+                                                                       d_p_dof_index_idx,
+                                                                       d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_red_subdomain_row_is,
+                                                                       d_red_subdomain_col_is,
+                                                                       d_black_subdomain_row_is,
+                                                                       d_black_subdomain_col_is,
+                                                                       d_box_size,
+                                                                       d_overlap_size,
+                                                                       d_num_dofs_per_proc,
+                                                                       d_u_dof_index_idx,
+                                                                       d_p_dof_index_idx,
+                                                                       d_level);
 
     // Set IS'es for field split preconditioner.
-    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(d_field_is, d_field_name, d_num_dofs_per_proc,
-                                                                d_u_dof_index_idx, d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
+        d_field_is, d_field_name, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
@@ -245,8 +276,8 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorR
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx,
-                                                          d_level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, d_level);
     return;
 } // copyToPETScVec
 
@@ -254,8 +285,8 @@ void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVecto
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx,
-                                                            d_level, d_data_synch_sched, d_ghost_fill_sched);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
+        petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, d_level, d_data_synch_sched, d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
 
@@ -290,14 +321,14 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         h_adj_data->copy(*h_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         // TODO: should we be using target data idx's here?
-        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx,
-                                                                  d_homogeneous_bc);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+            d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx, d_homogeneous_bc);
         if (at_physical_bdry)
         {
-            PoissonUtilities::adjustRHSAtPhysicalBoundary(*f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs,
-                                                          d_solution_time, d_homogeneous_bc);
-            d_bc_helper->enforceNormalVelocityBoundaryConditions(f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time,
-                                                                 d_homogeneous_bc, d_level_num, d_level_num);
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(
+                f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
@@ -305,13 +336,13 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            PoissonUtilities::adjustRHSAtCoarseFineBoundary(*f_adj_data, *u_data, patch, d_U_problem_coefs,
-                                                            type_1_cf_bdry);
+            PoissonUtilities::adjustRHSAtCoarseFineBoundary(
+                *f_adj_data, *u_data, patch, d_U_problem_coefs, type_1_cf_bdry);
         }
     }
 
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx,
-                                                          d_p_dof_index_idx, d_level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
 
     d_level->deallocatePatchData(f_adj_idx);
     d_level->deallocatePatchData(h_adj_idx);

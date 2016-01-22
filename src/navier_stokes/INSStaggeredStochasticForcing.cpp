@@ -181,16 +181,27 @@ void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(object_name), d_fluid_solver(fluid_solver), d_stress_tensor_type(UNCORRELATED),
-      d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
-      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0), d_traction_bc_scaling(0.0), d_context(NULL), d_W_cc_var(NULL),
-      d_W_cc_idx(-1), d_W_cc_idxs(),
+    : d_object_name(object_name),
+      d_fluid_solver(fluid_solver),
+      d_stress_tensor_type(UNCORRELATED),
+      d_std(std::numeric_limits<double>::quiet_NaN()),
+      d_num_rand_vals(0),
+      d_weights(),
+      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0),
+      d_traction_bc_scaling(0.0),
+      d_context(NULL),
+      d_W_cc_var(NULL),
+      d_W_cc_idx(-1),
+      d_W_cc_idxs(),
 #if (NDIM == 2)
-      d_W_nc_var(NULL), d_W_nc_idx(-1), d_W_nc_idxs()
+      d_W_nc_var(NULL),
+      d_W_nc_idx(-1),
+      d_W_nc_idxs()
 #endif
 #if (NDIM == 3)
-                                            d_W_ec_var(NULL),
-      d_W_ec_idx(-1), d_W_ec_idxs()
+          d_W_ec_var(NULL),
+      d_W_ec_idx(-1),
+      d_W_ec_idxs()
 #endif
 {
     if (input_db)
@@ -432,7 +443,8 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 {
                     TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                              << "  unrecognized stress tensor type: "
-                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type) << "."
+                                             << enum_to_string<StochasticStressTensorType>(d_stress_tensor_type)
+                                             << "."
                                              << std::endl);
                 }
 

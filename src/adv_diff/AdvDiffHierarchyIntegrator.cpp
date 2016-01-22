@@ -178,8 +178,8 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 } // ~AdvDiffHierarchyIntegrator
 
-void
-AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(TimeSteppingType default_diffusion_time_stepping_type)
+void AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(
+    TimeSteppingType default_diffusion_time_stepping_type)
 {
     d_default_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
     return;
@@ -804,17 +804,46 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object_name,
                                                        Pointer<Database> input_db,
                                                        bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart), d_integrator_is_initialized(false),
-      d_cfl_max(0.5), d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
-      d_default_convective_difference_form(CONSERVATIVE), d_u_var(), d_u_is_div_free(), d_u_fcn(), d_F_var(), d_F_fcn(),
-      d_diffusion_coef_var(), d_diffusion_coef_rhs_var(), d_diffusion_coef_fcn(), d_diffusion_coef_rhs_map(), d_Q_var(),
-      d_Q_rhs_var(), d_Q_u_map(), d_Q_F_map(), d_Q_Q_rhs_map(), d_Q_difference_form(), d_Q_diffusion_coef(),
-      d_Q_diffusion_coef_variable(), d_Q_is_diffusion_coef_variable(), d_Q_damping_coef(), d_Q_init(), d_Q_bc_coef(),
-      d_hier_cc_data_ops(NULL), d_hier_sc_data_ops(NULL), d_sol_vecs(), d_rhs_vecs(),
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_integrator_is_initialized(false),
+      d_cfl_max(0.5),
+      d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
+      d_default_convective_difference_form(CONSERVATIVE),
+      d_u_var(),
+      d_u_is_div_free(),
+      d_u_fcn(),
+      d_F_var(),
+      d_F_fcn(),
+      d_diffusion_coef_var(),
+      d_diffusion_coef_rhs_var(),
+      d_diffusion_coef_fcn(),
+      d_diffusion_coef_rhs_map(),
+      d_Q_var(),
+      d_Q_rhs_var(),
+      d_Q_u_map(),
+      d_Q_F_map(),
+      d_Q_Q_rhs_map(),
+      d_Q_difference_form(),
+      d_Q_diffusion_coef(),
+      d_Q_diffusion_coef_variable(),
+      d_Q_is_diffusion_coef_variable(),
+      d_Q_damping_coef(),
+      d_Q_init(),
+      d_Q_bc_coef(),
+      d_hier_cc_data_ops(NULL),
+      d_hier_sc_data_ops(NULL),
+      d_sol_vecs(),
+      d_rhs_vecs(),
       d_helmholtz_solver_type(CCPoissonSolverManager::UNDEFINED),
-      d_helmholtz_precond_type(CCPoissonSolverManager::UNDEFINED), d_helmholtz_solver_db(), d_helmholtz_precond_db(),
-      d_helmholtz_solvers(), d_helmholtz_rhs_ops(), d_helmholtz_solvers_need_init(), d_helmholtz_rhs_ops_need_init(),
-      d_coarsest_reset_ln(-1), d_finest_reset_ln(-1)
+      d_helmholtz_precond_type(CCPoissonSolverManager::UNDEFINED),
+      d_helmholtz_solver_db(),
+      d_helmholtz_precond_db(),
+      d_helmholtz_solvers(),
+      d_helmholtz_rhs_ops(),
+      d_helmholtz_solvers_need_init(),
+      d_helmholtz_rhs_ops_need_init(),
+      d_coarsest_reset_ln(-1),
+      d_finest_reset_ln(-1)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -1150,7 +1179,8 @@ void AdvDiffHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION)

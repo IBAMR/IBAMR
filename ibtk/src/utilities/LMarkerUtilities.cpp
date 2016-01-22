@@ -155,7 +155,8 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                 TBOX_ERROR(
                     "LMarkerUtilities::readMarkerPositions():\n  Premature end to input file "
                     "encountered before line 1 of file "
-                    << mark_input_file_name << "\n");
+                    << mark_input_file_name
+                    << "\n");
             }
             else
             {
@@ -167,7 +168,8 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                         "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in input "
                         "file "
                         "encountered on line 1 of file "
-                        << mark_input_file_name << "\n");
+                        << mark_input_file_name
+                        << "\n");
                 }
             }
 
@@ -176,7 +178,8 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                 TBOX_ERROR(
                     "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in input file "
                     "encountered on line 1 of file "
-                    << mark_input_file_name << "\n");
+                    << mark_input_file_name
+                    << "\n");
             }
 
             // Each successive line provides the initial position of each
@@ -190,7 +193,10 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                         "LMarkerUtilities::readMarkerPositions():\n  Premature end to input "
                         "file "
                         "encountered before line "
-                        << k + 2 << " of file " << mark_input_file_name << "\n");
+                        << k + 2
+                        << " of file "
+                        << mark_input_file_name
+                        << "\n");
                 }
                 else
                 {
@@ -203,7 +209,10 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                             TBOX_ERROR(
                                 "LMarkerUtilities::readMarkerPositions():\n  Invalid entry in "
                                 "input file encountered on line "
-                                << k + 2 << " of file " << mark_input_file_name << "\n");
+                                << k + 2
+                                << " of file "
+                                << mark_input_file_name
+                                << "\n");
                         }
                     }
 
@@ -219,14 +228,16 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                                           "boundary.\n"
                                        << "  please ensure that all markers are within the "
                                           "computational "
-                                          "domain." << std::endl);
+                                          "domain."
+                                       << std::endl);
                         }
                         else if (X[d] <= grid_xLower[d])
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker below lower physical boundary\n"
                                        << "  please ensure that all markers are within the "
-                                          "computational domain." << std::endl);
+                                          "computational domain."
+                                       << std::endl);
                         }
 
                         if (MathUtilities<double>::equalEps(X[d], grid_xUpper[d]))
@@ -236,14 +247,16 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                                           "boundary.\n"
                                        << "  please ensure that all markers are within the "
                                           "computational "
-                                          "domain." << std::endl);
+                                          "domain."
+                                       << std::endl);
                         }
                         else if (X[d] >= grid_xUpper[d])
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker above upper physical boundary\n"
                                        << "  please ensure that all markers are within the "
-                                          "computational domain." << std::endl);
+                                          "computational domain."
+                                       << std::endl);
                         }
                     }
                 }
@@ -531,13 +544,17 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during collection to coarsest level\n"
                    << "  number of markers in hierarchy before collection to coarsest level = "
-                   << num_marks_before_coarsening << "\n"
+                   << num_marks_before_coarsening
+                   << "\n"
                    << "  number of markers on level 0   before collection to coarsest level = "
-                   << num_marks_before_coarsening_level_0 << "\n"
+                   << num_marks_before_coarsening_level_0
+                   << "\n"
                    << "  number of markers in hierarchy after  collection to coarsest level = "
-                   << num_marks_after_coarsening << "\n"
+                   << num_marks_after_coarsening
+                   << "\n"
                    << "  number of markers on level 0   after  collection to coarsest level = "
-                   << num_marks_after_coarsening_level_0 << "\n");
+                   << num_marks_after_coarsening_level_0
+                   << "\n");
     }
 
     // Reset the assignment of markers to Cartesian grid cells on the coarsest
@@ -608,11 +625,14 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
                    << "  number of marker particles changed during position reset on coarsest level\n"
                    << "  number of markers in hierarchy before position reset on coarsest level = "
-                   << num_marks_before_coarsening << "\n"
+                   << num_marks_before_coarsening
+                   << "\n"
                    << "  number of markers in hierarchy after  position reset on coarsest level = "
-                   << num_marks_after_posn_reset << "\n"
+                   << num_marks_after_posn_reset
+                   << "\n"
                    << "  number of markers on level 0   after  position reset on coarsest level = "
-                   << num_marks_after_posn_reset_level_0 << "\n");
+                   << num_marks_after_posn_reset_level_0
+                   << "\n");
     }
     return;
 } // collectMarkersOnPatchHierarchy

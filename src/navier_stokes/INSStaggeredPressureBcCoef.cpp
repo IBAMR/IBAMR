@@ -333,7 +333,8 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& a
                 TBOX_ERROR(
                     "INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
                     "traction boundary condition type: "
-                    << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
+                    << enum_to_string<TractionBcType>(d_traction_bc_type)
+                    << "\n");
             }
             }
         }

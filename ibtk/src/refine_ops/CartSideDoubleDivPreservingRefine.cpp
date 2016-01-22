@@ -109,8 +109,13 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u
                                                                      Pointer<CoarsenOperator<NDIM> > coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategy<NDIM>* const phys_bdry_op)
-    : d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx), d_fill_time(fill_time),
-      d_phys_bdry_op(phys_bdry_op), d_refine_op(refine_op), d_coarsen_op(coarsen_op)
+    : d_u_dst_idx(u_dst_idx),
+      d_u_src_idx(u_src_idx),
+      d_indicator_idx(indicator_idx),
+      d_fill_time(fill_time),
+      d_phys_bdry_op(phys_bdry_op),
+      d_refine_op(refine_op),
+      d_coarsen_op(coarsen_op)
 {
     // intentionally blank
     return;
@@ -165,7 +170,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
         {
             TBOX_ERROR("CartSideDoubleDivPreservingRefine::postprocessRefine():\n"
                        << "  refinement ratio must be a power of 2 for divergence- and "
-                          "curl-preserving refinement operator." << std::endl);
+                          "curl-preserving refinement operator."
+                       << std::endl);
         }
     }
 #endif

@@ -123,7 +123,9 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyToPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     return;
 } // copyToPatchLevelVec
@@ -172,7 +174,9 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     if (ghost_fill_sched)
     {
@@ -211,7 +215,9 @@ Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructDataSynchSchedule(con
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
@@ -244,7 +250,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
-                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << dof_index_var->getName()
+                   << "\n");
     }
     return;
 } // constructPatchLevelDOFIndices
@@ -271,7 +279,9 @@ void PETScVecUtilities::constructPatchLevelAO(AO& ao,
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelAO():\n"
-                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << dof_index_var->getName()
+                   << "\n");
     }
 
 } // constructPatchLevelAO

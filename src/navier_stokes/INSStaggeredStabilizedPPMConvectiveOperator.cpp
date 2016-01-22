@@ -484,16 +484,24 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_width(array_constant<double, 2 * NDIM>(0.0)), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_width(array_constant<double, 2 * NDIM>(0.0)),
+      d_bc_coefs(bc_coefs),
+      d_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR(
             "INSStaggeredStabilizedPPMConvectiveOperator::"
             "INSStaggeredStabilizedPPMConvectiveOperator():\n"
-            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << "  unsupported differencing form: "
+            << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
             << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
@@ -862,7 +870,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             "INSStaggeredStabilizedConvectiveOperator::"
                             "applyConvectiveOperator():\n"
                             << "  unsupported differencing form: "
-                            << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                            << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                            << " \n"
                             << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
                                "SKEW_SYMMETRIC\n");
                     }
@@ -1161,7 +1170,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                         "INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator("
                         "):\n"
                         << "  unsupported differencing form: "
-                        << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                        << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                        << " \n"
                         << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
                 }
             }

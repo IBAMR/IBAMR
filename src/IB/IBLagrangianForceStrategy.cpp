@@ -104,7 +104,8 @@ void IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/
                                                        LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForce():\n"
-               << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
+               << "  not implemented for this IBLagrangianForceStrategy."
+               << std::endl);
     return;
 } // computeLagrangianForce
 
@@ -116,7 +117,8 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
-               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
+               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy."
+               << std::endl);
     return;
 } // computeLagrangianForceJacobianNonzeroStructure
 
@@ -132,7 +134,8 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                                LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobian():\n"
-               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
+               << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy."
+               << std::endl);
     return;
 } // computeLagrangianForceJacobian
 
@@ -145,7 +148,8 @@ double IBLagrangianForceStrategy::computeLagrangianEnergy(Pointer<LData> /*X_dat
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianEnergy():\n"
                << "  potential energy functionality not implemented for this "
-                  "IBLagrangianForceStrategy." << std::endl);
+                  "IBLagrangianForceStrategy."
+               << std::endl);
     return 0.0;
 } // computeLagrangianEnergy
 

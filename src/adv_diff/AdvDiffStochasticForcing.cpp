@@ -104,10 +104,23 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(object_name), d_C_var(C_var), d_f_parser(), d_adv_diff_solver(adv_diff_solver),
-      d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
-      d_dirichlet_bc_scaling(sqrt(2.0)), d_neumann_bc_scaling(0.0), d_context(NULL), d_C_cc_var(NULL),
-      d_C_current_cc_idx(-1), d_C_half_cc_idx(-1), d_C_new_cc_idx(-1), d_F_sc_var(NULL), d_F_sc_idx(-1), d_F_sc_idxs()
+    : d_object_name(object_name),
+      d_C_var(C_var),
+      d_f_parser(),
+      d_adv_diff_solver(adv_diff_solver),
+      d_std(std::numeric_limits<double>::quiet_NaN()),
+      d_num_rand_vals(0),
+      d_weights(),
+      d_dirichlet_bc_scaling(sqrt(2.0)),
+      d_neumann_bc_scaling(0.0),
+      d_context(NULL),
+      d_C_cc_var(NULL),
+      d_C_current_cc_idx(-1),
+      d_C_half_cc_idx(-1),
+      d_C_new_cc_idx(-1),
+      d_F_sc_var(NULL),
+      d_F_sc_idx(-1),
+      d_F_sc_idxs()
 {
     std::string f_expression = "1.0";
     if (input_db)
@@ -250,7 +263,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         default:
             TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                      << "  unsupported default convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
 
@@ -448,7 +462,8 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                     f = std::numeric_limits<double>::quiet_NaN();
                     TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                                              << "  unsupported default convective time stepping type: "
-                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
+                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                                             << " \n"
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }

@@ -284,9 +284,17 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
     if (dt < dt_min || dt > dt_max)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << "\n"
-                                 << "  minimum time step size = " << dt_min << "\n"
-                                 << "  maximum time step size = " << dt_max << "\n");
+                                 << "  at time = "
+                                 << d_integrator_time
+                                 << ": time step size dt = "
+                                 << dt
+                                 << "\n"
+                                 << "  minimum time step size = "
+                                 << dt_min
+                                 << "\n"
+                                 << "  maximum time step size = "
+                                 << dt_max
+                                 << "\n");
     }
 
     if (d_integrator_time + dt > d_end_time)
@@ -299,17 +307,28 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
     if (dt < 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << ".\n");
+                                 << "  at time = "
+                                 << d_integrator_time
+                                 << ": time step size dt = "
+                                 << dt
+                                 << ".\n");
     }
     else if (dt == 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << ".\n");
+                                 << "  at time = "
+                                 << d_integrator_time
+                                 << ": time step size dt = "
+                                 << dt
+                                 << ".\n");
     }
     else if (current_time == new_time || MathUtilities<double>::equalEps(current_time, new_time))
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt
+                                 << "  at time = "
+                                 << d_integrator_time
+                                 << ": time step size dt = "
+                                 << dt
                                  << " is zero to machine precision.\n");
     }
     if (d_enable_logging)
@@ -457,7 +476,9 @@ void HierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "."
+                                 << "  unrecognized regrid mode: "
+                                 << enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "."
                                  << std::endl);
     }
 
@@ -620,9 +641,9 @@ void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_tim
     return;
 } // postprocessIntegrateHierarchy
 
-void
-HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                  void* ctx)
+void HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(
+    PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -636,9 +657,9 @@ void HierarchyIntegrator::registerIntegrateHierarchyCallback(IntegrateHierarchyC
     return;
 } // registerIntegrateHierarchyCallback
 
-void
-HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                   void* ctx)
+void HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
+    PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -700,11 +721,9 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
         RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(),
                                                                     fill_after_regrid_prolong_patch_strategies.end(),
                                                                     false);
-        d_fill_after_regrid_prolong_alg.createSchedule(level,
-                                                       old_level,
-                                                       level_number - 1,
-                                                       hierarchy,
-                                                       &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
+        d_fill_after_regrid_prolong_alg
+            .createSchedule(level, old_level, level_number - 1, hierarchy, &fill_after_regrid_patch_strategy_set)
+            ->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
     }
 
@@ -921,8 +940,10 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
     return true;
 } // isAllocatedPatchData
 
-void
-HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_time, int coarsest_ln, int finest_ln) const
+void HierarchyIntegrator::allocatePatchData(const int data_idx,
+                                            const double data_time,
+                                            int coarsest_ln,
+                                            int finest_ln) const
 {
     if (data_idx < 0) return;
     if (coarsest_ln == -1) coarsest_ln = 0;
@@ -1300,10 +1321,17 @@ void HierarchyIntegrator::registerVariable(int& idx,
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"
-                                 << "  unrecognized variable context: " << ctx->getName() << "\n"
+                                 << "  unrecognized variable context: "
+                                 << ctx->getName()
+                                 << "\n"
                                  << "  variable context should be one of:\n"
-                                 << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName()
-                                 << ", or " << getScratchContext()->getName() << std::endl);
+                                 << "    "
+                                 << getCurrentContext()->getName()
+                                 << ", "
+                                 << getNewContext()->getName()
+                                 << ", or "
+                                 << getScratchContext()->getName()
+                                 << std::endl);
     }
     return;
 } // registerVariable
@@ -1491,7 +1519,8 @@ void HierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("HIERARCHY_INTEGRATOR_VERSION");
     if (ver != HIERARCHY_INTEGRATOR_VERSION)

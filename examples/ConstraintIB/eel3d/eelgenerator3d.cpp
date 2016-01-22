@@ -101,7 +101,6 @@ double yPosition(double s, void* params)
 
 int main()
 {
-
     const double Lx = 8;
     const double Ly = 4;
     const double Lz = 1;

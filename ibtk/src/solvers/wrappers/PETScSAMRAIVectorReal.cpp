@@ -168,7 +168,10 @@ PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
+                   << "  vector norm type "
+                   << static_cast<int>(type)
+                   << " unsupported"
+                   << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm);
     PetscFunctionReturn(0);
@@ -572,7 +575,10 @@ PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
+                   << "  vector norm type "
+                   << static_cast<int>(type)
+                   << " unsupported"
+                   << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm_local);
     PetscFunctionReturn(0);
@@ -789,9 +795,10 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
 #endif
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {
-        PSVR_CAST2(v)->resetLevels(0,
-                                   std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
-                                            PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
+        PSVR_CAST2(v)
+            ->resetLevels(0,
+                          std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
+                                   PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
         PSVR_CAST2(v)->deallocateVectorData();
         PSVR_CAST2(v)->freeVectorComponents();
         PSVR_CAST2(v).setNull();

@@ -66,9 +66,11 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width,
                                                    const bool include_dst_patch_box,
                                                    const bool include_edges_on_dst_level,
                                                    const bool include_edges_on_src_level)
-    : d_stencil_width(stencil_width), d_include_dst_patch_box(include_dst_patch_box),
+    : d_stencil_width(stencil_width),
+      d_include_dst_patch_box(include_dst_patch_box),
       d_include_edges_on_dst_level(include_edges_on_dst_level),
-      d_include_edges_on_src_level(include_edges_on_src_level), d_target_level_num(-1)
+      d_include_edges_on_src_level(include_edges_on_src_level),
+      d_target_level_num(-1)
 {
     // intentionally blank
     return;

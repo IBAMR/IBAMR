@@ -247,13 +247,37 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(), d_u_is_div_free(), d_u_fcn(),
-      d_compute_init_velocity(true), d_compute_half_velocity(true), d_compute_final_velocity(true), d_F_var(),
-      d_F_fcn(), d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(), d_Q_init(), d_Q_bc_coef(),
-      d_overwrite_tags(true), d_object_name(object_name), d_registered_for_restart(register_for_restart),
-      d_grid_geometry(grid_geom), d_visit_writer(NULL), d_extrap_bc_helper(), d_extrap_type("CONSTANT"),
-      d_refinement_criteria(), d_dev_tol(), d_dev(), d_dev_time_max(), d_dev_time_min(), d_grad_tol(),
-      d_grad_time_max(), d_grad_time_min()
+    : d_integrator(NULL),
+      d_explicit_predictor(explicit_predictor),
+      d_u_var(),
+      d_u_is_div_free(),
+      d_u_fcn(),
+      d_compute_init_velocity(true),
+      d_compute_half_velocity(true),
+      d_compute_final_velocity(true),
+      d_F_var(),
+      d_F_fcn(),
+      d_Q_var(),
+      d_Q_u_map(),
+      d_Q_F_map(),
+      d_Q_difference_form(),
+      d_Q_init(),
+      d_Q_bc_coef(),
+      d_overwrite_tags(true),
+      d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_grid_geometry(grid_geom),
+      d_visit_writer(NULL),
+      d_extrap_bc_helper(),
+      d_extrap_type("CONSTANT"),
+      d_refinement_criteria(),
+      d_dev_tol(),
+      d_dev(),
+      d_dev_time_max(),
+      d_dev_time_min(),
+      d_grad_tol(),
+      d_grad_time_max(),
+      d_grad_time_min()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -321,9 +345,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDiverge
     return;
 } // setAdvectionVelocityIsDivergenceFree
 
-void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(Pointer<FaceVariable<NDIM, double> > u_var,
-                                                                           Pointer<CartGridFunction> u_fcn)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
+    Pointer<FaceVariable<NDIM, double> > u_var,
+    Pointer<CartGridFunction> u_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -371,8 +395,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(Pointer
     return;
 } // setSourceTermFunction
 
-void
-AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
+    Pointer<CellVariable<NDIM, double> > Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
@@ -884,7 +908,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
                 "AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch()"
                 ":\n"
                 << "  unsupported differencing form: "
-                << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
+                << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
+                << " \n"
                 << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
         }
         }
@@ -993,12 +1018,12 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     return;
 } // postprocessAdvanceLevelState
 
-void
-AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch<NDIM>& patch,
-                                                                       const double regrid_time,
-                                                                       const bool /*initial_error*/,
-                                                                       const int tag_indx,
-                                                                       const bool /*uses_richardson_extrapolation_too*/)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
+    Patch<NDIM>& patch,
+    const double regrid_time,
+    const bool /*initial_error*/,
+    const int tag_indx,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     const int error_level_number = patch.getPatchLevelNumber();
 
@@ -1158,10 +1183,10 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch<NDI
     return;
 } // tagGradientDetectorCells
 
-void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                                            const double fill_time,
-                                                                            const IntVector<NDIM>& ghost_width_to_fill)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions(
+    Patch<NDIM>& patch,
+    const double fill_time,
+    const IntVector<NDIM>& ghost_width_to_fill)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1412,8 +1437,11 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
         TBOX_ERROR("AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     if (db->keyExists("Refinement_data"))
@@ -1447,7 +1475,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
                 if (!(error_key == "QVAL_DEVIATION" || error_key == "QVAL_GRADIENT"))
                 {
                     TBOX_ERROR(d_object_name << ":\n"
-                                             << "  Unknown refinement criteria: " << error_key << "\nin input.\n");
+                                             << "  Unknown refinement criteria: "
+                                             << error_key
+                                             << "\nin input.\n");
                 }
                 else
                 {
@@ -1465,7 +1495,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `dev_tol' found in data for " << error_key << "\n");
+                                                 << "  No key `dev_tol' found in data for "
+                                                 << error_key
+                                                 << "\n");
                     }
 
                     if (error_db->keyExists("qval_dev"))
@@ -1475,7 +1507,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `qval_dev' found in data for " << error_key << "\n");
+                                                 << "  No key `qval_dev' found in data for "
+                                                 << error_key
+                                                 << "\n");
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -1508,7 +1542,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
                     else
                     {
                         TBOX_ERROR(d_object_name << ":\n"
-                                                 << "  No key `grad_tol' found in data for " << error_key << "\n");
+                                                 << "  No key `grad_tol' found in data for "
+                                                 << error_key
+                                                 << "\n");
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -1552,7 +1588,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
             {
                 TBOX_ERROR(d_object_name << ":\n"
                                          << "  No input found for specified refine criteria: "
-                                         << d_refinement_criteria[k0] << "\n");
+                                         << d_refinement_criteria[k0]
+                                         << "\n");
             }
         }
     } // refine db entry exists
@@ -1572,7 +1609,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  "
-                                 << "Restart database corresponding to " << d_object_name
+                                 << "Restart database corresponding to "
+                                 << d_object_name
                                  << " not found in restart file.");
     }
 

@@ -111,10 +111,23 @@ static Timer* t_fill_data_set_physical_bcs;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
-    : d_is_initialized(false), d_homogeneous_bc(false), d_transaction_comps(), d_hierarchy(NULL), d_grid_geom(NULL),
-      d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL), d_coarsen_strategy(NULL), d_coarsen_scheds(),
-      d_refine_alg(NULL), d_refine_strategy(NULL), d_refine_scheds(), d_cf_bdry_ops(), d_extrap_bc_ops(),
-      d_cc_robin_bc_ops(), d_sc_robin_bc_ops()
+    : d_is_initialized(false),
+      d_homogeneous_bc(false),
+      d_transaction_comps(),
+      d_hierarchy(NULL),
+      d_grid_geom(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_strategy(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(NULL),
+      d_refine_strategy(NULL),
+      d_refine_scheds(),
+      d_cf_bdry_ops(),
+      d_extrap_bc_ops(),
+      d_cc_robin_bc_ops(),
+      d_sc_robin_bc_ops()
 {
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -291,7 +304,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::initializeOperatorState():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);
@@ -344,8 +358,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void
-HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTransactionComponent& transaction_comp)
+void HierarchyGhostCellInterpolation::resetTransactionComponent(
+    const InterpolationTransactionComponent& transaction_comp)
 {
     IBTK_TIMER_START(t_reset_transaction_component);
 
@@ -453,7 +467,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);

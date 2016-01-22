@@ -104,7 +104,11 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(NULL), d_no_fill_op(NULL), d_Phi_var(NULL), d_F_Phi_var(NULL), d_Phi_scratch_idx(-1),
+      d_Phi_bdry_fill_op(NULL),
+      d_no_fill_op(NULL),
+      d_Phi_var(NULL),
+      d_F_Phi_var(NULL),
+      d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
@@ -411,7 +415,8 @@ void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initia
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
                    << "  class IBAMR::StaggeredStokesProjectionPreconditioner requires a zero "
-                      "initial guess" << std::endl);
+                      "initial guess"
+                   << std::endl);
     }
     return;
 } // setInitialGuessNonzero
@@ -422,7 +427,8 @@ void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iteration
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
                    << "  class IBAMR::StaggeredStokesProjectionPreconditioner only performs a "
-                      "single iteration" << std::endl);
+                      "single iteration"
+                   << std::endl);
     }
     return;
 } // setMaxIterations

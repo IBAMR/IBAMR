@@ -75,8 +75,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FaceDataSynchronization::FaceDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
-      d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
+    : d_is_initialized(false),
+      d_transaction_comps(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(NULL),
+      d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -160,7 +166,8 @@ void FaceDataSynchronization::initializeOperatorState(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision face-centered data is supported." << std::endl);
+                       << "  only double-precision face-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
@@ -259,7 +266,8 @@ void FaceDataSynchronization::resetTransactionComponents(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision face-centered data is supported." << std::endl);
+                       << "  only double-precision face-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();

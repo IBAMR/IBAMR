@@ -42,7 +42,11 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 UFunction::UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
-    : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("UNIFORM"),
+    : CartGridFunction(object_name),
+      d_object_name(object_name),
+      d_grid_geom(grid_geom),
+      d_X(),
+      d_init_type("UNIFORM"),
       d_uniform_u()
 {
 #if !defined(NDEBUG)
@@ -133,7 +137,9 @@ void UFunction::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
-                                 << "  invalid initialization type " << d_init_type << "\n");
+                                 << "  invalid initialization type "
+                                 << d_init_type
+                                 << "\n");
     }
     return;
 } // setDataOnPatch
@@ -167,7 +173,9 @@ void UFunction::getFromInput(Pointer<Database> db)
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                                     << "  invalid initialization type " << d_init_type << "\n");
+                                     << "  invalid initialization type "
+                                     << d_init_type
+                                     << "\n");
         }
     }
     return;
