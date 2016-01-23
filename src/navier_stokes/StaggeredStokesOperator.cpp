@@ -224,16 +224,27 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx, U_idx, DATA_REFINE_TYPE,
-                                                             USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
-                                                             CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    transaction_comps[1] =
-        InterpolationTransactionComponent(P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
-                                          BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, d_P_fill_pattern);
+    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
+                                                             U_idx,
+                                                             DATA_REFINE_TYPE,
+                                                             USE_CF_INTERPOLATION,
+                                                             DATA_COARSEN_TYPE,
+                                                             BDRY_EXTRAP_TYPE,
+                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_U_bc_coefs,
+                                                             d_U_fill_pattern);
+    transaction_comps[1] = InterpolationTransactionComponent(P_idx,
+                                                             DATA_REFINE_TYPE,
+                                                             USE_CF_INTERPOLATION,
+                                                             DATA_COARSEN_TYPE,
+                                                             BDRY_EXTRAP_TYPE,
+                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_P_bc_coef,
+                                                             d_P_fill_pattern);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx,
-                                                              d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
@@ -241,11 +252,31 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     // Compute the action of the operator:
     //
     // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
-    d_hier_math_ops->grad(A_U_idx, A_U_sc_var,
-                          /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(A_U_idx, A_U_sc_var, d_U_problem_coefs, U_scratch_idx, U_sc_var, d_no_fill, d_new_time,
-                             1.0, A_U_idx, A_U_sc_var);
-    d_hier_math_ops->div(A_P_idx, A_P_cc_var, -1.0, U_scratch_idx, U_sc_var, d_no_fill, d_new_time,
+    d_hier_math_ops->grad(A_U_idx,
+                          A_U_sc_var,
+                          /*cf_bdry_synch*/ false,
+                          1.0,
+                          P_idx,
+                          P_cc_var,
+                          d_no_fill,
+                          d_new_time);
+    d_hier_math_ops->laplace(A_U_idx,
+                             A_U_sc_var,
+                             d_U_problem_coefs,
+                             U_scratch_idx,
+                             U_sc_var,
+                             d_no_fill,
+                             d_new_time,
+                             1.0,
+                             A_U_idx,
+                             A_U_sc_var);
+    d_hier_math_ops->div(A_P_idx,
+                         A_P_cc_var,
+                         -1.0,
+                         U_scratch_idx,
+                         U_sc_var,
+                         d_no_fill,
+                         d_new_time,
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
@@ -272,12 +303,23 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(
-        d_x->getComponentDescriptorIndex(0), in.getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-        DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    d_transaction_comps[1] = InterpolationTransactionComponent(
-        in.getComponentDescriptorIndex(1), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
-        CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, d_P_fill_pattern);
+    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
+                                                               in.getComponentDescriptorIndex(0),
+                                                               DATA_REFINE_TYPE,
+                                                               USE_CF_INTERPOLATION,
+                                                               DATA_COARSEN_TYPE,
+                                                               BDRY_EXTRAP_TYPE,
+                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_U_bc_coefs,
+                                                               d_U_fill_pattern);
+    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
+                                                               DATA_REFINE_TYPE,
+                                                               USE_CF_INTERPOLATION,
+                                                               DATA_COARSEN_TYPE,
+                                                               BDRY_EXTRAP_TYPE,
+                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_P_bc_coef,
+                                                               d_P_fill_pattern);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -286,8 +328,10 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps", in.getPatchHierarchy(),
-                                               in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
+        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+                                               in.getPatchHierarchy(),
+                                               in.getCoarsestLevelNumber(),
+                                               in.getFinestLevelNumber());
     }
 #if !defined(NDEBUG)
     else
@@ -339,7 +383,8 @@ StaggeredStokesOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+void
+StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_homogeneous_bc)
     {
@@ -352,8 +397,8 @@ void StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
         x->setToScalar(0.0);
         const int U_idx = x->getComponentDescriptorIndex(0);
         const int P_idx = x->getComponentDescriptorIndex(1);
-        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx,
-                                                                  d_homogeneous_bc);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+            d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
         d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
         apply(*x, *b);
@@ -372,16 +417,17 @@ void StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     return;
 } // modifyRhsForBcs
 
-void StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
+void
+StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 {
     const int U_idx = u.getComponentDescriptorIndex(0);
     const int P_idx = u.getComponentDescriptorIndex(1);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx,
-                                                              d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
     d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     return;
-} // modifyRhsForBcs
+} // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
