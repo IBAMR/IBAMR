@@ -2771,7 +2771,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
         TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
                                  << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements" << std::endl);
+                                    "or only SECOND order elements"
+                                 << std::endl);
     }
     if (mesh_has_first_order_elems)
     {

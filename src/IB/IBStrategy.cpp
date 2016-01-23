@@ -327,8 +327,8 @@ void IBStrategy::registerVariable(int& current_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
-    d_ib_solver->registerVariable(
-        current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
+    d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name,
+                                  refine_name, init_fcn);
     return;
 } // registerVariable
 

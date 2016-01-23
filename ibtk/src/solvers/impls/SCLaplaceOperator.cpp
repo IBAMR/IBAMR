@@ -161,14 +161,9 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp),
-                                                      x.getComponentDescriptorIndex(comp),
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
-                                                      BDRY_EXTRAP_TYPE,
-                                                      CONSISTENT_TYPE_2_BDRY,
-                                                      d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE,
+                                                      USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+                                                      CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -252,14 +247,9 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
-                                                    in.getComponentDescriptorIndex(comp),
-                                                    DATA_REFINE_TYPE,
-                                                    USE_CF_INTERPOLATION,
-                                                    DATA_COARSEN_TYPE,
-                                                    BDRY_EXTRAP_TYPE,
-                                                    CONSISTENT_TYPE_2_BDRY,
-                                                    d_bc_coefs,
-                                                    d_fill_pattern);
+                                                    in.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE,
+                                                    USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+                                                    CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 

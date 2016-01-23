@@ -48,7 +48,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 
-
 extern "C" {
 // LAPACK function to do matrix product
 int dgemm_(char*, char*, int*, int*, int*, double*, double*, int*, double*, int*, double*, double*, int*);
@@ -417,7 +416,6 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b, const bool skip_nonfree_par
         skip_struct_map[mat_name] = skip_struct;
     }
 
-
     if (node_counter) all_rhs = new double[node_counter * NDIM];
 
     d_cib_strategy->copyAllVecToArray(b, all_rhs, all_rhs_struct_ids, NDIM);
@@ -603,7 +601,8 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
         end_t = clock();
         pout << std::setprecision(4)
              << "         PCApply:BodyDirectMobilitySolver: collect all force arrays, CPU time taken for the time step "
-                "is:" << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+                "is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
         ;
     }
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
@@ -705,7 +704,8 @@ bool DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
         end_t = clock();
         pout << std::setprecision(4)
              << "         PCApply:BodyDirectMobilitySolver: copy velocity arrays to Vec, CPU time taken for the time "
-                "step is:" << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+                "step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
         ;
     }
 #endif
@@ -723,7 +723,7 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 {
     if (d_is_initialized) return;
 
-    clock_t start_med=0, end_t=0;
+    clock_t start_med = 0, end_t = 0;
     // SAMRAI_MPI::barrier();
     // if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 
@@ -752,7 +752,8 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     // if (SAMRAI_MPI::getRank() == 0)
     // {
     // 	end_t = clock();
-    // 	pout<< std::setprecision(4)<<"         DirectsSolver:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+    // 	pout<< std::setprecision(4)<<"         DirectsSolver:initalize CPU time taken for the time step is:"<<
+    // double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
     // }
     // SAMRAI_MPI::barrier();
     // if (SAMRAI_MPI::getRank() == 0) start_med = clock();

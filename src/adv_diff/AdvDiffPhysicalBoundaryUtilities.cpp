@@ -62,14 +62,14 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void
-AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<NDIM, double> > Q_data,
-                                                                Pointer<FaceData<NDIM, double> > u_ADV_data,
-                                                                Pointer<Patch<NDIM> > patch,
-                                                                const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                                                const double fill_time,
-                                                                const bool inflow_boundaries_only,
-                                                                const bool homogeneous_bc)
+void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
+    Pointer<CellData<NDIM, double> > Q_data,
+    Pointer<FaceData<NDIM, double> > u_ADV_data,
+    Pointer<Patch<NDIM> > patch,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const double fill_time,
+    const bool inflow_boundaries_only,
+    const bool homogeneous_bc)
 {
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
@@ -102,8 +102,8 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
         const bool is_lower = location_index % 2 == 0;
         static const IntVector<NDIM> gcw_to_fill = 1;
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const BoundaryBox<NDIM> trimmed_bdry_box(
-            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+        const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(),
+                                                 bdry_box.getLocationIndex());
         Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         for (unsigned int d = 0; d < NDIM; ++d)
         {

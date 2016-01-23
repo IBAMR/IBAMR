@@ -280,8 +280,8 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Poin
         // Count the number of vertices whose initial locations will be within
         // the given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
@@ -356,8 +356,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
              ++it)
@@ -386,7 +386,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                              << "  encountered node below lower physical boundary\n"
                                              << "  please ensure that all nodes are within the "
-                                                "computational domain." << std::endl);
+                                                "computational domain."
+                                             << std::endl);
                 }
 
                 if (!periodic_shift[d] && X[d] >= domain_x_upper[d])
@@ -394,7 +395,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                              << "  encountered node above upper physical boundary\n"
                                              << "  please ensure that all nodes are within the "
-                                                "computational domain." << std::endl);
+                                                "computational domain."
+                                             << std::endl);
                 }
             }
 
@@ -425,8 +427,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset,
+                                          periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -478,8 +480,8 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
              ++it)
@@ -540,8 +542,8 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
              ++it)
@@ -598,8 +600,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
             for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+                 it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
 
@@ -649,8 +650,7 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             {
                 const std::string postfix = "_vertices";
                 d_silo_writer->registerMarkerCloud(d_base_filename[level_number][j] + postfix,
-                                                   d_num_vertex[level_number][j],
-                                                   d_vertex_offset[level_number][j],
+                                                   d_num_vertex[level_number][j], d_vertex_offset[level_number][j],
                                                    level_number);
             }
         }
@@ -662,8 +662,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             {
                 registered_spring_edge_map = true;
                 const std::string postfix = "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_spring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_spring_edge_map[level_number][j], level_number);
             }
         }
 
@@ -672,8 +672,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_xspring_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = "_xmesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_xspring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_xspring_edge_map[level_number][j], level_number);
             }
         }
 
@@ -682,8 +682,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_rod_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = registered_spring_edge_map ? "_rod_mesh" : "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_rod_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_rod_edge_map[level_number][j], level_number);
             }
         }
     }
@@ -732,7 +732,8 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << vertex_filename << std::endl);
+                                                "before line 1 of file "
+                                             << vertex_filename << std::endl);
                 }
                 else
                 {
@@ -741,7 +742,8 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
                     if (!(line_stream >> d_num_vertex[ln][j]))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << vertex_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << vertex_filename << std::endl);
                     }
                 }
 
@@ -783,7 +785,8 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
             else
             {
@@ -842,7 +845,8 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << spring_filename << std::endl);
+                                                "before line 1 of file "
+                                             << spring_filename << std::endl);
                 }
                 else
                 {
@@ -851,7 +855,8 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                     if (!(line_stream >> num_edges))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << spring_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << spring_filename << std::endl);
                     }
                 }
 
@@ -885,8 +890,9 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                         else if ((e.first < min_idx) || (e.first >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << spring_filename << std::endl << "  vertex index "
-                                                     << e.first << " is out of range" << std::endl);
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  vertex index " << e.first << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> e.second))
@@ -897,8 +903,9 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                         else if ((e.second < min_idx) || (e.second >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << spring_filename << std::endl << "  vertex index "
-                                                     << e.second << " is out of range" << std::endl);
+                                                     << " of file " << spring_filename << std::endl
+                                                     << "  vertex index " << e.second << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> parameters[0]))
@@ -959,8 +966,8 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                         (parameters[0] == 0.0 || MathUtilities<double>::equalEps(parameters[0], 0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant "
-                                                      "encountered in ASCII input file named " << spring_filename << "."
-                                                   << std::endl);
+                                                      "encountered in ASCII input file named "
+                                                   << spring_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -1047,7 +1054,8 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << xspring_filename << std::endl);
+                                                "before line 1 of file "
+                                             << xspring_filename << std::endl);
                 }
                 else
                 {
@@ -1056,7 +1064,8 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
                     if (!(line_stream >> num_edges))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << xspring_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << xspring_filename << std::endl);
                     }
                 }
 
@@ -1167,7 +1176,8 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
                     {
                         TBOX_WARNING(d_object_name << ":\n  Crosslink spring with zero spring "
                                                       "constant encountered in ASCII input file "
-                                                      "named " << xspring_filename << "." << std::endl);
+                                                      "named "
+                                                   << xspring_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -1252,7 +1262,8 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << beam_filename << std::endl);
+                                                "before line 1 of file "
+                                             << beam_filename << std::endl);
                 }
                 else
                 {
@@ -1261,7 +1272,8 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                     if (!(line_stream >> num_beams))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << beam_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << beam_filename << std::endl);
                     }
                 }
 
@@ -1296,8 +1308,9 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                         else if ((prev_idx < min_idx) || (prev_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << beam_filename << std::endl << "  vertex index "
-                                                     << prev_idx << " is out of range" << std::endl);
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << prev_idx << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> curr_idx))
@@ -1308,8 +1321,9 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                         else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << beam_filename << std::endl << "  vertex index "
-                                                     << curr_idx << " is out of range" << std::endl);
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << curr_idx << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> next_idx))
@@ -1320,8 +1334,9 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                         else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << beam_filename << std::endl << "  vertex index "
-                                                     << next_idx << " is out of range" << std::endl);
+                                                     << " of file " << beam_filename << std::endl
+                                                     << "  vertex index " << next_idx << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> bend))
@@ -1345,8 +1360,8 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                                 if (curv_found_in_input)
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                                "encountered on line " << k + 2 << " of file "
-                                                             << beam_filename << std::endl
+                                                                "encountered on line "
+                                                             << k + 2 << " of file " << beam_filename << std::endl
                                                              << "  incomplete beam curvature specification"
                                                              << std::endl);
                                 }
@@ -1375,8 +1390,8 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                     if (!warned && d_enable_beams[ln][j] && (bend == 0.0 || MathUtilities<double>::equalEps(bend, 0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity "
-                                                      "encountered in ASCII input file named " << beam_filename << "."
-                                                   << std::endl);
+                                                      "encountered in ASCII input file named "
+                                                   << beam_filename << "." << std::endl);
                         warned = true;
                     }
 
@@ -1458,7 +1473,8 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << rod_filename << std::endl);
+                                                "before line 1 of file "
+                                             << rod_filename << std::endl);
                 }
                 else
                 {
@@ -1467,7 +1483,8 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                     if (!(line_stream >> num_rods))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << rod_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << rod_filename << std::endl);
                     }
                 }
 
@@ -1512,8 +1529,9 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                         else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << rod_filename << std::endl << "  vertex index "
-                                                     << curr_idx << " is out of range" << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  vertex index " << curr_idx << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> next_idx))
@@ -1524,8 +1542,9 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                         else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file " << rod_filename << std::endl << "  vertex index "
-                                                     << next_idx << " is out of range" << std::endl);
+                                                     << " of file " << rod_filename << std::endl
+                                                     << "  vertex index " << next_idx << " is out of range"
+                                                     << std::endl);
                         }
 
                         if (!(line_stream >> ds))
@@ -1629,10 +1648,11 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                             if (curvature_data_found_in_input)
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file "
-                                                              "encountered on line " << k + 2 << " of file "
-                                                           << rod_filename << std::endl
+                                                              "encountered on line "
+                                                           << k + 2 << " of file " << rod_filename << std::endl
                                                            << "  intrinsic curvature kappa1 was specified "
-                                                              "but kappa2 was not" << std::endl);
+                                                              "but kappa2 was not"
+                                                           << std::endl);
                             }
                         }
                         else
@@ -1646,11 +1666,12 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                             if (curvature_data_found_in_input)
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file "
-                                                              "encountered on line " << k + 2 << " of file "
-                                                           << rod_filename << std::endl
+                                                              "encountered on line "
+                                                           << k + 2 << " of file " << rod_filename << std::endl
                                                            << "  intrinsic curvatures kappa1 and kappa2 "
                                                               "were specified but intrinsic twist tau was "
-                                                              "not" << std::endl);
+                                                              "not"
+                                                           << std::endl);
                             }
                         }
                         else
@@ -1740,7 +1761,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing target point data from ASCII input file named " << target_point_stiffness_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
@@ -1748,8 +1770,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << target_point_stiffness_filename
-                                             << std::endl);
+                                                "before line 1 of file "
+                                             << target_point_stiffness_filename << std::endl);
                 }
                 else
                 {
@@ -1758,8 +1780,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                     if (!(line_stream >> num_target_points))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << target_point_stiffness_filename
-                                                 << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << target_point_stiffness_filename << std::endl);
                     }
                 }
 
@@ -1827,7 +1849,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                     {
                         TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring "
                                                       "constant encountered in ASCII input file "
-                                                      "named " << target_point_stiffness_filename << "." << std::endl);
+                                                      "named "
+                                                   << target_point_stiffness_filename << "." << std::endl);
                         warned = true;
                     }
                 }
@@ -1837,8 +1860,8 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_target_points << " target points from ASCII input file named "
-                     << target_point_stiffness_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank()
-                     << std::endl;
+                     << target_point_stiffness_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Modify the target point stiffness constants according to whether
@@ -1912,7 +1935,8 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing anchor point data from ASCII input file named " << anchor_point_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
@@ -1920,7 +1944,8 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << anchor_point_filename << std::endl);
+                                                "before line 1 of file "
+                                             << anchor_point_filename << std::endl);
                 }
                 else
                 {
@@ -1929,8 +1954,8 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                     if (!(line_stream >> num_anchor_pts))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << anchor_point_filename
-                                                 << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << anchor_point_filename << std::endl);
                     }
                 }
 
@@ -1975,7 +2000,8 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_anchor_pts << " anchor points from ASCII input file named "
-                     << anchor_point_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << anchor_point_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
@@ -2026,7 +2052,8 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << bdry_mass_filename << std::endl);
+                                                "before line 1 of file "
+                                             << bdry_mass_filename << std::endl);
                 }
                 else
                 {
@@ -2035,8 +2062,8 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                     if (!(line_stream >> num_bdry_mass_pts))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << bdry_mass_filename
-                                                 << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << bdry_mass_filename << std::endl);
                     }
                 }
 
@@ -2104,7 +2131,8 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named "
-                     << bdry_mass_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << bdry_mass_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Modify the boundary masses and boundary mass stiffness constants
@@ -2177,7 +2205,8 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << directors_filename << std::endl);
+                                                "before line 1 of file "
+                                             << directors_filename << std::endl);
                 }
                 else
                 {
@@ -2186,8 +2215,8 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
                     if (!(line_stream >> num_directors_pts))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << directors_filename
-                                                 << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << directors_filename << std::endl);
                     }
                 }
 
@@ -2219,8 +2248,9 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
                                 if (!(line_stream >> d_directors[ln][j][k][3 * n + d]))
                                 {
                                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input "
-                                                                "file encountered on line " << 3 * k + n + 2
-                                                             << " of file " << directors_filename << std::endl);
+                                                                "file encountered on line "
+                                                             << 3 * k + n + 2 << " of file " << directors_filename
+                                                             << std::endl);
                                 }
                                 D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                             }
@@ -2244,7 +2274,8 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_directors_pts << " director triads from ASCII input file named "
-                     << directors_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << directors_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
@@ -2292,7 +2323,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << inst_filename << std::endl);
+                                                "before line 1 of file "
+                                             << inst_filename << std::endl);
                 }
                 else
                 {
@@ -2301,7 +2333,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                     if (!(line_stream >> num_inst))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << inst_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << inst_filename << std::endl);
                     }
                 }
 
@@ -2438,8 +2471,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
                 for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
-                     ++meter_it)
+                     meter_it != encountered_instrument_idx.end(); ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
                     if ((*meter_it) == false)
@@ -2451,8 +2483,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
                     for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                         node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -2481,7 +2512,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 
                 plog << d_object_name << ":  "
                      << "read " << num_inst_pts << " instrumentation points from ASCII input file named "
-                     << inst_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << inst_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
@@ -2531,7 +2563,8 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered "
-                                                "before line 1 of file " << source_filename << std::endl);
+                                                "before line 1 of file "
+                                             << source_filename << std::endl);
                 }
                 else
                 {
@@ -2540,7 +2573,8 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
                     if (!(line_stream >> num_source))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file "
-                                                    "encountered on line 1 of file " << source_filename << std::endl);
+                                                    "encountered on line 1 of file "
+                                                 << source_filename << std::endl);
                     }
                 }
 
@@ -2643,8 +2677,8 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
                                                      << 2 * num_source + k + 3 << " of file " << source_filename
-                                                     << std::endl << "  vertex index " << n << " is out of range"
-                                                     << std::endl);
+                                                     << std::endl
+                                                     << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
                         int& source_idx = d_source_idx[ln][j][n];
@@ -2657,10 +2691,10 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
                         }
                         else if (source_idx < 0 || source_idx >= num_source)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
-                                                     << 2 * num_source + k + 3 << " of file " << source_filename
-                                                     << std::endl << "  meter index " << source_idx
-                                                     << " is out of range" << std::endl);
+                            TBOX_ERROR(d_object_name
+                                       << ":\n  Invalid entry in input file encountered on line "
+                                       << 2 * num_source + k + 3 << " of file " << source_filename << std::endl
+                                       << "  meter index " << source_idx << " is out of range" << std::endl);
                         }
 
                         // Correct the source index to account for source
@@ -2677,7 +2711,8 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_source_pts << " source points from ASCII input file named " << source_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
@@ -2827,8 +2862,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         {
             for (std::multimap<int, Edge>::const_iterator it =
                      d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
-                 ++it)
+                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
 #if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
@@ -2856,8 +2890,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
             if (!d_enable_xsprings[level_number][j]) continue;
             for (std::multimap<int, Edge>::const_iterator it =
                      d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
-                 ++it)
+                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
 #if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
@@ -2892,8 +2925,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (std::multimap<int, BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
-             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
-             ++it)
+             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
             beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
@@ -2913,8 +2945,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         std::vector<int> rod_next_idxs;
         std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int, Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
-             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
-             ++it)
+             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
@@ -3269,7 +3300,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_spring_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' "
-                                                    "in database " << base_filename << std::endl
+                                                    "in database "
+                                                 << base_filename << std::endl
                                                  << "  spring constant is negative" << std::endl);
                     }
                 }
@@ -3280,8 +3312,9 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_spring_rest_length[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-                                                    "`uniform_spring_rest_length' in database " << base_filename
-                                                 << std::endl << "  spring resting length is negative" << std::endl);
+                                                    "`uniform_spring_rest_length' in database "
+                                                 << base_filename << std::endl
+                                                 << "  spring resting length is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_spring_force_fcn_idx"))
@@ -3297,7 +3330,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_xspring_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_stiffness' "
-                                                    "in database " << base_filename << std::endl
+                                                    "in database "
+                                                 << base_filename << std::endl
                                                  << "  spring constant is negative" << std::endl);
                     }
                 }
@@ -3308,8 +3342,9 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_xspring_rest_length[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-                                                    "`uniform_xspring_rest_length' in database " << base_filename
-                                                 << std::endl << "  spring resting length is negative" << std::endl);
+                                                    "`uniform_xspring_rest_length' in database "
+                                                 << base_filename << std::endl
+                                                 << "  spring resting length is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_xspring_force_fcn_idx"))
@@ -3325,8 +3360,9 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_beam_bend_rigidity[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-                                                    "`uniform_beam_bend_rigidity' in database " << base_filename
-                                                 << std::endl << "  beam bending rigidity is negative" << std::endl);
+                                                    "`uniform_beam_bend_rigidity' in database "
+                                                 << base_filename << std::endl
+                                                 << "  beam bending rigidity is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_beam_curvature"))
@@ -3338,8 +3374,7 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 if (sub_db->keyExists("uniform_rod_properties"))
                 {
                     d_using_uniform_rod_properties[ln][j] = true;
-                    sub_db->getDoubleArray("uniform_rod_properties",
-                                           &d_uniform_rod_properties[ln][j][0],
+                    sub_db->getDoubleArray("uniform_rod_properties", &d_uniform_rod_properties[ln][j][0],
                                            IBRodForceSpec::NUM_MATERIAL_PARAMS);
                 }
 
@@ -3350,7 +3385,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_target_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' "
-                                                    "in database " << base_filename << std::endl
+                                                    "in database "
+                                                 << base_filename << std::endl
                                                  << "  target point spring constant is negative" << std::endl);
                     }
                 }
@@ -3361,7 +3397,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_target_damping[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in "
-                                                    "database " << base_filename << std::endl
+                                                    "database "
+                                                 << base_filename << std::endl
                                                  << "  target point spring constant is negative" << std::endl);
                     }
                 }
@@ -3374,8 +3411,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_bdry_mass[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_bdry_mass' in database "
-                                                 << base_filename << std::endl << "  boundary mass is negative"
-                                                 << std::endl);
+                                                 << base_filename << std::endl
+                                                 << "  boundary mass is negative" << std::endl);
                     }
                 }
                 if (sub_db->keyExists("uniform_bdry_mass_stiffness"))
@@ -3386,9 +3423,9 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                     if (d_uniform_bdry_mass_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key "
-                                                    "`uniform_bdry_mass_stiffness' in database " << base_filename
-                                                 << std::endl << "  boundary mass spring constant is negative"
-                                                 << std::endl);
+                                                    "`uniform_bdry_mass_stiffness' in database "
+                                                 << base_filename << std::endl
+                                                 << "  boundary mass spring constant is negative" << std::endl);
                     }
                 }
             }
@@ -3415,17 +3452,20 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
                     pout << "  NOTE: UNIFORM spring stiffnesses are being employed for the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
                     pout << "  NOTE: UNIFORM spring resting lengths are being employed for the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
                     pout << "  NOTE: UNIFORM spring force functions are being employed for the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
             }
 
@@ -3440,19 +3480,22 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 {
                     pout << "  NOTE: UNIFORM crosslink spring stiffnesses are being employed "
                             "for "
-                            "the structure named " << base_filename << "\n";
+                            "the structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_xspring_rest_length[ln][j])
                 {
                     pout << "  NOTE: UNIFORM crosslink spring resting lengths are being "
                             "employed "
-                            "for the structure named " << base_filename << "\n";
+                            "for the structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_xspring_force_fcn_idx[ln][j])
                 {
                     pout << "  NOTE: UNIFORM crosslink spring force functions are being "
                             "employed "
-                            "for the structure named " << base_filename << "\n";
+                            "for the structure named "
+                         << base_filename << "\n";
                 }
             }
 
@@ -3466,13 +3509,15 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 {
                     pout << "  NOTE: UNIFORM beam bending rigidities are being employed for "
                             "the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_beam_curvature[ln][j])
                 {
                     pout << "  NOTE: UNIFORM beam curvatures are being employed for the "
                             "structure "
-                            "named " << base_filename << "\n";
+                            "named "
+                         << base_filename << "\n";
                 }
             }
 
@@ -3486,14 +3531,16 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 {
                     pout << "  NOTE: UNIFORM rod material properties are being employed for "
                             "the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
             }
 
             if (!d_enable_target_points[ln][j])
             {
                 pout << "  NOTE: target point penalty forces are DISABLED for the structure "
-                        "named " << base_filename << "\n";
+                        "named "
+                     << base_filename << "\n";
             }
             else
             {
@@ -3501,13 +3548,15 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 {
                     pout << "  NOTE: UNIFORM target point stiffnesses are being employed for "
                             "the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
                     pout << "  NOTE: UNIFORM target point damping factors are being employed "
                             "for "
-                            "the structure named " << base_filename << "\n";
+                            "the structure named "
+                         << base_filename << "\n";
                 }
             }
 
@@ -3526,13 +3575,15 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
                     pout << "  NOTE: UNIFORM boundary point masses are being employed for the "
-                            "structure named " << base_filename << "\n";
+                            "structure named "
+                         << base_filename << "\n";
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
                     pout << "  NOTE: UNIFORM massive boundary point stiffnesses are being "
                             "employed "
-                            "for the structure named " << base_filename << "\n";
+                            "for the structure named "
+                         << base_filename << "\n";
                 }
             }
 

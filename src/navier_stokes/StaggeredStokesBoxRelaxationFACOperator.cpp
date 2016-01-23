@@ -322,19 +322,15 @@ void modifyRhsForBcs(Vec& v,
                 const Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
-                                           (dx[d] * dx[d]),
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
+                                                   (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
-                                           (dx[d] * dx[d]),
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
+                                                   (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
@@ -537,8 +533,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
                     {
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);

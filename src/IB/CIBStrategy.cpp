@@ -66,7 +66,7 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     d_solve_rigid_vel.resize(d_num_rigid_parts);
     d_isFree_component.resize(d_num_rigid_parts);
     d_isImposed_component.resize(d_num_rigid_parts);
-    
+
     return;
 } // CIBStrategy
 
@@ -93,16 +93,16 @@ void CIBStrategy::setCloneFreeDOFs(const unsigned int part, const FreeRigidDOFVe
     d_solve_rigid_vel[part] = solve_rigid_vel;
     int num_free_dofs = 0;
     getSolveRigidBodyVelocity(part, num_free_dofs);
-    
-    if (num_free_dofs) 
+
+    if (num_free_dofs)
     {
-	d_isFree_component[part] = true;
-	if (num_free_dofs < s_max_free_dofs) d_isImposed_component[part] = true;
+        d_isFree_component[part] = true;
+        if (num_free_dofs < s_max_free_dofs) d_isImposed_component[part] = true;
     }
     else
     {
-	d_isFree_component[part] = false;
-	d_isImposed_component[part] = true;
+        d_isFree_component[part] = false;
+        d_isImposed_component[part] = true;
     }
 
     return;
@@ -126,15 +126,15 @@ const FreeRigidDOFVector& CIBStrategy::getSolveRigidBodyVelocity(const unsigned 
 void CIBStrategy::setRigidBodyVelocity(unsigned int part, Vec U, Vec V)
 {
     PetscInt size;
-    VecGetSize(U,&size);
+    VecGetSize(U, &size);
     TBOX_ASSERT(size == s_max_free_dofs);
 
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
-    fill(skip_comp.begin(), skip_comp.end(), true);   
+    fill(skip_comp.begin(), skip_comp.end(), true);
     skip_comp[part] = false;
 
-    //collective call over all nodes
+    // collective call over all nodes
     setRigidBodyVelocity(U, V, skip_comp);
 }
 
@@ -146,59 +146,64 @@ void CIBStrategy::setRigidBodyVelocity(Vec U,
 {
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
-    clock_t end_t=0, start_med=0;
+    clock_t end_t = 0, start_med = 0;
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
     std::vector<bool> skip_comp;
     skip_comp.resize(d_num_rigid_parts);
-    
+
     if (only_free_dofs || only_imposed_dofs)
     {
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
-            int num_free_dofs=0;
-	    for (int k = 0; k < s_max_free_dofs; ++k) num_free_dofs +=d_solve_rigid_vel[part][k];
-	    
-	    if (only_free_dofs && num_free_dofs)
-		skip_comp[part]=false;
-	    else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
-		skip_comp[part]=false;
-	    else
-		skip_comp[part]=true;
-	}
-    } 
+            int num_free_dofs = 0;
+            for (int k = 0; k < s_max_free_dofs; ++k) num_free_dofs += d_solve_rigid_vel[part][k];
+
+            if (only_free_dofs && num_free_dofs)
+                skip_comp[part] = false;
+            else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
+                skip_comp[part] = false;
+            else
+                skip_comp[part] = true;
+        }
+    }
     else if (all_dofs)
     {
-    	fill(skip_comp.begin(), skip_comp.end(), false);   
-    } 
+        fill(skip_comp.begin(), skip_comp.end(), false);
+    }
     else
     {
-	TBOX_ERROR("CIBStrategy::setRigidBodyVelocity() incorrect parameters in the function call" << std::endl);
+        TBOX_ERROR("CIBStrategy::setRigidBodyVelocity() incorrect parameters in the function call" << std::endl);
     }
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"         setRigidBodyVelocity: setting parameters, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "         setRigidBodyVelocity: setting parameters, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
-   if (SAMRAI_MPI::getRank() == 0) start_med = clock();
+    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
-   
-    //collective call over all nodes
+
+    // collective call over all nodes
     setRigidBodyVelocity(U, V, skip_comp);
-    
+
 #ifdef TIME_REPORT
     SAMRAI_MPI::barrier();
     if (SAMRAI_MPI::getRank() == 0)
     {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"         setRigidBodyVelocity: collective call, CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
+        end_t = clock();
+        pout << std::setprecision(4)
+             << "         setRigidBodyVelocity: collective call, CPU time taken for the time step is:"
+             << double(end_t - start_med) / double(CLOCKS_PER_SEC) << std::endl;
+        ;
     }
 #endif
     return;
 } // setRigidBodyVelocity
-
 
 void CIBStrategy::setRigidBodyDeformationVelocity(Vec W)
 {
@@ -218,77 +223,77 @@ void CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
 
     if (only_free_dofs || only_imposed_dofs)
     {
-	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-	{
-	    int num_free_dofs=0;
-	    for (int k = 0; k < s_max_free_dofs; ++k) num_free_dofs +=d_solve_rigid_vel[part][k];
-	    
-	    if (only_free_dofs && num_free_dofs) 
-	    {
-		skip_comp[part] = false;
-	    }
-	    else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
-	    { 
-		skip_comp[part] = false;
-	    }
-	    else
-	    {
-		skip_comp[part] = true;
-	    }
-	}
+        for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+        {
+            int num_free_dofs = 0;
+            for (int k = 0; k < s_max_free_dofs; ++k) num_free_dofs += d_solve_rigid_vel[part][k];
+
+            if (only_free_dofs && num_free_dofs)
+            {
+                skip_comp[part] = false;
+            }
+            else if (only_imposed_dofs && (num_free_dofs < s_max_free_dofs))
+            {
+                skip_comp[part] = false;
+            }
+            else
+            {
+                skip_comp[part] = true;
+            }
+        }
     }
     else if (all_dofs)
-    {     
-	fill(skip_comp.begin(), skip_comp.end(), false);   
+    {
+        fill(skip_comp.begin(), skip_comp.end(), false);
     }
     else
     {
-	TBOX_ERROR("CIBStrategy::computeNetRigidGeneralizedForce() incorrect parameters in the function call" << std::endl);
+        TBOX_ERROR("CIBStrategy::computeNetRigidGeneralizedForce() incorrect parameters in the function call"
+                   << std::endl);
     }
 
-    //collective call over all nodes
+    // collective call over all nodes
     computeNetRigidGeneralizedForce(L, F, skip_comp);
 
     return;
 } // computeNetRigidGeneralizedForce
 
-
 void CIBStrategy::updateNewRigidBodyVelocity(Vec U, const bool all_dofs)
 {
     Vec U_all;
     VecScatter ctx;
-    VecScatterCreateToAll(U,&ctx,&U_all);
+    VecScatterCreateToAll(U, &ctx, &U_all);
 
-    VecScatterBegin(ctx,U,U_all,INSERT_VALUES,SCATTER_FORWARD);
-    VecScatterEnd(ctx,U,U_all,INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterBegin(ctx, U, U_all, INSERT_VALUES, SCATTER_FORWARD);
+    VecScatterEnd(ctx, U, U_all, INSERT_VALUES, SCATTER_FORWARD);
 
     PetscScalar* u_array = NULL;
     PetscInt comps;
     VecGetSize(U, &comps);
     VecGetArray(U_all, &u_array);
-    
+
     int counter = 0;
-    for (unsigned i = 0; i < d_num_rigid_parts; ++i) 
+    for (unsigned i = 0; i < d_num_rigid_parts; ++i)
     {
-	if (d_isFree_component[i])
-	{
-	    for (int d=0; d < NDIM; ++d) 
-	    {
-		if (d_solve_rigid_vel[i][d]) d_trans_vel_new[i][d]  = u_array[counter*s_max_free_dofs+d]; 
-	    }
+        if (d_isFree_component[i])
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (d_solve_rigid_vel[i][d]) d_trans_vel_new[i][d] = u_array[counter * s_max_free_dofs + d];
+            }
 
 #if (NDIM == 2)
-	    if (d_solve_rigid_vel[i][NDIM])  d_rot_vel_new[i][2] = u_array[counter*s_max_free_dofs+3];
+            if (d_solve_rigid_vel[i][NDIM]) d_rot_vel_new[i][2] = u_array[counter * s_max_free_dofs + 3];
 #elif(NDIM == 3)
-	    for (int d=0; d < NDIM; ++d) 
-	    {
-		if (d_solve_rigid_vel[i][d+NDIM]) d_rot_vel_new[i][d]  = u_array[counter*s_max_free_dofs+NDIM+d]; 
-	    }
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (d_solve_rigid_vel[i][d + NDIM]) d_rot_vel_new[i][d] = u_array[counter * s_max_free_dofs + NDIM + d];
+            }
 #endif
-	    counter++;
-	}
-	d_trans_vel_half[i] = 0.5 * (d_trans_vel_current[i] + d_trans_vel_new[i]);
-	d_rot_vel_half[i] = 0.5 * (d_rot_vel_current[i] + d_rot_vel_new[i]);
+            counter++;
+        }
+        d_trans_vel_half[i] = 0.5 * (d_trans_vel_current[i] + d_trans_vel_new[i]);
+        d_rot_vel_half[i] = 0.5 * (d_rot_vel_current[i] + d_rot_vel_new[i]);
     }
 
     VecRestoreArray(U_all, &u_array);
@@ -319,18 +324,18 @@ void CIBStrategy::copyArrayToVec(Vec /*b*/,
 } // copyArrayToVec
 
 void CIBStrategy::copyAllArrayToVec(Vec /*b*/,
-				    double* /*array*/,
-				    const std::vector<unsigned>& /*rhs_struct_ids*/,
-				    const int /*data_depth*/)
+                                    double* /*array*/,
+                                    const std::vector<unsigned>& /*rhs_struct_ids*/,
+                                    const int /*data_depth*/)
 {
     // intentionally left-blank
     return;
 } // copyArrayToVec
 
 void CIBStrategy::copyAllVecToArray(Vec /*b*/,
-				    double* /*array*/,
-				    const std::vector<unsigned>& /*rhs_struct_ids*/,
-				    const int /*data_depth*/)
+                                    double* /*array*/,
+                                    const std::vector<unsigned>& /*rhs_struct_ids*/,
+                                    const int /*data_depth*/)
 {
     // intentionally left-blank
     return;
@@ -391,18 +396,18 @@ void CIBStrategy::getNewRigidBodyVelocity(const unsigned int part, RigidDOFVecto
     return;
 } // getNewRigidBodyVelocity
 
-void CIBStrategy::constructMobilityMatrix(std::map<std::string, double*>&  /*mat_map*/,
-					  std::map<std::string, MobilityMatrixType>& /*mat_type_map*/,
-					  std::map<std::string, std::vector<unsigned> >& /*mat_prototype_id_map*/,
-					  std::map<std::string, unsigned int>& /*managed_mat_nodes_map*/,
-					  std::map<std::string, std::pair<double, double> >& /*mat_scale_map*/,
-					  std::map<std::string, int>& /*managed_mat_proc_map*/,
-					  const double* /*grid_dx*/,
-					  const double* /*domain_extents*/,
-					  const bool /*initial_time*/,
-					  double /*rho*/,
-					  double /*mu*/,
-					  double /*f_periodic_corr*/)
+void CIBStrategy::constructMobilityMatrix(std::map<std::string, double*>& /*mat_map*/,
+                                          std::map<std::string, MobilityMatrixType>& /*mat_type_map*/,
+                                          std::map<std::string, std::vector<unsigned> >& /*mat_prototype_id_map*/,
+                                          std::map<std::string, unsigned int>& /*managed_mat_nodes_map*/,
+                                          std::map<std::string, std::pair<double, double> >& /*mat_scale_map*/,
+                                          std::map<std::string, int>& /*managed_mat_proc_map*/,
+                                          const double* /*grid_dx*/,
+                                          const double* /*domain_extents*/,
+                                          const bool /*initial_time*/,
+                                          double /*rho*/,
+                                          double /*mu*/,
+                                          double /*f_periodic_corr*/)
 
 {
     // intentionally left blank.
@@ -410,19 +415,19 @@ void CIBStrategy::constructMobilityMatrix(std::map<std::string, double*>&  /*mat
 } // constructMobilityMatrix
 
 void CIBStrategy::constructKinematicMatrix(double* /*kinematic_mat*/,
-					   const std::vector<unsigned>& /*prototype_struct_ids*/,
-					   const bool /*initial_time*/,
-					   const int /*managing_rank*/)
+                                           const std::vector<unsigned>& /*prototype_struct_ids*/,
+                                           const bool /*initial_time*/,
+                                           const int /*managing_rank*/)
 {
     // intentionally left blank.
     return;
 } // constructBodyMobilityMatrix
 
 void CIBStrategy::rotateArrayInitalBodyFrame(double* /*array*/,
-					     const std::vector<unsigned>& /*struct_ids*/,
-					     const bool /*isTranspose*/,
-					     const int /*managing_rank*/,
-					     const bool /*BodyComps*/)
+                                             const std::vector<unsigned>& /*struct_ids*/,
+                                             const bool /*isTranspose*/,
+                                             const int /*managing_rank*/,
+                                             const bool /*BodyComps*/)
 {
     // intentionally left blank.
     return;
@@ -430,8 +435,8 @@ void CIBStrategy::rotateArrayInitalBodyFrame(double* /*array*/,
 
 Eigen::Vector3d* CIBStrategy::getBodyCenterOfMass(const unsigned int part, const bool halfStep)
 {
-    if (halfStep) return & d_center_of_mass_half[part];
-    return & d_center_of_mass_current[part];
+    if (halfStep) return &d_center_of_mass_half[part];
+    return &d_center_of_mass_current[part];
 };
 
 Eigen::Quaterniond* CIBStrategy::getBodyQuaternion(const unsigned int part, const bool halfStep)
@@ -440,26 +445,24 @@ Eigen::Quaterniond* CIBStrategy::getBodyQuaternion(const unsigned int part, cons
     return &d_quaternion_current[part];
 };
 
-void CIBStrategy::setRigidBodyClonesParameters(const int num_structs_types, 
-					       const std::vector<int>& structs_clones_num)
+void CIBStrategy::setRigidBodyClonesParameters(const int num_structs_types, const std::vector<int>& structs_clones_num)
 {
     d_num_structs_types = num_structs_types;
     d_structs_clones_num = structs_clones_num;
 };
 
-void CIBStrategy::getRigidBodyClonesParameters(int& num_structs_types, 
-					       std::vector<int>& structs_clones_num)
+void CIBStrategy::getRigidBodyClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num)
 {
     num_structs_types = d_num_structs_types;
     structs_clones_num = d_structs_clones_num;
 };
 
-void CIBStrategy::setHomogeneousBc(bool homogeneous_bc){
-  
+void CIBStrategy::setHomogeneousBc(bool homogeneous_bc)
+{
+
     d_homogeneous_bc = homogeneous_bc;
     return;
 } // setHomogeneousBc
-
 
 //////////////////////////////////////////////////////////////////////////////
 

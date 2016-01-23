@@ -167,8 +167,7 @@ void FaceDataSynchronization::initializeOperatorState(
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+                                     refine_op, fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
@@ -266,8 +265,7 @@ void FaceDataSynchronization::resetTransactionComponents(
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+                                     refine_op, fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

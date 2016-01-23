@@ -327,16 +327,14 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const Array<double>& weights = d_weights[cycle_num];
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_cc_var,
-                                                       hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy,
                                                        /*get_unique*/ true);
         hier_cc_data_ops->setToScalar(d_W_cc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_cc_data_ops->axpy(d_W_cc_idx, weights[k], d_W_cc_idxs[k], d_W_cc_idx);
 #if (NDIM == 2)
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_nc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_nc_var,
-                                                       hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_W_nc_var, hierarchy,
                                                        /*get_unique*/ true);
         hier_nc_data_ops->setToScalar(d_W_nc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
@@ -344,8 +342,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 #if (NDIM == 3)
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_ec_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_ec_var,
-                                                       hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_W_ec_var, hierarchy,
                                                        /*get_unique*/ true);
         hier_ec_data_ops->setToScalar(d_W_ec_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
@@ -468,8 +465,8 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
                     const int bdry_tangent_axis = (bdry_normal_axis + 1) % 2; // NOTE: NDIM == 2
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
-                        bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
+                    const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box,
+                                                             bdry_box.getBoundaryType(), location_index);
                     const Box<NDIM> bc_coef_box = compute_tangential_extension(
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), bdry_tangent_axis);
                     Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
@@ -487,20 +484,17 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                     shifted_patch_x_lower[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     shifted_patch_x_upper[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
-                    patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                             touches_regular_bdry,
-                                                                             touches_periodic_bdry,
-                                                                             dx,
-                                                                             shifted_patch_x_lower,
-                                                                             shifted_patch_x_upper));
+                    patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+                        ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx, shifted_patch_x_lower,
+                        shifted_patch_x_upper));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < NDIM; ++d)
                     {
                         RobinBcCoefStrategy<NDIM>* bc_coef = u_bc_coefs[d];
-                        bc_coef->setBcCoefs(
-                            acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
+                        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
+                                            data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * node_box); it; it++)
                         {
                             const Index<NDIM>& i = it();
@@ -536,8 +530,8 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
-                        bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
+                    const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box,
+                                                             bdry_box.getBoundaryType(), location_index);
                     for (int edge_axis = 0; edge_axis < NDIM; ++edge_axis)
                     {
                         if (edge_axis == bdry_normal_axis)
@@ -560,12 +554,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         }
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
-                        patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                                 touches_regular_bdry,
-                                                                                 touches_periodic_bdry,
-                                                                                 dx,
-                                                                                 shifted_patch_x_lower,
-                                                                                 shifted_patch_x_upper));
+                        patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+                            ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx, shifted_patch_x_lower,
+                            shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.
@@ -575,8 +566,8 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             const int data_depth = ((d == 1 && edge_axis == 2) || (d == 2)) ? 1 : 0;
 
                             RobinBcCoefStrategy<NDIM>* bc_coef = u_bc_coefs[d];
-                            bc_coef->setBcCoefs(
-                                acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
+                            bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
+                                                data_time);
                             for (Box<NDIM>::Iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
                             {
                                 const Index<NDIM>& i = it();
@@ -674,22 +665,10 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     double* const divW_sc1 = divW_sc_data->getPointer(1);
     const double* const W_cc = W_cc_data->getPointer();
     const double* const W_nc = W_nc_data->getPointer();
-    NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(dx,
-                                           patch_box.lower(0),
-                                           patch_box.upper(0),
-                                           patch_box.lower(1),
-                                           patch_box.upper(1),
-                                           scale,
-                                           W_cc_ghosts(0),
-                                           W_cc_ghosts(1),
-                                           W_cc,
-                                           W_nc_ghosts(0),
-                                           W_nc_ghosts(1),
-                                           W_nc,
-                                           divW_sc_ghosts(0),
-                                           divW_sc_ghosts(1),
-                                           divW_sc0,
-                                           divW_sc1);
+    NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(dx, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                           patch_box.upper(1), scale, W_cc_ghosts(0), W_cc_ghosts(1), W_cc,
+                                           W_nc_ghosts(0), W_nc_ghosts(1), W_nc, divW_sc_ghosts(0), divW_sc_ghosts(1),
+                                           divW_sc0, divW_sc1);
 #endif
 #if (NDIM == 3)
     Pointer<EdgeData<NDIM, double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
@@ -701,30 +680,11 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double* const W_ec0 = W_ec_data->getPointer(0);
     const double* const W_ec1 = W_ec_data->getPointer(1);
     const double* const W_ec2 = W_ec_data->getPointer(2);
-    NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(dx,
-                                           patch_box.lower(0),
-                                           patch_box.upper(0),
-                                           patch_box.lower(1),
-                                           patch_box.upper(1),
-                                           patch_box.lower(2),
-                                           patch_box.upper(2),
-                                           scale,
-                                           W_cc_ghosts(0),
-                                           W_cc_ghosts(1),
-                                           W_cc_ghosts(2),
-                                           W_cc,
-                                           W_ec_ghosts(0),
-                                           W_ec_ghosts(1),
-                                           W_ec_ghosts(2),
-                                           W_ec0,
-                                           W_ec1,
-                                           W_ec2,
-                                           divW_sc_ghosts(0),
-                                           divW_sc_ghosts(1),
-                                           divW_sc_ghosts(2),
-                                           divW_sc0,
-                                           divW_sc1,
-                                           divW_sc2);
+    NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC(dx, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                                           patch_box.upper(1), patch_box.lower(2), patch_box.upper(2), scale,
+                                           W_cc_ghosts(0), W_cc_ghosts(1), W_cc_ghosts(2), W_cc, W_ec_ghosts(0),
+                                           W_ec_ghosts(1), W_ec_ghosts(2), W_ec0, W_ec1, W_ec2, divW_sc_ghosts(0),
+                                           divW_sc_ghosts(1), divW_sc_ghosts(2), divW_sc0, divW_sc1, divW_sc2);
 #endif
     return;
 } // setDataOnPatch

@@ -263,12 +263,8 @@ void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcC
                     Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                     Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                     Pointer<ArrayData<NDIM, double> > gcoef_data;
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
-                                                             bcoef_data,
-                                                             gcoef_data,
-                                                             Pointer<Variable<NDIM> >(),
-                                                             *patch,
-                                                             trimmed_bdry_box,
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,
+                                                             Pointer<Variable<NDIM> >(), *patch, trimmed_bdry_box,
                                                              fill_time);
                     dirichlet_bdry_locs[n] = new ArrayData<NDIM, bool>(bc_coef_box, 1);
                     ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];

@@ -126,8 +126,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(var,
-                                                                         hierarchy,
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(var, hierarchy,
                                                                          /* get_unique */ true);
     if (!hier_data_ops)
     {
@@ -141,8 +140,8 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
-        d_fcns[k]->setDataOnPatchHierarchy(
-            cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
+        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in,
+                                           finest_ln_in);
         hier_data_ops->add(data_idx, data_idx, cloned_data_idx);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -273,8 +272,8 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     else if (sc_var)
     {
         Pointer<SideData<NDIM, double> > p_data = data;
-        cloned_data = new SideData<NDIM, double>(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
+        cloned_data = new SideData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(),
+                                                 p_data->getDirectionVector());
     }
     else
     {

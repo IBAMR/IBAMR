@@ -2127,14 +2127,16 @@ void HierarchyMathOps::laplace(const int dst_idx,
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires spatially constant scalar-valued "
-                      "diffusivity" << std::endl);
+                      "diffusivity"
+                   << std::endl);
     }
 
     if (beta_idx != -1)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires spatially constant scalar-valued "
-                      "damping factor" << std::endl);
+                      "damping factor"
+                   << std::endl);
     }
 
     if (!src1_var->fineBoundaryRepresentsVariable())

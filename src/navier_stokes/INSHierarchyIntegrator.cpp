@@ -113,8 +113,8 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
     return d_init_convective_time_stepping_type;
 } // getInitialConvectiveTimeSteppingType
 
-void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);

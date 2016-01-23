@@ -458,7 +458,8 @@ Pointer<Database> AppInitializer::getComponentDatabase(const std::string& compon
     if (!db_exists && !suppress_warning)
     {
         pout << "WARNING: AppInitializer::getComponentDatabase(): Database corresponding to "
-                "component `" << component_name << "' not found in input\n";
+                "component `"
+             << component_name << "' not found in input\n";
         return new NullDatabase();
     }
     else

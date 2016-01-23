@@ -164,8 +164,8 @@ void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_da
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
-    d_bc_coefs[bdry_normal_axis]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, d_solution_time);
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box,
+                                             d_solution_time);
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);

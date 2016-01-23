@@ -133,8 +133,8 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelCCLaplaceOp(
-        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, level);
+    PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time,
+                                                      d_num_dofs_per_proc, d_dof_index_idx, level);
     d_petsc_pc = d_petsc_mat;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
@@ -163,8 +163,8 @@ void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
-    PETScVecUtilities::copyFromPatchLevelVec(
-        petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
+    PETScVecUtilities::copyFromPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched,
+                                             d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
 
@@ -187,8 +187,8 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         Pointer<CellData<NDIM, double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-        PoissonUtilities::adjustCCBoundaryRhsEntries(
-            patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+        PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,
+                                                     d_homogeneous_bc);
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
     patch_level->deallocatePatchData(b_adj_idx);

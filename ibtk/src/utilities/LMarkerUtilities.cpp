@@ -219,14 +219,16 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                                           "boundary.\n"
                                        << "  please ensure that all markers are within the "
                                           "computational "
-                                          "domain." << std::endl);
+                                          "domain."
+                                       << std::endl);
                         }
                         else if (X[d] <= grid_xLower[d])
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker below lower physical boundary\n"
                                        << "  please ensure that all markers are within the "
-                                          "computational domain." << std::endl);
+                                          "computational domain."
+                                       << std::endl);
                         }
 
                         if (MathUtilities<double>::equalEps(X[d], grid_xUpper[d]))
@@ -236,14 +238,16 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
                                           "boundary.\n"
                                        << "  please ensure that all markers are within the "
                                           "computational "
-                                          "domain." << std::endl);
+                                          "domain."
+                                       << std::endl);
                         }
                         else if (X[d] >= grid_xUpper[d])
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker above upper physical boundary\n"
                                        << "  please ensure that all markers are within the "
-                                          "computational domain." << std::endl);
+                                          "computational domain."
+                                       << std::endl);
                         }
                     }
                 }
@@ -290,11 +294,11 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
             // Compute U_mark(n) = u(X_mark(n),n).
             std::vector<double> U_mark_current(X_mark_current.size());
             if (is_cc_data)
-                LEInteractor::interpolate(
-                    U_mark_current, NDIM, X_mark_current, NDIM, u_cc_current_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM, u_cc_current_data, patch,
+                                          patch_box, weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(
-                    U_mark_current, NDIM, X_mark_current, NDIM, u_sc_current_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM, u_sc_current_data, patch,
+                                          patch_box, weighting_fcn);
 
             // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n).
             std::vector<double> X_mark_new(X_mark_current.size());
@@ -363,11 +367,11 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
             // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
             std::vector<double> U_mark_half(X_mark_half.size());
             if (is_cc_data)
-                LEInteractor::interpolate(
-                    U_mark_half, NDIM, X_mark_half, NDIM, u_cc_half_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_cc_half_data, patch, patch_box,
+                                          weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(
-                    U_mark_half, NDIM, X_mark_half, NDIM, u_sc_half_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_sc_half_data, patch, patch_box,
+                                          weighting_fcn);
 
             // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
             for (unsigned int k = 0; k < NDIM * num_patch_marks; ++k)
@@ -430,11 +434,11 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
             // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
             std::vector<double> U_mark_new(X_mark_new.size());
             if (is_cc_data)
-                LEInteractor::interpolate(
-                    U_mark_new, NDIM, X_mark_new, NDIM, u_cc_new_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_cc_new_data, patch, patch_box,
+                                          weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(
-                    U_mark_new, NDIM, X_mark_new, NDIM, u_sc_new_data, patch, patch_box, weighting_fcn);
+                LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_sc_new_data, patch, patch_box,
+                                          weighting_fcn);
 
             // Set U(n+1/2) = 0.5*(U(n)+U(n+1)).
             std::vector<double> U_mark_half(NDIM * num_patch_marks);
@@ -565,8 +569,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
         Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
         Pointer<LMarkerSetData> mark_data_new = new LMarkerSetData(mark_data->getBox(), mark_data->getGhostCellWidth());
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
-             it != mark_data->data_end();
-             ++it)
+             it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const Point& X = mark->getPosition();
@@ -587,8 +590,8 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
                 ;
             if (patch_owns_mark_at_new_loc)
             {
-                const Index<NDIM> i = IndexUtilities::getCellIndex(
-                    X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                const Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, patchXLower, patchXUpper, patchDx,
+                                                                   patch_lower, patch_upper);
                 if (!mark_data_new->isElement(i))
                 {
                     mark_data_new->appendItemPointer(i, new LMarkerSet());

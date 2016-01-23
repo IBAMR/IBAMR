@@ -93,8 +93,8 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(con
     }
     if (d_ib_solver->d_body_force_fcn)
     {
-        d_ib_solver->d_body_force_fcn->setDataOnPatchHierarchy(
-            data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
+        d_ib_solver->d_body_force_fcn->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time,
+                                                               coarsest_ln_in, finest_ln_in);
     }
     else
     {

@@ -189,10 +189,10 @@ CartSideDoubleQuadraticCFInterpolation::~CartSideDoubleQuadraticCFInterpolation(
     return;
 } // ~CartSideDoubleQuadraticCFInterpolation
 
-void
-CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
-                                                                      const double /*fill_time*/,
-                                                                      const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
@@ -310,44 +310,29 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
 #if (NDIM == 3)
                 const double* const U_crse2 = cdata->getPointer(2, depth);
 #endif
-                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0,
-                                                    U_fine1,
+                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0, U_fine1,
 #if (NDIM == 3)
                                                     U_fine2,
 #endif
-                                                    U_fine_ghosts,
-                                                    U_crse0,
-                                                    U_crse1,
+                                                    U_fine_ghosts, U_crse0, U_crse1,
 #if (NDIM == 3)
                                                     U_crse2,
 #endif
-                                                    U_crse_ghosts,
-                                                    indicator0,
-                                                    indicator1,
+                                                    U_crse_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
                                                     indicator2,
 #endif
-                                                    indicator_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
+                                                    indicator_ghosts, patch_box_fine.lower(0), patch_box_fine.upper(0),
+                                                    patch_box_fine.lower(1), patch_box_fine.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_fine.lower(2),
-                                                    patch_box_fine.upper(2),
+                                                    patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
+                                                    patch_box_crse.lower(0), patch_box_crse.upper(0),
+                                                    patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
+                                                    patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                                                    location_index,
-                                                    ratio,
-                                                    bc_fill_box.lower(),
-                                                    bc_fill_box.upper());
+                                                    location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }
@@ -535,36 +520,24 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>&
 #if (NDIM == 3)
                 const double* const W2 = data_copy.getPointer(2, depth);
 #endif
-                SC_QUAD_NORMAL_INTERPOLATION_FC(U0,
-                                                U1,
+                SC_QUAD_NORMAL_INTERPOLATION_FC(U0, U1,
 #if (NDIM == 3)
                                                 U2,
 #endif
-                                                U_ghosts,
-                                                W0,
-                                                W1,
+                                                U_ghosts, W0, W1,
 #if (NDIM == 3)
                                                 W2,
 #endif
-                                                W_ghosts,
-                                                indicator0,
-                                                indicator1,
+                                                W_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
                                                 indicator2,
 #endif
-                                                indicator_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                                                indicator_ghosts, patch_box.lower(0), patch_box.upper(0),
+                                                patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                                                patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                location_index,
-                                                ratio,
-                                                bc_fill_box.lower(),
-                                                bc_fill_box.upper());
+                                                location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }

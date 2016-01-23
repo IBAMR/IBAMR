@@ -82,8 +82,8 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
     d_petsc_mat = NULL;
     d_mobility_solver = NULL;
 
-    d_rho=1.0;
-    d_mu=1.0;
+    d_rho = 1.0;
+    d_mu = 1.0;
 
     d_current_time = std::numeric_limits<double>::signaling_NaN();
     d_new_time = std::numeric_limits<double>::signaling_NaN();
@@ -542,7 +542,7 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
     TBOX_ASSERT(solver);
 #endif
 
-    Vec* vx, *vy;
+    Vec *vx, *vy;
     IBTK::VecMultiVecGetSubVecs(x, &vx);
     IBTK::VecMultiVecGetSubVecs(y, &vy);
 
@@ -560,17 +560,17 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
             IBTK::VecMultiVecGetSubVec(x, free_part, &F_sub);
             IBTK::VecMultiVecGetSubVec(y, free_part, &U_sub);
 
-            PetscScalar* a_f, *a_u;
+            PetscScalar *a_f, *a_u;
             VecGetArray(F_sub, &a_f);
             VecGetArray(U_sub, &a_u);
 
-	    // RigidDOFVector Fr;
-	    // solver->d_cib_strategy->vecToRDV(F_sub, Fr);
+            // RigidDOFVector Fr;
+            // solver->d_cib_strategy->vecToRDV(F_sub, Fr);
 
-	    // std::cout<<"checkpoint-0"<<std::endl;
-	    // for (int idir=0;idir<s_max_free_dofs;idir++)
-	    // 	std::cout<<Fr[idir]<<"\t";
-	    // std::cout<<std::endl;
+            // std::cout<<"checkpoint-0"<<std::endl;
+            // for (int idir=0;idir<s_max_free_dofs;idir++)
+            // 	std::cout<<Fr[idir]<<"\t";
+            // std::cout<<std::endl;
 
             for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
             {
@@ -593,8 +593,6 @@ PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
             ++free_part;
         }
     }
-
-
 
     PetscFunctionReturn(0);
 } // PCApply_FBMSolver

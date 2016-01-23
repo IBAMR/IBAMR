@@ -131,8 +131,8 @@ void StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchH
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        (*it)->initializeLevelData(
-            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        (*it)->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
+                                   allocate_data);
     }
     return;
 } // initializeLevelData
@@ -159,8 +159,8 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatc
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        (*it)->applyGradientDetector(
-            hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                     uses_richardson_extrapolation_too);
     }
     return;
 } // applyGradientDetector
@@ -176,24 +176,24 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<P
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        (*it)->applyRichardsonExtrapolation(
-            level, error_data_time, tag_index, deltat, error_coarsen_ratio, initial_time, uses_gradient_detector_too);
+        (*it)->applyRichardsonExtrapolation(level, error_data_time, tag_index, deltat, error_coarsen_ratio,
+                                            initial_time, uses_gradient_detector_too);
     }
     return;
 } // applyRichardsonExtrapolation
 
-void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                     const int level_number,
-                                                                     const Pointer<PatchLevel<NDIM> > coarser_level,
-                                                                     const double coarsen_data_time,
-                                                                     const bool before_advance)
+void StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const Pointer<PatchLevel<NDIM> > coarser_level,
+    const double coarsen_data_time,
+    const bool before_advance)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        (*it)->coarsenDataForRichardsonExtrapolation(
-            hierarchy, level_number, coarser_level, coarsen_data_time, before_advance);
+        (*it)->coarsenDataForRichardsonExtrapolation(hierarchy, level_number, coarser_level, coarsen_data_time,
+                                                     before_advance);
     }
     return;
 } // coarsenDataForRichardsonExtrapolation

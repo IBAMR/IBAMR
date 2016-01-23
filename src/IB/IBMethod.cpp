@@ -183,8 +183,8 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     }
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(
-        d_object_name + "::LDataManager", d_interp_kernel_fcn, d_spread_kernel_fcn, d_ghosts, d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager", d_interp_kernel_fcn,
+                                                d_spread_kernel_fcn, d_ghosts, d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
@@ -588,7 +588,7 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<Pointer<LData> >* U_data, *X_LE_data;
+    std::vector<Pointer<LData> > *U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -605,7 +605,7 @@ void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
+    std::vector<Pointer<LData> > *U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -660,14 +660,14 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data;
+    std::vector<Pointer<LData> > *U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecWAXPY(
-            d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(),
+                        d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_new_data)[ln]->getVec());
         IBTK_CHKERRQ(ierr);
@@ -687,8 +687,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_data, *X_data, *U_data;
-    bool* F_needs_ghost_fill, *X_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_data, *X_data, *U_data;
+    bool *F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityData(&U_data, data_time);
@@ -699,8 +699,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_fcn)
         {
-            d_ib_force_fcn->computeLagrangianForce(
-                (*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+            d_ib_force_fcn->computeLagrangianForce((*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln,
+                                                   data_time, d_l_data_manager);
         }
     }
     *F_needs_ghost_fill = true;
@@ -727,21 +727,15 @@ void IBMethod::spreadForce(const int f_data_idx,
                            const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<Pointer<LData> >* F_data, *X_LE_data;
-    bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_data, *X_LE_data;
+    bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    d_l_data_manager->spread(f_data_idx,
-                             *F_data,
-                             *X_LE_data,
-                             f_phys_bdry_op,
-                             f_prolongation_scheds,
-                             data_time,
-                             *F_needs_ghost_fill,
-                             *X_LE_needs_ghost_fill);
+    d_l_data_manager->spread(f_data_idx, *F_data, *X_LE_data, f_phys_bdry_op, f_prolongation_scheds, data_time,
+                             *F_needs_ghost_fill, *X_LE_needs_ghost_fill);
     *F_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
     return;
@@ -752,21 +746,15 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
-    bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
+    std::vector<Pointer<LData> > *F_jac_data, *X_LE_data;
+    bool *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_jac_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    d_l_data_manager->spread(f_data_idx,
-                             *F_jac_data,
-                             *X_LE_data,
-                             f_phys_bdry_op,
-                             f_prolongation_scheds,
-                             data_time,
-                             *F_jac_needs_ghost_fill,
-                             *X_LE_needs_ghost_fill);
+    d_l_data_manager->spread(f_data_idx, *F_jac_data, *X_LE_data, f_phys_bdry_op, f_prolongation_scheds, data_time,
+                             *F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill);
     *F_jac_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
     return;
@@ -802,8 +790,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-        d_ib_source_fcn->getSourceLocations(
-            d_X_src[ln], d_r_src[ln], (*X_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        d_ib_source_fcn->getSourceLocations(d_X_src[ln], d_r_src[ln], (*X_data)[ln], d_hierarchy, ln, data_time,
+                                            d_l_data_manager);
     }
 
     // Spread the sources/sinks onto the Cartesian grid.
@@ -1059,8 +1047,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
             }
         }
         SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
-        std::transform(
-            d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), std::bind2nd(std::plus<double>(), -p_norm));
+        std::transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
+                       std::bind2nd(std::plus<double>(), -p_norm));
 
         // Update the pressures stored by the Lagrangian source strategy.
         d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
@@ -1098,17 +1086,8 @@ void IBMethod::postprocessData()
     }
 
     // Perform the user-defined post-processing.
-    d_post_processor->postprocessData(u_current_idx,
-                                      p_current_idx,
-                                      f_current_idx,
-                                      F_data,
-                                      X_data,
-                                      U_data,
-                                      d_hierarchy,
-                                      coarsest_ln,
-                                      finest_ln,
-                                      current_time,
-                                      this);
+    d_post_processor->postprocessData(u_current_idx, p_current_idx, f_current_idx, F_data, X_data, U_data, d_hierarchy,
+                                      coarsest_ln, finest_ln, current_time, this);
     return;
 } // postprocessData
 
@@ -1155,8 +1134,8 @@ void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
                 d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
-                d_ib_source_fcn->getSourceLocations(
-                    d_X_src[ln], d_r_src[ln], X_data[ln], d_hierarchy, ln, init_data_time, d_l_data_manager);
+                d_ib_source_fcn->getSourceLocations(d_X_src[ln], d_r_src[ln], X_data[ln], d_hierarchy, ln,
+                                                    init_data_time, d_l_data_manager);
             }
         }
     }
@@ -1165,8 +1144,8 @@ void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
     d_instrument_panel->initializeHierarchyIndependentData(d_hierarchy, d_l_data_manager);
     if (d_instrument_panel->isInstrumented())
     {
-        d_instrument_panel->initializeHierarchyDependentData(
-            d_hierarchy, d_l_data_manager, integrator_step, init_data_time);
+        d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_l_data_manager, integrator_step,
+                                                             init_data_time);
         if (d_total_flow_volume.empty())
         {
             d_total_flow_volume.resize(d_instrument_panel->getFlowValues().size(), 0.0);
@@ -1280,8 +1259,8 @@ void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->setPatchLevels(0, finest_hier_level);
-    d_l_data_manager->initializeLevelData(
-        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time,
+                                          old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         Pointer<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
@@ -1332,8 +1311,8 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
-    d_l_data_manager->applyGradientDetector(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                            uses_richardson_extrapolation_too);
 
     // Tag cells where the Cartesian source/sink strength is nonzero.
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
@@ -1366,8 +1345,8 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                d_X_src[finer_level_number][n], xLower, xUpper, dx_finer.data(), lower, upper);
+            const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], xLower, xUpper,
+                                                                      dx_finer.data(), lower, upper);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1656,8 +1635,7 @@ void IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data, const
         ierr = VecGetArray(U_vec, &U_arr);
         IBTK_CHKERRQ(ierr);
         for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
-             cit != d_anchor_point_local_idxs[ln].end();
-             ++cit)
+             cit != d_anchor_point_local_idxs[ln].end(); ++cit)
         {
             const int& i = *cit;
             for (int d = 0; d < depth; ++d)
@@ -1730,8 +1708,8 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
         getGhostfillRefineSchedules(d_ib_solver->getName() + "::INSTRUMENTATION_DATA_FILL")[ln]->fillData(data_time);
     }
 
-    d_instrument_panel->readInstrumentData(
-        u_scratch_idx, p_scratch_idx, d_hierarchy, d_l_data_manager, timestep_num, data_time);
+    d_instrument_panel->readInstrumentData(u_scratch_idx, p_scratch_idx, d_hierarchy, d_l_data_manager, timestep_num,
+                                           data_time);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1834,8 +1812,8 @@ void IBMethod::getFromRestart()
     d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
     if (!d_total_flow_volume.empty())
     {
-        db->getDoubleArray(
-            "d_total_flow_volume", &d_total_flow_volume[0], static_cast<int>(d_total_flow_volume.size()));
+        db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0],
+                           static_cast<int>(d_total_flow_volume.size()));
     }
     const int finest_hier_level = db->getInteger("finest_hier_level");
     d_X_src.resize(finest_hier_level + 1);

@@ -96,7 +96,7 @@ CIBMobilitySolver::CIBMobilitySolver(const std::string& object_name,
                   t_deallocate_solver_state =
                       TimerManager::getManager()->getTimer("IBAMR::CIBMobilitySolver::deallocateSolverState()"););
 
-     return;
+    return;
 } // CIBMobilitySolver
 
 CIBMobilitySolver::~CIBMobilitySolver()
@@ -213,8 +213,7 @@ void CIBMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysica
     return;
 } // setPhysicalBoundaryHelper
 
-void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver,
-                                           DirectMobilitySolver** dm_solver)
+void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver, DirectMobilitySolver** dm_solver)
 {
     if (km_solver)
     {
@@ -297,7 +296,6 @@ void CIBMobilitySolver::deallocateSolverState()
             TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
                        << " solver type encountered." << std::endl);
         }
-
     }
 
     // Indicate that the solver is NOT initialized.
@@ -310,29 +308,11 @@ void CIBMobilitySolver::deallocateSolverState()
 
 bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfree_parts)
 {
-
- #ifdef TIME_REPORT
-    clock_t start_med=0, end_t=0;
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
-
-//    IBAMR_TIMER_START(t_solve_mobility_system);
+    IBAMR_TIMER_START(t_solve_mobility_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
-
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"         CIBMobility:initalize CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0) start_med = clock();
-#endif
 
     // Solve for x.
     bool converged = false;
@@ -354,22 +334,13 @@ bool CIBMobilitySolver::solveMobilitySystem(Vec x, Vec b, const bool skip_nonfre
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-#ifdef TIME_REPORT
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end_t = clock();
-	pout<< std::setprecision(4)<<"        CIBMobility:solving CPU time taken for the time step is:"<< double(end_t-start_med)/double(CLOCKS_PER_SEC)<<std::endl;;
-    }
-#endif
-
-//    IBAMR_TIMER_STOP(t_solve_mobility_system);
+    IBAMR_TIMER_STOP(t_solve_mobility_system);
     return converged;
 } // solveMobilitySystem
 
 bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
 {
-    bool converged=false;
+    bool converged = false;
     IBAMR_TIMER_START(t_solve_body_mobility_system);
 
     // Initialize the solver, when necessary.
@@ -383,7 +354,7 @@ bool CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
     }
     else if (d_mobility_solver_type == DIRECT)
     {
-	converged = d_direct_mob_solver->solveBodySystem(x,b);
+        converged = d_direct_mob_solver->solveBodySystem(x, b);
     }
 
     // Deallocate the solver, when necessary.
@@ -401,7 +372,7 @@ void CIBMobilitySolver::getFromInput(Pointer<Database> input_db)
     // Get the mobility solver type.
     const std::string solver_type = input_db->getString("mobility_solver_type");
     if (solver_type == "DIRECT")
-	d_mobility_solver_type = DIRECT;
+        d_mobility_solver_type = DIRECT;
     else if (solver_type == "KRYLOV")
         d_mobility_solver_type = KRYLOV;
     else

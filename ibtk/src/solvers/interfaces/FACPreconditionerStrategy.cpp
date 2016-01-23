@@ -160,8 +160,8 @@ FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM,
         new SAMRAIVectorReal<NDIM, double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
-        level_vec->addComponent(
-            vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp), vec.getControlVolumeIndex(comp));
+        level_vec->addComponent(vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp),
+                                vec.getControlVolumeIndex(comp));
     }
     return level_vec;
 } // getLevelSAMRAIVectorReal

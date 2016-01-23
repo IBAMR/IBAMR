@@ -201,8 +201,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double new_time = current_time + dt;
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_C_cc_var,
-                                                       hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
                                                        /*get_unique*/ true);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
@@ -233,8 +232,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             if (cycle_num == 0)
             {
                 hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
-                ghost_fill_components[0] = InterpolationTransactionComponent(
-                    d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
+                ghost_fill_components[0] = InterpolationTransactionComponent(d_C_current_cc_idx, "NONE", false, "NONE",
+                                                                             "NONE", false, C_bc_coef);
                 ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
                 ghost_fill_op.fillData(current_time);
             }
@@ -282,8 +281,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
         const Array<double>& weights = d_weights[cycle_num];
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_sc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_F_sc_var,
-                                                       hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
                                                        /*get_unique*/ true);
         hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
@@ -320,8 +318,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
-                        bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
+                    const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box,
+                                                             bdry_box.getBoundaryType(), location_index);
                     const Box<NDIM> bc_coef_box =
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
                     Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
@@ -333,8 +331,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (int d = 0; d < C_depth; ++d)
                     {
                         RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
-                        bc_coef->setBcCoefs(
-                            acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
+                        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
+                                            data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
                             const Index<NDIM>& i = it();

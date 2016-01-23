@@ -380,29 +380,28 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             1) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             1) } };
 #endif
 #if (NDIM == 3)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             2) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             2) } };
 #endif
             // Loop over the boundary box indices and compute the nearest
             // interior index.
@@ -480,29 +479,28 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             1) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             1) } };
 #endif
 #if (NDIM == 3)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             2) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
@@ -588,29 +586,28 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             1) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             1) } };
 #endif
 #if (NDIM == 3)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             2) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             2) } };
 #endif
             // Loop over the boundary box indices and compute the
             // nearest interior index.
@@ -688,29 +685,28 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             1) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 1) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             1) } };
 #endif
 #if (NDIM == 3)
             const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isLower(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim,
+                                                                                             2) } };
             const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
                                                           PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                                                          PhysicalBoundaryUtilities::isUpper(
-                                                              location_index, codim, 2) } };
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim,
+                                                                                             2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {

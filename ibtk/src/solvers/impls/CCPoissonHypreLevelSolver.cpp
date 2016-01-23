@@ -112,11 +112,9 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );
@@ -504,8 +502,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            PoissonUtilities::computeCCMatrixCoefficients(
-                patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec,
+                                                          d_bc_coefs[k], d_solution_time);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 Index<NDIM> i = b();
@@ -835,14 +833,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructPCGSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructPCGSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                          d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructPCGSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructPCGSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                          d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -871,14 +869,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                            d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                            d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -899,24 +897,24 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             HYPRE_StructFlexGMRESSetAbsoluteTol(d_solvers[k], d_abs_residual_tol);
             if (d_precond_type == "PFMG")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "SMG")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructSMGSolve, HYPRE_StructSMGSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -945,14 +943,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructLGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructLGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                             d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructLGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructLGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                             d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -973,8 +971,8 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             HYPRE_StructBiCGSTABSetAbsoluteTol(d_solvers[k], d_abs_residual_tol);
             if (d_precond_type == "PFMG")
             {
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "SMG")
             {
@@ -982,14 +980,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -1041,8 +1039,8 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             b_adj_data.copy(*b_data);
             if (d_grid_aligned_anisotropy)
             {
-                PoissonUtilities::adjustCCBoundaryRhsEntries(
-                    patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                PoissonUtilities::adjustCCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs,
+                                                             d_solution_time, d_homogeneous_bc);
             }
             else
             {

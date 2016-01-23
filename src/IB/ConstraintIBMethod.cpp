@@ -211,8 +211,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
 
         d_velcorrection_projection_solver =
             new PETScKrylovPoissonSolver(d_object_name + "ConstraintIBMethodProjection::PoissonKrylovSolver",
-                                         Pointer<Database>(NULL),
-                                         velcorrection_projection_prefix);
+                                         Pointer<Database>(NULL), velcorrection_projection_prefix);
         d_velcorrection_projection_solver->setInitialGuessNonzero(false);
         d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);
 
@@ -224,15 +223,12 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
         }
 
         d_velcorrection_projection_fac_op = new CCPoissonPointRelaxationFACOperator(
-            d_object_name + ":: ConstraintIBMethodProjection::PoissonFACOperator",
-            d_velcorrection_projection_fac_pc_db,
+            d_object_name + ":: ConstraintIBMethodProjection::PoissonFACOperator", d_velcorrection_projection_fac_pc_db,
             "");
         d_velcorrection_projection_fac_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
         d_velcorrection_projection_fac_pc =
             new IBTK::FACPreconditioner(d_object_name + "::ConstraintIBMethodProjection::PoissonPreconditioner",
-                                        d_velcorrection_projection_fac_op,
-                                        d_velcorrection_projection_fac_pc_db,
-                                        "");
+                                        d_velcorrection_projection_fac_op, d_velcorrection_projection_fac_pc_db, "");
         d_velcorrection_projection_solver->setPreconditioner(d_velcorrection_projection_fac_pc);
 
         // Set some default options.
@@ -548,8 +544,8 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
     return;
 } // initializeHierarchyOperatorsandData
 
-void
-ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<ConstraintIBKinematics> >& ib_kinematics)
+void ConstraintIBMethod::registerConstraintIBKinematics(
+    const std::vector<Pointer<ConstraintIBKinematics> >& ib_kinematics)
 {
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
@@ -766,8 +762,7 @@ void ConstraintIBMethod::setInitialLagrangianVelocity()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        d_ib_kinematics[struct_no]->setKinematicsVelocity(0.0,
-                                                          d_incremented_angle_from_reference_axis[struct_no],
+        d_ib_kinematics[struct_no]->setKinematicsVelocity(0.0, d_incremented_angle_from_reference_axis[struct_no],
                                                           d_center_of_mass_current[struct_no],
                                                           d_tagged_pt_position[struct_no]);
         d_ib_kinematics[struct_no]->setShape(0.0, d_incremented_angle_from_reference_axis[struct_no]);
@@ -1050,10 +1045,9 @@ void ConstraintIBMethod::calculateKinematicsVelocity()
             d_incremented_angle_from_reference_axis[struct_no][d] +=
                 (d_rigid_rot_vel_current[struct_no][d] - d_omega_com_def_current[struct_no][d]) * dt;
 
-        d_ib_kinematics[struct_no]->setKinematicsVelocity(d_FuRMoRP_new_time,
-                                                          d_incremented_angle_from_reference_axis[struct_no],
-                                                          d_center_of_mass_new[struct_no],
-                                                          d_tagged_pt_position[struct_no]);
+        d_ib_kinematics[struct_no]->setKinematicsVelocity(
+            d_FuRMoRP_new_time, d_incremented_angle_from_reference_axis[struct_no], d_center_of_mass_new[struct_no],
+            d_tagged_pt_position[struct_no]);
 
         d_ib_kinematics[struct_no]->setShape(d_FuRMoRP_new_time, d_incremented_angle_from_reference_axis[struct_no]);
 
@@ -1270,8 +1264,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 #endif
                 const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(lag_node_index_idx);
                 for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
-                     it != lag_node_index_data->data_end();
-                     ++it)
+                     it != lag_node_index_data->data_end(); ++it)
                 {
                     LNode* const node_idx = *it;
                     const int lag_idx = node_idx->getLagrangianIndex();
@@ -1773,13 +1766,12 @@ void ConstraintIBMethod::applyProjection()
     // Compute div U before applying the projection operator.
     const bool U_current_cf_bdry_synch = true;
     getHierarchyMathOps()->div(d_Div_u_scratch_idx,
-                               d_Div_u_var, // dst
-                               +1.0,        // alpha
-                               d_u_fluidSolve_idx,
-                               Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                               d_no_fill_op,                                             // src_bdry_fill
-                               d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                               U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                               d_Div_u_var,                                                                  // dst
+                               +1.0,                                                                         // alpha
+                               d_u_fluidSolve_idx, Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
+                               d_no_fill_op,             // src_bdry_fill
+                               d_FuRMoRP_new_time,       // src_bdry_fill_time
+                               U_current_cf_bdry_synch); // src_cf_bdry_synch
 
     if (d_do_log)
     {
@@ -1832,8 +1824,8 @@ void ConstraintIBMethod::applyProjection()
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(
-        d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
+    InterpolationTransactionComponent Phi_bc_component(d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR",
+                                                       false, &d_velcorrection_projection_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
@@ -1843,10 +1835,9 @@ void ConstraintIBMethod::applyProjection()
 
     // Set U := U - grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
-    getHierarchyMathOps()->grad(d_u_scratch_idx,
-                                Pointer<SideVariable<NDIM, double> >(d_u_var), // dst
-                                U_scratch_cf_bdry_synch,                       // dst_cf_bdry_synch
-                                1.0,                                           // alpha
+    getHierarchyMathOps()->grad(d_u_scratch_idx, Pointer<SideVariable<NDIM, double> >(d_u_var), // dst
+                                U_scratch_cf_bdry_synch,                                        // dst_cf_bdry_synch
+                                1.0,                                                            // alpha
                                 d_phi_idx,
                                 d_phi_var,    // src
                                 d_no_fill_op, // src_bdry_fill
@@ -1862,11 +1853,10 @@ void ConstraintIBMethod::applyProjection()
         getHierarchyMathOps()->div(d_Div_u_scratch_idx,
                                    d_Div_u_var, // dst
                                    +1.0,        // alpha
-                                   d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                                   d_no_fill_op,                                             // src_bdry_fill
-                                   d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                                   U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                                   d_u_fluidSolve_idx, Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
+                                   d_no_fill_op,             // src_bdry_fill
+                                   d_FuRMoRP_new_time,       // src_bdry_fill_time
+                                   U_current_cf_bdry_synch); // src_cf_bdry_synch
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
         const double Div_u_norm_2 = d_hier_cc_data_ops->L2Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -1964,7 +1954,8 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
                             "ConstraintIBMethod::updateStructurePositionEulerStep():: Unknown position update method "
                             "encountered"
                             << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
-                               "CONSTRAINT_EXPT_POSITION " << std::endl);
+                               "CONSTRAINT_EXPT_POSITION "
+                            << std::endl);
                     }
                 }
             }
@@ -2066,7 +2057,8 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
                             "ConstraintIBMethod::updateStructurePositionMidPointStep():: Unknown position update "
                             "method encountered"
                             << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
-                               "CONSTRAINT_EXPT_POSITION " << std::endl);
+                               "CONSTRAINT_EXPT_POSITION "
+                            << std::endl);
                     }
                 }
             }
@@ -2123,14 +2115,9 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
-    InterpolationTransactionComponent component(copy_to_idx,
-                                                DATA_REFINE_TYPE,
-                                                USE_CF_INTERPOLATION,
-                                                SIDE_DATA_COARSEN_TYPE,
-                                                BDRY_EXTRAP_TYPE,
-                                                CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL),
-                                                NULL);
+    InterpolationTransactionComponent component(
+        copy_to_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+        CONSISTENT_TYPE_2_BDRY, std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL), NULL);
     transaction_comps.push_back(component);
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -2203,11 +2190,7 @@ void ConstraintIBMethod::calculateMidPointVelocity()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecAXPBYPCZ(d_l_data_U_half[ln]->getVec(),
-                           0.5,
-                           0.5,
-                           0.0,
-                           d_l_data_U_current[ln]->getVec(),
+        ierr = VecAXPBYPCZ(d_l_data_U_half[ln]->getVec(), 0.5, 0.5, 0.0, d_l_data_U_current[ln]->getVec(),
                            d_l_data_U_new[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }

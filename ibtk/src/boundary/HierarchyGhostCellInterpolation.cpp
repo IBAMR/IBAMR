@@ -157,8 +157,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
-    initializeOperatorState(
-        std::vector<InterpolationTransactionComponent>(1, transaction_comp), hierarchy, coarsest_ln, finest_ln);
+    initializeOperatorState(std::vector<InterpolationTransactionComponent>(1, transaction_comp), hierarchy, coarsest_ln,
+                            finest_ln);
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
@@ -291,7 +291,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::initializeOperatorState():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);
@@ -306,8 +307,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
         for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+             cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
@@ -344,8 +344,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void
-HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTransactionComponent& transaction_comp)
+void HierarchyGhostCellInterpolation::resetTransactionComponent(
+    const InterpolationTransactionComponent& transaction_comp)
 {
     IBTK_TIMER_START(t_reset_transaction_component);
 
@@ -453,7 +453,8 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
                        << "  only double-precision cell-, node-, or side-centered data is "
-                          "presently supported." << std::endl);
+                          "presently supported."
+                       << std::endl);
         }
 
         d_refine_alg->registerRefine(dst_data_idx, src_data_idx, dst_data_idx, refine_op, fill_pattern);
@@ -478,8 +479,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
 #if !defined(NDEBUG)
         bool null_bc_coefs = true;
         for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+             cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
@@ -620,16 +620,16 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
                         const IntVector<NDIM>& ghost_width_to_fill =
                             patch->getPatchData(dst_data_idx)->getGhostCellWidth();
-                        d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
-                            *patch, fill_time, ghost_width_to_fill);
+                        d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(*patch, fill_time,
+                                                                                   ghost_width_to_fill);
                     }
                     if (d_sc_robin_bc_ops[comp_idx])
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
                         const IntVector<NDIM>& ghost_width_to_fill =
                             patch->getPatchData(dst_data_idx)->getGhostCellWidth();
-                        d_sc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
-                            *patch, fill_time, ghost_width_to_fill);
+                        d_sc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(*patch, fill_time,
+                                                                                   ghost_width_to_fill);
                     }
                 }
             }

@@ -145,7 +145,8 @@ double IBLagrangianForceStrategy::computeLagrangianEnergy(Pointer<LData> /*X_dat
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianEnergy():\n"
                << "  potential energy functionality not implemented for this "
-                  "IBLagrangianForceStrategy." << std::endl);
+                  "IBLagrangianForceStrategy."
+               << std::endl);
     return 0.0;
 } // computeLagrangianEnergy
 

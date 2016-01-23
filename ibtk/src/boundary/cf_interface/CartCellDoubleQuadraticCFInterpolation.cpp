@@ -159,8 +159,7 @@ inline bool bdry_boxes_contain_index(const Index<NDIM>& i,
                                      const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes)
 {
     for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin();
-         cit != patch_cf_bdry_boxes.end();
-         ++cit)
+         cit != patch_cf_bdry_boxes.end(); ++cit)
     {
         const BoundaryBox<NDIM>& bdry_box = *(*cit);
         if (bdry_box.getBox().contains(i)) return true;
@@ -227,10 +226,10 @@ CartCellDoubleQuadraticCFInterpolation::~CartCellDoubleQuadraticCFInterpolation(
     return;
 } // ~CartCellDoubleQuadraticCFInterpolation
 
-void
-CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
-                                                                      const double /*fill_time*/,
-                                                                      const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
@@ -484,8 +483,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<N
         const BoxArray<NDIM>& domain_boxes = *d_domain_boxes[fine_patch_level_num];
         const IntVector<NDIM>& periodic_shift = d_periodic_shift[fine_patch_level_num];
         for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin();
-             cit != patch_cf_bdry_boxes.end();
-             ++cit)
+             cit != patch_cf_bdry_boxes.end(); ++cit)
         {
             const BoundaryBox<NDIM>& bdry_box = *(*cit);
             const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
@@ -502,13 +500,9 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<N
             {
                 const Index<NDIM>& i_fine = b();
                 const Index<NDIM> i_crse = coarsen(i_fine, ratio);
-                const bool corner_point = bdry_type != 1 ? false : is_corner_point(i_fine,
-                                                                                   bdry_normal_axis,
-                                                                                   is_lower,
-                                                                                   patch_box_fine,
-                                                                                   patch_cf_bdry_boxes,
-                                                                                   periodic_shift,
-                                                                                   domain_boxes);
+                const bool corner_point =
+                    bdry_type != 1 ? false : is_corner_point(i_fine, bdry_normal_axis, is_lower, patch_box_fine,
+                                                             patch_cf_bdry_boxes, periodic_shift, domain_boxes);
 
                 // Determine the interpolation stencil in the coarse index
                 // space.
@@ -651,40 +645,27 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch<N
             {
                 double* const U_fine = fdata->getPointer(depth);
                 const double* const U_crse = cdata->getPointer(depth);
-                CC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine,
-                                                    U_fine_ghosts,
-                                                    U_crse,
-                                                    U_crse_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
+                CC_QUAD_TANGENTIAL_INTERPOLATION_FC(
+                    U_fine, U_fine_ghosts, U_crse, U_crse_ghosts, patch_box_fine.lower(0), patch_box_fine.upper(0),
+                    patch_box_fine.lower(1), patch_box_fine.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_fine.lower(2),
-                                                    patch_box_fine.upper(2),
+                    patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
+                    patch_box_crse.lower(0), patch_box_crse.upper(0), patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
+                    patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                                                    location_index,
-                                                    ratio,
-                                                    bc_fill_box.lower(),
-                                                    bc_fill_box.upper());
+                    location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }
     return;
 } // postprocessRefine_optimized
 
-void
-CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<NDIM>& patch,
-                                                                         const IntVector<NDIM>& ratio,
-                                                                         const IntVector<NDIM>& ghost_width_to_fill)
+void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
+    Patch<NDIM>& patch,
+    const IntVector<NDIM>& ratio,
+    const IntVector<NDIM>& ghost_width_to_fill)
 {
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = patch.getPatchNumber();
@@ -757,12 +738,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
             for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
             {
                 const Index<NDIM>& i_bdry = b();
-                if (!is_corner_point(i_bdry,
-                                     bdry_normal_axis,
-                                     is_lower,
-                                     patch_box,
-                                     patch_cf_bdry_boxes,
-                                     periodic_shift,
+                if (!is_corner_point(i_bdry, bdry_normal_axis, is_lower, patch_box, patch_cf_bdry_boxes, periodic_shift,
                                      domain_boxes))
                 {
                     Index<NDIM> i_intr0(i_bdry), i_intr1(i_bdry);
@@ -845,20 +821,12 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U = data->getPointer(depth);
-                CC_QUAD_NORMAL_INTERPOLATION_FC(U,
-                                                U_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
+                CC_QUAD_NORMAL_INTERPOLATION_FC(U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
                                                 patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                                                patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                location_index,
-                                                ratio,
-                                                bc_fill_box.lower(),
-                                                bc_fill_box.upper());
+                                                location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }

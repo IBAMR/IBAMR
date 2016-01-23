@@ -395,8 +395,8 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(
-        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL,
+                                  new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
@@ -477,8 +477,8 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;
-    dof_synch_alg.registerRefine(
-        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL,
+                                 new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL);

@@ -165,7 +165,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
         {
             TBOX_ERROR("CartSideDoubleDivPreservingRefine::postprocessRefine():\n"
                        << "  refinement ratio must be a power of 2 for divergence- and "
-                          "curl-preserving refinement operator." << std::endl);
+                          "curl-preserving refinement operator."
+                       << std::endl);
         }
     }
 #endif
@@ -268,30 +269,21 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
-            DIV_PRESERVING_CORRECTION_FC(fdata->getPointer(0, d),
-                                         fdata->getPointer(1, d),
+            DIV_PRESERVING_CORRECTION_FC(fdata->getPointer(0, d), fdata->getPointer(1, d),
 #if (NDIM == 3)
                                          fdata->getPointer(2, d),
 #endif
-                                         fdata_ghosts,
-                                         fdata->getBox().lower()(0),
-                                         fdata->getBox().upper()(0),
-                                         fdata->getBox().lower()(1),
-                                         fdata->getBox().upper()(1),
+                                         fdata_ghosts, fdata->getBox().lower()(0), fdata->getBox().upper()(0),
+                                         fdata->getBox().lower()(1), fdata->getBox().upper()(1),
 #if (NDIM == 3)
-                                         fdata->getBox().lower()(2),
-                                         fdata->getBox().upper()(2),
+                                         fdata->getBox().lower()(2), fdata->getBox().upper()(2),
 #endif
-                                         correction_box.lower()(0),
-                                         correction_box.upper()(0),
-                                         correction_box.lower()(1),
-                                         correction_box.upper()(1),
+                                         correction_box.lower()(0), correction_box.upper()(0),
+                                         correction_box.lower()(1), correction_box.upper()(1),
 #if (NDIM == 3)
-                                         correction_box.lower()(2),
-                                         correction_box.upper()(2),
+                                         correction_box.lower()(2), correction_box.upper()(2),
 #endif
-                                         ratio,
-                                         dx_fine);
+                                         ratio, dx_fine);
         }
     }
     else
@@ -325,12 +317,9 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
             x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
         }
-        intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero_intermediate,
-                                                                       touches_regular_bdry,
-                                                                       touches_periodic_bdry,
-                                                                       dx_intermediate,
-                                                                       x_lower_intermediate,
-                                                                       x_upper_intermediate));
+        intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+            ratio_to_level_zero_intermediate, touches_regular_bdry, touches_periodic_bdry, dx_intermediate,
+            x_lower_intermediate, x_upper_intermediate));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.

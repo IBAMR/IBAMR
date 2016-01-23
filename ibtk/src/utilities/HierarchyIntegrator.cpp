@@ -231,8 +231,8 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> 
             d_tag_buffer[i] = std::max(d_tag_buffer[i], integrator->d_tag_buffer[i]);
         }
         hier_integrators.pop_front();
-        hier_integrators.insert(
-            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(),
+                                integrator->d_child_integrators.end());
     }
     plog << d_object_name << "::initializePatchHierarchy(): "
          << "tag_buffer =";
@@ -270,8 +270,8 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> 
         HierarchyIntegrator* integrator = hier_integrators.front();
         integrator->d_hierarchy_is_initialized = true;
         hier_integrators.pop_front();
-        hier_integrators.insert(
-            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(),
+                                integrator->d_child_integrators.end());
     }
     return;
 } // initializePatchHierarchy
@@ -366,8 +366,8 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
         integrator->d_current_cycle_num = -1;
         integrator->d_current_dt = std::numeric_limits<double>::quiet_NaN();
         hier_integrators.pop_front();
-        hier_integrators.insert(
-            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(),
+                                integrator->d_child_integrators.end());
     }
 
     // Synchronize the updated data.
@@ -469,8 +469,7 @@ bool HierarchyIntegrator::atRegridPoint() const
 {
     bool regrid_hierarchy = atRegridPointSpecialized();
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
-         it != d_child_integrators.end() && !regrid_hierarchy;
-         ++it)
+         it != d_child_integrators.end() && !regrid_hierarchy; ++it)
     {
         regrid_hierarchy = regrid_hierarchy || (*it)->atRegridPoint();
     }
@@ -619,9 +618,9 @@ void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_tim
     return;
 } // postprocessIntegrateHierarchy
 
-void
-HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                  void* ctx)
+void HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(
+    PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -635,9 +634,9 @@ void HierarchyIntegrator::registerIntegrateHierarchyCallback(IntegrateHierarchyC
     return;
 } // registerIntegrateHierarchyCallback
 
-void
-HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-                                                                   void* ctx)
+void HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
+    PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
 {
     d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
@@ -699,11 +698,9 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
         RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(),
                                                                     fill_after_regrid_prolong_patch_strategies.end(),
                                                                     false);
-        d_fill_after_regrid_prolong_alg.createSchedule(level,
-                                                       old_level,
-                                                       level_number - 1,
-                                                       hierarchy,
-                                                       &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
+        d_fill_after_regrid_prolong_alg.createSchedule(level, old_level, level_number - 1, hierarchy,
+                                                       &fill_after_regrid_patch_strategy_set)
+            ->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
     }
 
@@ -712,8 +709,7 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (std::list<Pointer<Variable<NDIM> > >::const_iterator cit = d_state_variables.begin();
-             cit != d_state_variables.end();
-             ++cit)
+             cit != d_state_variables.end(); ++cit)
         {
             Pointer<Variable<NDIM> > var = *cit;
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
@@ -748,15 +744,15 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     }
 
     // Perform specialized data initialization.
-    initializeLevelDataSpecialized(
-        base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
+    initializeLevelDataSpecialized(base_hierarchy, level_number, init_data_time, can_be_refined, initial_time,
+                                   base_old_level, allocate_data);
 
     // Initialize data associated with any child integrators.
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
          ++it)
     {
-        (*it)->initializeLevelData(
-            base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
+        (*it)->initializeLevelData(base_hierarchy, level_number, init_data_time, can_be_refined, initial_time,
+                                   base_old_level, allocate_data);
     }
     return;
 } // initializeLevelData
@@ -821,8 +817,8 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_prolong_scheds[it->first][ln] = it->second->createSchedule(
-                level, Pointer<PatchLevel<NDIM> >(), ln - 1, hierarchy, d_prolong_strategies[it->first]);
+            d_prolong_scheds[it->first][ln] = it->second->createSchedule(level, Pointer<PatchLevel<NDIM> >(), ln - 1,
+                                                                         hierarchy, d_prolong_strategies[it->first]);
         }
     }
 
@@ -877,17 +873,17 @@ void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy
     }
 
     // Tag cells.
-    applyGradientDetectorSpecialized(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
-    executeApplyGradientDetectorCallbackFcns(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    applyGradientDetectorSpecialized(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                     uses_richardson_extrapolation_too);
+    executeApplyGradientDetectorCallbackFcns(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                             uses_richardson_extrapolation_too);
 
     // ALlow child integrators to tag cells for refinement.
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
          ++it)
     {
-        (*it)->applyGradientDetector(
-            hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                     uses_richardson_extrapolation_too);
     }
     return;
 } // applyGradientDetector
@@ -920,8 +916,10 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
     return true;
 } // isAllocatedPatchData
 
-void
-HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_time, int coarsest_ln, int finest_ln) const
+void HierarchyIntegrator::allocatePatchData(const int data_idx,
+                                            const double data_time,
+                                            int coarsest_ln,
+                                            int finest_ln) const
 {
     if (data_idx < 0) return;
     if (coarsest_ln == -1) coarsest_ln = 0;
@@ -1030,8 +1028,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
     // Swap PatchData<NDIM> pointers between the current and new contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     for (std::list<Pointer<Variable<NDIM> > >::const_iterator sv = d_state_variables.begin();
-         sv != d_state_variables.end();
-         ++sv)
+         sv != d_state_variables.end(); ++sv)
     {
         const Pointer<Variable<NDIM> >& v = *sv;
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
@@ -1187,13 +1184,8 @@ void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer
     std::vector<void*>& ctxs = d_apply_gradient_detector_callback_ctxs;
     for (unsigned int k = 0; k < callbacks.size(); ++k)
     {
-        (*callbacks[k])(hierarchy,
-                        level_number,
-                        error_data_time,
-                        tag_index,
-                        initial_time,
-                        uses_richardson_extrapolation_too,
-                        ctxs[k]);
+        (*callbacks[k])(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                        uses_richardson_extrapolation_too, ctxs[k]);
     }
     return;
 } // executeApplyGradientDetectorCallbackFcns

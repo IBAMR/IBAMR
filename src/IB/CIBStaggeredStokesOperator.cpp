@@ -215,7 +215,6 @@ void CIBStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     IBAMR_TIMER_START(t_apply);
     const double half_time = 0.5 * (d_new_time + d_current_time);
 
-
     // Get the vector components.
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -266,7 +265,6 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     clock_t end_t = 0, start_med = 0;
     if (SAMRAI_MPI::getRank() == 0) start_med = clock();
 #endif
-
 
     IBAMR_TIMER_START(t_apply_vec);
     const double half_time = 0.5 * (d_new_time + d_current_time);
@@ -402,10 +400,8 @@ void CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
     d_cib_strategy->setHomogeneousBc(d_homogeneous_bc);
-    ib_method_ops->interpolateVelocity(u_idx, 
-				       std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-				       std::vector<Pointer<RefineSchedule<NDIM> > >(), 
-				       half_time);
+    ib_method_ops->interpolateVelocity(u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                       std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
 
     d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
     VecSet(Vrigid, 0.0);
@@ -484,16 +480,13 @@ void CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
-
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
-
 
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
     d_x->allocateVectorData();
-
 
     // Setup the interpolation transaction information.
     d_u_fill_pattern = NULL;
@@ -566,29 +559,33 @@ void CIBStaggeredStokesOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-
 void CIBStaggeredStokesOperator::modifyRhsForInhomogeneousBc(Vec y)
 {
     // Create zero vector and temporal RHS
     int ierr;
     Vec b_tmp, x_tmp;
-    ierr = VecDuplicate(y, &x_tmp); IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(y, &b_tmp); IBTK_CHKERRQ(ierr);
-    ierr = VecSet(x_tmp, 0.0); IBTK_CHKERRQ(ierr);
-    
+    ierr = VecDuplicate(y, &x_tmp);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(y, &b_tmp);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(x_tmp, 0.0);
+    IBTK_CHKERRQ(ierr);
+
     // Apply A*0
-    apply(x_tmp, b_tmp); 
-    
+    apply(x_tmp, b_tmp);
+
     // Rest b_tmp = A*0 to RHS
-    ierr = VecAXPY(y, -1, b_tmp); IBTK_CHKERRQ(ierr);
-    
+    ierr = VecAXPY(y, -1, b_tmp);
+    IBTK_CHKERRQ(ierr);
+
     // Free memory
-    ierr = VecDestroy(&b_tmp); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&x_tmp); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&b_tmp);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&x_tmp);
+    IBTK_CHKERRQ(ierr);
 
     return;
 } // modifyRhsInhomogeneousBc
-
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

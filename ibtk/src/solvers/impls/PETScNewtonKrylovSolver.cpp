@@ -332,7 +332,8 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  cannot initialize solver state for wrapped PETSc SNES "
-                                    "object if the wrapped object is NULL" << std::endl);
+                                    "object if the wrapped object is NULL"
+                                 << std::endl);
     }
 
     // Setup solution and rhs vectors.
@@ -364,8 +365,8 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
 
     // Reset the member state variables to correspond to the values used by the
     // SNES object.  (Command-line options always take precedence.)
-    ierr = SNESGetTolerances(
-        d_petsc_snes, &d_abs_residual_tol, &d_rel_residual_tol, &d_solution_tol, &d_max_iterations, &d_max_evaluations);
+    ierr = SNESGetTolerances(d_petsc_snes, &d_abs_residual_tol, &d_rel_residual_tol, &d_solution_tol, &d_max_iterations,
+                             &d_max_evaluations);
     IBTK_CHKERRQ(ierr);
 
     // Setup the KrylovLinearSolver wrapper to correspond to the KSP employed by
@@ -538,8 +539,8 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
         void* petsc_snes_func_ctx;
         ierr = SNESGetFunction(d_petsc_snes, NULL, &petsc_snes_form_func, &petsc_snes_func_ctx);
         IBTK_CHKERRQ(ierr);
-        d_F = new PETScSNESFunctionGOWrapper(
-            d_object_name + "::SNESFunction Wrapper", d_petsc_snes, petsc_snes_form_func, petsc_snes_func_ctx);
+        d_F = new PETScSNESFunctionGOWrapper(d_object_name + "::SNESFunction Wrapper", d_petsc_snes,
+                                             petsc_snes_form_func, petsc_snes_func_ctx);
         d_F->setHomogeneousBc(d_homogeneous_bc);
         d_F->setSolutionTime(d_solution_time);
         d_F->setTimeInterval(d_current_time, d_new_time);
@@ -554,8 +555,8 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
         void* petsc_snes_jac_ctx;
         ierr = SNESGetJacobian(d_petsc_snes, NULL, NULL, &petsc_snes_form_jac, &petsc_snes_jac_ctx);
         IBTK_CHKERRQ(ierr);
-        d_J = new PETScSNESJacobianJOWrapper(
-            d_object_name + "::SNESJacobian Wrapper", d_petsc_snes, petsc_snes_form_jac, petsc_snes_jac_ctx);
+        d_J = new PETScSNESJacobianJOWrapper(d_object_name + "::SNESJacobian Wrapper", d_petsc_snes,
+                                             petsc_snes_form_jac, petsc_snes_jac_ctx);
         d_J->setHomogeneousBc(true);
         d_J->setSolutionTime(d_solution_time);
         d_J->setTimeInterval(d_current_time, d_new_time);
@@ -571,8 +572,8 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
 
     // Reset the member state variables to correspond to the values used by the
     // SNES object.
-    ierr = SNESGetTolerances(
-        d_petsc_snes, &d_abs_residual_tol, &d_rel_residual_tol, &d_solution_tol, &d_max_iterations, &d_max_evaluations);
+    ierr = SNESGetTolerances(d_petsc_snes, &d_abs_residual_tol, &d_rel_residual_tol, &d_solution_tol, &d_max_iterations,
+                             &d_max_evaluations);
     IBTK_CHKERRQ(ierr);
     return;
 } // resetWrappedSNES
@@ -580,8 +581,8 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
 void PETScNewtonKrylovSolver::resetSNESOptions()
 {
     if (!d_petsc_snes) return;
-    int ierr = SNESSetTolerances(
-        d_petsc_snes, d_abs_residual_tol, d_rel_residual_tol, d_solution_tol, d_max_iterations, d_max_evaluations);
+    int ierr = SNESSetTolerances(d_petsc_snes, d_abs_residual_tol, d_rel_residual_tol, d_solution_tol, d_max_iterations,
+                                 d_max_evaluations);
     IBTK_CHKERRQ(ierr);
     return;
 } // resetSNESSNESOptions
@@ -589,8 +590,8 @@ void PETScNewtonKrylovSolver::resetSNESOptions()
 void PETScNewtonKrylovSolver::resetSNESFunction()
 {
     if (!d_petsc_snes) return;
-    int ierr = SNESSetFunction(
-        d_petsc_snes, d_petsc_r, PETScNewtonKrylovSolver::FormFunction_SAMRAI, static_cast<void*>(this));
+    int ierr = SNESSetFunction(d_petsc_snes, d_petsc_r, PETScNewtonKrylovSolver::FormFunction_SAMRAI,
+                               static_cast<void*>(this));
     IBTK_CHKERRQ(ierr);
     return;
 } // resetSNESFunction
@@ -609,11 +610,11 @@ void PETScNewtonKrylovSolver::resetSNESJacobian()
     }
     if (d_J && d_user_provided_jacobian)
     {
-        ierr = MatCreateShell(
-            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_jac);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
+                              &d_petsc_jac);
         IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(
-            d_petsc_jac, MATOP_MULT, reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMult_SAMRAI));
+        ierr = MatShellSetOperation(d_petsc_jac, MATOP_MULT,
+                                    reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMult_SAMRAI));
         IBTK_CHKERRQ(ierr);
     }
     else
@@ -633,8 +634,8 @@ void PETScNewtonKrylovSolver::resetSNESJacobian()
     }
 
     // Reset the configuration of the PETSc SNES object.
-    ierr = SNESSetJacobian(
-        d_petsc_snes, d_petsc_jac, d_petsc_jac, PETScNewtonKrylovSolver::FormJacobian_SAMRAI, static_cast<void*>(this));
+    ierr = SNESSetJacobian(d_petsc_snes, d_petsc_jac, d_petsc_jac, PETScNewtonKrylovSolver::FormJacobian_SAMRAI,
+                           static_cast<void*>(this));
     IBTK_CHKERRQ(ierr);
     return;
 } // resetSNESJacobian
@@ -653,11 +654,7 @@ PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x
     PetscFunctionReturn(0);
 } // FormFunction_SAMRAI
 
-PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
-                                                            Vec x,
-                                                            Mat A,
-                                                            Mat /*B*/,
-                                                            void* p_ctx)
+PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/, void* p_ctx)
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);

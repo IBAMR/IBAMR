@@ -353,18 +353,17 @@ void CIBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void CIBFEMethod::eulerStep(const double current_time, const double new_time)
-{   
+{
     std::vector<Eigen::Matrix3d> moment_of_inertia_current, moment_of_inertia_half;
     moment_of_inertia_current.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
     moment_of_inertia_half.resize(d_num_rigid_parts, Eigen::Matrix3d::Zero());
-    
+
     const double dt = new_time - current_time;
 
     // Compute center of mass and moment of inertia of the body at t^n.
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        computeCOMandMOI(part, d_center_of_mass_current[part], moment_of_inertia_current[part],
-                         d_X_current_vecs[part]);
+        computeCOMandMOI(part, d_center_of_mass_current[part], moment_of_inertia_current[part], d_X_current_vecs[part]);
     }
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
@@ -759,7 +758,7 @@ void CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale
 
     if (!d_compute_L2_projection)
     {
-        Vec* vL, *vD;
+        Vec *vL, *vD;
         VecMultiVecGetSubVecs(L, &vL);
         VecMultiVecGetSubVecs(D, &vD);
 
@@ -788,92 +787,94 @@ unsigned int CIBFEMethod::getNumberOfNodes(const unsigned int part) const
 
 } // getNumberOfNodes
 
-void CIBFEMethod::computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F_vec, const std::vector<bool>& skip_comp)
+void CIBFEMethod::computeNetRigidGeneralizedForce(Vec L,
+                                                  std::vector<RigidDOFVector>& F_vec,
+                                                  const std::vector<bool>& skip_comp)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-	if (skip_comp[part]) continue;
-	RigidDOFVector& F = F_vec[part];
-	EquationSystems* equation_systems = d_equation_systems[part];
-	MeshBase& mesh = equation_systems->get_mesh();
-	const unsigned int dim = mesh.mesh_dimension();
-	AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-	
-	// Extract the FE system and DOF map, and setup the FE object.
-	System& L_system = *d_F_systems[part];
-	System& X_system = *d_X_systems[part];
-	DofMap& L_dof_map = L_system.get_dof_map();
-	DofMap& X_dof_map = X_system.get_dof_map();
-	std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
-	std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-	FEType L_fe_type = L_dof_map.variable_type(0);
-	FEType X_fe_type = X_dof_map.variable_type(0);
-	AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr(NULL);
-	if (L_fe_type != X_fe_type)
-	{
-	    X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
-	}
-	FEBase* L_fe = L_fe_autoptr.get();
-	FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : L_fe_autoptr.get();
-	const std::vector<double>& JxW_L = L_fe->get_JxW();
-	const std::vector<std::vector<double> >& phi_L = L_fe->get_phi();
-	const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+        if (skip_comp[part]) continue;
+        RigidDOFVector& F = F_vec[part];
+        EquationSystems* equation_systems = d_equation_systems[part];
+        MeshBase& mesh = equation_systems->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
+        AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
 
-	const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
-	libMesh::PetscVector<double>& X_petsc = *d_X_half_vecs[part];
-	if (!X_petsc.closed()) X_petsc.close();
-	Vec X_global_vec = X_petsc.vec();
-	Vec X_local_ghost_vec;
-	VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
-	double* X_local_ghost_soln;
-	VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);
+        // Extract the FE system and DOF map, and setup the FE object.
+        System& L_system = *d_F_systems[part];
+        System& X_system = *d_X_systems[part];
+        DofMap& L_dof_map = L_system.get_dof_map();
+        DofMap& X_dof_map = X_system.get_dof_map();
+        std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+        FEType L_fe_type = L_dof_map.variable_type(0);
+        FEType X_fe_type = X_dof_map.variable_type(0);
+        AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr(NULL);
+        if (L_fe_type != X_fe_type)
+        {
+            X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        }
+        FEBase* L_fe = L_fe_autoptr.get();
+        FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : L_fe_autoptr.get();
+        const std::vector<double>& JxW_L = L_fe->get_JxW();
+        const std::vector<std::vector<double> >& phi_L = L_fe->get_phi();
+        const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
-	libMesh::PetscVector<double>& L_petsc = *d_F_half_vecs[part];
-	Vec L_global_vec = L_petsc.vec();
-	VecCopy(L, L_global_vec);
-	L_petsc.close(); // Sync ghost values.
-	Vec L_local_ghost_vec;
-	VecGhostGetLocalForm(L_global_vec, &L_local_ghost_vec);
-	double* L_local_ghost_soln;
-	VecGetArray(L_local_ghost_vec, &L_local_ghost_soln);
+        const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
+        libMesh::PetscVector<double>& X_petsc = *d_X_half_vecs[part];
+        if (!X_petsc.closed()) X_petsc.close();
+        Vec X_global_vec = X_petsc.vec();
+        Vec X_local_ghost_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
+        double* X_local_ghost_soln;
+        VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);
 
-	F.setZero();
-	boost::multi_array<double, 2> X_node, L_node;
-	double X_qp[NDIM], L_qp[NDIM];
-	const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-	const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-	for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-	{
-	    const Elem* const elem = *el_it;
-	    L_fe->reinit(elem);
-	    for (unsigned int d = 0; d < NDIM; ++d)
-	    {
-		X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-		L_dof_map.dof_indices(elem, L_dof_indices[d], d);
-	    }
-	    get_values_for_interpolation(L_node, L_petsc, L_local_ghost_soln, L_dof_indices);
-	    get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
+        libMesh::PetscVector<double>& L_petsc = *d_F_half_vecs[part];
+        Vec L_global_vec = L_petsc.vec();
+        VecCopy(L, L_global_vec);
+        L_petsc.close(); // Sync ghost values.
+        Vec L_local_ghost_vec;
+        VecGhostGetLocalForm(L_global_vec, &L_local_ghost_vec);
+        double* L_local_ghost_soln;
+        VecGetArray(L_local_ghost_vec, &L_local_ghost_soln);
 
-	    const unsigned int n_qp = qrule->n_points();
-	    for (unsigned int qp = 0; qp < n_qp; ++qp)
-	    {
-		interpolate(X_qp, qp, X_node, phi_X);
-		interpolate(L_qp, qp, L_node, phi_L);
+        F.setZero();
+        boost::multi_array<double, 2> X_node, L_node;
+        double X_qp[NDIM], L_qp[NDIM];
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            L_fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+                L_dof_map.dof_indices(elem, L_dof_indices[d], d);
+            }
+            get_values_for_interpolation(L_node, L_petsc, L_local_ghost_soln, L_dof_indices);
+            get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
 
-		for (unsigned int d = 0; d < NDIM; ++d)
-		{
-		    F[d] += L_qp[d] * JxW_L[qp];
-		}
+            const unsigned int n_qp = qrule->n_points();
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                interpolate(X_qp, qp, X_node, phi_X);
+                interpolate(L_qp, qp, L_node, phi_L);
+
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    F[d] += L_qp[d] * JxW_L[qp];
+                }
 #if (NDIM == 2)
-		F[NDIM] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
+                F[NDIM] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
 #elif(NDIM == 3)
-		F[NDIM] += (L_qp[2] * (X_qp[1] - X_com[1]) - L_qp[1] * (X_qp[2] - X_com[2])) * JxW_L[qp];
-		F[NDIM + 1] += (L_qp[0] * (X_qp[2] - X_com[2]) - L_qp[2] * (X_qp[0] - X_com[0])) * JxW_L[qp];
-		F[NDIM + 2] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
+                F[NDIM] += (L_qp[2] * (X_qp[1] - X_com[1]) - L_qp[1] * (X_qp[2] - X_com[2])) * JxW_L[qp];
+                F[NDIM + 1] += (L_qp[0] * (X_qp[2] - X_com[2]) - L_qp[2] * (X_qp[0] - X_com[0])) * JxW_L[qp];
+                F[NDIM + 2] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
 #endif
-	    }
-	}
-	SAMRAI_MPI::sumReduction(&F[0], NDIM * (NDIM + 1) / 2);
+            }
+        }
+        SAMRAI_MPI::sumReduction(&F[0], NDIM * (NDIM + 1) / 2);
     }
     return;
 
@@ -1001,29 +1002,29 @@ void CIBFEMethod::setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-	if (skip_comp[part]) continue;
-	PetscVector<double>& U_k = *d_U_constrained_half_vecs[part];
-	PetscVector<double>& X_half = *d_X_half_vecs[part];
-	void* ctx = d_constrained_velocity_fcns_data[part].ctx;
-	d_constrained_velocity_fcns_data[part].nodalvelfcn(U_k, U[part], X_half, d_center_of_mass_half[part],
-							   d_equation_systems[part], d_new_time, ctx);
-	if (!U_k.closed()) U_k.close();
-	
-	// We filter the rigid body velocity using the basis function of the
-	// deformational field, in the case when L2-projection is not performed.
-	Vec* vV;
-	VecMultiVecGetSubVecs(V, &vV);
-	if (!d_compute_L2_projection)
-	{
-	    std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
-		d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
-	    Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
-	    MatMult(mat, U_k.vec(), vV[part]);
-	}
-	else
-	{
-	    VecCopy(U_k.vec(), vV[part]);
-	}
+        if (skip_comp[part]) continue;
+        PetscVector<double>& U_k = *d_U_constrained_half_vecs[part];
+        PetscVector<double>& X_half = *d_X_half_vecs[part];
+        void* ctx = d_constrained_velocity_fcns_data[part].ctx;
+        d_constrained_velocity_fcns_data[part].nodalvelfcn(U_k, U[part], X_half, d_center_of_mass_half[part],
+                                                           d_equation_systems[part], d_new_time, ctx);
+        if (!U_k.closed()) U_k.close();
+
+        // We filter the rigid body velocity using the basis function of the
+        // deformational field, in the case when L2-projection is not performed.
+        Vec* vV;
+        VecMultiVecGetSubVecs(V, &vV);
+        if (!d_compute_L2_projection)
+        {
+            std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
+                d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+            Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
+            MatMult(mat, U_k.vec(), vV[part]);
+        }
+        else
+        {
+            VecCopy(U_k.vec(), vV[part]);
+        }
     }
     return;
 } // setRigidBodyVelocity

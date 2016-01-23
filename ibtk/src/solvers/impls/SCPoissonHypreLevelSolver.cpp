@@ -337,8 +337,7 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     HYPRE_SStructVariable vartypes[NVARS] = { HYPRE_SSTRUCT_VARIABLE_XFACE, HYPRE_SSTRUCT_VARIABLE_YFACE };
 #endif
 #if (NDIM == 3)
-    HYPRE_SStructVariable vartypes[NVARS] = { HYPRE_SSTRUCT_VARIABLE_XFACE,
-                                              HYPRE_SSTRUCT_VARIABLE_YFACE,
+    HYPRE_SStructVariable vartypes[NVARS] = { HYPRE_SSTRUCT_VARIABLE_XFACE, HYPRE_SSTRUCT_VARIABLE_YFACE,
                                               HYPRE_SSTRUCT_VARIABLE_ZFACE };
 #endif
     HYPRE_SStructGridSetVariables(d_grid, PART, NVARS, vartypes);
@@ -395,8 +394,8 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
         const Box<NDIM>& patch_box = patch->getBox();
         const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
-        PoissonUtilities::computeSCMatrixCoefficients(
-            patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
+        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec,
+                                                      d_bc_coefs, d_solution_time);
 
         // Copy matrix entries to the hypre matrix structure.
         std::vector<int> stencil_indices(stencil_sz);
@@ -681,8 +680,8 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         {
             SideData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            PoissonUtilities::adjustSCBoundaryRhsEntries(
-                patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,
+                                                         d_homogeneous_bc);
             copyToHypre(d_rhs_vec, Pointer<SideData<NDIM, double> >(&b_adj_data, false), patch_box);
         }
         else

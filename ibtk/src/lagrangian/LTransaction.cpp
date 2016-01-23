@@ -73,8 +73,7 @@ LTransaction<T>::LTransaction(const int src_proc,
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
     for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
-         cit != d_src_item_set.end();
-         ++cit)
+         cit != d_src_item_set.end(); ++cit)
     {
         d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
     }

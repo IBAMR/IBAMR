@@ -311,12 +311,8 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-    d_l_data_manager->interp(d_w_idx,
-                             *W_data,
-                             *X_LE_data,
-                             std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                             getGhostfillRefineSchedules(d_object_name + "::w"),
-                             data_time);
+    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                             getGhostfillRefineSchedules(d_object_name + "::w"), data_time);
     resetAnchorPointValues(*W_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -489,13 +485,8 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_and_torque_fcn)
         {
-            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln],
-                                                                       (*N_data)[ln],
-                                                                       (*X_data)[ln],
-                                                                       (*D_data)[ln],
-                                                                       d_hierarchy,
-                                                                       ln,
-                                                                       data_time,
+            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln],
+                                                                       (*D_data)[ln], d_hierarchy, ln, data_time,
                                                                        d_l_data_manager);
         }
     }
@@ -535,13 +526,8 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
-    d_l_data_manager->spread(d_n_idx,
-                             *N_data,
-                             *X_LE_data,
-                             f_phys_bdry_op,
-                             std::vector<Pointer<RefineSchedule<NDIM> > >(),
-                             data_time,
-                             *N_needs_ghost_fill,
+    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, f_phys_bdry_op,
+                             std::vector<Pointer<RefineSchedule<NDIM> > >(), data_time, *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
     *N_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
@@ -578,26 +564,20 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
-void
-GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                              Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                              int u_data_idx,
-                                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                              int integrator_step,
-                                              double init_data_time,
-                                              bool initial_time)
+void GeneralizedIBMethod::initializePatchHierarchy(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+    int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    int integrator_step,
+    double init_data_time,
+    bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
-    IBMethod::initializePatchHierarchy(hierarchy,
-                                       gridding_alg,
-                                       u_data_idx,
-                                       u_synch_scheds,
-                                       u_ghost_fill_scheds,
-                                       integrator_step,
-                                       init_data_time,
-                                       initial_time);
+    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
+                                       integrator_step, init_data_time, initial_time);
 
     // Initialize various Lagrangian data objects required by the gIB method.
     if (initial_time)
@@ -634,12 +614,8 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
                                      << "  unsupported velocity data centering" << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-        d_l_data_manager->interp(d_w_idx,
-                                 W_data,
-                                 X_data,
-                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                 getGhostfillRefineSchedules(d_object_name + "::w"),
-                                 init_data_time);
+        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                 getGhostfillRefineSchedules(d_object_name + "::w"), init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
 
@@ -656,29 +632,21 @@ void GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> >
                                               Pointer<BasePatchLevel<NDIM> > old_level,
                                               bool allocate_data)
 {
-    IBMethod::initializeLevelData(
-        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
+                                  allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         // 1. Allocate LData corresponding to the curvilinear mesh node
         //    directors and angular velocities.
-        Pointer<LData> D_data = d_l_data_manager->createLData("D",
-                                                              level_number,
-                                                              NDIM * NDIM,
+        Pointer<LData> D_data = d_l_data_manager->createLData("D", level_number, NDIM * NDIM,
                                                               /*manage_data*/ true);
         Pointer<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
 
         // 2. Initialize the Lagrangian data.
         static const int global_index_offset = 0;
         static const int local_index_offset = 0;
-        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset,
-                                                            local_index_offset,
-                                                            D_data,
-                                                            hierarchy,
-                                                            level_number,
-                                                            init_data_time,
-                                                            can_be_refined,
-                                                            initial_time,
+        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, hierarchy,
+                                                            level_number, init_data_time, can_be_refined, initial_time,
                                                             d_l_data_manager);
 
         // 3. Register data with any registered data writer.

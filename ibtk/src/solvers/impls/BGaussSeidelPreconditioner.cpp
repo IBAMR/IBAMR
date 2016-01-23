@@ -290,13 +290,11 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
 
     // Deallocate the component operators.
     for (std::map<unsigned int, std::vector<Pointer<LinearOperator> > >::iterator it = d_linear_ops_map.begin();
-         it != d_linear_ops_map.end();
-         ++it)
+         it != d_linear_ops_map.end(); ++it)
     {
         std::vector<Pointer<LinearOperator> >& comp_linear_ops = it->second;
         for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin();
-             comp_it != comp_linear_ops.end();
-             ++comp_it)
+             comp_it != comp_linear_ops.end(); ++comp_it)
         {
             if (*comp_it) (*comp_it)->deallocateOperatorState();
         }
@@ -363,8 +361,8 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
         str << comp;
         x_comps[comp] =
             new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
-        x_comps[comp]->addComponent(
-            x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
+        x_comps[comp]->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp),
+                                    x->getControlVolumeIndex(comp));
     }
     return x_comps;
 } // getComponentVectors

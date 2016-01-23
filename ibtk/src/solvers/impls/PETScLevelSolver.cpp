@@ -345,8 +345,7 @@ void PETScLevelSolver::setupNullspace()
         ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
-                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
                               (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);

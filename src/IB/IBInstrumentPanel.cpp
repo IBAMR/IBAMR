@@ -347,14 +347,12 @@ double linear_interp(const Point& X,
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
+                                                              ,
                                     i_shift2 + i_cell(2)
 #endif
                                         );
@@ -407,14 +405,12 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
+                                                              ,
                                     i_shift2 + i_cell(2)
 #endif
                                         );
@@ -478,14 +474,12 @@ Vector linear_interp(const Point& X,
                         (((X[0] < X_side[0] ? X[0] - (X_side[0] - dx[0]) : (X_side[0] + dx[0]) - X[0]) / dx[0]) *
                          ((X[1] < X_side[1] ? X[1] - (X_side[1] - dx[1]) : (X_side[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                         *
-                         ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
+                         * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
                              );
-                    const Index<NDIM> i(i_shift0 + i_cell(0),
-                                        i_shift1 + i_cell(1)
+                    const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                            ,
+                                                                  ,
                                         i_shift2 + i_cell(2)
 #endif
                                             );
@@ -765,8 +759,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            X_perimeter_flattened.insert(
-                X_perimeter_flattened.end(), d_X_perimeter[m][n].data(), d_X_perimeter[m][n].data() + NDIM);
+            X_perimeter_flattened.insert(X_perimeter_flattened.end(), d_X_perimeter[m][n].data(),
+                                         d_X_perimeter[m][n].data() + NDIM);
         }
     }
     SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
@@ -774,8 +768,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
-            std::copy(&X_perimeter_flattened[NDIM * k],
-                      (&X_perimeter_flattened[NDIM * k]) + NDIM,
+            std::copy(&X_perimeter_flattened[NDIM * k], (&X_perimeter_flattened[NDIM * k]) + NDIM,
                       d_X_perimeter[m][n].data());
         }
     }
@@ -878,14 +871,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
-                                                                             domainXLower,
-                                                                             domainXUpper,
-                                                                             finer_dx.data(),
-                                                                             finer_domain_box_level_lower,
-                                                                             finer_domain_box_level_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+                                                                       domain_box_level_lower, domain_box_level_upper);
+                    const Index<NDIM> finer_i =
+                        IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                                                     finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -900,14 +890,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(
-                X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
-                                                                     domainXLower,
-                                                                     domainXUpper,
-                                                                     finer_dx.data(),
-                                                                     finer_domain_box_level_lower,
-                                                                     finer_domain_box_level_upper);
+            const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+                                                               domain_box_level_lower, domain_box_level_upper);
+            const Index<NDIM> finer_i =
+                IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                                             finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;
@@ -1001,8 +988,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
                             const Vector& dA = *(it->second.dA);
-                            const Vector U = linear_interp<NDIM>(
-                                X, i, X_cell, *U_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const Vector U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper,
+                                                                 x_lower, x_upper, dx);
                             d_flow_values[meter_num] += U.dot(dA);
                         }
                     }
@@ -1124,8 +1111,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            U_perimeter_flattened.insert(
-                U_perimeter_flattened.end(), U_perimeter[m][n].data(), U_perimeter[m][n].data() + NDIM);
+            U_perimeter_flattened.insert(U_perimeter_flattened.end(), U_perimeter[m][n].data(),
+                                         U_perimeter[m][n].data() + NDIM);
         }
     }
     SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
@@ -1133,8 +1120,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
-            std::copy(
-                &U_perimeter_flattened[NDIM * k], (&U_perimeter_flattened[NDIM * k]) + NDIM, U_perimeter[m][n].data());
+            std::copy(&U_perimeter_flattened[NDIM * k], (&U_perimeter_flattened[NDIM * k]) + NDIM,
+                      U_perimeter[m][n].data());
         }
     }
 
@@ -1385,17 +1372,17 @@ void IBInstrumentPanel::outputLogData(std::ostream& os)
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_flow_conv* d_flow_values[m];
+        os << "  " << d_flow_conv * d_flow_values[m];
 
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_pres_conv* d_mean_pres_values[m];
+        os << "  " << d_pres_conv * d_mean_pres_values[m];
 
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_pres_conv* d_point_pres_values[m];
+        os << "  " << d_pres_conv * d_point_pres_values[m];
 
         os << "\n";
 

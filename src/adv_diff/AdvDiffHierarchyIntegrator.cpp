@@ -178,8 +178,8 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 } // ~AdvDiffHierarchyIntegrator
 
-void
-AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(TimeSteppingType default_diffusion_time_stepping_type)
+void AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(
+    TimeSteppingType default_diffusion_time_stepping_type)
 {
     d_default_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
     return;
@@ -638,15 +638,10 @@ Pointer<PoissonSolver> AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<Ce
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
-        d_helmholtz_solvers[l] =
-            CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
-                                                                 d_object_name + "::helmholtz_solver::" + name,
-                                                                 d_helmholtz_solver_db,
-                                                                 "adv_diff_",
-                                                                 d_helmholtz_precond_type,
-                                                                 d_object_name + "::helmholtz_precond::" + name,
-                                                                 d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_");
+        d_helmholtz_solvers[l] = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_helmholtz_solver_type, d_object_name + "::helmholtz_solver::" + name, d_helmholtz_solver_db, "adv_diff_",
+            d_helmholtz_precond_type, d_object_name + "::helmholtz_precond::" + name, d_helmholtz_precond_db,
+            "adv_diff_pc_");
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -843,40 +838,20 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
             for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-                 cit != d_u_var.end();
-                 ++cit)
+                 cit != d_u_var.end(); ++cit)
             {
                 Pointer<FaceVariable<NDIM, double> > u_var = *cit;
                 Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_var, getCurrentContext());
                 const IntVector<NDIM>& u_ghost_cells = u_data->getGhostCellWidth();
                 double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)
-                ADVECT_STABLEDT_FC(dx,
-                                   ilower(0),
-                                   iupper(0),
-                                   ilower(1),
-                                   iupper(1),
-                                   u_ghost_cells(0),
-                                   u_ghost_cells(1),
-                                   u_data->getPointer(0),
-                                   u_data->getPointer(1),
-                                   stable_dt);
+                ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), u_ghost_cells(0), u_ghost_cells(1),
+                                   u_data->getPointer(0), u_data->getPointer(1), stable_dt);
 #endif
 #if (NDIM == 3)
-                ADVECT_STABLEDT_FC(dx,
-                                   ilower(0),
-                                   iupper(0),
-                                   ilower(1),
-                                   iupper(1),
-                                   ilower(2),
-                                   iupper(2),
-                                   u_ghost_cells(0),
-                                   u_ghost_cells(1),
-                                   u_ghost_cells(2),
-                                   u_data->getPointer(0),
-                                   u_data->getPointer(1),
-                                   u_data->getPointer(2),
-                                   stable_dt);
+                ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                                   u_ghost_cells(0), u_ghost_cells(1), u_ghost_cells(2), u_data->getPointer(0),
+                                   u_data->getPointer(1), u_data->getPointer(2), stable_dt);
 #endif
                 dt = std::min(dt, d_cfl_max * stable_dt);
             }
@@ -924,12 +899,8 @@ void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
         // Setup the interpolation transaction information.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent transaction_comp(Q_scratch_idx,
-                                                           DATA_REFINE_TYPE,
-                                                           USE_CF_INTERPOLATION,
-                                                           DATA_COARSEN_TYPE,
-                                                           BDRY_EXTRAP_TYPE,
-                                                           CONSISTENT_TYPE_2_BDRY,
+        InterpolationTransactionComponent transaction_comp(Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                           DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
                                                            d_Q_bc_coef[Q_var]);
 
         // Initialize the interpolation operators.
@@ -991,28 +962,16 @@ void AdvDiffHierarchyIntegrator::registerVariables()
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         int u_current_idx, u_new_idx, u_scratch_idx;
-        registerVariable(u_current_idx,
-                         u_new_idx,
-                         u_scratch_idx,
-                         u_var,
-                         face_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_u_fcn[u_var]);
+        registerVariable(u_current_idx, u_new_idx, u_scratch_idx, u_var, face_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_u_fcn[u_var]);
     }
     for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         int Q_current_idx, Q_new_idx, Q_scratch_idx;
-        registerVariable(Q_current_idx,
-                         Q_new_idx,
-                         Q_scratch_idx,
-                         Q_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_Q_init[Q_var]);
+        registerVariable(Q_current_idx, Q_new_idx, Q_scratch_idx, Q_var, cell_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_Q_init[Q_var]);
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
         if (d_visit_writer)
@@ -1023,45 +982,30 @@ void AdvDiffHierarchyIntegrator::registerVariables()
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
         int F_current_idx, F_new_idx, F_scratch_idx;
-        registerVariable(F_current_idx,
-                         F_new_idx,
-                         F_scratch_idx,
-                         F_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_F_fcn[F_var]);
+        registerVariable(F_current_idx, F_new_idx, F_scratch_idx, F_var, cell_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_F_fcn[F_var]);
         Pointer<CellDataFactory<NDIM, double> > F_factory = F_var->getPatchDataFactory();
         const int F_depth = F_factory->getDefaultDepth();
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
     for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit)
+         cit != d_diffusion_coef_var.end(); ++cit)
     {
         Pointer<SideVariable<NDIM, double> > D_var = *cit;
         int D_current_idx, D_new_idx, D_scratch_idx;
-        registerVariable(D_current_idx,
-                         D_new_idx,
-                         D_scratch_idx,
-                         D_var,
-                         face_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_diffusion_coef_fcn[D_var]);
+        registerVariable(D_current_idx, D_new_idx, D_scratch_idx, D_var, face_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_diffusion_coef_fcn[D_var]);
     }
     for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_rhs_var.begin();
-         cit != d_Q_rhs_var.end();
-         ++cit)
+         cit != d_Q_rhs_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
     }
     for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin();
-         cit != d_diffusion_coef_rhs_var.end();
-         ++cit)
+         cit != d_diffusion_coef_rhs_var.end(); ++cit)
     {
         Pointer<SideVariable<NDIM, double> > D_rhs_var = *cit;
         int D_rhs_scratch_idx;

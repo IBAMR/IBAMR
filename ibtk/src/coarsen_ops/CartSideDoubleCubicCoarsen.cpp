@@ -207,37 +207,25 @@ void CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 #if (NDIM == 3)
         const double* const U_fine2 = fdata->getPointer(2, depth);
 #endif
-        SC_CUBIC_COARSEN_FC(U_crse0,
-                            U_crse1,
+        SC_CUBIC_COARSEN_FC(U_crse0, U_crse1,
 #if (NDIM == 3)
                             U_crse2,
 #endif
-                            U_crse_ghosts,
-                            U_fine0,
-                            U_fine1,
+                            U_crse_ghosts, U_fine0, U_fine1,
 #if (NDIM == 3)
                             U_fine2,
 #endif
-                            U_fine_ghosts,
-                            patch_box_crse.lower(0),
-                            patch_box_crse.upper(0),
-                            patch_box_crse.lower(1),
+                            U_fine_ghosts, patch_box_crse.lower(0), patch_box_crse.upper(0), patch_box_crse.lower(1),
                             patch_box_crse.upper(1),
 #if (NDIM == 3)
-                            patch_box_crse.lower(2),
-                            patch_box_crse.upper(2),
+                            patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                            patch_box_fine.lower(0),
-                            patch_box_fine.upper(0),
-                            patch_box_fine.lower(1),
+                            patch_box_fine.lower(0), patch_box_fine.upper(0), patch_box_fine.lower(1),
                             patch_box_fine.upper(1),
 #if (NDIM == 3)
-                            patch_box_fine.lower(2),
-                            patch_box_fine.upper(2),
+                            patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                            ratio,
-                            coarse_box.lower(),
-                            coarse_box.upper());
+                            ratio, coarse_box.lower(), coarse_box.upper());
     }
     return;
 } // coarsen

@@ -101,8 +101,8 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
     return;
 } // setPhysicalBcCoef
 
-void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

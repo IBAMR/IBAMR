@@ -321,14 +321,8 @@ void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hier
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->initializePatchHierarchy(hierarchy,
-                                         gridding_alg,
-                                         u_data_idx,
-                                         u_synch_scheds,
-                                         u_ghost_fill_scheds,
-                                         integrator_step,
-                                         init_data_time,
-                                         initial_time);
+        (*cit)->initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
+                                         integrator_step, init_data_time, initial_time);
     }
     return;
 } // initializePatchHierarchy
@@ -386,8 +380,8 @@ void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hiera
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->initializeLevelData(
-            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        (*cit)->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
+                                    allocate_data);
     }
     return;
 } // initializeLevelData
@@ -414,8 +408,8 @@ void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hie
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->applyGradientDetector(
-            hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        (*cit)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                      uses_richardson_extrapolation_too);
     }
     return;
 } // applyGradientDetector

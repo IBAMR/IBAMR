@@ -248,33 +248,32 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     }
     return;
 } // constructPatchLevelDOFIndices
-	
+
 void PETScVecUtilities::constructPatchLevelAO(AO& ao,
-											  std::vector<int>& num_dofs_per_proc,
-											  int dof_index_idx,
-											  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
-												patch_level)
+                                              std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
 {
-	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-	Pointer<Variable<NDIM> > dof_index_var;
-	var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-	Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
-	Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-	if (dof_index_cc_var)
-	{
-		constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level);
-	}
-	else if (dof_index_sc_var)
-	{
-		constructPatchLevelAO_side(ao, num_dofs_per_proc, dof_index_idx, patch_level);
-	}
-	else
-	{
-		TBOX_ERROR("PETScVecUtilities::constructPatchLevelAO():\n"
-				   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
-	}
-	
-}// constructPatchLevelAO
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > dof_index_var;
+    var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+    Pointer<CellVariable<NDIM, int> > dof_index_cc_var = dof_index_var;
+    Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
+    if (dof_index_cc_var)
+    {
+        constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level);
+    }
+    else if (dof_index_sc_var)
+    {
+        constructPatchLevelAO_side(ao, num_dofs_per_proc, dof_index_idx, patch_level);
+    }
+    else
+    {
+        TBOX_ERROR("PETScVecUtilities::constructPatchLevelAO():\n"
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+    }
+
+} // constructPatchLevelAO
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -623,191 +622,186 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_side
-	
+
 void PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
-												   std::vector<int>& num_dofs_per_proc,
-												   const int dof_index_idx,
-												   Pointer<PatchLevel<NDIM> > patch_level)
+                                                   std::vector<int>& num_dofs_per_proc,
+                                                   const int dof_index_idx,
+                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
-	int ierr;
-	if (ao)
-	{
-		ierr = AODestroy(&ao);
-		IBTK_CHKERRQ(ierr);
-	}
-	
-	// Determine the grid extents.
-	const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
-#if !defined(NDEBUG)
-	TBOX_ASSERT(domain_boxes.size() == 1);
-#endif
-	const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-	const Index<NDIM>& domain_upper = domain_boxes[0].upper();
-	Index<NDIM> num_cells = 1;
-	num_cells += domain_upper - domain_lower;
-	
-	// Compute PETSc to SAMRAI index mapping
-	const int mpi_rank = SAMRAI_MPI::getRank();
-	const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
-	std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
-	
-	int counter = 0;
-	for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-	{
-		Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-		const Box<NDIM>& patch_box = patch->getBox();
-		Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-		const int depth = dof_index_data->getDepth();
-		for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
-		{
-			const CellIndex<NDIM>& i = b();
+    int ierr;
+    if (ao)
+    {
+        ierr = AODestroy(&ao);
+        IBTK_CHKERRQ(ierr);
+    }
 
-			for (int d = 0; d < depth; ++d, ++counter)
-			{
-				petsc_idxs[counter]  =  (*dof_index_data)(i, d);
-				samrai_idxs[counter] =
-					IndexUtilities::getIntegerMapping(i, domain_lower, num_cells, d);
-			}
-		}
-	}
-	
+    // Determine the grid extents.
+    const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
 #if !defined(NDEBUG)
-	TBOX_ASSERT(counter == n_local_master_dofs);
+    TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-	
-	AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0],
-		&petsc_idxs[0], &ao);
-	
-	return;
-	
-}// constructPatchLevelAO_cell
-	
+    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    Index<NDIM> num_cells = 1;
+    num_cells += domain_upper - domain_lower;
+
+    // Compute PETSc to SAMRAI index mapping
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
+    std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
+
+    int counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+
+            for (int d = 0; d < depth; ++d, ++counter)
+            {
+                petsc_idxs[counter] = (*dof_index_data)(i, d);
+                samrai_idxs[counter] = IndexUtilities::getIntegerMapping(i, domain_lower, num_cells, d);
+            }
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter == n_local_master_dofs);
+#endif
+
+    AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0], &petsc_idxs[0], &ao);
+
+    return;
+
+} // constructPatchLevelAO_cell
+
 void PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
-												   std::vector<int>& num_dofs_per_proc,
-												   const int dof_index_idx,
-												   Pointer<PatchLevel<NDIM> > patch_level)
+                                                   std::vector<int>& num_dofs_per_proc,
+                                                   const int dof_index_idx,
+                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
-	int ierr;
-	if (ao)
-	{
-		ierr = AODestroy(&ao);
-		IBTK_CHKERRQ(ierr);
-	}
-	
-	// Determine the grid extents.
-	const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
-#if !defined(NDEBUG)
-	TBOX_ASSERT(domain_boxes.size() == 1);
-#endif
-	const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-	const Index<NDIM>& domain_upper = domain_boxes[0].upper();
-	boost::array<Index<NDIM>,NDIM> num_cells;
-	for (unsigned d = 0; d < NDIM; ++d)
-	{
-		Index<NDIM> offset = 1;
-		offset(d) = 2;
-		num_cells[d] = domain_upper - domain_lower + offset;
-	}
-	
-	// Create variables to keep track of whether a particular location is the
-	// "master" location.
-	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-	Pointer<SideVariable<NDIM,int> > patch_num_var =
-	new SideVariable<NDIM,int>("PETScVecUtilities::constructPatchLevelAO_side()::patch_num_var");
-	static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
-	patch_level->allocatePatchData(patch_num_idx);
-	Pointer<SideVariable<NDIM,bool> > mastr_loc_var =
-	new SideVariable<NDIM,bool>("PETScVecUtilities::constructPatchLevelAO_side()::mastr_loc_var");
-	static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
-	patch_level->allocatePatchData(mastr_loc_idx);
-	
-	for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-	{
-		Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-		const int patch_num = patch->getPatchNumber();
-		Pointer<SideData<NDIM,int> > patch_num_data = patch->getPatchData(patch_num_idx);
-		patch_num_data->fillAll(patch_num);
-		Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-		mastr_loc_data->fillAll(false);
-	}
-	
-	// Synchronize the patch number and preliminary DOF index data at patch
-	// boundaries to determine which patch owns a given DOF along patch
-	// boundaries.
-	RefineAlgorithm<NDIM> bdry_synch_alg;
-	bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-	bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
-	
-	// Determine the master DOFs
-	for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-	{
-		Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-		const int patch_num = patch->getPatchNumber();
-		const Box<NDIM>& patch_box = patch->getBox();
-		Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-		Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-		for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-		{
-			for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-			{
-				const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
-				bool mastr_loc = (*patch_num_data)(i) == patch_num;
-				(*mastr_loc_data)(i) = mastr_loc;
-			}
-		}
-	}
-	
-	// Compute PETSc to SAMRAI index mapping
-	const int mpi_rank = SAMRAI_MPI::getRank();
-	const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
-	std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
-	
-	int counter = 0;
-	for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-	{
-		Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-		const Box<NDIM>& patch_box = patch->getBox();
-		Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(dof_index_idx);
-		Pointer<SideData<NDIM, int> >  dof_index_data = patch->getPatchData(dof_index_idx);
-		const int depth = dof_index_data->getDepth();
-		
-		for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-		{
-			for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-			{
-				const CellIndex<NDIM>& i = b();
-				const SideIndex<NDIM> is(i, component_axis, SideIndex<NDIM>::Lower);
-				bool mastr_loc = (*mastr_loc_data)(is);
-				
-				if (mastr_loc)
-				{
-					for (int d = 0; d < depth; ++d, ++counter)
-					{
-						petsc_idxs[counter]  =  (*dof_index_data)(is, d);
-						samrai_idxs[counter] = IndexUtilities::getIntegerMapping(i, domain_lower,
-							num_cells[component_axis], d);
+    int ierr;
+    if (ao)
+    {
+        ierr = AODestroy(&ao);
+        IBTK_CHKERRQ(ierr);
+    }
 
-					}
-				}
-			}
-		}
-	}
-	
+    // Determine the grid extents.
+    const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
 #if !defined(NDEBUG)
-	TBOX_ASSERT(counter == n_local_master_dofs);
+    TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-	
-	AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0],
-				  &petsc_idxs[0], &ao);
-	
-	// Deallocate temporary variable data.
-	patch_level->deallocatePatchData(patch_num_idx);
-	patch_level->deallocatePatchData(mastr_loc_idx);
-	
-	return;
-	
-}// constructPatchLevelAO_side
-	
+    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    boost::array<Index<NDIM>, NDIM> num_cells;
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        Index<NDIM> offset = 1;
+        offset(d) = 2;
+        num_cells[d] = domain_upper - domain_lower + offset;
+    }
+
+    // Create variables to keep track of whether a particular location is the
+    // "master" location.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int> > patch_num_var =
+        new SideVariable<NDIM, int>("PETScVecUtilities::constructPatchLevelAO_side()::patch_num_var");
+    static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
+    patch_level->allocatePatchData(patch_num_idx);
+    Pointer<SideVariable<NDIM, bool> > mastr_loc_var =
+        new SideVariable<NDIM, bool>("PETScVecUtilities::constructPatchLevelAO_side()::mastr_loc_var");
+    static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
+    patch_level->allocatePatchData(mastr_loc_idx);
+
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        patch_num_data->fillAll(patch_num);
+        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        mastr_loc_data->fillAll(false);
+    }
+
+    // Synchronize the patch number and preliminary DOF index data at patch
+    // boundaries to determine which patch owns a given DOF along patch
+    // boundaries.
+    RefineAlgorithm<NDIM> bdry_synch_alg;
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
+
+    // Determine the master DOFs
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                bool mastr_loc = (*patch_num_data)(i) == patch_num;
+                (*mastr_loc_data)(i) = mastr_loc;
+            }
+        }
+    }
+
+    // Compute PETSc to SAMRAI index mapping
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
+    std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
+
+    int counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> is(i, component_axis, SideIndex<NDIM>::Lower);
+                bool mastr_loc = (*mastr_loc_data)(is);
+
+                if (mastr_loc)
+                {
+                    for (int d = 0; d < depth; ++d, ++counter)
+                    {
+                        petsc_idxs[counter] = (*dof_index_data)(is, d);
+                        samrai_idxs[counter] =
+                            IndexUtilities::getIntegerMapping(i, domain_lower, num_cells[component_axis], d);
+                    }
+                }
+            }
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter == n_local_master_dofs);
+#endif
+
+    AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0], &petsc_idxs[0], &ao);
+
+    // Deallocate temporary variable data.
+    patch_level->deallocatePatchData(patch_num_idx);
+    patch_level->deallocatePatchData(mastr_loc_idx);
+
+    return;
+
+} // constructPatchLevelAO_side
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

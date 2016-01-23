@@ -295,20 +295,12 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& pa
             {
                 double* const U = data->getPointer(depth);
                 const int r = ratio.min();
-                CC_LINEAR_NORMAL_INTERPOLATION_FC(U,
-                                                  U_ghosts,
-                                                  patch_box.lower(0),
-                                                  patch_box.upper(0),
-                                                  patch_box.lower(1),
-                                                  patch_box.upper(1),
+                CC_LINEAR_NORMAL_INTERPOLATION_FC(U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
+                                                  patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                  patch_box.lower(2),
-                                                  patch_box.upper(2),
+                                                  patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                  location_index,
-                                                  r,
-                                                  bc_fill_box.lower(),
-                                                  bc_fill_box.upper());
+                                                  location_index, r, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }
