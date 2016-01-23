@@ -198,6 +198,16 @@ public:
      */
     void deallocateOperatorState();
 
+    /*!
+     * \brief Modify the RHS vector to account for physical boundary conditions.
+     */
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+
+    /*!
+     * \brief Modify the solution vector to account for physical boundary conditions.
+     */
+    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
+
     //\}
 
 protected:

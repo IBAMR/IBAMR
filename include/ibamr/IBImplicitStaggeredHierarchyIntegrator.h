@@ -158,7 +158,7 @@ protected:
 private:
     /*!
          * \brief A StaggeredStokesSolver that does nothing.
-         */
+     */
     class NoOpStaggeredStokesSolver : public IBAMR::StaggeredStokesSolver
     {
     public:
