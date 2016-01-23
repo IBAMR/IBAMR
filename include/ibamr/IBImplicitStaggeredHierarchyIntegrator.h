@@ -157,35 +157,37 @@ protected:
 
 private:
     /*!
-         * \brief A StaggeredStokesSolver that does nothing.
+     * \brief Partial solver for the Stokes-IB equations.
+     *
+     * \note This class is designed to be used internally by class IBImplicitStaggeredHierarchyIntegrator.  It is not
+     * meant to be a stand-alone solver.
      */
-    class NoOpStaggeredStokesSolver : public IBAMR::StaggeredStokesSolver
+    class IBImplicitStaggeredStokesSolver : public IBAMR::StaggeredStokesSolver
     {
     public:
         /*!
-                 * \brief Default constructor of the class.
-                 */
-        NoOpStaggeredStokesSolver(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+         * \brief Class constructor.
+         */
+        IBImplicitStaggeredStokesSolver(const std::string& object_name,
+                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
             : StaggeredStokesSolver()
         {
             d_stokes_op = new StaggeredStokesOperator(object_name + "::stokes_op", false);
-            d_fac_op =
+            SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op =
                 new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::fac_op", input_db, "stokes_ib_pc_");
-            d_fac_pc =
-                new StaggeredStokesFACPreconditioner(object_name + "::fac_pc", d_fac_op, input_db, "stokes_ib_pc_");
-
+            d_stokes_fac_pc =
+                new StaggeredStokesFACPreconditioner(object_name + "::fac_pc", fac_op, input_db, "stokes_ib_pc_");
             return;
-        } // NoOpStaggeredStokesSolver
+        }
 
         /*!
-         * \brief Destructor of the class.
+         * \brief Class desctructor.
          */
-        ~NoOpStaggeredStokesSolver()
+        ~IBImplicitStaggeredStokesSolver()
         {
             // intentionally left blank
             return;
-        } // ~NoOpStaggeredStokesSolver
+        }
 
         // \{ Implementation of IBAMR::StaggeredStokesSolver class.
 
@@ -193,76 +195,66 @@ private:
         {
             StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
             d_stokes_op->setVelocityPoissonSpecifications(U_problem_coefs);
-            d_fac_pc->setVelocityPoissonSpecifications(U_problem_coefs);
-            d_fac_op->setVelocityPoissonSpecifications(U_problem_coefs);
-
+            d_stokes_fac_pc->setVelocityPoissonSpecifications(U_problem_coefs);
             return;
-        } // setVelocityPoissonSpecifications
+        }
 
         void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
                                 SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef)
         {
             StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
             d_stokes_op->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-
-            // We set projection boundary conditions for the FAC pc/op.
-            // This is done separately.
-
+            d_stokes_fac_pc->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
             return;
-        } // setPhysicalBcCoefs
+        }
 
         void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
         {
             StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
             d_stokes_op->setPhysicalBoundaryHelper(bc_helper);
-            d_fac_pc->setPhysicalBoundaryHelper(bc_helper);
-            d_fac_op->setPhysicalBoundaryHelper(bc_helper);
-
+            d_stokes_fac_pc->setPhysicalBoundaryHelper(bc_helper);
             return;
-        } // setPhysicalBoundaryHelper
+        }
 
         void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
         {
             StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
-            d_fac_pc->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-            d_fac_op->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-
+            d_stokes_fac_pc->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
             return;
-        } // setComponentsHaveNullspace
+        }
 
         // \}
 
         // \{ Implementation of IBTK::GeneralSolver class.
 
-        /*!
-         * \brief Solve system of equations that does nothing.
-         */
         bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*x*/,
                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*b*/)
         {
-            // intentionally left blank.
+            TBOX_ERROR("StaggeredStokesIBSolver::solveSystem(): unimplemented.\n");
             return false;
-        } // solveSystem
+        }
 
         // \}
-    private:
-        /*!
-         * \brief Disable the copy constructor.
-         */
-        NoOpStaggeredStokesSolver(const NoOpStaggeredStokesSolver& from);
 
-        /*!
-                 * \brief Disable the assignement operator.
-                 */
-        NoOpStaggeredStokesSolver& operator=(const NoOpStaggeredStokesSolver& that);
+        SAMRAI::tbox::Pointer<StaggeredStokesOperator> getStaggeredStokesOperator()
+        {
+            return d_stokes_op;
+        }
+
+        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditioner> getStaggeredStokesFACPreconditioner()
+        {
+            return d_stokes_fac_pc;
+        }
+
+    private:
+        IBImplicitStaggeredStokesSolver();
+        IBImplicitStaggeredStokesSolver(const IBImplicitStaggeredStokesSolver& from);
+        IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that);
 
         // Operators and solvers maintained by this class.
         SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
-        SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> d_fac_op;
-        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditioner> d_fac_pc;
-
-        friend class IBImplicitStaggeredHierarchyIntegrator;
-    }; // NoOpStaggeredStokesSolver
+        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditioner> d_stokes_fac_pc;
+    };
 
     /*!
      * \brief Copy constructor.
@@ -370,9 +362,7 @@ private:
      */
     PetscErrorCode lagrangianSchurApply(Vec x, Vec y);
 
-    /*
-     * Eulerian data for storing u and p DOFs indexing.
-     */
+    // Eulerian data for storing u and p DOFs indexing.
     std::vector<std::vector<int> > d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;

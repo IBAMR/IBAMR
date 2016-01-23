@@ -153,7 +153,8 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_P_prolongation_method("LINEAR_REFINE"),
       d_U_restriction_method("CONSERVATIVE_COARSEN"),
       d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_coarse_solver_type("BLOCK_JACOBI"),
+      d_coarse_solver_init_subclass(false),
+      d_coarse_solver_type("LEVEL_SMOOTHER"),
       d_coarse_solver_default_options_prefix(default_options_prefix + "level_0_"),
       d_coarse_solver_rel_residual_tol(1.0e-5),
       d_coarse_solver_abs_residual_tol(1.0e-50),
@@ -207,6 +208,9 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
             d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
         if (input_db->isDatabase("coarse_solver_db")) d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
     }
+
+    // Configure the coarse level solver.
+    setCoarseSolverType(d_coarse_solver_type);
 
     // Setup scratch variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -359,14 +363,6 @@ StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::string&
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
-    if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
-    {
-        d_coarse_solver =
-            StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                       d_object_name + "::coarse_solver",
-                                                                       d_coarse_solver_db,
-                                                                       d_coarse_solver_default_options_prefix);
-    }
     return;
 } // setCoarseSolverType
 
@@ -527,12 +523,15 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
     if (!d_coarse_solver)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
+        TBOX_ASSERT(d_coarse_solver_type == "LEVEL_SMOOTHER");
 #endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     else
     {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_coarse_solver);
+#endif
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
@@ -726,8 +725,20 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
     // Initialize the coarse level solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
+    if (!d_coarse_solver_init_subclass && coarsest_reset_ln == d_coarsest_ln &&
+        d_coarse_solver_type != "LEVEL_SMOOTHER")
     {
+        if (!d_coarse_solver)
+        {
+            d_coarse_solver =
+                StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
+                                                                           d_object_name + "::coarse_solver",
+                                                                           d_coarse_solver_db,
+                                                                           d_coarse_solver_default_options_prefix);
+        }
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_coarse_solver);
+#endif
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
         d_coarse_solver->setSolutionTime(d_solution_time);
