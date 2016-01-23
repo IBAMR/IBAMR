@@ -190,10 +190,18 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    if (d_time_stepping_type != MIDPOINT_RULE)
+    {
+        TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): time_stepping_type = "
+                   << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                   << "\n"
+                   << "  currently only time_stepping_type = "
+                   << enum_to_string<TimeSteppingType>(MIDPOINT_RULE)
+                   << " is supported\n");
+    }
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    TBOX_ASSERT(d_time_stepping_type == MIDPOINT_RULE);
 
     // Allocate Eulerian scratch and new data.
     d_num_dofs_per_proc.resize(finest_ln + 1);
