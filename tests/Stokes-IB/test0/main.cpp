@@ -247,7 +247,12 @@ public:
             static const size_t len = 255;
             char pc_type_str[len];
             PetscBool flg;
+#if (!PETSC_VERSION_RELEASE)
             PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#else
+            PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#endif
+
             std::string pc_type = "shell";
             if (flg)
             {
@@ -319,10 +324,13 @@ public:
         Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(petsc_b);
 
         d_stokes_op->setHomogeneousBc(false);
-        d_stokes_op->modifyRhsForInhomogeneousBc(*f_g);
+        d_stokes_op->modifyRhsForBcs(*f_g);
         d_stokes_op->setHomogeneousBc(true);
 
         KSPSolve(d_petsc_ksp, petsc_b, petsc_x);
+
+        Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
+        d_stokes_op->imposeSolBcs(*u_p);
 
         VecDestroy(&petsc_b);
 
@@ -937,8 +945,11 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     {
         pout << "+++++++++++++++ Filling up column " << col << " ++++++++++++++ \n\n" << std::endl;
 
-        VecSet(x, 0.0);
+        VecZeroEntries(x);
         VecSetValue(x, col, 1.0, INSERT_VALUES);
+        VecAssemblyBegin(x);
+        VecAssemblyEnd(x);
+
         StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(x, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx,
                                                                 coarsest_level, data_synch_sched_coarse,
                                                                 ghost_fill_sched_coarse);
