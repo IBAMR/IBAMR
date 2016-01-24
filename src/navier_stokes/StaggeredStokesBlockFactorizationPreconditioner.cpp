@@ -282,6 +282,16 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                                                                  d_P_bc_coef,
                                                                  fill_pattern);
 
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
+        if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
+        if (!level->checkAllocated(d_F_P_mod_idx)) level->allocatePatchData(d_F_P_mod_idx);
+    }
+
+    // Apply one of the approximate block-factorization preconditioners.
     switch (d_factorization_type)
     {
     case UPPER_TRIANGULAR:
@@ -360,6 +370,15 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     // Account for nullspace vectors.
     correctNullspace(U_vec, P_vec);
 
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
+        if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
+        if (level->checkAllocated(d_F_P_mod_idx)) level->deallocatePatchData(d_F_P_mod_idx);
+    }
+
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
@@ -393,15 +412,6 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
-        if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
-        if (!level->checkAllocated(d_F_P_mod_idx)) level->allocatePatchData(d_F_P_mod_idx);
-    }
-
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
@@ -420,15 +430,6 @@ StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 
     // Deallocate hierarchy operators.
     d_P_bdry_fill_op.setNull();
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
-        if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
-        if (level->checkAllocated(d_F_P_mod_idx)) level->deallocatePatchData(d_F_P_mod_idx);
-    }
 
     d_is_initialized = false;
 
