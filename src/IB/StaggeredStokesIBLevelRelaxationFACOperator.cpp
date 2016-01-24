@@ -160,7 +160,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, NOGHOST);
-
     return;
 } // StaggeredStokesIBLevelRelaxationFACOperator
 
@@ -248,43 +247,38 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
                                                              int coarsest_level_num,
                                                              int finest_level_num)
 {
+    StaggeredStokesFACPreconditionerStrategy::computeResidual(
+        residual, solution, rhs, coarsest_level_num, finest_level_num);
+
     const int U_res_idx = residual.getComponentDescriptorIndex(0);
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
-    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
-    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    // Compute the residual, r = f - A*u.
+    // Update the residual, r = f - A*u, to include the IB part of the operator.
     int ierr;
     int rank = SAMRAI_MPI::getRank();
     for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
     {
-        Vec solution_vec;
-        Vec residual_vec;
-        Vec rhs_vec;
+        Vec solution_vec, residual_vec;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
         ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
         IBTK_CHKERRQ(ierr);
         ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
         IBTK_CHKERRQ(ierr);
-        ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &rhs_vec);
-        IBTK_CHKERRQ(ierr);
 
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             solution_vec, U_sol_idx, d_u_dof_index_idx, P_sol_idx, d_p_dof_index_idx, level);
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
-            rhs_vec, U_rhs_idx, d_u_dof_index_idx, P_rhs_idx, d_p_dof_index_idx, level);
+            residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level);
 
-        const KSP& level_ksp = d_level_solvers[ln]->getPETScKSP();
-        Mat A;
-        ierr = KSPGetOperators(level_ksp, &A, NULL);
+        ierr = VecScale(residual_vec, -1.0);
         IBTK_CHKERRQ(ierr);
-        ierr = MatMult(A, solution_vec, residual_vec);
+        ierr = MatMultAdd(d_SAJ_mat[ln], solution_vec, residual_vec, residual_vec);
         IBTK_CHKERRQ(ierr);
-        ierr = VecAYPX(residual_vec, -1.0, rhs_vec);
+        ierr = VecScale(residual_vec, -1.0);
         IBTK_CHKERRQ(ierr);
 
         StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
@@ -294,12 +288,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
 
         ierr = VecDestroy(&solution_vec);
         IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&rhs_vec);
-        IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&residual_vec);
         IBTK_CHKERRQ(ierr);
     }
-
     return;
 } // computeResidual
 
@@ -425,7 +416,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
 
         level_solver->solveSystem(*e_level, *r_level);
     }
-
     return;
 } // smoothError
 
@@ -530,6 +520,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         Pointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
         if (p_coarse_solver) p_coarse_solver->addLinearOperator(d_SAJ_mat[d_coarsest_ln]);
+        else
+            TBOX_ERROR("no mechanism for specifying SAJ part of operator!");
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
@@ -552,7 +544,11 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setPhysicalBoundaryHelper(d_bc_helper);
         level_solver->setHomogeneousBc(true);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        level_solver->addLinearOperator(d_SAJ_mat[ln]);
+        Pointer<StaggeredStokesPETScLevelSolver> p_level_solver = level_solver;
+        if (p_level_solver)
+            p_level_solver->addLinearOperator(d_SAJ_mat[ln]);
+        else
+            TBOX_ERROR("no mechanism for specifying SAJ part of operator!");
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
