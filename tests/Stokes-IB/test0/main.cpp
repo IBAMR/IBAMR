@@ -813,7 +813,7 @@ int main(int argc, char* argv[])
         //========================= TEST SAJ Operator ========================
 
         // Get SAJ mat for the coarsest level
-        Mat SAJ_coarsest_petsc = fac_op->getGalerkinElasticityLevelOp(coarsest_ln);
+        Mat SAJ_coarsest_petsc = fac_op->getEulerianElasticityLevelOp(coarsest_ln);
 
         // Build SAJ mat for the coarsest level using SAMRAI operators
         Mat SAJ_coarsest_samrai;

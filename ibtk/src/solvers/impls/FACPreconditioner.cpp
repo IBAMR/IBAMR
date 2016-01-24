@@ -306,6 +306,12 @@ FACPreconditioner::getNumPostSmoothingSweeps() const
     return d_num_post_sweeps;
 } // getNumPostSmoothingSweeps
 
+Pointer<FACPreconditionerStrategy>
+FACPreconditioner::getFACPreconditionerStrategy() const
+{
+    return d_fac_strategy;
+} // getFACPreconditionerStrategy
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

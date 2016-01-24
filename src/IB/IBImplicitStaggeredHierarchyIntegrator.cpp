@@ -167,7 +167,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     if (!d_solve_for_position)
     {
         Pointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
-        d_stokes_solver = new NoOpStaggeredStokesSolver(object_name, stokes_ib_pc_db);
+        d_stokes_solver = new IBImplicitStaggeredStokesSolver(object_name, stokes_ib_pc_db);
         ins_hier_integrator->setStokesSolver(d_stokes_solver);
     }
 
@@ -664,24 +664,26 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     // Compute convective and previous time-step diffusive terms in the rhs vec.
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
-    Pointer<NoOpStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
+    // Setup Stokes operator.
+    Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_stokes_solver);
 #endif
-    // Get Stokes operator and FAC Stokes-IB op/pc to initialize them.
-    d_stokes_op = p_stokes_solver->d_stokes_op;
+    d_stokes_op = p_stokes_solver->getStaggeredStokesOperator();
     d_stokes_op->setSolutionTime(new_time);
     d_stokes_op->setTimeInterval(current_time, new_time);
     d_stokes_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
 
-    // FAC Op
-    p_stokes_solver->d_fac_op->setSolutionTime(new_time);
-    p_stokes_solver->d_fac_op->setTimeInterval(current_time, new_time);
-    p_stokes_solver->d_fac_op->setPhysicalBcCoefs(d_ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
-                                                  d_ins_hier_integrator->getProjectionBoundaryConditions());
+    // Setup Stokes-IB preconditioner.
+    Pointer<StaggeredStokesFACPreconditioner> stokes_fac_pc = p_stokes_solver->getStaggeredStokesFACPreconditioner();
+    stokes_fac_pc->setSolutionTime(new_time);
+    stokes_fac_pc->setTimeInterval(current_time, new_time);
+    stokes_fac_pc->setPhysicalBcCoefs(d_ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
+                                      d_ins_hier_integrator->getProjectionBoundaryConditions());
+    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> stokes_fac_op = stokes_fac_pc->getFACPreconditionerStrategy();
     Mat elastic_op = NULL;
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ);
-    p_stokes_solver->d_fac_op->setIBForceJacobian(elastic_op);
+    stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = NULL;
     if (d_jac_delta_fcn == "IB_4")
     {
@@ -701,21 +703,19 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
                    << " is not supported in creating Jacobian."
                    << std::endl);
     }
-    p_stokes_solver->d_fac_op->setIBInterpOp(interp_op);
-
-    // FAC PC
-    p_stokes_solver->d_fac_pc->setSolutionTime(new_time);
-    p_stokes_solver->d_fac_pc->setTimeInterval(current_time, new_time);
-    p_stokes_solver->d_fac_pc->setPhysicalBcCoefs(d_ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
-                                                  d_ins_hier_integrator->getProjectionBoundaryConditions());
-    p_stokes_solver->d_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+    stokes_fac_op->setIBInterpOp(interp_op);
+    stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
 
     // Indicate that the current approximation to position of the structure
     // should be used for Lagrangian-Eulerian coupling.
     d_ib_implicit_ops->updateFixedLEOperators();
 
-    // Solve the implicit IB equations.
+    // Setup right-hand-side vectors.
     d_ib_implicit_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    d_stokes_op->setHomogeneousBc(false);
+    d_stokes_op->modifyRhsForBcs(*eul_rhs_vec);
+    d_stokes_solver->setHomogeneousBc(true);
+    d_stokes_op->setHomogeneousBc(true);
 
     // Create PETSc Vecs to be used with PETSc solvers.
     d_ib_implicit_ops->createSolverVecs(&d_X_current, NULL);
@@ -770,6 +770,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ierr = MatDestroy(&jac);
     IBTK_CHKERRQ(ierr);
 
+    d_stokes_op->imposeSolBcs(*eul_sol_vec);
     d_ib_implicit_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Reset Eulerian solver vectors and Eulerian state data.
@@ -805,8 +806,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     // Deallocate solvers and operators.
     p_stokes_solver->deallocateSolverState();
     d_stokes_op->deallocateOperatorState();
-    p_stokes_solver->d_fac_pc->deallocateSolverState();
-    p_stokes_solver->d_fac_op->deallocateOperatorState();
+    stokes_fac_pc->deallocateSolverState();
+    stokes_fac_op->deallocateOperatorState();
     ierr = MatDestroy(&elastic_op);
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&interp_op);
@@ -862,7 +863,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     Vec R = component_rhs_vecs[1];
 
     // Evaluate the Eulerian terms.
-    d_stokes_op->setHomogeneousBc(false);
+    d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
 
     d_ib_implicit_ops->setUpdatedPosition(X);
@@ -918,7 +919,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
 
     // Apply the Stokes part.
-    d_stokes_op->setHomogeneousBc(false);
+    d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
 
     // Compute the new position of the structure.
@@ -1272,7 +1273,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
-
     return ierr;
 } // IBPCApply_position
 
@@ -1281,10 +1281,12 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 {
     Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(x);
     Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(y);
-    Pointer<NoOpStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
-    bool converged = p_stokes_solver->d_fac_pc->solveSystem(*u_p, *f_g);
+    Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(p_stokes_solver);
+#endif
+    bool converged = p_stokes_solver->getStaggeredStokesFACPreconditioner()->solveSystem(*u_p, *f_g);
     PetscErrorCode ierr = !converged;
-
     return ierr;
 } // IBPCApply_velocity
 
