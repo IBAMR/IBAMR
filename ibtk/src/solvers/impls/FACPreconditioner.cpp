@@ -129,8 +129,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
 
     // Allocate scratch data.
     d_fac_strategy->allocateScratchData();
-    if (d_f) d_f->allocateVectorData();
-    if (d_r) d_r->allocateVectorData();
 
     // Set the initial guess to equal zero.
     u.setToScalar(0.0, /*interior_only*/ false);
@@ -144,6 +142,10 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
     // Apply a single FAC cycle.
     if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
     {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(!d_f);
+        TBOX_ASSERT(!d_r);
+#endif
         // V-cycle MG without presmoothing keeps the residual equal to the
         // initial right-hand-side vector f, so we can simply use that vector
         // for the residual in the FAC algorithm.
@@ -151,6 +153,12 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
     }
     else
     {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_f);
+        TBOX_ASSERT(d_r);
+#endif
+        d_f->allocateVectorData();
+        d_r->allocateVectorData();
         d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         switch (d_cycle_type)
@@ -171,12 +179,12 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
                                      << "."
                                      << std::endl);
         }
+        d_f->deallocateVectorData();
+        d_r->deallocateVectorData();
     }
 
     // Deallocate scratch data.
     d_fac_strategy->deallocateScratchData();
-    if (d_f) d_f->deallocateVectorData();
-    if (d_r) d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
