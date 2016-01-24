@@ -464,6 +464,11 @@ StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
+    d_level_solvers[d_coarsest_ln] = d_coarse_solver;
+    if (!d_level_solvers[d_coarsest_ln])
+    {
+        TBOX_ERROR("no mechanism for extracting coarse-grid solver Mat!");
+    }
 
     // Get PETSc Mat from level solvers.
     d_level_mat.resize(d_finest_ln + 1);
