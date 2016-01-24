@@ -286,9 +286,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
-        if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
-        if (!level->checkAllocated(d_F_P_mod_idx)) level->allocatePatchData(d_F_P_mod_idx);
+        level->allocatePatchData(d_F_U_mod_idx);
+        level->allocatePatchData(d_P_scratch_idx);
+        level->allocatePatchData(d_F_P_mod_idx);
     }
 
     // Apply one of the approximate block-factorization preconditioners.
@@ -374,9 +374,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
-        if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
-        if (level->checkAllocated(d_F_P_mod_idx)) level->deallocatePatchData(d_F_P_mod_idx);
+        level->deallocatePatchData(d_F_U_mod_idx);
+        level->deallocatePatchData(d_P_scratch_idx);
+        level->deallocatePatchData(d_F_P_mod_idx);
     }
 
     // Deallocate the solver (if necessary).

@@ -227,14 +227,8 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->allocatePatchData(d_Phi_scratch_idx);
-        }
-        if (!level->checkAllocated(d_F_Phi_idx))
-        {
-            level->allocatePatchData(d_F_Phi_idx);
-        }
+        level->allocatePatchData(d_Phi_scratch_idx);
+        level->allocatePatchData(d_F_Phi_idx);
     }
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
@@ -344,14 +338,8 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->deallocatePatchData(d_Phi_scratch_idx);
-        }
-        if (level->checkAllocated(d_F_Phi_idx))
-        {
-            level->deallocatePatchData(d_F_Phi_idx);
-        }
+        level->deallocatePatchData(d_Phi_scratch_idx);
+        level->deallocatePatchData(d_F_Phi_idx);
     }
 
     // Deallocate the solver (if necessary).

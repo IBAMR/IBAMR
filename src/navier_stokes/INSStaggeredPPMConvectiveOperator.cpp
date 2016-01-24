@@ -546,10 +546,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx))
-        {
-            level->allocatePatchData(d_U_scratch_idx);
-        }
+        level->allocatePatchData(d_U_scratch_idx);
     }
 
     // Fill ghost cell values for all components.
@@ -977,10 +974,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx))
-        {
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
+        level->deallocatePatchData(d_U_scratch_idx);
     }
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
