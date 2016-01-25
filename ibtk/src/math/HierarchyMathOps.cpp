@@ -334,6 +334,9 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
 
     // Reset the CoarsenSchedule vectors.
     d_of_coarsen_scheds.resize(d_finest_ln);
