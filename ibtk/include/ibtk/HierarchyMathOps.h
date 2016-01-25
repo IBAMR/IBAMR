@@ -157,7 +157,7 @@ public:
      * If a cell is not refined in the hierarchy, its weight is set to its
      * volume.  If a cell is refined, its weight is set to zero.
      */
-    int getCellWeightPatchDescriptorIndex() const;
+    int getCellWeightPatchDescriptorIndex();
 
     /*!
      * \brief Access the SAMRAI::pdat::FaceVariable that is used to store face
@@ -176,7 +176,7 @@ public:
      * If a face is not refined in the hierarchy, its weight is set to its
      * volume.  If a face is refined, its weight is set to zero.
      */
-    int getFaceWeightPatchDescriptorIndex() const;
+    int getFaceWeightPatchDescriptorIndex();
 
     /*!
      * \brief Access the SAMRAI::pdat::SideVariable that is used to store side
@@ -195,7 +195,7 @@ public:
      * If a side is not refined in the hierarchy, its weight is set to its
      * volume.  If a side is refined, its weight is set to zero.
      */
-    int getSideWeightPatchDescriptorIndex() const;
+    int getSideWeightPatchDescriptorIndex();
 
     /*!
      * \brief Returns the volume of the physical domain.
@@ -1199,6 +1199,21 @@ private:
      */
     void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
 
+    /*!
+     * \brief Reset cell-centered weights, allocating patch data if needed.
+     */
+    void resetCellWeights(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Reset face-centered weights, allocating patch data if needed.
+     */
+    void resetFaceWeights(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Reset side-centered weights, allocating patch data if needed.
+     */
+    void resetSideWeights(int coarsest_ln, int finest_ln);
+
     // Housekeeping.
     std::string d_object_name;
 
@@ -1238,6 +1253,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_wgt_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wgt_sc_var;
     int d_wgt_cc_idx, d_wgt_fc_idx, d_wgt_sc_idx;
+    bool d_using_wgt_cc, d_using_wgt_fc, d_using_wgt_sc;
     double d_volume;
 };
 } // namespace IBTK

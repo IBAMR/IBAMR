@@ -249,7 +249,7 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     resetKSPOptions();
 
     // Allocate scratch data.
-    if (d_b) d_b->allocateVectorData();
+    d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
@@ -278,7 +278,7 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Dealocate scratch data.
-    if (d_b) d_b->deallocateVectorData();
+    d_b->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();

@@ -233,8 +233,8 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
     // Allocate scratch data.
-    if (d_b) d_b->allocateVectorData();
-    if (d_r) d_r->allocateVectorData();
+    d_b->allocateVectorData();
+    d_r->allocateVectorData();
 
     // Solve the system using a PETSc SNES object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
@@ -268,8 +268,8 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
 
     // Deallocate scratch data.
-    if (d_b) d_b->deallocateVectorData();
-    if (d_r) d_r->deallocateVectorData();
+    d_b->deallocateVectorData();
+    d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();

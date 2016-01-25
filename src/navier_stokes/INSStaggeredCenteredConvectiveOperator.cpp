@@ -305,6 +305,16 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
 
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_U_scratch_idx))
+        {
+            level->allocatePatchData(d_U_scratch_idx);
+        }
+    }
+
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -472,6 +482,16 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
         }
     }
 
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_U_scratch_idx))
+        {
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
+    }
+
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 } // applyConvectiveOperator
@@ -516,15 +536,6 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVect
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx))
-        {
-            level->allocatePatchData(d_U_scratch_idx);
-        }
-    }
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
@@ -537,16 +548,6 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     IBAMR_TIMER_START(t_deallocate_operator_state);
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx))
-        {
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
-    }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
     d_hier_bdry_fill.setNull();

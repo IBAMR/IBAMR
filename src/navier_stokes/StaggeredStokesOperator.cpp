@@ -209,6 +209,9 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
 {
     IBAMR_TIMER_START(t_apply);
 
+    // Allocate scratch data.
+    d_x->allocateVectorData();
+
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -280,6 +283,9 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
+
     IBAMR_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -296,7 +302,6 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
-    d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
@@ -403,9 +408,7 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
         apply(*x, *b);
         y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
-        x->deallocateVectorData();
         x->freeVectorComponents();
-        b->deallocateVectorData();
         b->freeVectorComponents();
     }
     const bool homogeneous_bc = true;
