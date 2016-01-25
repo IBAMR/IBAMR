@@ -1082,12 +1082,15 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     // Allocate solver vectors.
     d_U_rhs_vec->allocateVectorData(current_time);
     d_U_rhs_vec->setToScalar(0.0);
-    d_U_adv_vec->allocateVectorData(current_time);
-    d_U_adv_vec->setToScalar(0.0);
-    d_N_vec->allocateVectorData(current_time);
-    d_N_vec->setToScalar(0.0);
     d_P_rhs_vec->allocateVectorData(current_time);
     d_P_rhs_vec->setToScalar(0.0);
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->allocateVectorData(current_time);
+        d_U_adv_vec->setToScalar(0.0);
+        d_N_vec->allocateVectorData(current_time);
+        d_N_vec->setToScalar(0.0);
+    }
 
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
@@ -1389,9 +1392,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 
     // Deallocate scratch data.
     d_U_rhs_vec->deallocateVectorData();
-    d_U_adv_vec->deallocateVectorData();
-    d_N_vec->deallocateVectorData();
     d_P_rhs_vec->deallocateVectorData();
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->deallocateVectorData();
+        d_N_vec->deallocateVectorData();
+    }
 
     // Deallocate any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)

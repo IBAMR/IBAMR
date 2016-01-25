@@ -431,7 +431,8 @@ StaggeredStokesIBBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         Pointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
-        if (p_coarse_solver) p_coarse_solver->addLinearOperator(d_SAJ_mat[d_coarsest_ln]);
+        if (p_coarse_solver)
+            p_coarse_solver->addLinearOperator(d_SAJ_mat[d_coarsest_ln]);
         else
             TBOX_ERROR("no mechanism for specifying SAJ part of operator!");
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),

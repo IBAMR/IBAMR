@@ -501,9 +501,7 @@ ConstraintIBMethod::calculateEulerianMomentum()
 
         momentum[active] = d_hier_sc_data_ops->dot(d_u_fluidSolve_idx, wgt_sc_active_idx);
 
-        wgt_sc_active->deallocateVectorData();
         wgt_sc_active->freeVectorComponents();
-        wgt_sc_active.setNull();
     }
 
     if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)

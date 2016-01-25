@@ -157,12 +157,11 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     // Allocate DOF index data.
     if (!d_level->checkAllocated(d_u_dof_index_idx)) d_level->allocatePatchData(d_u_dof_index_idx);
     if (!d_level->checkAllocated(d_p_dof_index_idx)) d_level->allocatePatchData(d_p_dof_index_idx);
+    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+        d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
     // Setup PETSc objects.
     int ierr;
-    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
-        d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
-    // Set KSP Mat, PC, and Vecs.
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -183,7 +182,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     }
     d_petsc_pc = d_petsc_mat;
 
-    // Subdomains for ASM and MSM preconditioner
+    // Construct subdomains for ASM and MSM preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
                                                                        d_nonoverlap_is,
                                                                        d_box_size,
@@ -261,7 +260,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
     d_ghost_fill_sched = StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, d_level);
-
     return;
 } // initializeSolverStateSpecialized
 

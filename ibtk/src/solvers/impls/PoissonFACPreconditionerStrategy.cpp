@@ -564,22 +564,6 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void
-PoissonFACPreconditionerStrategy::allocateScratchData()
-{
-    if (d_solution) d_solution->allocateVectorData();
-    if (d_rhs) d_rhs->allocateVectorData();
-    return;
-}
-
-void
-PoissonFACPreconditionerStrategy::deallocateScratchData()
-{
-    if (d_solution) d_solution->deallocateVectorData();
-    if (d_rhs) d_rhs->deallocateVectorData();
-    return;
-}
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

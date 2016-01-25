@@ -164,13 +164,6 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > b_comps =
         getComponentVectors(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
 
-    // Clone the right-hand-side vector to avoid modifying it during the
-    // preconditioning operation.
-    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
-    f->allocateVectorData();
-    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
-
     // Setup the order in which the component preconditioner are to be applied.
     const int ncomps = x.getNumberOfComponents();
     std::vector<int> comps;
@@ -205,6 +198,13 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
             }
         }
     }
+
+    // Clone the right-hand-side vector to avoid modifying it during the
+    // preconditioning operation.
+    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
+    f->allocateVectorData();
+    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
 
     // Apply the component preconditioners.
     int count = 0;

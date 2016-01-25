@@ -290,18 +290,15 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
-                if (!level->checkAllocated(d_W_cc_idxs[k])) level->allocatePatchData(d_W_cc_idxs[k]);
+            level->allocatePatchData(d_W_cc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_cc_idxs[k]);
 #if (NDIM == 2)
-            if (!level->checkAllocated(d_W_nc_idx)) level->allocatePatchData(d_W_nc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
-                if (!level->checkAllocated(d_W_nc_idxs[k])) level->allocatePatchData(d_W_nc_idxs[k]);
+            level->allocatePatchData(d_W_nc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_nc_idxs[k]);
 #endif
 #if (NDIM == 3)
-            if (!level->checkAllocated(d_W_ec_idx)) level->allocatePatchData(d_W_ec_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k)
-                if (!level->checkAllocated(d_W_ec_idxs[k])) level->allocatePatchData(d_W_ec_idxs[k]);
+            level->allocatePatchData(d_W_ec_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_ec_idxs[k]);
 #endif
         }
 
@@ -657,6 +654,25 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
+    }
+
+    // Deallocate data to store components of the stochastic stress components.
+    if (!initial_time)
+    {
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+        {
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+            level->allocatePatchData(d_W_cc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_cc_idxs[k]);
+#if (NDIM == 2)
+            level->allocatePatchData(d_W_nc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_nc_idxs[k]);
+#endif
+#if (NDIM == 3)
+            level->allocatePatchData(d_W_ec_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_ec_idxs[k]);
+#endif
+        }
     }
     return;
 } // computeStochasticForcingOnPatchHierarchy

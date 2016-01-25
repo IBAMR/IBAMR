@@ -125,10 +125,10 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
+    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, d_level);
 
     // Setup PETSc objects.
     int ierr;
-    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, d_level);
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
