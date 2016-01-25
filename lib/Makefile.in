@@ -760,7 +760,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
-	../src/IB/NonbondedForceEvaluator.h \
+	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -781,8 +781,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesProjectionPreconditioner.h \
 	../include/ibamr/StaggeredStokesSolver.h \
 	../include/ibamr/StaggeredStokesSolverManager.h \
-	../include/ibamr/StokesBcCoefStrategy.h ../src/IB/Wall.h \
-	../src/IB/WallForceEvaluator.h \
+	../include/ibamr/StokesBcCoefStrategy.h \
+	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
 	../include/ibamr/IBFEMethod.h \
 	../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
@@ -1171,7 +1171,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
-	../src/IB/NonbondedForceEvaluator.h \
+	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1193,8 +1193,9 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesSolver.h \
 	../include/ibamr/StaggeredStokesSolverManager.h \
 	../include/ibamr/StokesBcCoefStrategy.h \
-	../include/ibamr/StokesSpecifications.h ../src/IB/Wall.h \
-	../src/IB/WallForceEvaluator.h $(am__append_6)
+	../include/ibamr/StokesSpecifications.h \
+	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	$(am__append_6)
 DIM_INDEPENDENT_SOURCES = ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/GeneralizedIBMethod.cpp \
