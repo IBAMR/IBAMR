@@ -81,6 +81,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/PenaltyIBMethod.cpp \
 ../src/IB/StaggeredStokesIBBoxRelaxationFACOperator.cpp \
 ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
+../src/IB/NonbondedForceEvaluator.cpp \
+../src/IB/Wall.cpp \
+../src/IB/WallForceEvaluator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -199,6 +202,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
@@ -220,7 +224,9 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolver.h \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
-../include/ibamr/StokesSpecifications.h
+../include/ibamr/StokesSpecifications.h \
+../include/ibamr/Wall.h \
+../include/ibamr/WallForceEvaluator.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
