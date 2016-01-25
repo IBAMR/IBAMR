@@ -471,6 +471,9 @@ HierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
+    bool check_volume_change = !d_parent_integrator && d_hierarchy_is_initialized;
+    const double old_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
     // Regrid the hierarchy.
     switch (d_regrid_mode)
     {
@@ -489,6 +492,22 @@ HierarchyIntegrator::regridHierarchy()
                                  << enum_to_string<RegridMode>(d_regrid_mode)
                                  << "."
                                  << std::endl);
+    }
+
+    const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
+    if (check_volume_change && !MathUtilities<double>::equalEps(old_volume, new_volume))
+    {
+        TBOX_WARNING(
+            d_object_name << "::regridHierarchy():\n"
+                          << "  change in domain volume detected (volume is computed by summing control volumes)\n"
+                          << "    old volume = "
+                          << old_volume
+                          << "\n"
+                          << "    new volume = "
+                          << new_volume
+                          << "\n"
+                          << "  this may indicate overlapping patches in the AMR grid hierarchy.");
     }
 
     // Synchronize the state data on the patch hierarchy.

@@ -353,21 +353,7 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     resetCellWeights(d_coarsest_ln, d_finest_ln);
     if (d_using_wgt_fc) resetFaceWeights(d_coarsest_ln, d_finest_ln);
     if (d_using_wgt_sc) resetSideWeights(d_coarsest_ln, d_finest_ln);
-    static bool initial_time = false;
-    double volume = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx, d_wgt_cc_idx);
-    if (!initial_time && !MathUtilities<double>::equalEps(volume, d_volume))
-    {
-        TBOX_WARNING(d_object_name << "::initializeLevelData():\n"
-                                   << "  change in domain volume as computed by summing control volumes\n"
-                                   << "    old volume = "
-                                   << d_volume
-                                   << "\n"
-                                   << "    new volume = "
-                                   << volume
-                                   << "\n"
-                                   << "  this may indicate overlapping patches in the AMR grid hierarchy.");
-    }
-    d_volume = volume;
+    d_volume = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx, d_wgt_cc_idx);
 
     // Deallocate scratch data.
     if (!d_using_wgt_cc)
