@@ -72,7 +72,8 @@ StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
     return;
 } // ~StaggeredStokesFACPreconditioner
 
-void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+void
+StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -80,8 +81,20 @@ void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const Po
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                          RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void
+StaggeredStokesFACPreconditioner::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+                                                             const bool has_pressure_nullspace)
+{
+    StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (p_fac_strategy) p_fac_strategy->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+
+    return;
+} // setComponentsHaveNullspace
+
+void
+StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                                     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

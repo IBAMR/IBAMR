@@ -184,6 +184,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -212,7 +213,9 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
+	../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonHypreLevelSolver.cpp \
+	../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/CCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonSolverManager.cpp \
@@ -288,6 +291,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
 	$(top_builddir)/src/math/fortran/curl2d.f \
 	$(top_builddir)/src/math/fortran/div2d.f \
@@ -319,6 +323,7 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/boundary/physical_boundary/libIBTK2d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
+	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LDataManager.$(OBJEXT) \
@@ -352,7 +357,9 @@ am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCLaplaceOperator.$(OBJEXT) \
+	../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
+	../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCPoissonPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCPoissonSolverManager.$(OBJEXT) \
@@ -425,6 +432,7 @@ am_libIBTK2d_a_OBJECTS = $(am__objects_2) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.$(OBJEXT) \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT) \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT) \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/curl2d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/div2d.$(OBJEXT) \
@@ -458,6 +466,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -486,7 +495,9 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
+	../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonHypreLevelSolver.cpp \
+	../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/CCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonSolverManager.cpp \
@@ -562,6 +573,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
 	$(top_builddir)/src/math/fortran/curl3d.f \
 	$(top_builddir)/src/math/fortran/div3d.f \
@@ -592,6 +604,7 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/boundary/physical_boundary/libIBTK3d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
+	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LDataManager.$(OBJEXT) \
@@ -625,7 +638,9 @@ am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCLaplaceOperator.$(OBJEXT) \
+	../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
+	../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCPoissonPointRelaxationFACOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCPoissonSolverManager.$(OBJEXT) \
@@ -698,6 +713,7 @@ am_libIBTK3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT) \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.$(OBJEXT) \
+	$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.$(OBJEXT) \
 	$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/curl3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/div3d.$(OBJEXT) \
@@ -1125,7 +1141,9 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/BGaussSeidelPreconditioner.h \
 	../include/ibtk/BJacobiPreconditioner.h \
 	../include/ibtk/CCLaplaceOperator.h \
+	../include/ibtk/CCPoissonBoxRelaxationFACOperator.h \
 	../include/ibtk/CCPoissonHypreLevelSolver.h \
+	../include/ibtk/CCPoissonLevelRelaxationFACOperator.h \
 	../include/ibtk/CCPoissonPETScLevelSolver.h \
 	../include/ibtk/CCPoissonPointRelaxationFACOperator.h \
 	../include/ibtk/CCPoissonSolverManager.h \
@@ -1141,6 +1159,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/CartSideDoubleCubicCoarsen.h \
 	../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 	../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
+	../include/ibtk/CartSideDoubleRT0Coarsen.h \
 	../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
 	../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 	../include/ibtk/CartSideRobinPhysBdryOp.h \
@@ -1274,6 +1293,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
+	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
 	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
@@ -1302,7 +1322,9 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
+	../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonHypreLevelSolver.cpp \
+	../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonPETScLevelSolver.cpp \
 	../src/solvers/impls/CCPoissonPointRelaxationFACOperator.cpp \
 	../src/solvers/impls/CCPoissonSolverManager.cpp \
@@ -1375,6 +1397,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
 $(top_builddir)/src/math/fortran/curl2d.f \
 $(top_builddir)/src/math/fortran/div2d.f \
@@ -1396,6 +1419,7 @@ $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
 $(top_builddir)/src/math/fortran/curl3d.f \
 $(top_builddir)/src/math/fortran/div3d.f \
@@ -1558,6 +1582,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
+	../src/coarsen_ops/$(am__dirstamp) \
+	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
@@ -1681,7 +1708,13 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/solvers/impls/libIBTK2d_a-CCLaplaceOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-CCPoissonPETScLevelSolver.$(OBJEXT):  \
@@ -1933,6 +1966,9 @@ $(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp):
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT):  \
+	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2043,6 +2079,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
+	../src/coarsen_ops/$(am__dirstamp) \
+	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
@@ -2142,7 +2181,13 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/solvers/impls/libIBTK3d_a-CCLaplaceOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-CCPoissonPETScLevelSolver.$(OBJEXT):  \
@@ -2358,6 +2403,9 @@ $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.$(OBJEXT):  \
+	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2455,9 +2503,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/physical_boundary/$(DEPDIR)/libIBTK3d_a-muParserRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@
@@ -2524,7 +2574,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonPointRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonSolverManager.Po@am__quote@
@@ -2550,7 +2602,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonPointRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonSolverManager.Po@am__quote@
@@ -2895,6 +2949,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; fi`
+
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+
+../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
 
 ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
@@ -3358,6 +3426,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCLaplaceOperator.obj `if test -f '../src/solvers/impls/CCLaplaceOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCLaplaceOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCLaplaceOperator.cpp'; fi`
 
+../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.o: ../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+
+../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.obj: ../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonBoxRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; fi`
+
 ../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.o: ../src/solvers/impls/CCPoissonHypreLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.o `test -f '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonHypreLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Po
@@ -3371,6 +3453,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonHypreLevelSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonHypreLevelSolver.obj `if test -f '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; fi`
+
+../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.o: ../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+
+../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.obj: ../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonLevelRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; fi`
 
 ../src/solvers/impls/libIBTK2d_a-CCPoissonPETScLevelSolver.o: ../src/solvers/impls/CCPoissonPETScLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-CCPoissonPETScLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCPoissonPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-CCPoissonPETScLevelSolver.o `test -f '../src/solvers/impls/CCPoissonPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonPETScLevelSolver.cpp
@@ -4534,6 +4630,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'; fi`
 
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.o `test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+
+../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj: ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
+
 ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
@@ -4996,6 +5106,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCLaplaceOperator.obj `if test -f '../src/solvers/impls/CCLaplaceOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCLaplaceOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCLaplaceOperator.cpp'; fi`
 
+../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.o: ../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+
+../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.obj: ../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonBoxRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp'; fi`
+
 ../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.o: ../src/solvers/impls/CCPoissonHypreLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.o `test -f '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonHypreLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Po
@@ -5009,6 +5133,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonHypreLevelSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonHypreLevelSolver.obj `if test -f '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonHypreLevelSolver.cpp'; fi`
+
+../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.o: ../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.o `test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+
+../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.obj: ../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp' object='../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonLevelRelaxationFACOperator.obj `if test -f '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/CCPoissonLevelRelaxationFACOperator.cpp'; fi`
 
 ../src/solvers/impls/libIBTK3d_a-CCPoissonPETScLevelSolver.o: ../src/solvers/impls/CCPoissonPETScLevelSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-CCPoissonPETScLevelSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCPoissonPETScLevelSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-CCPoissonPETScLevelSolver.o `test -f '../src/solvers/impls/CCPoissonPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/CCPoissonPETScLevelSolver.cpp

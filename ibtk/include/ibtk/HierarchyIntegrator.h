@@ -872,7 +872,7 @@ protected:
      * Time and time step size data read from input or set at initialization.
      */
     double d_integrator_time, d_start_time, d_end_time;
-    double d_dt_min, d_dt_max, d_dt_growth_factor;
+    double d_dt_init, d_dt_min, d_dt_max, d_dt_growth_factor;
     int d_integrator_step, d_max_integrator_steps;
     std::deque<double> d_dt_previous;
 

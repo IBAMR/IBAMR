@@ -129,15 +129,33 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
-    : d_hierarchy(), d_level_num(-1), d_grid_aligned_anisotropy(true), d_depth(0), d_grid(NULL), d_stencil(NULL),
-      d_matrices(), d_rhs_vecs(), d_sol_vecs(), d_solvers(), d_preconds(), d_solver_type("PFMG"),
-      d_precond_type("none"), d_rel_change(0), d_num_pre_relax_steps(1), d_num_post_relax_steps(1), d_memory_use(0),
-      d_rap_type(RAP_TYPE_GALERKIN), d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI), d_skip_relax(1), d_two_norm(1)
+    : d_hierarchy(),
+      d_level_num(-1),
+      d_grid_aligned_anisotropy(true),
+      d_depth(0),
+      d_grid(NULL),
+      d_stencil(NULL),
+      d_matrices(),
+      d_rhs_vecs(),
+      d_sol_vecs(),
+      d_solvers(),
+      d_preconds(),
+      d_solver_type("PFMG"),
+      d_precond_type("none"),
+      d_rel_change(0),
+      d_num_pre_relax_steps(1),
+      d_num_post_relax_steps(1),
+      d_memory_use(0),
+      d_rap_type(RAP_TYPE_GALERKIN),
+      d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI),
+      d_skip_relax(1),
+      d_two_norm(1)
 {
     if (NDIM == 1 || NDIM > 3)
     {
         TBOX_ERROR(d_object_name << "::CCPoissonHypreLevelSolver()"
-                                 << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
+                                 << "  hypre solvers are only provided for 2D and 3D problems"
+                                 << std::endl);
     }
 
     // Setup default options.
@@ -204,7 +222,8 @@ CCPoissonHypreLevelSolver::~CCPoissonHypreLevelSolver()
     return;
 } // ~CCPoissonHypreLevelSolver
 
-bool CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -237,48 +256,55 @@ bool CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, S
     return converged;
 } // solveSystem
 
-void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                      const SAMRAIVectorReal<NDIM, double>& b)
+void
+CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                 const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-// Rudimentary error checking.
 #if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components" << std::endl);
+                                 << "  vectors must have the same number of components"
+                                 << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy" << std::endl);
+                                 << "  vectors must have the same hierarchy"
+                                 << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative" << std::endl);
+                                 << "  coarsest level number must not be negative"
+                                 << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number" << std::endl);
+                                 << "  vectors must have same coarsest level number"
+                                 << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number" << std::endl);
+                                 << "  finest level number must be >= coarsest level number"
+                                 << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number" << std::endl);
+                                 << "  vectors must have same finest level number"
+                                 << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -286,14 +312,18 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
+                                     << "  hierarchy level "
+                                     << ln
+                                     << " does not exist"
+                                     << std::endl);
         }
     }
 
     if (coarsest_ln != finest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest_ln != finest_ln in CCPoissonHypreLevelSolver" << std::endl);
+                                 << "  coarsest_ln != finest_ln in CCPoissonHypreLevelSolver"
+                                 << std::endl);
     }
 #else
     NULL_USE(b);
@@ -304,6 +334,12 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
+    TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
+    d_level = d_hierarchy->getPatchLevel(d_level_num);
+    if (d_level_num > 0)
+    {
+        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+    }
 
     // Allocate and initialize the hypre data structures.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -342,7 +378,8 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
     return;
 } // initializeSolverState
 
-void CCPoissonHypreLevelSolver::deallocateSolverState()
+void
+CCPoissonHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -363,21 +400,21 @@ void CCPoissonHypreLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CCPoissonHypreLevelSolver::allocateHypreData()
+void
+CCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = level->getRatio();
+    const IntVector<NDIM>& ratio = d_level->getRatio();
     const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        const Box<NDIM>& patch_box = level->getPatch(p())->getBox();
+        const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
         Index<NDIM> lower = patch_box.lower();
         Index<NDIM> upper = patch_box.upper();
         HYPRE_StructGridSetExtents(d_grid, lower, upper);
@@ -486,7 +523,8 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     return;
 } // allocateHypreData
 
-void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
+void
+CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 {
     // Set matrix entries and copy them to the hypre matrix structures.
     const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
@@ -496,16 +534,15 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         stencil_indices[i] = i;
     }
     std::vector<double> mat_vals(stencil_sz, 0.0);
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            PoissonUtilities::computeCCMatrixCoefficients(
-                patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            PoissonUtilities::computeMatrixCoefficients(
+                matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 Index<NDIM> i = b();
@@ -526,13 +563,13 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     return;
 } // setMatrixCoefficients_aligned
 
-void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
+void
+CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector<NDIM> no_ghosts = 0;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
@@ -549,7 +586,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             {
                 TBOX_ERROR(d_object_name << "::setMatrixCoefficients_nonaligned()\n"
                                          << "  to solve (C u + div D grad u) = f with non-constant C,\n"
-                                         << "  C must be cell-centered double precision data" << std::endl);
+                                         << "  C must be cell-centered double precision data"
+                                         << std::endl);
             }
         }
         else
@@ -571,7 +609,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         {
             TBOX_ERROR(d_object_name << "::setMatrixCoefficients_nonaligned()\n"
                                      << "  to solve C u + div D grad u = f with non-constant D,\n"
-                                     << "  D must be side-centered double precision data" << std::endl);
+                                     << "  D must be side-centered double precision data"
+                                     << std::endl);
         }
 
         // Setup the finite difference stencil.
@@ -732,7 +771,8 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     return;
 } // setMatrixCoefficients_nonaligned
 
-void CCPoissonHypreLevelSolver::setupHypreSolver()
+void
+CCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
@@ -851,7 +891,9 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             else
             {
                 TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                         << "  unknown preconditioner type: " << d_precond_type << std::endl);
+                                         << "  unknown preconditioner type: "
+                                         << d_precond_type
+                                         << std::endl);
             }
             HYPRE_StructPCGSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
@@ -887,7 +929,9 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             else
             {
                 TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                         << "  unknown preconditioner type: " << d_precond_type << std::endl);
+                                         << "  unknown preconditioner type: "
+                                         << d_precond_type
+                                         << std::endl);
             }
             HYPRE_StructGMRESSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
@@ -925,7 +969,9 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             else
             {
                 TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                         << "  unknown preconditioner type: " << d_precond_type << std::endl);
+                                         << "  unknown preconditioner type: "
+                                         << d_precond_type
+                                         << std::endl);
             }
             HYPRE_StructFlexGMRESSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
@@ -961,7 +1007,9 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             else
             {
                 TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                         << "  unknown preconditioner type: " << d_precond_type << std::endl);
+                                         << "  unknown preconditioner type: "
+                                         << d_precond_type
+                                         << std::endl);
             }
             HYPRE_StructLGMRESSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
@@ -998,30 +1046,35 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             else
             {
                 TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                         << "  unknown preconditioner type: " << d_precond_type << std::endl);
+                                         << "  unknown preconditioner type: "
+                                         << d_precond_type
+                                         << std::endl);
             }
             HYPRE_StructBiCGSTABSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
         else
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  unknown solver type: " << d_solver_type << std::endl);
+                                     << "  unknown solver type: "
+                                     << d_solver_type
+                                     << std::endl);
         }
     }
     return;
 } // setupHypreSolver
 
-bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
+bool
+CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    const bool level_zero = (d_level_num == 0);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     const IntVector<NDIM> ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
@@ -1029,31 +1082,36 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // values
         const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
         Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
-        copyToHypre(d_sol_vecs, x_data, x_ghost_box);
+        copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
         Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        if (pgeom->intersectsPhysicalBoundary())
+        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM> >() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
+        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+        if (at_physical_bdry || at_cf_bdry)
         {
             CellData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            if (d_grid_aligned_anisotropy)
+            if (at_physical_bdry)
             {
-                PoissonUtilities::adjustCCBoundaryRhsEntries(
-                    patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                    b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
             }
-            else
+            if (at_cf_bdry)
             {
-                IBTK_DO_ONCE(pout << "WARNING: inhomogeneous boundary conditions are presently "
-                                     "disabled for non-grid aligned anisotropy!\n";);
+                PoissonUtilities::adjustRHSAtCoarseFineBoundary(
+                    b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
             }
-            copyToHypre(d_rhs_vecs, Pointer<CellData<NDIM, double> >(&b_adj_data, false), patch_box);
+            copyToHypre(d_rhs_vecs, b_adj_data, patch_box);
         }
         else
         {
-            copyToHypre(d_rhs_vecs, b_data, patch_box);
+            copyToHypre(d_rhs_vecs, *b_data, patch_box);
         }
     }
 
@@ -1147,27 +1205,28 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
-        copyFromHypre(x_data, d_sol_vecs, patch_box);
+        copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
-void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                                            const Pointer<CellData<NDIM, double> > src_data,
-                                            const Box<NDIM>& box)
+void
+CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
+                                       const CellData<NDIM, double>& src_data,
+                                       const Box<NDIM>& box)
 {
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
-    if (src_data->getGhostBox() == box)
+    if (src_data.getGhostBox() == box)
     {
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, src_data->getPointer(k));
+            HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, const_cast<double*>(src_data.getPointer(k)));
         }
     }
     else
@@ -1175,24 +1234,25 @@ void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector
         CellData<NDIM, double> hypre_data(box, 1, 0);
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            hypre_data.copyDepth(0, *src_data, k);
+            hypre_data.copyDepth(0, src_data, k);
             HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, hypre_data.getPointer());
         }
     }
     return;
 } // copyToHypre
 
-void CCPoissonHypreLevelSolver::copyFromHypre(Pointer<CellData<NDIM, double> > dst_data,
-                                              const std::vector<HYPRE_StructVector>& vectors,
-                                              const Box<NDIM>& box)
+void
+CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
+                                         const std::vector<HYPRE_StructVector>& vectors,
+                                         const Box<NDIM>& box)
 {
     Index<NDIM> lower = box.lower();
     Index<NDIM> upper = box.upper();
-    if (dst_data->getGhostBox() == box)
+    if (dst_data.getGhostBox() == box)
     {
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, dst_data->getPointer(k));
+            HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, dst_data.getPointer(k));
         }
     }
     else
@@ -1201,13 +1261,14 @@ void CCPoissonHypreLevelSolver::copyFromHypre(Pointer<CellData<NDIM, double> > d
         for (unsigned int k = 0; k < d_depth; ++k)
         {
             HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, hypre_data.getPointer());
-            dst_data->copyDepth(k, hypre_data, 0);
+            dst_data.copyDepth(k, hypre_data, 0);
         }
     }
     return;
 } // copyFromHypre
 
-void CCPoissonHypreLevelSolver::destroyHypreSolver()
+void
+CCPoissonHypreLevelSolver::destroyHypreSolver()
 {
     for (unsigned int k = 0; k < d_depth; ++k)
     {
@@ -1266,7 +1327,8 @@ void CCPoissonHypreLevelSolver::destroyHypreSolver()
     return;
 } // destroyHypreSolver
 
-void CCPoissonHypreLevelSolver::deallocateHypreData()
+void
+CCPoissonHypreLevelSolver::deallocateHypreData()
 {
     if (d_grid) HYPRE_StructGridDestroy(d_grid);
     if (d_stencil) HYPRE_StructStencilDestroy(d_stencil);

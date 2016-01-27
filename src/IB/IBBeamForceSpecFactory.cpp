@@ -56,7 +56,6 @@ class IntVector;
 
 namespace IBAMR
 {
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBBeamForceSpec::Factory::Factory()
@@ -71,18 +70,21 @@ IBBeamForceSpec::Factory::~Factory()
     return;
 } // ~Factory
 
-int IBBeamForceSpec::Factory::getStreamableClassID() const
+int
+IBBeamForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-void IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
+void
+IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable>
+IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     int num_beams;
     stream.unpack(&num_beams, 1);

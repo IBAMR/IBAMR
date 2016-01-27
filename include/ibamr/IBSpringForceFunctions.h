@@ -37,7 +37,6 @@
 
 namespace IBAMR
 {
-
 /*!
  * \brief Typedef specifying the spring force function API.
  *
@@ -114,7 +113,8 @@ typedef double (*SpringForceDerivFcnPtr)(double R, const double* params, int lag
  * override this default value with any function that implements the interface
  * required by IBStandardForceGen::registerSpringForceFunction().
  */
-inline double default_spring_force(double R, const double* params, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
+inline double
+default_spring_force(double R, const double* params, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
 {
     return params[0] * (R - params[1]);
 } // default_spring_force

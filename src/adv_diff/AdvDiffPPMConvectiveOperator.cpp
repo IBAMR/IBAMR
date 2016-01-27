@@ -332,16 +332,28 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
                                                            Pointer<Database> input_db,
                                                            const ConvectiveDifferencingType difference_form,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),
-      d_bc_coefs(bc_coefs), d_outflow_bdry_extrap_type("CONSTANT"), d_hierarchy(NULL), d_coarsest_ln(-1),
-      d_finest_ln(-1), d_Q_var(Q_var), d_Q_data_depth(0), d_Q_scratch_idx(-1), d_q_extrap_var(NULL), d_q_flux_var(NULL),
-      d_q_extrap_idx(-1), d_q_flux_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(),
+      d_bc_coefs(bc_coefs),
+      d_outflow_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_Q_var(Q_var),
+      d_Q_data_depth(0),
+      d_Q_scratch_idx(-1),
+      d_q_extrap_var(NULL),
+      d_q_flux_var(NULL),
+      d_q_extrap_idx(-1),
+      d_q_flux_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                   << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -408,7 +420,8 @@ AdvDiffPPMConvectiveOperator::~AdvDiffPPMConvectiveOperator()
     return;
 } // ~AdvDiffPPMConvectiveOperator
 
-void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int N_idx)
+void
+AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -418,6 +431,16 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
 #endif
+
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_Q_scratch_idx);
+        level->allocatePatchData(d_q_extrap_idx);
+        if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
+            level->allocatePatchData(d_q_flux_idx);
+    }
 
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -748,12 +771,24 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
             }
         }
     }
+
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_Q_scratch_idx);
+        level->deallocatePatchData(d_q_extrap_idx);
+        if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
+            level->deallocatePatchData(d_q_flux_idx);
+    }
+
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 } // applyConvectiveOperator
 
-void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                           const SAMRAIVectorReal<NDIM, double>& out)
+void
+AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                      const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -800,47 +835,18 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_Q_scratch_idx))
-        {
-            level->allocatePatchData(d_Q_scratch_idx);
-            level->allocatePatchData(d_q_extrap_idx);
-            if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
-                level->allocatePatchData(d_q_flux_idx);
-        }
-    }
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 } // initializeOperatorState
 
-void AdvDiffPPMConvectiveOperator::deallocateOperatorState()
+void
+AdvDiffPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
     IBAMR_TIMER_START(t_deallocate_operator_state);
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_Q_scratch_idx))
-        {
-            level->deallocatePatchData(d_Q_scratch_idx);
-        }
-        if (level->checkAllocated(d_q_extrap_idx))
-        {
-            level->deallocatePatchData(d_q_extrap_idx);
-        }
-        if (level->checkAllocated(d_q_flux_idx))
-        {
-            level->deallocatePatchData(d_q_flux_idx);
-        }
-    }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
     d_ghostfill_alg.setNull();

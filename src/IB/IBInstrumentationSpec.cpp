@@ -53,7 +53,8 @@ int IBInstrumentationSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregiste
 
 std::vector<std::string> IBInstrumentationSpec::s_instrument_names;
 
-void IBInstrumentationSpec::registerWithStreamableManager()
+void
+IBInstrumentationSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
@@ -71,7 +72,8 @@ void IBInstrumentationSpec::registerWithStreamableManager()
     return;
 } // registerWithStreamableManager
 
-void IBInstrumentationSpec::setInstrumentNames(const std::vector<std::string>& names)
+void
+IBInstrumentationSpec::setInstrumentNames(const std::vector<std::string>& names)
 {
     s_instrument_names = names;
     return;

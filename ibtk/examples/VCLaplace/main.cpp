@@ -56,7 +56,8 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -82,8 +83,11 @@ int main(int argc, char* argv[])
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -192,8 +196,16 @@ int main(int argc, char* argv[])
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
         // Compute (f0,f1) := div mu (grad(u0,u1) + grad(u0,u1)^T).
-        hier_math_ops.vc_laplace(f_side_idx, f_side_var, 1.0, 0.0, mu_node_idx, mu_node_var, u_side_idx, u_side_var,
-                                 bdry_fill_op, data_time);
+        hier_math_ops.vc_laplace(f_side_idx,
+                                 f_side_var,
+                                 1.0,
+                                 0.0,
+                                 mu_node_idx,
+                                 mu_node_var,
+                                 u_side_idx,
+                                 u_side_var,
+                                 bdry_fill_op,
+                                 data_time);
 
         // Compute error and print error norms.
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_side_data_ops =

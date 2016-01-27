@@ -66,7 +66,8 @@
 namespace ModelData
 {
 // Coordinate mapping function.
-void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+void
+coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
     X(0) = s(0) + 0.6;
     X(1) = s(1) + 0.5;
@@ -80,29 +81,31 @@ void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, voi
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
-void PK1_dev_stress_function(TensorValue<double>& PP,
-                             const TensorValue<double>& FF,
-                             const libMesh::Point& /*X*/,
-                             const libMesh::Point& /*s*/,
-                             Elem* const /*elem*/,
-                             const vector<const vector<double>*>& /*var_data*/,
-                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                             double /*time*/,
-                             void* /*ctx*/)
+void
+PK1_dev_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const vector<const vector<double>*>& /*var_data*/,
+                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
 {
     PP = 2.0 * c1_s * FF;
     return;
 } // PK1_dev_stress_function
 
-void PK1_dil_stress_function(TensorValue<double>& PP,
-                             const TensorValue<double>& FF,
-                             const libMesh::Point& /*X*/,
-                             const libMesh::Point& /*s*/,
-                             Elem* const /*elem*/,
-                             const vector<const vector<double>*>& /*var_data*/,
-                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                             double /*time*/,
-                             void* /*ctx*/)
+void
+PK1_dil_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const vector<const vector<double>*>& /*var_data*/,
+                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
 {
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
@@ -130,7 +133,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -169,7 +173,7 @@ int main(int argc, char* argv[])
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh mesh(NDIM);
+        Mesh mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -249,23 +253,31 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -397,8 +409,8 @@ int main(int argc, char* argv[])
             if (uses_exodus)
             {
                 if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                          loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -448,8 +460,8 @@ int main(int argc, char* argv[])
                 if (uses_exodus)
                 {
                     if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                              loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -464,7 +476,12 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
+                output_data(patch_hierarchy,
+                            navier_stokes_integrator,
+                            mesh,
+                            equation_systems,
+                            iteration_num,
+                            loop_time,
                             postproc_data_dump_dirname);
             }
 
@@ -526,13 +543,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            Mesh& mesh,
+            EquationSystems* equation_systems,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

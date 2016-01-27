@@ -94,7 +94,7 @@ public:
     /*!
      * Typedef for functions to construct NewtonKrylovSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<NewtonKrylovSolver>(*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<NewtonKrylovSolver> (*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);

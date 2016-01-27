@@ -52,7 +52,6 @@ class IntVector;
 
 namespace IBAMR
 {
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBAnchorPointSpec::Factory::Factory()
@@ -67,18 +66,21 @@ IBAnchorPointSpec::Factory::~Factory()
     return;
 } // ~Factory
 
-int IBAnchorPointSpec::Factory::getStreamableClassID() const
+int
+IBAnchorPointSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
+void
+IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable>
+IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
     stream.unpack(&ret_val->d_node_idx, 1);

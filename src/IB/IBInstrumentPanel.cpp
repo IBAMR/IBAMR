@@ -196,10 +196,11 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     return;
 } // init_meter_elements
 
-double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
-                               const Vector& U_centroid,
-                               const boost::multi_array<Point, 1>& X_perimeter,
-                               const Point& X_centroid)
+double
+compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
+                        const Vector& U_centroid,
+                        const boost::multi_array<Point, 1>& X_perimeter,
+                        const Point& X_centroid)
 {
     double U_dot_dA = 0.0;
 #if (NDIM == 2)
@@ -237,12 +238,13 @@ double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
 /*!
  * \brief Build a local mesh database entry corresponding to a meter web.
  */
-void build_meter_web(DBfile* dbfile,
-                     std::string& dirname,
-                     const boost::multi_array<Point, 2>& X_web,
-                     const boost::multi_array<Vector, 2>& dA_web,
-                     const int timestep,
-                     const double simulation_time)
+void
+build_meter_web(DBfile* dbfile,
+                std::string& dirname,
+                const boost::multi_array<Point, 2>& X_web,
+                const boost::multi_array<Vector, 2>& dA_web,
+                const int timestep,
+                const double simulation_time)
 {
     const int npoints = static_cast<int>(X_web.num_elements());
 
@@ -266,7 +268,9 @@ void build_meter_web(DBfile* dbfile,
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web():\n"
-                   << "  Could not set directory " << dirname << std::endl);
+                   << "  Could not set directory "
+                   << dirname
+                   << std::endl);
     }
 
     // Write out the variables.
@@ -306,21 +310,24 @@ void build_meter_web(DBfile* dbfile,
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web():\n"
-                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
+                   << "  Could not return to the base directory from subdirectory "
+                   << dirname
+                   << std::endl);
     }
     return;
 } // build_meter_web
 #endif
 
-double linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
-                     const Point& X_cell,
-                     const CellData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
-                     const double* const /*x_lower*/,
-                     const double* const /*x_upper*/,
-                     const double* const dx)
+double
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const CellData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
     boost::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -369,15 +376,16 @@ double linear_interp(const Point& X,
 } // linear_interp
 
 template <int N>
-Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
-                                          const Index<NDIM>& i_cell,
-                                          const Point& X_cell,
-                                          const CellData<NDIM, double>& v,
-                                          const Index<NDIM>& /*patch_lower*/,
-                                          const Index<NDIM>& /*patch_upper*/,
-                                          const double* const /*x_lower*/,
-                                          const double* const /*x_upper*/,
-                                          const double* const dx)
+Eigen::Matrix<double, N, 1>
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const CellData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
@@ -431,15 +439,16 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
     return U;
 } // linear_interp
 
-Vector linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
-                     const Point& X_cell,
-                     const SideData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
-                     const double* const /*x_lower*/,
-                     const double* const /*x_upper*/,
-                     const double* const dx)
+Vector
+linear_interp(const Point& X,
+              const Index<NDIM>& i_cell,
+              const Point& X_cell,
+              const SideData<NDIM, double>& v,
+              const Index<NDIM>& /*patch_lower*/,
+              const Index<NDIM>& /*patch_upper*/,
+              const double* const /*x_lower*/,
+              const double* const /*x_upper*/,
+              const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == 1);
@@ -504,13 +513,31 @@ Vector linear_interp(const Point& X,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Database> input_db)
-    : d_object_name(object_name), d_initialized(false), d_num_meters(0), d_num_perimeter_nodes(), d_X_centroid(),
-      d_X_perimeter(), d_X_web(), d_dA_web(), d_instrument_read_timestep_num(-1),
-      d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()), d_max_instrument_name_len(-1),
-      d_instrument_names(), d_flow_values(), d_mean_pres_values(), d_point_pres_values(), d_web_patch_map(),
-      d_web_centroid_map(), d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"), d_output_log_file(false),
-      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"), d_log_file_stream(), d_flow_conv(1.0), d_pres_conv(1.0),
-      d_flow_units(""), d_pres_units("")
+    : d_object_name(object_name),
+      d_initialized(false),
+      d_num_meters(0),
+      d_num_perimeter_nodes(),
+      d_X_centroid(),
+      d_X_perimeter(),
+      d_X_web(),
+      d_dA_web(),
+      d_instrument_read_timestep_num(-1),
+      d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()),
+      d_max_instrument_name_len(-1),
+      d_instrument_names(),
+      d_flow_values(),
+      d_mean_pres_values(),
+      d_point_pres_values(),
+      d_web_patch_map(),
+      d_web_centroid_map(),
+      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
+      d_output_log_file(false),
+      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
+      d_log_file_stream(),
+      d_flow_conv(1.0),
+      d_pres_conv(1.0),
+      d_flow_units(""),
+      d_pres_units("")
 {
 #if defined(IBAMR_HAVE_SILO)
 // intentionally blank
@@ -542,44 +569,52 @@ IBInstrumentPanel::~IBInstrumentPanel()
     return;
 } // ~IBInstrumentPanel
 
-const std::vector<std::string>& IBInstrumentPanel::getInstrumentNames() const
+const std::vector<std::string>&
+IBInstrumentPanel::getInstrumentNames() const
 {
     return d_instrument_names;
 } // getInstrumentNames
 
-const double& IBInstrumentPanel::getInstrumentDataReadTime() const
+const double&
+IBInstrumentPanel::getInstrumentDataReadTime() const
 {
     return d_instrument_read_time;
 } // getInstrumentDataReadTime
 
-const std::vector<double>& IBInstrumentPanel::getFlowValues() const
+const std::vector<double>&
+IBInstrumentPanel::getFlowValues() const
 {
     return d_flow_values;
 } // getFlowValues
 
-const std::vector<double>& IBInstrumentPanel::getMeanPressureValues() const
+const std::vector<double>&
+IBInstrumentPanel::getMeanPressureValues() const
 {
     return d_mean_pres_values;
 } // getMeanPressureValues
 
-const std::vector<double>& IBInstrumentPanel::getPointwisePressureValues() const
+const std::vector<double>&
+IBInstrumentPanel::getPointwisePressureValues() const
 {
     return d_point_pres_values;
 } // getPointwisePressureValues
 
-bool IBInstrumentPanel::isInstrumented() const
+bool
+IBInstrumentPanel::isInstrumented() const
 {
     if (!d_initialized)
     {
         TBOX_WARNING(d_object_name << "::isInstrumented():\n"
-                                   << "  instrument data has not been initialized." << std::endl);
+                                   << "  instrument data has not been initialized."
+                                   << std::endl);
         return false;
     }
     return (d_num_meters > 0);
 } // isInstrumented
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           LDataManager* const l_data_manager)
+void
+IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                      LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
 
@@ -644,7 +679,8 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     {
         TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData():\n"
                                    << "  instrument names are not initialized\n"
-                                   << "  using default names" << std::endl);
+                                   << "  using default names"
+                                   << std::endl);
         d_instrument_names.resize(d_num_meters);
         for (unsigned int m = 0; m < d_num_meters; ++m)
         {
@@ -695,10 +731,11 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     return;
 } // initializeHierarchyIndependentData
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                         LDataManager* const l_data_manager,
-                                                         const int timestep_num,
-                                                         const double data_time)
+void
+IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                    LDataManager* const l_data_manager,
+                                                    const int timestep_num,
+                                                    const double data_time)
 {
     if (!d_initialized)
     {
@@ -922,12 +959,13 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     return;
 } // initializeHierarchyDependentData
 
-void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
-                                           const int P_data_idx,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           LDataManager* const l_data_manager,
-                                           const int timestep_num,
-                                           const double data_time)
+void
+IBInstrumentPanel::readInstrumentData(const int U_data_idx,
+                                      const int P_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      LDataManager* const l_data_manager,
+                                      const int timestep_num,
+                                      const double data_time)
 {
     if (d_num_meters == 0) return;
 
@@ -940,16 +978,21 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (timestep_num != d_instrument_read_timestep_num)
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData():\n"
-                                 << "  time step number: " << timestep_num
-                                 << " is != instrumentation time step number: " << d_instrument_read_timestep_num
+                                 << "  time step number: "
+                                 << timestep_num
+                                 << " is != instrumentation time step number: "
+                                 << d_instrument_read_timestep_num
                                  << std::endl);
     }
 
     if (!MathUtilities<double>::equalEps(data_time, d_instrument_read_time))
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData():\n"
-                                 << "  data read time: " << data_time
-                                 << " is != instrumentation data read time: " << d_instrument_read_time << std::endl);
+                                 << "  data read time: "
+                                 << data_time
+                                 << " is != instrumentation data read time: "
+                                 << d_instrument_read_time
+                                 << std::endl);
     }
 
     // Reset the instrument values.
@@ -1181,13 +1224,15 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     return;
 } // readInstrumentData
 
-void IBInstrumentPanel::setPlotDirectory(const std::string& plot_directory_name)
+void
+IBInstrumentPanel::setPlotDirectory(const std::string& plot_directory_name)
 {
     d_plot_directory_name = plot_directory_name;
     return;
 } // setPlotDirectory
 
-void IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation_time)
+void
+IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation_time)
 {
     if (d_num_meters == 0) return;
 
@@ -1201,14 +1246,18 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
     if (timestep_num != d_instrument_read_timestep_num)
     {
         TBOX_ERROR(d_object_name << "::writePlotData():\n"
-                                 << "  time step number: " << timestep_num
-                                 << " is != last time step number: " << d_instrument_read_timestep_num << std::endl);
+                                 << "  time step number: "
+                                 << timestep_num
+                                 << " is != last time step number: "
+                                 << d_instrument_read_timestep_num
+                                 << std::endl);
     }
 
     if (d_plot_directory_name.empty())
     {
         TBOX_ERROR(d_object_name << "::writePlotData():\n"
-                                 << "  dump directory name is empty" << std::endl);
+                                 << "  dump directory name is empty"
+                                 << std::endl);
     }
 
     char temp_buf[SILO_NAME_BUFSIZE];
@@ -1233,7 +1282,9 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
     if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                   << "  Could not create DBfile named " << current_file_name << std::endl);
+                   << "  Could not create DBfile named "
+                   << current_file_name
+                   << std::endl);
     }
 
     // Output the web data on the available MPI processes.
@@ -1245,7 +1296,9 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
             if (DBMkDir(dbfile, dirname.c_str()) == -1)
             {
                 TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                           << "  Could not create directory named " << dirname << std::endl);
+                           << "  Could not create directory named "
+                           << dirname
+                           << std::endl);
             }
             build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter], timestep_num, simulation_time);
         }
@@ -1263,7 +1316,9 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
         if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                       << "  Could not create DBfile named " << summary_file_name << std::endl);
+                       << "  Could not create DBfile named "
+                       << summary_file_name
+                       << std::endl);
         }
 
         int cycle = timestep_num;
@@ -1295,7 +1350,9 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
             if (DBMkDir(dbfile, meter_name.c_str()) == -1)
             {
                 TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                           << "  Could not create directory named " << meter_name << std::endl);
+                           << "  Could not create directory named "
+                           << meter_name
+                           << std::endl);
             }
 
             std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";
@@ -1340,7 +1397,8 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBInstrumentPanel::getFromInput(Pointer<Database> db)
+void
+IBInstrumentPanel::getFromInput(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1358,7 +1416,8 @@ void IBInstrumentPanel::getFromInput(Pointer<Database> db)
     return;
 } // getFromInput
 
-void IBInstrumentPanel::outputLogData(std::ostream& os)
+void
+IBInstrumentPanel::outputLogData(std::ostream& os)
 {
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
@@ -1385,17 +1444,17 @@ void IBInstrumentPanel::outputLogData(std::ostream& os)
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_flow_conv* d_flow_values[m];
+        os << "  " << d_flow_conv * d_flow_values[m];
 
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_pres_conv* d_mean_pres_values[m];
+        os << "  " << d_pres_conv * d_mean_pres_values[m];
 
         os.setf(std::ios_base::scientific);
         os.setf(std::ios_base::showpos);
         os.precision(5);
-        os << "  " << d_pres_conv* d_point_pres_values[m];
+        os << "  " << d_pres_conv * d_point_pres_values[m];
 
         os << "\n";
 

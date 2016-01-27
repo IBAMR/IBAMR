@@ -8,7 +8,7 @@ echo "=================================="
 
 PACKAGE_SETUP_ENVIRONMENT
 
-if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   AC_MSG_NOTICE([PETSc appears to provide hypre; using PETSc hypre library])
   PETSC_BUNDLES_HYPRE=yes
 else

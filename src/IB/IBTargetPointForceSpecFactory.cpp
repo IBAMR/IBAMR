@@ -67,19 +67,21 @@ IBTargetPointForceSpec::Factory::~Factory()
     return;
 } // ~Factory
 
-int IBTargetPointForceSpec::Factory::getStreamableClassID() const
+int
+IBTargetPointForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-void IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
+void
+IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream,
-                                                                  const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable>
+IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
     stream.unpack(&ret_val->d_master_idx, 1);

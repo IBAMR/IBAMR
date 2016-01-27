@@ -44,9 +44,22 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
-    : d_dim(dim), d_fe_data_manager(fe_data_manager), d_initialized(false), d_eval_q_point(false), d_eval_JxW(false),
-      d_eval_q_point_face(false), d_eval_JxW_face(false), d_eval_normal_face(false), d_qrule(NULL), d_qrule_face(NULL),
-      d_q_point(NULL), d_q_point_face(NULL), d_JxW(NULL), d_JxW_face(NULL), d_normal_face(NULL), d_current_elem(NULL)
+    : d_dim(dim),
+      d_fe_data_manager(fe_data_manager),
+      d_initialized(false),
+      d_eval_q_point(false),
+      d_eval_JxW(false),
+      d_eval_q_point_face(false),
+      d_eval_JxW_face(false),
+      d_eval_normal_face(false),
+      d_qrule(NULL),
+      d_qrule_face(NULL),
+      d_q_point(NULL),
+      d_q_point_face(NULL),
+      d_JxW(NULL),
+      d_JxW_face(NULL),
+      d_normal_face(NULL),
+      d_current_elem(NULL)
 {
     return;
 }
@@ -56,14 +69,16 @@ FEDataInterpolation::~FEDataInterpolation()
     return;
 }
 
-void FEDataInterpolation::registerSystem(const System& system,
-                                         const std::vector<int>& phi_vars,
-                                         const std::vector<int>& dphi_vars)
+void
+FEDataInterpolation::registerSystem(const System& system,
+                                    const std::vector<int>& phi_vars,
+                                    const std::vector<int>& dphi_vars)
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System*>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
-         it != it_end; ++it)
+    for (std::vector<const System *>::iterator it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end();
+         it != it_end;
+         ++it)
     {
         if ((*it)->number() == sys_num)
         {
@@ -105,14 +120,15 @@ void FEDataInterpolation::registerSystem(const System& system,
     return;
 }
 
-size_t FEDataInterpolation::registerInterpolatedSystem(const System& system,
-                                                       const std::vector<int>& vars,
-                                                       const std::vector<int>& grad_vars,
-                                                       NumericVector<double>* system_data)
+size_t
+FEDataInterpolation::registerInterpolatedSystem(const System& system,
+                                                const std::vector<int>& vars,
+                                                const std::vector<int>& grad_vars,
+                                                NumericVector<double>* system_data)
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (std::vector<const System*>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (std::vector<const System *>::iterator it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
     {
         if ((*it)->number() == sys_num)
         {
@@ -158,9 +174,10 @@ size_t FEDataInterpolation::registerInterpolatedSystem(const System& system,
     return system_idx;
 }
 
-void FEDataInterpolation::setupInterpolatedSystemDataIndexes(std::vector<size_t>& system_idxs,
-                                                             const std::vector<SystemData>& system_data,
-                                                             const EquationSystems* const equation_systems)
+void
+FEDataInterpolation::setupInterpolatedSystemDataIndexes(std::vector<size_t>& system_idxs,
+                                                        const std::vector<SystemData>& system_data,
+                                                        const EquationSystems* const equation_systems)
 {
     TBOX_ASSERT(!d_initialized);
     const size_t n_systems = system_data.size();
@@ -176,12 +193,12 @@ void FEDataInterpolation::setupInterpolatedSystemDataIndexes(std::vector<size_t>
     return;
 }
 
-void FEDataInterpolation::setInterpolatedDataPointers(
-    std::vector<const std::vector<double>*>& var_data,
-    std::vector<const std::vector<VectorValue<double> >*>& grad_var_data,
-    const std::vector<size_t>& system_idxs,
-    const Elem* const elem,
-    const unsigned int qp)
+void
+FEDataInterpolation::setInterpolatedDataPointers(std::vector<const std::vector<double>*>& var_data,
+                                                 std::vector<const std::vector<VectorValue<double> >*>& grad_var_data,
+                                                 const std::vector<size_t>& system_idxs,
+                                                 const Elem* const elem,
+                                                 const unsigned int qp)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(elem == d_current_elem);
@@ -196,7 +213,8 @@ void FEDataInterpolation::setInterpolatedDataPointers(
     return;
 }
 
-void FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
+void
+FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
 {
     TBOX_ASSERT(!d_initialized);
 
@@ -331,9 +349,10 @@ void FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     return;
 }
 
-void FEDataInterpolation::reinit(const Elem* elem,
-                                 const std::vector<libMesh::Point>* const points,
-                                 const std::vector<double>* weights)
+void
+FEDataInterpolation::reinit(const Elem* elem,
+                            const std::vector<libMesh::Point>* const points,
+                            const std::vector<double>* weights)
 {
     TBOX_ASSERT(d_initialized);
     d_current_elem = elem;
@@ -350,11 +369,12 @@ void FEDataInterpolation::reinit(const Elem* elem,
     return;
 }
 
-void FEDataInterpolation::reinit(const Elem* const elem,
-                                 const unsigned int side,
-                                 const double tol,
-                                 const std::vector<libMesh::Point>* const points,
-                                 const std::vector<double>* weights)
+void
+FEDataInterpolation::reinit(const Elem* const elem,
+                            const unsigned int side,
+                            const double tol,
+                            const std::vector<libMesh::Point>* const points,
+                            const std::vector<double>* weights)
 {
     TBOX_ASSERT(d_initialized);
     d_current_elem = elem;
@@ -372,7 +392,8 @@ void FEDataInterpolation::reinit(const Elem* const elem,
     return;
 }
 
-void FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
+void
+FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(elem == d_current_elem);
@@ -400,7 +421,8 @@ void FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
     return;
 }
 
-const boost::multi_array<double, 2>& FEDataInterpolation::getElemData(const Elem* const elem, const size_t system_idx)
+const boost::multi_array<double, 2>&
+FEDataInterpolation::getElemData(const Elem* const elem, const size_t system_idx)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(elem == d_current_elem);
@@ -408,7 +430,8 @@ const boost::multi_array<double, 2>& FEDataInterpolation::getElemData(const Elem
     return d_system_elem_data[system_idx];
 }
 
-void FEDataInterpolation::interpolate(const Elem* const elem)
+void
+FEDataInterpolation::interpolate(const Elem* const elem)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(d_qrule);
@@ -417,7 +440,8 @@ void FEDataInterpolation::interpolate(const Elem* const elem)
     return;
 }
 
-void FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int side)
+void
+FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int side)
 {
     TBOX_ASSERT(d_initialized);
     TBOX_ASSERT(d_qrule_face);
@@ -429,12 +453,14 @@ void FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-size_t FEDataInterpolation::getFETypeIndex(const FEType& fe_type) const
+size_t
+FEDataInterpolation::getFETypeIndex(const FEType& fe_type) const
 {
     return std::distance(d_fe_types.begin(), std::find(d_fe_types.begin(), d_fe_types.end(), fe_type));
 }
 
-void FEDataInterpolation::interpolateCommon(
+void
+FEDataInterpolation::interpolateCommon(
     std::vector<std::vector<std::vector<double> > >& system_var_data,
     std::vector<std::vector<std::vector<VectorValue<double> > > >& system_grad_var_data,
     const std::vector<const std::vector<std::vector<double> >*>& phi_data,

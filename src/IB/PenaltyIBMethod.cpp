@@ -103,7 +103,8 @@ PenaltyIBMethod::~PenaltyIBMethod()
     return;
 } // ~PenaltyIBMethod
 
-void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -137,7 +138,8 @@ void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_ti
     return;
 } // preprocessIntegrateData
 
-void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -165,7 +167,8 @@ void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_t
     return;
 } // postprocessIntegrateData
 
-void PenaltyIBMethod::eulerStep(const double current_time, const double new_time)
+void
+PenaltyIBMethod::eulerStep(const double current_time, const double new_time)
 {
     IBMethod::eulerStep(current_time, new_time);
 
@@ -200,7 +203,8 @@ void PenaltyIBMethod::eulerStep(const double current_time, const double new_time
     return;
 } // eulerStep
 
-void PenaltyIBMethod::midpointStep(const double current_time, const double new_time)
+void
+PenaltyIBMethod::midpointStep(const double current_time, const double new_time)
 {
     IBMethod::midpointStep(current_time, new_time);
 
@@ -239,7 +243,8 @@ void PenaltyIBMethod::midpointStep(const double current_time, const double new_t
     return;
 } // midpointStep
 
-void PenaltyIBMethod::trapezoidalStep(const double current_time, const double new_time)
+void
+PenaltyIBMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     IBMethod::trapezoidalStep(current_time, new_time);
 
@@ -278,7 +283,8 @@ void PenaltyIBMethod::trapezoidalStep(const double current_time, const double ne
     return;
 } // trapezoidalStep
 
-void PenaltyIBMethod::computeLagrangianForce(const double data_time)
+void
+PenaltyIBMethod::computeLagrangianForce(const double data_time)
 {
     IBMethod::computeLagrangianForce(data_time);
 
@@ -356,14 +362,15 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                               int u_data_idx,
-                                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                               int integrator_step,
-                                               double init_data_time,
-                                               bool initial_time)
+void
+PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                          int u_data_idx,
+                                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                          int integrator_step,
+                                          double init_data_time,
+                                          bool initial_time)
 {
     IBMethod::initializePatchHierarchy(hierarchy,
                                        gridding_alg,
@@ -420,7 +427,8 @@ void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hi
     return;
 } // initializePatchHierarchy
 
-void PenaltyIBMethod::putToDatabase(Pointer<Database> db)
+void
+PenaltyIBMethod::putToDatabase(Pointer<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -433,7 +441,8 @@ void PenaltyIBMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+void
+PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -451,7 +460,8 @@ void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     return;
 } // getFromInput
 
-void PenaltyIBMethod::getFromRestart()
+void
+PenaltyIBMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -462,7 +472,8 @@ void PenaltyIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("PENALTY_IB_METHOD_VERSION");
     if (ver != PENALTY_IB_METHOD_VERSION)

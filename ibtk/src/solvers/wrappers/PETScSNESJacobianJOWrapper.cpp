@@ -63,9 +63,17 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (*const petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
     void* const petsc_snes_jac_ctx)
-    : JacobianOperator(object_name), d_petsc_snes(petsc_snes), d_petsc_snes_jac(NULL),
-      d_petsc_snes_form_jac(petsc_snes_form_jac), d_petsc_snes_jac_ctx(petsc_snes_jac_ctx), d_x(NULL), d_y(NULL),
-      d_z(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_petsc_z(NULL)
+    : JacobianOperator(object_name),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_jac(NULL),
+      d_petsc_snes_form_jac(petsc_snes_form_jac),
+      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
 {
     // intentionally blank
     return;
@@ -77,7 +85,8 @@ PETScSNESJacobianJOWrapper::~PETScSNESJacobianJOWrapper()
     return;
 } // ~PETScSNESJacobianJOWrapper()
 
-const SNES& PETScSNESJacobianJOWrapper::getPETScSNES() const
+const SNES&
+PETScSNESJacobianJOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;
 } // getPETScSNES
@@ -87,12 +96,14 @@ PetscErrorCode (*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES, V
     return d_petsc_snes_form_jac;
 } // getPETScSNESFormJacobian
 
-void* PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
+void*
+PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
 {
     return d_petsc_snes_jac_ctx;
 } // getPETScSNESJacobianContext
 
-void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<NDIM, double>& x)
+void
+PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<NDIM, double>& x)
 {
     // Create the PETSc Vec wrappers.
     Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
@@ -107,7 +118,8 @@ void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<NDIM, double>& x)
     return;
 } // formJacobian
 
-Pointer<SAMRAIVectorReal<NDIM, double> > PETScSNESJacobianJOWrapper::getBaseVector() const
+Pointer<SAMRAIVectorReal<NDIM, double> >
+PETScSNESJacobianJOWrapper::getBaseVector() const
 {
     Vec petsc_x;
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
@@ -115,7 +127,8 @@ Pointer<SAMRAIVectorReal<NDIM, double> > PETScSNESJacobianJOWrapper::getBaseVect
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
 } // getBaseVector
 
-void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
@@ -129,9 +142,10 @@ void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     return;
 } // apply
 
-void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                                          SAMRAIVectorReal<NDIM, double>& y,
-                                          SAMRAIVectorReal<NDIM, double>& z)
+void
+PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
+                                     SAMRAIVectorReal<NDIM, double>& y,
+                                     SAMRAIVectorReal<NDIM, double>& z)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
@@ -146,8 +160,9 @@ void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     return;
 } // applyAdd
 
-void PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                         const SAMRAIVectorReal<NDIM, double>& out)
+void
+PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                    const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");
@@ -163,7 +178,8 @@ void PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<
     return;
 } // initializeOperatorState
 
-void PETScSNESJacobianJOWrapper::deallocateOperatorState()
+void
+PETScSNESJacobianJOWrapper::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);

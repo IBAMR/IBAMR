@@ -53,7 +53,6 @@
 
 namespace IBTK
 {
-
 /*!
  * Struct allowing for the specification of system variables / gradients and the NumericVector used to evaluate
  * those quantities.
@@ -143,10 +142,11 @@ typedef void (*TensorSurfaceFcnPtr)(
     void* ctx);
 
 template <class MultiArray, class Array>
-inline void get_values_for_interpolation(MultiArray& U_node,
-                                         const libMesh::PetscVector<double>& U_petsc_vec,
-                                         const Array& U_local_soln,
-                                         const std::vector<unsigned int>& dof_indices)
+inline void
+get_values_for_interpolation(MultiArray& U_node,
+                             const libMesh::PetscVector<double>& U_petsc_vec,
+                             const Array& U_local_soln,
+                             const std::vector<unsigned int>& dof_indices)
 {
     const std::size_t n_nodes = dof_indices.size();
     if (U_node.shape()[0] != n_nodes)
@@ -162,10 +162,11 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray, class Array>
-inline void get_values_for_interpolation(MultiArray& U_node,
-                                         const libMesh::PetscVector<double>& U_petsc_vec,
-                                         const Array& U_local_soln,
-                                         const std::vector<std::vector<unsigned int> >& dof_indices)
+inline void
+get_values_for_interpolation(MultiArray& U_node,
+                             const libMesh::PetscVector<double>& U_petsc_vec,
+                             const Array& U_local_soln,
+                             const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
     const std::size_t n_nodes = dof_indices[0].size();
@@ -185,9 +186,10 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray>
-inline void get_values_for_interpolation(MultiArray& U_node,
-                                         libMesh::NumericVector<double>& U_vec,
-                                         const std::vector<unsigned int>& dof_indices)
+inline void
+get_values_for_interpolation(MultiArray& U_node,
+                             libMesh::NumericVector<double>& U_vec,
+                             const std::vector<unsigned int>& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
@@ -202,9 +204,10 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray>
-inline void get_values_for_interpolation(MultiArray& U_node,
-                                         libMesh::NumericVector<double>& U_vec,
-                                         const std::vector<std::vector<unsigned int> >& dof_indices)
+inline void
+get_values_for_interpolation(MultiArray& U_node,
+                             libMesh::NumericVector<double>& U_vec,
+                             const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
@@ -219,7 +222,8 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray>
-inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
+inline void
+interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     U = 0.0;
@@ -231,7 +235,8 @@ inline void interpolate(double& U, const int qp, const MultiArray& U_node, const
 } // interpolate
 
 template <class MultiArray>
-inline double interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
+inline double
+interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     double U = 0.0;
@@ -261,10 +266,11 @@ interpolate(double* const U, const int qp, const MultiArray& U_node, const std::
 } // interpolate
 
 template <class MultiArray>
-inline void interpolate(libMesh::TypeVector<double>& U,
-                        const int qp,
-                        const MultiArray& U_node,
-                        const std::vector<std::vector<double> >& phi)
+inline void
+interpolate(libMesh::TypeVector<double>& U,
+            const int qp,
+            const MultiArray& U_node,
+            const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     const int n_vars = static_cast<int>(U_node.shape()[1]);
@@ -281,10 +287,11 @@ inline void interpolate(libMesh::TypeVector<double>& U,
 } // interpolate
 
 template <class MultiArray>
-inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
-                     const int qp,
-                     const MultiArray& X_node,
-                     const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
+inline void
+jacobian(libMesh::TypeTensor<double>& dX_ds,
+         const int qp,
+         const MultiArray& X_node,
+         const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
 {
     const int n_nodes = static_cast<int>(X_node.shape()[0]);
     const int dim = static_cast<int>(X_node.shape()[1]);
@@ -339,7 +346,8 @@ tensor_inverse(libMesh::TensorValue<double>& A_inv, const libMesh::TensorValue<d
     return;
 } // tensor_inverse
 
-inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<double>& A, const int dim = NDIM)
+inline libMesh::TensorValue<double>
+tensor_inverse(const libMesh::TensorValue<double>& A, const int dim = NDIM)
 {
     libMesh::TensorValue<double> A_inv;
     const double det_A = A.det();
@@ -370,9 +378,10 @@ inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<do
     return A_inv;
 } // tensor_inverse
 
-inline void tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
-                                     const libMesh::TensorValue<double>& A,
-                                     const int dim = NDIM)
+inline void
+tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
+                         const libMesh::TensorValue<double>& A,
+                         const int dim = NDIM)
 {
     const double det_A = A.det();
     if (dim == 2)
@@ -402,8 +411,8 @@ inline void tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
     return;
 } // tensor_inverse_transpose
 
-inline libMesh::TensorValue<double> tensor_inverse_transpose(const libMesh::TensorValue<double>& A,
-                                                             const int dim = NDIM)
+inline libMesh::TensorValue<double>
+tensor_inverse_transpose(const libMesh::TensorValue<double>& A, const int dim = NDIM)
 {
     libMesh::TensorValue<double> A_inv_trans;
     const double det_A = A.det();
@@ -434,10 +443,11 @@ inline libMesh::TensorValue<double> tensor_inverse_transpose(const libMesh::Tens
     return A_inv_trans;
 } // tensor_inverse_transpose
 
-inline void outer_product(libMesh::TensorValue<double>& u_prod_v,
-                          const libMesh::TypeVector<double>& u,
-                          const libMesh::TypeVector<double>& v,
-                          const int dim = NDIM)
+inline void
+outer_product(libMesh::TensorValue<double>& u_prod_v,
+              const libMesh::TypeVector<double>& u,
+              const libMesh::TypeVector<double>& v,
+              const int dim = NDIM)
 {
     u_prod_v.zero();
     for (int i = 0; i < dim; ++i)
@@ -466,10 +476,11 @@ outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<do
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals,
-                                     libMesh::Edge* elem,
-                                     libMesh::Point r,
-                                     libMesh::VectorValue<double> q)
+inline void
+intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals,
+                         libMesh::Edge* elem,
+                         libMesh::Point r,
+                         libMesh::VectorValue<double> q)
 {
     t_vals.resize(0);
     switch (elem->type())
@@ -599,7 +610,8 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_edge():"
-                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
+                   << "  element type "
+                   << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
@@ -608,10 +620,11 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals,
-                                     libMesh::Face* elem,
-                                     libMesh::Point r,
-                                     libMesh::VectorValue<double> q)
+inline void
+intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals,
+                         libMesh::Face* elem,
+                         libMesh::Point r,
+                         libMesh::VectorValue<double> q)
 {
     t_vals.resize(0);
     switch (elem->type())
@@ -802,7 +815,8 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_face():"
-                   << "  element type " << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
+                   << "  element type "
+                   << libMesh::Utility::enum_to_string<libMesh::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }

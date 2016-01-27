@@ -104,7 +104,11 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(NULL), d_no_fill_op(NULL), d_Phi_var(NULL), d_F_Phi_var(NULL), d_Phi_scratch_idx(-1),
+      d_Phi_bdry_fill_op(NULL),
+      d_no_fill_op(NULL),
+      d_Phi_var(NULL),
+      d_F_Phi_var(NULL),
+      d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
@@ -163,8 +167,9 @@ StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditione
     return;
 } // ~StaggeredStokesProjectionPreconditioner
 
-bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                                          SAMRAIVectorReal<NDIM, double>& b)
+bool
+StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
+                                                     SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
@@ -217,6 +222,14 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     Pointer<SAMRAIVectorReal<NDIM, double> > P_vec;
     P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_Phi_scratch_idx);
+        level->allocatePatchData(d_F_Phi_idx);
+    }
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
     //
@@ -321,6 +334,14 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     // Account for nullspace vectors.
     correctNullspace(U_vec, P_vec);
 
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_Phi_scratch_idx);
+        level->deallocatePatchData(d_F_Phi_idx);
+    }
+
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
@@ -328,8 +349,9 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     return true;
 } // solveSystem
 
-void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                    const SAMRAIVectorReal<NDIM, double>& b)
+void
+StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                               const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -353,27 +375,14 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->allocatePatchData(d_Phi_scratch_idx);
-        }
-        if (!level->checkAllocated(d_F_Phi_idx))
-        {
-            level->allocatePatchData(d_F_Phi_idx);
-        }
-    }
-
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
 } // initializeSolverState
 
-void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
+void
+StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -385,44 +394,34 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     // Deallocate hierarchy operators.
     d_Phi_bdry_fill_op.setNull();
 
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->deallocatePatchData(d_Phi_scratch_idx);
-        }
-        if (level->checkAllocated(d_F_Phi_idx))
-        {
-            level->deallocatePatchData(d_F_Phi_idx);
-        }
-    }
-
     d_is_initialized = false;
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
     return;
 } // deallocateSolverState
 
-void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
                    << "  class IBAMR::StaggeredStokesProjectionPreconditioner requires a zero "
-                      "initial guess" << std::endl);
+                      "initial guess"
+                   << std::endl);
     }
     return;
 } // setInitialGuessNonzero
 
-void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
+void
+StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
                    << "  class IBAMR::StaggeredStokesProjectionPreconditioner only performs a "
-                      "single iteration" << std::endl);
+                      "single iteration"
+                   << std::endl);
     }
     return;
 } // setMaxIterations

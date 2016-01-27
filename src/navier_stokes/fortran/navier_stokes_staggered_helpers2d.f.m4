@@ -348,3 +348,174 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Copy SAMRAI velocity and pressure patch data to PETSc Vec  
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine copy_to_patchlevel_vec_mac2d(
+     &     ifirst0,ilast0,
+     &     ifirst1,ilast1,
+     &     first_local,last_local,
+     &     p_cc,p_cc_gcw,
+     &     u_sc0,u_sc1,u_sc_gcw,
+     &     p_dof_cc,p_dof_cc_gcw,
+     &     u_dof_sc0, u_dof_sc1,u_dof_sc_gcw,
+     &     arr)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0
+      INTEGER ifirst1,ilast1
+
+      INTEGER first_local,last_local
+      INTEGER p_cc_gcw,u_sc_gcw
+      INTEGER p_dof_cc_gcw,u_dof_sc_gcw
+c
+c     Input/Output.
+c
+      REAL p_cc(CELL2d(ifirst,ilast,p_cc_gcw))
+      REAL u_sc0(SIDE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_sc1(SIDE2d1(ifirst,ilast,u_sc_gcw))
+
+      INTEGER p_dof_cc(CELL2d(ifirst,ilast,p_dof_cc_gcw))
+      INTEGER u_dof_sc0(SIDE2d0(ifirst,ilast,u_dof_sc_gcw))
+      INTEGER u_dof_sc1(SIDE2d1(ifirst,ilast,u_dof_sc_gcw))
+
+      REAL arr(first_local:last_local-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER dof_idx
+c
+c     Copy velocity to array.
+c
+    
+      do i1 = ifirst1,ilast1
+         do i0 = ifirst0,ilast0+1
+	    dof_idx = u_dof_sc0(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &   	(dof_idx .lt. last_local)) then
+	       arr(dof_idx) = u_sc0(i0,i1)
+	    end if	  
+         enddo
+      enddo
+
+      do i1 = ifirst1,ilast1+1
+         do i0 = ifirst0,ilast0
+	    dof_idx = u_dof_sc1(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+     	       arr(dof_idx) = u_sc1(i0,i1)
+	    end if	    
+         enddo
+      enddo
+c
+
+c
+c     Copy pressure to array
+c
+      
+      do i1 = ifirst1,ilast1
+         do i0 = ifirst0,ilast0
+	    dof_idx = p_dof_cc(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+	       arr(dof_idx) = p_cc(i0,i1)
+	    end if	  
+         enddo
+      enddo     
+ 
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Copy PETSc Vec velocity and pressure to SAMRAI patch data  
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine copy_from_patchlevel_vec_mac2d(
+     &     ifirst0,ilast0,
+     &     ifirst1,ilast1,
+     &     first_local,last_local,
+     &     p_cc,p_cc_gcw,
+     &     u_sc0,u_sc1,u_sc_gcw,
+     &     p_dof_cc,p_dof_cc_gcw,
+     &     u_dof_sc0, u_dof_sc1,u_dof_sc_gcw,
+     &     arr)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0
+      INTEGER ifirst1,ilast1
+
+      INTEGER first_local,last_local
+      INTEGER p_cc_gcw,u_sc_gcw
+      INTEGER p_dof_cc_gcw,u_dof_sc_gcw
+c
+c     Input/Output.
+c
+      REAL p_cc(CELL2d(ifirst,ilast,p_cc_gcw))
+      REAL u_sc0(SIDE2d0(ifirst,ilast,u_sc_gcw))
+      REAL u_sc1(SIDE2d1(ifirst,ilast,u_sc_gcw))
+
+      INTEGER p_dof_cc(CELL2d(ifirst,ilast,p_dof_cc_gcw))
+      INTEGER u_dof_sc0(SIDE2d0(ifirst,ilast,u_dof_sc_gcw))
+      INTEGER u_dof_sc1(SIDE2d1(ifirst,ilast,u_dof_sc_gcw))
+
+      REAL arr(first_local:last_local-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER dof_idx
+c
+c     Copy array velocity  to SAMRAI patch data.
+c
+    
+      do i1 = ifirst1,ilast1
+         do i0 = ifirst0,ilast0+1
+	    dof_idx = u_dof_sc0(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+	       u_sc0(i0,i1) = arr(dof_idx)
+	    end if	  
+         enddo
+      enddo
+
+      do i1 = ifirst1,ilast1+1
+         do i0 = ifirst0,ilast0
+	    dof_idx = u_dof_sc1(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+	       u_sc1(i0,i1) =  arr(dof_idx)
+	    end if	    
+         enddo
+      enddo
+c
+
+c
+c     Copy array pressure to SAMRAI patch data.
+c
+      
+      do i1 = ifirst1,ilast1
+         do i0 = ifirst0,ilast0
+	    dof_idx = p_dof_cc(i0,i1)
+	    if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+	       p_cc(i0,i1) = arr(dof_idx)
+	    end if	  
+         enddo
+      enddo     
+ 
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+

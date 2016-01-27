@@ -67,6 +67,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
@@ -113,22 +114,22 @@ namespace IBAMR
 
 namespace
 {
-
 static const std::string KERNEL_FCN = "IB_6";
 static const int kernel_width = 3;
-void kernel(const double X,
-            const double patch_x_lower,
-            const double /*patch_x_upper*/,
-            const double dx,
-            const int patch_box_lower,
-            const int /*patch_box_upper*/,
-            int& stencil_box_lower,
-            int& stencil_box_upper,
-            boost::multi_array<double, 1>& phi,
-            boost::multi_array<double, 1>& dphi)
+void
+kernel(const double X,
+       const double patch_x_lower,
+       const double /*patch_x_upper*/,
+       const double dx,
+       const int patch_box_lower,
+       const int /*patch_box_upper*/,
+       int& stencil_box_lower,
+       int& stencil_box_upper,
+       boost::multi_array<double, 1>& phi,
+       boost::multi_array<double, 1>& dphi)
 {
     const double X_o_dx = (X - patch_x_lower) / dx;
-    stencil_box_lower = round(X_o_dx) + patch_box_lower - kernel_width;
+    stencil_box_lower = boost::math::round(X_o_dx) + patch_box_lower - kernel_width;
     stencil_box_upper = stencil_box_lower + 2 * kernel_width - 1;
     const double r = 1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
 
@@ -230,7 +231,8 @@ IMPMethod::~IMPMethod()
     return;
 } // ~IMPMethod
 
-void IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
+void
+IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
@@ -240,19 +242,22 @@ void IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
     return;
 } // registerLInitStrategy
 
-void IMPMethod::freeLInitStrategy()
+void
+IMPMethod::freeLInitStrategy()
 {
     d_l_initializer.setNull();
     d_l_data_manager->freeLInitStrategy();
     return;
 } // freeLInitStrategy
 
-LDataManager* IMPMethod::getLDataManager() const
+LDataManager*
+IMPMethod::getLDataManager() const
 {
     return d_l_data_manager;
 } // getLDataManager
 
-void IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void
+IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -262,12 +267,14 @@ void IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     return;
 } // registerLSiloDataWriter
 
-const IntVector<NDIM>& IMPMethod::getMinimumGhostCellWidth() const
+const IntVector<NDIM>&
+IMPMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void
+IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -289,7 +296,8 @@ void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm
     return;
 } // setupTagBuffer
 
-void IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void
+IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -350,7 +358,8 @@ void IMPMethod::preprocessIntegrateData(double current_time, double new_time, in
     return;
 } // preprocessIntegrateData
 
-void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
+void
+IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -394,10 +403,11 @@ void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_t
     return;
 } // postprocessIntegrateData
 
-void IMPMethod::interpolateVelocity(const int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                    const double data_time)
+void
+IMPMethod::interpolateVelocity(const int u_data_idx,
+                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                               const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -411,7 +421,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data, *X_data;
+    std::vector<Pointer<LData> > *U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -544,13 +554,14 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     return;
 } // interpolateVelocity
 
-void IMPMethod::eulerStep(const double current_time, const double new_time)
+void
+IMPMethod::eulerStep(const double current_time, const double new_time)
 {
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data;
+    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -601,13 +612,14 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
     return;
 } // eulerStep
 
-void IMPMethod::midpointStep(const double current_time, const double new_time)
+void
+IMPMethod::midpointStep(const double current_time, const double new_time)
 {
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data;
+    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -655,13 +667,14 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
     return;
 } // midpointStep
 
-void IMPMethod::trapezoidalStep(const double current_time, const double new_time)
+void
+IMPMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<Pointer<LData> > *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -715,11 +728,12 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     return;
 } // trapezoidalStep
 
-void IMPMethod::computeLagrangianForce(const double data_time)
+void
+IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_data, *F_data;
+    std::vector<Pointer<LData> > *X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -779,10 +793,11 @@ void IMPMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void IMPMethod::spreadForce(const int f_data_idx,
-                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                            const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-                            const double data_time)
+void
+IMPMethod::spreadForce(const int f_data_idx,
+                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                       const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                       const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -939,14 +954,15 @@ void IMPMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
-void IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                         Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                         int /*u_data_idx*/,
-                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                                         int /*integrator_step*/,
-                                         double /*init_data_time*/,
-                                         bool initial_time)
+void
+IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                    int /*u_data_idx*/,
+                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                    int /*integrator_step*/,
+                                    double /*init_data_time*/,
+                                    bool initial_time)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -962,14 +978,16 @@ void IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
     return;
 } // initializePatchHierarchy
 
-void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx)
+void
+IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx)
 {
     d_PK1_stress_fcn = PK1_stress_fcn;
     d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
     return;
 } // registerPK1StressTensorFunction
 
-void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+void
+IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -980,7 +998,8 @@ void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
     return;
 } // registerLoadBalancer
 
-void IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
+void
+IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
@@ -1000,13 +1019,14 @@ void IMPMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy
     return;
 } // endDataRedistribution
 
-void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                    int level_number,
-                                    double init_data_time,
-                                    bool can_be_refined,
-                                    bool initial_time,
-                                    Pointer<BasePatchLevel<NDIM> > old_level,
-                                    bool allocate_data)
+void
+IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                               int level_number,
+                               double init_data_time,
+                               bool can_be_refined,
+                               bool initial_time,
+                               Pointer<BasePatchLevel<NDIM> > old_level,
+                               bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1063,9 +1083,10 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
     return;
 } // initializeLevelData
 
-void IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                            int coarsest_level,
-                                            int finest_level)
+void
+IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                       int coarsest_level,
+                                       int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1074,12 +1095,13 @@ void IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > h
     return;
 } // resetHierarchyConfiguration
 
-void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                      int level_number,
-                                      double error_data_time,
-                                      int tag_index,
-                                      bool initial_time,
-                                      bool uses_richardson_extrapolation_too)
+void
+IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+                                 int level_number,
+                                 double error_data_time,
+                                 int tag_index,
+                                 bool initial_time,
+                                 bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
@@ -1095,7 +1117,8 @@ void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hi
     return;
 } // applyGradientDetector
 
-void IMPMethod::putToDatabase(Pointer<Database> db)
+void
+IMPMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IMP_METHOD_VERSION", IMP_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
@@ -1104,7 +1127,8 @@ void IMPMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+void
+IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1141,9 +1165,10 @@ void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_
     return;
 } // getPositionData
 
-void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
-                                std::vector<Pointer<LData> >** Grad_U_data,
-                                double data_time)
+void
+IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
+                           std::vector<Pointer<LData> >** Grad_U_data,
+                           double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1181,7 +1206,8 @@ void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
     return;
 } // getVelocityData
 
-void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
+void
+IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
 {
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -1198,9 +1224,10 @@ void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data
     return;
 } // getDeformationGradientData
 
-void IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
-                                   const std::vector<Pointer<LData> >& new_data,
-                                   const std::vector<Pointer<LData> >& half_data)
+void
+IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
+                              const std::vector<Pointer<LData> >& new_data,
+                              const std::vector<Pointer<LData> >& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1216,7 +1243,8 @@ void IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_d
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+void
+IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -1236,7 +1264,8 @@ void IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     return;
 } // getFromInput
 
-void IMPMethod::getFromRestart()
+void
+IMPMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -1247,7 +1276,8 @@ void IMPMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("IMP_METHOD_VERSION");
     if (ver != IMP_METHOD_VERSION)

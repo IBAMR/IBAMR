@@ -57,8 +57,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat)
-    : LinearOperator(object_name), d_petsc_mat(petsc_mat), d_x(NULL), d_y(NULL), d_z(NULL), d_petsc_x(NULL),
-      d_petsc_y(NULL), d_petsc_z(NULL)
+    : LinearOperator(object_name),
+      d_petsc_mat(petsc_mat),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
 {
     // intentionally blank
     return;
@@ -70,12 +76,14 @@ PETScMatLOWrapper::~PETScMatLOWrapper()
     return;
 } // ~PETScMatLOWrapper()
 
-const Mat& PETScMatLOWrapper::getPETScMat() const
+const Mat&
+PETScMatLOWrapper::getPETScMat() const
 {
     return d_petsc_mat;
 } // getPETScMat
 
-void PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
@@ -89,9 +97,10 @@ void PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     return;
 } // apply
 
-void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                                 SAMRAIVectorReal<NDIM, double>& y,
-                                 SAMRAIVectorReal<NDIM, double>& z)
+void
+PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
+                            SAMRAIVectorReal<NDIM, double>& y,
+                            SAMRAIVectorReal<NDIM, double>& z)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
@@ -106,8 +115,9 @@ void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     return;
 } // applyAdd
 
-void PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                const SAMRAIVectorReal<NDIM, double>& out)
+void
+PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                           const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");
@@ -123,7 +133,8 @@ void PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     return;
 } // initializeOperatorState
 
-void PETScMatLOWrapper::deallocateOperatorState()
+void
+PETScMatLOWrapper::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);

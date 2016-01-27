@@ -109,12 +109,13 @@ compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVecto
 } // compute_linear_extrap
 
 template <typename D, typename I>
-inline double compute_quadratic_extrap(D& patch_data,
-                                       const I& i,
-                                       const I& i_intr,
-                                       const IntVector<NDIM>& i_shft,
-                                       const int depth,
-                                       const int codim)
+inline double
+compute_quadratic_extrap(D& patch_data,
+                         const I& i,
+                         const I& i_intr,
+                         const IntVector<NDIM>& i_shft,
+                         const int depth,
+                         const int codim)
 {
     if (codim == 1)
     {
@@ -209,7 +210,8 @@ CartExtrapPhysBdryOp::~CartExtrapPhysBdryOp()
     return;
 } // ~CartExtrapPhysBdryOp
 
-void CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
+void
+CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
 {
     std::set<int> patch_data_indices;
     patch_data_indices.insert(patch_data_index);
@@ -217,14 +219,16 @@ void CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
     return;
 } // setPatchDataIndex
 
-void CartExtrapPhysBdryOp::setPatchDataIndices(const std::set<int>& patch_data_indices)
+void
+CartExtrapPhysBdryOp::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
 } // setPatchDataIndices
 
-void CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+void
+CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -239,30 +243,37 @@ void CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_da
     return;
 } // setPatchDataIndices
 
-void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
+void
+CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
 {
     // Ensure that the extrapolation type is supported by this class.
     if (extrap_type != "CONSTANT" && extrap_type != "LINEAR" && extrap_type != "QUADRATIC")
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                   << "  unknown extrapolation type: " << extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     if (extrap_type == "QUADRATIC")
     {
         IBTK_DO_ONCE(TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                                  << "  extrapolation type " << extrap_type
-                                  << " generally requires large ghost cell widths" << std::endl););
+                                  << "  extrapolation type "
+                                  << extrap_type
+                                  << " generally requires large ghost cell widths"
+                                  << std::endl););
     }
 
     d_extrap_type = extrap_type;
     return;
 } // setExtrapolationType
 
-void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                         const double /*fill_time*/,
-                                                         const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                    const double /*fill_time*/,
+                                                    const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -320,24 +331,27 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartExtrapPhysBdryOp::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                            const Patch<NDIM>& /*coarse*/,
-                                            const Box<NDIM>& /*fine_box*/,
-                                            const IntVector<NDIM>& /*ratio*/)
+void
+CartExtrapPhysBdryOp::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                       const Patch<NDIM>& /*coarse*/,
+                                       const Box<NDIM>& /*fine_box*/,
+                                       const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
-void CartExtrapPhysBdryOp::postprocessRefine(Patch<NDIM>& /*fine*/,
-                                             const Patch<NDIM>& /*coarse*/,
-                                             const Box<NDIM>& /*fine_box*/,
-                                             const IntVector<NDIM>& /*ratio*/)
+void
+CartExtrapPhysBdryOp::postprocessRefine(Patch<NDIM>& /*fine*/,
+                                        const Patch<NDIM>& /*coarse*/,
+                                        const Box<NDIM>& /*fine_box*/,
+                                        const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -347,7 +361,8 @@ void CartExtrapPhysBdryOp::postprocessRefine(Patch<NDIM>& /*fine*/,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     Patch<NDIM>& patch,
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
@@ -360,8 +375,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -448,7 +466,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     return;
 } // setPhysicalBoundaryConditions_cell
 
-void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     Patch<NDIM>& patch,
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
@@ -461,8 +480,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -556,7 +578,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     return;
 } // setPhysicalBoundaryConditions_face
 
-void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     Patch<NDIM>& patch,
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
@@ -569,8 +592,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data
@@ -656,7 +682,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     return;
 } // setPhysicalBoundaryConditions_node
 
-void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     Patch<NDIM>& patch,
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
@@ -669,8 +696,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
-                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+                   << "  unknown extrapolation type: "
+                   << d_extrap_type
+                   << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC"
+                   << std::endl);
     }
 
     // Set the physical boundary conditions for the specified patch data

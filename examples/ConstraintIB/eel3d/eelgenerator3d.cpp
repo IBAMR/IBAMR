@@ -51,7 +51,8 @@ static const double LENGTH_TILLHEAD = 0.04 * LENGTH_FISH;
 static const double MAJOR_AXIS = 0.51 * LENGTH_FISH;
 static const double MINOR_AXIS = 0.08 * LENGTH_FISH;
 
-double xPosition(double s, void* params)
+double
+xPosition(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -75,7 +76,8 @@ double xPosition(double s, void* params)
 
 } // xposition
 
-double yPosition(double s, void* params)
+double
+yPosition(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -99,9 +101,9 @@ double yPosition(double s, void* params)
 
 } // yPosition
 
-int main()
+int
+main()
 {
-
     const double Lx = 8;
     const double Ly = 4;
     const double Lz = 1;

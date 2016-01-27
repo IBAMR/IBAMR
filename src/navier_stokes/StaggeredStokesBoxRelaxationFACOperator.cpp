@@ -85,7 +85,8 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = 1;
 
-inline int compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
+inline int
+compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
 {
     const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
     if (!side_box.contains(i)) return -1;
@@ -97,7 +98,8 @@ inline int compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const 
     return offset + side_box.offset(i);
 } // compute_side_index
 
-inline int compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
+inline int
+compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
 {
     if (!box.contains(i)) return -1;
     int offset = 0;
@@ -108,11 +110,12 @@ inline int compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
     return box.offset(i) + offset;
 } // compute_cell_index
 
-void buildBoxOperator(Mat& A,
-                      const PoissonSpecifications& U_problem_coefs,
-                      const Box<NDIM>& box,
-                      const Box<NDIM>& ghost_box,
-                      const boost::array<double, NDIM>& dx)
+void
+buildBoxOperator(Mat& A,
+                 const PoissonSpecifications& U_problem_coefs,
+                 const Box<NDIM>& box,
+                 const Box<NDIM>& ghost_box,
+                 const boost::array<double, NDIM>& dx)
 {
     int ierr;
 
@@ -169,7 +172,7 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, 0, size ? &nnz[0] : NULL, &A);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -210,9 +213,9 @@ void buildBoxOperator(Mat& A,
                 mat_cols[2 * d + 1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2 * d + 2] = compute_side_index(u_rght, ghost_box, axis);
 
-                mat_vals[0] += 2.0 * D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 1] = -D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 2] = -D / (dx[d] * dx[d]);
+                mat_vals[0] -= 2.0 * D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 1] = D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 2] = D / (dx[d] * dx[d]);
             }
 
             Index<NDIM> shift = 0;
@@ -295,13 +298,14 @@ void buildBoxOperator(Mat& A,
     return;
 } // buildBoxOperator
 
-void modifyRhsForBcs(Vec& v,
-                     const SideData<NDIM, double>& U_data,
-                     const CellData<NDIM, double>& P_data,
-                     const PoissonSpecifications& U_problem_coefs,
-                     const Box<NDIM>& box,
-                     const Box<NDIM>& ghost_box,
-                     const double* const dx)
+void
+modifyRhsForBcs(Vec& v,
+                const SideData<NDIM, double>& U_data,
+                const CellData<NDIM, double>& P_data,
+                const PoissonSpecifications& U_problem_coefs,
+                const Box<NDIM>& box,
+                const Box<NDIM>& ghost_box,
+                const double* const dx)
 {
     int ierr;
 
@@ -364,11 +368,12 @@ void modifyRhsForBcs(Vec& v,
     return;
 } // modifyRhsForBcs
 
-inline void copyToVec(Vec& v,
-                      const SideData<NDIM, double>& U_data,
-                      const CellData<NDIM, double>& P_data,
-                      const Box<NDIM>& box,
-                      const Box<NDIM>& ghost_box)
+inline void
+copyToVec(Vec& v,
+          const SideData<NDIM, double>& U_data,
+          const CellData<NDIM, double>& P_data,
+          const Box<NDIM>& box,
+          const Box<NDIM>& ghost_box)
 {
     int ierr;
 
@@ -400,11 +405,12 @@ inline void copyToVec(Vec& v,
     return;
 } // copyToVec
 
-inline void copyFromVec(Vec& v,
-                        SideData<NDIM, double>& U_data,
-                        CellData<NDIM, double>& P_data,
-                        const Box<NDIM>& box,
-                        const Box<NDIM>& ghost_box)
+inline void
+copyFromVec(Vec& v,
+            SideData<NDIM, double>& U_data,
+            CellData<NDIM, double>& P_data,
+            const Box<NDIM>& box,
+            const Box<NDIM>& ghost_box)
 {
     int ierr;
 
@@ -444,8 +450,13 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix), d_box_op(),
-      d_box_e(), d_box_r(), d_box_ksp(), d_patch_side_bc_box_overlap(), d_patch_cell_bc_box_overlap()
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix),
+      d_box_op(),
+      d_box_e(),
+      d_box_r(),
+      d_box_ksp(),
+      d_patch_side_bc_box_overlap(),
+      d_patch_cell_bc_box_overlap()
 {
     // intentionally blank
     return;
@@ -457,12 +468,13 @@ StaggeredStokesBoxRelaxationFACOperator::~StaggeredStokesBoxRelaxationFACOperato
     return;
 } // ~StaggeredStokesBoxRelaxationFACOperator
 
-void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                          const SAMRAIVectorReal<NDIM, double>& residual,
-                                                          int level_num,
-                                                          int num_sweeps,
-                                                          bool /*performing_pre_sweeps*/,
-                                                          bool /*performing_post_sweeps*/)
+void
+StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                     const SAMRAIVectorReal<NDIM, double>& residual,
+                                                     int level_num,
+                                                     int num_sweeps,
+                                                     bool /*performing_pre_sweeps*/,
+                                                     bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -627,11 +639,13 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+void
+StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>&
+                                                                            /*solution*/,
+                                                                            const SAMRAIVectorReal<NDIM, double>&
+                                                                            /*rhs*/,
+                                                                            const int coarsest_reset_ln,
+                                                                            const int finest_reset_ln)
 {
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln + 1);
@@ -651,7 +665,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         }
         buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
-        ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
+        ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
@@ -716,8 +730,9 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     return;
 } // initializeOperatorStateSpecialized
 
-void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                                 const int finest_reset_ln)
+void
+StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                            const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)

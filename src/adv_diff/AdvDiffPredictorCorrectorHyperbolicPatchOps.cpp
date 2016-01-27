@@ -198,10 +198,11 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::~AdvDiffPredictorCorrectorHyperboli
     return;
 } // ~AdvDiffPredictorCorrectorHyperbolicPatchOps
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch<NDIM>& patch,
-                                                                                const double /*time*/,
-                                                                                const double dt,
-                                                                                bool /*at_synchronization*/)
+void
+AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch<NDIM>& patch,
+                                                                           const double /*time*/,
+                                                                           const double dt,
+                                                                           bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -364,7 +365,8 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
                     "conservativeDifferenceOnPatch():"
                     "\n"
                     << "  unsupported differencing form: "
-                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
+                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
+                    << " \n"
                     << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
             }
@@ -377,12 +379,13 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     return;
 } // conservativeDifferenceOnPatch
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
-                                                                              double current_time,
-                                                                              double /*dt*/,
-                                                                              bool /*first_step*/,
-                                                                              bool /*last_step*/,
-                                                                              bool /*regrid_advance*/)
+void
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+                                                                         double current_time,
+                                                                         double /*dt*/,
+                                                                         bool /*first_step*/,
+                                                                         bool /*last_step*/,
+                                                                         bool /*regrid_advance*/)
 {
     if (!d_compute_init_velocity) return;
 
@@ -401,12 +404,13 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(co
     return;
 } // preprocessAdvanceLevelState
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
-                                                                               double current_time,
-                                                                               double dt,
-                                                                               bool /*first_step*/,
-                                                                               bool /*last_step*/,
-                                                                               bool /*regrid_advance*/)
+void
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+                                                                          double current_time,
+                                                                          double dt,
+                                                                          bool /*first_step*/,
+                                                                          bool /*last_step*/,
+                                                                          bool /*regrid_advance*/)
 {
     if (!d_compute_final_velocity) return;
 

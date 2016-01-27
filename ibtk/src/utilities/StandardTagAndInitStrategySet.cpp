@@ -67,9 +67,10 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
     return;
 } // ~StandardTagAndInitStrategySet
 
-double StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel<NDIM> > level,
-                                                 const double dt_time,
-                                                 const bool initial_time)
+double
+StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel<NDIM> > level,
+                                          const double dt_time,
+                                          const bool initial_time)
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
@@ -80,13 +81,14 @@ double StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel<ND
     return dt;
 } // getLevelDt
 
-double StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel<NDIM> > level,
-                                                   const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                   const double current_time,
-                                                   const double new_time,
-                                                   const bool first_step,
-                                                   const bool last_step,
-                                                   const bool regrid_advance)
+double
+StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel<NDIM> > level,
+                                            const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                            const double current_time,
+                                            const double new_time,
+                                            const bool first_step,
+                                            const bool last_step,
+                                            const bool regrid_advance)
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
@@ -98,9 +100,10 @@ double StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel<
     return dt;
 } // advanceLevel
 
-void StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLevel<NDIM> > level,
-                                                           const double new_time,
-                                                           const bool can_be_refined)
+void
+StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLevel<NDIM> > level,
+                                                      const double new_time,
+                                                      const bool can_be_refined)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -110,7 +113,8 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePat
     return;
 } // resetTimeDependentData
 
-void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatchLevel<NDIM> > level)
+void
+StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatchLevel<NDIM> > level)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -120,13 +124,14 @@ void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<Bas
     return;
 } // resetDataToPreadvanceState
 
-void StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                        const int level_number,
-                                                        const double init_data_time,
-                                                        const bool can_be_refined,
-                                                        const bool initial_time,
-                                                        const Pointer<BasePatchLevel<NDIM> > old_level,
-                                                        const bool allocate_data)
+void
+StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                   const int level_number,
+                                                   const double init_data_time,
+                                                   const bool can_be_refined,
+                                                   const bool initial_time,
+                                                   const Pointer<BasePatchLevel<NDIM> > old_level,
+                                                   const bool allocate_data)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -137,9 +142,10 @@ void StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchH
     return;
 } // initializeLevelData
 
-void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                                const int coarsest_level,
-                                                                const int finest_level)
+void
+StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                           const int coarsest_level,
+                                                           const int finest_level)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -149,12 +155,13 @@ void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<Ba
     return;
 } // resetHierarchyConfiguration
 
-void StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                          const int level_number,
-                                                          const double error_data_time,
-                                                          const int tag_index,
-                                                          const bool initial_time,
-                                                          const bool uses_richardson_extrapolation_too)
+void
+StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                     const int level_number,
+                                                     const double error_data_time,
+                                                     const int tag_index,
+                                                     const bool initial_time,
+                                                     const bool uses_richardson_extrapolation_too)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -165,13 +172,14 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatc
     return;
 } // applyGradientDetector
 
-void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchLevel<NDIM> > level,
-                                                                 const double error_data_time,
-                                                                 const int tag_index,
-                                                                 const double deltat,
-                                                                 const int error_coarsen_ratio,
-                                                                 const bool initial_time,
-                                                                 const bool uses_gradient_detector_too)
+void
+StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchLevel<NDIM> > level,
+                                                            const double error_data_time,
+                                                            const int tag_index,
+                                                            const double deltat,
+                                                            const int error_coarsen_ratio,
+                                                            const bool initial_time,
+                                                            const bool uses_gradient_detector_too)
 {
     typedef std::vector<StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)

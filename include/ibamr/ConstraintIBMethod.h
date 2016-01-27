@@ -467,7 +467,7 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream*> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
+    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
         d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
@@ -478,9 +478,9 @@ private:
     /*!
      * Pre and post fluid solve call back functions and contexts.
      */
-    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 };
 } // namespace IBAMR
 

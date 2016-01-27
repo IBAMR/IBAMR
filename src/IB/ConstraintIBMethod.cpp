@@ -125,7 +125,8 @@ public:
 };
 
 template <typename itr, typename T>
-inline int find_struct_handle_position(itr begin, itr end, const T& value)
+inline int
+find_struct_handle_position(itr begin, itr end, const T& value)
 {
     int position = 0;
     while (begin != end)
@@ -140,9 +141,9 @@ inline int find_struct_handle_position(itr begin, itr end, const T& value)
 
 #if (NDIM == 3)
 // Routine to solve 3X3 equation to get rigid body rotational velocity.
-inline void solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3d& inertiaTensor)
+inline void
+solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3d& inertiaTensor)
 {
-
     const double a1 = inertiaTensor(0, 0), a2 = inertiaTensor(0, 1), a3 = inertiaTensor(0, 2), b1 = inertiaTensor(1, 0),
                  b2 = inertiaTensor(1, 1), b3 = inertiaTensor(1, 2), c1 = inertiaTensor(2, 0), c2 = inertiaTensor(2, 1),
                  c3 = inertiaTensor(2, 2), d1 = ang_mom[0], d2 = ang_mom[1], d3 = ang_mom[2];
@@ -161,9 +162,13 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
                                        Pointer<Database> input_db,
                                        const int no_structures,
                                        bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart), d_no_structures(no_structures),
-      d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(NULL)), d_FuRMoRP_current_time(0.0),
-      d_FuRMoRP_new_time(0.0), d_vol_element(d_no_structures, 0.0), d_needs_div_free_projection(false),
+    : IBMethod(object_name, input_db, register_for_restart),
+      d_no_structures(no_structures),
+      d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(NULL)),
+      d_FuRMoRP_current_time(0.0),
+      d_FuRMoRP_new_time(0.0),
+      d_vol_element(d_no_structures, 0.0),
+      d_needs_div_free_projection(false),
       d_rigid_trans_vel_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_rigid_trans_vel_new(d_no_structures, std::vector<double>(3, 0.0)),
       d_rigid_rot_vel_current(d_no_structures, std::vector<double>(3, 0.0)),
@@ -176,12 +181,23 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_center_of_mass_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_center_of_mass_new(d_no_structures, std::vector<double>(3, 0.0)),
       d_moment_of_inertia_current(d_no_structures, Eigen::Matrix3d::Zero()),
-      d_moment_of_inertia_new(d_no_structures, Eigen::Matrix3d::Zero()), d_tagged_pt_lag_idx(d_no_structures, 0),
+      d_moment_of_inertia_new(d_no_structures, Eigen::Matrix3d::Zero()),
+      d_tagged_pt_lag_idx(d_no_structures, 0),
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
-      d_rho_fluid(std::numeric_limits<double>::quiet_NaN()), d_mu_fluid(std::numeric_limits<double>::quiet_NaN()),
-      d_timestep_counter(0), d_output_interval(1), d_print_output(false), d_output_drag(false), d_output_torque(false),
-      d_output_power(false), d_output_trans_vel(false), d_output_rot_vel(false), d_output_COM_coordinates(false),
-      d_output_MOI(false), d_output_eul_mom(false), d_dir_name("./ConstraintIBMethodDump"),
+      d_rho_fluid(std::numeric_limits<double>::quiet_NaN()),
+      d_mu_fluid(std::numeric_limits<double>::quiet_NaN()),
+      d_timestep_counter(0),
+      d_output_interval(1),
+      d_print_output(false),
+      d_output_drag(false),
+      d_output_torque(false),
+      d_output_power(false),
+      d_output_trans_vel(false),
+      d_output_rot_vel(false),
+      d_output_COM_coordinates(false),
+      d_output_MOI(false),
+      d_output_eul_mom(false),
+      d_dir_name("./ConstraintIBMethodDump"),
       d_base_output_filename("ImmersedStructrue")
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
@@ -348,7 +364,6 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
 
 ConstraintIBMethod::~ConstraintIBMethod()
 {
-
     delete d_velcorrection_projection_spec;
 
     if (!SAMRAI_MPI::getRank() && d_print_output)
@@ -378,7 +393,8 @@ ConstraintIBMethod::~ConstraintIBMethod()
     return;
 } //~ConstraintIBMethod
 
-void ConstraintIBMethod::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
+void
+ConstraintIBMethod::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
     IBMethod::preprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
@@ -388,7 +404,8 @@ void ConstraintIBMethod::preprocessSolveFluidEquations(double current_time, doub
     return;
 }
 
-void ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
+void
+ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
     IBMethod::postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
@@ -444,9 +461,9 @@ void ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, dou
     return;
 }
 
-void ConstraintIBMethod::calculateEulerianMomentum()
+void
+ConstraintIBMethod::calculateEulerianMomentum()
 {
-
     // Compute Eulerian momentum.
     std::vector<double> momentum(3, 0.0);
     const int coarsest_ln = 0;
@@ -484,9 +501,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
 
         momentum[active] = d_hier_sc_data_ops->dot(d_u_fluidSolve_idx, wgt_sc_active_idx);
 
-        wgt_sc_active->deallocateVectorData();
         wgt_sc_active->freeVectorComponents();
-        wgt_sc_active.setNull();
     }
 
     if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
@@ -498,7 +513,8 @@ void ConstraintIBMethod::calculateEulerianMomentum()
     return;
 } // calculateEulerianMomentum
 
-void ConstraintIBMethod::registerEulerianVariables()
+void
+ConstraintIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
@@ -527,7 +543,8 @@ void ConstraintIBMethod::registerEulerianVariables()
     return;
 } // registerEulerianVariables
 
-void ConstraintIBMethod::initializeHierarchyOperatorsandData()
+void
+ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -554,8 +571,11 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
         TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures << " registered with this class" << std::endl);
+                   << ib_kinematics.size()
+                   << " in vector passed to this method is not equal to no. of structures "
+                   << d_no_structures
+                   << " registered with this class"
+                   << std::endl);
     }
     else
     {
@@ -579,7 +599,8 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
 
 } // registerConstraintIBKinematics
 
-void ConstraintIBMethod::putToDatabase(Pointer<Database> db)
+void
+ConstraintIBMethod::putToDatabase(Pointer<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -611,9 +632,9 @@ void ConstraintIBMethod::putToDatabase(Pointer<Database> db)
 
 } // putToDatabase
 
-void ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Allocate memory for Lagrangian data.
@@ -646,9 +667,9 @@ void ConstraintIBMethod::preprocessIntegrateData(double current_time, double new
 
 } // preprocessIntegrateData
 
-void ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -671,9 +692,9 @@ void ConstraintIBMethod::postprocessIntegrateData(double current_time, double ne
     return;
 }
 
-void ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
+void
+ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
 {
-
     // Read in control parameters from input database.
     d_needs_div_free_projection = input_db->getBoolWithDefault("needs_divfree_projection", d_needs_div_free_projection);
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
@@ -718,7 +739,8 @@ void ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool fro
     return;
 } // getFromInput
 
-void ConstraintIBMethod::getFromRestart()
+void
+ConstraintIBMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -729,7 +751,8 @@ void ConstraintIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -758,7 +781,8 @@ void ConstraintIBMethod::getFromRestart()
     return;
 } // getFromRestart
 
-void ConstraintIBMethod::setInitialLagrangianVelocity()
+void
+ConstraintIBMethod::setInitialLagrangianVelocity()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
 
@@ -781,7 +805,8 @@ void ConstraintIBMethod::setInitialLagrangianVelocity()
     return;
 } // setInitialLagrangianVelocity
 
-void ConstraintIBMethod::calculateCOMandMOIOfStructures()
+void
+ConstraintIBMethod::calculateCOMandMOIOfStructures()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const int coarsest_ln = 0;
@@ -1037,7 +1062,8 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
     return;
 } // calculateCOMandMOIOfStructures
 
-void ConstraintIBMethod::calculateKinematicsVelocity()
+void
+ConstraintIBMethod::calculateKinematicsVelocity()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
@@ -1063,7 +1089,8 @@ void ConstraintIBMethod::calculateKinematicsVelocity()
     return;
 } // calculateKinematicsVelocity
 
-void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
+void
+ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
@@ -1206,7 +1233,8 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
     return;
 } // calculateMomentumOfKinematicsVelocity
 
-void ConstraintIBMethod::calculateVolumeElement()
+void
+ConstraintIBMethod::calculateVolumeElement()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
 
@@ -1339,9 +1367,9 @@ void ConstraintIBMethod::calculateVolumeElement()
 
 } // calculateVolumeElement
 
-void ConstraintIBMethod::calculateRigidTranslationalMomentum()
+void
+ConstraintIBMethod::calculateRigidTranslationalMomentum()
 {
-
     // Zero out new rigid momentum.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1431,9 +1459,9 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
 
 } // calculateRigidTranslationalMomentum
 
-void ConstraintIBMethod::calculateRigidRotationalMomentum()
+void
+ConstraintIBMethod::calculateRigidRotationalMomentum()
 {
-
     // Zero out new rigid momentum.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1539,7 +1567,8 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
 
 } // calculateRigidRotationalMomentum
 
-void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
+void
+ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const int coarsest_ln = 0;
@@ -1643,7 +1672,8 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 
 } // calculateCurrentLagrangianVelocity
 
-void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
+void
+ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const int coarsest_ln = 0;
@@ -1754,7 +1784,8 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 
 } // correctVelocityOnLagrangianMesh
 
-void ConstraintIBMethod::applyProjection()
+void
+ConstraintIBMethod::applyProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1888,9 +1919,9 @@ void ConstraintIBMethod::applyProjection()
 
 } // applyProjection
 
-void ConstraintIBMethod::updateStructurePositionEulerStep()
+void
+ConstraintIBMethod::updateStructurePositionEulerStep()
 {
-
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1964,7 +1995,8 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
                             "ConstraintIBMethod::updateStructurePositionEulerStep():: Unknown position update method "
                             "encountered"
                             << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
-                               "CONSTRAINT_EXPT_POSITION " << std::endl);
+                               "CONSTRAINT_EXPT_POSITION "
+                            << std::endl);
                     }
                 }
             }
@@ -1976,9 +2008,9 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
     return;
 } // updateStructurePositionEulerStep
 
-void ConstraintIBMethod::eulerStep(double current_time, double new_time)
+void
+ConstraintIBMethod::eulerStep(double current_time, double new_time)
 {
-
     IBMethod::eulerStep(current_time, new_time);
 
     IBTK_TIMER_START(t_eulerStep);
@@ -1988,7 +2020,8 @@ void ConstraintIBMethod::eulerStep(double current_time, double new_time)
     return;
 } // eulerStep
 
-void ConstraintIBMethod::updateStructurePositionMidPointStep()
+void
+ConstraintIBMethod::updateStructurePositionMidPointStep()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     const int coarsest_ln = 0;
@@ -2066,7 +2099,8 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
                             "ConstraintIBMethod::updateStructurePositionMidPointStep():: Unknown position update "
                             "method encountered"
                             << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
-                               "CONSTRAINT_EXPT_POSITION " << std::endl);
+                               "CONSTRAINT_EXPT_POSITION "
+                            << std::endl);
                     }
                 }
             }
@@ -2079,7 +2113,8 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
 
 } // updateStructurePositionMidPointStep
 
-void ConstraintIBMethod::midpointStep(double current_time, double new_time)
+void
+ConstraintIBMethod::midpointStep(double current_time, double new_time)
 {
     IBMethod::midpointStep(current_time, new_time);
 
@@ -2102,7 +2137,8 @@ void ConstraintIBMethod::midpointStep(double current_time, double new_time)
 
 } // midpointStep
 
-void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
+void
+ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2142,7 +2178,8 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     return;
 } // copyFluidVariable
 
-void ConstraintIBMethod::interpolateFluidSolveVelocity()
+void
+ConstraintIBMethod::interpolateFluidSolveVelocity()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2162,7 +2199,8 @@ void ConstraintIBMethod::interpolateFluidSolveVelocity()
     return;
 } // interpolateFluidSolveVelocity
 
-void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
+void
+ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2194,9 +2232,9 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     return;
 } // spreadCorrectedLagrangianVelocity
 
-void ConstraintIBMethod::calculateMidPointVelocity()
+void
+ConstraintIBMethod::calculateMidPointVelocity()
 {
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     int ierr;
@@ -2215,7 +2253,8 @@ void ConstraintIBMethod::calculateMidPointVelocity()
 
 } // calculateMidPointVelocity
 
-void ConstraintIBMethod::calculateDrag()
+void
+ConstraintIBMethod::calculateDrag()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2297,7 +2336,8 @@ void ConstraintIBMethod::calculateDrag()
     return;
 } // calculateDrag
 
-void ConstraintIBMethod::calculateTorque()
+void
+ConstraintIBMethod::calculateTorque()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2406,7 +2446,8 @@ void ConstraintIBMethod::calculateTorque()
     return;
 } // calculateTorque
 
-void ConstraintIBMethod::calculatePower()
+void
+ConstraintIBMethod::calculatePower()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

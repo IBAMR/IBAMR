@@ -39,6 +39,7 @@
 
 #include "ibamr/IBStrategy.h"
 #include "petscvec.h"
+#include "petscmat.h"
 
 namespace IBTK
 {
@@ -84,12 +85,12 @@ public:
     /*!
      * Create solution and rhs data.
      */
-    virtual void createSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
+    virtual void createSolverVecs(Vec* X_vec, Vec* F_vec) = 0;
 
     /*!
      * Setup solution and rhs data.
      */
-    virtual void setupSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
+    virtual void setupSolverVecs(Vec* X_vec, Vec* F_vec) = 0;
 
     /*!
      * Set the value of the updated position vector.
@@ -131,6 +132,11 @@ public:
     virtual void computeLinearizedLagrangianForce(Vec& X_vec, double data_time) = 0;
 
     /*!
+     * Construct the linearized Lagrangian force Jacobian.
+     */
+    virtual void constructLagrangianForceJacobian(Mat& A, MatType mat_type) = 0;
+
+    /*!
      * Spread the Lagrangian force of the linearized problem to the Cartesian
      * grid at the specified time within the current time interval.
      */
@@ -139,6 +145,15 @@ public:
         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time) = 0;
+
+    /*!
+     * Construct the IB interpolation operator.
+     */
+    virtual void constructInterpOp(Mat& J,
+                                   void (*spread_fnc)(const double, double*),
+                                   const int stencil_width,
+                                   const std::vector<int>& num_dofs_per_proc,
+                                   const int dof_index_idx) = 0;
 
 protected:
 private:

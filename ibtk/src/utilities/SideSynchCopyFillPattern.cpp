@@ -73,12 +73,13 @@ SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
     return;
 } // SideSynchCopyFillPattern
 
-Pointer<BoxOverlap<NDIM> > SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                                                      const BoxGeometry<NDIM>& src_geometry,
-                                                                      const Box<NDIM>& /*dst_patch_box*/,
-                                                                      const Box<NDIM>& src_mask,
-                                                                      const bool overwrite_interior,
-                                                                      const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> >
+SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
+                                           const BoxGeometry<NDIM>& src_geometry,
+                                           const Box<NDIM>& /*dst_patch_box*/,
+                                           const Box<NDIM>& src_mask,
+                                           const bool overwrite_interior,
+                                           const IntVector<NDIM>& src_offset) const
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
@@ -121,12 +122,14 @@ Pointer<BoxOverlap<NDIM> > SideSynchCopyFillPattern::calculateOverlap(const BoxG
     return new SideOverlap<NDIM>(dst_boxes, src_offset);
 } // calculateOverlap
 
-IntVector<NDIM>& SideSynchCopyFillPattern::getStencilWidth()
+IntVector<NDIM>&
+SideSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 } // getStencilWidth
 
-const std::string& SideSynchCopyFillPattern::getPatternName() const
+const std::string&
+SideSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
 } // getPatternName

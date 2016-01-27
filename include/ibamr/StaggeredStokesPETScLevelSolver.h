@@ -116,16 +116,12 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    void copyToPETScVec(Vec& petsc_x,
-                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    void copyFromPETScVec(Vec& petsc_x,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -135,8 +131,7 @@ protected:
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
 private:
     /*!
@@ -174,8 +169,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
+    int d_u_nullspace_idx, d_p_nullspace_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
 
     //\}

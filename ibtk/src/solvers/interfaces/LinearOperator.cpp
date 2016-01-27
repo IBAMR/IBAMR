@@ -62,7 +62,8 @@ LinearOperator::~LinearOperator()
     return;
 } // ~LinearOperator()
 
-void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<NDIM, double>& y)
+void
+LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
     if (d_homogeneous_bc) return;
 
@@ -75,12 +76,10 @@ void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<NDIM, double>&
     x->setToScalar(0.0);
     apply(*x, *b);
     y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
-    x->deallocateVectorData();
     x->freeVectorComponents();
-    b->deallocateVectorData();
     b->freeVectorComponents();
     return;
-} // modifyRhsForInhomogeneousBc
+} // modifyRhsForBcs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -79,19 +79,22 @@ ParallelSet& ParallelSet::operator=(const ParallelSet& that)
     return *this;
 } // operator=
 
-void ParallelSet::addItem(const int key)
+void
+ParallelSet::addItem(const int key)
 {
     d_pending_additions.push_back(key);
     return;
 } // addItem
 
-void ParallelSet::removeItem(const int key)
+void
+ParallelSet::removeItem(const int key)
 {
     d_pending_removals.push_back(key);
     return;
 } // removeItem
 
-void ParallelSet::communicateData()
+void
+ParallelSet::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -182,7 +185,8 @@ void ParallelSet::communicateData()
     return;
 } // communicateData
 
-const std::set<int>& ParallelSet::getSet() const
+const std::set<int>&
+ParallelSet::getSet() const
 {
     return d_set;
 } // getSet

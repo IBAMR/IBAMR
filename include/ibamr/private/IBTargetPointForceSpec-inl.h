@@ -46,7 +46,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
+inline bool
+IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
@@ -76,58 +77,69 @@ inline IBTargetPointForceSpec::~IBTargetPointForceSpec()
     return;
 } // ~IBTargetPointForceSpec
 
-inline const int& IBTargetPointForceSpec::getMasterNodeIndex() const
+inline const int&
+IBTargetPointForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline int& IBTargetPointForceSpec::getMasterNodeIndex()
+inline int&
+IBTargetPointForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline const double& IBTargetPointForceSpec::getStiffness() const
+inline const double&
+IBTargetPointForceSpec::getStiffness() const
 {
     return d_kappa_target;
 } // getStiffness
 
-inline double& IBTargetPointForceSpec::getStiffness()
+inline double&
+IBTargetPointForceSpec::getStiffness()
 {
     return d_kappa_target;
 } // getStiffness
 
-inline const double& IBTargetPointForceSpec::getDamping() const
+inline const double&
+IBTargetPointForceSpec::getDamping() const
 {
     return d_eta_target;
 } // getDamping
 
-inline double& IBTargetPointForceSpec::getDamping()
+inline double&
+IBTargetPointForceSpec::getDamping()
 {
     return d_eta_target;
 } // getDamping
 
-inline const IBTK::Point& IBTargetPointForceSpec::getTargetPointPosition() const
+inline const IBTK::Point&
+IBTargetPointForceSpec::getTargetPointPosition() const
 {
     return d_X_target;
 } // getTargetPointPosition
 
-inline IBTK::Point& IBTargetPointForceSpec::getTargetPointPosition()
+inline IBTK::Point&
+IBTargetPointForceSpec::getTargetPointPosition()
 {
     return d_X_target;
 } // getTargetPointPosition
 
-inline int IBTargetPointForceSpec::getStreamableClassID() const
+inline int
+IBTargetPointForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t IBTargetPointForceSpec::getDataStreamSize() const
+inline size_t
+IBTargetPointForceSpec::getDataStreamSize() const
 {
     return ((1) * SAMRAI::tbox::AbstractStream::sizeofInt() +
             (2 + NDIM) * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 
-inline void IBTargetPointForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+IBTargetPointForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_kappa_target, 1);

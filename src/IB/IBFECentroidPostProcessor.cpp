@@ -92,12 +92,13 @@ IBFECentroidPostProcessor::~IBFECentroidPostProcessor()
     return;
 } // ~IBFECentroidPostProcessor
 
-void IBFECentroidPostProcessor::registerScalarVariable(const std::string& name,
-                                                       libMesh::FEFamily fe_family,
-                                                       libMesh::Order fe_order,
-                                                       ScalarMeshFcnPtr fcn,
-                                                       const std::vector<SystemData>& system_data,
-                                                       void* fcn_ctx)
+void
+IBFECentroidPostProcessor::registerScalarVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  ScalarMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx)
 {
     TBOX_ASSERT(fe_family == MONOMIAL);
     TBOX_ASSERT(fe_order == CONSTANT);
@@ -105,13 +106,14 @@ void IBFECentroidPostProcessor::registerScalarVariable(const std::string& name,
     return;
 } // registerScalarVariable
 
-void IBFECentroidPostProcessor::registerVectorVariable(const std::string& name,
-                                                       libMesh::FEFamily fe_family,
-                                                       libMesh::Order fe_order,
-                                                       VectorMeshFcnPtr fcn,
-                                                       const std::vector<SystemData>& system_data,
-                                                       void* fcn_ctx,
-                                                       unsigned int dim)
+void
+IBFECentroidPostProcessor::registerVectorVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  VectorMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx,
+                                                  unsigned int dim)
 {
     TBOX_ASSERT(fe_family == MONOMIAL);
     TBOX_ASSERT(fe_order == CONSTANT);
@@ -119,13 +121,14 @@ void IBFECentroidPostProcessor::registerVectorVariable(const std::string& name,
     return;
 } // registerVectorVariable
 
-void IBFECentroidPostProcessor::registerTensorVariable(const std::string& name,
-                                                       libMesh::FEFamily fe_family,
-                                                       libMesh::Order fe_order,
-                                                       TensorMeshFcnPtr fcn,
-                                                       const std::vector<SystemData>& system_data,
-                                                       void* fcn_ctx,
-                                                       unsigned int dim)
+void
+IBFECentroidPostProcessor::registerTensorVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  TensorMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx,
+                                                  unsigned int dim)
 {
     TBOX_ASSERT(fe_family == MONOMIAL);
     TBOX_ASSERT(fe_order == CONSTANT);
@@ -135,7 +138,8 @@ void IBFECentroidPostProcessor::registerTensorVariable(const std::string& name,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBFECentroidPostProcessor::reconstructVariables(double data_time)
+void
+IBFECentroidPostProcessor::reconstructVariables(double data_time)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -243,8 +247,15 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         for (unsigned int k = 0; k < num_scalar_vars; ++k)
         {
             scalar_var_dof_maps[k]->dof_indices(elem, scalar_var_dof_indices[k], 0);
-            d_scalar_var_fcns[k](v, FF_qp, X_qp, s_qp, elem, scalar_var_fcn_data[k], scalar_var_grad_fcn_data[k],
-                                 data_time, d_scalar_var_fcn_ctxs[k]);
+            d_scalar_var_fcns[k](v,
+                                 FF_qp,
+                                 X_qp,
+                                 s_qp,
+                                 elem,
+                                 scalar_var_fcn_data[k],
+                                 scalar_var_grad_fcn_data[k],
+                                 data_time,
+                                 d_scalar_var_fcn_ctxs[k]);
             scalar_var_data[k]->set(scalar_var_dof_indices[k][0], v);
         }
 
@@ -255,8 +266,15 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
             {
                 vector_var_dof_maps[k]->dof_indices(elem, vector_var_dof_indices[k][i], i);
             }
-            d_vector_var_fcns[k](V, FF_qp, X_qp, s_qp, elem, vector_var_fcn_data[k], vector_var_grad_fcn_data[k],
-                                 data_time, d_vector_var_fcn_ctxs[k]);
+            d_vector_var_fcns[k](V,
+                                 FF_qp,
+                                 X_qp,
+                                 s_qp,
+                                 elem,
+                                 vector_var_fcn_data[k],
+                                 vector_var_grad_fcn_data[k],
+                                 data_time,
+                                 d_vector_var_fcn_ctxs[k]);
             for (unsigned int i = 0; i < d_vector_var_dims[k]; ++i)
             {
                 vector_var_data[k]->set(vector_var_dof_indices[k][i][0], V(i));
@@ -270,12 +288,19 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
             {
                 for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)
                 {
-                    tensor_var_dof_maps[k]->dof_indices(elem, tensor_var_dof_indices[k][i][j],
-                                                        j + i * d_tensor_var_dims[k]);
+                    tensor_var_dof_maps[k]->dof_indices(
+                        elem, tensor_var_dof_indices[k][i][j], j + i * d_tensor_var_dims[k]);
                 }
             }
-            d_tensor_var_fcns[k](VV, FF_qp, X_qp, s_qp, elem, tensor_var_fcn_data[k], tensor_var_grad_fcn_data[k],
-                                 data_time, d_tensor_var_fcn_ctxs[k]);
+            d_tensor_var_fcns[k](VV,
+                                 FF_qp,
+                                 X_qp,
+                                 s_qp,
+                                 elem,
+                                 tensor_var_fcn_data[k],
+                                 tensor_var_grad_fcn_data[k],
+                                 data_time,
+                                 d_tensor_var_fcn_ctxs[k]);
             for (unsigned int i = 0; i < d_tensor_var_dims[k]; ++i)
             {
                 for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)

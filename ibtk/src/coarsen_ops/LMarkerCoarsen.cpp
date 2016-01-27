@@ -69,12 +69,14 @@ namespace
 static const int COARSEN_OP_PRIORITY = 0;
 static const int COARSEN_OP_STENCIL_WIDTH = 0;
 
-inline int coarsen(const int index, const int ratio)
+inline int
+coarsen(const int index, const int ratio)
 {
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
 } // coarsen
 
-inline Index<NDIM> coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
+inline Index<NDIM>
+coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_i;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -99,33 +101,38 @@ LMarkerCoarsen::~LMarkerCoarsen()
     return;
 } // ~LMarkerCoarsen
 
-bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+bool
+LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
 } // findCoarsenOperator
 
-const std::string& LMarkerCoarsen::getOperatorName() const
+const std::string&
+LMarkerCoarsen::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int LMarkerCoarsen::getOperatorPriority() const
+int
+LMarkerCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> LMarkerCoarsen::getStencilWidth() const
+IntVector<NDIM>
+LMarkerCoarsen::getStencilWidth() const
 {
     return COARSEN_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
-                             const Patch<NDIM>& fine,
-                             const int dst_component,
-                             const int src_component,
-                             const Box<NDIM>& coarse_box,
-                             const IntVector<NDIM>& ratio) const
+void
+LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
+                        const Patch<NDIM>& fine,
+                        const int dst_component,
+                        const int src_component,
+                        const Box<NDIM>& coarse_box,
+                        const IntVector<NDIM>& ratio) const
 {
     Pointer<LMarkerSetData> dst_mark_data = coarse.getPatchData(dst_component);
     Pointer<LMarkerSetData> src_mark_data = fine.getPatchData(src_component);

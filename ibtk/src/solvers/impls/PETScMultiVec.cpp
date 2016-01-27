@@ -41,7 +41,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
-#include "petsc-private/vecimpl.h" // IWYU pragma: keep
+#include "petsc/private/vecimpl.h" // IWYU pragma: keep
 #include "petscerror.h"
 #include "petscis.h"
 #include "petscmath.h"
@@ -64,7 +64,8 @@ struct Vec_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDuplicate_MultiVec"
-PetscErrorCode VecDuplicate_MultiVec(Vec v, Vec* newv)
+PetscErrorCode
+VecDuplicate_MultiVec(Vec v, Vec* newv)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -99,7 +100,8 @@ PetscErrorCode VecDuplicate_MultiVec(Vec v, Vec* newv)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDot_MultiVec"
-PetscErrorCode VecDot_MultiVec(Vec x, Vec y, PetscScalar* val)
+PetscErrorCode
+VecDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -126,7 +128,8 @@ PetscErrorCode VecDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMDot_MultiVec"
-PetscErrorCode VecMDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
+PetscErrorCode
+VecMDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -146,7 +149,8 @@ PetscErrorCode VecMDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* v
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNorm_MultiVec"
-PetscErrorCode VecNorm_MultiVec(Vec x, NormType type, PetscScalar* val)
+PetscErrorCode
+VecNorm_MultiVec(Vec x, NormType type, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -202,7 +206,8 @@ PetscErrorCode VecNorm_MultiVec(Vec x, NormType type, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecTDot_MultiVec"
-PetscErrorCode VecTDot_MultiVec(Vec x, Vec y, PetscScalar* val)
+PetscErrorCode
+VecTDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -229,7 +234,8 @@ PetscErrorCode VecTDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMTDot_MultiVec"
-PetscErrorCode VecMTDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
+PetscErrorCode
+VecMTDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -249,7 +255,8 @@ PetscErrorCode VecMTDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* 
 
 #undef __FUNCT__
 #define __FUNCT__ "VecScale_MultiVec"
-PetscErrorCode VecScale_MultiVec(Vec x, PetscScalar alpha)
+PetscErrorCode
+VecScale_MultiVec(Vec x, PetscScalar alpha)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -271,7 +278,8 @@ PetscErrorCode VecScale_MultiVec(Vec x, PetscScalar alpha)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecCopy_MultiVec"
-PetscErrorCode VecCopy_MultiVec(Vec x, Vec y)
+PetscErrorCode
+VecCopy_MultiVec(Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -297,7 +305,8 @@ PetscErrorCode VecCopy_MultiVec(Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSet_MultiVec"
-PetscErrorCode VecSet_MultiVec(Vec x, PetscScalar alpha)
+PetscErrorCode
+VecSet_MultiVec(Vec x, PetscScalar alpha)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -319,7 +328,8 @@ PetscErrorCode VecSet_MultiVec(Vec x, PetscScalar alpha)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSwap_MultiVec"
-PetscErrorCode VecSwap_MultiVec(Vec x, Vec y)
+PetscErrorCode
+VecSwap_MultiVec(Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -347,7 +357,8 @@ PetscErrorCode VecSwap_MultiVec(Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPY_MultiVec"
-PetscErrorCode VecAXPY_MultiVec(Vec y, PetscScalar alpha, Vec x)
+PetscErrorCode
+VecAXPY_MultiVec(Vec y, PetscScalar alpha, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -373,7 +384,8 @@ PetscErrorCode VecAXPY_MultiVec(Vec y, PetscScalar alpha, Vec x)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBY_MultiVec"
-PetscErrorCode VecAXPBY_MultiVec(Vec y, PetscScalar alpha, PetscScalar beta, Vec x)
+PetscErrorCode
+VecAXPBY_MultiVec(Vec y, PetscScalar alpha, PetscScalar beta, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -399,7 +411,8 @@ PetscErrorCode VecAXPBY_MultiVec(Vec y, PetscScalar alpha, PetscScalar beta, Vec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMAXPY_MultiVec"
-PetscErrorCode VecMAXPY_MultiVec(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x)
+PetscErrorCode
+VecMAXPY_MultiVec(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -421,7 +434,8 @@ PetscErrorCode VecMAXPY_MultiVec(Vec y, PetscInt nv, const PetscScalar* alpha, V
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAYPX_MultiVec"
-PetscErrorCode VecAYPX_MultiVec(Vec y, const PetscScalar alpha, Vec x)
+PetscErrorCode
+VecAYPX_MultiVec(Vec y, const PetscScalar alpha, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -447,7 +461,8 @@ PetscErrorCode VecAYPX_MultiVec(Vec y, const PetscScalar alpha, Vec x)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecWAXPY_MultiVec"
-PetscErrorCode VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
+PetscErrorCode
+VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -477,7 +492,8 @@ PetscErrorCode VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBYPCZ_MultiVec"
-PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
+PetscErrorCode
+VecAXPBYPCZ_MultiVec(Vec w, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -507,7 +523,8 @@ PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w, PetscScalar alpha, PetscScalar beta, 
 
 #undef __FUNCT__
 #define __FUNCT__ "VecPointwiseMult_MultiVec"
-PetscErrorCode VecPointwiseMult_MultiVec(Vec w, Vec x, Vec y)
+PetscErrorCode
+VecPointwiseMult_MultiVec(Vec w, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -537,7 +554,8 @@ PetscErrorCode VecPointwiseMult_MultiVec(Vec w, Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecPointwiseDivide_MultiVec"
-PetscErrorCode VecPointwiseDivide_MultiVec(Vec w, Vec x, Vec y)
+PetscErrorCode
+VecPointwiseDivide_MultiVec(Vec w, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -567,7 +585,8 @@ PetscErrorCode VecPointwiseDivide_MultiVec(Vec w, Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecGetSize_MultiVec"
-PetscErrorCode VecGetSize_MultiVec(Vec x, PetscInt* size)
+PetscErrorCode
+VecGetSize_MultiVec(Vec x, PetscInt* size)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -578,7 +597,8 @@ PetscErrorCode VecGetSize_MultiVec(Vec x, PetscInt* size)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecGetLocalSize_MultiVec"
-PetscErrorCode VecGetLocalSize_MultiVec(Vec x, PetscInt* size)
+PetscErrorCode
+VecGetLocalSize_MultiVec(Vec x, PetscInt* size)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -589,7 +609,8 @@ PetscErrorCode VecGetLocalSize_MultiVec(Vec x, PetscInt* size)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMax_MultiVec"
-PetscErrorCode VecMax_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
+PetscErrorCode
+VecMax_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -614,7 +635,8 @@ PetscErrorCode VecMax_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMin_MultiVec"
-PetscErrorCode VecMin_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
+PetscErrorCode
+VecMin_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -639,7 +661,8 @@ PetscErrorCode VecMin_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSetRandom_MultiVec"
-PetscErrorCode VecSetRandom_MultiVec(Vec x, PetscRandom rctx)
+PetscErrorCode
+VecSetRandom_MultiVec(Vec x, PetscRandom rctx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -661,7 +684,8 @@ PetscErrorCode VecSetRandom_MultiVec(Vec x, PetscRandom rctx)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDestroy_MultiVec"
-PetscErrorCode VecDestroy_MultiVec(Vec v)
+PetscErrorCode
+VecDestroy_MultiVec(Vec v)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -691,7 +715,8 @@ PetscErrorCode VecDestroy_MultiVec(Vec v)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDot_local_MultiVec"
-PetscErrorCode VecDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
+PetscErrorCode
+VecDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -722,7 +747,8 @@ PetscErrorCode VecDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecTDot_local_MultiVec"
-PetscErrorCode VecTDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
+PetscErrorCode
+VecTDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -753,7 +779,8 @@ PetscErrorCode VecTDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNorm_local_MultiVec"
-PetscErrorCode VecNorm_local_MultiVec(Vec x, NormType type, PetscScalar* val)
+PetscErrorCode
+VecNorm_local_MultiVec(Vec x, NormType type, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -818,7 +845,8 @@ PetscErrorCode VecNorm_local_MultiVec(Vec x, NormType type, PetscScalar* val)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMDot_local_MultiVec"
-PetscErrorCode VecMDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
+PetscErrorCode
+VecMDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -838,7 +866,8 @@ PetscErrorCode VecMDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscSca
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMTDot_local_MultiVec"
-PetscErrorCode VecMTDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
+PetscErrorCode
+VecMTDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -858,7 +887,8 @@ PetscErrorCode VecMTDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscSc
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMaxPointwiseDivide_MultiVec"
-PetscErrorCode VecMaxPointwiseDivide_MultiVec(Vec x, Vec y, PetscScalar* max)
+PetscErrorCode
+VecMaxPointwiseDivide_MultiVec(Vec x, Vec y, PetscScalar* max)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -885,7 +915,8 @@ PetscErrorCode VecMaxPointwiseDivide_MultiVec(Vec x, Vec y, PetscScalar* max)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDotNorm2_MultiVec"
-PetscErrorCode VecDotNorm2_MultiVec(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm)
+PetscErrorCode
+VecDotNorm2_MultiVec(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(s);
@@ -901,7 +932,8 @@ PetscErrorCode VecDotNorm2_MultiVec(Vec s, Vec t, PetscScalar* dp, PetscScalar* 
 
 #undef __FUNCT__
 #define __FUNCT__ "VecCreateMultiVec"
-PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
+PetscErrorCode
+VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 {
     PetscErrorCode ierr;
     ierr = VecCreate(comm, v);
@@ -976,7 +1008,8 @@ PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetNumberOfSubVecs"
-PetscErrorCode VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n)
+PetscErrorCode
+VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -991,7 +1024,8 @@ PetscErrorCode VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetSubVecs"
-PetscErrorCode VecMultiVecGetSubVecs(Vec v, Vec* vv[])
+PetscErrorCode
+VecMultiVecGetSubVecs(Vec v, Vec* vv[])
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -1006,7 +1040,8 @@ PetscErrorCode VecMultiVecGetSubVecs(Vec v, Vec* vv[])
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetSubVec"
-PetscErrorCode VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv)
+PetscErrorCode
+VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);

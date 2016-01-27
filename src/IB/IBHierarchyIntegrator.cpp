@@ -112,12 +112,14 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
     return;
 } // ~IBHierarchyIntegrator
 
-Pointer<IBStrategy> IBHierarchyIntegrator::getIBStrategy() const
+Pointer<IBStrategy>
+IBHierarchyIntegrator::getIBStrategy() const
 {
     return d_ib_method_ops;
 } // getIBStrategy
 
-void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn)
+void
+IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -145,7 +147,8 @@ void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> 
     return;
 } // registerBodyForceFunction
 
-void IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
+void
+IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -160,28 +163,65 @@ void IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > lo
     return;
 } // registerLoadBalancer
 
-Pointer<Variable<NDIM> > IBHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getVelocityVariable() const
 {
     return d_u_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> > IBHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getPressureVariable() const
 {
     return d_p_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> > IBHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_f_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> > IBHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_q_var;
 } // getFluidSourceVariable
 
-void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                    const double new_time,
+                                                    const int num_cycles)
+{
+    HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
+    // Determine whether there has been a time step size change.
+    const double dt = new_time - current_time;
+    static bool skip_check_for_dt_change = MathUtilities<double>::equalEps(d_integrator_time, d_start_time) ||
+                                           RestartManager::getManager()->isFromRestart();
+    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
+        !MathUtilities<double>::equalEps(dt, d_dt_previous[0]) &&
+        !MathUtilities<double>::equalEps(new_time, d_end_time))
+    {
+        if (d_error_on_dt_change)
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
+                                     << "Aborting."
+                                     << std::endl);
+        }
+        if (d_warn_on_dt_change)
+        {
+            pout << d_object_name << "::preprocessIntegrateHierarchy():  WARNING: Time step size change encountered.\n"
+                 << "Suggest reducing maximum time step size in input file." << std::endl;
+        }
+    }
+    skip_check_for_dt_change = false;
+
+    return;
+} // preprocessIntegrateHierarchy
+
+void
+IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -353,8 +393,9 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     return;
 } // initializeHierarchyIntegrator
 
-void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -401,7 +442,8 @@ void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM
     return;
 } // initializePatchHierarchy
 
-void IBHierarchyIntegrator::regridHierarchy()
+void
+IBHierarchyIntegrator::regridHierarchy()
 {
     // Update the workload pre-regridding.
     if (d_load_balancer)
@@ -492,7 +534,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     return;
 } // IBHierarchyIntegrator
 
-bool IBHierarchyIntegrator::atRegridPointSpecialized() const
+bool
+IBHierarchyIntegrator::atRegridPointSpecialized() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time) return true;
@@ -507,13 +550,14 @@ bool IBHierarchyIntegrator::atRegridPointSpecialized() const
     return false;
 } // atRegridPointSpecialized
 
-void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-                                                           const int level_number,
-                                                           const double init_data_time,
-                                                           const bool can_be_refined,
-                                                           const bool initial_time,
-                                                           const Pointer<BasePatchLevel<NDIM> > base_old_level,
-                                                           const bool allocate_data)
+void
+IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+                                                      const int level_number,
+                                                      const double init_data_time,
+                                                      const bool can_be_refined,
+                                                      const bool initial_time,
+                                                      const Pointer<BasePatchLevel<NDIM> > base_old_level,
+                                                      const bool allocate_data)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -578,12 +622,13 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                             const int level_number,
-                                                             const double error_data_time,
-                                                             const int tag_index,
-                                                             const bool initial_time,
-                                                             const bool uses_richardson_extrapolation_too)
+void
+IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                        const int level_number,
+                                                        const double error_data_time,
+                                                        const int tag_index,
+                                                        const bool initial_time,
+                                                        const bool uses_richardson_extrapolation_too)
 {
     // Tag cells for refinement.
     d_ib_method_ops->applyGradientDetector(
@@ -591,7 +636,8 @@ void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BaseP
     return;
 } // applyGradientDetectorSpecialized
 
-void IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void
+IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION", IB_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
@@ -602,7 +648,8 @@ void IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void
+IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
     if (db->keyExists("error_on_dt_change"))
@@ -625,7 +672,8 @@ void IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_re
     return;
 } // getFromInput
 
-void IBHierarchyIntegrator::getFromRestart()
+void
+IBHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -636,7 +684,8 @@ void IBHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("IB_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_HIERARCHY_INTEGRATOR_VERSION)

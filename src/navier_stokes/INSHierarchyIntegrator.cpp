@@ -98,17 +98,20 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     return;
 } // ~INSHierarchyIntegrator
 
-TimeSteppingType INSHierarchyIntegrator::getViscousTimeSteppingType() const
+TimeSteppingType
+INSHierarchyIntegrator::getViscousTimeSteppingType() const
 {
     return d_viscous_time_stepping_type;
 } // getViscousTimeSteppingType
 
-TimeSteppingType INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
+TimeSteppingType
+INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
 {
     return d_convective_time_stepping_type;
 } // getConvectiveTimeSteppingType
 
-TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
+TimeSteppingType
+INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
 {
     return d_init_convective_time_stepping_type;
 } // getInitialConvectiveTimeSteppingType
@@ -126,7 +129,8 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierar
     return;
 } // registerAdvDiffHierarchyIntegrator
 
-void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
+void
+INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -135,12 +139,14 @@ void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications proble
     return;
 } // setStokesSpecifications
 
-const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() const
+const StokesSpecifications*
+INSHierarchyIntegrator::getStokesSpecifications() const
 {
     return &d_problem_coefs;
 } // getStokesSpecifications
 
-void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -150,17 +156,20 @@ void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vecto
     return;
 } // registerPhysicalBoundaryConditions
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 } // getVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getPressureBoundaryConditions() const
+RobinBcCoefStrategy<NDIM>*
+INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
 } // getPressureBoundaryConditions
 
-void INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
+void
+INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -169,7 +178,8 @@ void INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridF
     return;
 } // registerVelocityInitialConditions
 
-void INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
+void
+INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -178,7 +188,8 @@ void INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridF
     return;
 } // registerPressureInitialConditions
 
-void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
+void
+INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -206,7 +217,8 @@ void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction>
     return;
 } // registerBodyForceFunction
 
-void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
+void
+INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -234,42 +246,50 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunctio
     return;
 } // registerFluidSourceFunction
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<FaceVariable<NDIM, double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+Pointer<FaceVariable<NDIM, double> >
+INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
 } // getAdvectionVelocityVariable
 
-std::vector<RobinBcCoefStrategy<NDIM>*> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
+std::vector<RobinBcCoefStrategy<NDIM>*>
+INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
 } // getIntermediateVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
+RobinBcCoefStrategy<NDIM>*
+INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef;
 } // getProjectionBoundaryConditions
 
-void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
+void
+INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
@@ -279,7 +299,8 @@ void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> 
     return;
 } // registerMassDensityVariable
 
-void INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
+void
+INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -288,12 +309,14 @@ void INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rh
     return;
 } // registerMassDensityFunction
 
-Pointer<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
+Pointer<CartGridFunction>
+INSHierarchyIntegrator::getMassDensityFunction() const
 {
     return d_rho_fcn;
 } // getMassDensityFunction
 
-void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
+void
+INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -304,12 +327,14 @@ void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
     return;
 } // setCreepingFlow
 
-bool INSHierarchyIntegrator::getCreepingFlow() const
+bool
+INSHierarchyIntegrator::getCreepingFlow() const
 {
     return d_creeping_flow;
 } // getCreepingFlow
 
-void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_type)
+void
+INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -320,12 +345,14 @@ void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_typ
     return;
 } // setConvectiveOperatorType
 
-const std::string& INSHierarchyIntegrator::getConvectiveOperatorType() const
+const std::string&
+INSHierarchyIntegrator::getConvectiveOperatorType() const
 {
     return d_convective_op_type;
 } // getConvectiveOperatorType
 
-void INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencingType difference_form)
+void
+INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencingType difference_form)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -336,12 +363,14 @@ void INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencin
     return;
 } // setConvectiveDifferencingType
 
-ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType() const
+ConvectiveDifferencingType
+INSHierarchyIntegrator::getConvectiveDifferencingType() const
 {
     return d_convective_difference_form;
 } // getConvectiveDifferencingType
 
-void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
+void
+INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -352,13 +381,15 @@ void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> c
     return;
 } // setConvectiveOperator
 
-void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
+void
+INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
 {
     d_convective_op_needs_init = true;
     return;
 }
 
-void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+void
+INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -368,13 +399,15 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> v
     return;
 } // setVelocitySubdomainSolver
 
-void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
+void
+INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
 {
     d_velocity_solver_needs_init = true;
     return;
 }
 
-void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+void
+INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -384,13 +417,15 @@ void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> p
     return;
 } // setPressureSubdomainSolver
 
-void INSHierarchyIntegrator::setPressureSubdomainSolverNeedsInit()
+void
+INSHierarchyIntegrator::setPressureSubdomainSolverNeedsInit()
 {
     d_pressure_solver_needs_init = true;
     return;
 }
 
-int INSHierarchyIntegrator::getNumberOfCycles() const
+int
+INSHierarchyIntegrator::getNumberOfCycles() const
 {
     int num_cycles = d_num_cycles;
     if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) &&
@@ -411,10 +446,17 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Variable<NDIM> > F_var,
                                                Pointer<Variable<NDIM> > Q_var,
                                                bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
-      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_U_var(U_var),
+      d_P_var(P_var),
+      d_F_var(F_var),
+      d_Q_var(Q_var),
+      d_U_init(NULL),
+      d_P_init(NULL),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_traction_bc_type(TRACTION),
+      d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
     // Set some default values.
@@ -477,23 +519,20 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     return;
 } // INSHierarchyIntegrator
 
-double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+double
+INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
-    double dt = d_dt_max;
+    double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (!initial_time && d_dt_growth_factor >= 1.0)
-    {
-        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
-    }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
+double
+INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -505,7 +544,8 @@ double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > leve
     return stable_dt;
 } // getStableTimestep
 
-void INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void
+INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION", INS_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
@@ -544,7 +584,8 @@ void INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_restart)
+void
+INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -708,7 +749,8 @@ void INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_fr
     return;
 } // getFromInput
 
-void INSHierarchyIntegrator::getFromRestart()
+void
+INSHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -719,7 +761,8 @@ void INSHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("INS_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != INS_HIERARCHY_INTEGRATOR_VERSION)

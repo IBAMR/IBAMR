@@ -63,7 +63,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-inline double kernel(double x)
+inline double
+kernel(double x)
 {
     x += 4.;
     const double x2 = x * x;
@@ -107,15 +108,16 @@ namespace ModelData
 {
 // Tether (penalty) stress function.
 static double c1_s = 1.0e5;
-void PK1_stress_function(TensorValue<double>& PP,
-                         const TensorValue<double>& FF,
-                         const libMesh::Point& /*x*/,
-                         const libMesh::Point& /*X*/,
-                         Elem* const /*elem*/,
-                         const vector<const vector<double>*>& /*var_data*/,
-                         const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                         double /*time*/,
-                         void* /*ctx*/)
+void
+PK1_stress_function(TensorValue<double>& PP,
+                    const TensorValue<double>& FF,
+                    const libMesh::Point& /*x*/,
+                    const libMesh::Point& /*X*/,
+                    Elem* const /*elem*/,
+                    const vector<const vector<double>*>& /*var_data*/,
+                    const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                    double /*time*/,
+                    void* /*ctx*/)
 {
     PP = 2.0 * c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
     return;
@@ -124,15 +126,16 @@ void PK1_stress_function(TensorValue<double>& PP,
 // Tether (penalty) force functions.
 static double kappa_s_body = 1.0e6;
 static double eta_s_body = 0.0;
-void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& /*FF*/,
-                           const libMesh::Point& x,
-                           const libMesh::Point& X,
-                           Elem* const /*elem*/,
-                           const vector<const vector<double>*>& var_data,
-                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                           double /*time*/,
-                           void* /*ctx*/)
+void
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& x,
+                      const libMesh::Point& X,
+                      Elem* const /*elem*/,
+                      const vector<const vector<double>*>& var_data,
+                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
 {
     const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -144,16 +147,17 @@ void tether_force_function(VectorValue<double>& F,
 
 static double kappa_s_surface = 1.0e6;
 static double eta_s_surface = 0.0;
-void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& /*FF*/,
-                           const libMesh::Point& x,
-                           const libMesh::Point& X,
-                           Elem* const /*elem*/,
-                           const unsigned short /*side*/,
-                           const vector<const vector<double>*>& var_data,
-                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                           double /*time*/,
-                           void* /*ctx*/)
+void
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& x,
+                      const libMesh::Point& X,
+                      Elem* const /*elem*/,
+                      const unsigned short /*side*/,
+                      const vector<const vector<double>*>& var_data,
+                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
 {
     const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -186,7 +190,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -229,7 +234,7 @@ int main(int argc, char* argv[])
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh solid_mesh(NDIM);
+        Mesh solid_mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -318,23 +323,31 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         std::vector<int> vars(NDIM);
@@ -448,8 +461,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                          loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -508,8 +521,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                              loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -524,8 +537,13 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num,
-                                 loop_time, postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy,
+                                 navier_stokes_integrator,
+                                 mesh,
+                                 equation_systems,
+                                 iteration_num,
+                                 loop_time,
+                                 postproc_data_dump_dirname);
             }
         }
 
@@ -549,13 +567,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                      Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                      Mesh& mesh,
-                      EquationSystems* equation_systems,
-                      const int /*iteration_num*/,
-                      const double loop_time,
-                      const string& /*data_dump_dirname*/)
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 Mesh& mesh,
+                 EquationSystems* equation_systems,
+                 const int /*iteration_num*/,
+                 const double loop_time,
+                 const string& /*data_dump_dirname*/)
 {
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
@@ -621,7 +640,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U_qp(d);
             }
-            tether_force_function(F_qp, FF_qp, x_qp, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            tether_force_function(
+                F_qp, FF_qp, x_qp, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F_qp(d) * JxW[qp];
@@ -641,7 +661,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 {
                     U_qp_vec[d] = U_qp(d);
                 }
-                tether_force_function(F_qp, FF_qp, x_qp, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                tether_force_function(
+                    F_qp, FF_qp, x_qp, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     F_integral[d] += F_qp(d) * JxW_face[qp];

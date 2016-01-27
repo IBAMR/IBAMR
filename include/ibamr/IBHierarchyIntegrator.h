@@ -148,6 +148,15 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
+     * Basic functions to prepare to advance data from current_time to new_time.
+     *
+     * A default implementation is provided that sets the current values of
+     * num_cycles and the time step size and checks to see if the time step size
+     * has changed.
+     */
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *
@@ -288,7 +297,7 @@ protected:
     /*
      * Refine and coarsen algorithm data.
      */
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op, *d_p_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,

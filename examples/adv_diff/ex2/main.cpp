@@ -60,7 +60,8 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -102,7 +103,8 @@ int main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
+                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
+                predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
@@ -119,14 +121,18 @@ int main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Set up the advected and diffused quantity.
         Pointer<CellVariable<NDIM, double> > C_var = new CellVariable<NDIM, double>("U");
@@ -141,15 +147,17 @@ int main(int argc, char* argv[])
         Pointer<FaceVariable<NDIM, double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(
-            u_adv_var, new muParserCartGridFunction(
-                           "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
+            u_adv_var,
+            new muParserCartGridFunction(
+                "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
         time_integrator->registerSourceTerm(F_var);
         time_integrator->setSourceTermFunction(
-            F_var, new muParserCartGridFunction(
-                       "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
+            F_var,
+            new muParserCartGridFunction(
+                "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
         time_integrator->setSourceTerm(C_var, F_var);
 
         // Set up visualization plot file writers.

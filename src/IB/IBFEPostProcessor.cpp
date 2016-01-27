@@ -79,7 +79,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : d_name(name), d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()), d_fe_data_manager(fe_data_manager),
+    : d_name(name),
+      d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
+      d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)
 {
     // intentionally blank
@@ -92,12 +94,13 @@ IBFEPostProcessor::~IBFEPostProcessor()
     return;
 } // ~IBFEPostProcessor
 
-void IBFEPostProcessor::registerScalarVariable(const std::string& name,
-                                               libMesh::FEFamily fe_family,
-                                               libMesh::Order fe_order,
-                                               ScalarMeshFcnPtr fcn,
-                                               const std::vector<SystemData>& system_data,
-                                               void* fcn_ctx)
+void
+IBFEPostProcessor::registerScalarVariable(const std::string& name,
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order,
+                                          ScalarMeshFcnPtr fcn,
+                                          const std::vector<SystemData>& system_data,
+                                          void* fcn_ctx)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(name + " reconstruction system");
@@ -110,13 +113,14 @@ void IBFEPostProcessor::registerScalarVariable(const std::string& name,
     return;
 } // registerScalarVariable
 
-void IBFEPostProcessor::registerVectorVariable(const std::string& name,
-                                               libMesh::FEFamily fe_family,
-                                               libMesh::Order fe_order,
-                                               VectorMeshFcnPtr fcn,
-                                               const std::vector<SystemData>& system_data,
-                                               void* fcn_ctx,
-                                               unsigned int dim)
+void
+IBFEPostProcessor::registerVectorVariable(const std::string& name,
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order,
+                                          VectorMeshFcnPtr fcn,
+                                          const std::vector<SystemData>& system_data,
+                                          void* fcn_ctx,
+                                          unsigned int dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(name + " reconstruction system");
@@ -135,13 +139,14 @@ void IBFEPostProcessor::registerVectorVariable(const std::string& name,
     return;
 } // registerVectorVariable
 
-void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
-                                               libMesh::FEFamily var_fe_family,
-                                               libMesh::Order var_fe_order,
-                                               TensorMeshFcnPtr var_fcn,
-                                               const std::vector<SystemData>& system_data,
-                                               void* var_fcn_ctx,
-                                               unsigned int var_dim)
+void
+IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
+                                          libMesh::FEFamily var_fe_family,
+                                          libMesh::Order var_fe_order,
+                                          TensorMeshFcnPtr var_fcn,
+                                          const std::vector<SystemData>& system_data,
+                                          void* var_fcn_ctx,
+                                          unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -163,7 +168,8 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     return;
 } // registerTensorVariable
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+void
+IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
@@ -171,12 +177,18 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     Pointer<VariableContext> ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
-    registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, ghost_fill_transaction,
+    registerInterpolatedScalarEulerianVariable(var_name,
+                                               var_fe_family,
+                                               var_fe_order,
+                                               var,
+                                               ctx,
+                                               ghost_fill_transaction,
                                                d_fe_data_manager->getDefaultInterpSpec());
     return;
 } //
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+void
+IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
@@ -198,7 +210,8 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     d_var_systems.push_back(&system);
 } // registerInterpolatedEulerianScalarVariable
 
-void IBFEPostProcessor::initializeFEData()
+void
+IBFEPostProcessor::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     for (unsigned int k = 0; k < d_var_systems.size(); ++k)
@@ -211,7 +224,8 @@ void IBFEPostProcessor::initializeFEData()
     return;
 } // initializeFEData
 
-void IBFEPostProcessor::postProcessData(const double data_time)
+void
+IBFEPostProcessor::postProcessData(const double data_time)
 {
     // First interpolate variables from the Eulerian grid, then reconstruct
     // variables on the Lagrangian mesh.
@@ -222,7 +236,8 @@ void IBFEPostProcessor::postProcessData(const double data_time)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBFEPostProcessor::interpolateVariables(const double data_time)
+void
+IBFEPostProcessor::interpolateVariables(const double data_time)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
     const std::pair<int, int> patch_level_range = d_fe_data_manager->getPatchLevels();

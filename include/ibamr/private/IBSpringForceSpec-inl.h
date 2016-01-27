@@ -46,7 +46,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool IBSpringForceSpec::getIsRegisteredWithStreamableManager()
+inline bool
+IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
@@ -93,7 +94,8 @@ inline IBSpringForceSpec::~IBSpringForceSpec()
     return;
 } // ~IBSpringForceSpec
 
-inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
+inline unsigned int
+IBSpringForceSpec::getNumberOfSprings() const
 {
     const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
@@ -103,52 +105,62 @@ inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
     return num_springs;
 } // getNumberOfSprings
 
-inline const int& IBSpringForceSpec::getMasterNodeIndex() const
+inline const int&
+IBSpringForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline int& IBSpringForceSpec::getMasterNodeIndex()
+inline int&
+IBSpringForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline const std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices() const
+inline const std::vector<int>&
+IBSpringForceSpec::getSlaveNodeIndices() const
 {
     return d_slave_idxs;
 } // getSlaveNodeIndices
 
-inline std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices()
+inline std::vector<int>&
+IBSpringForceSpec::getSlaveNodeIndices()
 {
     return d_slave_idxs;
 } // getSlaveNodeIndices
 
-inline const std::vector<int>& IBSpringForceSpec::getForceFunctionIndices() const
+inline const std::vector<int>&
+IBSpringForceSpec::getForceFunctionIndices() const
 {
     return d_force_fcn_idxs;
 } // getForceFunctionIndices
 
-inline std::vector<int>& IBSpringForceSpec::getForceFunctionIndices()
+inline std::vector<int>&
+IBSpringForceSpec::getForceFunctionIndices()
 {
     return d_force_fcn_idxs;
 } // getForceFunctionIndices
 
-inline const std::vector<std::vector<double> >& IBSpringForceSpec::getParameters() const
+inline const std::vector<std::vector<double> >&
+IBSpringForceSpec::getParameters() const
 {
     return d_parameters;
 } // getParameters
 
-inline std::vector<std::vector<double> >& IBSpringForceSpec::getParameters()
+inline std::vector<std::vector<double> >&
+IBSpringForceSpec::getParameters()
 {
     return d_parameters;
 } // getParameters
 
-inline int IBSpringForceSpec::getStreamableClassID() const
+inline int
+IBSpringForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t IBSpringForceSpec::getDataStreamSize() const
+inline size_t
+IBSpringForceSpec::getDataStreamSize() const
 {
     const size_t num_springs = d_slave_idxs.size();
 #if !defined(NDEBUG)
@@ -164,7 +176,8 @@ inline size_t IBSpringForceSpec::getDataStreamSize() const
     return size;
 } // getDataStreamSize
 
-inline void IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)

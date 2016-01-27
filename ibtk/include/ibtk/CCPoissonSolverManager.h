@@ -69,6 +69,8 @@ public:
      * class.
      */
     static const std::string DEFAULT_FAC_PRECONDITIONER;
+    static const std::string BOX_RELAXATION_FAC_PRECONDITIONER;
+    static const std::string LEVEL_RELAXATION_FAC_PRECONDITIONER;
     static const std::string POINT_RELAXATION_FAC_PRECONDITIONER;
 
     /*!
@@ -122,7 +124,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered PoissonSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<PoissonSolver>(*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<PoissonSolver> (*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);

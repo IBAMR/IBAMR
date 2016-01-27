@@ -125,8 +125,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
-    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart), d_hyp_level_integrator(NULL),
-      d_hyp_level_integrator_db(NULL), d_hyp_patch_ops(NULL), d_hyp_patch_ops_db(NULL),
+    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_hyp_level_integrator(NULL),
+      d_hyp_level_integrator_db(NULL),
+      d_hyp_patch_ops(NULL),
+      d_hyp_patch_ops_db(NULL),
       d_explicit_predictor(explicit_predictor)
 {
 #if !defined(NDEBUG)
@@ -162,7 +165,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
@@ -186,9 +190,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
     return d_hyp_patch_ops;
 } // getHyperbolicPatchStrategy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                                const double new_time,
-                                                                                const int num_cycles)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                                           const double new_time,
+                                                                           const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -197,7 +202,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
     return;
 } // preprocessIntegrateHierarchy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -319,9 +325,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     return;
 } // initializeHierarchyIntegrator
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                      const double new_time,
-                                                                      const int cycle_num)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                                 const double new_time,
+                                                                 const int cycle_num)
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
@@ -557,7 +564,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -702,23 +710,21 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+double
+AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
-    double dt = d_dt_max;
+    double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
-    if (!initial_time && d_dt_growth_factor >= 1.0)
-    {
-        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
-    }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -739,7 +745,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDa
     return;
 } // resetTimeDependentHierarchyDataSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
     // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
@@ -751,7 +758,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
     return;
 } // resetIntegratorToPreadvanceStateSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -837,7 +845,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     return;
 } // initializeLevelDataSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -848,7 +857,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSp
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,

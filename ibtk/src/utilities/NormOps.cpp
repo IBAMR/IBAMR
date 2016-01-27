@@ -76,7 +76,8 @@ namespace IBTK
 namespace
 {
 // WARNING: This function will sort the input vector in ascending order.
-inline double accurate_sum(std::vector<double>& vec)
+inline double
+accurate_sum(std::vector<double>& vec)
 {
     if (vec.size() == 1) return vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
@@ -84,7 +85,8 @@ inline double accurate_sum(std::vector<double>& vec)
 } // accurate_sum
 
 // WARNING: This function will sort the input vector in ascending order.
-inline double accurate_sum_of_squares(std::vector<double>& vec)
+inline double
+accurate_sum_of_squares(std::vector<double>& vec)
 {
     if (vec.size() == 1) return vec[0] * vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
@@ -94,7 +96,8 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
+double
+NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
@@ -106,7 +109,8 @@ double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector
     return ret_val;
 } // L1Norm
 
-double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
+double
+NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
@@ -118,7 +122,8 @@ double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector
     return ret_val;
 } // L2Norm
 
-double NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
+double
+NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
 } // maxNorm
@@ -127,7 +132,8 @@ double NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vecto
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-double NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
+double
+NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
     Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();
@@ -182,7 +188,8 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_
     return accurate_sum(L1_norm_local_patch);
 } // L1Norm_local
 
-double NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
+double
+NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
     Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();

@@ -313,7 +313,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     default:
         TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -326,7 +327,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -341,7 +343,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
         default:
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -449,7 +452,8 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     return;
 } // ~INSCollocatedHierarchyIntegrator
 
-Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOperator()
+Pointer<ConvectiveOperator>
+INSCollocatedHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -469,7 +473,8 @@ Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOpera
     return d_convective_op;
 } // getConvectiveOperator
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
@@ -486,7 +491,8 @@ Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSol
     return d_velocity_solver;
 } // getVelocitySubdomainSolver
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
@@ -503,8 +509,9 @@ Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSol
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -830,8 +837,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     return;
 } // initializeHierarchyIntegrator
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -859,9 +867,10 @@ void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHie
     return;
 } // initializePatchHierarhcy
 
-void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                    const double new_time,
-                                                                    const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                               const double new_time,
+                                                               const int num_cycles)
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -878,7 +887,9 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
+                                 << "  at current time step, num_cycles = "
+                                 << d_current_num_cycles
+                                 << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -895,12 +906,15 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     // Allocate solver vectors.
     d_U_rhs_vec->allocateVectorData(current_time);
     d_U_rhs_vec->setToScalar(0.0);
-    d_U_adv_vec->allocateVectorData(current_time);
-    d_U_adv_vec->setToScalar(0.0);
-    d_N_vec->allocateVectorData(current_time);
-    d_N_vec->setToScalar(0.0);
     d_Phi_rhs_vec->allocateVectorData(current_time);
     d_Phi_rhs_vec->setToScalar(0.0);
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->allocateVectorData(current_time);
+        d_U_adv_vec->setToScalar(0.0);
+        d_N_vec->allocateVectorData(current_time);
+        d_N_vec->setToScalar(0.0);
+    }
 
     // Initialize the right-hand side terms.
     const double rho = d_problem_coefs.getRho();
@@ -955,10 +969,12 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform " << d_current_num_cycles
+                                     << "  attempting to perform "
+                                     << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles << ".\n"
+                                     << adv_diff_num_cycles
+                                     << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -1034,9 +1050,10 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     return;
 } // preprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                          const double new_time,
-                                                          const int cycle_num)
+void
+INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const int cycle_num)
 {
     INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const int coarsest_ln = 0;
@@ -1084,7 +1101,8 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         default:
             TBOX_ERROR("INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
                        << "  unsupported projection method type: "
-                       << enum_to_string<ProjectionMethodType>(d_projection_method_type) << " \n"
+                       << enum_to_string<ProjectionMethodType>(d_projection_method_type)
+                       << " \n"
                        << "  valid choices are: PRESSURE_INCREMENT, PRESSURE_UPDATE\n");
         }
     }
@@ -1406,10 +1424,11 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     return;
 } // integrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                     const double new_time,
-                                                                     const bool skip_synchronize_new_state_data,
-                                                                     const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                const double new_time,
+                                                                const bool skip_synchronize_new_state_data,
+                                                                const int num_cycles)
 {
     INSHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -1471,9 +1490,12 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
 
     // Deallocate scratch data.
     d_U_rhs_vec->deallocateVectorData();
-    d_U_adv_vec->deallocateVectorData();
-    d_N_vec->deallocateVectorData();
     d_Phi_rhs_vec->deallocateVectorData();
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->deallocateVectorData();
+        d_N_vec->deallocateVectorData();
+    }
 
     // Deallocate any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1489,7 +1511,8 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
     return;
 } // postprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::regridHierarchy()
+void
+INSCollocatedHierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
@@ -1507,8 +1530,10 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "." << std::endl);
+                                 << "  unrecognized regrid mode: "
+                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "."
+                                 << std::endl);
     }
 
     // Project the interpolated velocity.
@@ -1521,7 +1546,8 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
+void
+INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1614,7 +1640,8 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     return;
 } // initializeLevelDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1765,7 +1792,8 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
     return;
 } // applyGradientDetectorSpecialized
 
-void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
+void
+INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1809,7 +1837,8 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::regridProjection()
+void
+INSCollocatedHierarchyIntegrator::regridProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1940,7 +1969,8 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     return;
 } // regridProjection
 
-double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+double
+INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -1983,7 +2013,8 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> >
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
+void
+INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2116,7 +2147,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "velocity subdomain solver" << std::endl;
+                                         "velocity subdomain solver"
+                     << std::endl;
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(true);
@@ -2138,7 +2170,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
-                                         "pressure subdomain solver" << std::endl;
+                                         "pressure subdomain solver"
+                     << std::endl;
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(true);
@@ -2151,7 +2184,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     return;
 } // reinitializeOperatorsAndSolvers
 
-void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
+void
+INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2293,11 +2327,12 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
                     F_data->getPointer());
                 break;
             default:
-                TBOX_ERROR("INSCollocatedHierarchyIntegrator::computeDivSourceTerm():\n"
-                           << "  unsupported differencing form: "
-                           << enum_to_string<ConvectiveDifferencingType>(
-                                  d_convective_op->getConvectiveDifferencingType()) << " \n"
-                           << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                TBOX_ERROR(
+                    "INSCollocatedHierarchyIntegrator::computeDivSourceTerm():\n"
+                    << "  unsupported differencing form: "
+                    << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
+                    << " \n"
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }
     }

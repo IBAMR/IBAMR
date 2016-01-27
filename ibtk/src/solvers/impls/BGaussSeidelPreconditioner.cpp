@@ -94,8 +94,9 @@ BGaussSeidelPreconditioner::~BGaussSeidelPreconditioner()
     return;
 } // ~BGaussSeidelPreconditioner()
 
-void BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
-                                                            const unsigned int component)
+void
+BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
+                                                       const unsigned int component)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
@@ -104,8 +105,9 @@ void BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver
     return;
 } // setComponentPreconditioner
 
-void BGaussSeidelPreconditioner::setComponentOperators(const std::vector<Pointer<LinearOperator> >& linear_ops,
-                                                       const unsigned int component)
+void
+BGaussSeidelPreconditioner::setComponentOperators(const std::vector<Pointer<LinearOperator> >& linear_ops,
+                                                  const unsigned int component)
 {
 #if !defined(NDEBUG)
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
@@ -117,19 +119,22 @@ void BGaussSeidelPreconditioner::setComponentOperators(const std::vector<Pointer
     return;
 } // setComponentOperators
 
-void BGaussSeidelPreconditioner::setSymmetricPreconditioner(const bool symmetric_preconditioner)
+void
+BGaussSeidelPreconditioner::setSymmetricPreconditioner(const bool symmetric_preconditioner)
 {
     d_symmetric_preconditioner = symmetric_preconditioner;
     return;
 } // setSymmetricPreconditioner
 
-void BGaussSeidelPreconditioner::setReversedOrder(const bool reverse_order)
+void
+BGaussSeidelPreconditioner::setReversedOrder(const bool reverse_order)
 {
     d_reverse_order = reverse_order;
     return;
 } // setReversedOrder
 
-bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -158,13 +163,6 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, 
         getComponentVectors(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > b_comps =
         getComponentVectors(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-
-    // Clone the right-hand-side vector to avoid modifying it during the
-    // preconditioning operation.
-    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
-    f->allocateVectorData();
-    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
 
     // Setup the order in which the component preconditioner are to be applied.
     const int ncomps = x.getNumberOfComponents();
@@ -200,6 +198,13 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, 
             }
         }
     }
+
+    // Clone the right-hand-side vector to avoid modifying it during the
+    // preconditioning operation.
+    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
+    f->allocateVectorData();
+    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
 
     // Apply the component preconditioners.
     int count = 0;
@@ -241,8 +246,9 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, 
     return ret_val;
 } // solveSystem
 
-void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                       const SAMRAIVectorReal<NDIM, double>& b)
+void
+BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                  const SAMRAIVectorReal<NDIM, double>& b)
 {
 #if !defined(NDEBUG)
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
@@ -278,7 +284,8 @@ void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<ND
     return;
 } // initializeSolverState
 
-void BGaussSeidelPreconditioner::deallocateSolverState()
+void
+BGaussSeidelPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -307,7 +314,8 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
-void BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+void
+BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
@@ -319,7 +327,8 @@ void BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonze
     return;
 } // setInitialGuessNonzero
 
-void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
+void
+BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations > 1)
     {
@@ -331,13 +340,15 @@ void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
     return;
 } // setMaxIterations
 
-int BGaussSeidelPreconditioner::getNumIterations() const
+int
+BGaussSeidelPreconditioner::getNumIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl););
     return 0;
 } // getNumIterations
 
-double BGaussSeidelPreconditioner::getResidualNorm() const
+double
+BGaussSeidelPreconditioner::getResidualNorm() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;

@@ -44,8 +44,15 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
-    : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
-      d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
+    : CartGridFunction(object_name),
+      d_object_name(object_name),
+      d_grid_geom(grid_geom),
+      d_X(),
+      d_init_type("GAUSSIAN"),
+      d_gaussian_kappa(0.01),
+      d_zalesak_r(0.15),
+      d_zalesak_slot_w(0.025),
+      d_zalesak_slot_l(0.1)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -86,12 +93,13 @@ QInit::~QInit()
     return;
 } // ~QInit
 
-void QInit::setDataOnPatch(const int data_idx,
-                           Pointer<Variable<NDIM> > /*var*/,
-                           Pointer<Patch<NDIM> > patch,
-                           const double data_time,
-                           const bool /*initial_time*/,
-                           Pointer<PatchLevel<NDIM> > /*level*/)
+void
+QInit::setDataOnPatch(const int data_idx,
+                      Pointer<Variable<NDIM> > /*var*/,
+                      Pointer<Patch<NDIM> > patch,
+                      const double data_time,
+                      const bool /*initial_time*/,
+                      Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -166,7 +174,9 @@ void QInit::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
-                                 << "  invalid initialization type " << d_init_type << "\n");
+                                 << "  invalid initialization type "
+                                 << d_init_type
+                                 << "\n");
     }
     return;
 } // setDataOnPatch
@@ -175,7 +185,8 @@ void QInit::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void QInit::getFromInput(Pointer<Database> db)
+void
+QInit::getFromInput(Pointer<Database> db)
 {
     if (db)
     {
@@ -199,7 +210,9 @@ void QInit::getFromInput(Pointer<Database> db)
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                                     << "  invalid initialization type " << d_init_type << "\n");
+                                     << "  invalid initialization type "
+                                     << d_init_type
+                                     << "\n");
         }
     }
     return;

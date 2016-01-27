@@ -44,7 +44,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
+inline typename LSetData<T>::DataIterator
+LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
 {
     typename LSetData<T>::DataIterator it;
     it.d_box = box * this->getGhostBox();
@@ -78,7 +79,8 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
 } // data_begin
 
 template <class T>
-inline typename LSetData<T>::DataIterator LSetData<T>::data_end()
+inline typename LSetData<T>::DataIterator
+LSetData<T>::data_end()
 {
     typename LSetData<T>::DataIterator it;
     it.d_node_set = NULL;

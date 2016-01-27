@@ -46,7 +46,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool IBBeamForceSpec::getIsRegisteredWithStreamableManager()
+inline bool
+IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 } // getIsRegisteredWithStreamableManager
@@ -71,7 +72,9 @@ inline IBBeamForceSpec::IBBeamForceSpec(const int master_idx,
                                         const std::vector<NeighborIdxs>& neighbor_idxs,
                                         const std::vector<double>& bend_rigidities,
                                         const std::vector<IBTK::Vector>& mesh_dependent_curvatures)
-    : d_master_idx(master_idx), d_neighbor_idxs(neighbor_idxs), d_bend_rigidities(bend_rigidities),
+    : d_master_idx(master_idx),
+      d_neighbor_idxs(neighbor_idxs),
+      d_bend_rigidities(bend_rigidities),
       d_mesh_dependent_curvatures(mesh_dependent_curvatures)
 {
 #if !defined(NDEBUG)
@@ -94,7 +97,8 @@ inline IBBeamForceSpec::~IBBeamForceSpec()
     return;
 } // ~IBBeamForceSpec
 
-inline unsigned int IBBeamForceSpec::getNumberOfBeams() const
+inline unsigned int
+IBBeamForceSpec::getNumberOfBeams() const
 {
     const unsigned int num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
 #if !defined(NDEBUG)
@@ -104,59 +108,70 @@ inline unsigned int IBBeamForceSpec::getNumberOfBeams() const
     return num_beams;
 } // getNumberOfBeams
 
-inline const int& IBBeamForceSpec::getMasterNodeIndex() const
+inline const int&
+IBBeamForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline int& IBBeamForceSpec::getMasterNodeIndex()
+inline int&
+IBBeamForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 } // getMasterNodeIndex
 
-inline const std::vector<IBBeamForceSpec::NeighborIdxs>& IBBeamForceSpec::getNeighborNodeIndices() const
+inline const std::vector<IBBeamForceSpec::NeighborIdxs>&
+IBBeamForceSpec::getNeighborNodeIndices() const
 {
     return d_neighbor_idxs;
 } // getNeighborNodeIndices
 
-inline std::vector<IBBeamForceSpec::NeighborIdxs>& IBBeamForceSpec::getNeighborNodeIndices()
+inline std::vector<IBBeamForceSpec::NeighborIdxs>&
+IBBeamForceSpec::getNeighborNodeIndices()
 {
     return d_neighbor_idxs;
 } // getNeighborNodeIndices
 
-inline const std::vector<double>& IBBeamForceSpec::getBendingRigidities() const
+inline const std::vector<double>&
+IBBeamForceSpec::getBendingRigidities() const
 {
     return d_bend_rigidities;
 } // getBendingRigidities
 
-inline std::vector<double>& IBBeamForceSpec::getBendingRigidities()
+inline std::vector<double>&
+IBBeamForceSpec::getBendingRigidities()
 {
     return d_bend_rigidities;
 } // getBendingRigidities
 
-inline const std::vector<IBTK::Vector>& IBBeamForceSpec::getMeshDependentCurvatures() const
+inline const std::vector<IBTK::Vector>&
+IBBeamForceSpec::getMeshDependentCurvatures() const
 {
     return d_mesh_dependent_curvatures;
 } // getMeshDependentCurvatures
 
-inline std::vector<IBTK::Vector>& IBBeamForceSpec::getMeshDependentCurvatures()
+inline std::vector<IBTK::Vector>&
+IBBeamForceSpec::getMeshDependentCurvatures()
 {
     return d_mesh_dependent_curvatures;
 } // getMeshDependentCurvatures
 
-inline int IBBeamForceSpec::getStreamableClassID() const
+inline int
+IBBeamForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-inline size_t IBBeamForceSpec::getDataStreamSize() const
+inline size_t
+IBBeamForceSpec::getDataStreamSize() const
 {
     const size_t num_beams = d_neighbor_idxs.size();
     return ((2 + 2 * num_beams) * SAMRAI::tbox::AbstractStream::sizeofInt() +
             ((1 + NDIM) * num_beams) * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 
-inline void IBBeamForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void
+IBBeamForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
 #if !defined(NDEBUG)

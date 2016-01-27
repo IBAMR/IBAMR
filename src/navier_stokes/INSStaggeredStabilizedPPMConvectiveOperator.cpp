@@ -465,7 +465,8 @@ namespace
 // Kamm).
 static const int GADVECTG = 4;
 
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
@@ -484,16 +485,24 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_width(array_constant<double, 2 * NDIM>(0.0)), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_width(array_constant<double, 2 * NDIM>(0.0)),
+      d_bc_coefs(bc_coefs),
+      d_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR(
             "INSStaggeredStabilizedPPMConvectiveOperator::"
             "INSStaggeredStabilizedPPMConvectiveOperator():\n"
-            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << "  unsupported differencing form: "
+            << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
             << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
@@ -550,7 +559,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::~INSStaggeredStabilizedPPMConvectiv
     return;
 } // ~INSStaggeredStabilizedPPMConvectiveOperator
 
-void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -561,6 +571,13 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
+
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_U_scratch_idx);
+    }
 
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
@@ -862,7 +879,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             "INSStaggeredStabilizedConvectiveOperator::"
                             "applyConvectiveOperator():\n"
                             << "  unsupported differencing form: "
-                            << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                            << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                            << " \n"
                             << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
                                "SKEW_SYMMETRIC\n");
                     }
@@ -1161,7 +1179,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                         "INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator("
                         "):\n"
                         << "  unsupported differencing form: "
-                        << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                        << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                        << " \n"
                         << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
                 }
             }
@@ -1210,12 +1229,20 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
         }
     }
 
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_U_scratch_idx);
+    }
+
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 } // applyConvectiveOperator
 
-void INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                          const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                                     const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -1253,36 +1280,18 @@ void INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const 
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx))
-        {
-            level->allocatePatchData(d_U_scratch_idx);
-        }
-    }
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 } // initializeOperatorState
 
-void INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
+void
+INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
     IBAMR_TIMER_START(t_deallocate_operator_state);
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx))
-        {
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
-    }
 
     // Deallocate the communications operators and BC helpers.
     d_hier_bdry_fill.setNull();

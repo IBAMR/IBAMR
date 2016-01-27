@@ -65,15 +65,16 @@ namespace ModelData
 {
 // Tether (penalty) force function for the solid blocks.
 static double block_kappa_s = 1.0e6;
-void block_tether_force_function(VectorValue<double>& F,
-                                 const TensorValue<double>& /*FF*/,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 Elem* const /*elem*/,
-                                 const vector<const vector<double>*>& /*var_data*/,
-                                 const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                                 double /*time*/,
-                                 void* /*ctx*/)
+void
+block_tether_force_function(VectorValue<double>& F,
+                            const TensorValue<double>& /*FF*/,
+                            const libMesh::Point& X,
+                            const libMesh::Point& s,
+                            Elem* const /*elem*/,
+                            const vector<const vector<double>*>& /*var_data*/,
+                            const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                            double /*time*/,
+                            void* /*ctx*/)
 {
     F = block_kappa_s * (s - X);
     return;
@@ -81,16 +82,17 @@ void block_tether_force_function(VectorValue<double>& F,
 
 // Tether (penalty) force function for the thin beam.
 static double beam_kappa_s = 1.0e6;
-void beam_tether_force_function(VectorValue<double>& F,
-                                const TensorValue<double>& /*FF*/,
-                                const libMesh::Point& X,
-                                const libMesh::Point& s,
-                                Elem* const /*elem*/,
-                                const unsigned short int side,
-                                const vector<const vector<double>*>& /*var_data*/,
-                                const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                                double /*time*/,
-                                void* /*ctx*/)
+void
+beam_tether_force_function(VectorValue<double>& F,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& X,
+                           const libMesh::Point& s,
+                           Elem* const /*elem*/,
+                           const unsigned short int side,
+                           const vector<const vector<double>*>& /*var_data*/,
+                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                           double /*time*/,
+                           void* /*ctx*/)
 {
     if (side == 1 || side == 3)
     {
@@ -105,15 +107,16 @@ void beam_tether_force_function(VectorValue<double>& F,
 
 // Stress tensor functions for the thin beam.
 static double mu_s, beta_s;
-void beam_PK1_dev_stress_function(TensorValue<double>& PP,
-                                  const TensorValue<double>& FF,
-                                  const libMesh::Point& /*X*/,
-                                  const libMesh::Point& /*s*/,
-                                  Elem* const /*elem*/,
-                                  const vector<const vector<double>*>& /*var_data*/,
-                                  const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                                  double /*time*/,
-                                  void* /*ctx*/)
+void
+beam_PK1_dev_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const vector<const vector<double>*>& /*var_data*/,
+                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     PP = mu_s * (FF - FF_inv_trans);
@@ -121,15 +124,16 @@ void beam_PK1_dev_stress_function(TensorValue<double>& PP,
 } // beam_PK1_dev_stress_function
 
 double J_dil_min, J_dil_max;
-void beam_PK1_dil_stress_function(TensorValue<double>& PP,
-                                  const TensorValue<double>& FF,
-                                  const libMesh::Point& /*X*/,
-                                  const libMesh::Point& /*s*/,
-                                  Elem* const /*elem*/,
-                                  const vector<const vector<double>*>& /*var_data*/,
-                                  const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                                  double /*time*/,
-                                  void* /*ctx*/)
+void
+beam_PK1_dil_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const vector<const vector<double>*>& /*var_data*/,
+                             const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
     double J = FF.det();
     J_dil_min = std::min(J, J_dil_min);
@@ -152,7 +156,8 @@ struct node_x_comp : std::binary_function<const libMesh::Node*, const libMesh::N
 };
 
 template <class node_set>
-double compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
+double
+compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -196,7 +201,8 @@ double compute_deformed_length(node_set& nodes, EquationSystems* equation_system
 }
 
 template <class node_set>
-double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems)
+double
+compute_displaced_area(node_set& nodes, EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -232,7 +238,8 @@ double compute_displaced_area(node_set& nodes, EquationSystems* equation_systems
     return 0.5 * abs(A2);
 }
 
-double compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_idx, const int wgt_sc_idx)
+double
+compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_idx, const int wgt_sc_idx)
 {
     double Q_in = 0.0;
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -292,7 +299,8 @@ double compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const
     return Q_in;
 }
 
-inline double cheby(double t, double a, double b)
+inline double
+cheby(double t, double a, double b)
 {
     return 0.5 * (a + b) + 0.5 * (a - b) * cos(t * M_PI);
 }
@@ -310,7 +318,8 @@ using namespace ModelData;
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -350,11 +359,23 @@ int main(int argc, char* argv[])
         string block_elem_type = input_db->getStringWithDefault("BLOCK_ELEM_TYPE", "QUAD9");
         string beam_elem_type = input_db->getStringWithDefault("BEAM_ELEM_TYPE", "QUAD9");
 
-        Mesh block1_mesh(NDIM);
-        MeshTools::Generation::build_square(block1_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 0.0, 0.5, 0.0, 0.5,
+        Mesh block1_mesh(init.comm(), NDIM);
+        MeshTools::Generation::build_square(block1_mesh,
+                                            ceil(0.5 / ds_block),
+                                            ceil(0.5 / ds_block),
+                                            0.0,
+                                            0.5,
+                                            0.0,
+                                            0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
-        Mesh block2_mesh(NDIM);
-        MeshTools::Generation::build_square(block2_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 1.5, 2.0, 0.0, 0.5,
+        Mesh block2_mesh(init.comm(), NDIM);
+        MeshTools::Generation::build_square(block2_mesh,
+                                            ceil(0.5 / ds_block),
+                                            ceil(0.5 / ds_block),
+                                            1.5,
+                                            2.0,
+                                            0.0,
+                                            0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
 
         // We use Chebyshev points for the beam discretization in order to
@@ -377,9 +398,9 @@ int main(int argc, char* argv[])
         const double beam_y_lower = 0.5 - 0.016;
         const double beam_y_upper = 0.5;
         int n_beam_y = max(static_cast<int>(ceil(beam_y_upper - beam_y_lower / ds_beam)), 4);
-        Mesh beam_mesh(NDIM);
-        MeshTools::Generation::build_square(beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower,
-                                            beam_y_upper, QUAD4);
+        Mesh beam_mesh(init.comm(), NDIM);
+        MeshTools::Generation::build_square(
+            beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower, beam_y_upper, QUAD4);
         if (beam_use_mapped_grid)
         {
             set<double> x;
@@ -441,23 +462,31 @@ int main(int argc, char* argv[])
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes,
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
@@ -565,12 +594,12 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                block1_exodus_io->write_timestep(block1_exodus_filename, *block1_equation_systems,
-                                                 iteration_num / viz_dump_interval + 1, loop_time);
-                block2_exodus_io->write_timestep(block2_exodus_filename, *block2_equation_systems,
-                                                 iteration_num / viz_dump_interval + 1, loop_time);
-                beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
-                                               iteration_num / viz_dump_interval + 1, loop_time);
+                block1_exodus_io->write_timestep(
+                    block1_exodus_filename, *block1_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                block2_exodus_io->write_timestep(
+                    block2_exodus_filename, *block2_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                beam_exodus_io->write_timestep(
+                    beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -654,12 +683,16 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    block1_exodus_io->write_timestep(block1_exodus_filename, *block1_equation_systems,
-                                                     iteration_num / viz_dump_interval + 1, loop_time);
-                    block2_exodus_io->write_timestep(block2_exodus_filename, *block2_equation_systems,
-                                                     iteration_num / viz_dump_interval + 1, loop_time);
-                    beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
-                                                   iteration_num / viz_dump_interval + 1, loop_time);
+                    block1_exodus_io->write_timestep(block1_exodus_filename,
+                                                     *block1_equation_systems,
+                                                     iteration_num / viz_dump_interval + 1,
+                                                     loop_time);
+                    block2_exodus_io->write_timestep(block2_exodus_filename,
+                                                     *block2_equation_systems,
+                                                     iteration_num / viz_dump_interval + 1,
+                                                     loop_time);
+                    beam_exodus_io->write_timestep(
+                        beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

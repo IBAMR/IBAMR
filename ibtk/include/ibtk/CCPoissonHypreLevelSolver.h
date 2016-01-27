@@ -39,12 +39,12 @@
 #include <vector>
 
 #include "Box.h"
+#include "CoarseFineBoundary.h"
 #include "HYPRE_struct_ls.h"
 #include "HYPRE_struct_mv.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "_hypre_struct_mv.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
@@ -289,27 +289,13 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src_data,
+                     const SAMRAI::pdat::CellData<NDIM, double>& src_data,
                      const SAMRAI::hier::Box<NDIM>& box);
-    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst_data,
+    void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
                        const std::vector<HYPRE_StructVector>& vectors,
                        const SAMRAI::hier::Box<NDIM>& box);
     void destroyHypreSolver();
     void deallocateHypreData();
-
-#if 0
-    /*!
-     * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
-     * the case of non-grid-aligned anisotropic problems.
-     */
-    void
-    adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time);
-#endif
 
     /*!
      * \brief Associated hierarchy.
@@ -317,11 +303,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     /*!
-     * \brief Associated level number.
-     *
-     * Currently, this must be level number 0.
+     * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name Problem specification.

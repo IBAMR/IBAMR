@@ -100,8 +100,17 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL), d_transaction_comps(),
-      d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL), d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
+    : LaplaceOperator(object_name, homogeneous_bc),
+      d_ncomp(0),
+      d_fill_pattern(NULL),
+      d_transaction_comps(),
+      d_hier_bdry_fill(NULL),
+      d_no_fill(NULL),
+      d_x(NULL),
+      d_b(NULL),
+      d_hierarchy(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1)
 {
     // Setup the operator to use default vector-valued boundary conditions.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
@@ -121,7 +130,8 @@ SCLaplaceOperator::~SCLaplaceOperator()
     return;
 } // ~SCLaplaceOperator()
 
-void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -135,7 +145,8 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  encountered non-side centered vector components" << std::endl);
+                                     << "  encountered non-side centered vector components"
+                                     << std::endl);
         }
         Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
         Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
@@ -147,13 +158,14 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
         if (x_depth != 1 || y_depth != 1)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  each vector component must have data depth == 1" << std::endl);
+                                     << "  each vector component must have data depth == 1"
+                                     << std::endl);
         }
     }
 #endif
 
     // Allocate scratch data.
-    if (d_x) d_x->allocateVectorData();
+    d_x->allocateVectorData();
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -189,14 +201,15 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     }
 
     // Deallocate scratch data.
-    if (d_x) d_x->deallocateVectorData();
+    d_x->deallocateVectorData();
 
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
 
-void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                const SAMRAIVectorReal<NDIM, double>& out)
+void
+SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                           const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -274,7 +287,8 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     return;
 } // initializeOperatorState
 
-void SCLaplaceOperator::deallocateOperatorState()
+void
+SCLaplaceOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

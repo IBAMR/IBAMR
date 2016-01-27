@@ -85,7 +85,8 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
     return;
 } // ~INSProjectionBcCoef
 
-void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void
+INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -94,19 +95,22 @@ void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrate
     return;
 } // setPhysicalBcCoefs
 
-void INSProjectionBcCoef::setSolutionTime(double solution_time)
+void
+INSProjectionBcCoef::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
 } // setSolutionTime
 
-void INSProjectionBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
+void
+INSProjectionBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
 {
     // intentionally blank
     return;
 } // setTimeInterval
 
-void INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
+void
+INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
 {
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -117,7 +121,8 @@ void INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
     return;
 } // setTargetPatchDataIndex
 
-void INSProjectionBcCoef::clearTargetPatchDataIndex()
+void
+INSProjectionBcCoef::clearTargetPatchDataIndex()
 {
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -128,7 +133,8 @@ void INSProjectionBcCoef::clearTargetPatchDataIndex()
     return;
 } // clearTargetPatchDataIndex
 
-void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
+void
+INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -139,13 +145,14 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                     Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                     Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                     const Pointer<Variable<NDIM> >& variable,
-                                     const Patch<NDIM>& patch,
-                                     const BoundaryBox<NDIM>& bdry_box,
-                                     double /*fill_time*/) const
+void
+INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+                                Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                const Pointer<Variable<NDIM> >& variable,
+                                const Patch<NDIM>& patch,
+                                const BoundaryBox<NDIM>& bdry_box,
+                                double /*fill_time*/) const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -206,7 +213,8 @@ void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_da
     return;
 } // setBcCoefs
 
-IntVector<NDIM> INSProjectionBcCoef::numberOfExtensionsFillable() const
+IntVector<NDIM>
+INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)

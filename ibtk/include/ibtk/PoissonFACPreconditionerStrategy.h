@@ -305,16 +305,6 @@ public:
      */
     void deallocateOperatorState();
 
-    /*!
-     * \brief Allocate scratch data.
-     */
-    void allocateScratchData();
-
-    /*!
-     * \brief Deallocate scratch data.
-     */
-    void deallocateScratchData();
-
     //\}
 
 protected:

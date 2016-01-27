@@ -125,8 +125,11 @@ public:
                    double point_density,
                    bool use_consistent_mass_matrix,
                    bool use_one_sided_interaction)
-            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix),
               use_one_sided_interaction(use_one_sided_interaction)
         {
@@ -158,8 +161,11 @@ public:
                    bool use_adaptive_quadrature,
                    double point_density,
                    const bool use_one_sided_interaction)
-            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density),
               use_one_sided_interaction(use_one_sided_interaction)
         {
         }

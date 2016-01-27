@@ -97,16 +97,22 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
-    : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
+    : LinearOperator(object_name, homogeneous_bc),
+      d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
-      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
-      d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
+      d_P_bc_coef(d_default_P_bc_coef),
+      d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
+      d_U_fill_pattern(NULL),
+      d_P_fill_pattern(NULL),
+      d_transaction_comps(),
       d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
-      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)), d_x(NULL), d_b(NULL)
+      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
+      d_x(NULL),
+      d_b(NULL)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
@@ -145,19 +151,22 @@ StaggeredStokesOperator::~StaggeredStokesOperator()
     return;
 } // ~StaggeredStokesOperator
 
-void StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+void
+StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
 
-const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecifications() const
+const PoissonSpecifications&
+StaggeredStokesOperator::getVelocityPoissonSpecifications() const
 {
     return d_U_problem_coefs;
 } // getVelocityPoissonSpecifications
 
-void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                 RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void
+StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                            RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -185,7 +194,8 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
@@ -194,9 +204,13 @@ void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesP
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void
+StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBAMR_TIMER_START(t_apply);
+
+    // Allocate scratch data.
+    d_x->allocateVectorData();
 
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
@@ -236,7 +250,6 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVec
         d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
-    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
@@ -270,12 +283,16 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVec
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
+
     IBAMR_TIMER_STOP(t_apply);
     return;
 } // apply
 
-void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                      const SAMRAIVectorReal<NDIM, double>& out)
+void
+StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                 const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -285,7 +302,6 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDI
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
-    d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
@@ -336,7 +352,8 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDI
     return;
 } // initializeOperatorState
 
-void StaggeredStokesOperator::deallocateOperatorState()
+void
+StaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -370,6 +387,50 @@ void StaggeredStokesOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+void
+StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+{
+    if (!d_homogeneous_bc)
+    {
+        // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+        // inhomogeneous boundary conditions.
+        Pointer<SAMRAIVectorReal<NDIM, double> > x = y.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double> > b = y.cloneVector("");
+        x->allocateVectorData();
+        b->allocateVectorData();
+        x->setToScalar(0.0);
+        const int U_idx = x->getComponentDescriptorIndex(0);
+        const int P_idx = x->getComponentDescriptorIndex(1);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+            d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
+        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+        apply(*x, *b);
+        y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
+        x->freeVectorComponents();
+        b->freeVectorComponents();
+    }
+    const bool homogeneous_bc = true;
+    const int U_idx = y.getComponentDescriptorIndex(0);
+    const int P_idx = y.getComponentDescriptorIndex(1);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, homogeneous_bc);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+    return;
+} // modifyRhsForBcs
+
+void
+StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
+{
+    const int U_idx = u.getComponentDescriptorIndex(0);
+    const int P_idx = u.getComponentDescriptorIndex(1);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+    return;
+} // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

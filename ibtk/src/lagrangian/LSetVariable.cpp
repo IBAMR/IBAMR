@@ -73,13 +73,15 @@ LSetVariable<T>::~LSetVariable()
 } // ~LSetVariable
 
 template <class T>
-bool LSetVariable<T>::dataLivesOnPatchBorder() const
+bool
+LSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
 } // dataLivesOnPatchBorder
 
 template <class T>
-bool LSetVariable<T>::fineBoundaryRepresentsVariable() const
+bool
+LSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
 } // fineBoundaryRepresentsVariable

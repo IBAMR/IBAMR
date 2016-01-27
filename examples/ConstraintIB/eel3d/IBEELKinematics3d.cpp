@@ -49,10 +49,8 @@
 
 namespace IBAMR
 {
-
 namespace
 {
-
 static const double PII = 3.1415926535897932384626433832795;
 
 // Set Fish Related Parameters.
@@ -71,7 +69,8 @@ static const double MINOR_AXIS = 0.08 * LENGTH_FISH;
 // d/dt[x(s,t)] = integral_0^s { d/dt[cos(alpha(s,t))] ds }
 // d/dt[y(s,t)] = integral_0^s { d/dt[sin(alpha(s,t))] ds }
 
-double yVelocity(double s, void* params)
+double
+yVelocity(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -111,7 +110,8 @@ double yVelocity(double s, void* params)
 
 } // yVelocity
 
-double xVelocity(double s, void* params)
+double
+xVelocity(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -152,7 +152,8 @@ double xVelocity(double s, void* params)
 
 } // xVelocity
 
-double xPosition(double s, void* params)
+double
+xPosition(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -176,7 +177,8 @@ double xPosition(double s, void* params)
 
 } // xposition
 
-double yPosition(double s, void* params)
+double
+yPosition(double s, void* params)
 {
     double* input = static_cast<double*>(params);
     double a0 = input[0];
@@ -207,9 +209,15 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
                                      LDataManager* l_data_manager,
                                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                      bool register_for_restart)
-    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_mesh_width(NDIM),
-      d_current_time(0.0), d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3),
-      d_incremented_angle_from_reference_axis(3), d_tagged_pt_position(3), d_interp_coefs()
+    : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
+      d_mesh_width(NDIM),
+      d_current_time(0.0),
+      d_kinematics_vel(NDIM),
+      d_shape(NDIM),
+      d_center_of_mass(3),
+      d_incremented_angle_from_reference_axis(3),
+      d_tagged_pt_position(3),
+      d_interp_coefs()
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -229,8 +237,8 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
 
         // Set the new state equal to current state.
         d_new_time = d_current_time;
-        setEelSpecificVelocity(d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass,
-                               d_tagged_pt_position);
+        setEelSpecificVelocity(
+            d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
         setShape(d_current_time, d_incremented_angle_from_reference_axis);
     }
 
@@ -240,14 +248,13 @@ IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
 
 IBEELKinematics3d::~IBEELKinematics3d()
 {
-
     return;
 
 } // ~IBEELKinematics3d
 
-void IBEELKinematics3d::putToDatabase(Pointer<Database> db)
+void
+IBEELKinematics3d::putToDatabase(Pointer<Database> db)
 {
-
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
     db->putDoubleArray("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
@@ -257,9 +264,9 @@ void IBEELKinematics3d::putToDatabase(Pointer<Database> db)
 
 } // putToDatabase
 
-void IBEELKinematics3d::getFromRestart()
+void
+IBEELKinematics3d::getFromRestart()
 {
-
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
@@ -269,7 +276,8 @@ void IBEELKinematics3d::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");
@@ -281,7 +289,8 @@ void IBEELKinematics3d::getFromRestart()
 
 } // getFromRestart
 
-void IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+void
+IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
@@ -341,10 +350,11 @@ void IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > pat
 
 } // setImmersedBodyLayout
 
-void IBEELKinematics3d::setEelSpecificVelocity(const double time,
-                                               const std::vector<double>& incremented_angle_from_reference_axis,
-                                               const std::vector<double>& /*center_of_mass*/,
-                                               const std::vector<double>& /*tagged_pt_position*/)
+void
+IBEELKinematics3d::setEelSpecificVelocity(const double time,
+                                          const std::vector<double>& incremented_angle_from_reference_axis,
+                                          const std::vector<double>& /*center_of_mass*/,
+                                          const std::vector<double>& /*tagged_pt_position*/)
 {
     const double angleFromHorizontal = d_initAngle_bodyAxis_x + incremented_angle_from_reference_axis[2];
     std::vector<double> vec_vel(NDIM, 0.0);
@@ -409,10 +419,11 @@ void IBEELKinematics3d::setEelSpecificVelocity(const double time,
 
 } // setEelSpecificvelocity
 
-void IBEELKinematics3d::setKinematicsVelocity(const double new_time,
-                                              const std::vector<double>& incremented_angle_from_reference_axis,
-                                              const std::vector<double>& center_of_mass,
-                                              const std::vector<double>& tagged_pt_position)
+void
+IBEELKinematics3d::setKinematicsVelocity(const double new_time,
+                                         const std::vector<double>& incremented_angle_from_reference_axis,
+                                         const std::vector<double>& center_of_mass,
+                                         const std::vector<double>& tagged_pt_position)
 {
     d_new_time = new_time;
     d_incremented_angle_from_reference_axis = incremented_angle_from_reference_axis;
@@ -425,13 +436,15 @@ void IBEELKinematics3d::setKinematicsVelocity(const double new_time,
 
 } // setKinematicsVelocity
 
-const std::vector<std::vector<double> >& IBEELKinematics3d::getKinematicsVelocity(const int /*level*/) const
+const std::vector<std::vector<double> >&
+IBEELKinematics3d::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
 
 } // getNewKinematicsVelocity
 
-void IBEELKinematics3d::setShape(const double time, const std::vector<double>& incremented_angle_from_reference_axis)
+void
+IBEELKinematics3d::setShape(const double time, const std::vector<double>& incremented_angle_from_reference_axis)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const std::string position_update_method = struct_param.getPositionUpdateMethod();
@@ -548,7 +561,8 @@ void IBEELKinematics3d::setShape(const double time, const std::vector<double>& i
 
 } // setShape
 
-const std::vector<std::vector<double> >& IBEELKinematics3d::getShape(const int /*level*/) const
+const std::vector<std::vector<double> >&
+IBEELKinematics3d::getShape(const int /*level*/) const
 {
     return d_shape;
 } // getShape

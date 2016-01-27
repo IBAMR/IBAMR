@@ -86,6 +86,7 @@
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
 #include "boost/array.hpp"
+#include "boost/math/special_functions/round.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -168,11 +169,6 @@ static const int CFL_WIDTH = 2;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
-
-inline int round(double x)
-{
-    return floor(x + 0.5);
-} // round
 }
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
@@ -183,11 +179,12 @@ bool LDataManager::s_registered_callback = false;
 unsigned char LDataManager::s_shutdown_priority = 200;
 std::vector<int> LDataManager::s_ao_dummy(1, -1);
 
-LDataManager* LDataManager::getManager(const std::string& name,
-                                       const std::string& default_interp_kernel_fcn,
-                                       const std::string& default_spread_kernel_fcn,
-                                       const IntVector<NDIM>& min_ghost_width,
-                                       bool register_for_restart)
+LDataManager*
+LDataManager::getManager(const std::string& name,
+                         const std::string& default_interp_kernel_fcn,
+                         const std::string& default_spread_kernel_fcn,
+                         const IntVector<NDIM>& min_ghost_width,
+                         bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
@@ -206,7 +203,8 @@ LDataManager* LDataManager::getManager(const std::string& name,
     return s_data_manager_instances[name];
 } // getManager
 
-void LDataManager::freeAllManagers()
+void
+LDataManager::freeAllManagers()
 {
     for (std::map<std::string, LDataManager*>::iterator it = s_data_manager_instances.begin();
          it != s_data_manager_instances.end();
@@ -223,7 +221,8 @@ void LDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -235,12 +234,14 @@ void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchy<NDIM> > LDataManager::getPatchHierarchy() const
+Pointer<PatchHierarchy<NDIM> >
+LDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
+void
+LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -294,22 +295,24 @@ void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     return;
 } // setPatchLevels
 
-std::pair<int, int> LDataManager::getPatchLevels() const
+std::pair<int, int>
+LDataManager::getPatchLevels() const
 {
     return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
 } // getPatchLevels
 
-void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          Pointer<LData> ds_data,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const bool ds_data_ghost_node_update)
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
 {
     spread(f_data_idx,
            F_data,
@@ -326,18 +329,19 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          Pointer<LData> ds_data,
-                          const std::string& spread_kernel_fcn,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const bool ds_data_ghost_node_update)
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -366,18 +370,19 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          std::vector<Pointer<LData> >& ds_data,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const bool ds_data_ghost_node_update,
-                          const int coarsest_ln,
-                          const int finest_ln)
+void
+LDataManager::spread(const int f_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     std::vector<Pointer<LData> >& ds_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update,
+                     const int coarsest_ln,
+                     const int finest_ln)
 {
     spread(f_data_idx,
            F_data,
@@ -395,19 +400,20 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          std::vector<Pointer<LData> >& ds_data,
-                          const std::string& spread_kernel_fcn,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const bool ds_data_ghost_node_update,
-                          const int coarsest_ln_in,
-                          const int finest_ln_in)
+void
+LDataManager::spread(const int f_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     std::vector<Pointer<LData> >& ds_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
 
@@ -470,15 +476,16 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update)
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
 {
     spread(f_data_idx,
            F_data,
@@ -493,16 +500,17 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          const std::string& spread_kernel_fcn,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update)
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -527,16 +535,17 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const int coarsest_ln,
-                          const int finest_ln)
+void
+LDataManager::spread(const int f_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const int coarsest_ln,
+                     const int finest_ln)
 {
     spread(f_data_idx,
            F_data,
@@ -552,17 +561,18 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          const std::string& spread_kernel_fcn,
-                          RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                          const double fill_data_time,
-                          const bool F_data_ghost_node_update,
-                          const bool X_data_ghost_node_update,
-                          const int coarsest_ln_in,
-                          const int finest_ln_in)
+void
+LDataManager::spread(const int f_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
 
@@ -674,13 +684,14 @@ void LDataManager::spread(const int f_data_idx,
     return;
 } // spread
 
-void LDataManager::interp(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          const int level_num,
-                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
-                          const double fill_data_time)
+void
+LDataManager::interp(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const int level_num,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -702,14 +713,15 @@ void LDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
-void LDataManager::interp(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
-                          const double fill_data_time,
-                          const int coarsest_ln_in,
-                          const int finest_ln_in)
+void
+LDataManager::interp(const int f_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
 {
     IBTK_TIMER_START(t_interp);
 
@@ -818,7 +830,8 @@ void LDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
-void LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
+void
+LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lag_init);
@@ -827,13 +840,15 @@ void LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
     return;
 } // registerLInitStrategy
 
-void LDataManager::freeLInitStrategy()
+void
+LDataManager::freeLInitStrategy()
 {
     d_lag_init.setNull();
     return;
 } // freeLInitStrategy
 
-void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+void
+LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
@@ -850,7 +865,8 @@ void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit
     return;
 } // registerVisItDataWriter
 
-void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void
+LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -859,7 +875,8 @@ void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     return;
 } // registerLSiloDataWriter
 
-void LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_idx)
+void
+LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -875,10 +892,11 @@ void LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balanc
     return;
 } // return
 
-Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
-                                         const int level_number,
-                                         const unsigned int depth,
-                                         const bool maintain_data)
+Pointer<LData>
+LDataManager::createLData(const std::string& quantity_name,
+                          const int level_number,
+                          const unsigned int depth,
+                          const bool maintain_data)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!maintain_data ||
@@ -896,7 +914,8 @@ Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
     return ret_val;
 } // createLData
 
-Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, const int level_number)
+Point
+LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -935,8 +954,8 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
     return X_com;
 } // computeLagrangianStructureCenterOfMass
 
-std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(const int structure_id,
-                                                                            const int level_number)
+std::pair<Point, Point>
+LDataManager::computeLagrangianStructureBoundingBox(const int structure_id, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -972,7 +991,8 @@ std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(cons
     return std::make_pair(X_lower, X_upper);
 } // computeLagrangianStructureBoundingBox
 
-void LDataManager::reinitLagrangianStructure(const Point& X_center, const int structure_id, const int level_number)
+void
+LDataManager::reinitLagrangianStructure(const Point& X_center, const int structure_id, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -1084,7 +1104,8 @@ void LDataManager::reinitLagrangianStructure(const Point& X_center, const int st
     return;
 } // reinitLagrangianStructure
 
-void LDataManager::displaceLagrangianStructure(const Vector& dX, const int structure_id, const int level_number)
+void
+LDataManager::displaceLagrangianStructure(const Vector& dX, const int structure_id, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -1160,7 +1181,8 @@ void LDataManager::displaceLagrangianStructure(const Vector& dX, const int struc
     return;
 } // displaceLagrangianStructure
 
-void LDataManager::activateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
+void
+LDataManager::activateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -1173,7 +1195,8 @@ void LDataManager::activateLagrangianStructures(const std::vector<int>& structur
     return;
 } // activateLagrangianStructures
 
-void LDataManager::inactivateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
+void
+LDataManager::inactivateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -1186,7 +1209,8 @@ void LDataManager::inactivateLagrangianStructures(const std::vector<int>& struct
     return;
 } // inactivateLagrangianStructures
 
-void LDataManager::zeroInactivatedComponents(Pointer<LData> lag_data, const int level_number) const
+void
+LDataManager::zeroInactivatedComponents(Pointer<LData> lag_data, const int level_number) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -1254,7 +1278,8 @@ void LDataManager::zeroInactivatedComponents(Pointer<LData> lag_data, const int 
     return;
 } // zeroInactivatedComponents
 
-void LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_number) const
+void
+LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_number) const
 {
     IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
@@ -1272,7 +1297,8 @@ void LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_
     return;
 } // mapLagrangianToPETSc
 
-void LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_number) const
+void
+LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_number) const
 {
     IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
@@ -1290,19 +1316,22 @@ void LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_
     return;
 } // mapPETScToLagrangian
 
-void LDataManager::scatterLagrangianToPETSc(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number) const
+void
+LDataManager::scatterLagrangianToPETSc(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number) const
 {
     scatterData(petsc_vec, lagrangian_vec, level_number, SCATTER_REVERSE);
     return;
 } // scatterLagrangianToPETSc
 
-void LDataManager::scatterPETScToLagrangian(Vec& petsc_vec, Vec& lagrangian_vec, const int level_number) const
+void
+LDataManager::scatterPETScToLagrangian(Vec& petsc_vec, Vec& lagrangian_vec, const int level_number) const
 {
     scatterData(lagrangian_vec, petsc_vec, level_number, SCATTER_FORWARD);
     return;
 } // scatterPETScToLagrangian
 
-void LDataManager::scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const
+void
+LDataManager::scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const
 {
     int ierr;
     const bool create_vout = !sequential_vec;
@@ -1318,7 +1347,8 @@ void LDataManager::scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const
     return;
 } // scatterToAll
 
-void LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
+void
+LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
 {
     int ierr;
     const bool create_vout = !sequential_vec;
@@ -1334,7 +1364,8 @@ void LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
     return;
 } // scatterToZero
 
-void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_begin_data_redistribution);
 
@@ -1402,7 +1433,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
             IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
-                periodic_offset[d] = round(periodic_displacement[d] / level_dx[d]);
+                periodic_offset[d] = boost::math::round(periodic_displacement[d] / level_dx[d]);
             }
             if (periodic_offset != IntVector<NDIM>(0))
             {
@@ -1429,6 +1460,8 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         boost::multi_array_ref<double, 2>& X_data =
             *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+        const IntVector<NDIM>& ratio = level->getRatio();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1437,11 +1470,6 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
             std::set<int> registered_periodic_idx;
             for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
             {
@@ -1454,8 +1482,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx->getLocalPETScIndex();
                         double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(
-                            X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                        const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
                         if (patch_box.contains(new_cell_idx))
                         {
                             std::map<int, IntVector<NDIM> >::const_iterator it_offset =
@@ -1501,7 +1528,8 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
     return;
 } // beginDataRedistribution
 
-void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_end_data_redistribution);
 
@@ -1519,14 +1547,13 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n"
                          << "\tLData is already synchronized with LNodeSetData.\n"
-                         << "\tlevel = " << level_number << "\n");
+                         << "\tlevel = "
+                         << level_number
+                         << "\n");
         }
     }
 
     // Update parallel data structures to account for any displaced nodes.
-    const double* const dx0 = d_grid_geom->getDx();
-    const double* const domain_x_lower = d_grid_geom->getXLower();
-    const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
@@ -1535,15 +1562,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
         const ProcessorMapping& processor_mapping = level->getProcessorMapping();
-        const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
-        const CellIndex<NDIM>& domain_lower = domain_box.lower();
-        const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
-        boost::array<double, NDIM> dx;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            dx[d] = dx0[d] / static_cast<double>(ratio(d));
-        }
 
         // Determine which processor owns each of the local displaced nodes.
         size_t num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
@@ -1556,8 +1575,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, d_grid_geom, ratio);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
@@ -1630,8 +1648,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, d_grid_geom, ratio);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
@@ -1958,7 +1975,8 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     return;
 } // endDataRedistribution
 
-void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
     if (!d_load_balancer) return;
 
@@ -1980,7 +1998,8 @@ void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int f
     return;
 } // updateWorkloadEstimates
 
-void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_update_node_count_data);
 
@@ -2018,13 +2037,14 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
     return;
 } // updateNodeCountData
 
-void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                       const int level_number,
-                                       const double init_data_time,
-                                       const bool can_be_refined,
-                                       const bool initial_time,
-                                       const Pointer<BasePatchLevel<NDIM> > old_level,
-                                       const bool allocate_data)
+void
+LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                  const int level_number,
+                                  const double init_data_time,
+                                  const bool can_be_refined,
+                                  const bool initial_time,
+                                  const Pointer<BasePatchLevel<NDIM> > old_level,
+                                  const bool allocate_data)
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
@@ -2078,7 +2098,9 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         if (patch_overlaps[k])
         {
             TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                     << "  patch " << k << " overlaps another patch!\n");
+                                     << "  patch "
+                                     << k
+                                     << " overlaps another patch!\n");
         }
     }
 #endif
@@ -2153,8 +2175,12 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_global_nodes    = " << num_global_nodes << "\n"
-                       << "  sum num_local_nodes = " << sum_num_local_nodes << "\n");
+                       << "  num_global_nodes    = "
+                       << num_global_nodes
+                       << "\n"
+                       << "  sum num_local_nodes = "
+                       << sum_num_local_nodes
+                       << "\n");
         }
 
         d_local_lag_indices[level_number].resize(num_local_nodes, -1);
@@ -2224,14 +2250,18 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_local_nodes             = " << num_local_nodes << "\n"
-                       << "  num_initialized_local_nodes = " << num_initialized_local_nodes << "\n");
+                       << "  num_local_nodes             = "
+                       << num_local_nodes
+                       << "\n"
+                       << "  num_initialized_local_nodes = "
+                       << num_initialized_local_nodes
+                       << "\n");
         }
 
         // 4. Compute the initial distribution (indexing) data.
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode *, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2262,8 +2292,12 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
                     {
                         TBOX_ERROR("LDataManager::initializeLevelData()"
                                    << "\n"
-                                   << "  local_idx       = " << local_idx << "\n"
-                                   << "  num_local_nodes = " << num_local_nodes << "\n");
+                                   << "  local_idx       = "
+                                   << local_idx
+                                   << "\n"
+                                   << "  num_local_nodes = "
+                                   << num_local_nodes
+                                   << "\n");
                     }
                     d_local_lag_indices[level_number][local_idx] = lag_idx;
                     d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
@@ -2277,8 +2311,12 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_nodes[level_number] = " << d_num_nodes[level_number] << "\n"
-                       << "  num_initialized_global_nodes = " << num_initialized_global_nodes << "\n");
+                       << "  num_nodes[level_number] = "
+                       << d_num_nodes[level_number]
+                       << "\n"
+                       << "  num_initialized_global_nodes = "
+                       << num_initialized_global_nodes
+                       << "\n");
         }
 
         std::ostringstream name_stream;
@@ -2315,9 +2353,10 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
     return;
 } // initializeLevelData
 
-void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                               const int coarsest_ln,
-                                               const int finest_ln)
+void
+LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                          const int coarsest_ln,
+                                          const int finest_ln)
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
@@ -2374,12 +2413,13 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<
     return;
 } // resetHierarchyConfiguration
 
-void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                         const int level_number,
-                                         const double error_data_time,
-                                         const int tag_index,
-                                         const bool initial_time,
-                                         const bool /*uses_richardson_extrapolation_too*/)
+void
+LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                    const int level_number,
+                                    const double error_data_time,
+                                    const int tag_index,
+                                    const bool initial_time,
+                                    const bool /*uses_richardson_extrapolation_too*/)
 {
     IBTK_TIMER_START(t_apply_gradient_detector);
 
@@ -2399,6 +2439,7 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(level_number + 1);
+        const IntVector<NDIM>& ratio = level->getRatio();
 
         // Zero out the node count data on the current level.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2441,13 +2482,7 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
 
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
 
@@ -2462,10 +2497,10 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
-                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(
-                        bounding_box.first, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(
-                        bounding_box.second, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Point& X_lower = bounding_box.first;
+                    const Point& X_upper = bounding_box.second;
+                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(X_lower, d_grid_geom, ratio);
+                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(X_upper, d_grid_geom, ratio);
                     const Box<NDIM> tag_box(bbox_lower, bbox_upper);
                     tag_data->fillAll(1, tag_box);
                 }
@@ -2481,7 +2516,8 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
     return;
 } // applyGradientDetector
 
-void LDataManager::putToDatabase(Pointer<Database> db)
+void
+LDataManager::putToDatabase(Pointer<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
 
@@ -2598,16 +2634,47 @@ LDataManager::LDataManager(const std::string& object_name,
                            const std::string& default_spread_kernel_fcn,
                            const IntVector<NDIM>& ghost_width,
                            bool register_for_restart)
-    : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_hierarchy(NULL), d_grid_geom(NULL),
-      d_coarsest_ln(-1), d_finest_ln(-1), d_visit_writer(NULL), d_silo_writer(NULL), d_load_balancer(NULL),
-      d_lag_init(NULL), d_level_contains_lag_data(), d_lag_node_index_var(NULL), d_lag_node_index_current_idx(-1),
-      d_lag_node_index_scratch_idx(-1), d_beta_work(1.0), d_workload_var(NULL), d_workload_idx(-1),
-      d_output_workload(false), d_node_count_var(NULL), d_node_count_idx(-1), d_output_node_count(false),
-      d_default_interp_kernel_fcn(default_interp_kernel_fcn), d_default_spread_kernel_fcn(default_spread_kernel_fcn),
-      d_ghost_width(ghost_width), d_lag_node_index_bdry_fill_alg(NULL), d_lag_node_index_bdry_fill_scheds(),
-      d_node_count_coarsen_alg(NULL), d_node_count_coarsen_scheds(), d_current_context(NULL), d_scratch_context(NULL),
-      d_current_data(), d_scratch_data(), d_lag_mesh(), d_lag_mesh_data(), d_needs_synch(true), d_ao(), d_num_nodes(),
-      d_node_offset(), d_local_lag_indices(), d_nonlocal_lag_indices(), d_local_petsc_indices(),
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_hierarchy(NULL),
+      d_grid_geom(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_visit_writer(NULL),
+      d_silo_writer(NULL),
+      d_load_balancer(NULL),
+      d_lag_init(NULL),
+      d_level_contains_lag_data(),
+      d_lag_node_index_var(NULL),
+      d_lag_node_index_current_idx(-1),
+      d_lag_node_index_scratch_idx(-1),
+      d_beta_work(1.0),
+      d_workload_var(NULL),
+      d_workload_idx(-1),
+      d_output_workload(false),
+      d_node_count_var(NULL),
+      d_node_count_idx(-1),
+      d_output_node_count(false),
+      d_default_interp_kernel_fcn(default_interp_kernel_fcn),
+      d_default_spread_kernel_fcn(default_spread_kernel_fcn),
+      d_ghost_width(ghost_width),
+      d_lag_node_index_bdry_fill_alg(NULL),
+      d_lag_node_index_bdry_fill_scheds(),
+      d_node_count_coarsen_alg(NULL),
+      d_node_count_coarsen_scheds(),
+      d_current_context(NULL),
+      d_scratch_context(NULL),
+      d_current_data(),
+      d_scratch_data(),
+      d_lag_mesh(),
+      d_lag_mesh_data(),
+      d_needs_synch(true),
+      d_ao(),
+      d_num_nodes(),
+      d_node_offset(),
+      d_local_lag_indices(),
+      d_nonlocal_lag_indices(),
+      d_local_petsc_indices(),
       d_nonlocal_petsc_indices()
 {
 #if !defined(NDEBUG)
@@ -2715,7 +2782,8 @@ LDataManager::~LDataManager()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number, ScatterMode mode) const
+void
+LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number, ScatterMode mode) const
 {
     int ierr;
 
@@ -2786,7 +2854,8 @@ void LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int le
     return;
 } // scatterData
 
-void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_begin_nonlocal_data_fill);
 
@@ -2811,7 +2880,8 @@ void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int fin
     return;
 } // beginNonlocalDataFill
 
-void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
+void
+LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_end_nonlocal_data_fill);
 
@@ -2836,14 +2906,15 @@ void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int fines
     return;
 } // endNonlocalDataFill
 
-void LDataManager::computeNodeDistribution(AO& ao,
-                                           std::vector<int>& local_lag_indices,
-                                           std::vector<int>& nonlocal_lag_indices,
-                                           std::vector<int>& local_petsc_indices,
-                                           std::vector<int>& nonlocal_petsc_indices,
-                                           unsigned int& num_nodes,
-                                           unsigned int& node_offset,
-                                           const int level_number)
+void
+LDataManager::computeNodeDistribution(AO& ao,
+                                      std::vector<int>& local_lag_indices,
+                                      std::vector<int>& nonlocal_lag_indices,
+                                      std::vector<int>& local_petsc_indices,
+                                      std::vector<int>& nonlocal_petsc_indices,
+                                      unsigned int& num_nodes,
+                                      unsigned int& node_offset,
+                                      const int level_number)
 {
     IBTK_TIMER_START(t_compute_node_distribution);
 
@@ -2958,9 +3029,15 @@ void LDataManager::computeNodeDistribution(AO& ao,
     {
         TBOX_ERROR("LDataManager::computeNodeDistribution()"
                    << "\n"
-                   << "  local_offset       = " << local_offset << "\n"
-                   << "  num_local_nodes    = " << num_local_nodes << "\n"
-                   << "  num_nonlocal_nodes = " << num_nonlocal_nodes << "\n");
+                   << "  local_offset       = "
+                   << local_offset
+                   << "\n"
+                   << "  num_local_nodes    = "
+                   << num_local_nodes
+                   << "\n"
+                   << "  num_nonlocal_nodes = "
+                   << num_nonlocal_nodes
+                   << "\n");
     }
 
     computeNodeOffsets(num_nodes, node_offset, num_local_nodes);
@@ -3046,7 +3123,8 @@ LDataManager::computeNodeOffsets(unsigned int& num_nodes, unsigned int& node_off
     return;
 } // computeNodeOffsets
 
-void LDataManager::getFromRestart()
+void
+LDataManager::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
 
