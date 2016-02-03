@@ -1,2 +1,3 @@
-This example shows usage of the function registerRigidBodyVelocityDeformationFunction to simulate a suspension of active squimers of uniform size. 
-The tangential slip velocity is defined by formula v_theta=B_1*sin(theta) + B2*sin(theta)*cos(theta)
+This is an example of mixture of prescribed and free DOFs for two bodies. The outer shell (structure 0) moves
+relative to the inner sphere (structure 1). The mobility matrices (both fluid and body mobility) of two
+structures are formed independently and are distributed to different processors (for parallel runs).

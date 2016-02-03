@@ -69,18 +69,21 @@ IBRodForceSpec::Factory::~Factory()
     return;
 } // ~Factory
 
-int IBRodForceSpec::Factory::getStreamableClassID() const
+int
+IBRodForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
 } // getStreamableClassID
 
-void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
+void
+IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable>
+IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods, 1);

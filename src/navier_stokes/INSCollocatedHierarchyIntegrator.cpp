@@ -313,7 +313,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     default:
         TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -326,7 +327,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     default:
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported convective time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                                 << " \n"
                                  << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -341,7 +343,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
         default:
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -449,7 +452,8 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     return;
 } // ~INSCollocatedHierarchyIntegrator
 
-Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOperator()
+Pointer<ConvectiveOperator>
+INSCollocatedHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -459,40 +463,55 @@ Pointer<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOpera
     {
         INSCollocatedConvectiveOperatorManager* convective_op_manager =
             INSCollocatedConvectiveOperatorManager::getManager();
-        d_convective_op = convective_op_manager->allocateOperator(
-            d_convective_op_type, d_object_name + "::ConvectiveOperator", d_convective_op_input_db,
-            d_convective_difference_form, d_U_star_bc_coefs);
+        d_convective_op = convective_op_manager->allocateOperator(d_convective_op_type,
+                                                                  d_object_name + "::ConvectiveOperator",
+                                                                  d_convective_op_input_db,
+                                                                  d_convective_difference_form,
+                                                                  d_U_star_bc_coefs);
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
 } // getConvectiveOperator
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
-        d_velocity_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-            d_velocity_solver_type, d_object_name + "::velocity_solver", d_velocity_solver_db, "velocity_",
-            d_velocity_precond_type, d_object_name + "::velocity_precond", d_velocity_precond_db, "velocity_pc_");
+        d_velocity_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_velocity_solver_type,
+                                                                                 d_object_name + "::velocity_solver",
+                                                                                 d_velocity_solver_db,
+                                                                                 "velocity_",
+                                                                                 d_velocity_precond_type,
+                                                                                 d_object_name + "::velocity_precond",
+                                                                                 d_velocity_precond_db,
+                                                                                 "velocity_pc_");
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
 } // getVelocitySubdomainSolver
 
-Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
+Pointer<PoissonSolver>
+INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
-        d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-            d_pressure_solver_type, d_object_name + "::pressure_solver", d_pressure_solver_db, "pressure_",
-            d_pressure_precond_type, d_object_name + "::pressure_precond", d_pressure_precond_db, "pressure_pc_");
+        d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_pressure_solver_type,
+                                                                                 d_object_name + "::pressure_solver",
+                                                                                 d_pressure_solver_db,
+                                                                                 "pressure_",
+                                                                                 d_pressure_precond_type,
+                                                                                 d_object_name + "::pressure_precond",
+                                                                                 d_pressure_precond_db,
+                                                                                 "pressure_pc_");
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -641,19 +660,42 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = 0;
 
-    registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx, d_U_var, cell_ghosts, "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE", d_U_init);
+    registerVariable(d_U_current_idx,
+                     d_U_new_idx,
+                     d_U_scratch_idx,
+                     d_U_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_init);
 
-    registerVariable(d_u_ADV_current_idx, d_u_ADV_new_idx, d_u_ADV_scratch_idx, d_u_ADV_var, face_ghosts,
-                     "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+    registerVariable(d_u_ADV_current_idx,
+                     d_u_ADV_new_idx,
+                     d_u_ADV_scratch_idx,
+                     d_u_ADV_var,
+                     face_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
-    registerVariable(d_P_current_idx, d_P_new_idx, d_P_scratch_idx, d_P_var, cell_ghosts, "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE", d_P_init);
+    registerVariable(d_P_current_idx,
+                     d_P_new_idx,
+                     d_P_scratch_idx,
+                     d_P_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "LINEAR_REFINE",
+                     d_P_init);
 
     if (d_F_fcn)
     {
-        registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx, d_F_var, cell_ghosts, "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE", d_F_fcn);
+        registerVariable(d_F_current_idx,
+                         d_F_new_idx,
+                         d_F_scratch_idx,
+                         d_F_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_F_fcn);
     }
     else
     {
@@ -664,8 +706,14 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
 
     if (d_Q_fcn)
     {
-        registerVariable(d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx, d_Q_var, cell_ghosts, "CONSERVATIVE_COARSEN",
-                         "CONSTANT_REFINE", d_Q_fcn);
+        registerVariable(d_Q_current_idx,
+                         d_Q_new_idx,
+                         d_Q_scratch_idx,
+                         d_Q_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSTANT_REFINE",
+                         d_Q_fcn);
     }
     else
     {
@@ -674,8 +722,13 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
         d_Q_scratch_idx = -1;
     }
 
-    registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx, d_N_old_var, cell_ghosts,
-                     "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+    registerVariable(d_N_old_current_idx,
+                     d_N_old_new_idx,
+                     d_N_old_scratch_idx,
+                     d_N_old_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
@@ -784,8 +837,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     return;
 } // initializeHierarchyIntegrator
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -813,9 +867,10 @@ void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHie
     return;
 } // initializePatchHierarhcy
 
-void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                    const double new_time,
-                                                                    const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                               const double new_time,
+                                                               const int num_cycles)
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -832,7 +887,9 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
                                  << "  time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                                  << " requires num_cycles > 1.\n"
-                                 << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
+                                 << "  at current time step, num_cycles = "
+                                 << d_current_num_cycles
+                                 << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -883,9 +940,18 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var,
-                                 d_U_bdry_bc_fill_op, current_time, 0.0, -1, Pointer<CellVariable<NDIM, double> >(NULL),
-                                 axis, axis);
+        d_hier_math_ops->laplace(U_rhs_idx,
+                                 U_rhs_var,
+                                 U_rhs_problem_coefs,
+                                 d_U_scratch_idx,
+                                 d_U_var,
+                                 d_U_bdry_bc_fill_op,
+                                 current_time,
+                                 0.0,
+                                 -1,
+                                 Pointer<CellVariable<NDIM, double> >(NULL),
+                                 axis,
+                                 axis);
     }
 
     // Set the initial guess.
@@ -900,10 +966,12 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform " << d_current_num_cycles
+                                     << "  attempting to perform "
+                                     << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
                                      << "  number of cycles required by coupled advection-diffusion solver = "
-                                     << adv_diff_num_cycles << ".\n"
+                                     << adv_diff_num_cycles
+                                     << ".\n"
                                      << "  current implementation requires either that both solvers use the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
@@ -962,12 +1030,14 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
         d_hier_cc_data_ops->copyData(d_N_old_new_idx, N_idx);
         if (convective_time_stepping_type == FORWARD_EULER)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, N_idx,
-                                     d_U_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_cc_data_ops->axpy(
+                d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, N_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -0.5 * rho, N_idx,
+            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0),
+                                     -0.5 * rho,
+                                     N_idx,
                                      d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
     }
@@ -977,9 +1047,10 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     return;
 } // preprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                          const double new_time,
-                                                          const int cycle_num)
+void
+INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const int cycle_num)
 {
     INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const int coarsest_ln = 0;
@@ -1027,7 +1098,8 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         default:
             TBOX_ERROR("INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
                        << "  unsupported projection method type: "
-                       << enum_to_string<ProjectionMethodType>(d_projection_method_type) << " \n"
+                       << enum_to_string<ProjectionMethodType>(d_projection_method_type)
+                       << " \n"
                        << "  valid choices are: PRESSURE_INCREMENT, PRESSURE_UPDATE\n");
         }
     }
@@ -1036,8 +1108,8 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_new_idx);
     }
     d_hier_math_ops->grad(d_Grad_P_idx, d_Grad_P_var, 1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, half_time);
-    d_hier_cc_data_ops->subtract(d_U_rhs_vec->getComponentDescriptorIndex(0),
-                                 d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
+    d_hier_cc_data_ops->subtract(
+        d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
 
     // Account for the convective acceleration term.
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
@@ -1113,12 +1185,14 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, N_idx,
-                                     d_U_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_cc_data_ops->axpy(
+                d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, N_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -0.5 * rho, N_idx,
+            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0),
+                                     -0.5 * rho,
+                                     N_idx,
                                      d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
     }
@@ -1127,8 +1201,8 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     if (d_F_fcn)
     {
         d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
-        d_hier_cc_data_ops->add(d_U_rhs_vec->getComponentDescriptorIndex(0),
-                                d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
+        d_hier_cc_data_ops->add(
+            d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
     // Account for internal source/sink distributions.
@@ -1143,10 +1217,10 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
             d_hier_cc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
         }
-        d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), rho, d_F_div_idx,
-                                 d_U_rhs_vec->getComponentDescriptorIndex(0));
-        d_hier_cc_data_ops->subtract(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
-                                     d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
+        d_hier_cc_data_ops->axpy(
+            d_U_rhs_vec->getComponentDescriptorIndex(0), rho, d_F_div_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_cc_data_ops->subtract(
+            d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
 
     // Solve for U(*) and compute u_ADV(*).
@@ -1159,21 +1233,34 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         plog << d_object_name
              << "::integrateHierarchy(): velocity solve residual norm        = " << d_velocity_solver->getResidualNorm()
              << "\n";
-    d_hier_math_ops->interp(d_u_ADV_scratch_idx, d_u_ADV_var,
-                            /*synch_cf_bdry*/ true, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
+    d_hier_math_ops->interp(d_u_ADV_scratch_idx,
+                            d_u_ADV_var,
+                            /*synch_cf_bdry*/ true,
+                            d_U_scratch_idx,
+                            d_U_var,
+                            d_U_bdry_bc_fill_op,
+                            new_time);
 
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
     const double div_fac =
         (MathUtilities<double>::equalEps(rho, 0.0) || MathUtilities<double>::equalEps(dt, 0.0) ? 1.0 : rho / dt);
-    d_hier_math_ops->div(d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentVariable(0),
-                         -div_fac, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time,
-                         /*synch_cf_bdry*/ false, +div_fac, d_Q_new_idx, d_Q_var);
+    d_hier_math_ops->div(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
+                         d_Phi_rhs_vec->getComponentVariable(0),
+                         -div_fac,
+                         d_u_ADV_scratch_idx,
+                         d_u_ADV_var,
+                         d_no_fill_op,
+                         new_time,
+                         /*synch_cf_bdry*/ false,
+                         +div_fac,
+                         d_Q_new_idx,
+                         d_Q_var);
     if (d_normalize_pressure)
     {
         const double Div_U_mean =
             (1.0 / volume) * d_hier_cc_data_ops->integral(d_Phi_rhs_vec->getComponentDescriptorIndex(0), wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
-                                      d_Phi_rhs_vec->getComponentDescriptorIndex(0), -Div_U_mean);
+        d_hier_cc_data_ops->addScalar(
+            d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), -Div_U_mean);
     }
     if (cycle_num == 0)
     {
@@ -1191,10 +1278,20 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         plog << d_object_name
              << "::integrateHierarchy(): pressure solve residual norm        = " << d_pressure_solver->getResidualNorm()
              << "\n";
-    d_hier_math_ops->grad(d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var,
-                          /*synch_cf_bdry*/ true, 1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, half_time);
+    d_hier_math_ops->grad(d_Grad_Phi_fc_idx,
+                          d_Grad_Phi_fc_var,
+                          /*synch_cf_bdry*/ true,
+                          1.0,
+                          d_Phi_idx,
+                          d_Phi_var,
+                          d_Phi_bdry_bc_fill_op,
+                          half_time);
     d_hier_fc_data_ops->axpy(d_u_ADV_new_idx, -1.0 / div_fac, d_Grad_Phi_fc_idx, d_u_ADV_scratch_idx);
-    d_hier_math_ops->interp(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var, d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op,
+    d_hier_math_ops->interp(d_Grad_Phi_cc_idx,
+                            d_Grad_Phi_cc_var,
+                            d_Grad_Phi_fc_idx,
+                            d_Grad_Phi_fc_var,
+                            d_no_fill_op,
                             half_time,
                             /*synch_cf_bdry*/ false);
     d_hier_cc_data_ops->axpy(d_U_new_idx, -1.0 / div_fac, d_Grad_Phi_cc_idx, d_U_scratch_idx);
@@ -1231,8 +1328,16 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         helmholtz_spec.setCConstant(1.0);
         helmholtz_spec.setDConstant(0.0);
     }
-    d_hier_math_ops->laplace(d_P_new_idx, d_P_var, helmholtz_spec, d_Phi_idx, d_Phi_var, d_no_fill_op, half_time, 1.0,
-                             d_P_scratch_idx, d_P_var);
+    d_hier_math_ops->laplace(d_P_new_idx,
+                             d_P_var,
+                             helmholtz_spec,
+                             d_Phi_idx,
+                             d_Phi_var,
+                             d_no_fill_op,
+                             half_time,
+                             1.0,
+                             d_P_scratch_idx,
+                             d_P_var);
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_P_new_idx, wgt_cc_idx);
@@ -1240,34 +1345,38 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     }
 
     // Reset the right-hand side vector.
-    d_hier_cc_data_ops->add(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0),
-                            d_Grad_P_idx);
+    d_hier_cc_data_ops->add(
+        d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
     if (!d_creeping_flow)
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), +rho, N_idx,
-                                     d_U_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_cc_data_ops->axpy(
+                d_U_rhs_vec->getComponentDescriptorIndex(0), +rho, N_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), +0.5 * rho, N_idx,
+            d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0),
+                                     +0.5 * rho,
+                                     N_idx,
                                      d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
     }
     if (d_F_fcn)
     {
-        d_hier_cc_data_ops->subtract(d_U_rhs_vec->getComponentDescriptorIndex(0),
-                                     d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
+        d_hier_cc_data_ops->subtract(
+            d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_cc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
     if (d_Q_fcn)
     {
-        d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx,
+        d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0),
+                                 -rho,
+                                 d_F_div_idx,
                                  d_U_rhs_vec->getComponentDescriptorIndex(0));
-        d_hier_cc_data_ops->add(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
-                                d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
+        d_hier_cc_data_ops->add(
+            d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
 
     if (d_adv_diff_hier_integrator)
@@ -1312,13 +1421,14 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     return;
 } // integrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                     const double new_time,
-                                                                     const bool skip_synchronize_new_state_data,
-                                                                     const int num_cycles)
+void
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                const double new_time,
+                                                                const bool skip_synchronize_new_state_data,
+                                                                const int num_cycles)
 {
-    INSHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                          num_cycles);
+    INSHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1385,17 +1495,18 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
     if (d_adv_diff_hier_integrator)
     {
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time,
-                                                                  skip_synchronize_new_state_data, adv_diff_num_cycles);
+        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(
+            current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
 
     // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data,
-                                                     num_cycles);
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 } // postprocessIntegrateHierarchy
 
-void INSCollocatedHierarchyIntegrator::regridHierarchy()
+void
+INSCollocatedHierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
@@ -1413,8 +1524,10 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "." << std::endl);
+                                 << "  unrecognized regrid mode: "
+                                 << IBTK::enum_to_string<RegridMode>(d_regrid_mode)
+                                 << "."
+                                 << std::endl);
     }
 
     // Project the interpolated velocity.
@@ -1427,7 +1540,8 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
+void
+INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1468,8 +1582,12 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
+        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type,
+                                                         CONSISTENT_TYPE_2_BDRY,
                                                          d_U_star_bc_coefs);
         HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
         U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, 0, level_number);
@@ -1477,8 +1595,13 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
 
         // Interpolate U to u_ADV.
-        hier_math_ops.interp(d_u_ADV_current_idx, d_u_ADV_var,
-                             /*synch_cf_bdry*/ false, d_U_scratch_idx, d_U_var, d_no_fill_op, init_data_time);
+        hier_math_ops.interp(d_u_ADV_current_idx,
+                             d_u_ADV_var,
+                             /*synch_cf_bdry*/ false,
+                             d_U_scratch_idx,
+                             d_U_var,
+                             d_no_fill_op,
+                             init_data_time);
 
         // Initialize the maximum value of |Omega|_2 on the grid.
         if (d_using_vorticity_tagging)
@@ -1511,7 +1634,8 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     return;
 } // initializeLevelDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void
+INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1540,27 +1664,43 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     // Setup the patch boundary filling objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     d_bdry_extrap_type,
+                                                     CONSISTENT_TYPE_2_BDRY,
                                                      d_U_star_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     d_bdry_extrap_type,
+                                                     CONSISTENT_TYPE_2_BDRY);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
+    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx,
+                                                       DATA_REFINE_TYPE,
+                                                       USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE,
+                                                       d_bdry_extrap_type,
+                                                       CONSISTENT_TYPE_2_BDRY,
                                                        d_Phi_bc_coef);
     d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
     if (d_Q_fcn)
     {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type,
+                                                         CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }
@@ -1575,13 +1715,13 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double /*error_data_time*/,
-    const int tag_index,
-    const bool /*initial_time*/,
-    const bool /*uses_richardson_extrapolation_too*/)
+void
+INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                                   const int level_number,
+                                                                   const double /*error_data_time*/,
+                                                                   const int tag_index,
+                                                                   const bool /*initial_time*/,
+                                                                   const bool /*uses_richardson_extrapolation_too*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -1646,7 +1786,8 @@ void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
     return;
 } // applyGradientDetectorSpecialized
 
-void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
+void
+INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1670,7 +1811,12 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     if (d_output_Div_U)
     {
         d_hier_math_ops->div(d_Div_U_idx, d_Div_U_var, 1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
-        d_hier_math_ops->div(d_Div_u_ADV_idx, d_Div_u_ADV_var, +1.0, d_u_ADV_current_idx, d_u_ADV_var, d_no_fill_op,
+        d_hier_math_ops->div(d_Div_u_ADV_idx,
+                             d_Div_u_ADV_var,
+                             +1.0,
+                             d_u_ADV_current_idx,
+                             d_u_ADV_var,
+                             d_no_fill_op,
                              d_integrator_time,
                              /*synch_cf_bdry*/ false);
     }
@@ -1685,7 +1831,8 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void INSCollocatedHierarchyIntegrator::regridProjection()
+void
+INSCollocatedHierarchyIntegrator::regridProjection()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1700,10 +1847,15 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the regrid Poisson solver.
-    Pointer<PoissonSolver> regrid_projection_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-        d_regrid_projection_solver_type, d_object_name + "::regrid_projection_solver", d_regrid_projection_solver_db,
-        "regrid_projection_", d_regrid_projection_precond_type, d_object_name + "::regrid_projection_precond",
-        d_regrid_projection_precond_db, "regrid_projection_pc_");
+    Pointer<PoissonSolver> regrid_projection_solver =
+        CCPoissonSolverManager::getManager()->allocateSolver(d_regrid_projection_solver_type,
+                                                             d_object_name + "::regrid_projection_solver",
+                                                             d_regrid_projection_solver_db,
+                                                             "regrid_projection_",
+                                                             d_regrid_projection_precond_type,
+                                                             d_object_name + "::regrid_projection_precond",
+                                                             d_regrid_projection_precond_db,
+                                                             "regrid_projection_pc_");
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
@@ -1739,13 +1891,26 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Interpolate U to u_ADV.
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    d_hier_math_ops->interp(d_u_ADV_current_idx, d_u_ADV_var,
-                            /*synch_cf_bdry*/ true, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, d_integrator_time);
+    d_hier_math_ops->interp(d_u_ADV_current_idx,
+                            d_u_ADV_var,
+                            /*synch_cf_bdry*/ true,
+                            d_U_scratch_idx,
+                            d_U_var,
+                            d_U_bdry_bc_fill_op,
+                            d_integrator_time);
 
     // Setup the right-hand side vector for the projection-Poisson solve.
-    d_hier_math_ops->div(d_Div_U_idx, d_Div_U_var, -1.0, d_u_ADV_current_idx, d_u_ADV_var, d_no_fill_op,
+    d_hier_math_ops->div(d_Div_U_idx,
+                         d_Div_U_var,
+                         -1.0,
+                         d_u_ADV_current_idx,
+                         d_u_ADV_var,
+                         d_no_fill_op,
                          d_integrator_time,
-                         /*synch_cf_bdry*/ false, +1.0, d_Q_current_idx, d_Q_var);
+                         /*synch_cf_bdry*/ false,
+                         +1.0,
+                         d_Q_current_idx,
+                         d_Q_var);
     const double Div_U_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
     d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);
 
@@ -1760,17 +1925,31 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
+    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx,
+                                                       DATA_REFINE_TYPE,
+                                                       USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE,
+                                                       d_bdry_extrap_type,
+                                                       CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
-    d_hier_math_ops->grad(d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var,
-                          /*synch_cf_bdry*/ true, 1.0, d_Phi_idx, d_Phi_var, d_no_fill_op, d_integrator_time);
+    d_hier_math_ops->grad(d_Grad_Phi_fc_idx,
+                          d_Grad_Phi_fc_var,
+                          /*synch_cf_bdry*/ true,
+                          1.0,
+                          d_Phi_idx,
+                          d_Phi_var,
+                          d_no_fill_op,
+                          d_integrator_time);
     d_hier_fc_data_ops->subtract(d_u_ADV_current_idx, d_u_ADV_current_idx, d_Grad_Phi_fc_idx);
-    d_hier_math_ops->interp(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var, d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op,
+    d_hier_math_ops->interp(d_Grad_Phi_cc_idx,
+                            d_Grad_Phi_cc_var,
+                            d_Grad_Phi_fc_idx,
+                            d_Grad_Phi_fc_var,
+                            d_no_fill_op,
                             d_integrator_time,
                             /*synch_cf_bdry*/ false);
     d_hier_cc_data_ops->subtract(d_U_current_idx, d_U_current_idx, d_Grad_Phi_cc_idx);
@@ -1784,7 +1963,8 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     return;
 } // regridProjection
 
-double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+double
+INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -1798,12 +1978,27 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> >
     double stable_dt = std::numeric_limits<double>::max();
     ADVECT_STABLEDT_FC(dx,
 #if (NDIM == 2)
-                       ilower(0), iupper(0), ilower(1), iupper(1), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
-                       u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
+                       ilower(0),
+                       iupper(0),
+                       ilower(1),
+                       iupper(1),
+                       u_ADV_ghost_cells(0),
+                       u_ADV_ghost_cells(1),
+                       u_ADV_data->getPointer(0),
+                       u_ADV_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                       ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), u_ADV_ghost_cells(0),
-                       u_ADV_ghost_cells(1), u_ADV_ghost_cells(2), u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
+                       ilower(0),
+                       iupper(0),
+                       ilower(1),
+                       iupper(1),
+                       ilower(2),
+                       iupper(2),
+                       u_ADV_ghost_cells(0),
+                       u_ADV_ghost_cells(1),
+                       u_ADV_ghost_cells(2),
+                       u_ADV_data->getPointer(0),
+                       u_ADV_data->getPointer(1),
                        u_ADV_data->getPointer(2),
 #endif
                        stable_dt);
@@ -1812,7 +2007,8 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> >
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
+void
+INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double current_time, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1982,7 +2178,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     return;
 } // reinitializeOperatorsAndSolvers
 
-void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
+void
+INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2009,41 +2206,119 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
             case CONSERVATIVE:
                 NAVIER_STOKES_CONS_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0), iupper(0), ilower(1), iupper(1), u_data_gc(0), u_data_gc(1), Q_data_gc(0), Q_data_gc(1),
-                    F_data_gc(0), F_data_gc(1), u_data->getPointer(0), u_data->getPointer(1),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                    ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), u_data_gc(0), u_data_gc(1),
-                    u_data_gc(2), Q_data_gc(0), Q_data_gc(1), Q_data_gc(2), F_data_gc(0), F_data_gc(1), F_data_gc(2),
-                    u_data->getPointer(0), u_data->getPointer(1), u_data->getPointer(2),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    ilower(2),
+                    iupper(2),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    u_data_gc(2),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    Q_data_gc(2),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    F_data_gc(2),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
+                    u_data->getPointer(2),
 #endif
-                    Q_data->getPointer(), F_data->getPointer());
+                    Q_data->getPointer(),
+                    F_data->getPointer());
                 break;
             case ADVECTIVE:
                 NAVIER_STOKES_ADV_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0), iupper(0), ilower(1), iupper(1), u_data_gc(0), u_data_gc(1), Q_data_gc(0), Q_data_gc(1),
-                    F_data_gc(0), F_data_gc(1), u_data->getPointer(0), u_data->getPointer(1),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                    ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), u_data_gc(0), u_data_gc(1),
-                    u_data_gc(2), Q_data_gc(0), Q_data_gc(1), Q_data_gc(2), F_data_gc(0), F_data_gc(1), F_data_gc(2),
-                    u_data->getPointer(0), u_data->getPointer(1), u_data->getPointer(2),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    ilower(2),
+                    iupper(2),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    u_data_gc(2),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    Q_data_gc(2),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    F_data_gc(2),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
+                    u_data->getPointer(2),
 #endif
-                    Q_data->getPointer(), F_data->getPointer());
+                    Q_data->getPointer(),
+                    F_data->getPointer());
                 break;
             case SKEW_SYMMETRIC:
                 NAVIER_STOKES_SKEW_SYM_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0), iupper(0), ilower(1), iupper(1), u_data_gc(0), u_data_gc(1), Q_data_gc(0), Q_data_gc(1),
-                    F_data_gc(0), F_data_gc(1), u_data->getPointer(0), u_data->getPointer(1),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                    ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), u_data_gc(0), u_data_gc(1),
-                    u_data_gc(2), Q_data_gc(0), Q_data_gc(1), Q_data_gc(2), F_data_gc(0), F_data_gc(1), F_data_gc(2),
-                    u_data->getPointer(0), u_data->getPointer(1), u_data->getPointer(2),
+                    ilower(0),
+                    iupper(0),
+                    ilower(1),
+                    iupper(1),
+                    ilower(2),
+                    iupper(2),
+                    u_data_gc(0),
+                    u_data_gc(1),
+                    u_data_gc(2),
+                    Q_data_gc(0),
+                    Q_data_gc(1),
+                    Q_data_gc(2),
+                    F_data_gc(0),
+                    F_data_gc(1),
+                    F_data_gc(2),
+                    u_data->getPointer(0),
+                    u_data->getPointer(1),
+                    u_data->getPointer(2),
 #endif
-                    Q_data->getPointer(), F_data->getPointer());
+                    Q_data->getPointer(),
+                    F_data->getPointer());
                 break;
             default:
                 TBOX_ERROR(

@@ -35,24 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
 #include <stdbool.h>
 #include <stddef.h>
-#include <set>
 #include <string>
 #include <vector>
 
-#include "ibamr/IBFEMethod.h"
-#include "ibamr/CIBStrategy.h"
-#include "ibtk/libmesh_utilities.h"
-#include "ibtk/FEDataManager.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "tbox/Pointer.h"
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBFEMethod.h"
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -91,7 +90,6 @@ namespace IBAMR
 
 class CIBFEMethod : public IBFEMethod, public CIBStrategy
 {
-
     //////////////////////////////////////////////////////////////////////////////
 
 public:
@@ -322,7 +320,7 @@ public:
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    virtual void computeNetRigidGeneralizedForce(Vec L, std::vector<RigidDOFVector>& F, const std::vector<bool>& skip_comp);
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
 
     // \see CIBStrategy::copyVecToArray() method.
     /*!
@@ -334,7 +332,7 @@ public:
                         const int data_depth,
                         const int array_rank);
 
-    // \see CIBStrategy::copyVecToArray() method.
+    // \see CIBStrategy::copyArrayToVec() method.
     /*!
      * \brief Copy raw array to PETSc Vec for specified structures.
      */
@@ -350,7 +348,7 @@ public:
      * contained in the Vec V.
      *
      */
-    virtual void setRigidBodyVelocity(const std::vector<RigidDOFVector>& U, Vec V, const std::vector<bool>& skip_comp);
+    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
 
     // \}
 
@@ -451,16 +449,21 @@ private:
     void getFromRestart();
 
     /*!
+     * \brief Compute the center of mass of the structure.
+     */
+    void computeCOMOfStructure(Eigen::Vector3d& center_of_mass, libMesh::EquationSystems* equation_systems);
+
+    /*!
      * Number of nodes of rigid structures.
      */
     std::vector<unsigned int> d_num_nodes;
 
     /*!
-         * FE data vectors.
-         */
+     * FE data vectors.
+     */
     std::vector<libMesh::System*> d_U_constrained_systems;
-    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_current_vecs, d_F_new_vecs;
 
     /*!
      * Booleans to control spreading constraint force and interpolating
@@ -474,16 +477,15 @@ private:
     bool d_compute_L2_projection;
 
     /*!
+     * Check if the initial center of mass has been initialized.
+     */
+    bool d_initial_com_initialized;
+
+    /*!
      * PETSc wrappers for rigid body force.
      */
     std::vector<Vec> d_vL_new, d_vL_current;
     Vec d_mv_L_new, d_mv_L_current;
-
-    /*!
-     * PETSc wrappers for free rigid body velocities.
-     */
-    std::vector<Vec> d_U, d_F;
-    Vec d_mv_U, d_mv_F;
 
     /*!
      * Functions to set constrained velocities of the structures.
@@ -514,9 +516,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
 
     /*!
-     * Control printing of S[lambda]
+     * Control printing of S[lambda].
      */
     bool d_output_eul_lambda;
+
+    /*!
+     * Fluid density.
+     */
+    double d_rho;
 
 }; // CIBFEMethod
 } // namespace IBAMR

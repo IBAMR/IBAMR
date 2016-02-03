@@ -48,12 +48,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/CIBSaddlePointSolver.cpp \
 ../src/IB/CIBStaggeredStokesOperator.cpp \
 ../src/IB/CIBStaggeredStokesSolver.cpp \
-../src/IB/CIBStandardInitializer.cpp \
 ../src/IB/CIBStrategy.cpp \
 ../src/IB/ConstraintIBKinematics.cpp \
 ../src/IB/ConstraintIBMethod.cpp \
 ../src/IB/DirectMobilitySolver.cpp \
-../src/IB/FreeBodyMobilitySolver.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -87,6 +85,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBStrategySet.cpp \
 ../src/IB/IBTargetPointForceSpec.cpp \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
+../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 ../src/IB/KrylovMobilitySolver.cpp \
 ../src/IB/MobilityFunctions.c \
 ../src/IB/PenaltyIBMethod.cpp \
@@ -167,14 +166,12 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBSaddlePointSolver.h \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
-../include/ibamr/CIBStandardInitializer.h \
 ../include/ibamr/CIBStrategy.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
-../include/ibamr/FreeBodyMobilitySolver.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -216,6 +213,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredStochasticForcing.h \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
+../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \

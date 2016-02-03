@@ -193,11 +193,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
-	../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
-	../src/IB/FreeBodyMobilitySolver.cpp \
 	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -229,6 +227,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBStrategySet.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
+	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.c ../src/IB/PenaltyIBMethod.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -309,12 +308,10 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-CIBStandardInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-DirectMobilitySolver.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -348,6 +345,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBStrategySet.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-KrylovMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-MobilityFunctions.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT) \
@@ -420,11 +418,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
-	../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
-	../src/IB/FreeBodyMobilitySolver.cpp \
 	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -456,6 +452,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBStrategySet.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
+	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.c ../src/IB/PenaltyIBMethod.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -536,12 +533,10 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStaggeredStokesOperator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-CIBStandardInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-DirectMobilitySolver.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -575,6 +570,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBStrategySet.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-KrylovMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-MobilityFunctions.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT) \
@@ -742,14 +738,12 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
-	../include/ibamr/CIBStandardInitializer.h \
 	../include/ibamr/CIBStrategy.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
-	../include/ibamr/FreeBodyMobilitySolver.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -790,6 +784,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/INSStaggeredStochasticForcing.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
+	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1159,14 +1154,12 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
-	../include/ibamr/CIBStandardInitializer.h \
 	../include/ibamr/CIBStrategy.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
-	../include/ibamr/FreeBodyMobilitySolver.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1207,6 +1200,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/INSStaggeredStochasticForcing.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
+	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1233,11 +1227,9 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
-	../src/IB/CIBStandardInitializer.cpp ../src/IB/CIBStrategy.cpp \
-	../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/CIBStrategy.cpp ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/ConstraintIBMethod.cpp \
 	../src/IB/DirectMobilitySolver.cpp \
-	../src/IB/FreeBodyMobilitySolver.cpp \
 	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -1269,6 +1261,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBStrategySet.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
+	../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 	../src/IB/KrylovMobilitySolver.cpp \
 	../src/IB/MobilityFunctions.c ../src/IB/PenaltyIBMethod.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
@@ -1462,8 +1455,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-CIBStandardInitializer.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT):  \
@@ -1471,8 +1462,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-DirectMobilitySolver.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -1539,6 +1528,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-IBTargetPointForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-KrylovMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -1778,8 +1769,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-CIBStandardInitializer.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT):  \
@@ -1787,8 +1776,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-DirectMobilitySolver.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -1855,6 +1842,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/IB/libIBAMR3d_a-IBTargetPointForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBTargetPointForceSpecFactory.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-KrylovMobilitySolver.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2081,12 +2070,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBSaddlePointSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -2125,6 +2112,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
@@ -2136,12 +2124,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBSaddlePointSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -2180,6 +2166,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovMobilitySolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po@am__quote@
@@ -2428,20 +2415,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStaggeredStokesSolver.obj `if test -f '../src/IB/CIBStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/IB/CIBStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStaggeredStokesSolver.cpp'; fi`
 
-../src/IB/libIBAMR2d_a-CIBStandardInitializer.o: ../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR2d_a-CIBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
-
-../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj: ../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStandardInitializer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
-
 ../src/IB/libIBAMR2d_a-CIBStrategy.o: ../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBStrategy.o `test -f '../src/IB/CIBStrategy.cpp' || echo '$(srcdir)/'`../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po
@@ -2497,20 +2470,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/DirectMobilitySolver.cpp' object='../src/IB/libIBAMR2d_a-DirectMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-DirectMobilitySolver.obj `if test -f '../src/IB/DirectMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/DirectMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/DirectMobilitySolver.cpp'; fi`
-
-../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.o: ../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.o `test -f '../src/IB/FreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.o `test -f '../src/IB/FreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/FreeBodyMobilitySolver.cpp
-
-../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.obj: ../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.obj `if test -f '../src/IB/FreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/FreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FreeBodyMobilitySolver.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FreeBodyMobilitySolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FreeBodyMobilitySolver.obj `if test -f '../src/IB/FreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/FreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FreeBodyMobilitySolver.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp
@@ -2973,6 +2932,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBTargetPointForceSpecFactory.cpp' object='../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.obj `if test -f '../src/IB/IBTargetPointForceSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/IBTargetPointForceSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBTargetPointForceSpecFactory.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.o: ../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.o `test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/KrylovFreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.o `test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovFreeBodyMobilitySolver.cpp
+
+../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.obj: ../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.obj `if test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/KrylovFreeBodyMobilitySolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/KrylovFreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.obj `if test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/KrylovFreeBodyMobilitySolver.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-KrylovMobilitySolver.o: ../src/IB/KrylovMobilitySolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-KrylovMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovMobilitySolver.Tpo -c -o ../src/IB/libIBAMR2d_a-KrylovMobilitySolver.o `test -f '../src/IB/KrylovMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovMobilitySolver.cpp
@@ -3842,20 +3815,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStaggeredStokesSolver.obj `if test -f '../src/IB/CIBStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/IB/CIBStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStaggeredStokesSolver.cpp'; fi`
 
-../src/IB/libIBAMR3d_a-CIBStandardInitializer.o: ../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR3d_a-CIBStandardInitializer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.o `test -f '../src/IB/CIBStandardInitializer.cpp' || echo '$(srcdir)/'`../src/IB/CIBStandardInitializer.cpp
-
-../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj: ../src/IB/CIBStandardInitializer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStandardInitializer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CIBStandardInitializer.cpp' object='../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBStandardInitializer.obj `if test -f '../src/IB/CIBStandardInitializer.cpp'; then $(CYGPATH_W) '../src/IB/CIBStandardInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBStandardInitializer.cpp'; fi`
-
 ../src/IB/libIBAMR3d_a-CIBStrategy.o: ../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBStrategy.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBStrategy.o `test -f '../src/IB/CIBStrategy.cpp' || echo '$(srcdir)/'`../src/IB/CIBStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po
@@ -3911,20 +3870,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/DirectMobilitySolver.cpp' object='../src/IB/libIBAMR3d_a-DirectMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-DirectMobilitySolver.obj `if test -f '../src/IB/DirectMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/DirectMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/DirectMobilitySolver.cpp'; fi`
-
-../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.o: ../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.o `test -f '../src/IB/FreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.o `test -f '../src/IB/FreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/FreeBodyMobilitySolver.cpp
-
-../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.obj: ../src/IB/FreeBodyMobilitySolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.obj `if test -f '../src/IB/FreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/FreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FreeBodyMobilitySolver.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FreeBodyMobilitySolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FreeBodyMobilitySolver.obj `if test -f '../src/IB/FreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/FreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FreeBodyMobilitySolver.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp
@@ -4387,6 +4332,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBTargetPointForceSpecFactory.cpp' object='../src/IB/libIBAMR3d_a-IBTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBTargetPointForceSpecFactory.obj `if test -f '../src/IB/IBTargetPointForceSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/IBTargetPointForceSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBTargetPointForceSpecFactory.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.o: ../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.o `test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/KrylovFreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.o `test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovFreeBodyMobilitySolver.cpp
+
+../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.obj: ../src/IB/KrylovFreeBodyMobilitySolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Tpo -c -o ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.obj `if test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/KrylovFreeBodyMobilitySolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/KrylovFreeBodyMobilitySolver.cpp' object='../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.obj `if test -f '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; then $(CYGPATH_W) '../src/IB/KrylovFreeBodyMobilitySolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/KrylovFreeBodyMobilitySolver.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-KrylovMobilitySolver.o: ../src/IB/KrylovMobilitySolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-KrylovMobilitySolver.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovMobilitySolver.Tpo -c -o ../src/IB/libIBAMR3d_a-KrylovMobilitySolver.o `test -f '../src/IB/KrylovMobilitySolver.cpp' || echo '$(srcdir)/'`../src/IB/KrylovMobilitySolver.cpp

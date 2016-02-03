@@ -34,30 +34,29 @@
 
 #include <limits>
 
-#include "ibamr/KrylovMobilitySolver.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-//#include "ibamr/DirectMobilityInverse.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h"
-#include "ibtk/PETScMultiVec.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PoissonSolver.h"
-#include "tbox/TimerManager.h"
-#include "ibtk/SCPoissonSolverManager.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/KrylovMobilitySolver.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScMultiVec.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h"
+#include "petsc-private/petscimpl.h"
+#include "tbox/TimerManager.h"
 
 namespace IBAMR
 {
 namespace
 {
-
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
 static const std::string DATA_REFINE_TYPE = "NONE";
@@ -85,16 +84,30 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            const std::string& default_options_prefix,
                                            MPI_Comm petsc_comm)
-    : d_object_name(object_name), d_ksp_type(KSPGMRES), d_pc_type("none"), d_is_initialized(false),
-      d_reinitializing_solver(false), d_petsc_x(PETSC_NULL), d_petsc_b(PETSC_NULL),
-      d_options_prefix(default_options_prefix), d_petsc_comm(petsc_comm), d_petsc_ksp(PETSC_NULL),
-      d_petsc_mat(PETSC_NULL), d_samrai_temp(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(NULL)),
-      d_ins_integrator(navier_stokes_integrator), d_cib_strategy(cib_strategy), d_LInv(NULL), d_nul_vecs(),
-      d_U_nul_vecs(), d_normalize_pressure(false), d_normalize_velocity(false),
-      d_current_time(std::numeric_limits<double>::signaling_NaN()),
-      d_new_time(std::numeric_limits<double>::signaling_NaN()), d_scale_interp(1.0), d_scale_spread(1.0),
-      d_reg_mob_factor(0.0)
 {
+    // Set some default values.
+    d_object_name = object_name;
+    d_ksp_type = KSPGMRES;
+    d_pc_type = "none";
+    d_is_initialized = false;
+    d_reinitializing_solver = false;
+    d_petsc_x = NULL;
+    d_petsc_b = NULL;
+    d_options_prefix = default_options_prefix;
+    d_petsc_comm = petsc_comm;
+    d_petsc_ksp = NULL;
+    d_petsc_mat = NULL;
+    d_samrai_temp.resize(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(NULL));
+    d_ins_integrator = navier_stokes_integrator;
+    d_cib_strategy = cib_strategy;
+    d_LInv = NULL;
+    d_normalize_pressure = false;
+    d_normalize_velocity = false;
+    d_current_time = std::numeric_limits<double>::signaling_NaN();
+    d_new_time = std::numeric_limits<double>::signaling_NaN();
+    d_scale_interp = 1.0;
+    d_scale_spread = 1.0;
+    d_reg_mob_factor = 0.0;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
@@ -208,19 +221,34 @@ KrylovMobilitySolver::KrylovMobilitySolver(const std::string& object_name,
     }
 
     // Create LInv.
-    d_LInv = StaggeredStokesSolverManager::getManager()->allocateSolver(
-        stokes_solver_type, d_object_name + "::pc_stokes_solver", stokes_solver_db, "KM_LInv_", stokes_precond_type,
-        d_object_name + "::pc_stokes_precond", stokes_precond_db, "KM_LInv_pc_");
+    d_LInv = StaggeredStokesSolverManager::getManager()->allocateSolver(stokes_solver_type,
+                                                                        d_object_name + "::pc_stokes_solver",
+                                                                        stokes_solver_db,
+                                                                        "KM_LInv_",
+                                                                        stokes_precond_type,
+                                                                        d_object_name + "::pc_stokes_precond",
+                                                                        stokes_precond_db,
+                                                                        "KM_LInv_pc_");
 
     // Create velocity solver.
-    d_velocity_solver = IBTK::SCPoissonSolverManager::getManager()->allocateSolver(
-        velocity_solver_type, d_object_name + "::velocity_solver", velocity_solver_db, "KM_LInv_velocity_",
-        velocity_precond_type, d_object_name + "::velocity_precond", velocity_precond_db, "KM_LInv_velocity_pc_");
+    d_velocity_solver = IBTK::SCPoissonSolverManager::getManager()->allocateSolver(velocity_solver_type,
+                                                                                   d_object_name + "::velocity_solver",
+                                                                                   velocity_solver_db,
+                                                                                   "KM_LInv_velocity_",
+                                                                                   velocity_precond_type,
+                                                                                   d_object_name + "::velocity_precond",
+                                                                                   velocity_precond_db,
+                                                                                   "KM_LInv_velocity_pc_");
 
     // Create pressure solver.
-    d_pressure_solver = IBTK::CCPoissonSolverManager::getManager()->allocateSolver(
-        pressure_solver_type, d_object_name + "::pressure_solver", pressure_solver_db, "KM_LInv_pressure_",
-        pressure_precond_type, d_object_name + "::pressure_precond", pressure_precond_db, "KM_LInv_pressure_pc_");
+    d_pressure_solver = IBTK::CCPoissonSolverManager::getManager()->allocateSolver(pressure_solver_type,
+                                                                                   d_object_name + "::pressure_solver",
+                                                                                   pressure_solver_db,
+                                                                                   "KM_LInv_pressure_",
+                                                                                   pressure_precond_type,
+                                                                                   d_object_name + "::pressure_precond",
+                                                                                   pressure_precond_db,
+                                                                                   "KM_LInv_pressure_pc_");
 
     // Register Poisson specification
     const StokesSpecifications& stokes_spec = *d_ins_integrator->getStokesSpecifications();
@@ -282,90 +310,88 @@ KrylovMobilitySolver::~KrylovMobilitySolver()
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = PETSC_NULL;
+        d_petsc_mat = NULL;
     }
     if (d_petsc_ksp)
     {
         KSPDestroy(&d_petsc_ksp);
-        d_petsc_ksp = PETSC_NULL;
+        d_petsc_ksp = NULL;
     }
 
     return;
 } // ~KrylovMobilitySolver
 
-void KrylovMobilitySolver::setInterpScale(const double scale_interp)
+void
+KrylovMobilitySolver::setInterpScale(const double scale_interp)
 {
     d_scale_interp = scale_interp;
     return;
 } // setInterpScaleFactor
 
-void KrylovMobilitySolver::setSpreadScale(const double scale_spread)
+void
+KrylovMobilitySolver::setSpreadScale(const double scale_spread)
 {
     d_scale_spread = scale_spread;
     return;
 } // setSpreadScaleFactor
 
-void KrylovMobilitySolver::setRegularizeMobilityScale(const double scale_reg_mob)
+void
+KrylovMobilitySolver::setRegularizeMobilityScale(const double scale_reg_mob)
 {
     d_reg_mob_factor = scale_reg_mob;
     return;
 } // setRegularizeMobilityFactor
 
-void KrylovMobilitySolver::setNormalizeSpreadForce(const bool normalize_force)
+void
+KrylovMobilitySolver::setNormalizeSpreadForce(const bool normalize_force)
 {
     d_normalize_spread_force = normalize_force;
     return;
 } // setNormalizeSpreadForce
 
-void KrylovMobilitySolver::setKSPType(const std::string& ksp_type)
+void
+KrylovMobilitySolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
     return;
 } // setKSPType
 
-void KrylovMobilitySolver::setOptionsPrefix(const std::string& options_prefix)
+void
+KrylovMobilitySolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
 } // setOptionsPrefix
 
-const KSP& KrylovMobilitySolver::getPETScKSP() const
+const KSP&
+KrylovMobilitySolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 } // getPETScKSP
 
-Pointer<StaggeredStokesSolver> KrylovMobilitySolver::getStokesSolver() const
+Pointer<StaggeredStokesSolver>
+KrylovMobilitySolver::getStokesSolver() const
 {
     return d_LInv;
 } // getStokesSolver
 
-/*void
-KrylovMobilitySolver::setPreconditioner(
-    Pointer<DirectMobilityInverse> pc)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(pc);
-#endif
-
-    d_DMInv = pc;
-    return;
-}// setPreconditioner
-*/
-
-void KrylovMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications& u_problem_coefs)
+void
+KrylovMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications& u_problem_coefs)
 {
     d_LInv->setVelocityPoissonSpecifications(u_problem_coefs);
     d_velocity_solver->setPoissonSpecifications(u_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
 
-void KrylovMobilitySolver::setSolutionTime(double solution_time)
+void
+KrylovMobilitySolver::setSolutionTime(double solution_time)
 {
     d_LInv->setSolutionTime(solution_time);
     return;
 } // setSolutionTime
 
-void KrylovMobilitySolver::setTimeInterval(double current_time, double new_time)
+void
+KrylovMobilitySolver::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -381,8 +407,9 @@ void KrylovMobilitySolver::setTimeInterval(double current_time, double new_time)
     return;
 } // setTimeInterval
 
-void KrylovMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                              RobinBcCoefStrategy<NDIM>* p_bc_coef)
+void
+KrylovMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                         RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
     d_u_bc_coefs = u_bc_coefs;
     d_LInv->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
@@ -391,13 +418,15 @@ void KrylovMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrat
     return;
 } // setPhysicalBcCoefs
 
-void KrylovMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+KrylovMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_LInv->setPhysicalBoundaryHelper(bc_helper);
     return;
 } // setPhysicalBoundaryHelper
 
-bool KrylovMobilitySolver::solveSystem(Vec x, Vec b)
+bool
+KrylovMobilitySolver::solveSystem(Vec x, Vec b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -425,36 +454,15 @@ bool KrylovMobilitySolver::solveSystem(Vec x, Vec b)
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Deallocate the solver, when necessary.
-    d_petsc_x = PETSC_NULL;
+    d_petsc_x = NULL;
     if (deallocate_after_solve) deallocateSolverState();
 
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
 } // solveSystem
-bool KrylovMobilitySolver::solveBodySystem(Vec x, Vec b)
-{
-    IBTK_TIMER_START(t_solve_system);
 
-    Vec d_petsc_temp_v, d_petsc_temp_f;
-    VecDuplicate(d_petsc_b, &d_petsc_temp_v);
-    VecDuplicate(d_petsc_b, &d_petsc_temp_f);
-    VecSet(d_petsc_temp_v, 0.0);
-
-    d_cib_strategy->setRigidBodyVelocity(b, d_petsc_temp_v, /*only_free_dofs*/ true,
-                                         /*only_imposed_dofs*/ false);
-
-    // b) Solve the mobility problem.
-    bool converged = solveSystem(d_petsc_temp_f, d_petsc_temp_v);
-
-    // c) Compute the generalized force and torque.
-    d_cib_strategy->computeNetRigidGeneralizedForce(d_petsc_temp_f, x, /*only_free_dofs*/ true,
-                                                    /*only_imposed_dofs*/ false);
-    VecDestroy(&d_petsc_temp_v);
-    VecDestroy(&d_petsc_temp_f);
-    IBTK_TIMER_STOP(t_solve_system);
-    return converged;
-}
-void KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
+void
+KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -496,8 +504,14 @@ void KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     // Setup the interpolation transaction information.
     d_fill_pattern = NULL;
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent component(u_data_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
-                                                BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs, d_fill_pattern);
+    InterpolationTransactionComponent component(u_data_idx,
+                                                DATA_REFINE_TYPE,
+                                                USE_CF_INTERPOLATION,
+                                                DATA_COARSEN_TYPE,
+                                                BDRY_EXTRAP_TYPE,
+                                                CONSISTENT_TYPE_2_BDRY,
+                                                d_u_bc_coefs,
+                                                d_fill_pattern);
     d_transaction_comps.push_back(component);
 
     // Initialize the interpolation operators.
@@ -512,7 +526,8 @@ void KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     return;
 } // initializeSolverState
 
-void KrylovMobilitySolver::deallocateSolverState()
+void
+KrylovMobilitySolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -536,8 +551,8 @@ void KrylovMobilitySolver::deallocateSolverState()
     }
 
     VecDestroy(&d_petsc_b);
-    d_petsc_x = PETSC_NULL;
-    d_petsc_b = PETSC_NULL;
+    d_petsc_x = NULL;
+    d_petsc_b = NULL;
 
     // Destroy the KSP solver.
     destroyKSP();
@@ -556,9 +571,9 @@ void KrylovMobilitySolver::deallocateSolverState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void KrylovMobilitySolver::getFromInput(Pointer<Database> input_db)
+void
+KrylovMobilitySolver::getFromInput(Pointer<Database> input_db)
 {
-
     if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
     if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
     if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
@@ -574,8 +589,9 @@ void KrylovMobilitySolver::getFromInput(Pointer<Database> input_db)
     return;
 } // getFromInput
 
-void KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                                  const SAMRAIVectorReal<NDIM, double>& rhs_vec)
+void
+KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double>& sol_vec,
+                                             const SAMRAIVectorReal<NDIM, double>& rhs_vec)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hier = sol_vec.getPatchHierarchy();
     const int coarsest_ln = sol_vec.getCoarsestLevelNumber();
@@ -610,9 +626,10 @@ void KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, d
             d_nul_vecs[k]->allocateVectorData(d_current_time);
             d_nul_vecs[k]->setToScalar(0.0);
 
-            SAMRAIVectorReal<NDIM, double> svr_u(d_object_name + "::U_nul_vec_U_" + stream.str(), patch_hier,
-                                                 coarsest_ln, finest_ln);
-            svr_u.addComponent(sol_vec.getComponentVariable(0), sol_vec.getComponentDescriptorIndex(0),
+            SAMRAIVectorReal<NDIM, double> svr_u(
+                d_object_name + "::U_nul_vec_U_" + stream.str(), patch_hier, coarsest_ln, finest_ln);
+            svr_u.addComponent(sol_vec.getComponentVariable(0),
+                               sol_vec.getComponentDescriptorIndex(0),
                                sol_vec.getControlVolumeIndex(0));
 
             d_U_nul_vecs[k] = svr_u.cloneVector(svr_u.getName());
@@ -726,7 +743,8 @@ void KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, d
     return;
 } // initializeStokesSolver
 
-void KrylovMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const
+void
+KrylovMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const
 {
     switch (static_cast<int>(reason))
     {
@@ -780,7 +798,8 @@ void KrylovMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& re
     return;
 } // reportKSPConvergedReason
 
-void KrylovMobilitySolver::initializeKSP()
+void
+KrylovMobilitySolver::initializeKSP()
 {
     // Create the KSP solver.
     KSPCreate(d_petsc_comm, &d_petsc_ksp);
@@ -803,19 +822,21 @@ void KrylovMobilitySolver::initializeKSP()
     PetscBool initial_guess_nonzero;
     KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
 
     return;
 } // initializeKSP
 
-void KrylovMobilitySolver::destroyKSP()
+void
+KrylovMobilitySolver::destroyKSP()
 {
     KSPDestroy(&d_petsc_ksp);
-    d_petsc_ksp = PETSC_NULL;
+    d_petsc_ksp = NULL;
     return;
 } // destroyKSP
 
-void KrylovMobilitySolver::resetKSPOptions()
+void
+KrylovMobilitySolver::resetKSPOptions()
 {
     if (!d_petsc_ksp) return;
     const KSPType ksp_type = d_ksp_type.c_str();
@@ -833,21 +854,24 @@ void KrylovMobilitySolver::resetKSPOptions()
     if (d_enable_logging)
     {
         KSPMonitorCancel(d_petsc_ksp);
-        KSPMonitorSet(d_petsc_ksp, reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
-                                       KrylovMobilitySolver::monitorKSP),
-                      PETSC_NULL, PETSC_NULL);
+        KSPMonitorSet(
+            d_petsc_ksp,
+            reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(KrylovMobilitySolver::monitorKSP),
+            NULL,
+            NULL);
     }
 
     return;
 } // resetKSPOptions
 
-void KrylovMobilitySolver::resetKSPOperators()
+void
+KrylovMobilitySolver::resetKSPOperators()
 {
     // Create and configure the MatShell object.
     if (d_petsc_mat)
     {
         MatDestroy(&d_petsc_mat);
-        d_petsc_mat = PETSC_NULL;
+        d_petsc_mat = NULL;
     }
     if (!d_petsc_mat)
     {
@@ -855,13 +879,12 @@ void KrylovMobilitySolver::resetKSPOperators()
         VecGetLocalSize(d_petsc_b, &n);
         MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
     }
-    MatShellSetOperation(d_petsc_mat, MATOP_MULT,
-                         reinterpret_cast<void (*)(void)>(KrylovMobilitySolver::MatVecMult_KMInv));
+    MatShellSetOperation(
+        d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(KrylovMobilitySolver::MatVecMult_KMInv));
 
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-        // KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER);//this is for petsc <3.5
         KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
         KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
     }
@@ -869,7 +892,8 @@ void KrylovMobilitySolver::resetKSPOperators()
     return;
 } // resetKSPOperators
 
-void KrylovMobilitySolver::resetKSPPC()
+void
+KrylovMobilitySolver::resetKSPPC()
 {
     if (!d_petsc_ksp) return;
 
@@ -887,7 +911,9 @@ void KrylovMobilitySolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
-                                 << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
+                                 << "  valid values for -"
+                                 << d_options_prefix
+                                 << "pc_type are: none, shell"
                                  << std::endl);
     }
 
@@ -912,7 +938,8 @@ void KrylovMobilitySolver::resetKSPPC()
     return;
 } // resetKSPPC
 
-PetscErrorCode KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
+PetscErrorCode
+KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 {
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
@@ -938,12 +965,14 @@ PetscErrorCode KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     // 1) Spread force.
     solver->d_samrai_temp[0]->setToScalar(0.0);
     solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
-    ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0), NULL,
-                               std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
+                               NULL,
+                               std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                               half_time);
     if (solver->d_normalize_spread_force)
     {
-        solver->d_cib_strategy->subtractMeanConstraintForce(x, solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
-                                                            gamma);
+        solver->d_cib_strategy->subtractMeanConstraintForce(
+            x, solver->d_samrai_temp[0]->getComponentDescriptorIndex(0), gamma);
     }
     // 2) Solve Stokes system.
     solver->d_LInv->solveSystem(*solver->d_samrai_temp[1], *solver->d_samrai_temp[0]);
@@ -952,20 +981,27 @@ PetscErrorCode KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     int u_data_idx = solver->d_samrai_temp[1]->getComponentDescriptorIndex(0);
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
-    InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
-                                                  BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, solver->d_u_bc_coefs,
+    InterpolationTransactionComponent u_component(u_data_idx,
+                                                  DATA_REFINE_TYPE,
+                                                  USE_CF_INTERPOLATION,
+                                                  DATA_COARSEN_TYPE,
+                                                  BDRY_EXTRAP_TYPE,
+                                                  CONSISTENT_TYPE_2_BDRY,
+                                                  solver->d_u_bc_coefs,
                                                   solver->d_fill_pattern);
     transaction_comps.push_back(u_component);
     solver->d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
-    const bool homogeneous_bc = true;
+    static const bool homogeneous_bc = true;
     solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     solver->d_hier_bdry_fill->fillData(half_time);
     solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
 
     // 3b) Interpolate velocity
     solver->d_cib_strategy->setInterpolatedVelocityVector(y, half_time);
-    ib_method_ops->interpolateVelocity(u_data_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                       std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->interpolateVelocity(u_data_idx,
+                                       std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                       std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                       half_time);
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 
     // 4) Regularize mobility.
@@ -973,8 +1009,8 @@ PetscErrorCode KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     {
         Vec D;
         VecDuplicate(x, &D);
-        solver->d_cib_strategy->computeMobilityRegularization(D, x);
-        VecAXPY(y, beta * delta, D);
+        solver->d_cib_strategy->computeMobilityRegularization(D, x, delta);
+        VecAXPY(y, beta, D);
         VecDestroy(&D);
     }
 
@@ -987,35 +1023,15 @@ PetscErrorCode KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 // Routine to apply DirectMobility preconditioner
 PetscErrorCode KrylovMobilitySolver::PCApply_KMInv(PC /*pc*/, Vec /*x*/, Vec /*y*/)
 {
-    // Here we are solving the equation of the type : Py = x; where P is the preconditioner
-    /*    int ierr;
-        void* ctx;
-        ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
-        KrylovMobilitySolver* solver = static_cast<KrylovMobilitySolver*>(ctx);
-    #if !defined(NDEBUG)
-        TBOX_ASSERT(solver);
-        TBOX_ASSERT(solver->d_DMInv);
-    #endif
-
-        // Get some constants
-        static const double gamma = solver->d_scale_spread;
-        static const double beta  = solver->d_scale_interp;
-
-        Vec* vx, *vy;
-        ierr = IBTK::VecMultiVecGetSubVecs(x,&vx);            IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecMultiVecGetSubVecs(y,&vy);            IBTK_CHKERRQ(ierr);
-
-        // Solve for y using DirectMobilityInverse
-        solver->d_DMInv->solveSystem(y,x);
-        ierr = VecScale(y,1.0/(gamma*beta));                  IBTK_CHKERRQ(ierr);
-
-     */
+    TBOX_ERROR(
+        "KrylovMobilitySolver::PCApply_KMInv(). Shell Preconditioner for KrylovMobilitySolver not implemented.\n");
     PetscFunctionReturn(0);
 
 } // PCApply_KMInv
 
 // Routine to log output of KrylovMobilitySolver
-PetscErrorCode KrylovMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
+PetscErrorCode
+KrylovMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
 {
     Vec resid, rhs;
     PetscReal truenorm, bnorm;

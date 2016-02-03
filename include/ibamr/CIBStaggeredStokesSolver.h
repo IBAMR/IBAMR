@@ -63,13 +63,12 @@ namespace IBAMR
 /*!
  * \brief Class CIBStaggeredStokesSolver is an extension of
  * IBAMR::StaggeredStokesSolver class that solves for the Langrange multiplier
- * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and rigid
- * body velocity of the body (if it is freely-moving) along with the fluid
+ * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and solves
+ * for rigid body velocity (if it is freely-moving) along with the fluid
  * velocity and pressure.
  */
 class CIBStaggeredStokesSolver : public StaggeredStokesSolver
 {
-
     //////////////////////////////////////////////////////////////////////////////
 public:
     /*!
@@ -123,17 +122,17 @@ public:
      * boundary conditions are employed for the pressure.
      *
      * \param u_bc_coefs Vector of pointers to objects that can set the
-         * Robin boundary condition coefficients for the velocity.
-         *
+     * Robin boundary condition coefficients for the velocity.
+     *
      * \param p_bc_coef Pointer to object that can set the Robin boundary condition
-         * coefficients for the pressure.
+     * coefficients for the pressure.
      */
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
 
     /*!
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
-         * in the StokesOperator.
+     * in the StokesOperator.
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
@@ -197,10 +196,6 @@ private:
 
     // Bools to control initialization and deallocation
     bool d_is_initialized, d_reinitializing_solver;
-
-    //body velocity output stream
-    std::ofstream d_U_body_out;
-    unsigned d_U_dump_interval;
 };
 } // namespace IBAMR
 

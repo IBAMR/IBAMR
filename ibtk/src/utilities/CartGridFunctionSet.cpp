@@ -88,7 +88,8 @@ CartGridFunctionSet::~CartGridFunctionSet()
     return;
 } // ~CartGridFunctionSet
 
-void CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
+void
+CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(fcn);
@@ -97,7 +98,8 @@ void CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
     return;
 } // addFunction
 
-bool CartGridFunctionSet::isTimeDependent() const
+bool
+CartGridFunctionSet::isTimeDependent() const
 {
     for (unsigned int k = 0; k < d_fcns.size(); ++k)
     {
@@ -106,13 +108,14 @@ bool CartGridFunctionSet::isTimeDependent() const
     return false;
 } // isTimeDependent
 
-void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable<NDIM> > var,
-                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                  const double data_time,
-                                                  const bool initial_time,
-                                                  const int coarsest_ln_in,
-                                                  const int finest_ln_in)
+void
+CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
+                                             Pointer<Variable<NDIM> > var,
+                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                             const double data_time,
+                                             const bool initial_time,
+                                             const int coarsest_ln_in,
+                                             const int finest_ln_in)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -126,7 +129,8 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(var, hierarchy,
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(var,
+                                                                         hierarchy,
                                                                          /* get_unique */ true);
     if (!hier_data_ops)
     {
@@ -140,8 +144,8 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
-        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in,
-                                           finest_ln_in);
+        d_fcns[k]->setDataOnPatchHierarchy(
+            cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
         hier_data_ops->add(data_idx, data_idx, cloned_data_idx);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -152,11 +156,12 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     return;
 } // setDataOnPatchHierarchy
 
-void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
-                                              Pointer<Variable<NDIM> > var,
-                                              Pointer<PatchLevel<NDIM> > level,
-                                              const double data_time,
-                                              const bool initial_time)
+void
+CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
+                                         Pointer<Variable<NDIM> > var,
+                                         Pointer<PatchLevel<NDIM> > level,
+                                         const double data_time,
+                                         const bool initial_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
@@ -229,12 +234,13 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
     return;
 } // setDataOnPatchLevel
 
-void CartGridFunctionSet::setDataOnPatch(int data_idx,
-                                         Pointer<Variable<NDIM> > var,
-                                         Pointer<Patch<NDIM> > patch,
-                                         double data_time,
-                                         bool initial_time,
-                                         Pointer<PatchLevel<NDIM> > patch_level)
+void
+CartGridFunctionSet::setDataOnPatch(int data_idx,
+                                    Pointer<Variable<NDIM> > var,
+                                    Pointer<Patch<NDIM> > patch,
+                                    double data_time,
+                                    bool initial_time,
+                                    Pointer<PatchLevel<NDIM> > patch_level)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch);
@@ -272,8 +278,8 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     else if (sc_var)
     {
         Pointer<SideData<NDIM, double> > p_data = data;
-        cloned_data = new SideData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(),
-                                                 p_data->getDirectionVector());
+        cloned_data = new SideData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
     else
     {

@@ -35,20 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
 #include <map>
+#include <vector>
 
-#include "petscvec.h"
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 #include "ibamr/ibamr_enums.h"
+#include "petscmat.h"
+#include "petscvec.h"
 #include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
-
 static const int s_max_free_dofs = NDIM * (NDIM + 1) / 2;
 typedef Eigen::Matrix<double, s_max_free_dofs, 1> RigidDOFVector;
 typedef Eigen::Matrix<int, s_max_free_dofs, 1> FreeRigidDOFVector;
@@ -64,13 +64,13 @@ class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
     ////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
     /*!
-     * \brief Constructor of the class.
+     *  \brief Constructor of the class.
      */
     CIBStrategy(const unsigned int parts);
 
     /*!
- * \brief Destructor of the class.
- */
+     *  \brief Destructor of the class.
+     */
     virtual ~CIBStrategy();
 
     /*!
@@ -99,25 +99,29 @@ public:
 
     /*!
      * \brief Get the free rigid velocities (DOFs) at the specified time within
-     * the current time interval. Generally, the implementation class maintains
-     * and stores the free DOFs. This routine is called by constraint solver
+     * the current time interval. This routine is called by constraint solver
      * to update the free rigid DOFs after the (converged) solution is obtained.
+     *
+     * \note A default implementation is provided that returns the vector of free
+     * DOFs.
      *
      * \param time Time (current_time or new_time) at which constraint force is
      * required.
      */
-    virtual void getFreeRigidVelocities(Vec* U, const double data_time) = 0;
+    virtual void getFreeRigidVelocities(Vec* U, const double data_time);
 
     /*!
      * \brief Get net external force and torque at the specified time within
-     * the current time interval. Generally, the implementation class maintains
-     * and stores the net external force and torque for the corresponding free DOFs.
-     * This routine is called by constraint solver to form the appropriate RHS.
+     * the current time interval. This routine is called by constraint solver
+     * to form the appropriate RHS.
+     *
+     * \note A default implementation is provided that returns the vector of
+     * net external force and torque for the corresponding free DOFs.
      *
      * \param time Time (current_time or new_time) at which external force and torque
      * is required.
      */
-    virtual void getNetExternalForceTorque(Vec* F, const double data_time) = 0;
+    virtual void getNetExternalForceTorque(Vec* F, const double data_time);
 
     /*!
      * \brief Subtract the mean of constraint force from the background Eulerian
@@ -181,7 +185,7 @@ public:
      *
      * \param part The rigid body for which we are setting the free DOFs.
      */
-    void setCloneFreeDOFs(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
+    void setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_dofs);
 
     /*!
      * \brief Query what rigid DOFs need to be solved for.
@@ -190,25 +194,36 @@ public:
 
     /*!
      * \brief Set the rigid body velocity at the nodal/marker points
-     * contained in the Vec V.
+     * contained in the Vec \em V.
      *
-     * \param U contains the rigid component of velocities. For
+     * \param part The rigid part for which velocity needs to be set.
+     *
+     * \param U RDV contains the rigid component of velocities. For
      * two-dimensions the vector contains the values \f$[u,v,\omega_z]\f$
      * and for three-dimensions the vector values are
      * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
-     *
-     * \param skip_comp skip unnecessary components for efficiency
      */
-    virtual void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true)= 0;
+    virtual void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V) = 0;
 
+    /*!
+     * \brief Set the rigid body velocity at the nodal/marker points
+     * contained in the Vec \em V.
+     *
+     * \param part The rigid part for which velocity needs to be set.
+     *
+     * \param U Vec contains the rigid component of velocities. For
+     * two-dimensions the vector contains the values \f$[u,v,\omega_z]\f$
+     * and for three-dimensions the vector values are
+     * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
+     */
     virtual void setRigidBodyVelocity(const unsigned int part, Vec U, Vec V);
 
     /*!
      * \brief Set the rigid body velocity at the nodal/marker points
      * contained in the Vec V.
      *
-     * \param U PetscMultiVec that contains the rigid component of velocities.
-     * For two-dimensions each sub Vec contains the values \f$[u,v,\omega_z]\f$
+     * \param U Vec that contains the rigid component of velocities for the required
+     * components. For two-dimensions each sub Vec contains the values \f$[u,v,\omega_z]\f$
      * and for three-dimensions the vector values are
      * \f$[u,v,w,\omega_x,\omega_y,\omega_z]\f$.
      *
@@ -229,25 +244,31 @@ public:
      */
     virtual void setRigidBodyVelocity(Vec U,
                                       Vec V,
-				      const bool only_free_dofs,
+                                      const bool only_free_dofs,
                                       const bool only_imposed_dofs,
                                       const bool all_dofs = false);
-    /*!
-     * \brief set deformation velocity.
-     */
-    virtual void setRigidBodyDeformationVelocity(Vec W);
 
     /*!
      * \brief Compute total force and torque on the structure.
      *
      * \param L The Lagrange multiplier vector.
      *
-     * \param F vecotr RDV storing the net generalized force.
+     * \param F Vector RDV storing the net generalized force.
      *
-     * \param skip_comp skip unnecessary components for efficiency
+     * \param F RDV storing the net generalized force.
      */
-    virtual void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true) = 0;
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F) = 0;
 
+    /*!
+     * \brief Compute total force and torque on the structure.
+     *
+     * \param part The structure index.
+     *
+     * \param L The Lagrange multiplier vector.
+     *
+     * \param F Vec storing the net generalized force.
+     */
+    virtual void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Vec F);
 
     /*!
      * \brief Compute total force and torque on the structure.
@@ -273,17 +294,47 @@ public:
                                                  const bool only_imposed_dofs,
                                                  const bool all_dofs = false);
 
+    /*!
+     * \brief Get total torque and force on the structure at new_time within
+     * the current time interval.
+     *
+     * \param part The rigid part.
+     */
+    const RigidDOFVector& getNetRigidGeneralizedForce(const unsigned int part);
 
+    /*!
+     * \brief Update the mapping of free DOFs for all structures if they are collected
+     * in a global vector.
+     */
+    void updateFreeDOFsMapping();
 
-    void updateNewRigidBodyVelocity(Vec U, const bool all_dofs = false);
+    /*!
+     * \brief Update the rigid body velocity obtained from the constraint Stokes
+     * solver for free-moving case.
+     */
+    void updateNewRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U);
 
- 
+    /*!
+     * \brief Update the rigid body velocity obtained from the constraint Stokes
+     * solver for free-moving case.
+     */
+    void updateNewRigidBodyVelocity(const unsigned int part, Vec U);
+
+    /*!
+     * \brief Update the rigid body velocity obtained from the constraint Stokes
+     * solver for free-moving case.
+     */
+    void updateNewRigidBodyVelocity(Vec U,
+                                    const bool only_free_dofs,
+                                    const bool only_imposed_dofs,
+                                    const bool all_dofs = false);
+
     /*!
      * \brief Copy data from distributed PETSc Vec for specified stucture indices
      * to an array defined on a single processor. A default empty implementation
      * is provided.
      *
-     * \param b PETSc Vec to copy from.
+     * \param b PETSc Vec to copy from. The Vec stores data for nodal/marker points.
      *
      * \param array Data pointer to copy to.
      *
@@ -297,21 +348,42 @@ public:
      * of all the structures given in \em struct_ids times the \em data_depth.
      */
     virtual void copyVecToArray(Vec b,
-				double* array,
-				const std::vector<unsigned>& struct_ids,
-				const int data_depth,
-				const int array_rank);
-    
+                                double* array,
+                                const std::vector<unsigned>& struct_ids,
+                                const int data_depth,
+                                const int array_rank);
 
-    
+    /*!
+     * \brief Copy data from distributed PETSc Vec for specified stucture indices
+     * to an array defined on a single processor. A default implementation
+     * is provided.
+     *
+     * \param b PETSc Vec to copy from. The Vec stores only free DOFs of \em all
+     * the structures.
+     *
+     * \param array Data pointer to copy to. It is a linear array of maximum free DOFs
+     * of the passed structure IDs.
+     *
+     * \param struct_ids Vector of structure indices.
+     *
+     * \param array_rank Rank of the processor on which the array is located.
+     *
+     * \note The size of \em array is assummed to be sum of maximum number of
+     * free degrees of freedom of all the structures given in \em struct_ids. The
+     * caller is responsible for allocating and destroying array memory outside of
+     * this routine.
+     */
+    virtual void
+    copyFreeDOFsVecToArray(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int array_rank);
+
     /*!
      * \brief Copy data from array defined on a single processor for specified
      * stucture indices to distributed PETScVec. A default empty implementation
      * is provided.
      *
-     * \param b PETSc Vec to copy from.
+     * \param b Copy to PETSc Vec.
      *
-     * \param array Data pointer to copy to.
+     * \param array Copy from data pointer.
      *
      * \param struct_ids Vector of structure indices.
      *
@@ -321,23 +393,47 @@ public:
      *
      * \note The size of \em array is assummed to be sum of nodes
      * of all the structures given in \em struct_ids times the \em data_depth.
+     * The caller is responsible for allocating and destroying array memory
+     * outside of this routine.
      */
     virtual void copyArrayToVec(Vec b,
-				double* array,
-				const std::vector<unsigned>& struct_ids,
-				const int data_depth,
-				const int array_rank);
-    
-    virtual void copyAllVecToArray(Vec b,
-				   double* array,
-				   const std::vector<unsigned>& all_rhs_struct_ids,
-				   const int data_depth);
-    
-    virtual void copyAllArrayToVec(Vec b,
-				   double* array,
-				   const std::vector<unsigned>& all_rhs_struct_ids,
-				   const int data_depth);
+                                double* array,
+                                const std::vector<unsigned>& struct_ids,
+                                const int data_depth,
+                                const int array_rank);
 
+    /*!
+     * \brief Copy data from array defined on a single processor for specified
+     * stucture indices to distributed PETScVec. A default implementation
+     * is provided.
+     *
+     * \param b Copy to PETSc Vec. The Vec stores only free DOFs of \em all
+     * the structures.
+     *
+     * \param array Copy from data pointer. It is a linear array of maximum free DOFs
+     * of the passed structure IDs.
+     *
+     * \param struct_ids Vector of structure indices.
+     *
+     * \param array_rank Rank of the processor on which the array is located.
+     *
+     * \note The size of \em array is assummed to be sum of maximum number of
+     * free degrees of freedom of all the structures given in \em struct_ids. The
+     * caller is responsible for allocating and destroying array memory outside of
+     * this routine.
+     */
+    virtual void
+    copyFreeDOFsArrayToVec(Vec b, double* array, const std::vector<unsigned>& struct_ids, const int array_rank);
+
+    /*!
+     * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
+     */
+    static void vecToRDV(Vec U, RigidDOFVector& Ur);
+
+    /*!
+     * \brief Set the DOFs from RigidDOFVector \p Ur to PETSc Vec \p U.
+     */
+    static void rdvToVec(const RigidDOFVector& Ur, Vec& U);
 
     /*!
      * \brief Set the DOFs from Eigen::Vector3d \p U and \p W to RigidDOFVector \p UW.
@@ -359,19 +455,35 @@ public:
      * \brief Get the rigid body translational velocity at the end of
      * the timestep.
      */
-    virtual void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
+    void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
+
+    /*!
+     * \brief Get body center of mass at the current time step.
+     */
+    const Eigen::Vector3d& getCurrentBodyCenterOfMass(const unsigned int part);
+
+    /*!
+     * \brief Get body center of mass at half time step.
+     */
+    const Eigen::Vector3d& getNewBodyCenterOfMass(const unsigned int part);
 
     /*!
      * \brief Construct dense mobility matrix for the prototypical structures
-     * identified by their indices. A default empty implementation is provided
+     * identified by their indices.
+     * \note A default empty implementation is provided
      * in this class. The derived class provides the actual implementation.
      *
-     * \param mat_map Matrix handle with pointer to matrix representation. The matrix is
-     * stored in column-major(FORTRAN) order..
+     * \param mat_name Matrix handle.
      *
-     * \param mat_map_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
+     * \param mat_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
      *
-     * \param prototype_struct_ids_map 
+     * \param mobility_mat Dense sequential mobility matrix. The matrix is
+     * stored in column-major(FORTRAN) order.
+     * \note Must be allocated prior to entering this routine.
+     *
+     * \param prototype_struct_ids Indices of the structures as registered
+     * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
+     * will formed for multiple structures.
      *
      * \param grid_dx NDIM vector of grid spacing of structure level.
      *
@@ -390,132 +502,113 @@ public:
      *
      * \param managing_rank Rank of the processor managing this dense matrix.
      */
-    virtual void constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
-					 std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
-					 std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
-					 std::map<std::string, unsigned int>& managed_mat_nodes_map,
-					 std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
-					 std::map<std::string, int>& managed_mat_proc_map,
-					 const double* grid_dx,
+    virtual void constructMobilityMatrix(const std::string& mat_name,
+                                         MobilityMatrixType mat_type,
+                                         Mat& mobility_mat,
+                                         const std::vector<unsigned>& prototype_struct_ids,
+                                         const double* grid_dx,
                                          const double* domain_extents,
                                          const bool initial_time,
                                          double rho,
                                          double mu,
-                                         double f_periodic_corr);
+                                         const std::pair<double, double>& scale,
+                                         double f_periodic_corr,
+                                         const int managing_rank);
+
     /*!
-     * \brief Construct a kinematic matrix for the prototypical structures
-     * identified by their indices. A default empty implementation is provided
-     * in this class. The derived class provides the actual implementation.
+     * \brief Construct a geometric matrix for the prototypical structures
+     * identified by their indices. A geometric matrix maps center of mass rigid
+     * body velocity to nodal velocities. Geometric matrix is generally used with
+     * a dense mobility matrices to construct an associated body-mobility matrix
+     * algebrically.
+     * \note A default empty implementation is provided in this class. The
+     * derived class provides the actual implementation.
      *
      * \param mat_name Matrix handle.
      *
-     * \param kinematic_mat Pointer to matrix representation. The matrix is
-     * stored in column-major(FORTRAN) order. Must be allocated.
+     * \param geometric_mat Dense sequential geometric matrix. The matrix is
+     * stored in column-major(FORTRAN) order.
+     * \note Must be allocated prior to entering this routine.
      *
      * \param prototype_struct_ids Indices of the structures as registered
-     * with \see IBAMR::IBStrategy class. A combined dense mobility matrix
-     * will formed for multiple structures.
+     * with \see IBAMR::IBStrategy class. A combined block-diagonal geometric
+     * matrix will be formed for multiple structures.
      *
-     * \param initial_time Boolean to indicate if the corresponding mobility matrix is to be
-     * generated for the initial position of the structures.
+     * \param initial_time Boolean to indicate if the corresponding geometric matrix
+     * is to be generated for the initial position of the structures.
      *
      * \param managing_rank Rank of the processor managing this dense matrix.
      */
-    virtual void constructKinematicMatrix(double* kinematic_mat,
-					  const std::vector<unsigned>& prototype_struct_ids,
-					  const bool initial_time,
-					  const int managing_rank);
-    /*!
-     * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
-     *
-     * \param array Data pointer to copy to.
-     *
-     * \param struct_ids Vector of structure indices.
-     *
-     * \param isTraspose flag to indicate using transpose rotation
-     *
-     * \param managing_rank Rank of the processor managing
-     *
-     * \param BodyComps Boolean indicating if the array
-     * is to be set to have stucture components.
-     *
-     */
-    virtual void rotateArrayInitalBodyFrame(double* array, 
-					    const std::vector<unsigned>& struct_ids,
-					    const bool isTranspose,
-					    const int managing_rank,
-					    const bool BodyComps = false);
+    virtual void constructGeometricMatrix(const std::string& mat_name,
+                                          Mat& geometric_mat,
+                                          const std::vector<unsigned>& prototype_struct_ids,
+                                          const bool initial_time,
+                                          const int managing_rank);
 
     /*!
-     * \brief return body quaternion at current or half time step
+     * \brief Rotate vector using rotation matrix to/from the reference frame
+     * of the structures (which is at the initial time of the simulation).
+     *
+     * \param array Raw data pointer containing the vector enteries.
+     *
+     * \param struct_ids Structure ID indices.
+     *
+     * \param use_transpose Use transpose of rotation matrix to rotate the vector.
+     * \note Transpose of rotation matrix is its inverse and it takes the vector back
+     * to its reference frame.
+     *
+     * \param managing_rank Rank of the processor managing the matrix.
+     *
+     * \param depth Depth of the data array components.
      *
      */
-    Eigen::Vector3d* getBodyCenterOfMass(const unsigned int part, const bool halfStep=false);
-
-   /*!
-     * \brief return body quaternion at current or half time step
-     *
-     */
-    Eigen::Quaterniond* getBodyQuaternion(const unsigned int part, const bool halfStep=false);
-
-    /*!
-     * \brief set rigid part clones parameters
-     */
-    void setRigidBodyClonesParameters(const int num_structs_types, 
-				      const std::vector<int>& structs_clones_num);
-
-    /*!
-     * \brief set rigid part clones parameters
-     */
-    void getRigidBodyClonesParameters(int& num_structs_types, std::vector<int>& structs_clones_num);
-
-    /*!
-     * \brief Set whether the interpolation J should use homogeneous boundary conditions.
-     */
-    void setHomogeneousBc(bool homogeneous_bc);
+    virtual void rotateArray(double* array,
+                             const std::vector<unsigned>& struct_ids,
+                             const bool use_transpose,
+                             const int managing_rank,
+                             const int depth);
 
     /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
     /*!
-     * \brief Number of rigid parts.
+     * \brief Fill the rotation matrix.
+     * \param q_old Previous applied quaternion.
+     * \param q_new New quaternion to set.
+     * \param rot_mat Matrix to set.
+     * \param dt Time interval of rotation.
      */
+    void setRotationMatrix(const std::vector<Eigen::Vector3d>& rot_vel,
+                           const std::vector<Eigen::Quaterniond>& q_old,
+                           std::vector<Eigen::Quaterniond>& q_new,
+                           std::vector<Eigen::Matrix3d>& rot_mat,
+                           const double dt);
+
+    // Number of rigid parts.
     unsigned int d_num_rigid_parts;
 
-    /*!
-     * Center of mass and moment of inertia.
-     */
-    std::vector<Eigen::Vector3d> d_center_of_mass_current, d_center_of_mass_half;
-    std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half;
+    // Center of mass.
+    std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_half,
+        d_center_of_mass_new;
 
-    /*!
-     * Whether to solve for rigid body velocity.
-     */
+    // Quaternion of the body.
+    std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_half, d_quaternion_new;
+
+    // Whether to solve for rigid body velocity.
     std::vector<FRDV> d_solve_rigid_vel;
-    std::vector<bool> d_isFree_component; //added for efficiency
-    std::vector<bool> d_isImposed_component; //added for efficiency
 
+    // PETSc wrappers for free rigid body velocities and external force/torque.
+    Vec d_U, d_F;
 
-    /*!
-     * Rigid body velocity of the structures.
-     */
+    // Mapping of free DOFs in the global vector.
+    std::vector<std::pair<int, int> > d_free_dofs_map;
+    bool d_free_dofs_map_updated;
+
+    // Rigid body velocity of the structures.
     std::vector<Eigen::Vector3d> d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
     std::vector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
 
-    /*!
-     * Net rigid generalized force.
-     */
-    //std::vector<RigidDOFVector> d_net_rigid_generalized_force;
-
-    /*!
-     * rigid parts clones parameters
-     */
-    int d_num_structs_types;
-    std::vector<int> d_structs_clones_num;
-
-    /*
-     * Whether the interpolation J should use homogeneous boundary conditions.
-     */ 
-    bool d_homogeneous_bc;
+    // Net rigid generalized force.
+    std::vector<RigidDOFVector> d_net_rigid_generalized_force;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:

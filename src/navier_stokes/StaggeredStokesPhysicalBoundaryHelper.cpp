@@ -81,7 +81,8 @@ StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
     return;
 } // ~StaggeredStokesPhysicalBoundaryHelper
 
-void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
+void
+StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,
     const int p_data_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -94,8 +95,8 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     TBOX_ASSERT(d_hierarchy);
 #endif
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx,
-                                                              homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx, homogeneous_bc);
     std::vector<int> target_data_idxs(2);
     target_data_idxs[0] = u_data_idx;
     target_data_idxs[1] = p_data_idx;
@@ -124,8 +125,12 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                     Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                     Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,
-                                                             Pointer<Variable<NDIM> >(), *patch, trimmed_bdry_box,
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
+                                                             bcoef_data,
+                                                             gcoef_data,
+                                                             Pointer<Variable<NDIM> >(),
+                                                             *patch,
+                                                             trimmed_bdry_box,
                                                              fill_time);
                     ExtendedRobinBcCoefStrategy* const extended_bc_coef =
                         dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
@@ -239,12 +244,12 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     return;
 }// enforceDivergenceFreeConditionAtBoundary
 #endif
-void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* p_bc_coef,
-    int u_target_data_idx,
-    int p_target_data_idx,
-    bool homogeneous_bc)
+void
+StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                                          RobinBcCoefStrategy<NDIM>* p_bc_coef,
+                                                          int u_target_data_idx,
+                                                          int p_target_data_idx,
+                                                          bool homogeneous_bc)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
@@ -279,9 +284,9 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
     return;
 } // setupBcCoefObjects
 
-void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* p_bc_coef)
+void
+StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                                          RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);

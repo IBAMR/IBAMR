@@ -76,8 +76,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NodeDataSynchronization::NodeDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
-      d_coarsen_scheds(), d_refine_alg(), d_refine_scheds()
+    : d_is_initialized(false),
+      d_transaction_comps(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(),
+      d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -89,14 +95,16 @@ NodeDataSynchronization::~NodeDataSynchronization()
     return;
 } // ~NodeDataSynchronization
 
-void NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void NodeDataSynchronization::initializeOperatorState(
+void
+NodeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -163,14 +171,16 @@ void NodeDataSynchronization::initializeOperatorState(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision node-centered data is supported." << std::endl);
+                           << "  only double-precision node-centered data is supported."
+                           << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op, fill_pattern);
+                                               refine_op,
+                                               fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
@@ -186,7 +196,8 @@ void NodeDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+NodeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -201,7 +212,8 @@ void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void NodeDataSynchronization::resetTransactionComponents(
+void
+NodeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -264,14 +276,16 @@ void NodeDataSynchronization::resetTransactionComponents(
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision node-centered data is supported." << std::endl);
+                           << "  only double-precision node-centered data is supported."
+                           << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op, fill_pattern);
+                                               refine_op,
+                                               fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -282,7 +296,8 @@ void NodeDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void NodeDataSynchronization::deallocateOperatorState()
+void
+NodeDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -301,7 +316,8 @@ void NodeDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void NodeDataSynchronization::synchronizeData(const double fill_time)
+void
+NodeDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

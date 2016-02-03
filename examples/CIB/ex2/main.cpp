@@ -46,6 +46,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/CIBMethod.h>
+#include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/DirectMobilitySolver.h>
@@ -54,17 +55,17 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
-#include <ibamr/CIBMobilitySolver.h>
-#include <ibtk/muParserCartGridFunction.h>
-#include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 //////////////////////////////////////////////////////////////////////////////
 
 // Center of mass velocity
-void ConstrainedCOMVel(unsigned /*part*/, double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+void
+ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
 {
     U_com.setZero();
     W_com.setZero();
@@ -73,7 +74,8 @@ void ConstrainedCOMVel(unsigned /*part*/, double /*data_time*/, Eigen::Vector3d&
     return;
 } // ConstrainedCOMOuterVel
 
-void NetExternalForceTorque(unsigned /*part*/, double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+void
+NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
 {
     F_ext << 0.0, 0.0, 0.0;
     T_ext << 0.0, 0.0, 0.0;
@@ -81,9 +83,13 @@ void NetExternalForceTorque(unsigned /*part*/, double /*data_time*/, Eigen::Vect
     return;
 } // NetExternalForceTorque
 
-void ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
+void
+ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
 {
-}
+    // intentionally left blank
+    return;
+} // ConstrainedNodalVel
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  LDataManager* l_data_manager,
@@ -102,7 +108,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
@@ -118,13 +125,13 @@ int main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
- 
-	// Read default Petsc options
-	if (input_db->keyExists("petsc_options_file"))
-	{
-	    std::string PetscOptionsFile = input_db->getString("petsc_options_file");
-	    PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
-	}
+
+        // Read default Petsc options
+        if (input_db->keyExists("PETSC_OPTIONS_FILE"))
+        {
+            std::string PetscOptionsFile = input_db->getString("PETSC_OPTIONS_FILE");
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+        }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -162,27 +169,36 @@ int main(int argc, char* argv[])
 
         // Krylov solver for INS integrator that solves for [u,p,U,L]
         Pointer<CIBStaggeredStokesSolver> CIBSolver =
-            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver", input_db->getDatabase("CIBStaggeredStokesSolver"),
-                                         navier_stokes_integrator, ib_method_ops, "SP_");
+            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
+                                         input_db->getDatabase("CIBStaggeredStokesSolver"),
+                                         navier_stokes_integrator,
+                                         ib_method_ops,
+                                         "SP_");
 
         // Register the Krylov solver with INS integrator
         navier_stokes_integrator->setStokesSolver(CIBSolver);
 
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
@@ -246,6 +262,9 @@ int main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+        // Set physical boundary operator used in spreading.
+        ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
+
         // Register mobility matrices (if needed)
         std::string mobility_solver_type = input_db->getString("MOBILITY_SOLVER_TYPE");
         if (mobility_solver_type == "DIRECT")
@@ -262,11 +281,10 @@ int main(int argc, char* argv[])
 
             // Register the dense matrix with direct solver
             DirectMobilitySolver* direct_solvers = NULL;
-            KrylovMobilitySolver* krylov_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(&krylov_solvers,
-                                                                                          &direct_solvers);
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
 
-            direct_solvers->registerMobilityMat(mat_name, prototype_structs, EMPIRICAL, LAPACK_LU, 0);
+            direct_solvers->registerMobilityMat(
+                mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_LU, LAPACK_LU), 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
         }
 
@@ -290,7 +308,10 @@ int main(int argc, char* argv[])
         }
         if (dump_postproc_data)
         {
-            output_data(patch_hierarchy, ib_method_ops->getLDataManager(), iteration_num, loop_time,
+            output_data(patch_hierarchy,
+                        ib_method_ops->getLDataManager(),
+                        iteration_num,
+                        loop_time,
                         postproc_data_dump_dirname);
         }
 
@@ -319,6 +340,7 @@ int main(int argc, char* argv[])
             }
 
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
+            if (ib_method_ops->flagRegrid()) time_integrator->regridHierarchy();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -352,7 +374,10 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy, ib_method_ops->getLDataManager(), iteration_num, loop_time,
+                output_data(patch_hierarchy,
+                            ib_method_ops->getLDataManager(),
+                            iteration_num,
+                            loop_time,
                             postproc_data_dump_dirname);
             }
         }
@@ -367,11 +392,12 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                 LDataManager* /*l_data_manager*/,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& /*data_dump_dirname*/)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+            LDataManager* /*l_data_manager*/,
+            const int iteration_num,
+            const double loop_time,
+            const string& /*data_dump_dirname*/)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

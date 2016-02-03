@@ -329,14 +329,21 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_bc_coefs(bc_coefs),
+      d_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                   << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -381,7 +388,8 @@ INSStaggeredUpwindConvectiveOperator::~INSStaggeredUpwindConvectiveOperator()
     return;
 } // ~INSStaggeredUpwindConvectiveOperator
 
-void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -397,9 +405,14 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
     static const bool homogeneous_bc = false;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
-    transaction_comps[0] =
-        InterpolationTransactionComponent(d_U_scratch_idx, U_idx, "CONSTANT_REFINE", false, "CONSERVATIVE_COARSEN",
-                                          d_bdry_extrap_type, false, d_bc_coefs);
+    transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
+                                                             U_idx,
+                                                             "CONSTANT_REFINE",
+                                                             false,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             d_bdry_extrap_type,
+                                                             false,
+                                                             d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
@@ -437,33 +450,80 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
                 U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
             }
 #if (NDIM == 2)
-            NAVIER_STOKES_INTERP_COMPS_FC(
-                patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1), U_data->getGhostCellWidth()(0),
-                U_data->getGhostCellWidth()(1), U_data->getPointer(0), U_data->getPointer(1), side_boxes[0].lower(0),
-                side_boxes[0].upper(0), side_boxes[0].lower(1), side_boxes[0].upper(1),
-                U_adv_data[0]->getGhostCellWidth()(0), U_adv_data[0]->getGhostCellWidth()(1),
-                U_adv_data[0]->getPointer(0), U_adv_data[0]->getPointer(1), side_boxes[1].lower(0),
-                side_boxes[1].upper(0), side_boxes[1].lower(1), side_boxes[1].upper(1),
-                U_adv_data[1]->getGhostCellWidth()(0), U_adv_data[1]->getGhostCellWidth()(1),
-                U_adv_data[1]->getPointer(0), U_adv_data[1]->getPointer(1));
+            NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
+                                          patch_upper(0),
+                                          patch_lower(1),
+                                          patch_upper(1),
+                                          U_data->getGhostCellWidth()(0),
+                                          U_data->getGhostCellWidth()(1),
+                                          U_data->getPointer(0),
+                                          U_data->getPointer(1),
+                                          side_boxes[0].lower(0),
+                                          side_boxes[0].upper(0),
+                                          side_boxes[0].lower(1),
+                                          side_boxes[0].upper(1),
+                                          U_adv_data[0]->getGhostCellWidth()(0),
+                                          U_adv_data[0]->getGhostCellWidth()(1),
+                                          U_adv_data[0]->getPointer(0),
+                                          U_adv_data[0]->getPointer(1),
+                                          side_boxes[1].lower(0),
+                                          side_boxes[1].upper(0),
+                                          side_boxes[1].lower(1),
+                                          side_boxes[1].upper(1),
+                                          U_adv_data[1]->getGhostCellWidth()(0),
+                                          U_adv_data[1]->getGhostCellWidth()(1),
+                                          U_adv_data[1]->getPointer(0),
+                                          U_adv_data[1]->getPointer(1));
 #endif
 #if (NDIM == 3)
-            NAVIER_STOKES_INTERP_COMPS_FC(
-                patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2),
-                U_data->getGhostCellWidth()(0), U_data->getGhostCellWidth()(1), U_data->getGhostCellWidth()(2),
-                U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2), side_boxes[0].lower(0),
-                side_boxes[0].upper(0), side_boxes[0].lower(1), side_boxes[0].upper(1), side_boxes[0].lower(2),
-                side_boxes[0].upper(2), U_adv_data[0]->getGhostCellWidth()(0), U_adv_data[0]->getGhostCellWidth()(1),
-                U_adv_data[0]->getGhostCellWidth()(2), U_adv_data[0]->getPointer(0), U_adv_data[0]->getPointer(1),
-                U_adv_data[0]->getPointer(2), side_boxes[1].lower(0), side_boxes[1].upper(0), side_boxes[1].lower(1),
-                side_boxes[1].upper(1), side_boxes[1].lower(2), side_boxes[1].upper(2),
-                U_adv_data[1]->getGhostCellWidth()(0), U_adv_data[1]->getGhostCellWidth()(1),
-                U_adv_data[1]->getGhostCellWidth()(2), U_adv_data[1]->getPointer(0), U_adv_data[1]->getPointer(1),
-                U_adv_data[1]->getPointer(2), side_boxes[2].lower(0), side_boxes[2].upper(0), side_boxes[2].lower(1),
-                side_boxes[2].upper(1), side_boxes[2].lower(2), side_boxes[2].upper(2),
-                U_adv_data[2]->getGhostCellWidth()(0), U_adv_data[2]->getGhostCellWidth()(1),
-                U_adv_data[2]->getGhostCellWidth()(2), U_adv_data[2]->getPointer(0), U_adv_data[2]->getPointer(1),
-                U_adv_data[2]->getPointer(2));
+            NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
+                                          patch_upper(0),
+                                          patch_lower(1),
+                                          patch_upper(1),
+                                          patch_lower(2),
+                                          patch_upper(2),
+                                          U_data->getGhostCellWidth()(0),
+                                          U_data->getGhostCellWidth()(1),
+                                          U_data->getGhostCellWidth()(2),
+                                          U_data->getPointer(0),
+                                          U_data->getPointer(1),
+                                          U_data->getPointer(2),
+                                          side_boxes[0].lower(0),
+                                          side_boxes[0].upper(0),
+                                          side_boxes[0].lower(1),
+                                          side_boxes[0].upper(1),
+                                          side_boxes[0].lower(2),
+                                          side_boxes[0].upper(2),
+                                          U_adv_data[0]->getGhostCellWidth()(0),
+                                          U_adv_data[0]->getGhostCellWidth()(1),
+                                          U_adv_data[0]->getGhostCellWidth()(2),
+                                          U_adv_data[0]->getPointer(0),
+                                          U_adv_data[0]->getPointer(1),
+                                          U_adv_data[0]->getPointer(2),
+                                          side_boxes[1].lower(0),
+                                          side_boxes[1].upper(0),
+                                          side_boxes[1].lower(1),
+                                          side_boxes[1].upper(1),
+                                          side_boxes[1].lower(2),
+                                          side_boxes[1].upper(2),
+                                          U_adv_data[1]->getGhostCellWidth()(0),
+                                          U_adv_data[1]->getGhostCellWidth()(1),
+                                          U_adv_data[1]->getGhostCellWidth()(2),
+                                          U_adv_data[1]->getPointer(0),
+                                          U_adv_data[1]->getPointer(1),
+                                          U_adv_data[1]->getPointer(2),
+                                          side_boxes[2].lower(0),
+                                          side_boxes[2].upper(0),
+                                          side_boxes[2].lower(1),
+                                          side_boxes[2].upper(1),
+                                          side_boxes[2].lower(2),
+                                          side_boxes[2].upper(2),
+                                          U_adv_data[2]->getGhostCellWidth()(0),
+                                          U_adv_data[2]->getGhostCellWidth()(1),
+                                          U_adv_data[2]->getGhostCellWidth()(2),
+                                          U_adv_data[2]->getPointer(0),
+                                          U_adv_data[2]->getPointer(1),
+                                          U_adv_data[2]->getPointer(2));
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -487,83 +547,144 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
                 {
                 case CONSERVATIVE:
 #if (NDIM == 2)
-                    CONVECT_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), U_adv_data[axis]->getGhostCellWidth()(0),
-                        U_adv_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_adv_data[axis]->getPointer(0),
-                        U_adv_data[axis]->getPointer(1), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), N_data->getGhostCellWidth()(0),
-                        N_data->getGhostCellWidth()(1), N_data->getPointer(axis));
+                    CONVECT_DERIVATIVE_FC(dx,
+                                          side_boxes[axis].lower(0),
+                                          side_boxes[axis].upper(0),
+                                          side_boxes[axis].lower(1),
+                                          side_boxes[axis].upper(1),
+                                          U_adv_data[axis]->getGhostCellWidth()(0),
+                                          U_adv_data[axis]->getGhostCellWidth()(1),
+                                          U_half_data[axis]->getGhostCellWidth()(0),
+                                          U_half_data[axis]->getGhostCellWidth()(1),
+                                          U_adv_data[axis]->getPointer(0),
+                                          U_adv_data[axis]->getPointer(1),
+                                          U_half_data[axis]->getPointer(0),
+                                          U_half_data[axis]->getPointer(1),
+                                          N_data->getGhostCellWidth()(0),
+                                          N_data->getGhostCellWidth()(1),
+                                          N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    CONVECT_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_adv_data[axis]->getGhostCellWidth()(0), U_adv_data[axis]->getGhostCellWidth()(1),
-                        U_adv_data[axis]->getGhostCellWidth()(2), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
-                        U_adv_data[axis]->getPointer(0), U_adv_data[axis]->getPointer(1),
-                        U_adv_data[axis]->getPointer(2), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), U_half_data[axis]->getPointer(2),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
-                        N_data->getPointer(axis));
+                    CONVECT_DERIVATIVE_FC(dx,
+                                          side_boxes[axis].lower(0),
+                                          side_boxes[axis].upper(0),
+                                          side_boxes[axis].lower(1),
+                                          side_boxes[axis].upper(1),
+                                          side_boxes[axis].lower(2),
+                                          side_boxes[axis].upper(2),
+                                          U_adv_data[axis]->getGhostCellWidth()(0),
+                                          U_adv_data[axis]->getGhostCellWidth()(1),
+                                          U_adv_data[axis]->getGhostCellWidth()(2),
+                                          U_half_data[axis]->getGhostCellWidth()(0),
+                                          U_half_data[axis]->getGhostCellWidth()(1),
+                                          U_half_data[axis]->getGhostCellWidth()(2),
+                                          U_adv_data[axis]->getPointer(0),
+                                          U_adv_data[axis]->getPointer(1),
+                                          U_adv_data[axis]->getPointer(2),
+                                          U_half_data[axis]->getPointer(0),
+                                          U_half_data[axis]->getPointer(1),
+                                          U_half_data[axis]->getPointer(2),
+                                          N_data->getGhostCellWidth()(0),
+                                          N_data->getGhostCellWidth()(1),
+                                          N_data->getGhostCellWidth()(2),
+                                          N_data->getPointer(axis));
 #endif
                     break;
                 case ADVECTIVE:
 #if (NDIM == 2)
-                    ADVECT_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), U_adv_data[axis]->getGhostCellWidth()(0),
-                        U_adv_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_adv_data[axis]->getPointer(0),
-                        U_adv_data[axis]->getPointer(1), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), N_data->getGhostCellWidth()(0),
-                        N_data->getGhostCellWidth()(1), N_data->getPointer(axis));
+                    ADVECT_DERIVATIVE_FC(dx,
+                                         side_boxes[axis].lower(0),
+                                         side_boxes[axis].upper(0),
+                                         side_boxes[axis].lower(1),
+                                         side_boxes[axis].upper(1),
+                                         U_adv_data[axis]->getGhostCellWidth()(0),
+                                         U_adv_data[axis]->getGhostCellWidth()(1),
+                                         U_half_data[axis]->getGhostCellWidth()(0),
+                                         U_half_data[axis]->getGhostCellWidth()(1),
+                                         U_adv_data[axis]->getPointer(0),
+                                         U_adv_data[axis]->getPointer(1),
+                                         U_half_data[axis]->getPointer(0),
+                                         U_half_data[axis]->getPointer(1),
+                                         N_data->getGhostCellWidth()(0),
+                                         N_data->getGhostCellWidth()(1),
+                                         N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    ADVECT_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_adv_data[axis]->getGhostCellWidth()(0), U_adv_data[axis]->getGhostCellWidth()(1),
-                        U_adv_data[axis]->getGhostCellWidth()(2), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
-                        U_adv_data[axis]->getPointer(0), U_adv_data[axis]->getPointer(1),
-                        U_adv_data[axis]->getPointer(2), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), U_half_data[axis]->getPointer(2),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
-                        N_data->getPointer(axis));
+                    ADVECT_DERIVATIVE_FC(dx,
+                                         side_boxes[axis].lower(0),
+                                         side_boxes[axis].upper(0),
+                                         side_boxes[axis].lower(1),
+                                         side_boxes[axis].upper(1),
+                                         side_boxes[axis].lower(2),
+                                         side_boxes[axis].upper(2),
+                                         U_adv_data[axis]->getGhostCellWidth()(0),
+                                         U_adv_data[axis]->getGhostCellWidth()(1),
+                                         U_adv_data[axis]->getGhostCellWidth()(2),
+                                         U_half_data[axis]->getGhostCellWidth()(0),
+                                         U_half_data[axis]->getGhostCellWidth()(1),
+                                         U_half_data[axis]->getGhostCellWidth()(2),
+                                         U_adv_data[axis]->getPointer(0),
+                                         U_adv_data[axis]->getPointer(1),
+                                         U_adv_data[axis]->getPointer(2),
+                                         U_half_data[axis]->getPointer(0),
+                                         U_half_data[axis]->getPointer(1),
+                                         U_half_data[axis]->getPointer(2),
+                                         N_data->getGhostCellWidth()(0),
+                                         N_data->getGhostCellWidth()(1),
+                                         N_data->getGhostCellWidth()(2),
+                                         N_data->getPointer(axis));
 #endif
                     break;
                 case SKEW_SYMMETRIC:
 #if (NDIM == 2)
-                    SKEW_SYM_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), U_adv_data[axis]->getGhostCellWidth()(0),
-                        U_adv_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_adv_data[axis]->getPointer(0),
-                        U_adv_data[axis]->getPointer(1), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), N_data->getGhostCellWidth()(0),
-                        N_data->getGhostCellWidth()(1), N_data->getPointer(axis));
+                    SKEW_SYM_DERIVATIVE_FC(dx,
+                                           side_boxes[axis].lower(0),
+                                           side_boxes[axis].upper(0),
+                                           side_boxes[axis].lower(1),
+                                           side_boxes[axis].upper(1),
+                                           U_adv_data[axis]->getGhostCellWidth()(0),
+                                           U_adv_data[axis]->getGhostCellWidth()(1),
+                                           U_half_data[axis]->getGhostCellWidth()(0),
+                                           U_half_data[axis]->getGhostCellWidth()(1),
+                                           U_adv_data[axis]->getPointer(0),
+                                           U_adv_data[axis]->getPointer(1),
+                                           U_half_data[axis]->getPointer(0),
+                                           U_half_data[axis]->getPointer(1),
+                                           N_data->getGhostCellWidth()(0),
+                                           N_data->getGhostCellWidth()(1),
+                                           N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    SKEW_SYM_DERIVATIVE_FC(
-                        dx, side_boxes[axis].lower(0), side_boxes[axis].upper(0), side_boxes[axis].lower(1),
-                        side_boxes[axis].upper(1), side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_adv_data[axis]->getGhostCellWidth()(0), U_adv_data[axis]->getGhostCellWidth()(1),
-                        U_adv_data[axis]->getGhostCellWidth()(2), U_half_data[axis]->getGhostCellWidth()(0),
-                        U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
-                        U_adv_data[axis]->getPointer(0), U_adv_data[axis]->getPointer(1),
-                        U_adv_data[axis]->getPointer(2), U_half_data[axis]->getPointer(0),
-                        U_half_data[axis]->getPointer(1), U_half_data[axis]->getPointer(2),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
-                        N_data->getPointer(axis));
+                    SKEW_SYM_DERIVATIVE_FC(dx,
+                                           side_boxes[axis].lower(0),
+                                           side_boxes[axis].upper(0),
+                                           side_boxes[axis].lower(1),
+                                           side_boxes[axis].upper(1),
+                                           side_boxes[axis].lower(2),
+                                           side_boxes[axis].upper(2),
+                                           U_adv_data[axis]->getGhostCellWidth()(0),
+                                           U_adv_data[axis]->getGhostCellWidth()(1),
+                                           U_adv_data[axis]->getGhostCellWidth()(2),
+                                           U_half_data[axis]->getGhostCellWidth()(0),
+                                           U_half_data[axis]->getGhostCellWidth()(1),
+                                           U_half_data[axis]->getGhostCellWidth()(2),
+                                           U_adv_data[axis]->getPointer(0),
+                                           U_adv_data[axis]->getPointer(1),
+                                           U_adv_data[axis]->getPointer(2),
+                                           U_half_data[axis]->getPointer(0),
+                                           U_half_data[axis]->getPointer(1),
+                                           U_half_data[axis]->getPointer(2),
+                                           N_data->getGhostCellWidth()(0),
+                                           N_data->getGhostCellWidth()(1),
+                                           N_data->getGhostCellWidth()(2),
+                                           N_data->getPointer(axis));
 #endif
                     break;
                 default:
                     TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():\n"
                                << "  unsupported differencing form: "
-                               << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                               << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                               << " \n"
                                << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
                 }
             }
@@ -574,8 +695,9 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
     return;
 } // applyConvectiveOperator
 
-void INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                   const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                              const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -596,9 +718,14 @@ void INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIV
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
-    d_transaction_comps[0] =
-        InterpolationTransactionComponent(d_U_scratch_idx, in.getComponentDescriptorIndex(0), "CONSTANT_REFINE", false,
-                                          "CONSERVATIVE_COARSEN", d_bdry_extrap_type, false, d_bc_coefs);
+    d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
+                                                               in.getComponentDescriptorIndex(0),
+                                                               "CONSTANT_REFINE",
+                                                               false,
+                                                               "CONSERVATIVE_COARSEN",
+                                                               d_bdry_extrap_type,
+                                                               false,
+                                                               d_bc_coefs);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -623,7 +750,8 @@ void INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIV
     return;
 } // initializeOperatorState
 
-void INSStaggeredUpwindConvectiveOperator::deallocateOperatorState()
+void
+INSStaggeredUpwindConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

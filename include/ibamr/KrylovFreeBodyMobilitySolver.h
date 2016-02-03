@@ -1,7 +1,7 @@
-// Filename: FreeBodyMobilitySolver.h
-// Created on 16 Aug 2015 by Bakytzhan Kallemov and Amneet Bhalla
+// Filename: KrylovFreeBodyMobilitySolver.h
+// Created on 16 Aug 2015 by Amneet Bhalla and Bakytzhan Kallemov.
 //
-// Copyright (c) 2002-2014, Bakytzhan Kallemov, Amneet Bhalla and
+// Copyright (c) 2002-2014, Amneet Bhalla, Bakytzhan Kallemov, and
 // Boyce Griffith.
 //
 // All rights reserved.
@@ -32,14 +32,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FreeBodyMobilitySolver
-#define included_FreeBodyMobilitySolver
+#ifndef included_KrylovFreeBodyMobilitySolver
+#define included_KrylovFreeBodyMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <vector>
 
 #include "petscksp.h"
-#include "petsc-private/petscimpl.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -49,47 +48,57 @@ namespace IBAMR
 class CIBStrategy;
 class CIBMobilitySolver;
 class StokesSpecifications;
+class DirectMobilitySolver;
 }
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
-
 /*!
  * We are trying to solve the problem
  *
- * \f$ Nx = [T M^{-1} T^{*}]x = b \f$; for \f$ x \f$.
+ * \f$ Nx = [T M^{-1} T^{*}]x = b \f$; for \f$ x \f$,
  *
- * Here, \f$ N \f$ is the body mobility matrix, \f$ M \f$ is the mobility matrix,
+ * in this class. Here, \f$ N \f$ is the body mobility matrix, \f$ M \f$ is the mobility matrix,
  * \f$ T \f$ is the rigid body operator, and \f$ T^{*} \f$ is the rigid body velocity
- * operator.
+ * operator. We employ Krylov solver preconditioned by direct solver to solve the
+ * body-mobility equation.
  *
  */
 
-class FreeBodyMobilitySolver : public SAMRAI::tbox::DescribedClass
+class KrylovFreeBodyMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-
 public:
     /*!
      * \brief Constructor for \f$ [T M^{-1} T^{*}]^{-1} \f$ solver that employs the
      * PETSc KSP solver framework.
      */
-    FreeBodyMobilitySolver(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           const std::string& default_options_prefix,
-                           SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
-                           MPI_Comm petsc_comm = PETSC_COMM_WORLD);
+    KrylovFreeBodyMobilitySolver(const std::string& object_name,
+                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 const std::string& default_options_prefix,
+                                 SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                                 MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
      * \brief Destructor.
      */
-    ~FreeBodyMobilitySolver();
+    ~KrylovFreeBodyMobilitySolver();
 
     /*!
      * \brief Set the mobility solver for this class.
      */
     void setMobilitySolver(SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> mobility_solver);
+
+    /*!
+     * \brief Set scale for interp operator.
+     */
+    void setInterpScale(const double interp_scale);
+
+    /*!
+     * \brief Set scale for spread operator.
+     */
+    void setSpreadScale(const double spread_scale);
 
     /*!
      * \brief Set stokes specifications.
@@ -166,7 +175,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FreeBodyMobilitySolver(const FreeBodyMobilitySolver& from);
+    KrylovFreeBodyMobilitySolver(const KrylovFreeBodyMobilitySolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -177,7 +186,7 @@ private:
      *
      * \return A reference to this object.
      */
-    FreeBodyMobilitySolver& operator=(const FreeBodyMobilitySolver& that);
+    KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that);
 
     /*!
      * \brief Report the KSPConvergedReason.
@@ -219,12 +228,12 @@ private:
     /*!
      * \brief Compute the matrix vector product \f$y=Ax\f$.
      */
-    static PetscErrorCode MatVecMult_FBMSolver(Mat A, Vec x, Vec y);
+    static PetscErrorCode MatVecMult_KFBMSolver(Mat A, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_FBMSolver(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_KFBMSolver(PC pc, Vec x, Vec y);
 
     /*!
      * \brief Set KSP monitoring routine for the KSP.
@@ -253,19 +262,18 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mobility_solver;
 
-    // Number of rigid bodies
-    unsigned d_num_rigid_parts;
-
     // The current, new, solution and time-interval of integration.
     double d_current_time, d_new_time, d_solution_time, d_dt;
+
+    // Interp and spread scale.
+    double d_interp_scale, d_spread_scale;
 
     // System physical parameters.
     double d_mu;
     double d_rho;
-    double d_body_hydroradius;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FreeBodyMobilitySolver
+#endif //#ifndef included_KrylovFreeBodyMobilitySolver

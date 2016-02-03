@@ -1,0 +1,2 @@
+This example shows the usage of CIBFEMethod class. A prescribed plate is draged with 
+a time-dependent horizontal velocity. Exact Krylov solvers are used in the preconditioners.  

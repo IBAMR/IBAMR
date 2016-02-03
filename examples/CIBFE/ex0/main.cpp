@@ -53,9 +53,9 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/CIBFEMethod.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -66,23 +66,15 @@
 // Various model parameters and functions.
 namespace ModelData
 {
-
-// Coordinate mapping function.
-void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
-{
-    X(0) = 0.5;
-    X(1) = 0.5 + s(0) - (0.5 + 2.0 / 128.0);
-    return;
-} // coordinate_mapping_function
-
 // Nodal velocity function
-void ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
-                         const RigidDOFVector& U,
-                         libMesh::NumericVector<double>& X,
-                         const Eigen::Vector3d& X_com,
-                         libMesh::EquationSystems* equation_systems,
-                         double /*data_time*/,
-                         void* /*ctx*/)
+void
+ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
+                    const RigidDOFVector& U,
+                    libMesh::NumericVector<double>& X,
+                    const Eigen::Vector3d& X_com,
+                    libMesh::EquationSystems* equation_systems,
+                    double /*data_time*/,
+                    void* /*ctx*/)
 {
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
@@ -156,11 +148,12 @@ void ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
 } // ConstrainedNodalVel
 
 // Center of mass velocity
-void ConstrainedCOMVel(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+void
+ConstrainedCOMVel(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
 {
-    U_com.fill(0.0);
+    U_com.setZero();
     U_com(0) = data_time;
-    W_com.fill(0.0);
+    W_com.setZero();
 
     return;
 } // ConstrainedCOMVel
@@ -187,9 +180,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
-
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -236,8 +229,8 @@ int main(int argc, char* argv[])
         const int num_elems = input_db->getInteger("num_elems");
         const double dx = input_db->getDouble("DX");
         string elem_type = input_db->getString("ELEM_TYPE");
-        MeshTools::Generation::build_line(mesh, num_elems, 0.5, 0.5 + 4 * dx,
-                                          Utility::string_to_enum<ElemType>(elem_type));
+        MeshTools::Generation::build_line(
+            mesh, num_elems, 0.5, 0.5 + 4 * dx, Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -247,36 +240,56 @@ int main(int argc, char* argv[])
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
         Pointer<CIBFEMethod> ib_method_ops =
-            new CIBFEMethod("CIBFEMethod", app_initializer->getComponentDatabase("CIBFEMethod"), &mesh,
+            new CIBFEMethod("CIBFEMethod",
+                            app_initializer->getComponentDatabase("CIBFEMethod"),
+                            &mesh,
                             app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
 
         // Krylov solver for extended INS system that solves for [u,p,L,U]
         Pointer<CIBStaggeredStokesSolver> c_stokes_solver =
-            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver", input_db->getDatabase("CIBStaggeredStokesSolver"),
-                                         navier_stokes_integrator, ib_method_ops, "SP_");
+            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
+                                         input_db->getDatabase("CIBStaggeredStokesSolver"),
+                                         navier_stokes_integrator,
+                                         ib_method_ops,
+                                         "SP_");
         navier_stokes_integrator->setStokesSolver(c_stokes_solver);
 
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->setSolveRigidBodyVelocity(0, false);
-        ib_method_ops->registerConstrainedVelocityFunction(&ConstrainedNodalVel, &ConstrainedCOMVel);
+        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        {
+            Node* const n = *it;
+            libMesh::Point& X0 = *n;
+
+            X0(1) = X0(0) - 2.0 / 128.0;
+            X0(0) = 0.5;
+        }
+        FreeRigidDOFVector solve_dofs;
+        solve_dofs.setZero();
+        ib_method_ops->setSolveRigidBodyVelocity(0, solve_dofs);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
@@ -358,8 +371,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                          loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -413,8 +426,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                              loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -430,7 +443,12 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
+                output_data(patch_hierarchy,
+                            navier_stokes_integrator,
+                            mesh,
+                            equation_systems,
+                            iteration_num,
+                            loop_time,
                             postproc_data_dump_dirname);
             }
 
@@ -492,13 +510,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname)
+void
+output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+            Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+            Mesh& mesh,
+            EquationSystems* equation_systems,
+            const int iteration_num,
+            const double loop_time,
+            const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;

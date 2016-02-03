@@ -1,5 +1,5 @@
 // Filename: CIBMethod.h
-// Created on 21 Apr 2015 by Amneet Bhalla and Bakytzhan Kallemov 
+// Created on 21 Apr 2015 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
@@ -44,8 +44,8 @@
 
 namespace mu
 {
-  class Parser;
-}// namespace mu
+class Parser;
+} // namespace mu
 
 namespace IBTK
 {
@@ -70,7 +70,6 @@ namespace IBAMR
 
 class CIBMethod : public IBAMR::IBMethod, public IBAMR::CIBStrategy
 {
-
 public:
     /*!
      * \brief Constructor of the class.
@@ -88,44 +87,25 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef void (*ConstrainedNodalVelocityFcnPtr)(const unsigned part,
-						   std::vector<PetscScalar>& V,
+    typedef void (*ConstrainedNodalVelocityFcnPtr)(Vec U_k,
                                                    const RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
-						   const Eigen::Quaterniond& Quatern,
                                                    double data_time,
-                                                   void* ctx,
-						   IBAMR::CIBMethod* cib_method);
+                                                   void* ctx);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(unsigned part, double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
+    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
 
     /*!
-     * \brief Typedef specifying interface for specifying net external force and torque on structures.
+     * \brief Typedef specifying interface for specifying net external force
+     * and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(unsigned part, double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
+    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
 
     /*!
      * \brief Callbacks before INS is integrated.
      */
     typedef void (*preprocessSolveFluidEqn_callbackfcn)(const double, const double, const int, void*);
-
-    /*!
-     * \brief Typedef specifying interface for specifying slip velocities.
-     */
-    typedef void (*VelocityDeformationFunctionPtr)(Vec V,
-                                                   Vec X,
-                                                   const std::vector<Eigen::Vector3d>& X_com,
-						   const std::vector<Eigen::Quaterniond>& Quatern,
-						   IBAMR::CIBMethod* d_cib_method);
-
-    /*!
-     * \brief Typedef specifying interface for specifying constrained body velocities.
-     */
-    typedef void (*CloneShapeDeformationFunctionPtr)(std::vector<IBTK::Point>& DeltaX,
-						     double data_time,
-						     IBAMR::CIBMethod* cib_method);
-
 
     /*!
      * \brief Struct encapsulating constrained velocity functions data.
@@ -159,30 +139,17 @@ public:
     };
 
     /*!
-     * \brief Register a user defined constrained matrix K in matrix produc K*U.
+     * \brief Register user defined constrained velocity functions.
      */
-    void registerConstraintMatrix(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
-				  void* ctx = NULL,
-				  unsigned int part = 0);
-    /*!
-     * \brief Register a constrained body velocity function.
-     */
-    void registerConstrainedVelocityFunction(ConstrainedCOMVelocityFcnPtr comvelfcn,
-					     unsigned int part = 0);
-    /*!
-     * \brief Register a constrained body velocity function data.
-     */
-    void registerConstrainedVelocityFcnData(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
+    void registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
+                                             ConstrainedCOMVelocityFcnPtr comvelfcn,
+                                             void* ctx = NULL,
+                                             unsigned int part = 0);
 
     /*!
-     * \brief register deformation velocity.
+     * \brief Register user defined constrained velocity function data.
      */
-    void registerSlipVelocityFunction(VelocityDeformationFunctionPtr VelDefFun);
-
-   /*!
-     * \brief register shape deformation function.
-     */
-    void registerShapeDeformationFunction(const unsigned part, CloneShapeDeformationFunctionPtr ShapeDefFun);
+    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part = 0);
 
     /*!
      * \brief Register an external force and torque function.
@@ -388,115 +355,80 @@ public:
      * \brief Set the rigid body velocity at the nodal points
      * contained in the Vec V.
      */
-    void setRigidBodyVelocity(Vec U, Vec V, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true);
-
-    // \see CIBStrategy::setRigidBodyDeformationVelocity method.
-    /*!
-     * \brief set deformation velocity.
-     */
-    void setRigidBodyDeformationVelocity(Vec W);
-
-    //void setRigidBodyDeformationVelocity(Vec W);
-
-    /*! \see CIBStrategy:: getNewRigidBodyVelocity
-     * \brief Get the rigid body translational velocity
-     * the timestep.
-     */
-    void getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U);
+    void setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V);
 
     // \see CIBStrategy::computeNetRigidGeneralizedForce() method.
     /*!
      * \brief Compute total force and torque on the rigid structure(s).
      */
-    void computeNetRigidGeneralizedForce(Vec L, Vec F, const std::vector<bool>& skip_comp, bool isHalfTimeStep=true);
+    void computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F);
 
+    // \see CIBStrategy::copyVecToArray() method.
+    /*!
+     * \brief Copy PETSc Vec to raw array for specified structures.
+     */
+    void copyVecToArray(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
-    void copyAllArrayToVec(Vec b,
-			   double* array,
-			   const std::vector<unsigned>& all_rhs_struct_ids,
-			   const int data_depth);
-    
-    void copyAllVecToArray(Vec b,
-			   double* array,
-			   const std::vector<unsigned>& all_rhs_struct_ids,
-			   const int data_depth);
+    // \see CIBStrategy::copyVecToArray() method.
+    /*!
+     * \brief Copy raw array to PETSc Vec for specified structures.
+     */
+    void copyArrayToVec(Vec b,
+                        double* array,
+                        const std::vector<unsigned>& struct_ids,
+                        const int data_depth,
+                        const int array_rank);
 
     // \see CIBStrategy::constructMobilityMatrix() method.
     /*!
      * \brief Generate dense mobility matrix for the prototypical structures
      * identified by their indices.
      */
-    void constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
-				 std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
-				 std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
-				 std::map<std::string, unsigned int>& managed_mat_nodes_map,
-				 std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
-				 std::map<std::string, int>& managed_mat_proc_map,
-				 const double* grid_dx,
-				 const double* domain_extents,
-				 const bool initial_time,
-				 double rho,
-				 double mu,
-				 double f_periodic_corr);
+    void constructMobilityMatrix(const std::string& mat_name,
+                                 MobilityMatrixType mat_type,
+                                 Mat& mobility_mat,
+                                 const std::vector<unsigned>& prototype_struct_ids,
+                                 const double* grid_dx,
+                                 const double* domain_extents,
+                                 const bool initial_time,
+                                 double rho,
+                                 double mu,
+                                 const std::pair<double, double>& scale,
+                                 double f_periodic_corr,
+                                 const int managing_rank);
 
-    // \see CIBStrategy::constructBodyMobilityMatrix() method.
+    // \see CIBStrategy::constructGeometricMatrix() method.
     /*!
-     * \brief Generate dense body mobility matrix for the free structures
-     * identified by their ids.
+     * \brief Generate block-diagonal geometric matrix for the prototypical structures
+     * identified by their indices.
      */
-    void constructKinematicMatrix(double* kinematic_mat,
-				  const std::vector<unsigned>& prototype_struct_ids,
-				  const bool initial_time,
-				  const int managing_rank);
-    
-   //\see CIBStrategy:: rotateArrayInitalBodyFrame method.
-    /*!
-     * \brief rotate vector using stored structures rotation matrix to/from the reference frame of the structures at initial time.
-     *
-     */
-    void rotateArrayInitalBodyFrame(double* array, 
-				    const std::vector<unsigned>& struct_ids,
-				    const bool isTranspose,
-				    const int managing_rank,
-				    const bool BodyMobility = false);
+    void constructGeometricMatrix(const std::string& mat_name,
+                                  Mat& geometric_mat,
+                                  const std::vector<unsigned>& prototype_struct_ids,
+                                  const bool initial_time,
+                                  const int managing_rank);
 
-
+    //\see CIBStrategy:: rotateArray() method.
     /*!
-     * \brief register CIBStandartInitializer 
+     * \brief Rotate vector using rotation matrix to/from the reference frame
+     * of the structures.
      */
-    void registerStandardInitializer(SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> ib_initializer);
-    
-    /*!
-     * \brief returns IBStandartInitializer 
-     */
-    SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> getStandardInitializer();
-    
-    /*!
-     * \brief Compute initial center of massof structures.
-     */
-    void computeInitialCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass);
-
-    /*!
-     * \brief Compute initial moment of inertia of structures.
-     */
-    void computeInitialMOIOfStructures(std::vector<Eigen::Matrix3d>& moment_of_inertia);
+    void rotateArray(double* array,
+                     const std::vector<unsigned>& struct_ids,
+                     const bool use_transpose,
+                     const int managing_rank,
+                     const int depth);
+    //\}
 
     /*!
      * Function to determine whether regridding should occur at the current time
      * step.
      */
     bool flagRegrid() const;
-
-    /*
-     * \brief Function to fill ghost cells using values from the interior domain
-     * and boundary conditions.
-     */
-    void fillGhostCells(int in, const double time);
-
-    /*
-     * Set velocity boundary conditions
-     */
-    void setVelocityBC(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *u_bc_coefs);
 
     /*
      * Set velocity physical boundary options
@@ -520,6 +452,12 @@ private:
     void getFromRestart();
 
     /*!
+     * \brief Compute center of mass of structures.
+     */
+    void computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass,
+                                std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
+
+    /*!
      * \brief Set regularization weight for Lagrangian markers.
      */
     void setRegularizationWeight(const int level_number);
@@ -528,26 +466,6 @@ private:
      * \brief Set initial Lambda for Lagrangian markers.
      */
     void setInitialLambda(const int level_number);
-
-   /*!
-     * \brief muParse function of clones constrained COM velocity.
-     */
-    virtual void  defaultConstrainedCOMVel(unsigned part, double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
-
-    /*!
-     * \brief muParse function external clones body force .
-     */
-    virtual void  defaultNetExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext);
-
-    /*!
-     * \brief random external body force
-     */
-    virtual void  randomExternalForceTorque(unsigned  part, double data_time, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext);
-
-    /*!
-     * \brief pointer to CIBStandartInitializer.
-     */
-    SAMRAI::tbox::Pointer<IBAMR::CIBStandardInitializer> d_ib_initializer;
 
     /*!
      * Functions to set constrained velocities of the structures.
@@ -588,11 +506,6 @@ private:
     std::vector<std::pair<int, int> > d_struct_lag_idx_range;
 
     /*!
-     * PETSc wrappers for free rigid body velocities.
-     */
-    Vec d_mv_U, d_mv_F;
-
-    /*!
      * The object used to write out data for postprocessing by the visIt
      * visualization tool.
      */
@@ -601,32 +514,20 @@ private:
     /*!
      * Control printing of S[lambda]
      */
-    bool d_output_eul_lambda, d_output_all_lambdas;
+    bool d_output_eul_lambda;
 
     /*!
-     * Printing Lagrange multiplier.
+     *  Input/output.
      */
     int d_lambda_dump_interval;
     std::ofstream d_lambda_stream;
-    std::ofstream d_netlambda_stream;
-
     std::vector<std::string> d_reg_filename;
     std::vector<std::string> d_lambda_filename;
-    VelocityDeformationFunctionPtr d_VelDefFun;
-    std::vector<CloneShapeDeformationFunctionPtr> d_ShapeDefFun;
-    std::vector<std::vector<IBTK::Point> >  d_delta_X_half;    
-    std::vector<std::vector<IBTK::Point> >  d_delta_X_new;    
 
-    std::vector<std::vector<mu::Parser*> > d_comvel_constraint_parsers;
-    std::vector<std::vector<mu::Parser*> > d_ext_force_parsers;
-    std::vector<std::vector<double> >  d_random_force_scaling;
+    // Velocity boundary operator.
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
 
-    // velocity boundary coefficients
-    // vector<RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> *d_u_bc_coefs;
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;   
-
-    //fluid density 
+    // Fluid density
     double d_rho;
 
 }; // CIBMethod

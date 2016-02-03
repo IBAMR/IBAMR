@@ -1,7 +1,7 @@
-// Filename: FreeBodyMobilitySolver.cpp
-// Created on 16 Aug 2015 by Bakytzhan Kallemov and Amneet Bhalla
+// Filename: KrylovFreeBodyMobilitySolver.cpp
+// Created on 16 Aug 2015 by Amneet Bhalla and Bakytzhan Kallemov.
 //
-// Copyright (c) 2002-2014, Bakytzhan Kallemov, Amneet Bhalla and
+// Copyright (c) 2002-2014, Amneet Bhalla, Bakytzhan Kallemov, and
 // Boyce Griffith.
 //
 // All rights reserved.
@@ -38,7 +38,8 @@
 
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/FreeBodyMobilitySolver.h"
+#include "ibamr/DirectMobilitySolver.h"
+#include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -50,7 +51,6 @@
 
 namespace IBAMR
 {
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
@@ -63,16 +63,15 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
-                                               Pointer<Database> input_db,
-                                               const std::string& default_options_prefix,
-                                               Pointer<CIBStrategy> cib_strategy,
-                                               MPI_Comm petsc_comm)
+KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(const std::string& object_name,
+                                                           Pointer<Database> input_db,
+                                                           const std::string& default_options_prefix,
+                                                           Pointer<CIBStrategy> cib_strategy,
+                                                           MPI_Comm petsc_comm)
 {
     d_object_name = object_name;
     d_options_prefix = default_options_prefix;
     d_cib_strategy = cib_strategy;
-    d_num_rigid_parts = cib_strategy->getNumberOfRigidStructures();
 
     d_petsc_b = NULL;
     d_petsc_temp_v = NULL;
@@ -92,7 +91,7 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
 
     // Some default values for the Krylov solver.
     d_ksp_type = KSPGMRES;
-    d_pc_type = "none";
+    d_pc_type = "shell";
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
@@ -111,24 +110,21 @@ FreeBodyMobilitySolver::FreeBodyMobilitySolver(const std::string& object_name,
         if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
 
         if (input_db->keyExists("pc_type")) d_pc_type = input_db->getString("pc_type");
-        if (d_pc_type == "shell")
-        {
-            d_body_hydroradius = input_db->getDouble("body_hydroradius");
-        }
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
     }
 
-    IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBAMR::FreeBodyMobilitySolver::solveSystem()");
-                  t_initialize_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::FreeBodyMobilitySolver::initializeSolverState()");
-                  t_deallocate_solver_state =
-                      TimerManager::getManager()->getTimer("IBAMR::FreeBodyMobilitySolver::deallocateSolverState()"););
+    IBAMR_DO_ONCE(
+        t_solve_system = TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::solveSystem()");
+        t_initialize_solver_state =
+            TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::initializeSolverState()");
+        t_deallocate_solver_state =
+            TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::deallocateSolverState()"););
     return;
-} // FreeBodyMobilitySolver
+} // KrylovFreeBodyMobilitySolver
 
-FreeBodyMobilitySolver::~FreeBodyMobilitySolver()
+KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
 {
     if (d_is_initialized) deallocateSolverState();
 
@@ -147,11 +143,11 @@ FreeBodyMobilitySolver::~FreeBodyMobilitySolver()
         d_petsc_ksp = NULL;
     }
     return;
-} // ~FreeBodyMobilitySolver
+} // ~KrylovFreeBodyMobilitySolver
 
-void FreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobility_solver)
+void
+KrylovFreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobility_solver)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(mobility_solver);
 #endif
@@ -161,7 +157,24 @@ void FreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobili
     return;
 } // setMobilitySolver
 
-void FreeBodyMobilitySolver::setStokesSpecifications(const StokesSpecifications& stokes_spec)
+void
+KrylovFreeBodyMobilitySolver::setInterpScale(const double interp_scale)
+{
+    d_interp_scale = interp_scale;
+
+    return;
+} // setInterpScale
+
+void
+KrylovFreeBodyMobilitySolver::setSpreadScale(const double spread_scale)
+{
+    d_spread_scale = spread_scale;
+
+    return;
+} // setSpreadScale
+
+void
+KrylovFreeBodyMobilitySolver::setStokesSpecifications(const StokesSpecifications& stokes_spec)
 {
     d_rho = stokes_spec.getRho();
     d_mu = stokes_spec.getMu();
@@ -169,31 +182,36 @@ void FreeBodyMobilitySolver::setStokesSpecifications(const StokesSpecifications&
     return;
 } // setStokesSpecifications
 
-const KSP& FreeBodyMobilitySolver::getPETScKSP() const
+const KSP&
+KrylovFreeBodyMobilitySolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 } // getPETScKSP
 
-void FreeBodyMobilitySolver::setKSPType(const std::string& ksp_type)
+void
+KrylovFreeBodyMobilitySolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
     return;
 } // setKSPType
 
-void FreeBodyMobilitySolver::setOptionsPrefix(const std::string& options_prefix)
+void
+KrylovFreeBodyMobilitySolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
 } // setOptionsPrefix
 
-void FreeBodyMobilitySolver::setSolutionTime(double solution_time)
+void
+KrylovFreeBodyMobilitySolver::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
 
     return;
 } // setSolutionTime
 
-void FreeBodyMobilitySolver::setTimeInterval(double current_time, double new_time)
+void
+KrylovFreeBodyMobilitySolver::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -202,7 +220,8 @@ void FreeBodyMobilitySolver::setTimeInterval(double current_time, double new_tim
     return;
 } // setTimeInterval
 
-bool FreeBodyMobilitySolver::solveSystem(Vec x, Vec b)
+bool
+KrylovFreeBodyMobilitySolver::solveSystem(Vec x, Vec b)
 {
     IBAMR_TIMER_START(t_solve_system);
     int ierr;
@@ -233,7 +252,8 @@ bool FreeBodyMobilitySolver::solveSystem(Vec x, Vec b)
     return converged;
 } // solveSystem
 
-void FreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
+void
+KrylovFreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -263,7 +283,8 @@ void FreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
     return;
 } // initializeSolverState
 
-void FreeBodyMobilitySolver::deallocateSolverState()
+void
+KrylovFreeBodyMobilitySolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -290,7 +311,8 @@ void FreeBodyMobilitySolver::deallocateSolverState()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void FreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const
+void
+KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const
 {
     switch (static_cast<int>(reason))
     {
@@ -344,7 +366,8 @@ void FreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& 
     return;
 } // reportKSPConvergedReason
 
-void FreeBodyMobilitySolver::initializeKSP()
+void
+KrylovFreeBodyMobilitySolver::initializeKSP()
 {
     // Create the KSP solver.
     int ierr;
@@ -379,8 +402,10 @@ void FreeBodyMobilitySolver::initializeKSP()
     return;
 } // initializeKSP
 
-void FreeBodyMobilitySolver::destroyKSP()
+void
+KrylovFreeBodyMobilitySolver::destroyKSP()
 {
+    if (!d_petsc_ksp) return;
     int ierr = KSPDestroy(&d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
     d_petsc_ksp = NULL;
@@ -388,7 +413,8 @@ void FreeBodyMobilitySolver::destroyKSP()
     return;
 } // destroyKSP
 
-void FreeBodyMobilitySolver::resetKSPOptions()
+void
+KrylovFreeBodyMobilitySolver::resetKSPOptions()
 {
     if (!d_petsc_ksp) return;
     int ierr;
@@ -412,15 +438,18 @@ void FreeBodyMobilitySolver::resetKSPOptions()
     {
         ierr = KSPMonitorCancel(d_petsc_ksp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPMonitorSet(d_petsc_ksp, reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
-                                              FreeBodyMobilitySolver::monitorKSP),
-                             NULL, NULL);
+        ierr = KSPMonitorSet(d_petsc_ksp,
+                             reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
+                                 KrylovFreeBodyMobilitySolver::monitorKSP),
+                             NULL,
+                             NULL);
         IBTK_CHKERRQ(ierr);
     }
     return;
 } // resetKSPOptions
 
-void FreeBodyMobilitySolver::resetKSPOperators()
+void
+KrylovFreeBodyMobilitySolver::resetKSPOperators()
 {
     int ierr;
 
@@ -436,12 +465,12 @@ void FreeBodyMobilitySolver::resetKSPOperators()
         int n;
         ierr = VecGetLocalSize(d_petsc_b, &n);
         IBTK_CHKERRQ(ierr);
-        ierr = MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
-                              &d_petsc_mat);
+        ierr = MatCreateShell(
+            d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT,
-                                reinterpret_cast<void (*)(void)>(FreeBodyMobilitySolver::MatVecMult_FBMSolver));
+    ierr = MatShellSetOperation(
+        d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver));
     IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
@@ -453,7 +482,8 @@ void FreeBodyMobilitySolver::resetKSPOperators()
     return;
 } // resetKSPOperators
 
-void FreeBodyMobilitySolver::resetKSPPC()
+void
+KrylovFreeBodyMobilitySolver::resetKSPPC()
 {
     if (!d_petsc_ksp) return;
     int ierr;
@@ -473,7 +503,9 @@ void FreeBodyMobilitySolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
-                                 << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
+                                 << "  valid values for -"
+                                 << d_options_prefix
+                                 << "pc_type are: none, shell"
                                  << std::endl);
     }
 
@@ -491,7 +523,7 @@ void FreeBodyMobilitySolver::resetKSPPC()
         IBTK_CHKERRQ(ierr);
         ierr = PCShellSetContext(petsc_pc, static_cast<void*>(this));
         IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetApply(petsc_pc, FreeBodyMobilitySolver::PCApply_FBMSolver);
+        ierr = PCShellSetApply(petsc_pc, KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver);
         IBTK_CHKERRQ(ierr);
     }
     else
@@ -501,104 +533,64 @@ void FreeBodyMobilitySolver::resetKSPPC()
     return;
 } // resetKSPPC
 
-PetscErrorCode FreeBodyMobilitySolver::MatVecMult_FBMSolver(Mat A, Vec x, Vec y)
+PetscErrorCode
+KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
 {
     int ierr;
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx);
     IBTK_CHKERRQ(ierr);
-    FreeBodyMobilitySolver* solver = static_cast<FreeBodyMobilitySolver*>(p_ctx);
+    KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
     // a) Set rigid body velocity
     VecSet(solver->d_petsc_temp_v, 0.0); // so that lambda for specified-kinematics part is zero.
-    solver->d_cib_strategy->setRigidBodyVelocity(x, solver->d_petsc_temp_v, /*only_free_dofs*/ true,
+    solver->d_cib_strategy->setRigidBodyVelocity(x,
+                                                 solver->d_petsc_temp_v,
+                                                 /*only_free_dofs*/ true,
                                                  /*only_imposed_dofs*/ false);
 
     // b) Solve the mobility problem.
     solver->d_mobility_solver->solveMobilitySystem(solver->d_petsc_temp_f, solver->d_petsc_temp_v);
 
     // c) Compute the generalized force and torque.
-    solver->d_cib_strategy->computeNetRigidGeneralizedForce(solver->d_petsc_temp_f, y, /*only_free_dofs*/ true,
+    solver->d_cib_strategy->computeNetRigidGeneralizedForce(solver->d_petsc_temp_f,
+                                                            y,
+                                                            /*only_free_dofs*/ true,
                                                             /*only_imposed_dofs*/ false);
 
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 
-} // MatVecMult_FBMSolver
+} // MatVecMult_KFBMSolver
 
 // Routine to apply FreeBodyMobility preconditioner
-PetscErrorCode FreeBodyMobilitySolver::PCApply_FBMSolver(PC pc, Vec x, Vec y)
+PetscErrorCode
+KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
 {
     // Here we are trying to the solve the problem of the type: Py = x for y.
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
     IBTK_CHKERRQ(ierr);
-    FreeBodyMobilitySolver* solver = static_cast<FreeBodyMobilitySolver*>(ctx);
+    KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
 
-    Vec *vx, *vy;
-    IBTK::VecMultiVecGetSubVecs(x, &vx);
-    IBTK::VecMultiVecGetSubVecs(y, &vy);
-
-    // Use translational and rotational self-mobility to predict velocity.
-    const double mob_tt = 1.0 / (6.0 * M_PI * solver->d_body_hydroradius * solver->d_mu);
-    const double mob_rr = 1.0 / (8.0 * M_PI * solver->d_mu * pow(solver->d_body_hydroradius, 3));
-    for (unsigned part = 0, free_part = 0; part < solver->d_num_rigid_parts; ++part)
-    {
-        int num_free_dofs;
-        const FRDV& solve_dofs = solver->d_cib_strategy->getSolveRigidBodyVelocity(part, num_free_dofs);
-
-        if (num_free_dofs)
-        {
-            Vec F_sub, U_sub;
-            IBTK::VecMultiVecGetSubVec(x, free_part, &F_sub);
-            IBTK::VecMultiVecGetSubVec(y, free_part, &U_sub);
-
-            PetscScalar *a_f, *a_u;
-            VecGetArray(F_sub, &a_f);
-            VecGetArray(U_sub, &a_u);
-
-            // RigidDOFVector Fr;
-            // solver->d_cib_strategy->vecToRDV(F_sub, Fr);
-
-            // std::cout<<"checkpoint-0"<<std::endl;
-            // for (int idir=0;idir<s_max_free_dofs;idir++)
-            // 	std::cout<<Fr[idir]<<"\t";
-            // std::cout<<std::endl;
-
-            for (int k = 0, p = 0; k < s_max_free_dofs; ++k)
-            {
-                if (solve_dofs[k])
-                {
-                    if (k < NDIM)
-                    {
-                        a_u[p] = a_f[p] * mob_tt;
-                    }
-                    else
-                    {
-                        a_u[p] = a_f[p] * mob_rr;
-                    }
-                    ++p;
-                }
-            }
-
-            VecRestoreArray(F_sub, &a_f);
-            VecRestoreArray(U_sub, &a_u);
-            ++free_part;
-        }
-    }
+    DirectMobilitySolver* direct_solver;
+    solver->d_mobility_solver->getMobilitySolvers(NULL, &direct_solver, NULL);
+    direct_solver->solveBodySystem(y, x);
+    VecScale(y, 1.0 / (solver->d_interp_scale * solver->d_spread_scale));
 
     PetscFunctionReturn(0);
-} // PCApply_FBMSolver
+} // PCApply_KFBMSolver
 
-// Routine to log output of FreeBodyMobilitySolver
-PetscErrorCode FreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
+// Routine to log output of KrylovFreeBodyMobilitySolver
+PetscErrorCode
+KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
 {
     Vec resid, rhs;
     PetscReal truenorm, bnorm;
@@ -616,11 +608,11 @@ PetscErrorCode FreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rno
 
     if (it == 0)
     {
-        tbox::plog << "\n\n         Residual norms for -FBMInv_ksp" << std::endl;
+        tbox::plog << "\n\n         Residual norms for -KFBMInv_ksp" << std::endl;
     }
 
     std::streamsize old_precision = tbox::plog.precision(16);
-    tbox::plog << std::scientific << it << " FBMInv_KSP " << print_normtype << " resid norm " << (double)rnorm
+    tbox::plog << std::scientific << it << " KFBMInv_KSP " << print_normtype << " resid norm " << (double)rnorm
                << " true resid norm " << (double)truenorm << " ||r(i)||/||b|| " << (double)(truenorm / bnorm)
                << std::endl;
     tbox::plog.precision(old_precision);

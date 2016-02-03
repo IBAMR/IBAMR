@@ -86,19 +86,22 @@ ParallelMap& ParallelMap::operator=(const ParallelMap& that)
     return *this;
 } // operator=
 
-void ParallelMap::addItem(const int key, const tbox::Pointer<Streamable> item)
+void
+ParallelMap::addItem(const int key, const tbox::Pointer<Streamable> item)
 {
     d_pending_additions.insert(std::make_pair(key, item));
     return;
 } // addItem
 
-void ParallelMap::removeItem(const int key)
+void
+ParallelMap::removeItem(const int key)
 {
     d_pending_removals.push_back(key);
     return;
 } // removeItem
 
-void ParallelMap::communicateData()
+void
+ParallelMap::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -119,7 +122,8 @@ void ParallelMap::communicateData()
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
         for (std::map<int, tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
-             cit != d_pending_additions.end(); ++cit)
+             cit != d_pending_additions.end();
+             ++cit)
         {
             keys_to_send.push_back(cit->first);
             data_items_to_send.push_back(cit->second);
@@ -224,7 +228,8 @@ void ParallelMap::communicateData()
     return;
 } // communicateData
 
-const std::map<int, SAMRAI::tbox::Pointer<Streamable> >& ParallelMap::getMap() const
+const std::map<int, SAMRAI::tbox::Pointer<Streamable> >&
+ParallelMap::getMap() const
 {
     return d_map;
 } // getMap

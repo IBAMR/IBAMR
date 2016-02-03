@@ -54,8 +54,15 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NewtonKrylovSolver::NewtonKrylovSolver()
-    : d_F(NULL), d_J(NULL), d_krylov_solver(NULL), d_x(NULL), d_b(NULL), d_r(NULL), d_max_evaluations(10000),
-      d_solution_tol(1.0e-8), d_current_linear_iterations(0)
+    : d_F(NULL),
+      d_J(NULL),
+      d_krylov_solver(NULL),
+      d_x(NULL),
+      d_b(NULL),
+      d_r(NULL),
+      d_max_evaluations(10000),
+      d_solution_tol(1.0e-8),
+      d_current_linear_iterations(0)
 {
     d_max_iterations = 50;
     d_rel_residual_tol = 1.0e-8;
@@ -69,7 +76,8 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
     return;
 } // ~NewtonKrylovSolver()
 
-void NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+void
+NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
@@ -78,7 +86,8 @@ void NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math
     return;
 } // setHierarchyMathOps
 
-void NewtonKrylovSolver::setHomogeneousBc(const bool homogeneous_bc)
+void
+NewtonKrylovSolver::setHomogeneousBc(const bool homogeneous_bc)
 {
     GeneralSolver::setHomogeneousBc(homogeneous_bc);
     if (d_F) d_F->setHomogeneousBc(homogeneous_bc);
@@ -86,7 +95,8 @@ void NewtonKrylovSolver::setHomogeneousBc(const bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void NewtonKrylovSolver::setSolutionTime(const double solution_time)
+void
+NewtonKrylovSolver::setSolutionTime(const double solution_time)
 {
     GeneralSolver::setSolutionTime(solution_time);
     if (d_F) d_F->setSolutionTime(solution_time);
@@ -95,7 +105,8 @@ void NewtonKrylovSolver::setSolutionTime(const double solution_time)
     return;
 } // setSolutionTime
 
-void NewtonKrylovSolver::setTimeInterval(const double current_time, const double new_time)
+void
+NewtonKrylovSolver::setTimeInterval(const double current_time, const double new_time)
 {
     GeneralSolver::setTimeInterval(current_time, new_time);
     if (d_F) d_F->setTimeInterval(current_time, new_time);
@@ -104,7 +115,8 @@ void NewtonKrylovSolver::setTimeInterval(const double current_time, const double
     return;
 } // setTimeInterval
 
-void NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
+void
+NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
 {
     Pointer<GeneralOperator> F_old = d_F;
     d_F = F;
@@ -115,12 +127,14 @@ void NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-Pointer<GeneralOperator> NewtonKrylovSolver::getOperator() const
+Pointer<GeneralOperator>
+NewtonKrylovSolver::getOperator() const
 {
     return d_F;
 } // getOperator
 
-void NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
+void
+NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
 {
     Pointer<JacobianOperator> J_old = d_J;
     d_J = J;
@@ -131,39 +145,46 @@ void NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
     return;
 } // setJacobian
 
-Pointer<JacobianOperator> NewtonKrylovSolver::getJacobian() const
+Pointer<JacobianOperator>
+NewtonKrylovSolver::getJacobian() const
 {
     return d_J;
 } // getJacobian
 
-Pointer<KrylovLinearSolver> NewtonKrylovSolver::getLinearSolver() const
+Pointer<KrylovLinearSolver>
+NewtonKrylovSolver::getLinearSolver() const
 {
     return d_krylov_solver;
 } // getLinearSolver
 
-void NewtonKrylovSolver::setMaxEvaluations(int max_evaluations)
+void
+NewtonKrylovSolver::setMaxEvaluations(int max_evaluations)
 {
     d_max_evaluations = max_evaluations;
     return;
 } // setMaxEvaluations
 
-int NewtonKrylovSolver::getMaxEvaluations() const
+int
+NewtonKrylovSolver::getMaxEvaluations() const
 {
     return d_max_evaluations;
 } // getMaxEvaluations
 
-void NewtonKrylovSolver::setSolutionTolerance(double solution_tol)
+void
+NewtonKrylovSolver::setSolutionTolerance(double solution_tol)
 {
     d_solution_tol = solution_tol;
     return;
 } // setSolutionTolerance
 
-double NewtonKrylovSolver::getSolutionTolerance() const
+double
+NewtonKrylovSolver::getSolutionTolerance() const
 {
     return d_solution_tol;
 } // getSolutionTolerance
 
-int NewtonKrylovSolver::getNumLinearIterations() const
+int
+NewtonKrylovSolver::getNumLinearIterations() const
 {
     return d_current_linear_iterations;
 } // getNumLinearIterations

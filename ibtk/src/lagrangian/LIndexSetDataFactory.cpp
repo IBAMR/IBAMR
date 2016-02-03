@@ -70,13 +70,15 @@ LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 } // ~LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> > LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory<NDIM> >
+LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> >
+LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
@@ -87,19 +89,22 @@ Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> >
+LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
-size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+size_t
+LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 {
     return Arena::align(sizeof(LIndexSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
-bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+bool
+LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

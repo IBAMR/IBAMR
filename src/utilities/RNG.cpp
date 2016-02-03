@@ -76,7 +76,8 @@ namespace IBAMR
 static unsigned long mt[N]; /* the array for the state vector  */
 static int mti = N + 1;     /* mti==N+1 means mt[N] is not initialized */
 
-void RNG::srandgen(unsigned long seed)
+void
+RNG::srandgen(unsigned long seed)
 {
     /*    int mti; */
 
@@ -95,7 +96,8 @@ void RNG::srandgen(unsigned long seed)
     return;
 } // srandgen
 
-void RNG::genrand(double* rn)
+void
+RNG::genrand(double* rn)
 {
     unsigned long y;
     static unsigned long mag01[2] = { 0x0, MATRIX_A };
@@ -155,16 +157,21 @@ void RNG::genrand(double* rn)
 */
 namespace
 {
-double InvNormDist(double p)
+double
+InvNormDist(double p)
 {
     static const double a[6] = { -3.969683028665376e+01, 2.209460984245205e+02,  -2.759285104469687e+02,
                                  1.383577518672690e+02,  -3.066479806614716e+01, 2.506628277459239e+00 };
-    static const double b[5] = { -5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
-                                 6.680131188771972e+01, -1.328068155288572e+01 };
+    static const double b[5] = { -5.447609879822406e+01,
+                                 1.615858368580409e+02,
+                                 -1.556989798598866e+02,
+                                 6.680131188771972e+01,
+                                 -1.328068155288572e+01 };
     static const double c[6] = { -7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
                                  -2.549732539343734e+00, 4.374664141464968e+00,  2.938163982698783e+00 };
-    static const double d[4] = { 7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
-                                 3.754408661907416e+00 };
+    static const double d[4] = {
+        7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00
+    };
 
     static const double lo = 0.02425;
     static const double hi = 0.97575;
@@ -216,7 +223,8 @@ double InvNormDist(double p)
 }
 }
 
-void RNG::genrandn(double* result)
+void
+RNG::genrandn(double* result)
 {
     double val;
     /*
@@ -231,7 +239,8 @@ void RNG::genrandn(double* result)
     return;
 } // genrandn
 
-void RNG::parallel_seed(int global_seed)
+void
+RNG::parallel_seed(int global_seed)
 {
     int seed;
     int size, rank;

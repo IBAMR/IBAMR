@@ -77,8 +77,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SideDataSynchronization::SideDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
-      d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
+    : d_is_initialized(false),
+      d_transaction_comps(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(NULL),
+      d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -90,14 +96,16 @@ SideDataSynchronization::~SideDataSynchronization()
     return;
 } // ~SideDataSynchronization
 
-void SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void SideDataSynchronization::initializeOperatorState(
+void
+SideDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -165,14 +173,16 @@ void SideDataSynchronization::initializeOperatorState(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+                       << "  only double-precision side-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
@@ -187,7 +197,8 @@ void SideDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -202,7 +213,8 @@ void SideDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void SideDataSynchronization::resetTransactionComponents(
+void
+SideDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -263,14 +275,16 @@ void SideDataSynchronization::resetTransactionComponents(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+                       << "  only double-precision side-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -280,7 +294,8 @@ void SideDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void SideDataSynchronization::deallocateOperatorState()
+void
+SideDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -296,7 +311,8 @@ void SideDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void SideDataSynchronization::synchronizeData(const double fill_time)
+void
+SideDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

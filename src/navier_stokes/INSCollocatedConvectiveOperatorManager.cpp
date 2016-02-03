@@ -74,7 +74,8 @@ INSCollocatedConvectiveOperatorManager* INSCollocatedConvectiveOperatorManager::
 bool INSCollocatedConvectiveOperatorManager::s_registered_callback = false;
 unsigned char INSCollocatedConvectiveOperatorManager::s_shutdown_priority = 200;
 
-INSCollocatedConvectiveOperatorManager* INSCollocatedConvectiveOperatorManager::getManager()
+INSCollocatedConvectiveOperatorManager*
+INSCollocatedConvectiveOperatorManager::getManager()
 {
     if (!s_operator_manager_instance)
     {
@@ -88,7 +89,8 @@ INSCollocatedConvectiveOperatorManager* INSCollocatedConvectiveOperatorManager::
     return s_operator_manager_instance;
 } // getManager
 
-void INSCollocatedConvectiveOperatorManager::freeManager()
+void
+INSCollocatedConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
@@ -108,13 +110,16 @@ INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& oper
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSCollocatedConvectiveOperatorManager::allocateOperator():\n"
-                   << "  unrecognized operator type: " << operator_type << "\n");
+                   << "  unrecognized operator type: "
+                   << operator_type
+                   << "\n");
     }
     return (it->second)(operator_object_name, input_db, difference_form, bc_coefs);
 } // allocateOperator
 
-void INSCollocatedConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
-                                                                             OperatorMaker operator_maker)
+void
+INSCollocatedConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
+                                                                        OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {

@@ -64,9 +64,19 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
-    : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0), d_viz_dump_dirname(""), d_viz_writers(),
-      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
-      d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""), d_timer_dump_interval(0)
+    : d_input_db(NULL),
+      d_is_from_restart(false),
+      d_viz_dump_interval(0),
+      d_viz_dump_dirname(""),
+      d_viz_writers(),
+      d_visit_data_writer(NULL),
+      d_silo_data_writer(NULL),
+      d_exodus_filename("output.ex2"),
+      d_restart_dump_interval(0),
+      d_restart_dump_dirname(""),
+      d_data_dump_interval(0),
+      d_data_dump_dirname(""),
+      d_timer_dump_interval(0)
 {
     if (argc == 1)
     {
@@ -432,17 +442,20 @@ AppInitializer::~AppInitializer()
     return;
 } // ~AppInitializer
 
-Pointer<Database> AppInitializer::getInputDatabase()
+Pointer<Database>
+AppInitializer::getInputDatabase()
 {
     return d_input_db;
 } // getInputDatabase
 
-bool AppInitializer::isFromRestart() const
+bool
+AppInitializer::isFromRestart() const
 {
     return d_is_from_restart;
 } // isFromRestart
 
-Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
+Pointer<Database>
+AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
     if (!d_is_from_restart && !suppress_warning)
     {
@@ -452,7 +465,8 @@ Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning
     return RestartManager::getManager()->getRootDatabase();
 } // getRestartDatabase
 
-Pointer<Database> AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
+Pointer<Database>
+AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
 {
     const bool db_exists = d_input_db->isDatabase(component_name);
     if (!db_exists && !suppress_warning)
@@ -468,37 +482,44 @@ Pointer<Database> AppInitializer::getComponentDatabase(const std::string& compon
     }
 } // getComponentDatabase
 
-bool AppInitializer::dumpVizData() const
+bool
+AppInitializer::dumpVizData() const
 {
     return d_viz_dump_interval > 0;
 } // dumpVizData
 
-int AppInitializer::getVizDumpInterval() const
+int
+AppInitializer::getVizDumpInterval() const
 {
     return d_viz_dump_interval;
 } // getVizDumpInterval
 
-std::string AppInitializer::getVizDumpDirectory() const
+std::string
+AppInitializer::getVizDumpDirectory() const
 {
     return d_viz_dump_dirname;
 } // getVizDumpDirectory
 
-std::vector<std::string> AppInitializer::getVizWriters() const
+std::vector<std::string>
+AppInitializer::getVizWriters() const
 {
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter<NDIM> > AppInitializer::getVisItDataWriter() const
+Pointer<VisItDataWriter<NDIM> >
+AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter
 
-Pointer<LSiloDataWriter> AppInitializer::getLSiloDataWriter() const
+Pointer<LSiloDataWriter>
+AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;
 } // getLSiloDataWriter
 
-std::string AppInitializer::getExodusIIFilename(const std::string& prefix) const
+std::string
+AppInitializer::getExodusIIFilename(const std::string& prefix) const
 {
     std::string exodus_filename = "";
     if (!d_exodus_filename.empty())
@@ -510,42 +531,50 @@ std::string AppInitializer::getExodusIIFilename(const std::string& prefix) const
     return exodus_filename;
 } // getExodusIIFilename
 
-bool AppInitializer::dumpRestartData() const
+bool
+AppInitializer::dumpRestartData() const
 {
     return d_restart_dump_interval > 0;
 } // dumpRestartData
 
-int AppInitializer::getRestartDumpInterval() const
+int
+AppInitializer::getRestartDumpInterval() const
 {
     return d_restart_dump_interval;
 } // getRestartDumpInterval
 
-std::string AppInitializer::getRestartDumpDirectory() const
+std::string
+AppInitializer::getRestartDumpDirectory() const
 {
     return d_restart_dump_dirname;
 } // getRestartDumpDirectory
 
-bool AppInitializer::dumpPostProcessingData() const
+bool
+AppInitializer::dumpPostProcessingData() const
 {
     return d_data_dump_interval > 0;
 } // dumpPostProcessingData
 
-int AppInitializer::getPostProcessingDataDumpInterval() const
+int
+AppInitializer::getPostProcessingDataDumpInterval() const
 {
     return d_data_dump_interval;
 } // getPostProcessingDataDumpInterval
 
-std::string AppInitializer::getPostProcessingDataDumpDirectory() const
+std::string
+AppInitializer::getPostProcessingDataDumpDirectory() const
 {
     return d_data_dump_dirname;
 } // getPostProcessingDataDumpDirectory
 
-bool AppInitializer::dumpTimerData() const
+bool
+AppInitializer::dumpTimerData() const
 {
     return d_timer_dump_interval > 0;
 } // dumpTimerData
 
-int AppInitializer::getTimerDumpInterval() const
+int
+AppInitializer::getTimerDumpInterval() const
 {
     return d_timer_dump_interval;
 } // getTimerDumpInterval

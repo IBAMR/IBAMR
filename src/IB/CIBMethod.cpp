@@ -1,5 +1,5 @@
 // Filename: CIBMethod.cpp
-// Created on 21 Apr 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// Created on 21 Apr 2015 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
@@ -32,28 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "muParser.h"
-#include "IBAMR_config.h"
-#include "LocationIndexRobinBcCoefs.h"
 #include "ibamr/CIBMethod.h"
-#include "ibamr/CIBStandardInitializer.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/namespaces.h"
 #include "ibamr/StokesSpecifications.h"
-
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
+#include "ibamr/namespaces.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/PETScMultiVec.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include <ibamr/RNG.h>
 
 namespace IBAMR
 {
-
 extern "C" {
 
 void getEmpiricalMobilityMatrix(const char* kernel_name,
@@ -77,8 +63,6 @@ void getRPYMobilityMatrix(const char* kernel_name,
                           double* mm);
 }
 
-static std::vector<StructureClonesInputOptions> velocity_constraint_type;
-static std::vector<StructureClonesInputOptions> external_force_type;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(const std::string& object_name,
@@ -92,7 +76,6 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_output_eul_lambda = false;
     d_lambda_dump_interval = 0;
     d_time_integrator_needs_regrid = false;
-    d_u_bc_coefs = NULL;
     d_u_phys_bdry_op = NULL;
 
     // Resize some arrays.
@@ -100,15 +83,7 @@ CIBMethod::CIBMethod(const std::string& object_name,
     d_ext_force_torque_fcn_data.resize(d_num_rigid_parts);
     d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_lambda_filename.resize(d_num_rigid_parts);
-    d_VelDefFun = NULL;
-    d_ShapeDefFun.resize(d_num_rigid_parts, NULL);
-    d_delta_X_half.resize(d_num_rigid_parts);
-    d_delta_X_new.resize(d_num_rigid_parts);
-
     d_reg_filename.resize(d_num_rigid_parts);
-    d_comvel_constraint_parsers.resize(d_num_rigid_parts);
-    d_ext_force_parsers.resize(d_num_rigid_parts);
-    d_random_force_scaling.resize(d_num_rigid_parts);
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -117,51 +92,54 @@ CIBMethod::CIBMethod(const std::string& object_name,
 
     return;
 
-} // cIBMethod
+} // CIBMethod
 
 CIBMethod::~CIBMethod()
 {
-
-    if ((SAMRAI_MPI::getRank() == 0) && (d_lambda_dump_interval))
-    {
-        d_netlambda_stream.close();
-        if (d_output_all_lambdas) d_lambda_stream.close();
-    }
-
     return;
-} // ~cIBMethod
+} // ~CIBMethod
 
-void CIBMethod::registerConstraintMatrix(ConstrainedNodalVelocityFcnPtr nodalvelfcn, void* ctx, unsigned int part)
+void
+CIBMethod::registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr nodalvelfcn,
+                                               ConstrainedCOMVelocityFcnPtr comvelfcn,
+                                               void* ctx,
+                                               unsigned int part)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(part < d_num_rigid_parts);
+#endif
 
-    d_constrained_velocity_fcns_data[part].nodalvelfcn = nodalvelfcn;
-    d_constrained_velocity_fcns_data[part].ctx = ctx;
-    return;
-} // registerConstrainedVelocityFunction
+    registerConstrainedVelocityFunction(ConstrainedVelocityFcnsData(nodalvelfcn, comvelfcn, ctx), part);
 
-void CIBMethod::registerConstrainedVelocityFunction(ConstrainedCOMVelocityFcnPtr comvelfcn, unsigned int part)
-{
-    d_constrained_velocity_fcns_data[part].comvelfcn = comvelfcn;
     return;
 } // registerConstrainedVelocityFunction
 
-void CIBMethod::registerConstrainedVelocityFcnData(const ConstrainedVelocityFcnsData& data, unsigned int part)
+void
+CIBMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsData& data, unsigned int part)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(part < d_num_rigid_parts);
+#endif
     d_constrained_velocity_fcns_data[part] = data;
+
     return;
 } // registerConstrainedVelocityFunction
 
-void CIBMethod::registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn,
-                                                    void* ctx,
-                                                    unsigned int part)
+void
+CIBMethod::registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr forcetorquefcn, void* ctx, unsigned int part)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(part < d_num_rigid_parts);
+#endif
+
     registerExternalForceTorqueFunction(ExternalForceTorqueFcnData(forcetorquefcn, ctx), part);
+
     return;
 } // registerExternalForceTorqueFunction
 
-void CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcnData& data, unsigned int part)
+void
+CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcnData& data, unsigned int part)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
@@ -170,25 +148,16 @@ void CIBMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcn
 
     return;
 } // registerExternalForceTorqueFunction
-void CIBMethod::registerSlipVelocityFunction(VelocityDeformationFunctionPtr VelDefFun)
-{
-    d_VelDefFun = VelDefFun;
 
-} // registerVelocityDeformationFunction
-
-void CIBMethod::registerShapeDeformationFunction(const unsigned part, CloneShapeDeformationFunctionPtr ShapeDefFun)
-{
-    d_ShapeDefFun[part] = ShapeDefFun;
-
-} // registerShapeDeformationFunction
-
-int CIBMethod::getStructuresLevelNumber() const
+int
+CIBMethod::getStructuresLevelNumber() const
 {
     return d_hierarchy->getFinestLevelNumber();
 
 } // getStructuresLevelNumber
 
-int CIBMethod::getStructureHandle(const int lag_idx) const
+int
+CIBMethod::getStructureHandle(const int lag_idx) const
 {
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
@@ -199,8 +168,8 @@ int CIBMethod::getStructureHandle(const int lag_idx) const
     return -1;
 } // getStructureHandle
 
-void CIBMethod::registerPreProcessSolveFluidEquationsCallBackFcn(preprocessSolveFluidEqn_callbackfcn callback,
-                                                                 void* ctx)
+void
+CIBMethod::registerPreProcessSolveFluidEquationsCallBackFcn(preprocessSolveFluidEqn_callbackfcn callback, void* ctx)
 {
     d_prefluidsolve_callback_fcns.push_back(callback);
     d_prefluidsolve_callback_fcns_ctx.push_back(ctx);
@@ -208,7 +177,8 @@ void CIBMethod::registerPreProcessSolveFluidEquationsCallBackFcn(preprocessSolve
     return;
 } // registerPreProcessSolveFluidEquationsCallBackFcn
 
-void CIBMethod::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
+void
+CIBMethod::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
     IBMethod::preprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
@@ -221,7 +191,8 @@ void CIBMethod::preprocessSolveFluidEquations(double current_time, double new_ti
     return;
 } // preprocessSolveFluidEquations
 
-void CIBMethod::registerEulerianVariables()
+void
+CIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
@@ -232,9 +203,9 @@ void CIBMethod::registerEulerianVariables()
     return;
 } // registerEulerianVariables
 
-void CIBMethod::registerEulerianCommunicationAlgorithms()
+void
+CIBMethod::registerEulerianCommunicationAlgorithms()
 {
-
     IBMethod::registerEulerianCommunicationAlgorithms();
 
     Pointer<RefineAlgorithm<NDIM> > refine_alg_lambda;
@@ -247,50 +218,20 @@ void CIBMethod::registerEulerianCommunicationAlgorithms()
     return;
 } // registerEulerianCommunicationAlgorithms
 
-void CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
-    const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
-    if (initial_time)
-    {
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        const double* const domain_x_lower = grid_geom->getXLower();
-        const double* const domain_x_upper = grid_geom->getXUpper();
-        double domain_length[NDIM];
-        for (int d = 0; d < NDIM; ++d)
-        {
-            domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
-        }
-        // const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-        const int struct_ln = getStructuresLevelNumber();
-
-        for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-        {
-            d_center_of_mass_current[struct_no] =
-                getStandardInitializer()->getInitialCOMStructure(struct_ln, struct_no);
-
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d])
-                    d_center_of_mass_current[struct_no][d] += domain_length[d];
-                while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d])
-                    d_center_of_mass_current[struct_no][d] -= domain_length[d];
-            }
-        }
-    }
-
-    d_quaternion_half = d_quaternion_current;
-
-    d_time_integrator_needs_regrid = false;
-
     // Get data for free and prescribed bodies.
+    int free_dofs_counter = 0;
     std::vector<PetscInt> indices;
     std::vector<PetscScalar> U_vec;
     std::vector<PetscScalar> F_vec;
-    int counter = 0;
+    indices.reserve(d_num_rigid_parts * s_max_free_dofs);
+    U_vec.reserve(d_num_rigid_parts * s_max_free_dofs);
+    F_vec.reserve(d_num_rigid_parts * s_max_free_dofs);
+
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         int num_free_dofs;
@@ -298,27 +239,16 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
         const bool prescribed_velocity = num_free_dofs < s_max_free_dofs;
         if (prescribed_velocity)
         {
-            if ((velocity_constraint_type[part] == cln_shell) && !d_constrained_velocity_fcns_data[part].comvelfcn)
-            {
-                TBOX_ERROR("CIBMethod:: type shell is set for velocity contraint for structure "
-                           << part << " but function is not registered." << std::endl);
-            };
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_constrained_velocity_fcns_data[part].comvelfcn);
+#endif
 
             Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new, rot_vel_current, rot_vel_half,
                 rot_vel_new;
-            if ((velocity_constraint_type[part] == cln_uniform) || (velocity_constraint_type[part] == cln_file))
-            {
-                defaultConstrainedCOMVel(part, d_current_time, trans_vel_current, rot_vel_current);
-                defaultConstrainedCOMVel(part, d_half_time, trans_vel_half, rot_vel_half);
-                defaultConstrainedCOMVel(part, d_new_time, trans_vel_new, rot_vel_new);
-            }
-            else
-            {
-                d_constrained_velocity_fcns_data[part].comvelfcn(part, d_current_time, trans_vel_current,
-                                                                 rot_vel_current);
-                d_constrained_velocity_fcns_data[part].comvelfcn(part, d_half_time, trans_vel_half, rot_vel_half);
-                d_constrained_velocity_fcns_data[part].comvelfcn(part, d_new_time, trans_vel_new, rot_vel_new);
-            }
+
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, trans_vel_current, rot_vel_current);
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, trans_vel_half, rot_vel_half);
+            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, trans_vel_new, rot_vel_new);
 
             // Update only prescribed velocities in the internal data structure.
             for (int d = 0; d < NDIM; ++d)
@@ -340,7 +270,7 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
 #elif(NDIM == 3)
             for (int d = 0; d < NDIM; ++d)
             {
-                if (!solve_dofs[3 + d])
+                if (!solve_dofs[NDIM + d])
                 {
                     d_rot_vel_current[part][d] = rot_vel_current[d];
                     d_rot_vel_half[part][d] = rot_vel_half[d];
@@ -355,36 +285,26 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
             }
         }
 
-        if (!SAMRAI_MPI::getRank())
+        // Set data for free bodies.
+        if (SAMRAI_MPI::getRank() == 0)
         {
             if (num_free_dofs)
             {
-                // Initialize U and F.
-                // For U we use current timestep value as a guess.
+                // Initialize external force and torque.
                 RDV Fr;
                 Eigen::Vector3d F_ext, T_ext;
-                double ext_force_time = d_half_time;
-                if (MathUtilities<double>::equalEps(d_rho, 0)) ext_force_time = d_current_time;
-                if ((external_force_type[part] == cln_shell) && d_ext_force_torque_fcn_data[part].forcetorquefcn)
+                if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
                 {
-                    d_ext_force_torque_fcn_data[part].forcetorquefcn(part, ext_force_time, F_ext, T_ext);
-                }
-                else if ((external_force_type[part] == cln_uniform) || (external_force_type[part] == cln_file))
-                {
-                    defaultNetExternalForceTorque(part, ext_force_time, F_ext, T_ext);
-                }
-                else if (external_force_type[part] == cln_random)
-                {
-                    randomExternalForceTorque(part, ext_force_time, F_ext, T_ext);
+                    d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
                 }
                 else
                 {
                     F_ext.setZero();
                     T_ext.setZero();
                 }
-
                 eigenToRDV(F_ext, T_ext, Fr);
 
+                // Initialize U. Here we use current timestep value as a guess.
                 RDV Ur;
                 eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], Ur);
 
@@ -394,63 +314,49 @@ void CIBMethod::preprocessIntegrateData(double current_time, double new_time, in
                     {
                         U_vec.push_back(Ur[k]);
                         F_vec.push_back(Fr[k]);
+                        indices.push_back(free_dofs_counter);
+                        ++free_dofs_counter;
                     }
-                    else
-                    {
-                        U_vec.push_back(0.0);
-                        F_vec.push_back(0.0);
-                    }
-                    indices.push_back(counter++);
                 }
             }
         }
-        if (d_ShapeDefFun[part])
-        {
-            // markers displacements
-            d_delta_X_half[part].clear();
-            d_delta_X_new[part].clear();
-
-            const int no_ib_pts = getNumberOfNodes(part);
-
-            d_delta_X_half[part].resize(no_ib_pts, IBTK::Point::Zero());
-            d_delta_X_new[part].resize(no_ib_pts, IBTK::Point::Zero());
-
-            double time_step = d_half_time;
-            if (MathUtilities<double>::equalEps(d_rho, 0)) time_step = d_current_time;
-            CIBMethod* cib_method = this;
-            d_ShapeDefFun[part](d_delta_X_half[part], time_step, cib_method);
-            d_ShapeDefFun[part](d_delta_X_new[part], d_new_time, cib_method);
-        }
     }
 
-    const int global_size = SAMRAI_MPI::sumReduction(counter);
+    // Create PETSc Vecs for free DOFs.
+    const int n = free_dofs_counter;
+    const int N = SAMRAI_MPI::sumReduction(free_dofs_counter);
+    VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U);
+    VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_F);
 
-    VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, global_size, &d_mv_U);
-    VecCreateMPI(PETSC_COMM_WORLD, PETSC_DECIDE, global_size, &d_mv_F);
+    if (n)
+    {
+        VecSetValues(d_U, n, &indices[0], &U_vec[0], INSERT_VALUES);
+        VecSetValues(d_F, n, &indices[0], &F_vec[0], INSERT_VALUES);
+    }
 
-    VecSetValues(d_mv_U, counter, &indices[0], &U_vec[0], INSERT_VALUES);
-    VecAssemblyBegin(d_mv_U);
-    VecAssemblyEnd(d_mv_U);
-
-    VecSetValues(d_mv_F, counter, &indices[0], &F_vec[0], INSERT_VALUES);
-    VecAssemblyBegin(d_mv_F);
-    VecAssemblyEnd(d_mv_F);
+    VecAssemblyBegin(d_U);
+    VecAssemblyEnd(d_U);
+    VecAssemblyBegin(d_F);
+    VecAssemblyEnd(d_F);
 
     return;
 } // preprocessIntegrateData
 
-void CIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+CIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     // Compute net rigid generalized force for structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
+    Vec L_vec = ptr_lagmultpr->getVec();
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
+    {
+        computeNetRigidGeneralizedForce(part, L_vec, d_net_rigid_generalized_force[part]);
+    }
 
-    std::vector<bool> skip_comp;
-    skip_comp.resize(d_num_rigid_parts);
-    fill(skip_comp.begin(), skip_comp.end(), false);
-
-    VecDestroy(&d_mv_U);
-    VecDestroy(&d_mv_F);
+    // Destroy the free DOFs.
+    VecDestroy(&d_U);
+    VecDestroy(&d_F);
 
     // Dump Lagrange multiplier data.
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))
@@ -466,49 +372,33 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
 
         if (SAMRAI_MPI::getRank() == 0)
         {
-            PetscScalar* L;
-            VecGetArray(lambda_lag_vec_seq, &L);
-            int counter_L = 0;
+            const PetscScalar* L;
+            VecGetArrayRead(lambda_lag_vec_seq, &L);
+            int counter_L = -1;
             Eigen::Vector3d total_lambda = Eigen::Vector3d::Zero();
-            Eigen::Vector3d total_torque = Eigen::Vector3d::Zero();
-            Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d dF = Eigen::Vector3d::Zero();
-            Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3, 3);
+
+            d_lambda_stream << new_time << std::endl << std::endl;
             for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
             {
                 const int no_ib_pts = getNumberOfNodes(struct_no);
-                rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
+                d_lambda_stream << "structure: " << struct_no << " ib_pts: " << no_ib_pts << std::endl;
+
                 for (int i = 0; i < no_ib_pts; ++i)
                 {
-                    const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(finest_ln, struct_no, i);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        if (d_output_all_lambdas) d_lambda_stream << L[counter_L] << "\t";
+                        d_lambda_stream << L[++counter_L] << "\t";
                         total_lambda[d] += L[counter_L];
-                        dF[d] = L[counter_L];
-                        dr[d] = X[d];
-                        counter_L++;
                     }
-                    if (d_output_all_lambdas) d_lambda_stream << std::endl;
-                    R_dr = rotation_mat * dr;
-                    total_torque += R_dr.cross(dF);
+                    d_lambda_stream << std::endl;
                 }
-                d_netlambda_stream << struct_no << "\t";
+                d_lambda_stream << "Net resultant lambda for structure: " << struct_no << " ";
 
-                for (int d = 0; d < NDIM; ++d) d_netlambda_stream << total_lambda[d] << "\t";
-#if (NDIM == 2)
-                d_netlambda_stream << total_torque[2];
-#elif(NDIM == 3)
-                for (int d = 0; d < NDIM; ++d) d_netlambda_stream << total_torque[d] << "\t";
-#endif
-                d_netlambda_stream << std::endl;
+                for (int d = 0; d < NDIM; ++d) d_lambda_stream << total_lambda[d] << "\t";
+                d_lambda_stream << std::endl;
                 total_lambda.setZero();
-                total_torque.setZero();
             }
-            if (d_output_all_lambdas) d_lambda_stream << std::endl;
-            d_netlambda_stream << std::endl;
-            VecRestoreArray(lambda_lag_vec_seq, &L);
+            VecRestoreArrayRead(lambda_lag_vec_seq, &L);
         }
         VecDestroy(&lambda_lag_vec_parallel);
         VecDestroy(&lambda_lag_vec_seq);
@@ -521,7 +411,7 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
             position_lag_data(finest_ln + 1, Pointer<LData>(NULL));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
-
+        ;
         position_lag_data[finest_ln] = d_l_data_manager->getLData("X", finest_ln);
 
         // Initialize the S[lambda] variable to zero.
@@ -535,14 +425,14 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
                 lambda_data->fillAll(0.0);
             }
         }
-
         d_l_data_manager->spread(d_eul_lambda_idx, spread_lag_data, position_lag_data, /*f_phys_bdry_op*/ NULL);
     }
 
-    // New center of mass translational and rotational velocity becomes
-    // current velocity for the next time step.
+    // New state becomes current state for the next timestep.
     d_trans_vel_current = d_trans_vel_new;
     d_rot_vel_current = d_rot_vel_new;
+    d_center_of_mass_current = d_center_of_mass_new;
+    d_quaternion_current = d_quaternion_new;
 
     // Do the base class cleanup here.
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
@@ -550,16 +440,17 @@ void CIBMethod::postprocessIntegrateData(double current_time, double new_time, i
     return;
 } // postprocessIntegrateData
 
-void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                    int level_number,
-                                    double init_data_time,
-                                    bool can_be_refined,
-                                    bool initial_time,
-                                    Pointer<BasePatchLevel<NDIM> > old_level,
-                                    bool allocate_data)
+void
+CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                               int level_number,
+                               double init_data_time,
+                               bool can_be_refined,
+                               bool initial_time,
+                               Pointer<BasePatchLevel<NDIM> > old_level,
+                               bool allocate_data)
 {
-    IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
-                                  allocate_data);
+    IBMethod::initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
@@ -567,7 +458,7 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         // Set structure index info.
         std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
         std::sort(structIDs.begin(), structIDs.end());
-        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 
         for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -576,19 +467,18 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         }
 
         // Create Lagrange multiplier and regularization data.
-        Pointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda", level_number, NDIM,
+        Pointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda",
+                                                                          level_number,
+                                                                          NDIM,
                                                                           /*manage_data*/ true);
-        Pointer<IBTK::LData> regulator_data = d_l_data_manager->createLData("regulator", level_number, NDIM,
+        Pointer<IBTK::LData> regulator_data = d_l_data_manager->createLData("regulator",
+                                                                            level_number,
+                                                                            NDIM,
                                                                             /*manage_data*/ true);
 
         // Initialize the Lagrange multiplier to zero.
         // Specific value of lambda will be assigned from structure specific input file.
         VecSet(lag_mul_data->getVec(), 0.0);
-
-        // Initialize the regulator data with default value of h^3.
-        // Specific weights will be assigned from structure specific input file.
-        Vec regulator_petsc_vec = regulator_data->getVec();
-        VecSet(regulator_petsc_vec, 1.0);
 
         if (d_silo_writer)
         {
@@ -599,26 +489,36 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
     return;
 } // initializeLevelData
 
-void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                         Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                         int u_data_idx,
-                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                         int integrator_step,
-                                         double init_data_time,
-                                         bool initial_time)
+void
+CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                    int u_data_idx,
+                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                    int integrator_step,
+                                    double init_data_time,
+                                    bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
-    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
-                                       integrator_step, init_data_time, initial_time);
+    IBMethod::initializePatchHierarchy(hierarchy,
+                                       gridding_alg,
+                                       u_data_idx,
+                                       u_synch_scheds,
+                                       u_ghost_fill_scheds,
+                                       integrator_step,
+                                       init_data_time,
+                                       initial_time);
 
     // Lookup the range of hierarchy levels.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     if (initial_time)
     {
-        // Initialize the S[lambda] variable.
+        // Initialize Lagrangian lambda.
+        setInitialLambda(finest_ln);
+
+        // Initialize Eulerian lambda (S[lambda]) variable.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -656,33 +556,30 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
         }
     }
 
-    // Set lambda and regularization weight from input file.
-    if (initial_time)
+    if (initial_time || from_restart)
     {
-        setInitialLambda(finest_ln);
         setRegularizationWeight(finest_ln);
+        d_rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
 
-        const int struct_ln = getStructuresLevelNumber();
-        for (unsigned i = 0; i < d_num_rigid_parts; i++)
+        std::vector<Pointer<LData> > X0_data(finest_ln + 1, Pointer<LData>(NULL));
+        X0_data[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
+        computeCOMOfStructures(d_center_of_mass_initial, X0_data);
+
+        if (initial_time)
         {
-            Eigen::Quaterniond* initial_body_quatern = getStandardInitializer()->getStructureQuaternion(struct_ln, i);
-            d_quaternion_current[i] = (*initial_body_quatern);
+            d_center_of_mass_current = d_center_of_mass_initial;
         }
     }
-
-    // setting fluid density to check for steady stokes
-    const StokesSpecifications& stokes_spec = *getINSHierarchyIntegrator()->getStokesSpecifications();
-    d_rho = stokes_spec.getRho();
 
     return;
 } // initializePatchHierarchy
 
-void CIBMethod::interpolateVelocity(const int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                    const double data_time)
+void
+CIBMethod::interpolateVelocity(const int u_data_idx,
+                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                               const double data_time)
 {
-
     if (d_lag_velvec_is_initialized)
     {
 #if !defined(NDEBUG)
@@ -692,19 +589,8 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-
-        if (u_synch_scheds.empty() && u_ghost_fill_scheds.empty() && d_u_bc_coefs != NULL)
-        {
-            fillGhostCells(u_data_idx, data_time);
-            d_l_data_manager->interp(u_data_idx, *U_half_data, *X_half_data,
-                                     getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                     getGhostfillRefineSchedules(d_object_name + "::u"), data_time);
-        }
-        else
-        {
-            d_l_data_manager->interp(u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds,
-                                     data_time);
-        }
+        d_l_data_manager->interp(
+            u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
         d_lag_velvec_is_initialized = false;
     }
@@ -712,7 +598,8 @@ void CIBMethod::interpolateVelocity(const int u_data_idx,
     return;
 } // interpolateVelocity
 
-void CIBMethod::spreadForce(
+void
+CIBMethod::spreadForce(
     int f_data_idx,
     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
@@ -720,15 +607,12 @@ void CIBMethod::spreadForce(
 {
     if (d_constraint_force_is_initialized)
     {
-
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        if (f_phys_bdry_op == NULL && f_prolongation_scheds.empty())
+        if (f_phys_bdry_op == NULL)
         {
-            IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, /* f_phys_bdry_op */ /* d_u_phys_bdry_op */
-                                  getProlongRefineSchedules(d_object_name + "::f"),  /* f_prolongation_scheds */
-                                  data_time);
+            IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
         }
         else
         {
@@ -740,36 +624,18 @@ void CIBMethod::spreadForce(
     return;
 } // spreadForce
 
-void CIBMethod::eulerStep(const double current_time, const double new_time)
+void
+CIBMethod::eulerStep(const double current_time, const double new_time)
 {
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    double dt = new_time - current_time;
+    const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
 
-    if (MathUtilities<double>::equalEps(d_rho, 0)) dt = 0.0;
-
-    //   int flag_regrid=0;
-
-    // setup the quaternions of structures with rotation angle 0.5*(W^n)*dt.
+    // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-        const double vecnorm = d_rot_vel_current[struct_no].norm();
-        if (!MathUtilities<double>::equalEps(vecnorm, 0))
-        {
-            Eigen::Vector3d rot_vel_axis = d_rot_vel_current[struct_no] / vecnorm;
-            Eigen::Quaterniond q_rot(Eigen::AngleAxisd(vecnorm * 0.5 * dt, rot_vel_axis));
-            d_quaternion_half[struct_no] = (q_rot.normalized() * d_quaternion_current[struct_no]).normalized();
-        }
-        else
-        {
-            d_quaternion_half[struct_no] = d_quaternion_current[struct_no];
-        }
+    setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
-        rotation_mat[struct_no] = d_quaternion_half[struct_no].toRotationMatrix();
-    }
-
+    // Get the domain limits.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
@@ -785,58 +651,64 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
     std::vector<Pointer<LData> >* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         boost::multi_array_ref<double, 2>& X_half_array = *((*X_half_data)[ln]->getLocalFormVecArray());
+        const boost::multi_array_ref<double, 2>& X0_array =
+            *(d_l_data_manager->getLData("X0", ln)->getLocalFormVecArray());
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
-
+#if !defined(NDEBUG)
+        TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
+#endif
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             double* const X_half = &X_half_array[local_idx][0];
+            const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
             Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
 
-            const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_handle];
-            const IBTK::Point& X =
-                getStandardInitializer()->getPrototypeVertexPosn(ln, struct_handle, lag_idx - lag_idx_range.first);
-            for (unsigned int d = 0; d < NDIM; ++d) dr[d] = X[d];
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dr[d] = X0[d] - d_center_of_mass_initial[struct_handle][d];
+            }
 
             // Rotate dr vector using the rotation matrix.
             R_dr = rotation_mat[struct_handle] * dr;
-
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_half[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d] +
                             0.5 * dt * d_trans_vel_current[struct_handle][d];
 
-                if (d_ShapeDefFun[struct_handle])
-                {
-                    X_half[d] += d_delta_X_half[struct_handle][lag_idx - lag_idx_range.first][d];
-                }
-
                 if (periodic_shift[d])
                 {
-                    while (X_half[d] < domain_x_lower[d]) X_half[d] += domain_length[d];
-                    while (X_half[d] >= domain_x_upper[d]) X_half[d] -= domain_length[d];
+                    while (X_half[d] < domain_x_lower[d])
+                    {
+                        X_half[d] += domain_length[d];
+                    }
+                    while (X_half[d] >= domain_x_upper[d])
+                    {
+                        X_half[d] -= domain_length[d];
+                    }
                 }
             }
         }
         (*X_half_data)[ln]->restoreArrays();
+        d_l_data_manager->getLData("X0", ln)->restoreArrays();
     }
+    *X_half_needs_ghost_fill = true;
 
     // Compute the COM at mid-step.
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -848,31 +720,20 @@ void CIBMethod::eulerStep(const double current_time, const double new_time)
         }
     }
 
-    *X_half_needs_ghost_fill = true;
-    d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
     return;
 } // eulerStep
 
-void CIBMethod::midpointStep(const double current_time, const double new_time)
+void
+CIBMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-        const double vecnorm = d_rot_vel_half[struct_no].norm();
-        if (!MathUtilities<double>::equalEps(vecnorm, 0))
-        {
-            Eigen::Vector3d rot_vel_axis = d_rot_vel_half[struct_no] / vecnorm;
-            Eigen::Quaterniond q_rot(Eigen::AngleAxisd(vecnorm * dt, rot_vel_axis));
-            d_quaternion_current[struct_no] = (q_rot.normalized() * d_quaternion_current[struct_no]).normalized();
-        }
-        rotation_mat[struct_no] = d_quaternion_current[struct_no].toRotationMatrix();
-    }
+    setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
+    // Get the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
@@ -883,22 +744,7 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
     }
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
 
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            d_center_of_mass_current[struct_no][d] += dt * d_trans_vel_half[struct_no][d];
-            if (periodic_shift[d])
-            {
-                while (d_center_of_mass_current[struct_no][d] < domain_x_lower[d])
-                    d_center_of_mass_current[struct_no][d] += domain_length[d];
-                while (d_center_of_mass_current[struct_no][d] >= domain_x_upper[d])
-                    d_center_of_mass_current[struct_no][d] -= domain_length[d];
-            }
-        }
-    }
-
-    // Rotate the body with current rotational velocity about origin
+    // Rotate the body with new rotational velocity about origin
     // and translate the body to newer position.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -907,6 +753,8 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         boost::multi_array_ref<double, 2>& X_new_array = *d_X_new_data[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X0_array =
+            *(d_l_data_manager->getLData("X0", ln)->getLocalFormVecArray());
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
@@ -923,84 +771,123 @@ void CIBMethod::midpointStep(const double current_time, const double new_time)
             const int lag_idx = node_idx->getLagrangianIndex();
             const int local_idx = node_idx->getLocalPETScIndex();
             double* const X_new = &X_new_array[local_idx][0];
+            const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
             Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
-            const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_handle];
-            const IBTK::Point& X =
-                getStandardInitializer()->getPrototypeVertexPosn(ln, struct_handle, lag_idx - lag_idx_range.first);
-            for (unsigned int d = 0; d < NDIM; ++d) dr[d] = X[d];
-
-            // Rotate dr vector using the rotation matrix.
-            R_dr = rotation_mat[struct_handle] * dr;
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_new[d] =
-                    d_center_of_mass_current[struct_handle][d] + R_dr[d]; // + dt * d_trans_vel_half[struct_handle][d];
+                dr[d] = X0[d] - d_center_of_mass_initial[struct_handle][d];
+            }
 
-                if (d_ShapeDefFun[struct_handle])
-                {
-                    X_new[d] += d_delta_X_new[struct_handle][lag_idx - lag_idx_range.first][d];
-                }
+            // Rotate dr vector using the rotation matrix.
+            R_dr = rotation_mat[struct_handle] * dr;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_new[d] =
+                    d_center_of_mass_current[struct_handle][d] + R_dr[d] + dt * d_trans_vel_half[struct_handle][d];
 
                 if (periodic_shift[d])
                 {
-                    while (X_new[d] < domain_x_lower[d]) X_new[d] += domain_length[d];
-                    while (X_new[d] >= domain_x_upper[d]) X_new[d] -= domain_length[d];
-
-                    const double X_check = (X_new[d] - dt * d_trans_vel_half[struct_handle][d]);
-                    if ((X_check > domain_x_upper[d]) || (X_check < domain_x_lower[d])) flag_regrid = 1;
+                    while (X_new[d] < domain_x_lower[d])
+                    {
+                        X_new[d] += domain_length[d];
+                        flag_regrid = 1;
+                    }
+                    while (X_new[d] >= domain_x_upper[d])
+                    {
+                        X_new[d] -= domain_length[d];
+                        flag_regrid = 1;
+                    }
                 }
             }
         }
         d_X_new_data[ln]->restoreArrays();
+        d_l_data_manager->getLData("X0", ln)->restoreArrays();
+        VecCopy(d_X_new_data[ln]->getVec(), d_X_half_data[ln]->getVec());
     }
 
-    flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
-    if (flag_regrid) d_time_integrator_needs_regrid = true;
+    // Compute new center of mass.
+    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    {
+        Eigen::Vector3d& new_com = d_center_of_mass_new[struct_no];
+        Eigen::Vector3d& current_com = d_center_of_mass_current[struct_no];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            new_com[d] = current_com[d] + dt * d_trans_vel_half[struct_no][d];
 
-    d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
+            while (new_com[d] < domain_x_lower[d])
+            {
+                new_com[d] += domain_length[d];
+            }
+            while (new_com[d] >= domain_x_upper[d])
+            {
+                new_com[d] -= domain_length[d];
+            }
+        }
+    }
+    d_center_of_mass_half = d_center_of_mass_new;
+    d_quaternion_half = d_quaternion_new;
+
+    flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
+    if (flag_regrid)
+    {
+        d_time_integrator_needs_regrid = true;
+    }
 
     return;
 } // midpointStep
 
-void CIBMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
+void
+CIBMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only mid-point rule is supported." << std::endl);
+               << " Only mid-point rule is supported."
+               << std::endl);
 
     return;
 } // trapezoidalStep
 
-void CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+void
+CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
     return;
 } // registerVisItDataWriter
 
-void CIBMethod::putToDatabase(Pointer<Database> db)
+void
+CIBMethod::putToDatabase(Pointer<Database> db)
 {
     IBMethod::putToDatabase(db);
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W;
+        std::ostringstream U, W, C, Q;
         U << "U_" << struct_no;
         W << "W_" << struct_no;
+        C << "C_" << struct_no;
+        Q << "Q_" << struct_no;
+
+        double Q_coeffs[4] = { d_quaternion_current[struct_no].w(),
+                               d_quaternion_current[struct_no].x(),
+                               d_quaternion_current[struct_no].y(),
+                               d_quaternion_current[struct_no].z() };
+
         db->putDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
         db->putDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
+        db->putDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
+        db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
     }
 
     return;
 } // putToDatabase
 
-void CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
+void
+CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
@@ -1020,55 +907,56 @@ void CIBMethod::setConstraintForce(Vec L, const double data_time, const double s
     return;
 } // setConstraintForce
 
-void CIBMethod::getConstraintForce(Vec* L, const double data_time)
+void
+CIBMethod::getConstraintForce(Vec* L, const double data_time)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
 #endif
-    const int finest_ln = getStructuresLevelNumber();
-    Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
+    const int struct_ln = getStructuresLevelNumber();
+    Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", struct_ln);
     Vec lambda = ptr_lagmultpr->getVec();
     *L = lambda;
 
     return;
 } // getConstraintForce
 
-void CIBMethod::getFreeRigidVelocities(Vec* U, const double data_time)
+void
+CIBMethod::getFreeRigidVelocities(Vec* U, const double data_time)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
 #endif
 
-    *U = d_mv_U;
+    CIBStrategy::getFreeRigidVelocities(U, data_time);
     return;
 
 } // getFreeRigidVelocities
 
-void CIBMethod::getNetExternalForceTorque(Vec* F, const double data_time)
+void
+CIBMethod::getNetExternalForceTorque(Vec* F, const double data_time)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
 #endif
 
-    *F = d_mv_F;
+    CIBStrategy::getNetExternalForceTorque(F, data_time);
     return;
 
 } // getNetExternalForceTorque
 
-void CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale)
+void
+CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale)
 {
     // Temporarily scale the L Vec.
     VecScale(L, scale);
 
     // Get the underlying array
-    PetscScalar* L_array;
-    VecGetArray(L, &L_array);
+    const PetscScalar* L_array;
+    VecGetArrayRead(L, &L_array);
     PetscInt local_size_L;
     VecGetLocalSize(L, &local_size_L);
 
@@ -1106,15 +994,16 @@ void CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double 
         }
     }
 
-    // Unscale the vector.
+    // Unscale the vector and restore the array.
     VecScale(L, 1.0 / scale);
+    VecRestoreArrayRead(L, &L_array);
 
     return;
 } // subtractMeanConstraintForce
 
-void CIBMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
+void
+CIBMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
@@ -1123,23 +1012,24 @@ void CIBMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
     return;
 } // setInterpolatedVelocityVector
 
-void CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double scale)
+void
+CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double scale)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
 
-    const int ln = getStructuresLevelNumber();
+    const int struct_ln = getStructuresLevelNumber();
     std::vector<Pointer<LData> >* U_half_data;
     getVelocityData(&U_half_data, d_half_time);
-    VecCopy((*U_half_data)[ln]->getVec(), V);
+    VecCopy((*U_half_data)[struct_ln]->getVec(), V);
     VecScale(V, scale);
 
     return;
 } // getInterpolatedVelocity
 
-void CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
+void
+CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
 {
     const int struct_ln = getStructuresLevelNumber();
     Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", struct_ln);
@@ -1150,472 +1040,377 @@ void CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
     return;
 } // computeMobilityRegularization
 
-unsigned int CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
+unsigned int
+CIBMethod::getNumberOfNodes(const unsigned int struct_no) const
 {
     std::pair<int, int> lag_idx_range = d_struct_lag_idx_range[struct_no];
     return (lag_idx_range.second - lag_idx_range.first);
 
 } // getNumberOfStructuresNodes
 
-void CIBMethod::setRigidBodyVelocity(Vec Uvec, Vec V, const std::vector<bool>& skip_comp, bool isHalfTimeStep)
+void
+CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U, Vec V)
 {
-    const unsigned num_procs = SAMRAI_MPI::getNodes();
-    const unsigned rank = SAMRAI_MPI::getRank();
     const int struct_ln = getStructuresLevelNumber();
-
-    Vec V_lag_vec = PETSC_NULL;
-    VecDuplicate(V, &V_lag_vec);
-    d_l_data_manager->scatterPETScToLagrangian(V, V_lag_vec, struct_ln);
-
-    std::map<unsigned, unsigned> struct_to_free_map;
-    unsigned counter = 0;
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    if (d_constrained_velocity_fcns_data[part].nodalvelfcn)
     {
-        if (!d_isFree_component[struct_no]) continue;
-        struct_to_free_map[struct_no] = counter++;
+        d_constrained_velocity_fcns_data[part].nodalvelfcn(V,
+                                                           U,
+                                                           d_X_half_data[struct_ln]->getVec(),
+                                                           d_center_of_mass_half[part],
+                                                           d_new_time,
+                                                           d_constrained_velocity_fcns_data[part].ctx);
     }
-
-    Vec U_all;
-    VecScatter ctx;
-    VecScatterCreateToAll(Uvec, &ctx, &U_all);
-
-    VecScatterBegin(ctx, Uvec, U_all, INSERT_VALUES, SCATTER_FORWARD);
-    VecScatterEnd(ctx, Uvec, U_all, INSERT_VALUES, SCATTER_FORWARD);
-
-    PetscScalar* u_array = NULL;
-    PetscInt comps;
-    VecGetSize(Uvec, &comps);
-    VecGetArray(U_all, &u_array);
-
-    std::vector<PetscScalar> V_Array;
-    std::vector<PetscInt> indices;
-    counter = 0;
-    for (unsigned struct_no = rank; struct_no < d_num_rigid_parts; struct_no += num_procs)
+    else
     {
-        if (skip_comp[struct_no]) continue;
+        // Wrap the PETSc V into LData
+        std::vector<int> nonlocal_indices;
+        LData V_data("V", V, nonlocal_indices, false);
 
-        RigidDOFVector U;
-        U.setZero();
-        if (d_isImposed_component[struct_no]) getNewRigidBodyVelocity(struct_no, U);
+        boost::multi_array_ref<double, 2>& V_data_array = *V_data.getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X_data_array = *d_X_half_data[struct_ln]->getLocalFormVecArray();
 
-        for (int idof = 0; idof < s_max_free_dofs; ++idof)
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
+        const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
+
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
-            if (d_solve_rigid_vel[struct_no][idof])
-                U[idof] = u_array[struct_to_free_map[struct_no] * s_max_free_dofs + idof];
-        }
-
-        // setting nodal velocity is not working yet
-        if (d_constrained_velocity_fcns_data[struct_no].nodalvelfcn)
-        {
-            void* ctx = d_constrained_velocity_fcns_data[struct_no].ctx;
-            CIBMethod* cib_method_ptr = this;
-            d_constrained_velocity_fcns_data[struct_no].nodalvelfcn(
-                struct_no, V_Array, U, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half[struct_no],
-                d_quaternion_half[struct_no], d_new_time, ctx, cib_method_ptr);
-        }
-        else
-        {
-
-            Eigen::Vector3d dr;
-            Eigen::Vector3d R_dr;
-
-            const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[struct_no];
-            Eigen::Matrix3d rotation_mat;
-
-            if (isHalfTimeStep)
-                rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
-            else
-                rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
-
-            const unsigned num_nodes = getNumberOfNodes(struct_no);
-
-            for (unsigned inode = 0; inode < num_nodes; ++inode)
+            const LNode* const node_idx = *cit;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            if (part_idx_range.first <= lag_idx && lag_idx < part_idx_range.second)
             {
-                const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln, struct_no, inode);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    dr[d] = X[d];
-                    indices.push_back((part_idx_range.first + inode) * NDIM + d);
-                    // counter++;
-                }
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* const V_node = &V_data_array[local_idx][0];
+                const double* const X = &X_data_array[local_idx][0];
 
-                R_dr = rotation_mat * dr;
 #if (NDIM == 2)
-                V_Array.push_back(U[0] - U[2] * R_dr[1]);
-                V_Array.push_back(U[1] + U[2] * R_dr[0]);
+                V_node[0] = U[0] - U[2] * (X[1] - X_com[1]);
+                V_node[1] = U[1] + U[2] * (X[0] - X_com[0]);
 #elif(NDIM == 3)
-                V_Array.push_back(U[0] + U[4] * R_dr[2] - U[5] * R_dr[1]);
-                V_Array.push_back(U[1] + U[5] * R_dr[0] - U[3] * R_dr[2]);
-                V_Array.push_back(U[2] + U[3] * R_dr[1] - U[4] * R_dr[0]);
+                V_node[0] = U[0] + U[4] * (X[2] - X_com[2]) - U[5] * (X[1] - X_com[1]);
+                V_node[1] = U[1] + U[5] * (X[0] - X_com[0]) - U[3] * (X[2] - X_com[2]);
+                V_node[2] = U[2] + U[3] * (X[1] - X_com[1]) - U[4] * (X[0] - X_com[0]);
 #endif
             }
         }
-        counter += getNumberOfNodes(struct_no) * NDIM;
+
+        // Restore underlying arrays
+        V_data.restoreArrays();
+        d_X_half_data[struct_ln]->restoreArrays();
     }
-    VecSetValues(V_lag_vec, counter, &indices[0], &V_Array[0], INSERT_VALUES);
-
-    VecAssemblyBegin(V_lag_vec);
-    VecAssemblyEnd(V_lag_vec);
-
-    d_l_data_manager->scatterLagrangianToPETSc(V_lag_vec, V, struct_ln);
-
-    VecRestoreArray(U_all, &u_array);
-    VecScatterDestroy(&ctx);
-    VecDestroy(&U_all);
-    VecDestroy(&V_lag_vec);
 
     return;
 } // setRigidBodyVelocity
 
-void CIBMethod::setRigidBodyDeformationVelocity(Vec W)
+void
+CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, RigidDOFVector& F)
 {
     const int struct_ln = getStructuresLevelNumber();
 
-    if (!d_VelDefFun) return;
-    CIBMethod* cib_method = this;
-    (*d_VelDefFun)(W, d_X_half_data[struct_ln]->getVec(), d_center_of_mass_half, d_quaternion_half, cib_method);
-    return;
-} // setRigidBodyDeformationVelocity
+    // Wrap the distributed PETSc Vec L into LData
+    std::vector<int> nonlocal_indices;
+    LData p_data("P", L, nonlocal_indices, false);
+    const boost::multi_array_ref<double, 2>& p_data_array = *p_data.getLocalFormVecArray();
+    const boost::multi_array_ref<double, 2>& X_data_array = *d_X_half_data[struct_ln]->getLocalFormVecArray();
 
-void CIBMethod::getNewRigidBodyVelocity(const unsigned int part, RigidDOFVector& U)
-{
-    if (MathUtilities<double>::equalEps(d_rho, 0))
-        eigenToRDV(d_trans_vel_current[part], d_rot_vel_current[part], U);
-    else
-        eigenToRDV(d_trans_vel_new[part], d_rot_vel_new[part], U);
-
-    return;
-} // getNewRigidBodyVelocity
-
-void CIBMethod::computeNetRigidGeneralizedForce(Vec L,
-                                                Vec F,
-                                                const std::vector<bool>& skip_comp,
-                                                const bool isHalfTimeStep)
-{
-    const unsigned num_procs = SAMRAI_MPI::getNodes();
-    const unsigned rank = SAMRAI_MPI::getRank();
-    const int struct_ln = getStructuresLevelNumber();
-
-    Vec L_lag_vec = PETSC_NULL;
-    Vec L_lag_vec_seq = PETSC_NULL;
-    VecDuplicate(L, &L_lag_vec);
-    d_l_data_manager->scatterPETScToLagrangian(L, L_lag_vec, struct_ln);
-    d_l_data_manager->scatterToAll(L_lag_vec, L_lag_vec_seq);
-
-    PetscScalar* L_array;
-    VecGetArray(L_lag_vec_seq, &L_array);
-
-    std::map<unsigned, unsigned> struct_to_free_map;
-    unsigned counter = 0;
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+    F.setZero();
+    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        if (!d_isFree_component[struct_no]) continue;
-        struct_to_free_map[struct_no] = counter++;
-    }
-    VecSet(F, 0.0);
-    PetscInt size;
-    VecGetSize(F, &size);
-    //   TBOX_ASSERT((unsigned)size == s_max_free_dofs*counter);
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
+        const int local_idx = node_idx->getLocalPETScIndex();
+        const double* const P = &p_data_array[local_idx][0];
+        const double* const X = &X_data_array[local_idx][0];
+        const unsigned struct_id = getStructureHandle(lag_idx);
+        if (struct_id != part) continue;
 
-    std::vector<PetscScalar> F_Array;
-    std::vector<PetscInt> indices;
-
-    counter = 0;
-    for (unsigned struct_no = rank; struct_no < d_num_rigid_parts; struct_no += num_procs)
-    {
-        if (skip_comp[struct_no]) continue;
-
-        Eigen::Matrix3d rotation_mat;
-
-        if (isHalfTimeStep)
-            rotation_mat = d_quaternion_half[struct_no].toRotationMatrix();
-        else
-            rotation_mat = d_quaternion_current[struct_no].toRotationMatrix();
-
-        Eigen::Vector3d dr;
-        Eigen::Vector3d R_dr;
-        double f_array[s_max_free_dofs];
-        std::fill(f_array, f_array + s_max_free_dofs, 0.0);
-        const unsigned num_nodes = getNumberOfNodes(struct_no);
-        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
-
-        for (unsigned inode = 0; inode < num_nodes; ++inode)
-        {
-            const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln, struct_no, inode);
-            for (unsigned int d = 0; d < NDIM; ++d) dr[d] = X[d];
-            R_dr = rotation_mat * dr;
-
-            PetscScalar* P = L_array + (lag_idx_range.first + inode) * NDIM;
-            for (int d = 0; d < NDIM; ++d)
-            {
-                if (d_solve_rigid_vel[struct_no][d]) f_array[d] += P[d];
-            }
+        const Eigen::Vector3d& X_com = d_center_of_mass_half[part];
 #if (NDIM == 2)
-            if (d_solve_rigid_vel[struct_no][2]) f_array[2] += P[1] * R_dr[0] - P[0] * R_dr[1];
-#elif(NDIM == 3)
-            if (d_solve_rigid_vel[struct_no][3]) f_array[3] += P[2] * R_dr[1] - P[1] * R_dr[2];
-            if (d_solve_rigid_vel[struct_no][4]) f_array[4] += P[0] * R_dr[2] - P[2] * R_dr[0];
-            if (d_solve_rigid_vel[struct_no][5]) f_array[5] += P[1] * R_dr[0] - P[0] * R_dr[1];
-#endif
-        }
-
-        for (int d = 0; d < s_max_free_dofs; ++d)
+        for (int d = 0; d < NDIM; ++d)
         {
-            F_Array.push_back(f_array[d]);
-            indices.push_back(struct_to_free_map[struct_no] * s_max_free_dofs + d);
-            counter++;
+            F[d] += P[d];
         }
+        F[2] += P[1] * (X[0] - X_com[0]) - P[0] * (X[1] - X_com[1]);
+#elif(NDIM == 3)
+        for (int d = 0; d < NDIM; ++d)
+        {
+            F[d] += P[d];
+        }
+        F[3] += P[2] * (X[1] - X_com[1]) - P[1] * (X[2] - X_com[2]);
+        F[4] += P[0] * (X[2] - X_com[2]) - P[2] * (X[0] - X_com[0]);
+        F[5] += P[1] * (X[0] - X_com[0]) - P[0] * (X[1] - X_com[1]);
+#endif
     }
-
-    VecSetValues(F, counter, &indices[0], &F_Array[0], INSERT_VALUES);
-    VecAssemblyBegin(F);
-    VecAssemblyEnd(F);
-
-    VecRestoreArray(L_lag_vec_seq, &L_array);
-    VecDestroy(&L_lag_vec);
-    VecDestroy(&L_lag_vec_seq);
+    SAMRAI_MPI::sumReduction(&F[0], s_max_free_dofs);
+    p_data.restoreArrays();
+    d_X_half_data[struct_ln]->restoreArrays();
 
     return;
 } // computeNetRigidGeneralizedForce
 
-void CIBMethod::copyAllVecToArray(Vec b,
-                                  double* array,
-                                  const std::vector<unsigned>& all_rhs_struct_ids,
-                                  const int data_depth)
+void
+CIBMethod::copyVecToArray(Vec b,
+                          double* array,
+                          const std::vector<unsigned int>& struct_ids,
+                          const int data_depth,
+                          const int array_rank)
 {
-    // Map the Lagrangian indices into PETSc indices
-    const int struct_ln = getStructuresLevelNumber();
-    const unsigned num_structs = all_rhs_struct_ids.size();
+    if (struct_ids.empty()) return;
+    const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
 
-    Vec b_lag_vec_parallel = PETSC_NULL;
-    Vec b_lag_vec_seq = PETSC_NULL;
-    VecDuplicate(b, &b_lag_vec_parallel);
-
-    d_l_data_manager->scatterPETScToLagrangian(b, b_lag_vec_parallel, struct_ln);
-    d_l_data_manager->scatterToAll(b_lag_vec_parallel, b_lag_vec_seq);
-
-    PetscScalar* petsc_array;
-    VecGetArray(b_lag_vec_seq, &petsc_array);
-
-    int counter = 0;
-    for (unsigned i = 0; i < num_structs; ++i)
-    {
-        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[all_rhs_struct_ids[i]];
-
-        for (int k = lag_idx_range.first; k < lag_idx_range.second; ++k)
-        {
-            for (int idir = 0; idir < data_depth; ++idir)
-            {
-                array[counter++] = petsc_array[k * data_depth + idir];
-            }
-        }
-    }
-    VecRestoreArray(b_lag_vec_seq, &petsc_array);
-
-    VecDestroy(&b_lag_vec_parallel);
-    VecDestroy(&b_lag_vec_seq);
-
-    return;
-} // copyAllVecToArray
-
-void CIBMethod::copyAllArrayToVec(Vec b,
-                                  double* array,
-                                  const std::vector<unsigned>& all_rhs_struct_ids,
-                                  const int data_depth)
-{
-    const int struct_ln = getStructuresLevelNumber();
-    const unsigned num_structs = all_rhs_struct_ids.size();
-
-    Vec b_lag_vec = PETSC_NULL;
-    VecDuplicate(b, &b_lag_vec);
-    VecSet(b_lag_vec, 0.0);
-
-    PetscInt local_size = 0;
+    // Get the Lagrangian indices of the structures.
+    std::vector<int> map;
+    PetscInt total_nodes = 0;
     for (unsigned k = 0; k < num_structs; ++k)
     {
-        local_size += getNumberOfNodes(all_rhs_struct_ids[k]);
+        total_nodes += getNumberOfNodes(struct_ids[k]);
     }
-    local_size *= data_depth;
-
-    PetscInt* indices = new PetscInt[local_size];
-
-    unsigned counter = 0;
-    for (unsigned i = 0; i < num_structs; ++i)
+    map.reserve(total_nodes);
+    for (unsigned k = 0; k < num_structs; ++k)
     {
-        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[all_rhs_struct_ids[i]];
-        const int struct_size = getNumberOfNodes(all_rhs_struct_ids[i]) * data_depth;
-
-        for (int k = 0; k < struct_size; ++k)
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_ids[k]];
+        const unsigned struct_nodes = getNumberOfNodes(struct_ids[k]);
+        for (unsigned j = 0; j < struct_nodes; ++j)
         {
-            indices[counter++] = lag_idx_range.first * data_depth + k;
+            map.push_back(lag_idx_range.first + j);
         }
     }
 
-    VecSetValues(b_lag_vec, local_size, indices, array, INSERT_VALUES);
+    // Map the Lagrangian indices into PETSc indices
+    const int struct_ln = getStructuresLevelNumber();
+    d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
 
-    VecAssemblyBegin(b_lag_vec);
-    VecAssemblyEnd(b_lag_vec);
+    // Wrap the raw data in a PETSc Vec
+    PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
 
-    d_l_data_manager->scatterLagrangianToPETSc(b_lag_vec, b, struct_ln);
+    // Create index sets to define global index mapping.
+    std::vector<PetscInt> vec_indices, array_indices;
+    vec_indices.reserve(size);
+    array_indices.reserve(size);
+    for (PetscInt j = 0; j < total_nodes; ++j)
+    {
+        PetscInt petsc_idx = map[j];
+        for (int d = 0; d < data_depth; ++d)
+        {
+            array_indices.push_back(j * data_depth + d);
+            vec_indices.push_back(petsc_idx * data_depth + d);
+        }
+    }
+    IS is_vec;
+    IS is_array;
+    ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
+    ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
 
-    VecDestroy(&b_lag_vec);
-    delete[] indices;
+    // Scatter values
+    VecScatter ctx;
+    VecScatterCreate(b, is_vec, array_vec, is_array, &ctx);
+    VecScatterBegin(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
+    VecScatterEnd(ctx, b, array_vec, INSERT_VALUES, SCATTER_FORWARD);
+
+    // Cleanup temporary objects.
+    VecScatterDestroy(&ctx);
+    ISDestroy(&is_vec);
+    ISDestroy(&is_array);
+    VecDestroy(&array_vec);
 
     return;
-} // copyAllArrayToVec
+} // copyVecToArray
 
-void CIBMethod::constructMobilityMatrix(std::map<std::string, double*>& managed_mat_map,
-                                        std::map<std::string, MobilityMatrixType>& managed_mat_type_map,
-                                        std::map<std::string, std::vector<unsigned> >& managed_mat_prototype_id_map,
-                                        std::map<std::string, unsigned int>& managed_mat_nodes_map,
-                                        std::map<std::string, std::pair<double, double> >& managed_mat_scale_map,
-                                        std::map<std::string, int>& managed_mat_proc_map,
-                                        const double* grid_dx,
-                                        const double* domain_extents,
-                                        const bool initial_time,
-                                        double rho,
-                                        double mu,
-                                        double f_periodic_corr)
+void
+CIBMethod::copyArrayToVec(Vec b,
+                          double* array,
+                          const std::vector<unsigned>& struct_ids,
+                          const int data_depth,
+                          const int array_rank)
+{
+    if (struct_ids.empty()) return;
+    const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
+
+    // Get the Lagrangian indices of the structures.
+    std::vector<int> map;
+    PetscInt total_nodes = 0;
+    for (unsigned k = 0; k < num_structs; ++k)
+    {
+        total_nodes += getNumberOfNodes(struct_ids[k]);
+    }
+    map.reserve(total_nodes);
+    for (unsigned k = 0; k < num_structs; ++k)
+    {
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_ids[k]];
+        const unsigned struct_nodes = getNumberOfNodes(struct_ids[k]);
+        for (unsigned j = 0; j < struct_nodes; ++j)
+        {
+            map.push_back(lag_idx_range.first + j);
+        }
+    }
+
+    // Map the Lagrangian indices into PETSc indices
+    const int struct_ln = getStructuresLevelNumber();
+    d_l_data_manager->mapLagrangianToPETSc(map, struct_ln);
+
+    // Wrap the array in a PETSc Vec
+    PetscInt size = total_nodes * data_depth;
+    int rank = SAMRAI_MPI::getRank();
+    PetscInt array_local_size = 0;
+    if (rank == array_rank) array_local_size = size;
+    Vec array_vec;
+    VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
+
+    // Create index sets to define global index mapping.
+    std::vector<PetscInt> vec_indices, array_indices;
+    vec_indices.reserve(size);
+    array_indices.reserve(size);
+    for (PetscInt j = 0; j < total_nodes; ++j)
+    {
+        PetscInt petsc_idx = map[j];
+        for (int d = 0; d < data_depth; ++d)
+        {
+            array_indices.push_back(j * data_depth + d);
+            vec_indices.push_back(petsc_idx * data_depth + d);
+        }
+    }
+    IS is_vec;
+    IS is_array;
+    ISCreateGeneral(PETSC_COMM_SELF, size, &vec_indices[0], PETSC_COPY_VALUES, &is_vec);
+    ISCreateGeneral(PETSC_COMM_SELF, size, &array_indices[0], PETSC_COPY_VALUES, &is_array);
+
+    // Scatter values
+    VecScatter ctx;
+    VecScatterCreate(array_vec, is_array, b, is_vec, &ctx);
+    VecScatterBegin(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
+    VecScatterEnd(ctx, array_vec, b, INSERT_VALUES, SCATTER_FORWARD);
+
+    // Destroy temporary objects
+    VecScatterDestroy(&ctx);
+    ISDestroy(&is_vec);
+    ISDestroy(&is_array);
+    VecDestroy(&array_vec);
+
+    return;
+} // copyArrayToVec
+
+void
+CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
+                                   MobilityMatrixType mat_type,
+                                   Mat& mobility_mat,
+                                   const std::vector<unsigned>& prototype_struct_ids,
+                                   const double* grid_dx,
+                                   const double* domain_extents,
+                                   const bool initial_time,
+                                   double rho,
+                                   double mu,
+                                   const std::pair<double, double>& scale,
+                                   double f_periodic_corr,
+                                   const int managing_rank)
 {
     const double dt = d_new_time - d_current_time;
     const int struct_ln = getStructuresLevelNumber();
     const char* ib_kernel = d_l_data_manager->getDefaultInterpKernelFunction().c_str();
     const int rank = SAMRAI_MPI::getRank();
-    std::vector<double*> W_vector;
-    for (std::map<std::string, double*>::iterator it = managed_mat_map.begin(); it != managed_mat_map.end(); ++it)
-    {
-        const std::string& mat_name = it->first;
-        const std::vector<unsigned>& prototype_struct_ids = managed_mat_prototype_id_map[mat_name];
-        const int managing_proc = managed_mat_proc_map[mat_name];
-        const int size = managed_mat_nodes_map[mat_name] * NDIM;
 
-        // Regularization for  the mobility matrix
-        double* WArr = NULL;
-        if (rank == managing_proc) WArr = new double[size];
-        Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
-        std::vector<unsigned> struct_ids;
-        if (rank == managing_proc) struct_ids = prototype_struct_ids;
-        copyAllVecToArray(W, WArr, struct_ids, /*depth*/ NDIM);
-        if (rank == managing_proc) W_vector.push_back(WArr);
+    // Get the size of matrix.
+    unsigned num_nodes = 0;
+    for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+    {
+        num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
+    }
+    const int size = num_nodes * NDIM;
+
+    // Get the underlying data pointer for the mobility matrix.
+    double* mobility_mat_data = NULL;
+    if (rank == managing_rank)
+    {
+#if !defined(NDEBUG)
+        int n_rows, n_cols;
+        MatGetSize(mobility_mat, &n_rows, &n_cols);
+        TBOX_ASSERT(n_rows == size);
+        TBOX_ASSERT(n_cols == size);
+#endif
+        MatDenseGetArray(mobility_mat, &mobility_mat_data);
     }
 
-    unsigned counter = 0;
-    unsigned file_counter = 0;
-
-    unsigned managed_mats = (unsigned)managed_mat_map.size();
-    static std::vector<bool> read_files(managed_mats, false);
-
-    for (std::map<std::string, double*>::iterator it = managed_mat_map.begin(); it != managed_mat_map.end(); ++it)
+    // Get the position data
+    double* XW = NULL;
+    if (rank == managing_rank) XW = new double[size];
+    Vec X;
+    if (initial_time)
     {
-        const std::string& mat_name = it->first;
-        double* mobility_mat = it->second;
-        MobilityMatrixType mat_type = managed_mat_type_map[mat_name];
-        const std::vector<unsigned>& prototype_struct_ids = managed_mat_prototype_id_map[mat_name];
-        const std::pair<double, double>& scale = managed_mat_scale_map[mat_name];
-        const int managing_proc = managed_mat_proc_map[mat_name];
-        // Get the position data
-        if (rank == managing_proc)
+        X = d_l_data_manager->getLData("X0", struct_ln)->getVec();
+    }
+    else
+    {
+        std::vector<Pointer<LData> >* X_half_data;
+        bool* X_half_needs_ghost_fill;
+        getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+        X = (*X_half_data)[struct_ln]->getVec();
+    }
+    copyVecToArray(X, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+
+    // Generate mobility matrix
+    if (rank == managing_rank)
+    {
+        if (mat_type == RPY)
         {
-            // Get the size of matrix
-            const int num_nodes = managed_mat_nodes_map[mat_name];
-            const int size = managed_mat_nodes_map[mat_name] * NDIM;
+            getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat_data);
+        }
+        else if (mat_type == EMPIRICAL)
+        {
+            getEmpiricalMobilityMatrix(ib_kernel,
+                                       mu,
+                                       rho,
+                                       dt,
+                                       grid_dx[0],
+                                       &XW[0],
+                                       num_nodes,
+                                       0,
+                                       f_periodic_corr,
+                                       domain_extents[0],
+                                       mobility_mat_data);
+        }
+        else
+        {
+            TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+        }
+    }
 
-            if (mat_type == FILE && !read_files[file_counter])
+    // Regularize the mobility matrix
+    Vec W = d_l_data_manager->getLData("regulator", struct_ln)->getVec();
+    copyVecToArray(W, XW, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
+    if (rank == managing_rank)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = 0; j < size; ++j)
             {
-                // Get matrix from file
-
-                // Needs to be implemented
-
-                read_files[file_counter] = true;
-            }
-            else
-            {
-                double* XW = new double[size];
-                Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-                Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
-                Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3, 3);
-
-                unsigned offset = 0;
-                for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
+                mobility_mat_data[i * size + j] *= scale.first;
+                if (i == j)
                 {
-                    unsigned num_struct_nodes = getNumberOfNodes(prototype_struct_ids[i]);
-                    if (!initial_time) rotation_mat = d_quaternion_half[prototype_struct_ids[i]].toRotationMatrix();
-
-                    for (unsigned k = 0; k < num_struct_nodes; ++k)
-                    {
-
-                        IBTK::Point X;
-
-                        // check if the global dense mobility matrix is used
-                        if (mat_name == "GLOBAL_DENSE")
-                        {
-                            X = getStandardInitializer()->getInitialVertexPosn(struct_ln, i, k);
-                        }
-                        else
-                        {
-                            X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln, prototype_struct_ids[i], k);
-                        }
-
-                        if (d_ShapeDefFun[i])
-                        {
-                            for (unsigned int d = 0; d < NDIM; ++d) X[d] += d_delta_X_half[i][k][d];
-                        }
-
-                        if (initial_time)
-                        {
-                            for (int d = 0; d < NDIM; ++d) XW[offset++] = X[d];
-                        }
-                        else
-                        {
-                            for (unsigned int d = 0; d < NDIM; ++d) dr[d] = X[d];
-                            R_dr = rotation_mat * dr;
-                            for (int d = 0; d < NDIM; ++d)
-                                XW[offset++] = d_center_of_mass_half[prototype_struct_ids[i]][d] + R_dr[d];
-                        }
-                    }
-                }
-
-                // Generate mobility matrix
-                if (mat_type == RPY)
-                {
-                    getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat);
-                }
-                else if (mat_type == EMPIRICAL)
-                {
-                    getEmpiricalMobilityMatrix(ib_kernel, mu, rho, dt, grid_dx[0], &XW[0], num_nodes, 0,
-                                               f_periodic_corr, domain_extents[0], mobility_mat);
-                }
-                else
-                {
-                    TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
-                }
-                delete[] XW;
-            }
-            double* W = W_vector[counter];
-            for (int i = 0; i < size; ++i)
-            {
-                for (int j = 0; j < size; ++j)
-                {
-                    mobility_mat[i * size + j] *= scale.first;
-                    if (i == j)
-                    {
-                        mobility_mat[i * size + j] += scale.second * W[i];
-                    }
+                    mobility_mat_data[i * size + j] += scale.second * XW[i];
                 }
             }
-            delete[] W;
-            counter++;
-        } // rank
-        file_counter++;
-    } // it
+        }
+        delete[] XW;
+        MatDenseRestoreArray(mobility_mat, &mobility_mat_data);
+    }
 
     return;
-} // generateMobilityMatrix
+} // constructMobilityMatrix
 
-void CIBMethod::constructKinematicMatrix(double* kinematic_mat,
-                                         const std::vector<unsigned>& prototype_struct_ids,
-                                         const bool initial_time,
-                                         const int managing_proc)
+void
+CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
+                                    Mat& geometric_mat,
+                                    const std::vector<unsigned>& prototype_struct_ids,
+                                    const bool initial_time,
+                                    const int managing_rank)
 {
     const int struct_ln = getStructuresLevelNumber();
     const int rank = SAMRAI_MPI::getRank();
@@ -1626,427 +1421,218 @@ void CIBMethod::constructKinematicMatrix(double* kinematic_mat,
     {
         num_nodes += getNumberOfNodes(prototype_struct_ids[i]);
     }
-    int size = num_nodes * NDIM;
-    int bsize = s_max_free_dofs * prototype_struct_ids.size();
+    int row_size = num_nodes * NDIM;
+    int col_size = s_max_free_dofs * static_cast<int>(prototype_struct_ids.size());
+    int block_size = s_max_free_dofs;
 
-    const unsigned shft = s_max_free_dofs;
-    // Get the position data
-    if (rank == managing_proc)
+    // Get the position data.
+    double* X_data = NULL;
+    if (rank == managing_rank) X_data = new double[row_size];
+    Vec X;
+    if (initial_time)
     {
-        std::fill(kinematic_mat, kinematic_mat + bsize * size, 0.0);
+        X = d_l_data_manager->getLData("X0", struct_ln)->getVec();
+    }
+    else
+    {
+        std::vector<Pointer<LData> >* X_half_data;
+        bool* X_half_needs_ghost_fill;
+        getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+        X = (*X_half_data)[struct_ln]->getVec();
+    }
+    copyVecToArray(X, X_data, prototype_struct_ids, /*depth*/ NDIM, managing_rank);
 
-        Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-        Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
-        Eigen::Matrix3d rotation_mat = Eigen::Matrix3d::Identity(3, 3);
-        unsigned q = 0;
-
-        for (unsigned i = 0; i < prototype_struct_ids.size(); ++i)
-        {
-            num_nodes = getNumberOfNodes(prototype_struct_ids[i]);
-            if (!initial_time) rotation_mat = d_quaternion_half[prototype_struct_ids[i]].toRotationMatrix();
-
-            for (unsigned k = 0; k < num_nodes; ++k)
-            {
-                const IBTK::Point X =
-                    getStandardInitializer()->getPrototypeVertexPosn(struct_ln, prototype_struct_ids[i], k);
-                for (unsigned int d = 0; d < NDIM; ++d) dr[d] = X[d];
-
-                if (!initial_time)
-                    R_dr = rotation_mat * dr;
-                else
-                    R_dr = dr;
-
-                // column major representation for LAPACK
-
-                kinematic_mat[/*col*/ (i * shft) * size + /*row*/ q * NDIM] = 1.0;     //(1,1)
-                kinematic_mat[/*col*/ (i * shft) * size + /*row*/ q * NDIM + 1] = 0.0; //(2,1)
-
-                kinematic_mat[/*col*/ (i * shft + 1) * size + /*row*/ q * NDIM] = 0.0;     //(1,2)
-                kinematic_mat[/*col*/ (i * shft + 1) * size + /*row*/ q * NDIM + 1] = 1.0; //(2,2)
-#if (NDIM == 2)
-                kinematic_mat[/*col*/ (i * shft) * size + /*row*/ q * NDIM + 2] = -R_dr[1];    //(3,1)
-                kinematic_mat[/*col*/ (i * shft + 1) * size + /*row*/ q * NDIM + 2] = R_dr[0]; //(3,2)
-#elif(NDIM == 3)
-                kinematic_mat[/*col*/ (i * shft + 2) * size + /*row*/ q * NDIM] = 0.0;      //(1,3)
-                kinematic_mat[/*col*/ (i * shft + 3) * size + /*row*/ q * NDIM] = 0.0;      //(1,4)
-                kinematic_mat[/*col*/ (i * shft + 4) * size + /*row*/ q * NDIM] = R_dr[2];  //(1,5)
-                kinematic_mat[/*col*/ (i * shft + 5) * size + /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
-
-                kinematic_mat[/*col*/ (i * shft + 2) * size + /*row*/ q * NDIM + 1] = 0.0;      //(2,3)
-                kinematic_mat[/*col*/ (i * shft + 3) * size + /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
-                kinematic_mat[/*col*/ (i * shft + 4) * size + /*row*/ q * NDIM + 1] = 0.0;      //(2,5)
-                kinematic_mat[/*col*/ (i * shft + 5) * size + /*row*/ q * NDIM + 1] = R_dr[0];  //(2,6)
-
-                kinematic_mat[/*col*/ (i * shft) * size + /*row*/ q * NDIM + 2] = 0.0;          //(3,1)
-                kinematic_mat[/*col*/ (i * shft + 1) * size + /*row*/ q * NDIM + 2] = 0.0;      //(3,2)
-                kinematic_mat[/*col*/ (i * shft + 2) * size + /*row*/ q * NDIM + 2] = 1.0;      //(3,3)
-                kinematic_mat[/*col*/ (i * shft + 3) * size + /*row*/ q * NDIM + 2] = R_dr[1];  //(3,4)
-                kinematic_mat[/*col*/ (i * shft + 4) * size + /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
-                kinematic_mat[/*col*/ (i * shft + 5) * size + /*row*/ q * NDIM + 2] = 0.0;      //(3,6)
+    // Fill the geometric matrix.
+    if (rank == managing_rank)
+    {
+#if !defined(NDEBUG)
+        int n_rows, n_cols;
+        MatGetSize(geometric_mat, &n_rows, &n_cols);
+        TBOX_ASSERT(n_rows == row_size);
+        TBOX_ASSERT(n_cols == col_size);
 #endif
-                q++;
+        double* geometric_mat_data = NULL;
+        MatDenseGetArray(geometric_mat, &geometric_mat_data);
+        std::fill(&geometric_mat_data[0], &geometric_mat_data[row_size * col_size], 0.0);
+
+        Eigen::Vector3d R = Eigen::Vector3d::Zero();
+        for (unsigned i = 0, q = 0; i < prototype_struct_ids.size(); ++i)
+        {
+            const unsigned struct_id = prototype_struct_ids[i];
+            unsigned struct_nodes = getNumberOfNodes(struct_id);
+            Eigen::Vector3d* center_of_mass;
+            if (initial_time)
+            {
+                center_of_mass = &d_center_of_mass_initial[struct_id];
+            }
+            else
+            {
+                center_of_mass = &d_center_of_mass_half[struct_id];
+            }
+
+            for (unsigned k = 0; k < struct_nodes; ++q, ++k)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    R[d] = X_data[q * NDIM + d] - (*center_of_mass)[d];
+                }
+
+                // Here we are doing column major format.
+                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM] = 1.0;     //(1,1)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 1] = 0.0; //(2,1)
+
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM] = 0.0;     //(1,2)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 1] = 1.0; //(2,2)
+#if (NDIM == 2)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = -R[1];    //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = R[0]; //(2,3)
+#elif(NDIM == 3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;   //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;   //(1,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM] = R[2];  //(1,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM] = -R[1]; //(1,6)
+
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = 0.0;   //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 1] = -R[2]; //(2,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 1] = 0.0;   //(2,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 1] = R[0];  //(2,6)
+
+                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 2] = 0.0;       //(3,1)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 2] = 0.0;   //(3,2)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 2] = 1.0;   //(3,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 2] = R[1];  //(3,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 2] = -R[0]; //(3,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 2] = 0.0;   //(3,6)
+#endif
             }
         }
+        delete[] X_data;
+        MatDenseRestoreArray(geometric_mat, &geometric_mat_data);
     }
+
     return;
-} // constructKinematicMatrix
+} // constructGeometricMatrix
 
-void CIBMethod::registerStandardInitializer(Pointer<IBAMR::CIBStandardInitializer> ib_initializer)
-{
-    d_ib_initializer = ib_initializer;
-    // setting velocity constraint dofs and external forces
-    std::vector<StructureClonesInputOptions> clones_velocity_constraints;
-    std::vector<StructureClonesInputOptions> clones_external_force;
-    std::vector<std::vector<int> > free_dofs;
-    std::vector<std::vector<std::string> > VelMuParseStrings;
-    std::vector<std::vector<std::string> > ForceMuParseStrings;
-    std::vector<std::vector<double> > clones_random_force_scaling;
-    velocity_constraint_type.clear();
-    external_force_type.clear();
-
-    d_ib_initializer->getClonesParameters(d_num_structs_types, d_structs_clones_num, clones_velocity_constraints,
-                                          clones_external_force, free_dofs, VelMuParseStrings, ForceMuParseStrings,
-                                          clones_random_force_scaling);
-
-    unsigned offset = 0, vel_counter = 0, force_counter = 0;
-    for (int itype = 0; itype < d_num_structs_types; itype++)
-    {
-        FreeRigidDOFVector dofs;
-
-        // set velocity constraints for all clones
-        if (clones_velocity_constraints[itype] == cln_uniform)
-        {
-            std::vector<mu::Parser*> vel_function(s_max_free_dofs, NULL);
-            for (int d = 0; d < s_max_free_dofs; d++)
-            {
-                dofs[d] = free_dofs[vel_counter][d];
-
-                if (!dofs[d])
-                {
-                    vel_function[d] = new mu::Parser();
-                    vel_function[d]->SetExpr(VelMuParseStrings[vel_counter][d]);
-                }
-            }
-            for (unsigned int j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-                d_comvel_constraint_parsers[j].resize(s_max_free_dofs, NULL);
-
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    if (!dofs[d])
-                    {
-                        d_comvel_constraint_parsers[j][d] = vel_function[d];
-                    }
-                }
-
-                setCloneFreeDOFs(j, dofs);
-                velocity_constraint_type.push_back(cln_uniform);
-            }
-            vel_counter++;
-        }
-        else if (clones_velocity_constraints[itype] == cln_file)
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-                d_comvel_constraint_parsers[j].resize(s_max_free_dofs, NULL);
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    dofs[d] = free_dofs[vel_counter][d];
-
-                    if (!dofs[d])
-                    {
-                        mu::Parser* vel_function = new mu::Parser();
-                        vel_function->SetExpr(VelMuParseStrings[vel_counter][d]);
-                        d_comvel_constraint_parsers[j][d] = vel_function;
-                    }
-                }
-                setCloneFreeDOFs(j, dofs);
-                velocity_constraint_type.push_back(cln_file);
-                vel_counter++;
-            }
-        }
-        else if (clones_velocity_constraints[itype] == cln_shell)
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-                velocity_constraint_type.push_back(cln_shell);
-        }
-        else
-        {
-
-#if (NDIM == 2)
-            dofs << 1, 1, 1;
-#elif(NDIM == 3)
-            dofs << 1, 1, 1, 1, 1, 1;
-#endif
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-                setCloneFreeDOFs(j, dofs);
-                velocity_constraint_type.push_back(cln_none);
-            }
-        }
-
-        // set external force/torque for all clones
-        if (clones_external_force[itype] == cln_uniform)
-        {
-            std::vector<mu::Parser*> force_function(s_max_free_dofs, NULL);
-            for (int d = 0; d < s_max_free_dofs; d++)
-            {
-                force_function[d] = new mu::Parser();
-                force_function[d]->SetExpr(ForceMuParseStrings[force_counter][d]);
-            }
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-
-                d_ext_force_parsers[j].resize(s_max_free_dofs, NULL);
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    if (d_solve_rigid_vel[j][d]) d_ext_force_parsers[j][d] = force_function[d];
-                }
-                external_force_type.push_back(cln_uniform);
-            }
-            force_counter++;
-        }
-        else if (clones_external_force[itype] == cln_file)
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-                d_ext_force_parsers[j].resize(s_max_free_dofs, NULL);
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    if (d_solve_rigid_vel[j][d])
-                    {
-                        mu::Parser* force_function = new mu::Parser();
-                        force_function->SetExpr(ForceMuParseStrings[force_counter][d]);
-                        d_ext_force_parsers[j][d] = force_function;
-                    }
-                }
-                external_force_type.push_back(cln_file);
-                force_counter++;
-            }
-        }
-        else if (clones_external_force[itype] == cln_random)
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-            {
-                external_force_type.push_back(cln_random);
-                d_random_force_scaling[j] = clones_random_force_scaling[itype];
-            }
-        }
-        else if (clones_external_force[itype] == cln_shell)
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-                external_force_type.push_back(cln_shell);
-        }
-        else
-        {
-            for (unsigned j = offset; j < offset + d_structs_clones_num[itype]; j++)
-                external_force_type.push_back(cln_none);
-        }
-        offset += d_structs_clones_num[itype];
-    }
-
-    // Define muParser variables.
-    offset = 0;
-    for (int itype = 0; itype < d_num_structs_types; itype++)
-    {
-        for (unsigned int j = offset; j < offset + d_structs_clones_num[itype]; j++)
-        {
-            if ((velocity_constraint_type[j] == cln_uniform) || (velocity_constraint_type[j] == cln_file))
-            {
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    if (!d_solve_rigid_vel[j][d])
-                    {
-                        mu::Parser* it = d_comvel_constraint_parsers[j][d];
-
-                        // Variables.
-                        it->DefineVar("T", &d_current_time);
-                        it->DefineVar("t", &d_current_time);
-                        for (unsigned int dd = 0; dd < NDIM; ++dd)
-                        {
-                            std::ostringstream stream;
-                            stream << dd;
-                            const std::string postfix = stream.str();
-                            it->DefineVar("X" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("x" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
-                        }
-                    }
-                }
-            }
-            if ((external_force_type[j] == cln_uniform) || (external_force_type[j] == cln_file))
-            {
-                for (int d = 0; d < s_max_free_dofs; d++)
-                {
-                    if (d_solve_rigid_vel[j][d])
-                    {
-                        mu::Parser* it = d_ext_force_parsers[j][d];
-
-                        // Variables.
-                        it->DefineVar("T", &d_current_time);
-                        it->DefineVar("t", &d_current_time);
-                        for (unsigned int dd = 0; dd < NDIM; ++dd)
-                        {
-                            std::ostringstream stream;
-                            stream << dd;
-                            const std::string postfix = stream.str();
-                            it->DefineVar("X" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("x" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("X_" + postfix, &(d_center_of_mass_current[j][dd]));
-                            it->DefineVar("x_" + postfix, &(d_center_of_mass_current[j][dd]));
-                        }
-                    }
-                }
-            }
-        }
-        offset += d_structs_clones_num[itype];
-    }
-};
-
-Pointer<IBAMR::CIBStandardInitializer> CIBMethod::getStandardInitializer()
-{
-    return d_ib_initializer;
-};
-
-void CIBMethod::rotateArrayInitalBodyFrame(double* array,
-                                           const std::vector<unsigned>& struct_ids,
-                                           const bool isTranspose,
-                                           const int managing_proc,
-                                           const bool BodyMobility)
+void
+CIBMethod::rotateArray(double* array,
+                       const std::vector<unsigned>& struct_ids,
+                       const bool use_transpose,
+                       const int managing_proc,
+                       const int depth)
 {
     if (struct_ids.empty()) return;
-    const unsigned num_structs = (unsigned)struct_ids.size();
+
+#if !defined(NDEBUG)
+    if (!(depth == NDIM || depth == s_max_free_dofs))
+    {
+        TBOX_ERROR("CIBMethod::rotateArray(). Data depth of the array to be rotated should either be "
+                   << NDIM
+                   << " (type nodal velocity) or "
+                   << s_max_free_dofs
+                   << " (type body free DOFs)."
+                   << std::endl);
+    }
+#endif
 
     if (SAMRAI_MPI::getRank() == managing_proc)
     {
+        const bool position_system = (depth % NDIM == 0);
+        const bool force_system = (depth % s_max_free_dofs == 0);
+        const unsigned num_structs = static_cast<unsigned>(struct_ids.size());
         unsigned offset = 0;
+
         for (unsigned k = 0; k < num_structs; ++k)
         {
             unsigned structID = struct_ids[k];
-            unsigned number_of_nodes = getNumberOfNodes(structID);
+            Eigen::Matrix3d R = use_transpose ? (d_quaternion_half[structID].toRotationMatrix()).transpose() :
+                                                d_quaternion_half[structID].toRotationMatrix();
 
-            Eigen::Matrix3d Rot;
-            if (isTranspose)
-                Rot = (d_quaternion_half[structID].toRotationMatrix()).transpose();
-            else
-                Rot = d_quaternion_half[structID].toRotationMatrix();
-
-            if (BodyMobility)
+            if (force_system)
             {
                 Eigen::Vector3d F = Eigen::Vector3d::Zero();
+                std::copy(array + offset, array + offset + NDIM, F.data());
+                Eigen::Vector3d R_F = R * F;
+                std::copy(R_F.data(), R_F.data() + NDIM, array + offset);
+#if (NDIM == 3)
                 Eigen::Vector3d T = Eigen::Vector3d::Zero();
-                Eigen::Vector3d R_F = Eigen::Vector3d::Zero();
-                Eigen::Vector3d R_T = Eigen::Vector3d::Zero();
-
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    F[d] = array[offset + d];
-                }
-#if (NDIM == 3)
-                for (unsigned d = 0; d < NDIM; ++d)
-                {
-                    T[d] = array[offset + d + 3];
-                    ;
-                }
-                R_T = Rot * T;
+                std::copy(array + offset + NDIM, array + offset + s_max_free_dofs, T.data());
+                Eigen::Vector3d R_T = R * T;
+                std::copy(R_T.data(), R_T.data() + NDIM, array + offset + NDIM);
 #endif
-
-                R_F = Rot * F;
-
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    array[offset + d] = R_F[d];
-                }
-
-#if (NDIM == 3)
-                for (unsigned d = 0; d < NDIM; ++d)
-                {
-                    array[offset + d + 3] = R_T[d];
-                }
-#endif
-
                 offset += s_max_free_dofs;
             }
-            else
+            else if (position_system)
             {
                 Eigen::Vector3d dr = Eigen::Vector3d::Zero();
                 Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
+                const unsigned number_of_nodes = getNumberOfNodes(structID);
 
                 for (unsigned node = 0; node < number_of_nodes; ++node)
                 {
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dr[d] = array[offset + d];
-                    }
-                    // Rotate dr vector using the rotation matrix.
-                    R_dr = Rot * dr;
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        array[offset + d] = R_dr[d];
-                    }
+                    std::copy(array + offset, array + offset + NDIM, dr.data());
+                    R_dr = R * dr;
+                    std::copy(R_dr.data(), R_dr.data() + NDIM, array + offset);
                     offset += NDIM;
-                } // node
+                }
             }
-
-        } // k
+            else
+            {
+                TBOX_ERROR("CIBMethod::rotateArray(). Rotation of only force and position/velocity data is supported."
+                           << std::endl);
+            }
+        }
     }
     return;
-} // rotateArrayInitalBodyFrame
+} // rotateArray
 
-bool CIBMethod::flagRegrid() const
+void
+CIBMethod::setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
+{
+    d_u_phys_bdry_op = u_phys_bdry_op;
+    return;
+}
+
+bool
+CIBMethod::flagRegrid() const
 {
     return d_time_integrator_needs_regrid;
-};
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void CIBMethod::getFromInput(Pointer<Database> input_db)
+void
+CIBMethod::getFromInput(Pointer<Database> input_db)
 {
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
     d_lambda_dump_interval = input_db->getIntegerWithDefault("lambda_dump_interval", d_lambda_dump_interval);
     if (d_lambda_dump_interval)
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
-        std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./Output");
+        std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./lambda");
         if (!from_restart) Utilities::recursiveMkdir(dir_name);
-
-        d_output_all_lambdas = input_db->getBoolWithDefault("output_all_lambdas", false);
 
         if (SAMRAI_MPI::getRank() == 0)
         {
-            std::string filename = dir_name + "/" + "lambdas.dat";
-            std::string filename2 = dir_name + "/" + "NetLambda.dat";
+            std::string filename = dir_name + "/" + "lambda";
             if (from_restart)
-            {
-                d_netlambda_stream.open(filename2.c_str(), std::ofstream::app | std::ofstream::out);
-                if (d_output_all_lambdas)
-                    d_lambda_stream.open(filename.c_str(), std::ofstream::app | std::ofstream::out);
-            }
+                d_lambda_stream.open(filename.c_str(), std::ofstream::app | std::ofstream::out);
             else
-            {
-                d_netlambda_stream.open(filename2.c_str(), std::ofstream::out);
-                if (d_output_all_lambdas) d_lambda_stream.open(filename.c_str(), std::ofstream::out);
-            }
-            if (d_output_all_lambdas)
-            {
-                d_lambda_stream.precision(15);
-                d_lambda_stream << std::scientific;
-            }
-            d_netlambda_stream.precision(15);
-            d_netlambda_stream << std::scientific;
+                d_lambda_stream.open(filename.c_str(), std::ofstream::out);
+
+            d_lambda_stream.precision(16);
+            d_lambda_stream << std::scientific;
         }
     }
 
-    // if (input_db->keyExists("lambda_filenames"))
-    // {
-    //     tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
-    //     TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
-    //     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    //     {
-    //         d_lambda_filename[struct_no] = lambda_filenames[struct_no];
-    //     }
-    // }
+    if (input_db->keyExists("lambda_filenames"))
+    {
+        tbox::Array<std::string> lambda_filenames = input_db->getStringArray("lambda_filenames");
+        TBOX_ASSERT(lambda_filenames.size() == (int)d_num_rigid_parts);
+        for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
+        {
+            d_lambda_filename[struct_no] = lambda_filenames[struct_no];
+        }
+    }
 
     if (input_db->keyExists("weight_filenames"))
     {
@@ -2061,7 +1647,8 @@ void CIBMethod::getFromInput(Pointer<Database> input_db)
     return;
 } // getFromInput
 
-void CIBMethod::getFromRestart()
+void
+CIBMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -2071,100 +1658,100 @@ void CIBMethod::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("CIBMethod::getFromRestart(): Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
+        TBOX_ERROR("CIBMethod::getFromRestart(): Restart database corresponding to " << d_object_name
+                                                                                     << " not found in restart file."
+                                                                                     << std::endl);
     }
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
-        std::ostringstream U, W;
+        std::ostringstream U, W, C, Q;
         U << "U_" << struct_no;
         W << "W_" << struct_no;
+        C << "C_" << struct_no;
+        Q << "Q_" << struct_no;
+
+        double Q_coeffs[4];
         db->getDoubleArray(U.str(), &d_trans_vel_current[struct_no][0], 3);
         db->getDoubleArray(W.str(), &d_rot_vel_current[struct_no][0], 3);
+        db->getDoubleArray(C.str(), &d_center_of_mass_current[struct_no][0], 3);
+        db->getDoubleArray(Q.str(), &Q_coeffs[0], 4);
+
+        d_quaternion_current[struct_no].w() = Q_coeffs[0];
+        d_quaternion_current[struct_no].x() = Q_coeffs[1];
+        d_quaternion_current[struct_no].y() = Q_coeffs[2];
+        d_quaternion_current[struct_no].z() = Q_coeffs[3];
+        d_quaternion_current[struct_no].normalized();
     }
 
     return;
 } // getFromRestart
 
-void CIBMethod::computeInitialCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass)
+void
+CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
 {
-    const int struct_ln = getStructuresLevelNumber();
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    // Zero out the COM vector.
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
         center_of_mass[struct_no].setZero();
     }
 
-    for (unsigned k = 0; k < d_num_rigid_parts; ++k)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        int no_blobs = getNumberOfNodes(k);
-        for (int i = 0; i < no_blobs; ++i)
-        {
-            const IBTK::Point X = getStandardInitializer()->getInitialVertexPosn(struct_ln, k, i);
-            for (int d = 0; d < NDIM; ++d) center_of_mass[k][d] += X[d];
-        }
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        center_of_mass[k] /= no_blobs;
-    }
-    return;
-} // calculateCOMandMOIOfStructures
+        const boost::multi_array_ref<double, 2>& X_data_array = *X_data[ln]->getLocalFormVecArray();
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-void CIBMethod::computeInitialMOIOfStructures(std::vector<Eigen::Matrix3d>& moment_of_inertia)
-{
-    const int struct_ln = getStructuresLevelNumber();
-    // Zero out the moment of inertia tensor.
-    for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-        moment_of_inertia[struct_no].setZero();
-    }
-
-    for (unsigned k = 0; k < d_num_rigid_parts; ++k)
-    {
-        int no_blobs = getNumberOfNodes(k);
-        const Eigen::Vector3d X_com = Eigen::Vector3d::Zero();
-        for (int i = 0; i < no_blobs; ++i)
-        {
-            const IBTK::Point& X = getStandardInitializer()->getPrototypeVertexPosn(struct_ln, k, i);
-#if (NDIM == 2)
-            moment_of_inertia[k](0, 0) += std::pow(X[1] - X_com[1], 2);
-            moment_of_inertia[k](0, 1) += -(X[0] - X_com[0]) * (X[1] - X_com[1]);
-            moment_of_inertia[k](1, 1) += std::pow(X[0] - X_com[0], 2);
-            moment_of_inertia[k](2, 2) += std::pow(X[0] - X_com[0], 2) + std::pow(X[1] - X_com[1], 2);
+        // Get structures on this level.
+        const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
+        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+#if !defined(NDEBUG)
+        TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-#if (NDIM == 3)
-            moment_of_inertia[k](0, 0) += std::pow(X[1] - X_com[1], 2) + std::pow(X[2] - X_com[2], 2);
-            moment_of_inertia[k](0, 1) += -(X[0] - X_com[0]) * (X[1] - X_com[1]);
-            moment_of_inertia[k](0, 2) += -(X[0] - X_com[0]) * (X[2] - X_com[2]);
-            moment_of_inertia[k](1, 1) += std::pow(X[0] - X_com[0], 2) + std::pow(X[2] - X_com[2], 2);
-            moment_of_inertia[k](1, 2) += -(X[1] - X_com[1]) * (X[2] - X_com[2]);
-            moment_of_inertia[k](2, 2) += std::pow(X[0] - X_com[0], 2) + std::pow(X[1] - X_com[1], 2);
-#endif
-        }
-    }
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
+            const double* const X = &X_data_array[local_idx][0];
 
-    // Fill-in symmetric part of inertia tensor.
-    for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
-    {
-        moment_of_inertia[struct_no](1, 0) = moment_of_inertia[struct_no](0, 1);
-        moment_of_inertia[struct_no](2, 0) = moment_of_inertia[struct_no](0, 2);
-        moment_of_inertia[struct_no](2, 1) = moment_of_inertia[struct_no](1, 2);
+            int struct_handle = 0;
+            if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
+
+            for (unsigned int d = 0; d < NDIM; ++d) center_of_mass[struct_handle][d] += X[d];
+        }
+
+        for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        {
+            SAMRAI_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
+            const int total_nodes = getNumberOfNodes(struct_no);
+            center_of_mass[struct_no] /= total_nodes;
+        }
+        X_data[ln]->restoreArrays();
     }
 
     return;
-} // calculateCOMandMOIOfStructures
+} // calculateCOMOfStructures
 
-void CIBMethod::setRegularizationWeight(const int level_number)
+void
+CIBMethod::setRegularizationWeight(const int level_number)
 {
     Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    const double* const dx = grid_geom->getDx();
-#if (NDIM == 2)
-    const double cell_volume = dx[0] * dx[1];
-#elif(NDIM == 3)
-    const double cell_volume = dx[0] * dx[1] * dx[2];
-#endif
+    const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
+
+    const double* const dx0 = grid_geom->getDx();
+    double cell_volume = 1;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        cell_volume *= dx0[d] / ratio(d);
+    }
 
     boost::multi_array_ref<double, 2>& reg_data_array = *reg_data->getLocalFormVecArray();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
@@ -2172,7 +1759,7 @@ void CIBMethod::setRegularizationWeight(const int level_number)
 
     // Get structures on this level.
     const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
-    const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
@@ -2190,7 +1777,10 @@ void CIBMethod::setRegularizationWeight(const int level_number)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
                     double* const W = &reg_data_array[local_idx][0];
-                    for (unsigned int d = 0; d < NDIM; ++d) W[d] = cell_volume;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        W[d] = cell_volume;
+                    }
                 }
             }
             continue;
@@ -2201,7 +1791,9 @@ void CIBMethod::setRegularizationWeight(const int level_number)
         if (!reg_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setRegularizationWeight()"
-                       << "could not open file" << d_reg_filename[struct_no] << std::endl);
+                       << "could not open file"
+                       << d_reg_filename[struct_no]
+                       << std::endl);
         }
 
         std::string line_f;
@@ -2213,13 +1805,16 @@ void CIBMethod::setRegularizationWeight(const int level_number)
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
                 TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
-                           << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                           << d_reg_filename[struct_no]
+                           << " not equal to corresponding vertex file."
+                           << std::endl);
             }
         }
         else
         {
             TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                       << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
+                       << d_reg_filename[struct_no]
+                       << " at line number 0. Total number of Lagrangian  points required."
                        << std::endl);
         }
 
@@ -2234,7 +1829,10 @@ void CIBMethod::setRegularizationWeight(const int level_number)
             else
             {
                 TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                           << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
+                           << d_reg_filename[struct_no]
+                           << " at line number "
+                           << k + 1
+                           << std::endl);
             }
         }
 
@@ -2252,11 +1850,16 @@ void CIBMethod::setRegularizationWeight(const int level_number)
                 if (!MathUtilities<double>::equalEps(weight, 0.0))
                 {
                     for (unsigned int d = 0; d < NDIM; ++d)
-                        W[d] = cell_volume / reg_weight[lag_idx - lag_idx_range.first];
+                    {
+                        W[d] = cell_volume / weight;
+                    }
                 }
                 else
                 {
-                    for (unsigned int d = 0; d < NDIM; ++d) W[d] = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        W[d] = 0.0;
+                    }
                 }
             }
         }
@@ -2266,9 +1869,9 @@ void CIBMethod::setRegularizationWeight(const int level_number)
     return;
 } // setRegularizationWeight
 
-void CIBMethod::setInitialLambda(const int level_number)
+void
+CIBMethod::setInitialLambda(const int level_number)
 {
-
     Pointer<IBTK::LData> lambda_data = d_l_data_manager->getLData("lambda", level_number);
     boost::multi_array_ref<double, 2>& lambda_data_array = *lambda_data->getLocalFormVecArray();
     const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
@@ -2276,7 +1879,7 @@ void CIBMethod::setInitialLambda(const int level_number)
 
     // Get structures on this level.
     const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
-    const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
@@ -2290,7 +1893,9 @@ void CIBMethod::setInitialLambda(const int level_number)
         if (!lambda_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setInitialLambda()"
-                       << "could not open file" << d_lambda_filename[struct_no] << std::endl);
+                       << "could not open file"
+                       << d_lambda_filename[struct_no]
+                       << std::endl);
         }
 
         std::string line_f;
@@ -2303,13 +1908,16 @@ void CIBMethod::setInitialLambda(const int level_number)
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
                 TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
-                           << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                           << d_lambda_filename[struct_no]
+                           << " not equal to corresponding vertex file."
+                           << std::endl);
             }
         }
         else
         {
             TBOX_ERROR("CIBMethod::::setInitialLambda() Error in the input lambda file "
-                       << d_lambda_filename[struct_no] << " at line number 0. Total number of Lag pts. required."
+                       << d_lambda_filename[struct_no]
+                       << " at line number 0. Total number of Lag pts. required."
                        << std::endl);
         }
 
@@ -2324,7 +1932,10 @@ void CIBMethod::setInitialLambda(const int level_number)
             else
             {
                 TBOX_ERROR("CIBMethod::setInitialLambda() Error in the input lambda file "
-                           << d_lambda_filename[struct_no] << " at line number " << k + 1 << std::endl);
+                           << d_lambda_filename[struct_no]
+                           << " at line number "
+                           << k + 1
+                           << std::endl);
             }
         }
 
@@ -2337,7 +1948,9 @@ void CIBMethod::setInitialLambda(const int level_number)
                 const int local_idx = node_idx->getLocalPETScIndex();
                 double* const L = &lambda_data_array[local_idx][0];
                 for (unsigned int d = 0; d < NDIM; ++d)
+                {
                     L[d] = initial_lambda[(lag_idx - lag_idx_range.first) * NDIM + d];
+                }
             }
         }
     }
@@ -2345,131 +1958,6 @@ void CIBMethod::setInitialLambda(const int level_number)
 
     return;
 } // setInitialLambda
-
-void CIBMethod::setVelocityBC(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>* u_bc_coefs)
-{
-
-    d_u_bc_coefs = u_bc_coefs;
-
-    return;
-} // setVelocityBC
-
-void CIBMethod::setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
-{
-
-    d_u_phys_bdry_op = u_phys_bdry_op;
-    return;
-}
-
-void CIBMethod::fillGhostCells(int in, const double time)
-{
-
-    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> transaction_comps;
-
-    InterpolationTransactionComponent x_component(in,
-                                                  /*DATA_REFINE_TYPE*/ "NONE",           /* NONE */
-                                                  /*USE_CF_INTERPOLATION*/ true,         /* true */
-                                                  /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN", /* Cubic_coarsen */
-                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",         /* Linear */
-                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,      /* false */
-                                                  d_u_bc_coefs[0],                       /* d_u_bc_coefs[0] */
-                                                  /*d_fill_pattern*/ NULL);              /* Null */
-
-    transaction_comps.push_back(x_component);
-
-    // Setup
-    int d_coarsest_ln = 0;
-    int d_finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    const bool homogeneous_bc = d_homogeneous_bc;
-
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
-    d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
-
-    // Fill ghost cells of x
-    d_hier_bdry_fill->fillData(time);
-
-    // Deallocate data
-    d_hier_bdry_fill->deallocateOperatorState();
-    d_hier_bdry_fill.setNull();
-    transaction_comps.clear();
-
-    return;
-} // fillGhostCells
-void CIBMethod::defaultConstrainedCOMVel(unsigned part,
-                                         double data_time,
-                                         Eigen::Vector3d& U_com,
-                                         Eigen::Vector3d& W_com)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (!d_solve_rigid_vel[part][d]) U_com[d] = d_comvel_constraint_parsers[part][d]->Eval();
-    }
-#if (NDIM == 2)
-    if (!d_solve_rigid_vel[part][2]) W_com[2] = d_comvel_constraint_parsers[part][2]->Eval();
-#elif(NDIM == 3)
-    for (int d = 0; d < NDIM; ++d)
-    {
-        if (!d_solve_rigid_vel[part][NDIM + d]) W_com[d] = d_comvel_constraint_parsers[part][NDIM + d]->Eval();
-    }
-#endif
-    return;
-} // ConstrainedCOMInnerVel
-
-void CIBMethod::defaultNetExternalForceTorque(unsigned part,
-                                              double data_time,
-                                              Eigen::Vector3d& F_ext,
-                                              Eigen::Vector3d& T_ext)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d_solve_rigid_vel[part][d]) F_ext[d] = d_ext_force_parsers[part][d]->Eval();
-    }
-
-#if (NDIM == 2)
-    if (d_solve_rigid_vel[part][2]) T_ext[2] = d_ext_force_parsers[part][2]->Eval();
-#elif(NDIM == 3)
-    for (int d = 0; d < NDIM; ++d)
-    {
-        if (d_solve_rigid_vel[part][NDIM + d]) T_ext[d] = d_ext_force_parsers[part][NDIM + d]->Eval();
-    }
-#endif
-    return;
-} // NetExternalForceTorque
-
-void CIBMethod::randomExternalForceTorque(unsigned part,
-                                          double data_time,
-                                          Eigen::Vector3d& F_ext,
-                                          Eigen::Vector3d& T_ext)
-{
-
-    double F[NDIM], T[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) RNG::genrand(F + d);
-    for (unsigned int d = 0; d < NDIM; ++d) RNG::genrand(T + d);
-
-#if (NDIM == 2)
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d_solve_rigid_vel[part][d]) F_ext[d] = d_random_force_scaling[part][d] * (F[d] - 0.5);
-    }
-    if (d_solve_rigid_vel[part][2]) T_ext[0] = d_random_force_scaling[part][2] * (T[0] - 0.5);
-#elif(NDIM == 3)
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d_solve_rigid_vel[part][d]) F_ext[d] = d_random_force_scaling[part][d] * (F[d] - 0.5);
-    }
-
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d_solve_rigid_vel[part][NDIM + d]) T_ext[d] = d_random_force_scaling[part][NDIM + d] * (T[d] - 0.5);
-    }
-#endif
-    return;
-
-} // NetExternalForceTorque
 
 } // namespace IBAMR
 

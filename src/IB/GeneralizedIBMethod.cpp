@@ -125,7 +125,8 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
     return;
 } // ~GeneralizedIBMethod
 
-void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
+void
+GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_and_torque_fcn);
@@ -134,7 +135,8 @@ void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodF
     return;
 } // registerIBKirchhoffRodForceGen
 
-void GeneralizedIBMethod::registerEulerianVariables()
+void
+GeneralizedIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
@@ -160,7 +162,8 @@ void GeneralizedIBMethod::registerEulerianVariables()
     else
     {
         TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
     registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
@@ -168,7 +171,8 @@ void GeneralizedIBMethod::registerEulerianVariables()
     return;
 } // registerEulerianVariables
 
-void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
+void
+GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
@@ -188,7 +192,8 @@ void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
     return;
 } // registerEulerianCommunicationAlgorithms
 
-void GeneralizedIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+GeneralizedIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     d_ib_force_and_torque_fcn_needs_init = d_ib_force_fcn_needs_init || d_ib_force_and_torque_fcn_needs_init;
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
@@ -235,7 +240,8 @@ void GeneralizedIBMethod::preprocessIntegrateData(double current_time, double ne
     return;
 } // preprocessIntegrateData
 
-void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void
+GeneralizedIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -263,10 +269,11 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
     return;
 } // postprocessIntegrateData
 
-void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
-                                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-                                              const double data_time)
+void
+GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
+                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                         const double data_time)
 {
     // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
@@ -305,21 +312,27 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                             getGhostfillRefineSchedules(d_object_name + "::w"), data_time);
+    d_l_data_manager->interp(d_w_idx,
+                             *W_data,
+                             *X_LE_data,
+                             std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                             getGhostfillRefineSchedules(d_object_name + "::w"),
+                             data_time);
     resetAnchorPointValues(*W_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     return;
 } // interpolateVelocity
 
-void GeneralizedIBMethod::eulerStep(const double current_time, const double new_time)
+void
+GeneralizedIBMethod::eulerStep(const double current_time, const double new_time)
 {
     IBMethod::eulerStep(current_time, new_time);
 
@@ -376,7 +389,8 @@ void GeneralizedIBMethod::eulerStep(const double current_time, const double new_
     return;
 } // eulerStep
 
-void GeneralizedIBMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
+void
+GeneralizedIBMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR(d_object_name << "::midpointStep():\n"
                              << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
@@ -384,7 +398,8 @@ void GeneralizedIBMethod::midpointStep(const double /*current_time*/, const doub
     return;
 } // midpointStep
 
-void GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new_time)
+void
+GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     IBMethod::trapezoidalStep(current_time, new_time);
 
@@ -442,7 +457,8 @@ void GeneralizedIBMethod::trapezoidalStep(const double current_time, const doubl
     return;
 } // trapezoidalStep
 
-void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
+void
+GeneralizedIBMethod::computeLagrangianForce(const double data_time)
 {
     IBMethod::computeLagrangianForce(data_time);
 
@@ -485,8 +501,13 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_and_torque_fcn)
         {
-            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln],
-                                                                       (*D_data)[ln], d_hierarchy, ln, data_time,
+            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln],
+                                                                       (*N_data)[ln],
+                                                                       (*X_data)[ln],
+                                                                       (*D_data)[ln],
+                                                                       d_hierarchy,
+                                                                       ln,
+                                                                       data_time,
                                                                        d_l_data_manager);
         }
     }
@@ -495,10 +516,11 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void GeneralizedIBMethod::spreadForce(const int f_data_idx,
-                                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                                      const double data_time)
+void
+GeneralizedIBMethod::spreadForce(const int f_data_idx,
+                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                                 const double data_time)
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
 
@@ -526,8 +548,13 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
-    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, f_phys_bdry_op,
-                             std::vector<Pointer<RefineSchedule<NDIM> > >(), data_time, *N_needs_ghost_fill,
+    d_l_data_manager->spread(d_n_idx,
+                             *N_data,
+                             *X_LE_data,
+                             f_phys_bdry_op,
+                             std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                             data_time,
+                             *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
     *N_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
@@ -558,26 +585,33 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     else
     {
         TBOX_ERROR(d_object_name << "::spreadForce():\n"
-                                 << "  unsupported velocity data centering" << std::endl);
+                                 << "  unsupported velocity data centering"
+                                 << std::endl);
     }
     getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
 } // spreadForce
 
-void GeneralizedIBMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    int integrator_step,
-    double init_data_time,
-    bool initial_time)
+void
+GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                              int u_data_idx,
+                                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                              int integrator_step,
+                                              double init_data_time,
+                                              bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
-    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
-                                       integrator_step, init_data_time, initial_time);
+    IBMethod::initializePatchHierarchy(hierarchy,
+                                       gridding_alg,
+                                       u_data_idx,
+                                       u_synch_scheds,
+                                       u_ghost_fill_scheds,
+                                       integrator_step,
+                                       init_data_time,
+                                       initial_time);
 
     // Initialize various Lagrangian data objects required by the gIB method.
     if (initial_time)
@@ -611,11 +645,16 @@ void GeneralizedIBMethod::initializePatchHierarchy(
         else
         {
             TBOX_ERROR(d_object_name << "::initializePatchHierarchy():\n"
-                                     << "  unsupported velocity data centering" << std::endl);
+                                     << "  unsupported velocity data centering"
+                                     << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                 getGhostfillRefineSchedules(d_object_name + "::w"), init_data_time);
+        d_l_data_manager->interp(d_w_idx,
+                                 W_data,
+                                 X_data,
+                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                 getGhostfillRefineSchedules(d_object_name + "::w"),
+                                 init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
 
@@ -624,29 +663,38 @@ void GeneralizedIBMethod::initializePatchHierarchy(
     return;
 } // initializePatchHierarchy
 
-void GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                              int level_number,
-                                              double init_data_time,
-                                              bool can_be_refined,
-                                              bool initial_time,
-                                              Pointer<BasePatchLevel<NDIM> > old_level,
-                                              bool allocate_data)
+void
+GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                         int level_number,
+                                         double init_data_time,
+                                         bool can_be_refined,
+                                         bool initial_time,
+                                         Pointer<BasePatchLevel<NDIM> > old_level,
+                                         bool allocate_data)
 {
-    IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
-                                  allocate_data);
+    IBMethod::initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         // 1. Allocate LData corresponding to the curvilinear mesh node
         //    directors and angular velocities.
-        Pointer<LData> D_data = d_l_data_manager->createLData("D", level_number, NDIM * NDIM,
+        Pointer<LData> D_data = d_l_data_manager->createLData("D",
+                                                              level_number,
+                                                              NDIM * NDIM,
                                                               /*manage_data*/ true);
         Pointer<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
 
         // 2. Initialize the Lagrangian data.
         static const int global_index_offset = 0;
         static const int local_index_offset = 0;
-        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, hierarchy,
-                                                            level_number, init_data_time, can_be_refined, initial_time,
+        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset,
+                                                            local_index_offset,
+                                                            D_data,
+                                                            hierarchy,
+                                                            level_number,
+                                                            init_data_time,
+                                                            can_be_refined,
+                                                            initial_time,
                                                             d_l_data_manager);
 
         // 3. Register data with any registered data writer.
@@ -661,7 +709,8 @@ void GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> >
     return;
 } // initializeLevelData
 
-void GeneralizedIBMethod::putToDatabase(Pointer<Database> db)
+void
+GeneralizedIBMethod::putToDatabase(Pointer<Database> db)
 {
     IBMethod::putToDatabase(db);
     db->putInteger("GENERALIZED_IB_METHOD_VERSION", GENERALIZED_IB_METHOD_VERSION);
@@ -672,7 +721,8 @@ void GeneralizedIBMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double init_data_time, const bool initial_time)
+void
+GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double init_data_time, const bool initial_time)
 {
     if (!d_ib_force_and_torque_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
@@ -683,13 +733,15 @@ void GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double ini
     return;
 } // resetLagrangianForceAndTorqueFunction
 
-void GeneralizedIBMethod::getFromInput(Pointer<Database> /*db*/, bool /*is_from_restart*/)
+void
+GeneralizedIBMethod::getFromInput(Pointer<Database> /*db*/, bool /*is_from_restart*/)
 {
     // intentionally blank
     return;
 } // getFromInput
 
-void GeneralizedIBMethod::getFromRestart()
+void
+GeneralizedIBMethod::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -700,7 +752,8 @@ void GeneralizedIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("GENERALIZED_IB_METHOD_VERSION");
     if (ver != GENERALIZED_IB_METHOD_VERSION)

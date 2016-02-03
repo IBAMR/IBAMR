@@ -85,7 +85,8 @@ namespace IBAMR
 
 namespace
 {
-void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
+void
+genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
@@ -104,10 +105,23 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(object_name), d_C_var(C_var), d_f_parser(), d_adv_diff_solver(adv_diff_solver),
-      d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
-      d_dirichlet_bc_scaling(sqrt(2.0)), d_neumann_bc_scaling(0.0), d_context(NULL), d_C_cc_var(NULL),
-      d_C_current_cc_idx(-1), d_C_half_cc_idx(-1), d_C_new_cc_idx(-1), d_F_sc_var(NULL), d_F_sc_idx(-1), d_F_sc_idxs()
+    : d_object_name(object_name),
+      d_C_var(C_var),
+      d_f_parser(),
+      d_adv_diff_solver(adv_diff_solver),
+      d_std(std::numeric_limits<double>::quiet_NaN()),
+      d_num_rand_vals(0),
+      d_weights(),
+      d_dirichlet_bc_scaling(sqrt(2.0)),
+      d_neumann_bc_scaling(0.0),
+      d_context(NULL),
+      d_C_cc_var(NULL),
+      d_C_current_cc_idx(-1),
+      d_C_half_cc_idx(-1),
+      d_C_new_cc_idx(-1),
+      d_F_sc_var(NULL),
+      d_F_sc_idx(-1),
+      d_F_sc_idxs()
 {
     std::string f_expression = "1.0";
     if (input_db)
@@ -160,18 +174,20 @@ AdvDiffStochasticForcing::~AdvDiffStochasticForcing()
     return;
 } // ~AdvDiffStochasticForcing
 
-bool AdvDiffStochasticForcing::isTimeDependent() const
+bool
+AdvDiffStochasticForcing::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                       Pointer<Variable<NDIM> > var,
-                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                       const double data_time,
-                                                       const bool initial_time,
-                                                       const int coarsest_ln_in,
-                                                       const int finest_ln_in)
+void
+AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
+                                                  Pointer<Variable<NDIM> > var,
+                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  const double data_time,
+                                                  const bool initial_time,
+                                                  const int coarsest_ln_in,
+                                                  const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -201,7 +217,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double new_time = current_time + dt;
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_C_cc_var,
+                                                       hierarchy,
                                                        /*get_unique*/ true);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
@@ -232,8 +249,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             if (cycle_num == 0)
             {
                 hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
-                ghost_fill_components[0] = InterpolationTransactionComponent(d_C_current_cc_idx, "NONE", false, "NONE",
-                                                                             "NONE", false, C_bc_coef);
+                ghost_fill_components[0] = InterpolationTransactionComponent(
+                    d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
                 ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
                 ghost_fill_op.fillData(current_time);
             }
@@ -249,7 +266,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         default:
             TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                      << "  unsupported default convective time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
+                                     << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                                     << " \n"
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
 
@@ -281,7 +299,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
         const Array<double>& weights = d_weights[cycle_num];
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_sc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
+            hier_data_ops_manager->getOperationsDouble(d_F_sc_var,
+                                                       hierarchy,
                                                        /*get_unique*/ true);
         hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
@@ -318,8 +337,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
-                    const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box,
-                                                             bdry_box.getBoundaryType(), location_index);
+                    const BoundaryBox<NDIM> trimmed_bdry_box(
+                        bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const Box<NDIM> bc_coef_box =
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
                     Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
@@ -331,8 +350,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (int d = 0; d < C_depth; ++d)
                     {
                         RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
-                        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
-                                            data_time);
+                        bc_coef->setBcCoefs(
+                            acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
                             const Index<NDIM>& i = it();
@@ -371,12 +390,13 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     return;
 } // setDataOnPatchHierarchy
 
-void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
-                                              const double /*data_time*/,
-                                              const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
+                                         Pointer<Variable<NDIM> > /*var*/,
+                                         Pointer<Patch<NDIM> > patch,
+                                         const double /*data_time*/,
+                                         const bool initial_time,
+                                         Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<CellData<NDIM, double> > divF_cc_data = patch->getPatchData(data_idx);
     divF_cc_data->fillAll(0.0);
@@ -446,7 +466,8 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                     f = std::numeric_limits<double>::quiet_NaN();
                     TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                                              << "  unsupported default convective time stepping type: "
-                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
+                                             << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                                             << " \n"
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }

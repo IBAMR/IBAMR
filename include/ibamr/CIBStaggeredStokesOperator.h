@@ -41,8 +41,8 @@
 #include "PoissonSpecifications.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LinearOperator.h"
-#include "tbox/Pointer.h"
 #include "petscvec.h"
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {
@@ -69,7 +69,6 @@ class CIBStrategy;
 
 namespace IBAMR
 {
-
 /*!
  * \brief Class CIBStaggeredStokesOperator is a concrete IBTK::LinearOperator which
  * implements a staggered-grid (MAC) discretization of the incompressible Stokes
@@ -82,7 +81,6 @@ namespace IBAMR
  */
 class CIBStaggeredStokesOperator : public IBTK::LinearOperator
 {
-
     //////////////////////////////////////////////////////////////////////////////
 public:
     /*!
@@ -99,15 +97,7 @@ public:
 
     // \{ // Linear operator functionality of IBTK::LinearOperator.
     /*!
-     * \name Linear operator functionality for subtracting inhomogenity
-     * in the RHS.
-     */
-    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
-
-    /*!
-     * \brief Compute hierarchy dependent data required for computing y=Ax and
-     * z=Ax+y.
+     * \brief Compute hierarchy dependent data required for computing y=Ax.
      *
      * The vector arguments for apply(), applyAdjoint(), etc, need not match
      * those for initializeOperatorState().  However, there must be a certain
@@ -149,6 +139,14 @@ public:
      * \see initializeOperatorState
      */
     virtual void deallocateOperatorState();
+
+    /*!
+     * \brief Compute the action of the linear operator for SVR arguments.
+     *
+     * \note This IBTK::LinearOperator functionality is not required in this
+     * class and should not be used.
+     */
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     //\}
 
@@ -221,7 +219,7 @@ public:
      * Set y := y - A*0, i.e., shift the right-hand-side vector to account for
      * inhomogeneous boundary conditions.
      */
-    void modifyRhsForInhomogeneousBc(Vec y);
+    virtual void modifyRhsForInhomogeneousBc(Vec y);
 
     //\}
 

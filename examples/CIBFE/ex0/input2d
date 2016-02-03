@@ -24,8 +24,9 @@ function = "0.0"
 }
 
 // solver parameters
+MOBILITY_SOLVER_TYPE       = "KRYLOV"
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
-IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+IB_DELTA_FUNCTION          = "IB_6"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 SPLIT_FORCES               = FALSE              // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
@@ -46,7 +47,7 @@ VORTICITY_TAGGING          = FALSE             // whether to tag cells for refin
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 DELTA                      = 0.0               // regularization factor for mobility solver.
-STOKES_TOL                 = 1.0e-12            // tolerance for the (extended) Stokes solver.
+STOKES_TOL                 = 1.0e-10            // tolerance for the (extended) Stokes solver.
 OUTPUT_U                   = TRUE
 OUTPUT_P                   = TRUE
 OUTPUT_F                   = TRUE
@@ -136,161 +137,144 @@ INSStaggeredHierarchyIntegrator {
 
 CIBStaggeredStokesSolver
 {
-   scale_interp_operator   = 1.0                 // defaults to 1.0
-   scale_spread_operator   = 1.0                 // defaults to 1.0
-   normalize_spread_force  = FALSE               // defaults to false
-   regularize_mob_factor   = DELTA               // defaults to 0.0
+    // Parameters to control various linear operators
+    scale_interp_operator     = 1.0                                // defaults to 1.0
+    scale_spread_operator     = 1.0                                // defaults to 1.0
+    normalize_spread_force    = FALSE                    // defaults to false
+    regularize_mob_factor     = DELTA                              // defaults to 0.0
 
-   // Setting for outer Krylov solver.
-   options_prefix        = "SP_"
-   max_iterations        = 100
-   rel_residual_tol      = 1e-9
-   abs_residual_tol      = 0
-   ksp_type              = "fgmres"
-   pc_type               = "shell"
-   initial_guess_nonzero = FALSE
-   enable_logging        = ENABLE_LOGGING
-   mobility_solver_type = "KRYLOV"             // "KRYLOV", "DIRECT",
+    // Setting for outer Krylov solver.
+    options_prefix        = "SP_"
+    max_iterations        = 1000
+    rel_residual_tol      = 1e-6
+    abs_residual_tol      = 1e-50
+    ksp_type              = "fgmres"
+    pc_type               = "shell"
+    initial_guess_nonzero = FALSE
+    enable_logging        = TRUE
+    mobility_solver_type  = MOBILITY_SOLVER_TYPE
 
-   // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
-   PCStokesSolver
-   {
-		normalize_pressure  = NORMALIZE_PRESSURE
-		normalize_velocity  = NORMALIZE_VELOCITY
-		stokes_solver_type = "PETSC_KRYLOV_SOLVER"
-		stokes_solver_db
-		{
-			max_iterations = 30
-			ksp_type = "gmres"
-			rel_residual_tol = STOKES_TOL
-			abs_residual_tol = 0.0
+    // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
+    PCStokesSolver
+    {
+        normalize_pressure  = NORMALIZE_PRESSURE
+        normalize_velocity  = NORMALIZE_VELOCITY
+        stokes_solver_type  = "PETSC_KRYLOV_SOLVER"
+        stokes_solver_db
+        {
+            max_iterations   = 100
+            ksp_type         = "fgmres"
+            rel_residual_tol = STOKES_TOL
+            abs_residual_tol = 0.0
         }
 
-		stokes_precond_type = "PROJECTION_PRECONDITIONER"
-		stokes_precond_db
-		{
-		   // intentinally blank.
-		}
+        stokes_precond_type = "PROJECTION_PRECONDITIONER"
+        stokes_precond_db
+        {
+            // no options to set for projection preconditioner
+        }
+
+        velocity_solver_type = "HYPRE_LEVEL_SOLVER"
+        velocity_solver_db
+        {
+            solver_type       = "Split"         // split vx / vy / vz blocks
+            split_solver_type = "PFMG"          // use hypre PFMG MG on the blocks
+            enable_logging    = FALSE
+            max_iterations    = 1               // only works with a single multigrid cycle per iteration
+            rel_residual_tol  = 1.0e-16
+            abs_residual_tol  = 1.0e-50
+        }
+
+        pressure_solver_type = "HYPRE_LEVEL_SOLVER"
+        pressure_solver_db
+        {
+            solver_type          = "PFMG"
+            num_pre_relax_steps  = 2
+            num_post_relax_steps = 2
+            enable_logging       = FALSE
+            max_iterations       = 1            // only a single multigrid cycle per iteration
+            rel_residual_tol     = 1.0e-16
+            abs_residual_tol     = 1.0e-50
+        }
+    }// PCStokesSolve
+
+    KrylovMobilitySolver
+    {
+        // Settings for outer solver.
+        max_iterations        = 1000
+        rel_residual_tol      = STOKES_TOL
+        abs_residual_tol      = 1e-50
+        ksp_type              = "fgmres"
+        pc_type               = "none"
+        initial_guess_nonzero = FALSE
+
+        // Setting for Stokes solver used within mobility inverse
+        normalize_pressure    = NORMALIZE_PRESSURE
+        normalize_velocity    = NORMALIZE_VELOCITY
+        stokes_solver_type    = "PETSC_KRYLOV_SOLVER"
+        stokes_precond_type   = "PROJECTION_PRECONDITIONER"
+        stokes_solver_db
+        {
+            max_iterations   = 100
+            ksp_type         = "fgmres"
+            rel_residual_tol = STOKES_TOL
+            abs_residual_tol = 0.0
+        }
 
         velocity_solver_type = "PETSC_KRYLOV_SOLVER"
         velocity_solver_db
         {
-			ksp_type = "richardson"
-			max_iterations = 1
-			rel_residual_tol  = 1.0e-16                      // does not matter
-			abs_residual_tol  = 0                            // does not matter
-		}
-		velocity_precond_type = "HYPRE_LEVEL_SOLVER"
-		velocity_precond_db
-		{
-			solver_type       = "Split"                      // split vx / vy / vz blocks
-			split_solver_type = "PFMG"                       // use hypre PFMG MG on the blocks
-			enable_logging    = FALSE                        // hypre does not give useful statistics so keep at FALSE
-			max_iterations    = 1				 // this should always be 1
-			rel_residual_tol  = 1.0e-16			 // does not matter
-                        abs_residual_tol  = 0                            // does not matter
-		}
-
-		pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-		pressure_solver_db
-		{
-			ksp_type = "richardson"
-			enable_logging = FALSE
-			max_iterations = 1
-			rel_residual_tol = 1.0e-16
-            abs_residual_tol = 0.0
+            ksp_type = "richardson"
+            max_iterations = 1
+            rel_residual_tol  = 1.0e-16                    // does not matter
+            abs_residual_tol  = 0                          // does not matter
+        }
+        velocity_precond_type = "HYPRE_LEVEL_SOLVER"
+        velocity_precond_db
+        {
+            solver_type       = "Split"                    // split vx / vy / vz blocks
+            split_solver_type = "PFMG"                     // use hypre PFMG MG on the blocks
+            enable_logging    = FALSE
+            max_iterations    = 1                          // this should always be 1
+            rel_residual_tol  = 1.0e-16                    // does not matter
+            abs_residual_tol  = 0                          // does not matter
         }
 
-		pressure_precond_type = "HYPRE_LEVEL_SOLVER"
-		pressure_precond_db
-		{
-			solver_type          = "PFMG"
-			enable_logging       = FALSE                     // hypre does not give useful statistics so keep at FALSE
-			num_pre_relax_steps  = 2			 // number of pre- sweeps (1, 2, maybe 3)
-			num_post_relax_steps = 2                         // number of post-sweeps (1,2, maybe 3)
-			max_iterations       = 1                         // keep this fixed at 1
-			rel_residual_tol     = 1.0e-16
-			abs_residual_tol     = 0
-		}
-
-	}// PCStokesSolver
-
-	KrylovMobilitySolver
-	{
-        // Settings for outer solver.
-		max_iterations = 100
-		rel_residual_tol = STOKES_TOL
-		abs_residual_tol = 1e-50
-		ksp_type         = "fgmres"
-		pc_type          = "none"
-		initial_guess_nonzero = FALSE
-
-		// Setting for Stokes solver used within mobility inverse
-		normalize_pressure  = NORMALIZE_PRESSURE
-		normalize_velocity  = NORMALIZE_VELOCITY
-		stokes_solver_type = "PETSC_KRYLOV_SOLVER"
-		stokes_precond_type = "PROJECTION_PRECONDITIONER"
-		stokes_solver_db
-		{
-			max_iterations = 100
-			ksp_type = "gmres"
-			rel_residual_tol = STOKES_TOL
-			abs_residual_tol = 0.0
-		}
-
-		velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-		velocity_solver_db
-		{
-			ksp_type = "richardson"
-			max_iterations = 1
-			rel_residual_tol  = 1.0e-16                    // does not matter
-			abs_residual_tol  = 0                          // does not matter
-		}
-		velocity_precond_type = "HYPRE_LEVEL_SOLVER"
-		velocity_precond_db
-		{
-			solver_type       = "Split"                    // split vx / vy / vz blocks
-			split_solver_type = "PFMG"                     // use hypre PFMG MG on the blocks
-			enable_logging    = FALSE
-			max_iterations    = 1                          // this should always be 1
-			rel_residual_tol  = 1.0e-16                    // does not matter
-			abs_residual_tol  = 0                          // does not matter
-		}
-
-		pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-		pressure_solver_db
+        pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+        pressure_solver_db
         {
-			ksp_type = "richardson"
-			enable_logging = FALSE
-			max_iterations = 1
-			rel_residual_tol = 1.0e-16                     // keep this very small
+            ksp_type = "richardson"
+            enable_logging = FALSE
+            max_iterations = 1
+            rel_residual_tol = 1.0e-16
             abs_residual_tol = 0.0
         }
         pressure_precond_type = "HYPRE_LEVEL_SOLVER"
         pressure_precond_db
         {
-			solver_type          = "PFMG"                  // use hypre Struct multigrid
-			enable_logging       = FALSE                   // hypre does not give useful statistics so keep at FALSE
-			num_pre_relax_steps  = 2                       // number of pre- sweeps (1, 2, maybe 3)
-			num_post_relax_steps = 2		       // number of post-sweeps (1,2, maybe 3)
-			max_iterations       = 1                       // keep this fixed at 1
-			rel_residual_tol     = 1.0e-16                 // does not matter
-                        abs_residual_tol     = 0                       // does not matter
-		}
+            solver_type          = "PFMG"                  // use hypre Struct multigrid
+            enable_logging       = FALSE                   // hypre does not give useful statistics so keep at FALSE
+            num_pre_relax_steps  = 2                       // number of pre- sweeps (1, 2, maybe 3)
+            num_post_relax_steps = 2                       // number of post-sweeps (1,2, maybe 3)
+            max_iterations       = 1                       // keep this fixed at 1
+            rel_residual_tol     = 1.0e-16                 // does not matter
+            abs_residual_tol     = 0                       // does not matter
+        }
 
-	}// KrylovMobilitySolver
-
-	KrylovBodyMobilitySolver
-	{
-	    // intentionally left blank.
-	}
+    }// KrylovMobilitySolver
 
     DirectMobilitySolver
     {
-	   // intentionally left blank.
-    }
 
-}// CIBStaggeredStokesSolver
+    } // DirectMobilitySolver
+
+    KrylovFreeBodyMobilitySolver
+    {
+
+    } //KrylovFreeBodyMobilitySolver
+
+} // CIBStaggeredStokesSolver
+
 
 Main {
 

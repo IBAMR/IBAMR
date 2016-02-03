@@ -34,12 +34,13 @@
 #define included_DirectMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
-#include "petscvec.h"
 #include "ibamr/ibamr_enums.h"
+#include "petscmat.h"
+#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -61,28 +62,12 @@ class CIBStrategy;
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBAMR
 {
-
 /*!
- * \brief Class DirectMobilitySolver solves the mobility sub-problem by
- * employing direct solvers for computing the inverse of mobility matrix.
+ * \brief Class DirectMobilitySolver solves the mobility and body-mobility
+ * sub-problem by employing direct solvers.
  */
-enum MobilitySubmatrixManager
-{
-    MM_EFFICIENT=0,
-    MM_MEMORY_SAVE,
-    MM_NONE,
-    MM_UNKNOWN_TYPE = -1
-};
-enum  MobSubMatrixType
-{
-    BLOCK_DIAG=0,
-    DENSE,
-    CODE_CUSTOM,
-    MSM_UNKNOWN_TYPE = -1
-};
 class DirectMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-
     /////////////////////////////// PUBLIC //////////////////////////////////////
 public:
     /*!
@@ -98,30 +83,30 @@ public:
     ~DirectMobilitySolver();
 
     /*!
-         * \brief Register a prototypical structure with a particular mobility
-         * matrix identified by its name.
-         *
-         * \param mat_name Matrix handle.
-         *
-         * \param prototype_struct_id Prototypical structure id as defined while
-         * registering structures with IBAMR::IBStrategy class.
-         *
-         * \param mat_type Matrix type to be used for dense mobility matrix.
-         *
-         * \param inv_type Inversion method to be used to invert the dense matrix.
-         *
-         * \param filename If the mobility matrix is to be read from an input file.
-         *
-         * \param scale Scale for improving the conditioning number of dense mobility
-         * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
-         *
-         * \param managing_proc MPI processor that manages this mobility matrix.
-         */
+     * \brief Register a prototypical structure with a particular mobility
+     * matrix identified by its name.
+     *
+     * \param mat_name Matrix handle.
+     *
+     * \param prototype_struct_id Prototypical structure id as defined while
+     * registering structures with IBAMR::IBStrategy class.
+     *
+     * \param mat_type Matrix type to be used for dense mobility matrix.
+     *
+     * \param inv_type Inversion method to be used for the mobility and body-mobility matrix.
+     *
+     * \param filename If the mobility matrix is to be read from an input file.
+     * \note The current implementation supports only binary files from PETSc I/O.
+     *
+     * \param scale Scale for improving the conditioning number of dense mobility
+     * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
+     *
+     * \param managing_proc MPI processor that manages this mobility matrix.
+     */
     void registerMobilityMat(const std::string& mat_name,
                              const unsigned prototype_struct_id,
                              MobilityMatrixType mat_type,
-                             MobilityMatrixInverseType mob_inv_type,
-                             MobilityMatrixInverseType body_inv_type,
+                             std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                              const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
@@ -138,7 +123,10 @@ public:
      *
      * \param mat_type Matrix type to be used for dense mobility matrix.
      *
-     * \param inv_type Inversion method to be used to invert the dense matrix.
+     * \param inv_type Inversion method to be used for the mobility and body-mobility matrix.
+     *
+     * \param filename If the mobility matrix is to be read from an input file.
+     * \note The current implementation supports only binary files from PETSc I/O.
      *
      * \param scale Scale for improving the conditioning number of dense mobility
      * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
@@ -148,8 +136,7 @@ public:
     void registerMobilityMat(const std::string& mat_name,
                              const std::vector<unsigned>& prototype_struct_ids,
                              MobilityMatrixType mat_type,
-                             MobilityMatrixInverseType mob_inv_type,
-                             MobilityMatrixInverseType body_inv_type,
+                             std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                              const int managing_proc = 0,
                              const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
@@ -163,26 +150,6 @@ public:
      */
     void registerStructIDsWithMobilityMat(const std::string& mat_name,
                                           const std::vector<std::vector<unsigned> >& struct_ids);
-
-    /*!
-     * \brief Get access to friction (inverse of mobility) matrix.
-     *
-     * \param mat_name Matrix handle.
-     *
-     * \param fm Linear (fortran-style column major) array holding the matrix.
-     *
-     * \param size Column or row size of the square mobility matrix.
-     *
-     * \param managing_proc Rank of the processor managing the friction
-     *  matrix.
-     *
-     *  \param inv_method Type of factorization used to invert the mobility matrix.
-     */
-    void getFrictionMat(const std::string& mat_name,
-                        double** fm,
-                        int* size,
-                        int* managing_proc,
-                        MobilityMatrixInverseType* inv_method);
 
     /*!
      * \brief Initialize the solver.
@@ -212,37 +179,35 @@ public:
     /*!
      * \brief Solves the mobility problem.
      *
-     * \param x Vec storing the Lagrange multiplier
+     * \param x Vec storing the Lagrange multiplier.
      *
-     * \param b Vec storing the desired velocity
-     *
-     * \param skip_nonfree_parts Boolean indicating if the solution
-     * is to be set only for free moving components.
+     * \param b Vec storing the desired velocity.
      *
      * \return \p true if the solver converged to the specified tolerances, \p
-     * false otherwise
+     * false otherwise.
      */
-    bool solveSystem(Vec x, Vec b, const bool skip_nonfree_parts=false);
+    bool solveSystem(Vec x, Vec b);
 
     /*!
      * \brief Solves the body mobility problem.
      *
-     * \param x Vec storing the body velocity
+     * \param x Vec storing the rigid body center of mass translational and rotational
+     * velocity.
      *
-     * \param b Vec storing the applied force
+     * \param b Vec storing the applied external force.
      *
      * \return \p true if the solver converged to the specified tolerances, \p
-     * false otherwise
+     * false otherwise.
      */
     bool solveBodySystem(Vec x, Vec b);
 
     /*!
      * \brief Return the ids of the structures associated with the dense
-         * mobility matrix formation.
-         *
-         * \param mat_name Matrix handle.
-         *
-         * \return Vector of structure ids used to form the mobility matrix.
+     * mobility matrix formation.
+     *
+     * \param mat_name Matrix handle.
+     *
+     * \return Vector of structure ids used to form the mobility matrix.
      */
     const std::vector<unsigned>& getPrototypeStructIDs(const std::string& mat_name);
 
@@ -264,80 +229,69 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
-     * \brief recreate mobility matrix.
+     * \brief Factorize mobility matrix using direct solvers.
      */
-    void createMobilityMatrix();
+    void factorizeMobilityMatrix();
 
     /*!
-         * \brief Compute the inverse of mobility matrix using direct solvers.
-         */
-    void generateFrictionMatrix();
+     * \brief Construct body mobility matrix as N = K^T inv(M) K.
+     */
+    void constructBodyMobilityMatrix();
 
     /*!
-         * \brief Compute the a body mobility matrix using direct solvers.
-         */
-    void generateBodyMobilityMatrix();
+     * \brief Factorize body mobility matrix using direct solvers.
+     */
+    void factorizeBodyMobilityMatrix();
+
+    /*!
+     * \brief Factorize dense matrix.
+     */
+    void factorizeDenseMatrix(double* mat_data,
+                              const int mat_size,
+                              const MobilityMatrixInverseType& inv_type,
+                              int* ipiv,
+                              const std::string& mat_name,
+                              const std::string& err_msg);
 
     /*!
      * \brief Compute solution and store in the rhs vector.
      */
-    void computeSolution(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, double* rhs, const bool BodyMobility=false, const int nrhs=1);
-
-    /*!
-     * \brief provide a matrix decomposition.
-     */
-    void decomposeMatrix(const std::string& mat_name, double* managed_mat, const int mat_size, const MobilityMatrixInverseType inv_type, const bool BodyMobility=false);
-
-    /*!
-     * \brief computes a matrix inverse.
-     */
-    void getInverseMatrix(const std::string& mat_name, double* managed_mat, double* inverse_mat, const int mat_size, const MobilityMatrixInverseType inv_type, const bool BodyMobility=false);
-
-    /*!
-     * \brief defines a manager for global mobility matrix.
-     */
-    void runMobilityMatManager();
+    void computeSolution(Mat& mat, const MobilityMatrixInverseType& inv_type, int* ipiv, double* rhs);
 
     // Solver stuff
     std::string d_object_name;
     bool d_is_initialized;
     double d_solution_time, d_current_time, d_new_time;
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
 
     // Structure(s) stuff.
+    //\{
+    std::map<std::string, std::pair<double*, double*> > d_mat_map;
+    std::map<std::string, double*> d_geometric_mat_map;
+    std::map<std::string, int> d_mat_proc_map;
+    std::map<std::string, std::vector<unsigned> > d_mat_prototype_id_map;
+    std::map<std::string, std::vector<std::vector<unsigned> > > d_mat_actual_id_map;
+    std::map<std::string, MobilityMatrixType> d_mat_type_map;
+    std::map<std::string, std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> > d_mat_inv_type_map;
+    std::map<std::string, unsigned int> d_mat_nodes_map;
+    std::map<std::string, unsigned int> d_mat_parts_map;
+    std::map<std::string, std::pair<double, double> > d_mat_scale_map;
+    std::map<std::string, std::string> d_mat_filename_map;
+    std::map<std::string, std::pair<int*, int*> > d_ipiv_map; // permutation matrices for LU
 
-    std::map<std::string, double*> d_managed_mat_map;
-    std::map<std::string, double*> d_body_mob_mat_map;
-    std::map<std::string, int> d_managed_mat_proc_map;
-    std::map<std::string, std::vector<unsigned> > d_managed_mat_prototype_id_map;
-    std::map<std::string, std::vector<std::vector<unsigned> > > d_managed_mat_actual_id_map;
-    std::map<std::string, MobilityMatrixType> d_managed_mat_type_map;
-    std::map<std::string, MobilityMatrixInverseType> d_managed_mat_inv_type_map;
-    std::map<std::string, MobilityMatrixInverseType> d_body_mat_inv_type_map;
-    std::map<std::string, unsigned int> d_managed_mat_nodes_map;
-    std::map<std::string, std::pair<double, double> > d_managed_mat_scale_map;
-    std::map<std::string, std::string> d_managed_mat_filename_map;
-    std::map<unsigned, std::string > d_actual_id_managed_mat_map;
+    // PETSc representation of matrices.
+    std::map<std::string, std::pair<Mat, Mat> > d_petsc_mat_map;
+    std::map<std::string, Mat> d_petsc_geometric_mat_map;
+    //\}
 
     // System physical parameters.
     double d_mu;
     double d_rho;
 
     // Parameters used in this class.
-    std::string d_kernel_name;
     double d_f_periodic_corr;
     bool d_recompute_mob_mat;
-    double d_svd_inv_tol, d_svd_inv_eps, d_body_svd_inv_tol, d_body_svd_inv_eps;
-    std::map<std::string, int*> d_ipiv; // for LAPACK LU calls
-    std::map<std::string, int*> d_body_ipiv; // for LAPACK LU calls
-    bool d_mob_mat_register_completed;
-    MobSubMatrixType d_submat_type;
-    MobilitySubmatrixManager d_manager_type;
-    MobilityMatrixType d_mob_mat_type;
-    MobilityMatrixInverseType d_mob_mat_inv_type, d_body_mat_inv_type;
-    std::pair<double, double> d_mob_scale;
-    std::vector<std::string> d_stored_mob_mat_filenames;
+    double d_svd_replace_value, d_svd_eps;
 
 }; // DirectMobilitySolver
 

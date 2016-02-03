@@ -80,7 +80,8 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box<NDIM>
+compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
     Box<NDIM> extended_box = box;
     extended_box.upper()(data_axis) += 1;
@@ -90,7 +91,8 @@ inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int da
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
+void
+StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     Mat& mat,
     const PoissonSpecifications& u_problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -223,8 +225,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
-                        PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        nlocal,
+                        nlocal,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -347,9 +357,12 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(
-                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry,
-                                                     dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower.data(),
+                                                                         shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -360,8 +373,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
-                                             data_time);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -439,8 +452,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
-                                             data_time);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous

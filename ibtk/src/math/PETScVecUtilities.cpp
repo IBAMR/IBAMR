@@ -90,10 +90,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
-                                            const int data_idx,
-                                            const int dof_index_idx,
-                                            Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
+                                       const int data_idx,
+                                       const int dof_index_idx,
+                                       Pointer<PatchLevel<NDIM> > patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -123,17 +124,20 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyToPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     return;
 } // copyToPatchLevelVec
 
-void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
-                                              const int data_idx,
-                                              const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level,
-                                              Pointer<RefineSchedule<NDIM> > data_synch_sched,
-                                              Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+void
+PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
+                                         const int data_idx,
+                                         const int dof_index_idx,
+                                         Pointer<PatchLevel<NDIM> > patch_level,
+                                         Pointer<RefineSchedule<NDIM> > data_synch_sched,
+                                         Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -172,7 +176,9 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     if (ghost_fill_sched)
     {
@@ -186,8 +192,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
-                                                                             Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> >
+PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchLevel<NDIM> > patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -211,22 +217,25 @@ Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructDataSynchSchedule(con
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << data_var->getName()
+                   << "\n");
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
-                                                                             Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> >
+PETScVecUtilities::constructGhostFillSchedule(const int data_idx, Pointer<PatchLevel<NDIM> > patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
 
-void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
-                                                      const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
+                                                 const int dof_index_idx,
+                                                 Pointer<PatchLevel<NDIM> > patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > dof_index_var;
@@ -244,15 +253,18 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
-                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << dof_index_var->getName()
+                   << "\n");
     }
     return;
 } // constructPatchLevelDOFIndices
 
-void PETScVecUtilities::constructPatchLevelAO(AO& ao,
-                                              std::vector<int>& num_dofs_per_proc,
-                                              int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelAO(AO& ao,
+                                         std::vector<int>& num_dofs_per_proc,
+                                         int dof_index_idx,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > dof_index_var;
@@ -270,7 +282,9 @@ void PETScVecUtilities::constructPatchLevelAO(AO& ao,
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelAO():\n"
-                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
+                   << "  unsupported data centering type for variable "
+                   << dof_index_var->getName()
+                   << "\n");
     }
 
 } // constructPatchLevelAO
@@ -279,10 +293,11 @@ void PETScVecUtilities::constructPatchLevelAO(AO& ao,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
-                                                 const int data_idx,
-                                                 const int dof_index_idx,
-                                                 Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
+                                            const int data_idx,
+                                            const int dof_index_idx,
+                                            Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -319,10 +334,11 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     return;
 } // copyToPatchLevelVec_cell
 
-void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
-                                                 const int data_idx,
-                                                 const int dof_index_idx,
-                                                 Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
+                                            const int data_idx,
+                                            const int dof_index_idx,
+                                            Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -362,10 +378,11 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     return;
 } // copyToPatchLevelVec_side
 
-void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
-                                                   const int data_idx,
-                                                   const int dof_index_idx,
-                                                   Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
+                                              const int data_idx,
+                                              const int dof_index_idx,
+                                              Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -398,10 +415,11 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     return;
 } // copyFromPatchLevelVec_cell
 
-void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
-                                                   const int data_idx,
-                                                   const int dof_index_idx,
-                                                   Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
+                                              const int data_idx,
+                                              const int dof_index_idx,
+                                              Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -437,9 +455,10 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     return;
 } // copyFromPatchLevelVec_side
 
-void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
-                                                           const int dof_index_idx,
-                                                           Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
+                                                      const int dof_index_idx,
+                                                      Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -487,9 +506,10 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     return;
 } // constructPatchLevelDOFIndices_cell
 
-void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
-                                                           const int dof_index_idx,
-                                                           Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
+                                                      const int dof_index_idx,
+                                                      Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Create variables to keep track of whether a particular location is the
     // "master" location.
@@ -623,10 +643,11 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     return;
 } // constructPatchLevelDOFIndices_side
 
-void PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
-                                                   std::vector<int>& num_dofs_per_proc,
-                                                   const int dof_index_idx,
-                                                   Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
+                                              std::vector<int>& num_dofs_per_proc,
+                                              const int dof_index_idx,
+                                              Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     if (ao)
@@ -679,10 +700,11 @@ void PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 
 } // constructPatchLevelAO_cell
 
-void PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
-                                                   std::vector<int>& num_dofs_per_proc,
-                                                   const int dof_index_idx,
-                                                   Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
+                                              std::vector<int>& num_dofs_per_proc,
+                                              const int dof_index_idx,
+                                              Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     if (ao)

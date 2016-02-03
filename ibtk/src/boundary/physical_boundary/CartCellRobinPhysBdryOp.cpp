@@ -272,9 +272,10 @@ CartCellRobinPhysBdryOp::~CartCellRobinPhysBdryOp()
     return;
 } // ~CartCellRobinPhysBdryOp
 
-void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                            const double fill_time,
-                                                            const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                       const double fill_time,
+                                                       const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -287,15 +288,21 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                       << "  patch data index " << patch_data_idx
-                       << " does not correspond to a cell-centered double precision variable." << std::endl);
+                       << "  patch data index "
+                       << patch_data_idx
+                       << " does not correspond to a cell-centered double precision variable."
+                       << std::endl);
         }
         if (patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                       << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth()
+                       << "  data depth for patch data index "
+                       << patch_data_idx
+                       << " is "
+                       << patch_data->getDepth()
                        << "\n"
-                       << "  but " << d_bc_coefs.size()
+                       << "  but "
+                       << d_bc_coefs.size()
                        << " boundary condition coefficient objects were provided to the class "
                           "constructor."
                        << std::endl);
@@ -311,8 +318,8 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        fillGhostCellValuesCodim1(patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch,
-                                  adjoint_op);
+        fillGhostCellValuesCodim1(
+            patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch, adjoint_op);
     }
     const Array<BoundaryBox<NDIM> > physical_codim2_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
@@ -333,14 +340,16 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM> CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
+IntVector<NDIM>
+CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getRefineOpStencilWidth
 
-void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
-                                                                 const double fill_time,
-                                                                 const IntVector<NDIM>& ghost_width_to_fill)
+void
+CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
+                                                            const double fill_time,
+                                                            const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -353,15 +362,21 @@ void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& pa
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
-                       << "  patch data index " << patch_data_idx
-                       << " does not correspond to a cell-centered double precision variable." << std::endl);
+                       << "  patch data index "
+                       << patch_data_idx
+                       << " does not correspond to a cell-centered double precision variable."
+                       << std::endl);
         }
         if (patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
-                       << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth()
+                       << "  data depth for patch data index "
+                       << patch_data_idx
+                       << " is "
+                       << patch_data->getDepth()
                        << "\n"
-                       << "  but " << d_bc_coefs.size()
+                       << "  but "
+                       << d_bc_coefs.size()
                        << " boundary condition coefficient objects were provided to the class "
                           "constructor."
                        << std::endl);
@@ -393,20 +408,21 @@ void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& pa
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        fillGhostCellValuesCodim1(patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch,
-                                  adjoint_op);
+        fillGhostCellValuesCodim1(
+            patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch, adjoint_op);
     }
     return;
 } // accumulateFromPhysicalBoundaryData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
-                                                        const double fill_time,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
+                                                   const double fill_time,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     if (n_physical_codim1_boxes == 0) return;
@@ -426,7 +442,9 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
         TBOX_ERROR(
             "CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1():\n"
             "  patch data for patch data index "
-            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
+            << patch_data_idx
+            << " does not have uniform ghost cell widths."
+            << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -438,8 +456,8 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(),
-                                                 bdry_box.getLocationIndex());
+        const BoundaryBox<NDIM> trimmed_bdry_box(
+            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
@@ -460,43 +478,75 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
             {
             case 0: // lower x
             case 1: // upper x
-                CC_ROBIN_PHYS_BDRY_OP_1_X_FC(patch_data->getPointer(d), patch_data_gcw, acoef_data->getPointer(),
-                                             bcoef_data->getPointer(), gcoef_data->getPointer(), location_index,
-                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                CC_ROBIN_PHYS_BDRY_OP_1_X_FC(patch_data->getPointer(d),
+                                             patch_data_gcw,
+                                             acoef_data->getPointer(),
+                                             bcoef_data->getPointer(),
+                                             gcoef_data->getPointer(),
+                                             location_index,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
                                              patch_box.upper(1),
 #if (NDIM == 3)
-                                             patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
-                                             bc_fill_box.lower(1), bc_fill_box.upper(1),
+                                             bc_fill_box.lower(1),
+                                             bc_fill_box.upper(1),
 #if (NDIM == 3)
-                                             bc_fill_box.lower(2), bc_fill_box.upper(2),
+                                             bc_fill_box.lower(2),
+                                             bc_fill_box.upper(2),
 #endif
-                                             dx, adjoint_op ? 1 : 0);
+                                             dx,
+                                             adjoint_op ? 1 : 0);
                 break;
             case 2: // lower y
             case 3: // upper y
-                CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(patch_data->getPointer(d), patch_data_gcw, acoef_data->getPointer(),
-                                             bcoef_data->getPointer(), gcoef_data->getPointer(), location_index,
-                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(patch_data->getPointer(d),
+                                             patch_data_gcw,
+                                             acoef_data->getPointer(),
+                                             bcoef_data->getPointer(),
+                                             gcoef_data->getPointer(),
+                                             location_index,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
                                              patch_box.upper(1),
 #if (NDIM == 3)
-                                             patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
-                                             bc_fill_box.lower(0), bc_fill_box.upper(0),
+                                             bc_fill_box.lower(0),
+                                             bc_fill_box.upper(0),
 #if (NDIM == 3)
-                                             bc_fill_box.lower(2), bc_fill_box.upper(2),
+                                             bc_fill_box.lower(2),
+                                             bc_fill_box.upper(2),
 #endif
-                                             dx, adjoint_op ? 1 : 0);
+                                             dx,
+                                             adjoint_op ? 1 : 0);
                 break;
 #if (NDIM == 3)
             case 4: // lower z
             case 5: // upper z
-                CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(patch_data->getPointer(d), patch_data_gcw, acoef_data->getPointer(),
-                                             bcoef_data->getPointer(), gcoef_data->getPointer(), location_index,
-                                             patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
-                                             patch_box.upper(1), patch_box.lower(2), patch_box.upper(2),
-                                             bc_fill_box.lower(0), bc_fill_box.upper(0), bc_fill_box.lower(1),
-                                             bc_fill_box.upper(1), dx, adjoint_op ? 1 : 0);
+                CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(patch_data->getPointer(d),
+                                             patch_data_gcw,
+                                             acoef_data->getPointer(),
+                                             bcoef_data->getPointer(),
+                                             gcoef_data->getPointer(),
+                                             location_index,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
+                                             bc_fill_box.lower(0),
+                                             bc_fill_box.upper(0),
+                                             bc_fill_box.lower(1),
+                                             bc_fill_box.upper(1),
+                                             dx,
+                                             adjoint_op ? 1 : 0);
                 break;
 #endif
             default:
@@ -507,11 +557,12 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
     return;
 } // fillGhostCellValuesCodim1
 
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim2_boxes,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        const Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim2_boxes,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   const Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     if (n_physical_codim2_boxes == 0) return;
@@ -527,7 +578,9 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
         TBOX_ERROR(
             "CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2():\n"
             "  patch data for patch data index "
-            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
+            << patch_data_idx
+            << " does not have uniform ghost cell widths."
+            << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -539,15 +592,24 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            CC_ROBIN_PHYS_BDRY_OP_2_FC(patch_data->getPointer(d), patch_data_gcw, location_index, patch_box.lower(0),
-                                       patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
+            CC_ROBIN_PHYS_BDRY_OP_2_FC(patch_data->getPointer(d),
+                                       patch_data_gcw,
+                                       location_index,
+                                       patch_box.lower(0),
+                                       patch_box.upper(0),
+                                       patch_box.lower(1),
+                                       patch_box.upper(1),
 #if (NDIM == 3)
-                                       patch_box.lower(2), patch_box.upper(2),
+                                       patch_box.lower(2),
+                                       patch_box.upper(2),
 #endif
-                                       bc_fill_box.lower(0), bc_fill_box.upper(0), bc_fill_box.lower(1),
+                                       bc_fill_box.lower(0),
+                                       bc_fill_box.upper(0),
+                                       bc_fill_box.lower(1),
                                        bc_fill_box.upper(1),
 #if (NDIM == 3)
-                                       bc_fill_box.lower(2), bc_fill_box.upper(2),
+                                       bc_fill_box.lower(2),
+                                       bc_fill_box.upper(2),
 #endif
                                        adjoint_op ? 1 : 0);
         }
@@ -556,11 +618,12 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
 } // fillGhostCellValuesCodim2
 
 #if (NDIM > 2)
-void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
-                                                        const Array<BoundaryBox<NDIM> >& physical_codim3_boxes,
-                                                        const IntVector<NDIM>& ghost_width_to_fill,
-                                                        const Patch<NDIM>& patch,
-                                                        const bool adjoint_op)
+void
+CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
+                                                   const Array<BoundaryBox<NDIM> >& physical_codim3_boxes,
+                                                   const IntVector<NDIM>& ghost_width_to_fill,
+                                                   const Patch<NDIM>& patch,
+                                                   const bool adjoint_op)
 {
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     if (n_physical_codim3_boxes == 0) return;
@@ -576,7 +639,9 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
         TBOX_ERROR(
             "CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3():\n"
             "  patch data for patch data index "
-            << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
+            << patch_data_idx
+            << " does not have uniform ghost cell widths."
+            << std::endl);
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
@@ -588,11 +653,22 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            CC_ROBIN_PHYS_BDRY_OP_3_FC(patch_data->getPointer(d), patch_data_gcw, location_index, patch_box.lower(0),
-                                       patch_box.upper(0), patch_box.lower(1), patch_box.upper(1), patch_box.lower(2),
-                                       patch_box.upper(2), bc_fill_box.lower(0), bc_fill_box.upper(0),
-                                       bc_fill_box.lower(1), bc_fill_box.upper(1), bc_fill_box.lower(2),
-                                       bc_fill_box.upper(2), adjoint_op ? 1 : 0);
+            CC_ROBIN_PHYS_BDRY_OP_3_FC(patch_data->getPointer(d),
+                                       patch_data_gcw,
+                                       location_index,
+                                       patch_box.lower(0),
+                                       patch_box.upper(0),
+                                       patch_box.lower(1),
+                                       patch_box.upper(1),
+                                       patch_box.lower(2),
+                                       patch_box.upper(2),
+                                       bc_fill_box.lower(0),
+                                       bc_fill_box.upper(0),
+                                       bc_fill_box.lower(1),
+                                       bc_fill_box.upper(1),
+                                       bc_fill_box.lower(2),
+                                       bc_fill_box.upper(2),
+                                       adjoint_op ? 1 : 0);
         }
     }
     return;

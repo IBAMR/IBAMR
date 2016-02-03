@@ -75,8 +75,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FaceDataSynchronization::FaceDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
-      d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
+    : d_is_initialized(false),
+      d_transaction_comps(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(NULL),
+      d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -88,14 +94,16 @@ FaceDataSynchronization::~FaceDataSynchronization()
     return;
 } // ~FaceDataSynchronization
 
-void FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void FaceDataSynchronization::initializeOperatorState(
+void
+FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -160,14 +168,16 @@ void FaceDataSynchronization::initializeOperatorState(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision face-centered data is supported." << std::endl);
+                       << "  only double-precision face-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
@@ -182,7 +192,8 @@ void FaceDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -197,7 +208,8 @@ void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void FaceDataSynchronization::resetTransactionComponents(
+void
+FaceDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -258,14 +270,16 @@ void FaceDataSynchronization::resetTransactionComponents(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision face-centered data is supported." << std::endl);
+                       << "  only double-precision face-centered data is supported."
+                       << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -275,7 +289,8 @@ void FaceDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void FaceDataSynchronization::deallocateOperatorState()
+void
+FaceDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -291,7 +306,8 @@ void FaceDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void FaceDataSynchronization::synchronizeData(const double fill_time)
+void
+FaceDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

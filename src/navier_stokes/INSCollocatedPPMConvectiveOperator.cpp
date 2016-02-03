@@ -330,15 +330,26 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),
-      d_bdry_extrap_type("CONSTANT"), d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL),
-      d_U_scratch_idx(-1), d_u_extrap_var(NULL), d_u_flux_var(NULL), d_u_extrap_idx(-1), d_u_flux_idx(-1)
+    : ConvectiveOperator(object_name, difference_form),
+      d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(),
+      d_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_U_var(NULL),
+      d_U_scratch_idx(-1),
+      d_u_extrap_var(NULL),
+      d_u_flux_var(NULL),
+      d_u_extrap_idx(-1),
+      d_u_flux_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                   << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -410,7 +421,8 @@ INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
     return;
 } // ~INSCollocatedPPMConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
+void
+INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -471,20 +483,53 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
             {
                 GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1), U_data_gcw(0), U_data_gcw(1),
-                    U0_data.getPointer(axis), U1_data.getPointer(), dU_data.getPointer(), U_L_data.getPointer(),
-                    U_R_data.getPointer(), u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_extrap_data_gcw(0),
-                    u_extrap_data_gcw(1), u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                    u_extrap_data->getPointer(0, axis), u_extrap_data->getPointer(1, axis)
+                    patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    U_data_gcw(0),
+                    U_data_gcw(1),
+                    U0_data.getPointer(axis),
+                    U1_data.getPointer(),
+                    dU_data.getPointer(),
+                    U_L_data.getPointer(),
+                    U_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    u_extrap_data_gcw(0),
+                    u_extrap_data_gcw(1),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    u_extrap_data->getPointer(0, axis),
+                    u_extrap_data->getPointer(1, axis)
 #endif
 #if (NDIM == 3)
-                                                            patch_lower(0),
-                    patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2), U_data_gcw(0),
-                    U_data_gcw(1), U_data_gcw(2), U0_data.getPointer(axis), U1_data.getPointer(), U2_data.getPointer(),
-                    dU_data.getPointer(), U_L_data.getPointer(), U_R_data.getPointer(), u_ADV_data_gcw(0),
-                    u_ADV_data_gcw(1), u_ADV_data_gcw(2), u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                    u_extrap_data_gcw(2), u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                    u_ADV_data->getPointer(2), u_extrap_data->getPointer(0, axis), u_extrap_data->getPointer(1, axis),
+                        patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    patch_lower(2),
+                    patch_upper(2),
+                    U_data_gcw(0),
+                    U_data_gcw(1),
+                    U_data_gcw(2),
+                    U0_data.getPointer(axis),
+                    U1_data.getPointer(),
+                    U2_data.getPointer(),
+                    dU_data.getPointer(),
+                    U_L_data.getPointer(),
+                    U_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    u_ADV_data_gcw(2),
+                    u_extrap_data_gcw(0),
+                    u_extrap_data_gcw(1),
+                    u_extrap_data_gcw(2),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    u_ADV_data->getPointer(2),
+                    u_extrap_data->getPointer(0, axis),
+                    u_extrap_data->getPointer(1, axis),
                     u_extrap_data->getPointer(2, axis)
 #endif
                         );
@@ -504,30 +549,55 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                     static const double dt = 1.0;
                     ADVECT_FLUX_FC(dt,
 #if (NDIM == 2)
-                                   patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                                   patch_lower(0),
+                                   patch_upper(0),
+                                   patch_lower(1),
+                                   patch_upper(1),
                                    //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                                   u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                                   u_flux_data_gcw(0), u_flux_data_gcw(1),
+                                   u_ADV_data_gcw(0),
+                                   u_ADV_data_gcw(1),
+                                   u_extrap_data_gcw(0),
+                                   u_extrap_data_gcw(1),
+                                   u_flux_data_gcw(0),
+                                   u_flux_data_gcw(1),
                                    //                      u_extrap_data->getPointer(0,0),
                                    // u_extrap_data->getPointer(1,1),
-                                   u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                                   u_extrap_data->getPointer(0, axis), u_extrap_data->getPointer(1, axis),
-                                   u_flux_data->getPointer(0, axis), u_flux_data->getPointer(1, axis)
+                                   u_ADV_data->getPointer(0),
+                                   u_ADV_data->getPointer(1),
+                                   u_extrap_data->getPointer(0, axis),
+                                   u_extrap_data->getPointer(1, axis),
+                                   u_flux_data->getPointer(0, axis),
+                                   u_flux_data->getPointer(1, axis)
 #endif
 #if (NDIM == 3)
-                                                                         patch_lower(0),
-                                   patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2),
+                                       patch_lower(0),
+                                   patch_upper(0),
+                                   patch_lower(1),
+                                   patch_upper(1),
+                                   patch_lower(2),
+                                   patch_upper(2),
                                    //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
                                    // u_extrap_data_gcw(2),
-                                   u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2), u_extrap_data_gcw(0),
-                                   u_extrap_data_gcw(1), u_extrap_data_gcw(2), u_flux_data_gcw(0), u_flux_data_gcw(1),
+                                   u_ADV_data_gcw(0),
+                                   u_ADV_data_gcw(1),
+                                   u_ADV_data_gcw(2),
+                                   u_extrap_data_gcw(0),
+                                   u_extrap_data_gcw(1),
+                                   u_extrap_data_gcw(2),
+                                   u_flux_data_gcw(0),
+                                   u_flux_data_gcw(1),
                                    u_flux_data_gcw(2),
                                    //                      u_extrap_data->getPointer(0,0),
                                    // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                                   u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
-                                   u_extrap_data->getPointer(0, axis), u_extrap_data->getPointer(1, axis),
-                                   u_extrap_data->getPointer(2, axis), u_flux_data->getPointer(0, axis),
-                                   u_flux_data->getPointer(1, axis), u_flux_data->getPointer(2, axis)
+                                   u_ADV_data->getPointer(0),
+                                   u_ADV_data->getPointer(1),
+                                   u_ADV_data->getPointer(2),
+                                   u_extrap_data->getPointer(0, axis),
+                                   u_extrap_data->getPointer(1, axis),
+                                   u_extrap_data->getPointer(2, axis),
+                                   u_flux_data->getPointer(0, axis),
+                                   u_flux_data->getPointer(1, axis),
+                                   u_flux_data->getPointer(2, axis)
 #endif
                                        );
                 }
@@ -567,30 +637,54 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                 const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    ADVECT_DERIVATIVE_FC(
-                        dx,
+                    ADVECT_DERIVATIVE_FC(dx,
 #if (NDIM == 2)
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
-                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        //                      u_extrap_data->getPointer(0,0),
-                        // u_extrap_data->getPointer(1,1),
-                        u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_extrap_data->getPointer(0, axis),
-                        u_extrap_data->getPointer(1, axis), N_data_gcw(0), N_data_gcw(1),
+                                         patch_lower(0),
+                                         patch_upper(0),
+                                         patch_lower(1),
+                                         patch_upper(1),
+                                         //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                         u_ADV_data_gcw(0),
+                                         u_ADV_data_gcw(1),
+                                         u_extrap_data_gcw(0),
+                                         u_extrap_data_gcw(1),
+                                         //                      u_extrap_data->getPointer(0,0),
+                                         // u_extrap_data->getPointer(1,1),
+                                         u_ADV_data->getPointer(0),
+                                         u_ADV_data->getPointer(1),
+                                         u_extrap_data->getPointer(0, axis),
+                                         u_extrap_data->getPointer(1, axis),
+                                         N_data_gcw(0),
+                                         N_data_gcw(1),
 #endif
 #if (NDIM == 3)
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2),
-                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        // u_extrap_data_gcw(2),
-                        u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2), u_extrap_data_gcw(0),
-                        u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        //                      u_extrap_data->getPointer(0,0),
-                        // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                        u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
-                        u_extrap_data->getPointer(0, axis), u_extrap_data->getPointer(1, axis),
-                        u_extrap_data->getPointer(2, axis), N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
+                                         patch_lower(0),
+                                         patch_upper(0),
+                                         patch_lower(1),
+                                         patch_upper(1),
+                                         patch_lower(2),
+                                         patch_upper(2),
+                                         //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                         // u_extrap_data_gcw(2),
+                                         u_ADV_data_gcw(0),
+                                         u_ADV_data_gcw(1),
+                                         u_ADV_data_gcw(2),
+                                         u_extrap_data_gcw(0),
+                                         u_extrap_data_gcw(1),
+                                         u_extrap_data_gcw(2),
+                                         //                      u_extrap_data->getPointer(0,0),
+                                         // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                                         u_ADV_data->getPointer(0),
+                                         u_ADV_data->getPointer(1),
+                                         u_ADV_data->getPointer(2),
+                                         u_extrap_data->getPointer(0, axis),
+                                         u_extrap_data->getPointer(1, axis),
+                                         u_extrap_data->getPointer(2, axis),
+                                         N_data_gcw(0),
+                                         N_data_gcw(1),
+                                         N_data_gcw(2),
 #endif
-                        N_data->getPointer(axis));
+                                         N_data->getPointer(axis));
                 }
             }
 
@@ -601,15 +695,29 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const double alpha = 1.0;
-                    F_TO_C_DIV_FC(N_data->getPointer(axis), N_data_gcw.min(), alpha,
+                    F_TO_C_DIV_FC(N_data->getPointer(axis),
+                                  N_data_gcw.min(),
+                                  alpha,
 #if (NDIM == 2)
-                                  u_flux_data->getPointer(0, axis), u_flux_data->getPointer(1, axis),
-                                  u_flux_data_gcw.min(), patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                                  u_flux_data->getPointer(0, axis),
+                                  u_flux_data->getPointer(1, axis),
+                                  u_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
 #endif
 #if (NDIM == 3)
-                                  u_flux_data->getPointer(0, axis), u_flux_data->getPointer(1, axis),
-                                  u_flux_data->getPointer(2, axis), u_flux_data_gcw.min(), patch_lower(0),
-                                  patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2),
+                                  u_flux_data->getPointer(0, axis),
+                                  u_flux_data->getPointer(1, axis),
+                                  u_flux_data->getPointer(2, axis),
+                                  u_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
+                                  patch_lower(2),
+                                  patch_upper(2),
 #endif
                                   dx);
                 }
@@ -623,17 +731,35 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                 {
                     static const double alpha = 0.5;
                     static const double beta = 0.5;
-                    F_TO_C_DIV_ADD_FC(N_data->getPointer(axis), N_data_gcw.min(), alpha,
+                    F_TO_C_DIV_ADD_FC(N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      alpha,
 #if (NDIM == 2)
-                                      u_flux_data->getPointer(0, axis), u_flux_data->getPointer(1, axis),
-                                      u_flux_data_gcw.min(), beta, N_data->getPointer(axis), N_data_gcw.min(),
-                                      patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                                      u_flux_data->getPointer(0, axis),
+                                      u_flux_data->getPointer(1, axis),
+                                      u_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
 #endif
 #if (NDIM == 3)
-                                      u_flux_data->getPointer(0, axis), u_flux_data->getPointer(1, axis),
-                                      u_flux_data->getPointer(2, axis), u_flux_data_gcw.min(), beta,
-                                      N_data->getPointer(axis), N_data_gcw.min(), patch_lower(0), patch_upper(0),
-                                      patch_lower(1), patch_upper(1), patch_lower(2), patch_upper(2),
+                                      u_flux_data->getPointer(0, axis),
+                                      u_flux_data->getPointer(1, axis),
+                                      u_flux_data->getPointer(2, axis),
+                                      u_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
+                                      patch_lower(2),
+                                      patch_upper(2),
 #endif
                                       dx);
                 }
@@ -644,8 +770,9 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
     return;
 } // applyConvectiveOperator
 
-void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                 const SAMRAIVectorReal<NDIM, double>& out)
+void
+INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                            const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -709,7 +836,8 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
     return;
 } // initializeOperatorState
 
-void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
+void
+INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

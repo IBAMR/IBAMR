@@ -1,8 +1,7 @@
 // Filename: CIBMobilitySolver.h
-// Created on 19 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// Created on 19 Feb 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2015, Amneet Bhalla, Bakytzhan Kallemov,
-// and Boyce Griffith
+// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CIBIBMobilitySolver
-#define included_CIBIBMobilitySolver
+#ifndef included_CIBMobilitySolver
+#define included_CIBMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <vector>
@@ -59,13 +58,12 @@ class StaggeredStokesPhysicalBoundaryHelper;
 class CIBStrategy;
 class DirectMobilitySolver;
 class KrylovMobilitySolver;
-//class FreeBodyMobilitySolver;
+class KrylovFreeBodyMobilitySolver;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBAMR
 {
-
 /*!
  * \brief Class CIBMobilitySolver solves for the constraint forces \f$ \vec{\lambda}\f$
  * and rigid body velocity \f$ \vec{U}\f$ of the structure(s).
@@ -91,7 +89,6 @@ namespace IBAMR
 
 class CIBMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-
     /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 public:
@@ -175,18 +172,15 @@ public:
 
     /*!
      * \brief Solves the mobility problem.
-         *
-         * \param x Vec storing the Lagrange multiplier
-         *
-         * \param b Vec storing the desired velocity
-	 *
-	 * \param skip_nonfree_parts Boolean indicating if the solution
-	 * is to be set only for free moving components.
-         *
-         * \return \p true if the solver converged to the specified tolerances, \p
-         * false otherwise
+     *
+     * \param x Vec storing the Lagrange multiplier.
+     *
+     * \param b Vec storing the desired velocity.
+     *
+     * \return \p true if the solver converged to the specified tolerances, \p
+     * false otherwise
      */
-    bool solveMobilitySystem(Vec x, Vec b, const bool skip_nonfree_parts=false);
+    bool solveMobilitySystem(Vec x, Vec b);
 
     /*!
      * \brief Solves the mobility problem.
@@ -202,10 +196,10 @@ public:
 
     /*!
      * \brief Initialize the mobility solver.
-         *
-         * \param x Vec storing the Lagrange multiplier
-         *
-         * \param b Vec storing the desired velocity
+     *
+     * \param x Vec storing the Lagrange multiplier
+     *
+     * \param b Vec storing the desired velocity
      *
      */
     void initializeSolverState(Vec x, Vec b);
@@ -221,8 +215,8 @@ public:
      * return.
      */
     void getMobilitySolvers(IBAMR::KrylovMobilitySolver** km_solver = NULL,
-                            IBAMR::DirectMobilitySolver** dm_solver = NULL);
-//                            IBAMR::FreeBodyMobilitySolver** fbm_solver = NULL);
+                            IBAMR::DirectMobilitySolver** dm_solver = NULL,
+                            IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = NULL);
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
@@ -241,7 +235,7 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
     SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
-//    SAMRAI::tbox::Pointer<IBAMR::FreeBodyMobilitySolver> d_freebody_mob_solver;
+    SAMRAI::tbox::Pointer<IBAMR::KrylovFreeBodyMobilitySolver> d_krylov_freebody_mob_solver;
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;
@@ -250,7 +244,6 @@ private:
 
     // Type of mobility solver to be used
     MobilitySolverType d_mobility_solver_type;
-
 
 }; // CIBMobilitySolver
 

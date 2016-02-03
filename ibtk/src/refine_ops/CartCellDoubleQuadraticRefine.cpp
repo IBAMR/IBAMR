@@ -73,12 +73,14 @@ namespace
 static const int REFINE_OP_PRIORITY = 0;
 static const int REFINE_OP_STENCIL_WIDTH = 1;
 
-inline int coarsen(const int& index, const int& ratio)
+inline int
+coarsen(const int& index, const int& ratio)
 {
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
 } // coarsen
 
-inline Index<NDIM> coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
+inline Index<NDIM>
+coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_index;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -103,34 +105,38 @@ CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
     return;
 } // ~CartCellDoubleQuadraticRefine
 
-bool CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                                       const std::string& op_name) const
+bool
+CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     const Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string& CartCellDoubleQuadraticRefine::getOperatorName() const
+const std::string&
+CartCellDoubleQuadraticRefine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
 
-int CartCellDoubleQuadraticRefine::getOperatorPriority() const
+int
+CartCellDoubleQuadraticRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> CartCellDoubleQuadraticRefine::getStencilWidth() const
+IntVector<NDIM>
+CartCellDoubleQuadraticRefine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
-                                           const Patch<NDIM>& coarse,
-                                           const int dst_component,
-                                           const int src_component,
-                                           const Box<NDIM>& fine_box,
-                                           const IntVector<NDIM>& ratio) const
+void
+CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
+                                      const Patch<NDIM>& coarse,
+                                      const int dst_component,
+                                      const int src_component,
+                                      const Box<NDIM>& fine_box,
+                                      const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
     Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(dst_component);

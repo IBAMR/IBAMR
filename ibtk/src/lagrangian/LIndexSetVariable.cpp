@@ -72,13 +72,15 @@ LIndexSetVariable<T>::~LIndexSetVariable()
 } // ~LIndexSetVariable
 
 template <class T>
-bool LIndexSetVariable<T>::dataLivesOnPatchBorder() const
+bool
+LIndexSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
 } // dataLivesOnPatchBorder
 
 template <class T>
-bool LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
+bool
+LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
 } // fineBoundaryRepresentsVariable

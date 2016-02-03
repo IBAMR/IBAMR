@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST  = input2d.plate plate2d.vertex plate2d.m
+EXTRA_DIST  = input2d.plate plate2d.vertex plate2d.m PetscOptions.dat
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -19,6 +19,7 @@ examples: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/input2d.plate $(PWD) ; \
 	  cp -f $(srcdir)/plate2d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/plate2d.m $(PWD) ; \
+	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -27,4 +28,5 @@ clean-local:
 	  rm -f $(builddir)/input2d.plate ; \
           rm -f $(builddir)/plate2d.vertex ; \
           rm -f $(builddir)/plate2d.m ; \
+          rm -f $(builddir)/PetscOptions.dat ; \
 	fi ;

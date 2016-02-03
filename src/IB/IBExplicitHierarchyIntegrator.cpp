@@ -111,9 +111,10 @@ IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
     return;
 } // ~IBExplicitHierarchyIntegrator
 
-void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
-                                                                 const double new_time,
-                                                                 const int num_cycles)
+void
+IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                            const double new_time,
+                                                            const int num_cycles)
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -131,7 +132,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         if (d_error_on_dt_change)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting." << std::endl);
+                                     << "Aborting."
+                                     << std::endl);
         }
         if (d_warn_on_dt_change)
         {
@@ -166,9 +168,12 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  attempting to perform " << d_current_num_cycles
+                                 << "  attempting to perform "
+                                 << d_current_num_cycles
                                  << " cycles of fixed point iteration.\n"
-                                 << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                                 << "  number of cycles required by Navier-Stokes solver = "
+                                 << ins_num_cycles
+                                 << ".\n"
                                  << "  current implementation requires either that both solvers "
                                     "use the same number of cycles,\n"
                                  << "  or that the IB solver use only a single cycle.\n");
@@ -187,8 +192,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                      "to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
-                                     current_time);
+        d_ib_method_ops->spreadForce(
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
         d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
@@ -197,7 +202,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     default:
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -225,7 +231,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     default:
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -235,9 +242,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     return;
 } // preprocessIntegrateHierarchy
 
-void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                       const double new_time,
-                                                       const int cycle_num)
+void
+IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
@@ -270,8 +276,8 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
-                                     half_time);
+        d_ib_method_ops->spreadForce(
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
         break;
     case TRAPEZOIDAL_RULE:
         if (d_current_num_cycles == 1 || cycle_num > 0)
@@ -287,15 +293,16 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                          "to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
-                                         new_time);
+            d_ib_method_ops->spreadForce(
+                d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), new_time);
             d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
         }
         break;
     default:
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -347,8 +354,10 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             half_time);
         break;
     case TRAPEZOIDAL_RULE:
         d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -356,13 +365,16 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"), new_time);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             new_time);
         break;
     default:
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                  << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                 << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -395,7 +407,8 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+                                     << "\n"
                                      << "  supported time stepping types are: FORWARD_EULER, "
                                         "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
@@ -410,8 +423,10 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                      "pressure to the Lagrangian mesh\n";
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_p_phys_bdry_op->setPatchDataIndex(d_p_idx);
-        d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::p"), half_time);
+        d_ib_method_ops->interpolatePressure(d_p_idx,
+                                             getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::p"),
+                                             half_time);
     }
 
     // Execute any registered callbacks.
@@ -419,13 +434,14 @@ void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     return;
 } // integrateHierarchy
 
-void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
-                                                                  const double new_time,
-                                                                  const bool skip_synchronize_new_state_data,
-                                                                  const int num_cycles)
+void
+IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                             const double new_time,
+                                                             const bool skip_synchronize_new_state_data,
+                                                             const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -440,8 +456,10 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
                                  "velocity to the Lagrangian mesh\n";
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                         getGhostfillRefineSchedules(d_object_name + "::u"), new_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                         getGhostfillRefineSchedules(d_object_name + "::u"),
+                                         new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -484,8 +502,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
-                                                         ins_num_cycles);
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Deallocate IB data.
     d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
@@ -507,13 +525,14 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     }
 
     // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data,
-                                                     num_cycles);
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 } // postprocessIntegrateHierarchy
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                  Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                             Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -527,7 +546,8 @@ void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void
+IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
@@ -536,7 +556,8 @@ void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> d
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBExplicitHierarchyIntegrator::getFromRestart()
+void
+IBExplicitHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -547,7 +568,8 @@ void IBExplicitHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file." << std::endl);
+                                 << " not found in restart file."
+                                 << std::endl);
     }
     int ver = db->getInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION)

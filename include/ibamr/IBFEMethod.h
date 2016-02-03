@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
 #include <stdbool.h>
 #include <stddef.h>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -142,11 +142,6 @@ public:
      * \brief Destructor.
      */
     ~IBFEMethod();
-	
-	/*!
-	 * \brief Register Eulerian variables for velocity correction step.
-	 */
-	void registerEulerianVariables();
 
     /*!
      * Return a pointer to the finite element data manager object for the
@@ -155,93 +150,6 @@ public:
     IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
 
     /*!
-     * Indicate that a part is constrained.
-     */
-    void registerConstrainedPart(unsigned int part = 0);
-
-    /*!
-     * Typedef specifying interface for specifying constrained body velocities.
-     */
-    typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
-											  libMesh::NumericVector<double>& U,
-											  libMesh::NumericVector<double>& X,
-											  const Eigen::Vector3d& X_com,
-											  Eigen::Vector3d& U_com,
-											  Eigen::Vector3d& W_com,
-											  libMesh::EquationSystems* equation_systems,
-											  double data_time,
-											  void* ctx);
-    /*!
-     * Struct encapsulating constrained velocity function data.
-     */
-    struct ConstrainedVelocityFcnData
-	{
-        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL,
-								   void* ctx = NULL) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-		ConstrainedVelocityFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register a constrained body velocity function.
-     */
-	void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn,
-											 void* ctx = NULL,
-											 unsigned int part = 0,
-											 const Eigen::Vector3d& u_com_initial = Eigen::Vector3d::Zero(),
-											 const Eigen::Vector3d& w_com_initial = Eigen::Vector3d::Zero());
-
-    /*!
-     * Register a constrained body velocity function data.
-     */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data,
-											 unsigned int part = 0,
-											 const Eigen::Vector3d& u_com_initial = Eigen::Vector3d::Zero(),
-											 const Eigen::Vector3d& w_com_initial = Eigen::Vector3d::Zero());
-	
-	/*!
-	 * Typedef specifying interface for specifying constrained position update.
-	 */
-	typedef void (*ConstrainedPositionFcnPtr)(libMesh::NumericVector<double>& X_new,
-											  libMesh::NumericVector<double>& X_current,
-											  const Eigen::Vector3d& X_com,
-											  const Eigen::Vector3d& u_com,
-											  const Eigen::Vector3d& w_com,
-											  libMesh::EquationSystems* equation_systems,
-											  double data_time,
-											  double dt,
-	                                          void* ctx);
-	/*!
-	 * Struct encapsulating constrained position function data.
-	 */
-	struct ConstrainedPositionFcnData
-	{
-		ConstrainedPositionFcnData(ConstrainedPositionFcnPtr fcn = NULL,
-								   void* ctx = NULL) : fcn(fcn), ctx(ctx)
-		{
-		}
-		
-		ConstrainedPositionFcnPtr fcn;
-		void* ctx;
-	};
-	
-	/*!
-	 * Register a constrained position update function.
-	 */
-	void registerConstrainedPositionFunction(ConstrainedPositionFcnPtr fcn,
-											 void* ctx = NULL,
-											 unsigned int part = 0);
-	
-	/*!
-	 * Register a constrained position update function data.
-	 */
-	void registerConstrainedPositionFunction(const ConstrainedPositionFcnData& data,
-											 unsigned int part = 0);
-	
-	/*!
      * Typedef specifying interface for coordinate mapping function.
      */
     typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& X, const libMesh::Point& s, void* ctx);
@@ -529,9 +437,6 @@ public:
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
                 double data_time);
-	
-	void
-	postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
 
     /*!
      * Initialize FE data.  This method must be called prior to calling
@@ -625,27 +530,8 @@ public:
      * Write out object state to the given database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-	
-	/*!
-	 * \brief Fill the rotation matrix.
-	 * \param rot_mat Matrix to set.
-	 * \param dt Time interval of rotation.
-	 */
-	static void setRotationMatrix(const Eigen::Vector3d& rot_vel,
-						          Eigen::Matrix3d& R,
-						          const double dt);
 
 protected:
-    /*
-     * \brief Compute the constraint force density.
-     */
-    void computeConstraintForceDensity(libMesh::PetscVector<double>& F_vec,
-                                       libMesh::PetscVector<double>& X_vec,
-                                       libMesh::PetscVector<double>& U_vec,
-                                       libMesh::PetscVector<double>& U_b_vec,
-                                       double data_time,
-                                       unsigned int part);
-
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
@@ -688,28 +574,7 @@ protected:
      * \brief Compute dX = X - s, useful mainly for visualization purposes.
      */
     void updateCoordinateMapping(unsigned int part);
-	
-	/*!
-	 * \brief Compute center of mass and moment of inertia of the structure.
-	 */
-	void computeCOMandMOI(const unsigned part,
-						  Eigen::Vector3d& center_of_mass,
-						  Eigen::Matrix3d& moment_of_inertia,
-						  libMesh::PetscVector<double>* X);
-	
-	/*!
-	 * \brief Copy fluid variable from solver to a widened variable
-	 * and fill the ghost cells.
-	 */
-	void copyFluidVariable(const int from_idx,
-						   const int to_idx);
-	
-	/*!
-	 * \brief Build projection solver for imposing divergence free constraint on
-	 * velocity. This is needed for certain cases of imposing rigidity constraint.
-	 */
-	void buildProjectionSolver();
-	
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -737,11 +602,10 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems;
+    std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
 
     bool d_fe_data_initialized;
 
@@ -760,33 +624,6 @@ protected:
     libMesh::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
 
-    /*
-     * Data related to handling constrained body constraints.
-     */
-    bool d_has_constrained_parts;
-    std::vector<bool> d_constrained_part;
-    std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
-	std::vector<ConstrainedPositionFcnData> d_constrained_position_fcn_data;
-	
-	
-	/*!
-	 * Rigid body velocity of the structures.
-	 */
-	std::vector<Eigen::Vector3d> d_com_u_current, d_com_u_half, d_com_u_new;
-	std::vector<Eigen::Vector3d> d_com_w_current, d_com_w_half, d_com_w_new;
-	
-	/*!
-	 * Center of mass and moment of inertia.
-	 */
-	std::vector<Eigen::Vector3d> d_com_current, d_com_half;
-	std::vector<Eigen::Matrix3d> d_moi_current, d_moi_half;
-	
-	/*!
-     * Eulerian data for fluid velocity and momentum correction.
-	 */
-	SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_ins_var;
-	int d_u_ins_idx, d_u_ins_cib_idx;
-	
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
@@ -827,21 +664,7 @@ protected:
      * restart database.
      */
     bool d_registered_for_restart;
-	
-	/*!
-	 * Data structures for applying divergence free projection.
-	 */
-	bool d_impose_div_free_constraint;
-	SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_proj_bc_coef;
-	SAMRAI::solv::PoissonSpecifications* d_proj_spec;
-	SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_proj_solver_op;
-	SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_proj_solver;
-	SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_proj_pc_op;
-	SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_proj_solver_db, d_proj_pc_db;
-	SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> d_proj_pc;
-	SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_proj_var;
-	int d_u_proj_idx, d_phi_proj_idx, d_div_u_proj_idx;
-	
+
 private:
     /*!
      * \brief Copy constructor.
@@ -871,12 +694,7 @@ private:
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
                            bool register_for_restart);
-	
-	/*!
-	 * Apply divergence free projection.
-	 */
-	void applyProjection();
-	
+
     /*!
      * Read input values from a given database.
      */

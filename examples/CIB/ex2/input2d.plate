@@ -1,5 +1,3 @@
-//PETSC options dat file
-//petsc_options_file = "PetscOptions.dat"
 
 // physical parameters
 RHO     = 1.0                         // fluid density
@@ -27,6 +25,7 @@ H = 22.0
 DX = L/ N
 
 // solver parameters
+PETSC_OPTIONS_FILE   = "PETScOptions.dat"
 MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
 DELTA_FUNCTION       = "IB_6"
 START_TIME           = 0.0e0                 // initial simulation time
@@ -223,7 +222,7 @@ CIBStaggeredStokesSolver
     DirectMobilitySolver
     {
         recompute_mob_mat_perstep = TRUE
-        f_periodic_correction        = 0*PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
+        f_periodic_correction        = PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
 
         LAPACK_SVD
         {
@@ -232,14 +231,16 @@ CIBStaggeredStokesSolver
         }
     }// DirectMobilitySolver
 
-    FreeBodyMobilitySolver
+    KrylovFreeBodyMobilitySolver
     {
-        max_iterations = STOKES_ITER
-        rel_residual_tol  = STOKES_TOL
-        abs_residual_tol  = 0
-        pc_type           = "none"
-        body_hydroradius = 2.2162
-    }// FreeBodyMobilitySolver
+        ksp_type = "preonly"
+        pc_type  = "shell"
+        max_iterations = 1
+        abs_residual_tol = 1e-50
+        rel_residual_tol = 1e-8
+        initial_guess_nonzero = FALSE
+
+    } //KrylovFreeBodyMobilitySolver
 
 } // cIBStaggeredStokesSolver
 

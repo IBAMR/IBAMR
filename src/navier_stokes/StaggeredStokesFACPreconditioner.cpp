@@ -72,7 +72,8 @@ StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
     return;
 } // ~StaggeredStokesFACPreconditioner
 
-void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
+void
+StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -80,8 +81,9 @@ void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const Po
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                          RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void
+StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                                     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -89,8 +91,8 @@ void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<Robi
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

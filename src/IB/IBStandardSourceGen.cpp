@@ -89,62 +89,72 @@ IBStandardSourceGen::~IBStandardSourceGen()
     return;
 } // ~IBStandardSourceGen
 
-void IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
+void
+IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
 {
     s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()), ln + 1), 0);
     s_num_sources[ln] = num_sources;
     return;
 } // getNumSources
 
-unsigned int IBStandardSourceGen::getNumSources(const int ln)
+unsigned int
+IBStandardSourceGen::getNumSources(const int ln)
 {
     return s_num_sources[ln];
 } // getNumSources
 
-const std::vector<std::string>& IBStandardSourceGen::getSourceNames(const int ln)
+const std::vector<std::string>&
+IBStandardSourceGen::getSourceNames(const int ln)
 {
     return s_source_names[ln];
 } // getSourceNames
 
-void IBStandardSourceGen::setSourceNames(const int ln, const std::vector<std::string>& names)
+void
+IBStandardSourceGen::setSourceNames(const int ln, const std::vector<std::string>& names)
 {
     s_source_names.resize(std::max(static_cast<int>(s_source_names.size()), ln + 1));
     s_source_names[ln] = names;
     return;
 } // getSourceNames
 
-void IBStandardSourceGen::setSourceRadii(const int ln, const std::vector<double>& radii)
+void
+IBStandardSourceGen::setSourceRadii(const int ln, const std::vector<double>& radii)
 {
     s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()), ln + 1));
     s_source_radii[ln] = radii;
     return;
 } // getSourceRadii
 
-const std::vector<double>& IBStandardSourceGen::getSourceRadii(const int ln)
+const std::vector<double>&
+IBStandardSourceGen::getSourceRadii(const int ln)
 {
     return s_source_radii[ln];
 } // getSourceRadii
 
-std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln)
+std::vector<double>&
+IBStandardSourceGen::getSourceStrengths(const int ln)
 {
     return d_Q_src[ln];
 } // getSourceStrengths
 
-const std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln) const
+const std::vector<double>&
+IBStandardSourceGen::getSourceStrengths(const int ln) const
 {
     return d_Q_src[ln];
 } // getSourceStrengths
 
-const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln) const
+const std::vector<double>&
+IBStandardSourceGen::getSourcePressures(const int ln) const
 {
     return d_P_src[ln];
 } // getSourcePressures
 
-void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                              const int level_number,
-                                              const double /*init_data_time*/,
-                                              const bool /*initial_time*/,
-                                              IBTK::LDataManager* const l_data_manager)
+void
+IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                         const int level_number,
+                                         const double /*init_data_time*/,
+                                         const bool /*initial_time*/,
+                                         IBTK::LDataManager* const l_data_manager)
 {
     d_n_src.resize(std::max(level_number + 1, static_cast<int>(d_n_src.size())), 0);
     d_source_names.resize(std::max(level_number + 1, static_cast<int>(d_source_names.size())));
@@ -181,10 +191,11 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>
     return;
 } // initializeLevelData
 
-unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                const int level_number,
-                                                const double /*data_time*/,
-                                                LDataManager* const /*l_data_manager*/)
+unsigned int
+IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                   const int level_number,
+                                   const double /*data_time*/,
+                                   LDataManager* const /*l_data_manager*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
@@ -192,13 +203,14 @@ unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDI
     return d_n_src[level_number];
 } // getNumSources
 
-void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
-                                             std::vector<double>& r_src,
-                                             Pointer<LData> X_data,
-                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                             const int level_number,
-                                             const double /*data_time*/,
-                                             LDataManager* const l_data_manager)
+void
+IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
+                                        std::vector<double>& r_src,
+                                        Pointer<LData> X_data,
+                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const int level_number,
+                                        const double /*data_time*/,
+                                        LDataManager* const l_data_manager)
 {
     if (d_n_src[level_number] == 0) return;
 
@@ -249,27 +261,30 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     return;
 } // getSourceLocations
 
-void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                             const int level_number,
-                                             const double /*data_time*/,
-                                             LDataManager* const /*l_data_manager*/)
+void
+IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
+                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const int level_number,
+                                        const double /*data_time*/,
+                                        LDataManager* const /*l_data_manager*/)
 {
     d_P_src[level_number] = P_src;
     return;
 } // setSourcePressures
 
-void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                                 const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                 const int level_number,
-                                                 const double /*data_time*/,
-                                                 LDataManager* const /*l_data_manager*/)
+void
+IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*data_time*/,
+                                            LDataManager* const /*l_data_manager*/)
 {
     Q_src = d_Q_src[level_number];
     return;
 } // computeSourceStrengths
 
-void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
+void
+IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -313,7 +328,8 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBStandardSourceGen::getFromRestart()
+void
+IBStandardSourceGen::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;

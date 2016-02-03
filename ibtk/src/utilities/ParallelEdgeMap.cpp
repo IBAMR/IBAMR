@@ -63,7 +63,8 @@ ParallelEdgeMap::~ParallelEdgeMap()
     return;
 } // ~ParallelEdgeMap
 
-int ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
+int
+ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {
     if (mastr_idx == -1)
     {
@@ -76,7 +77,8 @@ int ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
     return mastr_idx;
 } // addEdge
 
-void ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
+void
+ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
 {
     if (mastr_idx == -1)
     {
@@ -89,7 +91,8 @@ void ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
     return;
 } // removeEdge
 
-void ParallelEdgeMap::communicateData()
+void
+ParallelEdgeMap::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -115,14 +118,16 @@ void ParallelEdgeMap::communicateData()
     static const int SIZE = 3;
     std::vector<int> transactions(SIZE * num_transactions, 0);
     for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_additions.begin();
-         cit != d_pending_additions.end(); ++cit, ++offset)
+         cit != d_pending_additions.end();
+         ++cit, ++offset)
     {
         transactions[SIZE * offset] = cit->first;
         transactions[SIZE * offset + 1] = cit->second.first;
         transactions[SIZE * offset + 2] = cit->second.second;
     }
     for (std::multimap<int, std::pair<int, int> >::const_iterator cit = d_pending_removals.begin();
-         cit != d_pending_removals.end(); ++cit, ++offset)
+         cit != d_pending_removals.end();
+         ++cit, ++offset)
     {
         transactions[SIZE * offset] = cit->first;
         transactions[SIZE * offset + 1] = cit->second.first;
@@ -206,7 +211,8 @@ void ParallelEdgeMap::communicateData()
     return;
 } // communicateData
 
-const std::multimap<int, std::pair<int, int> >& ParallelEdgeMap::getEdgeMap() const
+const std::multimap<int, std::pair<int, int> >&
+ParallelEdgeMap::getEdgeMap() const
 {
     return d_edge_map;
 } // getEdgeMap

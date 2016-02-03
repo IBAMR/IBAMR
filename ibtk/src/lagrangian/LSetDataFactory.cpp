@@ -70,13 +70,15 @@ LSetDataFactory<T>::~LSetDataFactory()
 } // ~LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> > LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory<NDIM> >
+LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> >
+LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
@@ -88,19 +90,22 @@ Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box, Poi
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> >
+LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
-size_t LSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+size_t
+LSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 {
     return Arena::align(sizeof(LSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
-bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+bool
+LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
 {
     Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

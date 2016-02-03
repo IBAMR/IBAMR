@@ -76,8 +76,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 EdgeDataSynchronization::EdgeDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
-      d_coarsen_scheds(), d_refine_alg(), d_refine_scheds()
+    : d_is_initialized(false),
+      d_transaction_comps(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_coarsen_alg(NULL),
+      d_coarsen_scheds(),
+      d_refine_alg(),
+      d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -89,14 +95,16 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
     return;
 } // ~EdgeDataSynchronization
 
-void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
+void
+EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
-void EdgeDataSynchronization::initializeOperatorState(
+void
+EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -163,14 +171,16 @@ void EdgeDataSynchronization::initializeOperatorState(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision edge-centered data is supported." << std::endl);
+                           << "  only double-precision edge-centered data is supported."
+                           << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op, fill_pattern);
+                                               refine_op,
+                                               fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
@@ -186,7 +196,8 @@ void EdgeDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
+void
+EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
@@ -201,7 +212,8 @@ void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTra
     return;
 } // resetTransactionComponent
 
-void EdgeDataSynchronization::resetTransactionComponents(
+void
+EdgeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #if !defined(NDEBUG)
@@ -264,14 +276,16 @@ void EdgeDataSynchronization::resetTransactionComponents(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision edge-centered data is supported." << std::endl);
+                           << "  only double-precision edge-centered data is supported."
+                           << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op, fill_pattern);
+                                               refine_op,
+                                               fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -282,7 +296,8 @@ void EdgeDataSynchronization::resetTransactionComponents(
     return;
 } // resetTransactionComponents
 
-void EdgeDataSynchronization::deallocateOperatorState()
+void
+EdgeDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -301,7 +316,8 @@ void EdgeDataSynchronization::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
-void EdgeDataSynchronization::synchronizeData(const double fill_time)
+void
+EdgeDataSynchronization::synchronizeData(const double fill_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);

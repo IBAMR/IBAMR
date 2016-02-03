@@ -75,8 +75,14 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(), d_level_num(-1), d_ksp_type(KSPGMRES), d_options_prefix(""), d_petsc_ksp(NULL), d_petsc_mat(NULL),
-      d_petsc_x(NULL), d_petsc_b(NULL)
+    : d_hierarchy(),
+      d_level_num(-1),
+      d_ksp_type(KSPGMRES),
+      d_options_prefix(""),
+      d_petsc_ksp(NULL),
+      d_petsc_mat(NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL)
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -100,32 +106,37 @@ PETScLevelSolver::~PETScLevelSolver()
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
-                                 << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
+                                 << "  subclass must call deallocateSolverState in subclass destructor"
+                                 << std::endl);
     }
     return;
 } // ~PETScLevelSolver
 
-void PETScLevelSolver::setKSPType(const std::string& ksp_type)
+void
+PETScLevelSolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
     return;
 } // setKSPType
 
-void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
+void
+PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
 } // setOptionsPrefix
 
-void PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                                    const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+void
+PETScLevelSolver::setNullspace(bool contains_constant_vec,
+                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
     return;
 } // setNullspace
 
-bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool
+PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -169,8 +180,9 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     return converged;
 } // solveSystem
 
-void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                             const SAMRAIVectorReal<NDIM, double>& b)
+void
+PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                        const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -179,38 +191,44 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components" << std::endl);
+                                 << "  vectors must have the same number of components"
+                                 << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy" << std::endl);
+                                 << "  vectors must have the same hierarchy"
+                                 << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative" << std::endl);
+                                 << "  coarsest level number must not be negative"
+                                 << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number" << std::endl);
+                                 << "  vectors must have same coarsest level number"
+                                 << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number" << std::endl);
+                                 << "  finest level number must be >= coarsest level number"
+                                 << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number" << std::endl);
+                                 << "  vectors must have same finest level number"
+                                 << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -218,14 +236,18 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
+                                     << "  hierarchy level "
+                                     << ln
+                                     << " does not exist"
+                                     << std::endl);
         }
     }
 
     if (coarsest_ln != finest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest_ln != finest_ln in PETScLevelSolver" << std::endl);
+                                 << "  coarsest_ln != finest_ln in PETScLevelSolver"
+                                 << std::endl);
     }
 #endif
     // Deallocate the solver state if the solver is already initialized.
@@ -267,7 +289,8 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     return;
 } // initializeSolverState
 
-void PETScLevelSolver::deallocateSolverState()
+void
+PETScLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -311,7 +334,8 @@ void PETScLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+void
+PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)
@@ -328,7 +352,8 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
     return;
 } // init
 
-void PETScLevelSolver::setupNullspace()
+void
+PETScLevelSolver::setupNullspace()
 {
     int ierr;
     Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
@@ -345,7 +370,8 @@ void PETScLevelSolver::setupNullspace()
         ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
+                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
                               (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);
