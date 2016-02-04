@@ -78,18 +78,6 @@ namespace ModelData
 // Here for a cube they are body coordinates (x = X(s,t) = R(t)*s + D(t))
 	
 static double SHIFT = 0.0;
-void
-coordinate_mapping_function(
-	libMesh::Point& X,
-	const libMesh::Point& s,
-	void* /*ctx*/)
-{
-	for (int d = 0; d < NDIM; ++d)
-	{
-		X(d) = s(d) + SHIFT; // No need to convert here
-	}
-    return;
-} // coordinate_mapping_function
 
 // Nodal velocity function
 void ConstrainedNodalVel(
@@ -251,9 +239,9 @@ int main(int argc, char* argv[])
 		string elem_type = input_db->getString("ELEM_TYPE");
 		
 		// Create solid mesh.
-		Mesh solid_mesh(NDIM);
-		if (mesh_type == "CUBIC")
-		{
+                Mesh solid_mesh(init.comm(), NDIM);
+                if (mesh_type == "CUBIC")
+                {
 			const tbox::Array<double> cube_extents = input_db->getDoubleArray("CUBE_EXTENTS");
 			std::vector<int> num_elems(3,0);
 			for (unsigned d = 0; d < NDIM; ++d)
@@ -351,9 +339,21 @@ int main(int argc, char* argv[])
 
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-		ib_method_ops->setSolveRigidBodyVelocity(0, false);
-		ib_method_ops->registerConstrainedVelocityFunction(&ConstrainedNodalVel, &ConstrainedCOMVel);
+        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        {
+            Node* const n = *it;
+            libMesh::Point& X = *n;
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                X(d) = X(d) + SHIFT; // No need to convert here
+            }
+        }
+
+        FreeRigidDOFVector solve_dofs;
+        solve_dofs.setZero();
+        ib_method_ops->setSolveRigidBodyVelocity(0, solve_dofs);
+        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error

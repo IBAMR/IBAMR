@@ -90,6 +90,11 @@ public:
     void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
+     * \brief Set if velocity and pressure have nullspace.
+     */
+    void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
+
+    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *

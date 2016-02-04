@@ -88,9 +88,12 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
@@ -177,6 +180,9 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_wgt_cc_idx(-1),
       d_wgt_fc_idx(-1),
       d_wgt_sc_idx(-1),
+      d_using_wgt_cc(false),
+      d_using_wgt_fc(false),
+      d_using_wgt_sc(false),
       d_volume(0.0)
 {
     // Setup scratch variables.
@@ -328,6 +334,9 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
 
     // Reset the CoarsenSchedule vectors.
     d_of_coarsen_scheds.resize(d_finest_ln);
@@ -340,231 +349,21 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
         d_os_coarsen_scheds[dst_ln] = d_os_coarsen_alg->createSchedule(dst_level, src_level);
     }
 
-    // Reset the hierarchy data ops.
-    d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    // Reset the cell weights and compute the volume of the domain.
+    resetCellWeights(d_coarsest_ln, d_finest_ln);
+    if (d_using_wgt_fc) resetFaceWeights(d_coarsest_ln, d_finest_ln);
+    if (d_using_wgt_sc) resetSideWeights(d_coarsest_ln, d_finest_ln);
+    d_volume = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx, d_wgt_cc_idx);
 
-    // Reset the cell weights.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    // Deallocate scratch data.
+    if (!d_using_wgt_cc)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_wgt_cc_idx))
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            level->allocatePatchData(d_wgt_cc_idx);
-        }
-        if (!level->checkAllocated(d_wgt_fc_idx))
-        {
-            level->allocatePatchData(d_wgt_fc_idx);
-        }
-        if (!level->checkAllocated(d_wgt_sc_idx))
-        {
-            level->allocatePatchData(d_wgt_sc_idx);
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_wgt_cc_idx);
         }
     }
-
-    // Each cell's weight is set to its cell volume, unless the cell is refined
-    // on a finer level, in which case the weight is set to zero.  This insures
-    // that no part of the physical domain is counted twice when discrete norms
-    // and integrals are calculated on the entire hierarchy.
-    //
-    // Away from coarse-fine interfaces and boundaries of the computational
-    // domain, each cell face's weight is set to the cell volume associated with
-    // the level of the patch hierarchy.  Along coarse-fine interfaces or
-    // physical boundaries, the weights associated with the cell faces are
-    // modified so that the sum of the weights equals to volume of the
-    // computational domain.
-    ArrayDataBasicOps<NDIM, double> array_ops;
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        BoxArray<NDIM> refined_region_boxes;
-
-        if (ln < d_finest_ln)
-        {
-            Pointer<PatchLevel<NDIM> > next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
-            refined_region_boxes = next_finer_level->getBoxes();
-            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-        }
-
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
-
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-
-            const double* const dx = pgeom->getDx();
-            const double cell_vol = dx[0] * dx[1]
-#if (NDIM > 2)
-                                    * dx[2]
-#endif
-                ;
-
-            Pointer<CellData<NDIM, double> > wgt_cc_data = patch->getPatchData(d_wgt_cc_idx);
-            wgt_cc_data->fillAll(cell_vol);
-
-            Pointer<FaceData<NDIM, double> > wgt_fc_data = patch->getPatchData(d_wgt_fc_idx);
-            wgt_fc_data->fillAll(cell_vol);
-
-            Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(d_wgt_sc_idx);
-            wgt_sc_data->fillAll(cell_vol);
-
-            // Rescale values along the edges of the patches.
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                Box<NDIM> face_lower_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
-                face_lower_box.upper()(0) = face_lower_box.lower()(0);
-                array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_lower_box);
-                Box<NDIM> side_lower_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                side_lower_box.upper()(axis) = side_lower_box.lower()(axis);
-                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_lower_box);
-            }
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                Box<NDIM> face_upper_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
-                face_upper_box.lower()(0) = face_upper_box.upper()(0);
-                array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_upper_box);
-                Box<NDIM> side_upper_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                side_upper_box.lower()(axis) = side_upper_box.upper()(axis);
-                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_upper_box);
-            }
-
-            // Correct the values along coarse-fine interfaces.
-            if (ln > d_coarsest_ln)
-            {
-                const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-                const int bdry_type = 1;
-                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
-                for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
-                {
-                    const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
-                    const unsigned int axis = cf_bdry_boxes[k].getLocationIndex() / 2;
-                    const int lower_upper = cf_bdry_boxes[k].getLocationIndex() % 2;
-                    if (!pgeom->getTouchesRegularBoundary(axis, lower_upper))
-                    {
-                        const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
-
-                        Box<NDIM> face_bdry_box = FaceGeometry<NDIM>::toFaceBox(bdry_box, axis);
-                        array_ops.addScalar(
-                            wgt_fc_data->getArrayData(axis), wgt_fc_data->getArrayData(axis), extra_vol, face_bdry_box);
-
-                        Box<NDIM> side_bdry_box = SideGeometry<NDIM>::toSideBox(bdry_box, axis);
-                        array_ops.addScalar(
-                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
-                    }
-                }
-            }
-
-            // Zero-out weights within the refined region.
-            if (ln < d_finest_ln)
-            {
-                const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
-                {
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        if (periodic_shift(axis) != 0)
-                        {
-                            for (int sgn = -1; sgn <= 1; sgn += 2)
-                            {
-                                IntVector<NDIM> periodic_offset = 0;
-                                periodic_offset(axis) = sgn * periodic_shift(axis);
-                                const Box<NDIM> refined_box =
-                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
-                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                                if (!intersection.empty())
-                                {
-                                    wgt_cc_data->fillAll(0.0, intersection);
-                                    wgt_fc_data->fillAll(0.0, intersection);
-                                    wgt_sc_data->fillAll(0.0, intersection);
-                                }
-                            }
-                        }
-                    }
-                    const Box<NDIM>& refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                    if (!intersection.empty())
-                    {
-                        wgt_cc_data->fillAll(0.0, intersection);
-                        wgt_fc_data->fillAll(0.0, intersection);
-                        wgt_sc_data->fillAll(0.0, intersection);
-                    }
-                }
-            }
-        }
-    }
-
-#if !defined(NDEBUG)
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        // Check for overlapping boxes on this level.
-        //
-        // (This is potentially fairly expensive and hence is only done when
-        // assertion checking is active.)
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        BoxList<NDIM> boxes(level->getBoxes());
-
-        std::vector<bool> patch_overlaps(boxes.getNumberOfItems());
-        std::vector<bool>::size_type j, k;
-
-        for (k = 0; k < patch_overlaps.size(); ++k)
-        {
-            patch_overlaps[k] = false;
-        }
-        k = 0;
-        while (!boxes.isEmpty())
-        {
-            j = k + 1;
-            Box<NDIM> tryme = boxes.getFirstItem();
-            boxes.removeFirstItem();
-
-            for (BoxList<NDIM>::Iterator ib(boxes); ib; ib++)
-            {
-                if (tryme.intersects(ib()))
-                {
-                    patch_overlaps[k] = true;
-                    patch_overlaps[j] = true;
-                }
-                ++j;
-            }
-            ++k;
-        }
-
-        for (k = 0; k < patch_overlaps.size(); ++k)
-        {
-            if (patch_overlaps[k])
-            {
-                TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                         << "  patch "
-                                         << k
-                                         << " overlaps another patch!\n");
-            }
-        }
-    }
-#endif
-
-    // Compute the volume of the physical domain.
-    const double volume_cc = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx, d_wgt_cc_idx);
-    const double volume_fc =
-        d_hier_fc_data_ops->sumControlVolumes(d_wgt_fc_idx, d_wgt_fc_idx) / static_cast<double>(NDIM);
-    const double volume_sc =
-        d_hier_sc_data_ops->sumControlVolumes(d_wgt_sc_idx, d_wgt_sc_idx) / static_cast<double>(NDIM);
-    if (!MathUtilities<double>::equalEps(volume_cc, volume_fc) ||
-        !MathUtilities<double>::equalEps(volume_cc, volume_sc))
-    {
-        pout << "WARNING:\n"
-             << "HierarchyMathOps::resetLevels():\n"
-             << "  cell-centered, face-centered, and side-centered weights give different "
-                "total "
-                "volumes of the computational domain:\n"
-             << "      volume (cell-centered): " << volume_cc << "\n"
-             << "      volume (face-centered): " << volume_fc << "\n"
-             << "      volume (side-centered): " << volume_sc << std::endl;
-    }
-    d_volume = volume_cc;
     return;
 } // resetLevels
 
@@ -575,8 +374,10 @@ HierarchyMathOps::getCellWeightVariable() const
 } // getCellWeightVariable
 
 int
-HierarchyMathOps::getCellWeightPatchDescriptorIndex() const
+HierarchyMathOps::getCellWeightPatchDescriptorIndex()
 {
+    if (!d_using_wgt_cc) resetCellWeights(d_coarsest_ln, d_finest_ln);
+    d_using_wgt_cc = true;
     return d_wgt_cc_idx;
 } // getCellWeightPatchDescriptorIndex
 
@@ -587,8 +388,10 @@ HierarchyMathOps::getFaceWeightVariable() const
 } // getFaceWeightVariable
 
 int
-HierarchyMathOps::getFaceWeightPatchDescriptorIndex() const
+HierarchyMathOps::getFaceWeightPatchDescriptorIndex()
 {
+    if (!d_using_wgt_fc) resetFaceWeights(d_coarsest_ln, d_finest_ln);
+    d_using_wgt_fc = true;
     return d_wgt_fc_idx;
 } // getFaceWeightPatchDescriptorIndex
 
@@ -599,8 +402,10 @@ HierarchyMathOps::getSideWeightVariable() const
 } // getSideWeightVariable
 
 int
-HierarchyMathOps::getSideWeightPatchDescriptorIndex() const
+HierarchyMathOps::getSideWeightPatchDescriptorIndex()
 {
+    if (!d_using_wgt_sc) resetSideWeights(d_coarsest_ln, d_finest_ln);
+    d_using_wgt_sc = true;
     return d_wgt_sc_idx;
 } // getSideWeightPatchDescriptorIndex
 
@@ -927,10 +732,6 @@ HierarchyMathOps::curl(const int dst_idx,
     TBOX_ERROR("HierarchyMathOps::curl():\n"
                << "  not implemented for NDIM != 2"
                << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -964,10 +765,6 @@ HierarchyMathOps::curl(const int dst_idx,
     TBOX_ERROR("HierarchyMathOps::curl():\n"
                << "  not implemented for NDIM != 3"
                << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -995,17 +792,22 @@ HierarchyMathOps::rot(int dst_idx,
                       int src_idx,
                       Pointer<NodeVariable<NDIM, double> > /*src_var*/,
                       Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                      double src_ghost_fill_time)
+                      double src_ghost_fill_time,
+                      const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 2"
                << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1021,7 +823,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -1033,17 +835,22 @@ HierarchyMathOps::rot(int dst_idx,
                       int src_idx,
                       Pointer<CellVariable<NDIM, double> > /*src_var*/,
                       Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                      double src_ghost_fill_time)
+                      double src_ghost_fill_time,
+                      const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 2"
                << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1059,7 +866,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -1071,17 +878,22 @@ HierarchyMathOps::rot(int dst_idx,
                       int src_idx,
                       Pointer<EdgeVariable<NDIM, double> > /*src_var*/,
                       Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                      double src_ghost_fill_time)
+                      double src_ghost_fill_time,
+                      const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
                << "  not implemented for NDIM != 3"
                << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
 #endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1097,7 +909,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -1109,17 +921,17 @@ HierarchyMathOps::rot(int dst_idx,
                       int src_idx,
                       Pointer<SideVariable<NDIM, double> > /*src_var*/,
                       Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                      double src_ghost_fill_time)
+                      double src_ghost_fill_time,
+                      const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#if (NDIM != 3)
-    TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 3"
-               << std::endl);
-    NULL_USE(dst_idx);
-    NULL_USE(src_idx);
-    NULL_USE(src_ghost_fill);
-    NULL_USE(src_ghost_fill_time);
-#endif
+    CartSideRobinPhysBdryOp robin_bc_op;
+    const bool has_bc_coefs = !bc_coefs.empty();
+    if (has_bc_coefs)
+    {
+        robin_bc_op.setPatchDataIndex(dst_idx);
+        robin_bc_op.setPhysicalBcCoefs(bc_coefs);
+        robin_bc_op.setHomogeneousBc(true);
+    }
 
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -1135,7 +947,7 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch);
+            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : NULL, src_ghost_fill_time);
         }
     }
     return;
@@ -3272,6 +3084,349 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int s
     }
     return;
 } // xeqScheduleOutersideRestriction
+
+void
+HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln);
+    TBOX_ASSERT(finest_ln <= d_finest_ln);
+#endif
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_wgt_cc_idx))
+        {
+            level->allocatePatchData(d_wgt_cc_idx);
+        }
+    }
+
+    // Each cell's weight is set to its cell volume, unless the cell is refined
+    // on a finer level, in which case the weight is set to zero.  This insures
+    // that no part of the physical domain is counted twice when discrete norms
+    // and integrals are calculated on the entire hierarchy.
+    ArrayDataBasicOps<NDIM, double> array_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        BoxArray<NDIM> refined_region_boxes;
+        if (ln < d_finest_ln)
+        {
+            Pointer<PatchLevel<NDIM> > next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
+            refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+        }
+
+        const IntVector<NDIM> max_gcw(1);
+        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double cell_vol = dx[0] * dx[1]
+#if (NDIM > 2)
+                                    * dx[2]
+#endif
+                ;
+            Pointer<CellData<NDIM, double> > wgt_cc_data = patch->getPatchData(d_wgt_cc_idx);
+            wgt_cc_data->fillAll(cell_vol);
+
+            // Zero-out weights within the refined region.
+            if (ln < d_finest_ln)
+            {
+                const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        if (periodic_shift(axis) != 0)
+                        {
+                            for (int sgn = -1; sgn <= 1; sgn += 2)
+                            {
+                                IntVector<NDIM> periodic_offset = 0;
+                                periodic_offset(axis) = sgn * periodic_shift(axis);
+                                const Box<NDIM> refined_box =
+                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
+                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                                if (!intersection.empty())
+                                {
+                                    wgt_cc_data->fillAll(0.0, intersection);
+                                }
+                            }
+                        }
+                    }
+                    const Box<NDIM>& refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                    if (!intersection.empty())
+                    {
+                        wgt_cc_data->fillAll(0.0, intersection);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
+void
+HierarchyMathOps::resetFaceWeights(const int coarsest_ln, const int finest_ln)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln);
+    TBOX_ASSERT(finest_ln <= d_finest_ln);
+#endif
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (d_using_wgt_fc && !level->checkAllocated(d_wgt_fc_idx))
+        {
+            level->allocatePatchData(d_wgt_fc_idx);
+        }
+    }
+
+    // Each cell's weight is set to its cell volume, unless the cell is refined
+    // on a finer level, in which case the weight is set to zero.  This insures
+    // that no part of the physical domain is counted twice when discrete norms
+    // and integrals are calculated on the entire hierarchy.
+    //
+    // Away from coarse-fine interfaces and boundaries of the computational
+    // domain, each cell face's weight is set to the cell volume associated with
+    // the level of the patch hierarchy.  Along coarse-fine interfaces or
+    // physical boundaries, the weights associated with the cell faces are
+    // modified so that the sum of the weights equals to volume of the
+    // computational domain.
+    ArrayDataBasicOps<NDIM, double> array_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        BoxArray<NDIM> refined_region_boxes;
+        if (ln < d_finest_ln)
+        {
+            Pointer<PatchLevel<NDIM> > next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
+            refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+        }
+
+        const IntVector<NDIM> max_gcw(1);
+        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double cell_vol = dx[0] * dx[1]
+#if (NDIM > 2)
+                                    * dx[2]
+#endif
+                ;
+            Pointer<FaceData<NDIM, double> > wgt_fc_data = patch->getPatchData(d_wgt_fc_idx);
+            wgt_fc_data->fillAll(cell_vol);
+
+            // Rescale values along the edges of the patches.
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> face_lower_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
+                face_lower_box.upper()(0) = face_lower_box.lower()(0);
+                array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_lower_box);
+            }
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> face_upper_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
+                face_upper_box.lower()(0) = face_upper_box.upper()(0);
+                array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_upper_box);
+            }
+
+            // Correct the values along coarse-fine interfaces.
+            if (ln > d_coarsest_ln)
+            {
+                const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+                const int bdry_type = 1;
+                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
+                {
+                    const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
+                    const unsigned int axis = cf_bdry_boxes[k].getLocationIndex() / 2;
+                    const int lower_upper = cf_bdry_boxes[k].getLocationIndex() % 2;
+                    if (!pgeom->getTouchesRegularBoundary(axis, lower_upper))
+                    {
+                        const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
+                        Box<NDIM> face_bdry_box = FaceGeometry<NDIM>::toFaceBox(bdry_box, axis);
+                        array_ops.addScalar(
+                            wgt_fc_data->getArrayData(axis), wgt_fc_data->getArrayData(axis), extra_vol, face_bdry_box);
+                    }
+                }
+            }
+
+            // Zero-out weights within the refined region.
+            if (ln < d_finest_ln)
+            {
+                const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        if (periodic_shift(axis) != 0)
+                        {
+                            for (int sgn = -1; sgn <= 1; sgn += 2)
+                            {
+                                IntVector<NDIM> periodic_offset = 0;
+                                periodic_offset(axis) = sgn * periodic_shift(axis);
+                                const Box<NDIM> refined_box =
+                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
+                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                                if (!intersection.empty())
+                                {
+                                    wgt_fc_data->fillAll(0.0, intersection);
+                                }
+                            }
+                        }
+                    }
+                    const Box<NDIM>& refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                    if (!intersection.empty())
+                    {
+                        wgt_fc_data->fillAll(0.0, intersection);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
+void
+HierarchyMathOps::resetSideWeights(const int coarsest_ln, const int finest_ln)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln);
+    TBOX_ASSERT(finest_ln <= d_finest_ln);
+#endif
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_wgt_sc_idx))
+        {
+            level->allocatePatchData(d_wgt_sc_idx);
+        }
+    }
+
+    // Each cell's weight is set to its cell volume, unless the cell is refined
+    // on a finer level, in which case the weight is set to zero.  This insures
+    // that no part of the physical domain is counted twice when discrete norms
+    // and integrals are calculated on the entire hierarchy.
+    //
+    // Away from coarse-fine interfaces and boundaries of the computational
+    // domain, each cell face's weight is set to the cell volume associated with
+    // the level of the patch hierarchy.  Along coarse-fine interfaces or
+    // physical boundaries, the weights associated with the cell faces are
+    // modified so that the sum of the weights equals to volume of the
+    // computational domain.
+    ArrayDataBasicOps<NDIM, double> array_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        BoxArray<NDIM> refined_region_boxes;
+        if (ln < d_finest_ln)
+        {
+            Pointer<PatchLevel<NDIM> > next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
+            refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+        }
+
+        const IntVector<NDIM> max_gcw(1);
+        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+            const double* const dx = pgeom->getDx();
+            const double cell_vol = dx[0] * dx[1]
+#if (NDIM > 2)
+                                    * dx[2]
+#endif
+                ;
+            Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(d_wgt_sc_idx);
+            wgt_sc_data->fillAll(cell_vol);
+
+            // Rescale values along the edges of the patches.
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> side_lower_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                side_lower_box.upper()(axis) = side_lower_box.lower()(axis);
+                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_lower_box);
+            }
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> side_upper_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                side_upper_box.lower()(axis) = side_upper_box.upper()(axis);
+                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_upper_box);
+            }
+
+            // Correct the values along coarse-fine interfaces.
+            if (ln > d_coarsest_ln)
+            {
+                const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+                const int bdry_type = 1;
+                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
+                {
+                    const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
+                    const unsigned int axis = cf_bdry_boxes[k].getLocationIndex() / 2;
+                    const int lower_upper = cf_bdry_boxes[k].getLocationIndex() % 2;
+                    if (!pgeom->getTouchesRegularBoundary(axis, lower_upper))
+                    {
+                        const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
+                        Box<NDIM> side_bdry_box = SideGeometry<NDIM>::toSideBox(bdry_box, axis);
+                        array_ops.addScalar(
+                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
+                    }
+                }
+            }
+
+            // Zero-out weights within the refined region.
+            if (ln < d_finest_ln)
+            {
+                const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        if (periodic_shift(axis) != 0)
+                        {
+                            for (int sgn = -1; sgn <= 1; sgn += 2)
+                            {
+                                IntVector<NDIM> periodic_offset = 0;
+                                periodic_offset(axis) = sgn * periodic_shift(axis);
+                                const Box<NDIM> refined_box =
+                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
+                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                                if (!intersection.empty())
+                                {
+                                    wgt_sc_data->fillAll(0.0, intersection);
+                                }
+                            }
+                        }
+                    }
+                    const Box<NDIM>& refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                    if (!intersection.empty())
+                    {
+                        wgt_sc_data->fillAll(0.0, intersection);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
 
 ////////////////////////////////////////////////////////////////////////////
 

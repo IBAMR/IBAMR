@@ -32,11 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
 #include <math.h>
+#include <ostream>
 #include <stddef.h>
 #include <string.h>
-#include <algorithm>
-#include <ostream>
 #include <string>
 #include <vector>
 
@@ -69,7 +69,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-// IWYU pragma: no_include "petsc-private/petscimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -226,7 +225,7 @@ PETScKrylovLinearSolver::setNullspace(
 {
     deallocateNullspaceData();
     KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
-    resetKSPNullspace();
+    resetMatNullspace();
     return;
 } // setNullspace
 
@@ -249,28 +248,21 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     resetKSPOptions();
 
     // Allocate scratch data.
-    if (d_b) d_b->allocateVectorData();
+    d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
-    if (d_homogeneous_bc)
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    else
-    {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-        d_A->modifyRhsForInhomogeneousBc(*d_b);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
-        d_A->setHomogeneousBc(true);
-    }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_x));
-    IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
-    IBTK_CHKERRQ(ierr);
+    d_A->modifyRhsForBcs(*d_b);
+    d_A->setHomogeneousBc(true);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->imposeSolBcs(x);
+
+    // Get iterations count and residual norm.
     ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
@@ -285,7 +277,7 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
     // Dealocate scratch data.
-    if (d_b) d_b->deallocateVectorData();
+    d_b->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -418,7 +410,7 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
-    resetKSPNullspace();
+    resetMatNullspace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -688,7 +680,11 @@ PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
+#if (!PETSC_VERSION_RELEASE)
+    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#else
     ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+#endif
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -732,12 +728,16 @@ PETScKrylovLinearSolver::resetKSPPC()
 } // resetKSPPC
 
 void
-PETScKrylovLinearSolver::resetKSPNullspace()
+PETScKrylovLinearSolver::resetMatNullspace()
 {
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
+#if (!PETSC_VERSION_RELEASE)
+    ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+#else
     ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
+#endif
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
@@ -777,7 +777,7 @@ PETScKrylovLinearSolver::resetKSPNullspace()
         ierr = MatNullSpaceCreate(
             d_petsc_comm, has_cnst, static_cast<int>(nullspace_vecs.size()), &nullspace_vecs[0], &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_solver_has_attached_nullspace = true;
     }
@@ -786,11 +786,11 @@ PETScKrylovLinearSolver::resetKSPNullspace()
         static const PetscBool has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, NULL, &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
+        ierr = MatSetNullSpace(d_petsc_mat, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // resetKSPNullspace
+} // resetMatNullspace
 
 void
 PETScKrylovLinearSolver::deallocateNullspaceData()

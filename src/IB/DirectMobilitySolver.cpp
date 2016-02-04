@@ -45,7 +45,7 @@
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/namespaces.h"
-#include "petsc-private/petscimpl.h"
+#include "petsc/private/petscimpl.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 

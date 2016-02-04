@@ -123,8 +123,11 @@ public:
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_consistent_mass_matrix)
-            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix)
         {
         }
@@ -153,8 +156,11 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density)
-            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density)
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density)
         {
         }
 

@@ -364,12 +364,12 @@ CIBFEMethod::interpolateVelocity(const int u_data_idx,
             NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
             NumericVector<double>* U_vec = d_U_half_vecs[part];
             X_vec->localize(*X_ghost_vec);
-            if (d_use_IB_interp_operator && d_compute_L2_projection)
+            if (d_compute_L2_projection)
             {
                 d_fe_data_managers[part]->interp(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
             }
-            else if (d_use_IB_interp_operator && !d_compute_L2_projection)
+            else if (!d_compute_L2_projection)
             {
                 d_fe_data_managers[part]->interpWeighted(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);

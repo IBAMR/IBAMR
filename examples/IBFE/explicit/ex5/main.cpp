@@ -64,7 +64,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-inline double kernel(double x)
+inline double
+kernel(double x)
 {
     x += 4.;
     const double x2 = x * x;
@@ -110,14 +111,15 @@ namespace ModelData
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
 MeshFunction* U_fcn;
-void tether_force_function(VectorValue<double>& F,
-                           const TensorValue<double>& /*FF*/,
-                           const libMesh::Point& X,
-                           const libMesh::Point& s,
-                           Elem* const /*elem*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
-                           double /*time*/,
-                           void* /*ctx*/)
+void
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& X,
+                      const libMesh::Point& s,
+                      Elem* const /*elem*/,
+                      const vector<NumericVector<double>*>& /*system_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
 {
     DenseVector<double> U(NDIM);
     (*U_fcn)(s, 0.0, U);
@@ -151,7 +153,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -194,7 +197,7 @@ int main(int argc, char* argv[])
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh solid_mesh(NDIM);
+        Mesh solid_mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -280,23 +283,31 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerLagBodyForceFunction(tether_force_function);
@@ -385,8 +396,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                          loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -460,8 +471,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
-                                              loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -476,8 +487,13 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num,
-                                 loop_time, postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy,
+                                 navier_stokes_integrator,
+                                 mesh,
+                                 equation_systems,
+                                 iteration_num,
+                                 loop_time,
+                                 postproc_data_dump_dirname);
             }
         }
 
@@ -501,13 +517,14 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                      Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                      Mesh& mesh,
-                      EquationSystems* equation_systems,
-                      const int /*iteration_num*/,
-                      const double loop_time,
-                      const string& /*data_dump_dirname*/)
+void
+postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 Mesh& mesh,
+                 EquationSystems* equation_systems,
+                 const int /*iteration_num*/,
+                 const double loop_time,
+                 const string& /*data_dump_dirname*/)
 {
     const unsigned int dim = mesh.mesh_dimension();
     {
@@ -536,7 +553,7 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 F_dof_map.dof_indices(elem, F_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices[0].size();
+            const int n_basis = static_cast<int>(F_dof_indices[0].size());
             get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
             for (int qp = 0; qp < n_qp; ++qp)
             {

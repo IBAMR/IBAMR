@@ -136,6 +136,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
+    d_dt_init = std::numeric_limits<double>::max();
     d_dt_min = 0.0;
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_growth_factor = 2.0;
@@ -470,6 +471,9 @@ HierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
+    bool check_volume_change = !d_parent_integrator && d_hierarchy_is_initialized;
+    const double old_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
     // Regrid the hierarchy.
     switch (d_regrid_mode)
     {
@@ -488,6 +492,22 @@ HierarchyIntegrator::regridHierarchy()
                                  << enum_to_string<RegridMode>(d_regrid_mode)
                                  << "."
                                  << std::endl);
+    }
+
+    const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
+    if (check_volume_change && !MathUtilities<double>::equalEps(old_volume, new_volume))
+    {
+        TBOX_WARNING(
+            d_object_name << "::regridHierarchy():\n"
+                          << "  change in domain volume detected (volume is computed by summing control volumes)\n"
+                          << "    old volume = "
+                          << old_volume
+                          << "\n"
+                          << "    new volume = "
+                          << new_volume
+                          << "\n"
+                          << "  this may indicate overlapping patches in the AMR grid hierarchy.");
     }
 
     // Synchronize the state data on the patch hierarchy.
@@ -1023,6 +1043,7 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
         const std::vector<double> dt_previous_vec(d_dt_previous.begin(), d_dt_previous.end());
         db->putDoubleArray("d_dt_previous_vec", &dt_previous_vec[0], dt_previous_size);
     }
+    db->putDouble("d_dt_init", d_dt_init);
     db->putDouble("d_dt_min", d_dt_min);
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_growth_factor", d_dt_growth_factor);
@@ -1051,9 +1072,13 @@ HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (!initial_time && d_dt_growth_factor >= 1.0)
+    if (initial_time)
     {
-        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
+        dt = std::min(d_dt_init, d_dt_max);
+    }
+    else
+    {
+        dt = std::min(dt, std::max(1.0, d_dt_growth_factor) * d_dt_previous[0]);
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
@@ -1549,6 +1574,7 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
     // Read in data members from input database.
     if (!is_from_restart && db->keyExists("start_time")) d_start_time = db->getDouble("start_time");
     if (db->keyExists("end_time")) d_end_time = db->getDouble("end_time");
+    if (db->keyExists("dt_init")) d_dt_init = db->getDouble("dt_init");
     if (db->keyExists("dt_min")) d_dt_min = db->getDouble("dt_min");
     if (db->keyExists("dt_max")) d_dt_max = db->getDouble("dt_max");
     if (db->keyExists("grow_dt"))

@@ -157,9 +157,7 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
     apply(x, *zz);
     z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
-    zz->deallocateVectorData();
     zz->freeVectorComponents();
-    zz.setNull();
     return;
 } // applyAdd
 
@@ -177,6 +175,20 @@ GeneralOperator::deallocateOperatorState()
     d_is_initialized = false;
     return;
 } // deallocateOperatorState
+
+void
+GeneralOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& /*y*/)
+{
+    // intentionally blank
+    return;
+} // modifyRhsForBcs
+
+void
+GeneralOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& /*u*/)
+{
+    // intentionally blank
+    return;
+} // imposeSolBcs
 
 void
 GeneralOperator::setLoggingEnabled(bool enable_logging)

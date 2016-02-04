@@ -67,7 +67,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-// IWYU pragma: no_include "petsc-private/petscimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -233,32 +232,28 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
     // Allocate scratch data.
-    if (d_b) d_b->allocateVectorData();
-    if (d_r) d_r->allocateVectorData();
+    d_b->allocateVectorData();
+    d_r->allocateVectorData();
 
     // Solve the system using a PETSc SNES object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    d_F->setHomogeneousBc(d_homogeneous_bc);
+    d_F->modifyRhsForBcs(*d_b);
     Pointer<LinearOperator> A = d_F;
-    if (A)
-    {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-        A->modifyRhsForInhomogeneousBc(*d_b);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
-        IBTK_CHKERRQ(ierr);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
-    }
-    else
-    {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
-    }
-    Vec residual;
-
+    if (A) A->setHomogeneousBc(true);
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
+    if (A) A->setHomogeneousBc(d_homogeneous_bc);
+    d_F->imposeSolBcs(x);
+
+    // Get iterations counts and residual norm.
     IBTK_CHKERRQ(ierr);
     ierr = SNESGetIterationNumber(d_petsc_snes, &d_current_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = SNESGetLinearSolveIterations(d_petsc_snes, &d_current_linear_iterations);
     IBTK_CHKERRQ(ierr);
+    Vec residual;
     ierr = SNESGetFunction(d_petsc_snes, &residual, NULL, NULL);
     IBTK_CHKERRQ(ierr);
     ierr = VecNorm(residual, NORM_2, &d_current_residual_norm);
@@ -272,8 +267,8 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
 
     // Deallocate scratch data.
-    if (d_b) d_b->deallocateVectorData();
-    if (d_r) d_r->deallocateVectorData();
+    d_b->deallocateVectorData();
+    d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -469,6 +464,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 } // deallocateSolverState
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void

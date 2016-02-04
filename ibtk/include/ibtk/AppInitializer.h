@@ -78,6 +78,18 @@ public:
     bool isFromRestart() const;
 
     /*!
+     * Return the restart directory.  If we are not starting from restart,
+     * this method returns an empty string.
+     */
+    const std::string& getRestartReadDirectory() const;
+
+    /*!
+     * Return the restart restore number.  If we are not starting from restart,
+     * this method returns 0.
+     */
+    int getRestartRestoreNumber() const;
+
+    /*!
      * Return a pointer to the restart database.  If there is no restart
      * database for the application, this method emits a warning message and
      * returns a NullDatabse.
@@ -139,6 +151,14 @@ public:
      * will be returned.
      */
     std::string getExodusIIFilename(const std::string& prefix = "") const;
+
+    /*!
+     * Return the GMV visualization file name.
+     *
+     * If the application is not configured to use GMV, an empty string
+     * will be returned.
+     */
+    std::string getGMVFilename(const std::string& prefix = "") const;
 
     /*!
      * Return a boolean value indicating whether to write restart data.
@@ -207,8 +227,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
 
     /*!
-     * Boolean value indicating whether this is a restarted run.
+     * Restart settings.
      */
+    std::string d_restart_read_dirname;
+    int d_restart_restore_num;
     bool d_is_from_restart;
 
     /*!
@@ -219,7 +241,7 @@ private:
     std::vector<std::string> d_viz_writers;
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
-    std::string d_exodus_filename;
+    std::string d_exodus_filename, d_gmv_filename;
 
     /*!
      * Restart options.

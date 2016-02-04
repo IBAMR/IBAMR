@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST  = input2d input3d 
+EXTRA_DIST  = input2d input3d README 
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -26,6 +26,7 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
+	  cp -f $(srcdir)/README $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -33,4 +34,5 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/input3d ; \
+	  rm -f $(builddir)/README ; \
 	fi ;

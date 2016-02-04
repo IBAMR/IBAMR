@@ -86,6 +86,7 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/PETScMatUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
@@ -209,9 +210,6 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_F_current_needs_ghost_fill = true;
     d_F_new_needs_ghost_fill = true;
     d_F_half_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
-    d_X_LE_half_needs_reinit = true;
-    d_U_half_needs_reinit = true;
 
     // Indicate that the Jacobian matrix has not been allocated.
     d_force_jac = NULL;
@@ -387,25 +385,34 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         d_X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
         d_X_new_data[ln] = d_l_data_manager->createLData("X_new", ln, NDIM);
+        d_X_half_data[ln] = d_l_data_manager->createLData("X_half", ln, NDIM);
         d_U_current_data[ln] = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
         d_U_new_data[ln] = d_l_data_manager->createLData("U_new", ln, NDIM);
+        d_U_half_data[ln] = d_l_data_manager->createLData("U_half", ln, NDIM);
         d_F_current_data[ln] = d_l_data_manager->getLData("F", ln);
+        d_F_half_data[ln] = d_l_data_manager->createLData("F_half", ln, NDIM);
         if (d_use_fixed_coupling_ops)
         {
             d_X_LE_new_data[ln] = d_l_data_manager->createLData("X_LE_new", ln, NDIM);
+            d_X_LE_half_data[ln] = d_l_data_manager->createLData("X_LE_half", ln, NDIM);
         }
 
-        // Initialize X^{n+1} to equal X^{n}, and initialize U^{n+1} to equal
-        // U^{n}.
+        // Initialize X^{n+1} and X^{n+1/2} to equal X^{n}, and initialize U^{n+1}
+        // and U^{n+1/2} to equal U^{n}.
         ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_half_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
-
+        ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_half_data[ln]->getVec());
+        IBTK_CHKERRQ(ierr);
         if (d_use_fixed_coupling_ops)
         {
-            // Initialize X_LE^{n+1} to equal X^{n}.
+            // Initialize X_LE^{n+1} and X_LE^{n+1/2} to equal X^{n}.
             ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_LE_half_data[ln]->getVec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -414,9 +421,7 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     // filled, or that need to be reinitialized.
     d_X_new_needs_ghost_fill = true;
     d_X_LE_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
-    d_X_LE_half_needs_reinit = true;
-    d_U_half_needs_reinit = true;
+
     return;
 } // preprocessIntegrateData
 
@@ -490,26 +495,38 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
 } // postprocessIntegrateData
 
 void
-IBMethod::createSolverVecs(Vec& X_vec, Vec& F_vec)
+IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &X_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &F_vec);
-    IBTK_CHKERRQ(ierr);
+    if (X_vec != PETSC_NULL)
+    {
+        ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (F_vec != PETSC_NULL)
+    {
+        ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // createSolverVecs
 
 void
-IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
+IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    ierr = VecCopy(d_X_new_data[level_num]->getVec(), X_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecZeroEntries(F_vec);
-    IBTK_CHKERRQ(ierr);
+    if (X_vec != PETSC_NULL)
+    {
+        ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (F_vec != PETSC_NULL)
+    {
+        ierr = VecSet(*F_vec, 0.0);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // setupSolverVecs
 
@@ -521,7 +538,13 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
     ierr = VecCopy(X_new_vec, d_X_new_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
+
+    std::vector<Pointer<LData> >* X_half_data;
+    bool* X_half_needs_ghost_fill;
+    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    *X_half_needs_ghost_fill = true;
+
     return;
 } // setUpdatedPosition
 
@@ -536,22 +559,26 @@ IBMethod::setLinearizedPosition(Vec& X_vec)
     ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     *X_jac_needs_ghost_fill = true;
-    if (!d_force_jac)
+
+    if (d_force_jac)
     {
-        int n_local, n_global;
-        ierr = VecGetLocalSize(X_vec, &n_local);
+        ierr = MatDestroy(&d_force_jac);
         IBTK_CHKERRQ(ierr);
-        ierr = VecGetSize(X_vec, &n_global);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
-        IBTK_CHKERRQ(ierr);
-        ierr = MatSetFromOptions(d_force_jac);
-        IBTK_CHKERRQ(ierr);
+        d_force_jac = NULL;
     }
+    int n_local, n_global;
+    ierr = VecGetLocalSize(X_vec, &n_local);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetSize(X_vec, &n_global);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(d_force_jac, "ib_");
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetFromOptions(d_force_jac);
+    IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
@@ -599,7 +626,13 @@ IBMethod::updateFixedLEOperators()
         IBTK_CHKERRQ(ierr);
     }
     d_X_LE_new_needs_ghost_fill = true;
-    d_X_LE_half_needs_reinit = true;
+
+    std::vector<Pointer<LData> >* X_LE_half_data;
+    bool* X_LE_half_needs_ghost_fill;
+    getLECouplingPositionData(&X_LE_half_data, &X_LE_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_X_current_data, d_X_LE_new_data, *X_LE_half_data);
+    *X_LE_half_needs_ghost_fill = true;
+
     return;
 } // updateFixedLEOperators
 
@@ -617,7 +650,14 @@ IBMethod::interpolateVelocity(const int u_data_idx,
     resetAnchorPointValues(*U_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    d_U_half_needs_reinit = !MathUtilities<double>::equalEps(data_time, d_half_time);
+
+    if (!MathUtilities<double>::equalEps(data_time, d_half_time))
+    {
+        std::vector<Pointer<LData> >* U_half_data;
+        getVelocityData(&U_half_data, d_half_time);
+        reinitMidpointData(d_U_current_data, d_U_new_data, *U_half_data);
+    }
+
     return;
 } // interpolateVelocity
 
@@ -654,7 +694,13 @@ IBMethod::eulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
+
+    std::vector<Pointer<LData> >* X_half_data;
+    bool* X_half_needs_ghost_fill;
+    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    *X_half_needs_ghost_fill = true;
+
     return;
 } // eulerStep
 
@@ -674,7 +720,13 @@ IBMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
+
+    std::vector<Pointer<LData> >* X_half_data;
+    bool* X_half_needs_ghost_fill;
+    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    *X_half_needs_ghost_fill = true;
+
     return;
 } // midpointStep
 
@@ -698,7 +750,13 @@ IBMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill = true;
-    d_X_half_needs_reinit = true;
+
+    std::vector<Pointer<LData> >* X_half_data;
+    bool* X_half_needs_ghost_fill;
+    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    *X_half_needs_ghost_fill = true;
+
     return;
 } // trapezoidalStep
 
@@ -746,9 +804,118 @@ IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_time*
     ierr = MatMult(d_force_jac, X_vec, F_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecScale(F_vec, 0.5);
+    *F_jac_needs_ghost_fill = true;
     IBTK_CHKERRQ(ierr);
     return;
 } // computeLinearizedLagrangianForce
+
+void
+IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type)
+{
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    if (!strcmp(mat_type, MATMFFD) || !strcmp(mat_type, MATSHELL))
+    {
+        if (!d_force_jac)
+        {
+            Vec X_current = d_X_current_data[finest_ln]->getVec();
+            setLinearizedPosition(X_current);
+        }
+        A = d_force_jac;
+    }
+    else
+    {
+        int ierr;
+        if (A)
+        {
+            ierr = MatDestroy(&A);
+            IBTK_CHKERRQ(ierr);
+        }
+
+        // Get the "frozen" position for Lagrangian structure
+        std::vector<Pointer<LData> >* X_LE_data;
+        bool* X_LE_needs_ghost_fill;
+        getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
+
+        TBOX_ASSERT(d_ib_force_fcn);
+
+        // Build the Jacobian matrix.
+        const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
+        std::vector<int> d_nnz, o_nnz;
+        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
+            d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
+        if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
+        {
+            ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
+                                 NDIM,
+                                 NDIM * num_local_nodes,
+                                 NDIM * num_local_nodes,
+                                 PETSC_DETERMINE,
+                                 PETSC_DETERMINE,
+                                 0,
+                                 num_local_nodes ? &d_nnz[0] : NULL,
+                                 0,
+                                 num_local_nodes ? &o_nnz[0] : NULL,
+                                 &A);
+            IBTK_CHKERRQ(ierr);
+        }
+        else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+        {
+            std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
+            for (unsigned int k = 0; k < d_nnz.size(); ++k)
+            {
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    d_nnz_unblocked[NDIM * k + d] = NDIM * d_nnz[k];
+                    o_nnz_unblocked[NDIM * k + d] = NDIM * o_nnz[k];
+                }
+            }
+            ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                                NDIM * num_local_nodes,
+                                NDIM * num_local_nodes,
+                                PETSC_DETERMINE,
+                                PETSC_DETERMINE,
+                                0,
+                                num_local_nodes ? &d_nnz_unblocked[0] : NULL,
+                                0,
+                                num_local_nodes ? &o_nnz_unblocked[0] : NULL,
+                                &A);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name + "::getLagrangianForceJacobian()."
+                       << "Matrix of the type "
+                       << mat_type
+                       << " given. Supported types are "
+                       << MATSHELL
+                       << "/"
+                       << MATMFFD
+                       << " , "
+                       << MATBAIJ
+                       << "/"
+                       << MATMPIBAIJ
+                       << " , "
+                       << MATAIJ
+                       << "/"
+                       << MATMPIAIJ
+                       << std::endl);
+        }
+        ierr = MatSetBlockSize(A, NDIM);
+        IBTK_CHKERRQ(ierr);
+        d_ib_force_fcn->computeLagrangianForceJacobian(A,
+                                                       MAT_FINAL_ASSEMBLY,
+                                                       1.0,
+                                                       (*X_LE_data)[finest_ln],
+                                                       0.0,
+                                                       Pointer<IBTK::LData>(NULL),
+                                                       d_hierarchy,
+                                                       finest_ln,
+                                                       d_half_time,
+                                                       d_l_data_manager);
+    }
+    return;
+} // getLagrangianForceJacobian
 
 void
 IBMethod::spreadForce(const int f_data_idx,
@@ -803,6 +970,36 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
 } // spreadLinearizedForce
 
 void
+IBMethod::constructInterpOp(Mat& J,
+                            void (*spread_fnc)(const double, double*),
+                            const int stencil_width,
+                            const std::vector<int>& num_dofs_per_proc,
+                            const int dof_index_idx)
+{
+    int ierr;
+    if (J)
+    {
+        ierr = MatDestroy(&J);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    // Get the "frozen" position for Lagrangian structure
+    std::vector<Pointer<LData> >* X_LE_data;
+    bool* X_LE_needs_ghost_fill;
+    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
+
+    // Build the Jacobian matrix.
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(finest_ln);
+    Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
+    PETScMatUtilities::constructPatchLevelSCInterpOp(
+        J, spread_fnc, stencil_width, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+
+    return;
+
+} // getInterpOperator
+
+void
 IBMethod::computeLagrangianFluidSource(const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -846,15 +1043,15 @@ IBMethod::spreadFluidSource(const int q_data_idx,
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
 #endif
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
-            const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
             const Pointer<CellData<NDIM, double> > q_data = patch->getPatchData(q_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
@@ -868,8 +1065,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1057,15 +1253,15 @@ IBMethod::interpolatePressure(int p_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
-            const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
             const Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
@@ -1079,8 +1275,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center =
-                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1391,15 +1586,11 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
     {
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
-
-        const Index<NDIM>& lower = grid_geom->getPhysicalDomain()[0].lower();
-        const Index<NDIM>& upper = grid_geom->getPhysicalDomain()[0].upper();
-        const double* const xLower = grid_geom->getXLower();
-        const double* const xUpper = grid_geom->getXUpper();
         const double* const dx = grid_geom->getDx();
 
         const int finer_level_number = level_number + 1;
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(finer_level_number);
+        const IntVector<NDIM>& finer_ratio = finer_level->getRatio();
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
@@ -1417,8 +1608,8 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                d_X_src[finer_level_number][n], xLower, xUpper, dx_finer.data(), lower, upper);
+            const Index<NDIM> i_center =
+                IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], grid_geom, finer_ratio);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1482,8 +1673,6 @@ IBMethod::putToDatabase(Pointer<Database> db)
 void
 IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         *X_data = &d_X_current_data;
@@ -1491,21 +1680,6 @@ IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_X_half_data[ln])
-            {
-                d_X_half_data[ln] = d_l_data_manager->createLData("X_half", ln, NDIM);
-                d_X_half_needs_reinit = true;
-            }
-        }
-        if (d_X_half_needs_reinit)
-        {
-            reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
-            d_X_half_needs_reinit = false;
-            d_X_half_needs_ghost_fill = true;
-        }
         *X_data = &d_X_half_data;
         *X_needs_ghost_fill = &d_X_half_needs_ghost_fill;
     }
@@ -1546,8 +1720,7 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
         getPositionData(X_LE_data, X_LE_needs_ghost_fill, data_time);
         return;
     }
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         *X_LE_data = &d_X_current_data;
@@ -1555,21 +1728,6 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_X_LE_half_data[ln])
-            {
-                d_X_LE_half_data[ln] = d_l_data_manager->createLData("X_LE_half", ln, NDIM);
-                d_X_LE_half_needs_reinit = true;
-            }
-        }
-        if (d_X_LE_half_needs_reinit)
-        {
-            reinitMidpointData(d_X_current_data, d_X_LE_new_data, d_X_LE_half_data);
-            d_X_LE_half_needs_reinit = false;
-            d_X_LE_half_needs_ghost_fill = true;
-        }
         *X_LE_data = &d_X_LE_half_data;
         *X_LE_needs_ghost_fill = &d_X_LE_half_needs_ghost_fill;
     }
@@ -1584,28 +1742,12 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
 void
 IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double data_time)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         *U_data = &d_U_current_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_U_half_data[ln])
-            {
-                d_U_half_data[ln] = d_l_data_manager->createLData("U_half", ln, NDIM);
-                d_U_half_needs_reinit = true;
-            }
-        }
-        if (d_U_half_needs_reinit)
-        {
-            reinitMidpointData(d_U_current_data, d_U_new_data, d_U_half_data);
-            d_U_half_needs_reinit = false;
-        }
         *U_data = &d_U_half_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
@@ -1644,11 +1786,6 @@ IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_gho
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_F_half_data[ln]) d_F_half_data[ln] = d_l_data_manager->createLData("F_half", ln, NDIM);
-        }
         *F_data = &d_F_half_data;
         *F_needs_ghost_fill = &d_F_half_needs_ghost_fill;
     }

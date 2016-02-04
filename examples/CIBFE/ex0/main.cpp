@@ -225,7 +225,7 @@ main(int argc, char* argv[])
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(1);
+        Mesh mesh(init.comm(), 1);
         const int num_elems = input_db->getInteger("num_elems");
         const double dx = input_db->getDouble("DX");
         string elem_type = input_db->getString("ELEM_TYPE");

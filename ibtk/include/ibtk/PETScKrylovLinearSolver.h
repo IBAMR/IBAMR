@@ -200,19 +200,16 @@ public:
      */
     void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
-                                                                                       // for
-                                                                                       // g++ 4.2
-
     /*!
      * \brief Set the nullspace of the linear system.
      *
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    void setNullspace(bool contains_constant_vec,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    void setNullspace(
+        bool contains_constant_vec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -375,10 +372,10 @@ private:
     void resetKSPPC();
 
     /*!
-     * \brief Reset the KSP nullspace object to correspond to the supplied
+     * \brief Reset the Mat nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
-    void resetKSPNullspace();
+    void resetMatNullspace();
 
     /*!
      * \brief Destroy data allocated to describe nullspace.

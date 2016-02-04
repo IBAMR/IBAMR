@@ -53,7 +53,7 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h"
-#include "petsc-private/petscimpl.h"
+#include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
 
 namespace IBAMR
@@ -439,15 +439,19 @@ CIBSaddlePointSolver::solveSystem(Vec x, Vec b)
     d_petsc_x = x;
     VecCopy(b, d_petsc_b);
 
-    // Modify RHS for inhomogeneous BCs.
+    // Modify RHS for inhomogeneous Bcs.
     d_A->setHomogeneousBc(false);
-    d_A->modifyRhsForInhomogeneousBc(d_petsc_b);
+    d_A->modifyRhsForBcs(d_petsc_b);
     d_A->setHomogeneousBc(true);
 
     // Solve the system.
     KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
     KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
+
+    // Impose Solution Bcs.
+    d_A->setHomogeneousBc(false);
+    d_A->imposeSolBcs(d_petsc_x);
 
     // Determine the convergence reason.
     KSPConvergedReason reason;

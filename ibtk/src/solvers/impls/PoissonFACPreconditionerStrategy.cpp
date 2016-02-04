@@ -462,6 +462,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_synch_refine_algorithm->registerRefine(
         sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM> >(), d_synch_fill_pattern);
 
+    // TODO: Here we take a pessimistic approach and are recreating refine schedule for
+    // (coarsest_reset_ln - 1) level as well.
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
@@ -561,22 +563,6 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
-
-void
-PoissonFACPreconditionerStrategy::allocateScratchData()
-{
-    if (d_solution) d_solution->allocateVectorData();
-    if (d_rhs) d_rhs->allocateVectorData();
-    return;
-}
-
-void
-PoissonFACPreconditionerStrategy::deallocateScratchData()
-{
-    if (d_solution) d_solution->deallocateVectorData();
-    if (d_rhs) d_rhs->deallocateVectorData();
-    return;
-}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -130,7 +130,8 @@ inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
 } // operator*
 
 template <class T>
-inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
+inline typename LSet<T>::value_type&
+LSetDataIterator<T>::getDataItem() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_index_it && d_node_set);
@@ -139,7 +140,8 @@ inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 } // getDataItem
 
 template <class T>
-inline const SAMRAI::hier::Index<NDIM>& LSetDataIterator<T>::getCellIndex() const
+inline const SAMRAI::hier::Index<NDIM>&
+LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();
 } // getCellIndex

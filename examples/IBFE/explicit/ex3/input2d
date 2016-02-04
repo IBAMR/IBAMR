@@ -22,7 +22,6 @@ P0_S = C1_S
 BETA_S = 0.0
 
 // solver parameters
-USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
 IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
@@ -100,8 +99,6 @@ IBHierarchyIntegrator {
 }
 
 IBFEMethod {
-   use_IB_spread_operator     = USE_IB_DELTA_FUNCTIONS
-   use_IB_interp_operator     = USE_IB_DELTA_FUNCTIONS
    IB_delta_fcn               = IB_DELTA_FUNCTION
    split_forces               = SPLIT_FORCES
    use_jump_conditions        = USE_JUMP_CONDITIONS

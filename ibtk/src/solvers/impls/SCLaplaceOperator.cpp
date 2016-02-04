@@ -165,7 +165,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
 #endif
 
     // Allocate scratch data.
-    if (d_x) d_x->allocateVectorData();
+    d_x->allocateVectorData();
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -201,7 +201,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     }
 
     // Deallocate scratch data.
-    if (d_x) d_x->deallocateVectorData();
+    d_x->deallocateVectorData();
 
     IBTK_TIMER_STOP(t_apply);
     return;

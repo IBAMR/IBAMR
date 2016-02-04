@@ -119,13 +119,14 @@ public:
     /*!
      * \return Determine the number of global nodes on the patch level.
      *
-     * \return The number of local nodes on the specified level.
+     * \return The number of global nodes on the specified level.
      */
-    unsigned int computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                                    int level_number,
-                                                    double init_data_time,
-                                                    bool can_be_refined,
-                                                    bool initial_time);
+    unsigned int
+    computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                       int level_number,
+                                       double init_data_time,
+                                       bool can_be_refined,
+                                       bool initial_time);
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
@@ -180,6 +181,20 @@ public:
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
+
+    /*!
+     * \brief Write vertex position in a file.
+     *
+     * \param filename Name of the file to which position of the vertices is
+     * to be written.
+     *
+     * \param mesh_no Integral order in which various meshes are registered
+     * with the class on level \em level_number. Indexing starts from 0.
+     *
+     * \param level_number Level on which the mesh resides. -1 indicates finest
+     * grid level.
+     */
+    void writeVertexFile(std::string filename, int mesh_no, int level_number = -1);
 
 protected:
 private:

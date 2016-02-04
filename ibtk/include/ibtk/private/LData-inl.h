@@ -45,38 +45,45 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const std::string& LData::getName() const
+inline const std::string&
+LData::getName() const
 {
     return d_name;
 } // getName
 
-inline unsigned int LData::getGlobalNodeCount() const
+inline unsigned int
+LData::getGlobalNodeCount() const
 {
     return d_global_node_count;
 } // getGlobalNodeCount
 
-inline unsigned int LData::getLocalNodeCount() const
+inline unsigned int
+LData::getLocalNodeCount() const
 {
     return d_local_node_count;
 } // getLocalNodeCount
 
-inline unsigned int LData::getGhostNodeCount() const
+inline unsigned int
+LData::getGhostNodeCount() const
 {
     return d_ghost_node_count;
 } // getGhostNodeCount
 
-inline unsigned int LData::getDepth() const
+inline unsigned int
+LData::getDepth() const
 {
     return d_depth;
 } // getDepth
 
-inline Vec LData::getVec()
+inline Vec
+LData::getVec()
 {
     restoreArrays();
     return d_global_vec;
 } // getVec
 
-inline boost::multi_array_ref<double, 1>* LData::getArray()
+inline boost::multi_array_ref<double, 1>*
+LData::getArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
@@ -85,7 +92,8 @@ inline boost::multi_array_ref<double, 1>* LData::getArray()
     return d_boost_array;
 } // getArray
 
-inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
+inline boost::multi_array_ref<double, 1>*
+LData::getLocalFormArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
@@ -94,7 +102,8 @@ inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
     return d_boost_local_array;
 } // getLocalFormArray
 
-inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
+inline boost::multi_array_ref<double, 1>*
+LData::getGhostedLocalFormArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
@@ -103,25 +112,29 @@ inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
     return d_boost_ghosted_local_array;
 } // getGhostedLocalFormArray
 
-inline boost::multi_array_ref<double, 2>* LData::getVecArray()
+inline boost::multi_array_ref<double, 2>*
+LData::getVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_vec_array;
 } // getVecArray
 
-inline boost::multi_array_ref<double, 2>* LData::getLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>*
+LData::getLocalFormVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_local_vec_array;
 } // getLocalFormVecArray
 
-inline boost::multi_array_ref<double, 2>* LData::getGhostedLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>*
+LData::getGhostedLocalFormVecArray()
 {
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_vec_ghosted_local_array;
 } // getGhostedLocalFormVecArray
 
-inline void LData::restoreArrays()
+inline void
+LData::restoreArrays()
 {
     int ierr;
     if (d_ghosted_local_array)
@@ -157,14 +170,16 @@ inline void LData::restoreArrays()
     return;
 } // restoreArray
 
-inline void LData::beginGhostUpdate()
+inline void
+LData::beginGhostUpdate()
 {
     const int ierr = VecGhostUpdateBegin(getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
     return;
 } // beginGhostUpdate
 
-inline void LData::endGhostUpdate()
+inline void
+LData::endGhostUpdate()
 {
     const int ierr = VecGhostUpdateEnd(getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
@@ -173,7 +188,8 @@ inline void LData::endGhostUpdate()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline void LData::getArrayCommon()
+inline void
+LData::getArrayCommon()
 {
     if (!d_array)
     {
@@ -200,7 +216,8 @@ inline void LData::getArrayCommon()
     return;
 } // getArrayCommon
 
-inline void LData::getGhostedLocalFormArrayCommon()
+inline void
+LData::getGhostedLocalFormArrayCommon()
 {
     if (!d_ghosted_local_vec)
     {

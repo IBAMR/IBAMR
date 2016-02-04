@@ -209,6 +209,9 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
 {
     IBAMR_TIMER_START(t_apply);
 
+    // Allocate scratch data.
+    d_x->allocateVectorData();
+
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -247,7 +250,6 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
         d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
-    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
@@ -281,6 +283,9 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
+
     IBAMR_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -297,7 +302,6 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
-    d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
@@ -383,6 +387,50 @@ StaggeredStokesOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+void
+StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+{
+    if (!d_homogeneous_bc)
+    {
+        // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+        // inhomogeneous boundary conditions.
+        Pointer<SAMRAIVectorReal<NDIM, double> > x = y.cloneVector("");
+        Pointer<SAMRAIVectorReal<NDIM, double> > b = y.cloneVector("");
+        x->allocateVectorData();
+        b->allocateVectorData();
+        x->setToScalar(0.0);
+        const int U_idx = x->getComponentDescriptorIndex(0);
+        const int P_idx = x->getComponentDescriptorIndex(1);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+            d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
+        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+        apply(*x, *b);
+        y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
+        x->freeVectorComponents();
+        b->freeVectorComponents();
+    }
+    const bool homogeneous_bc = true;
+    const int U_idx = y.getComponentDescriptorIndex(0);
+    const int P_idx = y.getComponentDescriptorIndex(1);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, homogeneous_bc);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+    return;
+} // modifyRhsForBcs
+
+void
+StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
+{
+    const int U_idx = u.getComponentDescriptorIndex(0);
+    const int P_idx = u.getComponentDescriptorIndex(1);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+    return;
+} // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

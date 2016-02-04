@@ -522,16 +522,11 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
-    double dt = d_dt_max;
+    double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
-    }
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (!initial_time && d_dt_growth_factor >= 1.0)
-    {
-        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized

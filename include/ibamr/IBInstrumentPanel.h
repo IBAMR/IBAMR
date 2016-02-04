@@ -247,7 +247,6 @@ private:
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {
-
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
                     ||

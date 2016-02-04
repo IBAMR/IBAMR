@@ -203,6 +203,7 @@ private:
     {
         std::vector<int> lag_mastr_node_idxs, lag_slave_node_idxs;
         std::vector<int> petsc_mastr_node_idxs, petsc_slave_node_idxs;
+        std::vector<int> petsc_global_mastr_node_idxs, petsc_global_slave_node_idxs;
         std::vector<SpringForceFcnPtr> force_fcns;
         std::vector<SpringForceDerivFcnPtr> force_deriv_fcns;
         std::vector<const double*> parameters;
@@ -212,6 +213,7 @@ private:
     struct BeamData
     {
         std::vector<int> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
+        std::vector<int> petsc_global_mastr_node_idxs, petsc_global_next_node_idxs, petsc_global_prev_node_idxs;
         std::vector<const double*> rigidities;
         std::vector<const IBTK::Vector*> curvatures;
     };
@@ -219,8 +221,8 @@ private:
 
     struct TargetPointData
     {
-        std::vector<int> petsc_node_idxs;
-        std::vector<const double*> kappa, eta;
+        std::vector<int> petsc_node_idxs, petsc_global_node_idxs;
+        std::vector<const double *> kappa, eta;
         std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;

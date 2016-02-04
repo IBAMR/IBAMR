@@ -340,16 +340,11 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
 
         Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
@@ -368,8 +363,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Get the coordinates of the present vertex.
             const libMesh::Point& X = getVertexPosn(point_idx, level_number);
-            const CellIndex<NDIM> idx =
-                IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
             for (int d = 0; d < NDIM; ++d)
             {
                 X_array[local_petsc_idx][d] = X(d);
@@ -434,16 +428,13 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const IntVector<NDIM>& ratio = level->getRatio();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
 
         Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
 
@@ -462,14 +453,47 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(
-                    &X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
         }
     }
     return;
 } // tagCellsForInitialRefinement
+
+void
+IMPInitializer::writeVertexFile(std::string filename, int mesh_no, int level_number)
+{
+    const int max_levels = d_gridding_alg->getMaxLevels();
+    if (level_number < 0) level_number = max_levels - 1;
+    level_number = std::min(level_number, max_levels - 1);
+
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    if (mpi_rank == 0)
+    {
+        if (filename.find(".vertex") == std::string::npos)
+        {
+            filename += ".vertex";
+        }
+        std::ofstream vertex_file(filename.c_str(), std::fstream::out);
+
+        const int num_vertices = d_num_vertex[level_number][mesh_no];
+        vertex_file << num_vertices << "\n";
+        for (int k = 0; k < num_vertices; ++k)
+        {
+            const libMesh::Point& X = d_vertex_posn[level_number][mesh_no][k];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                vertex_file << X(d) << "\t";
+            }
+            vertex_file << "\n";
+        }
+
+        vertex_file.close();
+    }
+
+    return;
+} // writeVertexFile
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -122,7 +122,7 @@ public:
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<PoissonSolver>(*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<PoissonSolver> (*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);

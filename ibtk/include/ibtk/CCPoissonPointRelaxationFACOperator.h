@@ -44,8 +44,6 @@
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
-#include "petscmat.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -91,8 +89,8 @@ namespace IBTK
  * finite-volume discretization, where
  *
  * - \f$ C \f$, \f$ D \f$ and \f$ f \f$ are independent of \f$ u \f$,
- * - \f$ C \f$ is a cell-centered scalar field,
- * - \f$ D \f$ is a side-centered scalar field of diffusion coefficients, and
+ * - \f$ C \f$ is a \em scalar,
+ * - \f$ D \f$ is a \em scalar diffusion coefficient, and
  * - \f$ f \f$ is a cell-centered scalar function.
  *
  * Robin boundary conditions may be specified at physical boundaries; see class
@@ -266,48 +264,11 @@ private:
      */
     CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that);
 
-    /*!
-     * \brief Construct a matrix corresponding to a Laplace operator restricted
-     * to a single patch.
-     */
-    static void buildPatchLaplaceOperator(Mat& A,
-                                          const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                          const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Construct a matrix corresponding to a Laplace operator restricted
-     * to a single patch with grid aligned anisotropy.
-     */
-    static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                                  const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Construct a matrix corresponding to a Laplace operator restricted
-     * to a single patch with non-grid aligned anisotropy.
-     */
-    static void
-    buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
     /*
      * Coarse level solvers and solver parameters.
      */
     SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Mappings from patch indices to patch operators.
-     */
-    bool d_using_petsc_smoothers;
-    std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<Mat> > d_patch_mat;
 
     /*
      * Patch overlap data.

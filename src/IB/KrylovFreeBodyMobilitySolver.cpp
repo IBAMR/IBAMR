@@ -46,7 +46,7 @@
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h"
-#include "petsc-private/petscimpl.h"
+#include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
 
 namespace IBAMR

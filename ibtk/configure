@@ -23165,14 +23165,14 @@ else
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.4" >&5
-$as_echo_n "checking for libMesh version 0.9.4... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.5 or newer" >&5
+$as_echo_n "checking for libMesh version 0.9.5 or newer... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION == 4))
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION >= 5))
 #else
 asdf
 #endif
@@ -23202,7 +23202,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_VERSION_VALID}" >&5
 $as_echo "${LIBMESH_VERSION_VALID}" >&6; }
   if test "$LIBMESH_VERSION_VALID" = no; then
-    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.4" "$LINENO" 5
+    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.5 or newer" "$LINENO" 5
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
@@ -27422,7 +27422,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide HDF5; using PETSc HDF5 library" >&5
 $as_echo "$as_me: PETSc appears to provide HDF5; using PETSc HDF5 library" >&6;}
   PETSC_BUNDLES_HDF5=yes
@@ -28660,7 +28660,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
-if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
+if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables"` != 0 ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hypre; using PETSc hypre library" >&5
 $as_echo "$as_me: PETSc appears to provide hypre; using PETSc hypre library" >&6;}
   PETSC_BUNDLES_HYPRE=yes
@@ -30554,9 +30554,9 @@ $as_echo "$as_me: using PETSC_DIR: ${PETSC_DIR}" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: using PETSC_ARCH: ${PETSC_ARCH}" >&5
 $as_echo "$as_me: using PETSC_ARCH: ${PETSC_ARCH}" >&6;}
 
-PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
-PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_CC_INCLUDES=`grep "PETSC_CC_INCLUDES =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_EXTERNAL_LIB_BASIC=`grep "PETSC_EXTERNAL_LIB_BASIC =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
+PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/petscvariables | sed -e 's/.*=//' -e 's/^ \t*//'`
 
 CPPFLAGS="$PETSC_CC_INCLUDES $CPPFLAGS"
 
@@ -30569,8 +30569,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.5" >&5
-$as_echo_n "checking for PETSc version 3.5... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.6" >&5
+$as_echo_n "checking for PETSc version 3.6... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30593,7 +30593,7 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,5,0) && PETSC_VERSION_LT(3,6,0)) || !PETSC_VERSION_RELEASE)
+#if ((PETSC_VERSION_GE(3,6,0) && PETSC_VERSION_LT(3,7,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
@@ -30611,7 +30611,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.5" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.6" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"

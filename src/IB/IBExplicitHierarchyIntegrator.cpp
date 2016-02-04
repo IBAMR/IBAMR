@@ -120,29 +120,6 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time - current_time;
-
-    // Determine whether there has been a time step size change.
-    static bool skip_check_for_dt_change = MathUtilities<double>::equalEps(d_integrator_time, d_start_time) ||
-                                           RestartManager::getManager()->isFromRestart();
-    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
-        !MathUtilities<double>::equalEps(dt, d_dt_previous[0]) &&
-        !MathUtilities<double>::equalEps(new_time, d_end_time))
-    {
-        if (d_error_on_dt_change)
-        {
-            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting."
-                                     << std::endl);
-        }
-        if (d_warn_on_dt_change)
-        {
-            pout << d_object_name << "::preprocessIntegrateHierarchy():  WARNING: Time step size "
-                                     "change encountered.\n"
-                 << "Suggest reducing maximum time step size in input file." << std::endl;
-        }
-    }
-    skip_check_for_dt_change = false;
 
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

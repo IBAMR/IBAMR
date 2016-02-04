@@ -223,6 +223,14 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
+    // Allocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_Phi_scratch_idx);
+        level->allocatePatchData(d_F_Phi_idx);
+    }
+
     // (1) Solve the velocity sub-problem for an initial approximation to U.
     //
     // U^* := inv(rho/dt - K*mu*L) F_U
@@ -326,6 +334,14 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     // Account for nullspace vectors.
     correctNullspace(U_vec, P_vec);
 
+    // Deallocate scratch data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_Phi_scratch_idx);
+        level->deallocatePatchData(d_F_Phi_idx);
+    }
+
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
@@ -359,20 +375,6 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->allocatePatchData(d_Phi_scratch_idx);
-        }
-        if (!level->checkAllocated(d_F_Phi_idx))
-        {
-            level->allocatePatchData(d_F_Phi_idx);
-        }
-    }
-
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
@@ -391,20 +393,6 @@ StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 
     // Deallocate hierarchy operators.
     d_Phi_bdry_fill_op.setNull();
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_Phi_scratch_idx))
-        {
-            level->deallocatePatchData(d_Phi_scratch_idx);
-        }
-        if (level->checkAllocated(d_F_Phi_idx))
-        {
-            level->deallocatePatchData(d_F_Phi_idx);
-        }
-    }
 
     d_is_initialized = false;
 

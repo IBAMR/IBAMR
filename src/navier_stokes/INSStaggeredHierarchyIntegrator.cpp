@@ -95,6 +95,7 @@
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSStaggeredVelocityBcCoef.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
@@ -1081,12 +1082,15 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     // Allocate solver vectors.
     d_U_rhs_vec->allocateVectorData(current_time);
     d_U_rhs_vec->setToScalar(0.0);
-    d_U_adv_vec->allocateVectorData(current_time);
-    d_U_adv_vec->setToScalar(0.0);
-    d_N_vec->allocateVectorData(current_time);
-    d_N_vec->setToScalar(0.0);
     d_P_rhs_vec->allocateVectorData(current_time);
     d_P_rhs_vec->setToScalar(0.0);
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->allocateVectorData(current_time);
+        d_U_adv_vec->setToScalar(0.0);
+        d_N_vec->allocateVectorData(current_time);
+        d_N_vec->setToScalar(0.0);
+    }
 
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
@@ -1124,7 +1128,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ NULL);
-    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
@@ -1389,9 +1392,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 
     // Deallocate scratch data.
     d_U_rhs_vec->deallocateVectorData();
-    d_U_adv_vec->deallocateVectorData();
-    d_N_vec->deallocateVectorData();
     d_P_rhs_vec->deallocateVectorData();
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->deallocateVectorData();
+        d_N_vec->deallocateVectorData();
+    }
 
     // Deallocate any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1589,15 +1595,6 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     // p(n+1/2).
     d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_new_idx);
     d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_new_idx);
-
-    // Enforce Dirichlet boundary conditions.
-    d_bc_helper->enforceNormalVelocityBoundaryConditions(sol_vec->getComponentDescriptorIndex(0),
-                                                         sol_vec->getComponentDescriptorIndex(1),
-                                                         d_U_bc_coefs,
-                                                         new_time,
-                                                         /*homogeneous_bc*/ false);
-    d_bc_helper->copyDataAtDirichletBoundaries(rhs_vec->getComponentDescriptorIndex(0),
-                                               sol_vec->getComponentDescriptorIndex(0));
 
     // Synchronize solution and right-hand-side data before solve.
     typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
@@ -2032,8 +2029,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        //      d_bc_helper->cacheBcCoefData(d_bc_coefs, d_integrator_time, d_hierarchy);
-        //      d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -2433,6 +2428,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
+    d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
     LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
@@ -2443,17 +2439,34 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     {
         StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
             dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
-        if (!p_stokes_block_pc)
+        StaggeredStokesFACPreconditioner* p_stokes_fac_pc =
+            dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
             KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
+            {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
+
+                p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(
+                    p_stokes_krylov_solver->getPreconditioner().getPointer());
+            }
         }
         if (p_stokes_block_pc)
         {
             p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
+            p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+        }
+        else if (p_stokes_fac_pc)
+        {
+            p_stokes_fac_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
+            p_stokes_fac_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+        }
+        else
+        {
+            TBOX_WARNING("No special BCs set for the preconditioner \n");
         }
     }
     if (d_stokes_solver_needs_init)

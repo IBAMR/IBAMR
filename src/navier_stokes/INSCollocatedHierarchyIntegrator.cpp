@@ -906,12 +906,15 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     // Allocate solver vectors.
     d_U_rhs_vec->allocateVectorData(current_time);
     d_U_rhs_vec->setToScalar(0.0);
-    d_U_adv_vec->allocateVectorData(current_time);
-    d_U_adv_vec->setToScalar(0.0);
-    d_N_vec->allocateVectorData(current_time);
-    d_N_vec->setToScalar(0.0);
     d_Phi_rhs_vec->allocateVectorData(current_time);
     d_Phi_rhs_vec->setToScalar(0.0);
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->allocateVectorData(current_time);
+        d_U_adv_vec->setToScalar(0.0);
+        d_N_vec->allocateVectorData(current_time);
+        d_N_vec->setToScalar(0.0);
+    }
 
     // Initialize the right-hand side terms.
     const double rho = d_problem_coefs.getRho();
@@ -1487,9 +1490,12 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 
     // Deallocate scratch data.
     d_U_rhs_vec->deallocateVectorData();
-    d_U_adv_vec->deallocateVectorData();
-    d_N_vec->deallocateVectorData();
     d_Phi_rhs_vec->deallocateVectorData();
+    if (!d_creeping_flow)
+    {
+        d_U_adv_vec->deallocateVectorData();
+        d_N_vec->deallocateVectorData();
+    }
 
     // Deallocate any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)

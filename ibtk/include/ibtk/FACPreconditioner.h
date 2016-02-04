@@ -268,6 +268,12 @@ public:
 
     //\}
 
+    /*!
+     * \brief Get the FAC preconditioner strategy objects employed by the
+     * preconditioner.
+     */
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
+
 protected:
     void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,

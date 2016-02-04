@@ -1,0 +1,271 @@
+// physical parameters
+MU  = 1.0e-2                              // fluid viscosity
+RHO = 0.0                                 // fluid density
+L   = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 5                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
+N = 16                                   // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
+
+// solver parameters
+START_TIME         = 0.0e0                // initial simulation time
+END_TIME           = 0.125                // final simulation time
+GROW_DT            = 2.0e0                // growth factor for timesteps
+CREEPING_FLOW      = TRUE
+DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"
+ADVECTION_TIME_STEPPING = "FORWARD_EULER"
+NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE = "FORWARD_EULER"    // convective time stepping type
+CONVECTIVE_OP_TYPE = "CENTERED"                // convective differencing discretization type
+CONVECTIVE_FORM    = "CONSERVATIVE"          // how to compute the convective terms
+NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
+CFL_MAX            = 0.3                  // maximum CFL number
+DT_MAX             = 1.0e-15       // maximum timestep size
+VORTICITY_TAGGING  = FALSE                // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
+REGRID_INTERVAL    = 10000000             // effectively disable regridding
+OUTPUT_U           = TRUE
+OUTPUT_P           = TRUE
+OUTPUT_F           = FALSE
+OUTPUT_OMEGA       = TRUE
+OUTPUT_DIV_U       = TRUE
+ENABLE_LOGGING     = TRUE
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "1.0"
+}
+
+VelocityBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = NUM_CYCLES
+   creeping_flow                 = CREEPING_FLOW
+   viscous_time_stepping_type    = DIFFUSION_TIME_STEPPING
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   convective_op_type            = CONVECTIVE_OP_TYPE
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   vorticity_rel_thresh          = 0.25,0.125
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   enable_logging                = ENABLE_LOGGING
+   max_integrator_steps          = 1
+
+   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
+   stokes_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
+   stokes_solver_db 
+   {
+      ksp_type = "fgmres"
+      abs_residual_tol = 1e-50
+      rel_residual_tol = 1e-8
+      max_iterations   = 10000
+   }
+   stokes_precond_db
+   {
+	num_pre_sweeps  = 0
+	num_post_sweeps = 3
+	//U_prolongation_method = "LINEAR_REFINE"
+	//P_prolongation_method = "LINEAR_REFINE"
+	//U_restriction_method  = "CONSERVATIVE_COARSEN"
+	//P_restriction_method  = "CONSERVATIVE_COARSEN"
+
+	level_solver_type   = "PETSC_LEVEL_SOLVER"
+	level_solver_rel_residual_tol = 1.0e-12
+	level_solver_abs_residual_tol = 1.0e-50
+	level_solver_max_iterations = 5
+	level_solver_db
+        {
+	    initial_guess_nonzero = TRUE
+	    ksp_type              = "fgmres"
+	    pc_type               = "asm"
+
+            subdomain_box_size        = 64, 64
+            subdomain_overlap_size    = 2, 2
+	}
+
+	coarse_solver_type  = "PETSC_LEVEL_SOLVER"
+	coarse_solver_rel_residual_tol = 1.0e-12
+	coarse_solver_abs_residual_tol = 1.0e-50
+	coarse_solver_max_iterations = 8
+	coarse_solver_db
+        {
+	    initial_guess_nonzero = TRUE
+	    ksp_type              = "fgmres"
+            pc_type               = "asm"
+
+            subdomain_box_size        = 8, 8
+            subdomain_overlap_size    = 2, 2
+	}
+   }
+
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   regrid_projection_solver_db
+   {
+      ksp_type = "fgmres"
+   }
+   regrid_projection_precond_db
+   {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db
+      {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
+   }
+}
+
+RR = REF_RATIO
+Main {
+
+// log file parameters
+   log_file_name               = "INS2d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 1
+   viz_dump_dirname            = "viz_INS2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 1,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = RR, RR
+      level_2 = RR, RR
+      level_3 = RR, RR
+      level_4 = RR, RR
+      level_5 = RR, RR
+      level_6 = RR, RR
+      level_7 = RR, RR
+      level_8 = RR, RR
+      level_9 = RR, RR
+   }
+   largest_patch_size {
+      level_0 = 64, 64  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+W = 2
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+
+	// =======  AMR - Style 1
+	//level_0 = [( W, W ),( N - 1 - W, N - 1-  W)]
+
+	//level_1 = [( RR*W + W, RR*W + W ),( RR*N - RR*W - 1 - W, RR*N - RR*W - 1 - W)]
+
+	//level_2 = [( RR^2*W + RR*W + W, RR^2*W + RR*W + W),( RR^2*N - RR^2*W -RR*W - 1 - W, RR^2*N - RR^2*W -RR*W - 1 - W)]
+
+	//level_3 = [( RR^3*W + RR^2*W + RR*W + W, RR^3*W + RR^2*W + RR*W + W),( RR^3*N - RR^3*W - RR^2*W - RR*W - 1 - W, RR^3*N - RR^3*W - RR^2*W - RR*W - 1 - W)]
+
+	//level_4 = [( RR^4*W + RR^3*W + RR^2*W + RR*W + W, RR^4*W + RR^3*W + RR^2*W + RR*W + W),( RR^4*N - RR^4*W - RR^3*W - RR^2*W - RR*W - 1 - W, RR^4*N - RR^4*W - RR^3*W - RR^2*W - RR*W - 1 - W)]
+
+
+	// ======== AMR - Style 2 (Entire domain)
+	level_0 = [(0,0), (N - 1, N - 1)]
+	level_1 = [(0,0), (RR^1*N - 1, RR^1*N - 1)]
+	level_2 = [(0,0), (RR^2*N - 1, RR^2*N - 1)]
+	level_3 = [(0,0), (RR^3*N - 1, RR^3*N - 1)]
+	level_4 = [(0,0), (RR^4*N - 1, RR^4*N - 1)]
+	level_5 = [(0,0), (RR^5*N - 1, RR^5*N - 1)]
+	level_6 = [(0,0), (RR^6*N - 1, RR^6*N - 1)]
+	level_7 = [(0,0), (RR^7*N - 1, RR^7*N - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}

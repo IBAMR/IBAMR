@@ -57,7 +57,6 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
-// IWYU pragma: no_include "petsc-private/petscimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -125,6 +124,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     }
     else
     {
+        d_op_u->allocateVectorData();
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u, false), false);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_u));
         IBTK_CHKERRQ(ierr);
@@ -134,6 +134,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyEnd(d_petsc_jac, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
+        d_op_u->deallocateVectorData();
     }
     return;
 } // formJacobian
@@ -192,7 +193,6 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
 
     // Setup solution and rhs vectors.
     d_op_u = in.cloneVector(in.getName());
-    d_op_u->allocateVectorData();
     d_petsc_u = PETScSAMRAIVectorReal::createPETScVector(d_op_u, comm);
 
     d_op_x = in.cloneVector(in.getName());
@@ -215,7 +215,6 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     d_petsc_u = NULL;
     d_op_u->resetLevels(0,
                         std::min(d_op_u->getFinestLevelNumber(), d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
-    d_op_u->deallocateVectorData();
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
 

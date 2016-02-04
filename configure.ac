@@ -111,7 +111,6 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex6/Makefile
   examples/IBFE/explicit/ex7/Makefile
   examples/IBFE/explicit/ex8/Makefile
-  examples/IBFE/explicit/ex9/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -140,6 +139,13 @@ AC_CONFIG_FILES([
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
   src/tools/Makefile
+  tests/Makefile
+  tests/Stokes/Makefile
+  tests/Stokes/test0/Makefile
+  tests/Stokes-IB/Makefile
+  tests/Stokes-IB/test0/Makefile
+  tests/Stokes-IB/test1/Makefile
+  tests/Stokes-IB/test2/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

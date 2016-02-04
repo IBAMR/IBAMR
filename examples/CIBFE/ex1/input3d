@@ -236,7 +236,7 @@ CIBStaggeredStokesSolver
 
    }// KrylovMobilitySolver
 
-   KrylovBodyMobilitySolver
+   KrylovFreeBodyMobilitySolver
    {
        // intentionally left blank.
    }

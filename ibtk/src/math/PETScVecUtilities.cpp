@@ -264,7 +264,8 @@ void
 PETScVecUtilities::constructPatchLevelAO(AO& ao,
                                          std::vector<int>& num_dofs_per_proc,
                                          int dof_index_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                         const int ao_offset)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > dof_index_var;
@@ -273,11 +274,11 @@ PETScVecUtilities::constructPatchLevelAO(AO& ao,
     Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
-        constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level);
+        constructPatchLevelAO_cell(ao, num_dofs_per_proc, dof_index_idx, patch_level, ao_offset);
     }
     else if (dof_index_sc_var)
     {
-        constructPatchLevelAO_side(ao, num_dofs_per_proc, dof_index_idx, patch_level);
+        constructPatchLevelAO_side(ao, num_dofs_per_proc, dof_index_idx, patch_level, ao_offset);
     }
     else
     {
@@ -647,7 +648,8 @@ void
 PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                                               std::vector<int>& num_dofs_per_proc,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              Pointer<PatchLevel<NDIM> > patch_level,
+                                              const int ao_offset)
 {
     int ierr;
     if (ao)
@@ -666,10 +668,15 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
     Index<NDIM> num_cells = 1;
     num_cells += domain_upper - domain_lower;
 
-    // Compute PETSc to SAMRAI index mapping
+    // Compute PETSc to SAMRAI index mapping.
+    // Note that num of local dofs can be greater than the local
+    // mapping size, i.e., it is possible to map a sub-component of the
+    // vector.
     const int mpi_rank = SAMRAI_MPI::getRank();
-    const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
-    std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_upper = i_lower + n_local;
+    std::vector<int> petsc_idxs(n_local, -1), samrai_idxs(n_local, -1);
 
     int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -684,17 +691,17 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 
             for (int d = 0; d < depth; ++d, ++counter)
             {
-                petsc_idxs[counter] = (*dof_index_data)(i, d);
-                samrai_idxs[counter] = IndexUtilities::getIntegerMapping(i, domain_lower, num_cells, d);
+                const int dof_idx = (*dof_index_data)(i, d);
+#if !defined(NDEBUG)
+                TBOX_ASSERT(dof_idx >= i_lower && dof_idx < i_upper);
+#endif
+                petsc_idxs[counter] = dof_idx;
+                samrai_idxs[counter] = IndexUtilities::mapIndexToInteger(i, domain_lower, num_cells, d, ao_offset);
             }
         }
     }
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(counter == n_local_master_dofs);
-#endif
-
-    AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0], &petsc_idxs[0], &ao);
+    AOCreateMapping(PETSC_COMM_WORLD, counter, &samrai_idxs[0], &petsc_idxs[0], &ao);
 
     return;
 
@@ -704,7 +711,8 @@ void
 PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
                                               std::vector<int>& num_dofs_per_proc,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              Pointer<PatchLevel<NDIM> > patch_level,
+                                              const int ao_offset)
 {
     int ierr;
     if (ao)
@@ -728,98 +736,58 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
         num_cells[d] = domain_upper - domain_lower + offset;
     }
 
-    // Create variables to keep track of whether a particular location is the
-    // "master" location.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var =
-        new SideVariable<NDIM, int>("PETScVecUtilities::constructPatchLevelAO_side()::patch_num_var");
-    static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
-    patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > mastr_loc_var =
-        new SideVariable<NDIM, bool>("PETScVecUtilities::constructPatchLevelAO_side()::mastr_loc_var");
-    static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
-    patch_level->allocatePatchData(mastr_loc_idx);
-
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        patch_num_data->fillAll(patch_num);
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        mastr_loc_data->fillAll(false);
-    }
-
-    // Synchronize the patch number and preliminary DOF index data at patch
-    // boundaries to determine which patch owns a given DOF along patch
-    // boundaries.
-    RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
-
-    // Determine the master DOFs
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-            {
-                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
-                bool mastr_loc = (*patch_num_data)(i) == patch_num;
-                (*mastr_loc_data)(i) = mastr_loc;
-            }
-        }
-    }
-
     // Compute PETSc to SAMRAI index mapping
     const int mpi_rank = SAMRAI_MPI::getRank();
-    const int n_local_master_dofs = num_dofs_per_proc[mpi_rank];
-    std::vector<int> petsc_idxs(n_local_master_dofs), samrai_idxs(n_local_master_dofs);
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_upper = i_lower + n_local;
+    std::vector<int> petsc_idxs(n_local, -1), samrai_idxs(n_local, -1);
 
-    int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(dof_index_idx);
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
 
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
+            int data_offset = 0;
+            for (unsigned side = 0; side < component_axis; ++side)
+            {
+                int side_offset = depth;
+                for (unsigned d = 0; d < NDIM; ++d) side_offset *= num_cells[side](d);
+                data_offset += side_offset;
+            }
+
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
                 const SideIndex<NDIM> is(i, component_axis, SideIndex<NDIM>::Lower);
-                bool mastr_loc = (*mastr_loc_data)(is);
 
-                if (mastr_loc)
+                for (int d = 0; d < depth; ++d)
                 {
-                    for (int d = 0; d < depth; ++d, ++counter)
-                    {
-                        petsc_idxs[counter] = (*dof_index_data)(is, d);
-                        samrai_idxs[counter] =
-                            IndexUtilities::getIntegerMapping(i, domain_lower, num_cells[component_axis], d);
-                    }
+                    const int dof_idx = (*dof_index_data)(is, d);
+                    if (dof_idx < i_lower || dof_idx >= i_upper) continue;
+                    petsc_idxs[dof_idx - i_lower] = dof_idx;
+                    samrai_idxs[dof_idx - i_lower] = IndexUtilities::mapIndexToInteger(
+                        i, domain_lower, num_cells[component_axis], d, data_offset + ao_offset);
                 }
             }
         }
     }
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(counter == n_local_master_dofs);
-#endif
+    int counter = 0;
+    std::vector<int> petsc_map(n_local, -1), samrai_map(n_local, -1);
+    for (int k = 0; k < n_local; ++k)
+    {
+        if (petsc_idxs[k] < 0) continue;
+        petsc_map[counter] = petsc_idxs[k];
+        samrai_map[counter] = samrai_idxs[k];
+        ++counter;
+    }
 
-    AOCreateMapping(PETSC_COMM_WORLD, n_local_master_dofs, &samrai_idxs[0], &petsc_idxs[0], &ao);
-
-    // Deallocate temporary variable data.
-    patch_level->deallocatePatchData(patch_num_idx);
-    patch_level->deallocatePatchData(mastr_loc_idx);
+    AOCreateMapping(PETSC_COMM_WORLD, counter, &samrai_map[0], &petsc_map[0], &ao);
 
     return;
 

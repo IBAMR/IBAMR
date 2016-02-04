@@ -1,0 +1,79 @@
+This is a test case for Stokes-IB solver that uses StaggeredStokesIBLevelRelaxationFACOperator
+as a preconditioner. Four levels (can be changed from input file MAX_LEVELS) are taken in the
+system, that span the entire computational domain. The refinement ratio between the levels is 2
+(can be changed in the input file via REF_RATIO). This is to make a classical Cartesian-based
+geometric MG solver. The ratio in shell2d_64 subdatabase of IBStandardDatabase can be used to crank
+up or down the relative stiffness between implicit and explicit solvers.
+
+Some of the command lines for PETSc solvers are:
+
+// Level solvers
+(*) -stokes_ib_pc_level_pc_asm_local_type <multiplicative/additive>: ASM type on levels > 0.
+(*) -stokes_ib_pc_level_sub_ksp_type <preonly/richardson>: preonly is by default.
+(*) -stokes_ib_pc_level_sub_pc_type <lu/ilu/svd>: ilu is by default, we would like lu.
+(*) -stokes_ib_pc_level_pc_asm_type <none/restrict/basic/interpolate>: restrict is by default.
+(*) -stokes_ib_pc_level_sub_pc_factor_nonzeros_along_diagonal: making lu work in the case of nullspace.
+
+
+// Coarsest level solver
+(*) -stokes_ib_pc_level_0_pc_asm_local_type <multiplicative/additive> ASM type on level 0.
+(*) -stokes_ib_pc_level_0_sub_ksp_type <preonly/richardson> preonly is by default.
+(*) -stokes_ib_pc_level_0_sub_pc_type <lu/ilu/svd>: ilu is by default, we would like lu. 
+(*) -stokes_ib_pc_level_0_sub_pc_factor_nonzeros_along_diagonal:  making lu work in the case of nullspace.
+(*) -stokes_ib_pc_level_0_pc_asm_type <none/restrict/basic/interpolate>: restrict is by default.
+
+=================
+Commmand line:
+
+./main2d input2d -ib_ksp_monitor_true_residual -ib_snes_type ksponly -stokes_ib_pc_level_pc_asm_local_type additive -stokes_ib_pc_level_sub_pc_type lu -stokes_ib_pc_level_pc_asm_type interpolate -stokes_ib_pc_level_ksp_type richardson -stokes_ib_pc_level_ksp_richardson_self_scale  -ib_ksp_converged_reason -stokes_ib_pc_level_sub_pc_factor_shift_type nonzero   -stokes_ib_pc_level_0_ksp_type gmres -options_left 
+
+=================
+Printing code
+
+Sample code to print various block matrices in StaggeredStokesIBLevelRelaxationFACOperator. The matrices
+can be printed after level solvers are initialized.
+
+    const int debug_ln = d_finest_ln - 2;
+    const KSP& level_ksp = debug_ln == 0 ? d_coarse_solver->getPETScKSP() : d_level_solvers[debug_ln]->getPETScKSP();
+    KSPSetUp(level_ksp);
+    PC pc;
+    KSPGetPC(level_ksp, &pc);
+
+    KSP* subksp;
+    PetscInt nlocal, first;
+    PCASMGetSubKSP(pc, &nlocal, &first, &subksp);
+    PetscViewer matlab_viewer;
+    for (int i = 0; i < nlocal; i++)
+    {
+        Mat sub_mat;
+        KSPGetOperators(subksp[i], &sub_mat, PETSC_NULL);
+
+        std::ostringstream filename;
+        filename << "level_" << debug_ln << "_" << i;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        MatView(sub_mat, matlab_viewer);
+    }
+    // Print SAJ
+    std::ostringstream SAJ_filename;
+    SAJ_filename << "SAJ_" << debug_ln;
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, SAJ_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+    PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+    MatView(d_SAJ_mat[debug_ln], matlab_viewer);
+
+    // Print P
+    std::ostringstream P_filename;
+    P_filename << "P_" << debug_ln;
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, P_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+    PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+    MatView(d_prolongation_mat[debug_ln], matlab_viewer);
+
+    // Print scale R
+    std::ostringstream R_filename;
+    R_filename << "R_" << debug_ln;
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, R_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+    PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+    VecView(d_scale_restriction_mat[debug_ln], matlab_viewer);
+
+    // Destroy Petsc reader
+    PetscViewerDestroy(&matlab_viewer);

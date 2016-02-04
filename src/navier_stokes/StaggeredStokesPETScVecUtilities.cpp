@@ -32,10 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -45,6 +45,7 @@
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
+#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -71,6 +72,77 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define COPY_TO_PATCHLEVEL_VEC_MAC_FC IBAMR_FC_FUNC_(copy_to_patchlevel_vec_mac2d, COPY_TO_PATCHLEVEL_VEC_MAC2D)
+
+#define COPY_FROM_PATCHLEVEL_VEC_MAC_FC IBAMR_FC_FUNC_(copy_from_patchlevel_vec_mac2d, COPY_FROM_PATCHLEVEL_VEC_MAC2D)
+#endif
+
+#if (NDIM == 3)
+#define COPY_TO_PATCHLEVEL_VEC_MAC_FC IBAMR_FC_FUNC_(copy_to_patchlevel_vec_mac3d, COPY_TO_PATCHLEVEL_VEC_MAC3D)
+
+#define COPY_FROM_PATCHLEVEL_VEC_MAC_FC IBAMR_FC_FUNC_(copy_from_patchlevel_vec_mac3d, COPY_FROM_PATCHLEVEL_VEC_MAC3D)
+#endif
+
+extern "C" {
+void COPY_TO_PATCHLEVEL_VEC_MAC_FC(const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+#if (NDIM == 3)
+                                   const int&,
+                                   const int&,
+#endif
+                                   const int&,
+                                   const int&,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
+#if (NDIM == 3)
+                                   const double*,
+#endif
+                                   const int&,
+                                   const int*,
+                                   const int&,
+                                   const int*,
+                                   const int*,
+#if (NDIM == 3)
+                                   const int*,
+#endif
+                                   const int&,
+                                   double*);
+
+void COPY_FROM_PATCHLEVEL_VEC_MAC_FC(const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+#if (NDIM == 3)
+                                     const int&,
+                                     const int&,
+#endif
+                                     const int&,
+                                     const int&,
+                                     double*,
+                                     const int&,
+                                     double*,
+                                     double*,
+#if (NDIM == 3)
+                                     double*,
+#endif
+                                     const int&,
+                                     const int*,
+                                     const int&,
+                                     const int*,
+                                     const int*,
+#if (NDIM == 3)
+                                     const int*,
+#endif
+                                     const int&,
+                                     const double*);
+}
 
 namespace SAMRAI
 {
@@ -276,45 +348,69 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                                                           Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
+    int first_local, last_local;
+    ierr = VecGetOwnershipRange(vec, &first_local, &last_local);
     IBTK_CHKERRQ(ierr);
+    PetscScalar* array;
+    ierr = VecGetArray(vec, &array);
+    IBTK_CHKERRQ(ierr);
+
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM>& ilower = patch_box.lower();
+        const IntVector<NDIM>& iupper = patch_box.upper();
+
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-            {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
-                const int dof_index = (*u_dof_index_data)(is);
-                if (LIKELY(ilower <= dof_index && dof_index < iupper))
-                {
-                    ierr = VecSetValues(vec, 1, &dof_index, &(*u_data)(is), INSERT_VALUES);
-                    IBTK_CHKERRQ(ierr);
-                }
-            }
-        }
+        const IntVector<NDIM> u_gcw = u_data->getGhostCellWidth();
+        const IntVector<NDIM> u_dof_gcw = u_dof_index_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(u_gcw.min() == u_gcw.max());
+        TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
+#endif
+
         Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
-        {
-            const CellIndex<NDIM>& ic = b();
-            const int dof_index = (*p_dof_index_data)(ic);
-            if (LIKELY(ilower <= dof_index && dof_index < iupper))
-            {
-                ierr = VecSetValues(vec, 1, &dof_index, &(*p_data)(ic), INSERT_VALUES);
-                IBTK_CHKERRQ(ierr);
-            }
-        }
+        const IntVector<NDIM> p_gcw = p_data->getGhostCellWidth();
+        const IntVector<NDIM> p_dof_gcw = p_dof_index_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(p_gcw.min() == p_gcw.max());
+        TBOX_ASSERT(p_dof_gcw.min() == p_dof_gcw.max());
+#endif
+
+        COPY_TO_PATCHLEVEL_VEC_MAC_FC(ilower(0),
+                                      iupper(0),
+                                      ilower(1),
+                                      iupper(1),
+#if (NDIM == 3)
+                                      ilower(2),
+                                      iupper(2),
+#endif
+                                      first_local,
+                                      last_local,
+                                      p_data->getPointer(),
+                                      p_gcw.min(),
+                                      u_data->getPointer(0),
+                                      u_data->getPointer(1),
+#if (NDIM == 3)
+                                      u_data->getPointer(2),
+#endif
+                                      u_gcw.min(),
+                                      p_dof_index_data->getPointer(),
+                                      p_dof_gcw.min(),
+                                      u_dof_index_data->getPointer(0),
+                                      u_dof_index_data->getPointer(1),
+#if (NDIM == 3)
+                                      u_dof_index_data->getPointer(2),
+#endif
+                                      u_dof_gcw.min(),
+                                      array);
     }
-    ierr = VecAssemblyBegin(vec);
+    ierr = VecRestoreArray(vec, &array);
     IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec);
-    IBTK_CHKERRQ(ierr);
+
     return;
 } // copyToPatchLevelVec_MAC
 
@@ -327,45 +423,69 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                             Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
+    int first_local, last_local;
+    ierr = VecGetOwnershipRange(vec, &first_local, &last_local);
     IBTK_CHKERRQ(ierr);
+    const PetscScalar* array;
+    ierr = VecGetArrayRead(vec, &array);
+    IBTK_CHKERRQ(ierr);
+
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM>& ilower = patch_box.lower();
+        const IntVector<NDIM>& iupper = patch_box.upper();
+
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-            {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
-                const int dof_index = (*u_dof_index_data)(is);
-                if (LIKELY(ilower <= dof_index && dof_index < iupper))
-                {
-                    ierr = VecGetValues(vec, 1, &dof_index, &(*u_data)(is));
-                    IBTK_CHKERRQ(ierr);
-                }
-            }
-        }
+        const IntVector<NDIM> u_gcw = u_data->getGhostCellWidth();
+        const IntVector<NDIM> u_dof_gcw = u_dof_index_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(u_gcw.min() == u_gcw.max());
+        TBOX_ASSERT(u_dof_gcw.min() == u_dof_gcw.max());
+#endif
+
         Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
-        {
-            const CellIndex<NDIM>& ic = b();
-            const int dof_index = (*p_dof_index_data)(ic);
-            if (LIKELY(ilower <= dof_index && dof_index < iupper))
-            {
-                ierr = VecGetValues(vec, 1, &dof_index, &(*p_data)(ic));
-                IBTK_CHKERRQ(ierr);
-            }
-        }
+        const IntVector<NDIM> p_gcw = p_data->getGhostCellWidth();
+        const IntVector<NDIM> p_dof_gcw = p_dof_index_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(p_gcw.min() == p_gcw.max());
+        TBOX_ASSERT(p_dof_gcw.min() == p_dof_gcw.max());
+#endif
+
+        COPY_FROM_PATCHLEVEL_VEC_MAC_FC(ilower(0),
+                                        iupper(0),
+                                        ilower(1),
+                                        iupper(1),
+#if (NDIM == 3)
+                                        ilower(2),
+                                        iupper(2),
+#endif
+                                        first_local,
+                                        last_local,
+                                        p_data->getPointer(),
+                                        p_gcw.min(),
+                                        u_data->getPointer(0),
+                                        u_data->getPointer(1),
+#if (NDIM == 3)
+                                        u_data->getPointer(2),
+#endif
+                                        u_gcw.min(),
+                                        p_dof_index_data->getPointer(),
+                                        p_dof_gcw.min(),
+                                        u_dof_index_data->getPointer(0),
+                                        u_dof_index_data->getPointer(1),
+#if (NDIM == 3)
+                                        u_dof_index_data->getPointer(2),
+#endif
+                                        u_dof_gcw.min(),
+                                        array);
     }
-    ierr = VecAssemblyBegin(vec);
+    ierr = VecRestoreArrayRead(vec, &array);
     IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec);
-    IBTK_CHKERRQ(ierr);
+
     return;
 } // copyFromPatchLevelVec_MAC
 
