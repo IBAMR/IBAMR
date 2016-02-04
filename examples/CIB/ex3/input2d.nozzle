@@ -1,49 +1,52 @@
+// Physical parameters
+Re = 10.0
+RHO =  1.0
+MU  =  2.0*RHO/Re
+VISC_CFL = 0.1
 
-// physical parameters
-RHO     = 1.0                         // fluid density
-Re      = 20.0                        // Reynolds number of the flow
-U_PLATE = 1.0                         // wall velocity
-L_PLATE = 1.0                         // plate length
-MU      = RHO*U_PLATE*L_PLATE / Re    // fluid viscosity
-
-// constants
-PI         = 3.141592653589
-STOKES_ITER = 4
-STOKES_TOL = 1.0e-9          // Stokes' solver tolerance
-SOLVER_TOL = 1.0e-9          // Stokes' solver tolerance
-DELTA      = 0.0             // regularization parameter for mobility matrix
-
+// Constants
+PI          = 3.141592653589
+STOKES_ITER = 2
+KSP_TYPE_STOKES = "gmres"
+KSP_TYPE_OUTER = "fgmres"
+SOLVER_ITER = 1000
+STOKES_TOL = 1.0e-3
+SOLVER_TOL = 1.0e-9
+DELTA      = 0.0
+   
 // BCs
-PERIODIC            = 1
-NORMALIZE_PRESSURE  = TRUE
-NORMALIZE_VELOCITY  = FALSE
+PERIODIC            = 0
+NORMALIZE_PRESSURE  = FALSE           // whether to explicitly force the pressure to have mean zero
+NORMALIZE_VELOCITY  = (PERIODIC==1)  // for Stokes flow (rho = 0)
+P_WALL =1.0
 
 // Gridding
-N = 256
-L = 32.0
-H = 22.0
-DX = L/ N
+Nx=256
+Ny=128
+DX  = 0.5
+PATCH_SIZE = Nx
+Lx = Nx*DX
+Ly = Ny*DX
+DT = VISC_CFL*DX^2/MU
 
 // solver parameters
-PETSC_OPTIONS_FILE   = "PETScOptions.dat"
-MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
+MOBILITY_SOLVER_TYPE = "DIRECT"
 DELTA_FUNCTION       = "IB_6"
-START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = 15.0                  // final simulation time
-GROW_DT              = 1.0e0                 // growth factor for timesteps
-NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
-CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
-DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
-ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
-CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"  // convective time stepping type used in INS solver
-CONVECTIVE_OP_TYPE  = "PPM"                  // convective differencing discretization type; used in both INS and Adv-Diff solver
-CONVECTIVE_FORM     = "ADVECTIVE"            // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 0.2                    // maximum CFL number
-DT                  = CFL_MAX*DX / U_PLATE   // maximum timestep size
-ERROR_ON_DT_CHANGE  = FALSE                  // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+START_TIME           = 0.0e0                         // initial simulation time
+END_TIME             = DT*100                        // final simulation time
+GROW_DT              = 1.0e0                         // growth factor for timesteps
+NUM_CYCLES_INS       = 1                             // number of cycles of fixed-point iteration
+CREEPING_FLOW        = FALSE                         // turn convection (v.grad v) on/off in INS
+DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"           // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
+ADVECTION_TIME_STEPPING = "FORWARD_EULER"            // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
+CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH"          // convective time stepping type used in INS solver
+CONVECTIVE_OP_TYPE  = "PPM"                          // convective differencing discretization type; used in both INS and Adv-Diff solver
+CONVECTIVE_FORM     = "ADVECTIVE"                    // how to compute the convective terms; used in both INS and Adv-Diff solver
+CFL_MAX             = 0.5                            // maximum CFL number
+ERROR_ON_DT_CHANGE  = TRUE                           // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING   = FALSE                          // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER          = 2                              // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL = 0.5                            // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
 OUTPUT_F            = TRUE
@@ -53,10 +56,11 @@ ENABLE_LOGGING      = FALSE
 
 
 // AMR parameters
-MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
-REF_RATIO  = 4                            // refinement ratio between levels
+MAX_LEVELS = 1
+REF_RATIO  = 4
 
 IBHierarchyIntegrator {
+   delta_fcn           = DELTA_FUNCTION
    start_time          = START_TIME
    end_time            = END_TIME
    grow_dt             = GROW_DT
@@ -68,48 +72,47 @@ IBHierarchyIntegrator {
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
    time_stepping_type  = "MIDPOINT_RULE"
+   //max_integrator_steps = 1
 }
 
-num_structures = 1
+//num_structures = 1
 CIBMethod {
-   delta_fcn             = DELTA_FUNCTION
-   enable_logging        = ENABLE_LOGGING
-   lambda_dirname        = "./Lambda"
-   lambda_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
-   output_eul_lambda     = TRUE         // defaults to false
+    delta_fcn             = DELTA_FUNCTION
+    enable_logging        = ENABLE_LOGGING
+    lambda_dirname        = "./Lambda"
+    lambda_dump_interval  = 1            // 0 turns off printing of Lagrange multiplier
+    output_eul_lambda     = TRUE         // defaults to false
 }
 
-IBStandardInitializer {
-    posn_shift      = 0.0 , 0.0
+CIBStandardInitializer {
+    structure_names          = "nozzle2d"
+    posn_shift = Lx/2., Ly/2.
     max_levels      = MAX_LEVELS
-    structure_names = "plate2d"
-
-   plate2d{
-      level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = 0.0
-   }
-
+    
+    nozzle2d{
+      level_number             = MAX_LEVELS - 1
+    }
 }
 
 CIBStaggeredStokesSolver 
 {
     // Parameters to control various linear operators
-    scale_interp_operator     = 1.0                            // defaults to 1.0
-    scale_spread_operator     = 1.0                            // defaults to 1.0
-    normalize_spread_force    = FALSE                          // defaults to false
-    regularize_mob_factor     = DELTA                          // defaults to 0.0
+    scale_interp_operator     = 1.0                                // defaults to 1.0
+    scale_spread_operator     = 1.0                                // defaults to 1.0
+    normalize_spread_force    = (PERIODIC == 1)                    // defaults to false
+    regularize_mob_factor     = DELTA                              // defaults to 0.0
  
     // Setting for outer Krylov solver.
     options_prefix        = "SP_"
-    max_iterations        = 100
-    rel_residual_tol      = 1e-11
+    max_iterations        = SOLVER_ITER
+    rel_residual_tol      = SOLVER_TOL
     abs_residual_tol      = 1e-50
-    ksp_type              = "fgmres"
+    ksp_type              = KSP_TYPE_OUTER
     pc_type               = "shell"
     initial_guess_nonzero = FALSE
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
-  
+
     // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
     PCStokesSolver
     {
@@ -119,7 +122,7 @@ CIBStaggeredStokesSolver
         stokes_solver_db
         {
             max_iterations   = STOKES_ITER
-            ksp_type         = "gmres"
+            ksp_type         = KSP_TYPE_STOKES
             rel_residual_tol = STOKES_TOL
             abs_residual_tol = 0.0
         }
@@ -129,36 +132,52 @@ CIBStaggeredStokesSolver
         {
             // no options to set for projection preconditioner
         }
-
-        velocity_solver_type = "HYPRE_LEVEL_SOLVER"
+        velocity_solver_type = "PETSC_KRYLOV_SOLVER"
         velocity_solver_db
         {
-            solver_type       = "Split"         // split vx / vy / vz blocks
-            split_solver_type = "PFMG"          // use hypre PFMG MG on the blocks
-            enable_logging    = FALSE
-            max_iterations    = 1               // only works with a single multigrid cycle per iteration
+            ksp_type = "richardson"
+            max_iterations = 1
             rel_residual_tol  = 1.0e-16
-            abs_residual_tol  = 1.0e-50
+            abs_residual_tol  = 0
+        }
+        velocity_precond_type = "HYPRE_LEVEL_SOLVER"
+        velocity_precond_db
+        {
+            solver_type       = "Split"
+            split_solver_type = "PFMG"
+            enable_logging    = FALSE
+            max_iterations    = 1
+            rel_residual_tol  = 1.0e-16
+            abs_residual_tol  = 0
         }
 
-        pressure_solver_type = "HYPRE_LEVEL_SOLVER"
+        pressure_solver_type = "PETSC_KRYLOV_SOLVER"
         pressure_solver_db
         {
-            solver_type          = "PFMG"
-            num_pre_relax_steps  = 2
-            num_post_relax_steps = 2
-            enable_logging       = FALSE
-            max_iterations       = 1            // only a single multigrid cycle per iteration
-            rel_residual_tol     = 1.0e-16
-            abs_residual_tol     = 1.0e-50
+            ksp_type = "richardson"
+            enable_logging = FALSE
+            max_iterations = 1
+            rel_residual_tol = 1.0e-16
+            abs_residual_tol = 0.0
         }
-    }// PCStokesSolver
+        pressure_precond_type = "HYPRE_LEVEL_SOLVER"
+        pressure_precond_db
+        {
+            solver_type          = "PFMG" // Use hypre Struct multigrid
+            enable_logging       = FALSE // Hypre does not give useful statistics so keep at FALSE
+            num_pre_relax_steps  = 2  // number of pre- sweeps (1, 2, maybe 3)
+            num_post_relax_steps = 2  // number of post-sweeps (1,2, maybe 3)
+            max_iterations       = 1  // Keep this fixed at 1
+            rel_residual_tol     = 1.0e-16 // Keep small
+            abs_residual_tol     = 0
+        }
+    }// PCStokesSolve
 
     KrylovMobilitySolver
     {
         // Settings for outer solver.
         max_iterations        = 1000
-        rel_residual_tol      = 1e-12
+        rel_residual_tol      = STOKES_TOL
         abs_residual_tol      = 1e-50
         ksp_type              = "fgmres"
         pc_type               = "none"
@@ -171,9 +190,9 @@ CIBStaggeredStokesSolver
         stokes_precond_type   = "PROJECTION_PRECONDITIONER"
         stokes_solver_db
         {
-            max_iterations   = 1000
+            max_iterations   = 100
             ksp_type         = "gmres"
-            rel_residual_tol = 1e-12
+            rel_residual_tol = STOKES_TOL
             abs_residual_tol = 0.0
         }
 
@@ -222,7 +241,7 @@ CIBStaggeredStokesSolver
     DirectMobilitySolver
     {
         recompute_mob_mat_perstep = FALSE
-        f_periodic_correction        = PERIODIC*2.84/(6.0*PI*MU*L)  // mobility correction due to periodic BC
+        f_periodic_correction        = PERIODIC*2.84/(6.0*PI*MU*Lx)  // mobility correction due to periodic BC
 
         LAPACK_SVD
         {
@@ -242,7 +261,7 @@ CIBStaggeredStokesSolver
 
     } //KrylovFreeBodyMobilitySolver
 
-} // cIBStaggeredStokesSolver
+} // CIBStaggeredStokesSolver
 
 
 INSStaggeredHierarchyIntegrator {
@@ -271,31 +290,32 @@ INSStaggeredHierarchyIntegrator {
    init_convective_time_stepping_type = "FORWARD_EULER" 
 }
 
+
 Main {
 
 // log file parameters
-   log_file_name               = "CIB2d.log"
+   log_file_name               = "nozzle2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 10
-   viz_dump_dirname            = "viz_2d"
+   viz_dump_interval           = 1
+   viz_dump_dirname            = "viz_nozzle2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_2d"
+   restart_dump_dirname        = "restart_nozzle2d"
 
 // timer dump parameters
-   timer_dump_interval         = 1
+   timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),( N - 1, N - 1) ]
-   x_lo = 0., 0.
-   x_up = L, H
-   periodic_dimension = PERIODIC, PERIODIC
+   domain_boxes = [ (0,0),( Nx - 1, Ny - 1) ]
+   x_lo = 0.0, 0.0
+   x_up = Nx*DX,  Ny*DX
+   periodic_dimension = 0,0
 }
 
 // Initial and BC conditions (if nonperiodic)
@@ -306,34 +326,33 @@ VelocityInitialConditions {
 }
 
 // u velocity
-VelocityBcCoefs_0 {
+VelocityBcCoefs_0{
 
-   u_wall = 1.0
+   p_wall = P_WALL
+      
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0" 
-   acoef_function_3 = "1.0" 
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0" 
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "u_wall"
-   gcoef_function_1 = "u_wall"
-   gcoef_function_2 = "u_wall"
-   gcoef_function_3 = "u_wall"
+   gcoef_function_0 = "-p_wall"
+   gcoef_function_1 = "p_wall"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
    
 }
-
 // v velocity
 VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0" 
-   acoef_function_3 = "1.0"  
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
@@ -342,11 +361,10 @@ VelocityBcCoefs_1 {
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0" 
+   gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   
-}
 
+}
 
 PressureInitialConditions {
    function = "0.0"
@@ -360,16 +378,17 @@ GriddingAlgorithm {
       level_3 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512, 512   // all finer levels will use same values as level_0
+      level_0 = PATCH_SIZE, PATCH_SIZE  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8  // all finer levels will use same values as level_0
+      level_0 =   8, 8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
+  N=Nx
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
       level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
@@ -382,7 +401,7 @@ LoadBalancer {
 }
 
 TimerManager{
-   print_exclusive = TRUE
+   print_exclusive = FALSE
    print_total     = TRUE
    print_threshold = 0.1
    timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
