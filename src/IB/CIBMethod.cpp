@@ -455,17 +455,6 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        // Set structure index info.
-        std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
-        std::sort(structIDs.begin(), structIDs.end());
-        const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
-
-        for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
-        {
-            d_struct_lag_idx_range[struct_no] =
-                d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], level_number);
-        }
-
         // Create Lagrange multiplier and regularization data.
         Pointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda",
                                                                           level_number,
@@ -479,11 +468,6 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         // Initialize the Lagrange multiplier to zero.
         // Specific value of lambda will be assigned from structure specific input file.
         VecSet(lag_mul_data->getVec(), 0.0);
-
-        if (d_silo_writer)
-        {
-            d_silo_writer->registerVariableData("lambda", lag_mul_data, level_number);
-        }
     }
 
     return;
@@ -510,7 +494,19 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                        init_data_time,
                                        initial_time);
 
-    // Lookup the range of hierarchy levels.
+    // Set structure index info.
+    const int struct_ln = getStructuresLevelNumber();
+    std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(struct_ln);
+    std::sort(structIDs.begin(), structIDs.end());
+    const unsigned structs_on_this_ln = static_cast<unsigned>(structIDs.size());
+
+    for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+    {
+        d_struct_lag_idx_range[struct_no] =
+            d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], struct_ln);
+    }
+
+    // Initialize Lagrangian and Eulerian lambda at initial time.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     if (initial_time)
@@ -531,17 +527,14 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         }
     }
 
-    bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart)
+    // Register plot quantities.
+    if (d_silo_writer)
     {
-        if (d_silo_writer)
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-                Pointer<LData> lag_mul_data = d_l_data_manager->getLData("lambda", ln);
-                d_silo_writer->registerVariableData("lambda", lag_mul_data, ln);
-            }
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+            Pointer<LData> lag_mul_data = d_l_data_manager->getLData("lambda", ln);
+            d_silo_writer->registerVariableData("lambda", lag_mul_data, ln);
         }
     }
 
@@ -556,19 +549,16 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         }
     }
 
-    if (initial_time || from_restart)
+    // Initialize mobility regularization data.
+    setRegularizationWeight(struct_ln);
+
+    // Initialize initial center of mass of structures.
+    std::vector<Pointer<LData> > X0_data(finest_ln + 1, Pointer<LData>(NULL));
+    X0_data[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
+    computeCOMOfStructures(d_center_of_mass_initial, X0_data);
+    if (initial_time)
     {
-        setRegularizationWeight(finest_ln);
-        d_rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
-
-        std::vector<Pointer<LData> > X0_data(finest_ln + 1, Pointer<LData>(NULL));
-        X0_data[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
-        computeCOMOfStructures(d_center_of_mass_initial, X0_data);
-
-        if (initial_time)
-        {
-            d_center_of_mass_current = d_center_of_mass_initial;
-        }
+        d_center_of_mass_current = d_center_of_mass_initial;
     }
 
     return;
