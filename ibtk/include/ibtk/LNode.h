@@ -80,8 +80,10 @@ public:
     LNode(int lagrangian_nidx = -1,
           int global_petsc_nidx = -1,
           int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-          const Vector& periodic_displacement = Vector::Zero(),
+          const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+          const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+          const Vector& initial_periodic_displacement = Vector::Zero(),
+          const Vector& current_periodic_displacement = Vector::Zero(),
           const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
               std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
