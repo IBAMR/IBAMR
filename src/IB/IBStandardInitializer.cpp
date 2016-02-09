@@ -463,8 +463,14 @@ IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(new LNode(lagrangian_idx,
+                                          global_petsc_idx,
+                                          local_petsc_idx,
+                                          /*initial*/ periodic_offset,
+                                          /*current*/ periodic_offset,
+                                          /*initial*/ periodic_displacement,
+                                          /*current*/ periodic_displacement,
+                                          node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);

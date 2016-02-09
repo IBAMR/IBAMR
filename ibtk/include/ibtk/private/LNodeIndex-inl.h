@@ -47,13 +47,17 @@ namespace IBTK
 inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
                               const int global_petsc_nidx,
                               const int local_petsc_nidx,
-                              const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-                              const Vector& periodic_displacement)
+                              const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset,
+                              const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
+                              const Vector& initial_periodic_displacement,
+                              const Vector& current_periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx),
       d_global_petsc_nidx(global_petsc_nidx),
       d_local_petsc_nidx(local_petsc_nidx),
-      d_offset(periodic_offset),
-      d_displacement(periodic_displacement)
+      d_offset_0(initial_periodic_offset),
+      d_offset(current_periodic_offset),
+      d_displacement_0(initial_periodic_displacement),
+      d_displacement(current_periodic_displacement)
 {
     // intentionally blank
     return;
@@ -63,7 +67,9 @@ inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
     : d_lagrangian_nidx(from.d_lagrangian_nidx),
       d_global_petsc_nidx(from.d_global_petsc_nidx),
       d_local_petsc_nidx(from.d_local_petsc_nidx),
+      d_offset_0(from.d_offset_0),
       d_offset(from.d_offset),
+      d_displacement_0(from.d_displacement_0),
       d_displacement(from.d_displacement)
 {
     // intentionally blank
@@ -74,7 +80,9 @@ inline LNodeIndex::LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI
     : d_lagrangian_nidx(-1),
       d_global_petsc_nidx(-1),
       d_local_petsc_nidx(-1),
+      d_offset_0(0),
       d_offset(0),
+      d_displacement_0(Vector::Zero()),
       d_displacement(Vector::Zero())
 {
     unpackStream(stream, offset);
@@ -144,10 +152,22 @@ LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, c
 } // registerPeriodicShift
 
 inline const SAMRAI::hier::IntVector<NDIM>&
+LNodeIndex::getInitialPeriodicOffset() const
+{
+    return d_offset_0;
+} // getInitialPeriodicOffset
+
+inline const SAMRAI::hier::IntVector<NDIM>&
 LNodeIndex::getPeriodicOffset() const
 {
     return d_offset;
 } // getPeriodicOffset
+
+inline const Vector&
+LNodeIndex::getInitialPeriodicDisplacement() const
+{
+    return d_displacement_0;
+} // getInitialPeriodicDisplacement
 
 inline const Vector&
 LNodeIndex::getPeriodicDisplacement() const
@@ -167,7 +187,8 @@ LNodeIndex::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
 inline size_t
 LNodeIndex::getDataStreamSize() const
 {
-    return (3 + NDIM) * SAMRAI::tbox::AbstractStream::sizeofInt() + NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble();
+    return (3 + 2 * NDIM) * SAMRAI::tbox::AbstractStream::sizeofInt() +
+           (2 * NDIM) * SAMRAI::tbox::AbstractStream::sizeofDouble();
 } // getDataStreamSize
 
 inline void
@@ -176,7 +197,9 @@ LNodeIndex::packStream(SAMRAI::tbox::AbstractStream& stream)
     stream.pack(&d_lagrangian_nidx, 1);
     stream.pack(&d_global_petsc_nidx, 1);
     stream.pack(&d_local_petsc_nidx, 1);
+    stream.pack(d_offset_0, NDIM);
     stream.pack(d_offset, NDIM);
+    stream.pack(d_displacement_0.data(), NDIM);
     stream.pack(d_displacement.data(), NDIM);
     return;
 } // packStream
@@ -187,7 +210,9 @@ LNodeIndex::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hie
     stream.unpack(&d_lagrangian_nidx, 1);
     stream.unpack(&d_global_petsc_nidx, 1);
     stream.unpack(&d_local_petsc_nidx, 1);
+    stream.unpack(d_offset_0, NDIM);
     stream.unpack(d_offset, NDIM);
+    stream.unpack(d_displacement_0.data(), NDIM);
     stream.unpack(d_displacement.data(), NDIM);
     return;
 } // unpackStream
@@ -200,7 +225,9 @@ LNodeIndex::assignThatToThis(const LNodeIndex& that)
     d_lagrangian_nidx = that.d_lagrangian_nidx;
     d_global_petsc_nidx = that.d_global_petsc_nidx;
     d_local_petsc_nidx = that.d_local_petsc_nidx;
+    d_offset_0 = that.d_offset_0;
     d_offset = that.d_offset;
+    d_displacement_0 = that.d_displacement_0;
     d_displacement = that.d_displacement;
     return;
 } // assignThatToThis
