@@ -77,8 +77,10 @@ public:
     LNodeIndex(int lagrangian_nidx = -1,
                int global_petsc_nidx = -1,
                int local_petsc_nidx = -1,
-               const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-               const Vector& periodic_displacement = Vector::Zero());
+               const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+               const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+               const Vector& initial_periodic_displacement = Vector::Zero(),
+               const Vector& current_periodic_displacement = Vector::Zero());
 
     /*!
      * \brief Copy constructor.
@@ -143,9 +145,19 @@ public:
     virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
 
     /*!
+     * \brief Get the initial (t = 0) periodic offset.
+     */
+    virtual const SAMRAI::hier::IntVector<NDIM>& getInitialPeriodicOffset() const;
+
+    /*!
      * \brief Get the periodic offset.
      */
     virtual const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
+
+    /*!
+     * \brief Get the initial (t = 0) periodic displacement.
+     */
+    virtual const Vector& getInitialPeriodicDisplacement() const;
 
     /*!
      * \brief Get the periodic displacement.
@@ -188,8 +200,8 @@ private:
     int d_local_petsc_nidx;  // the local PETSc index
 
     // the periodic offset and displacement
-    SAMRAI::hier::IntVector<NDIM> d_offset;
-    Vector d_displacement;
+    SAMRAI::hier::IntVector<NDIM> d_offset_0, d_offset;
+    Vector d_displacement_0, d_displacement;
 };
 
 /*!
