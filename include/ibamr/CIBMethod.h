@@ -91,6 +91,7 @@ public:
                                                    const RigidDOFVector& U,
                                                    Vec X,
                                                    const Eigen::Vector3d& X_com,
+                                                   const Eigen::Matrix3d& rotation_mat,
                                                    double data_time,
                                                    void* ctx);
 
