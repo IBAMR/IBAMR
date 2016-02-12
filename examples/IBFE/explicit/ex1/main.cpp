@@ -67,7 +67,7 @@ namespace ModelData
 // Problem parameters.
 static const double R = 0.25;
 static const double w = 0.0625;
-static const double gamma = 0.1;
+static const double gamma = 0.15;
 static const double mu = 1.0;
 
 // Coordinate mapping function.
