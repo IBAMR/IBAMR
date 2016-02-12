@@ -56,7 +56,7 @@ if test "$LIBMESH_ENABLED" = yes; then
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION >= 5))
+#if ((LIBMESH_MAJOR_VERSION > 0) || ((LIBMESH_MINOR_VERSION >= 9) && (LIBMES_SUBMINOR_VERSION >= 5)))
 #else
 asdf
 #endif

@@ -23172,7 +23172,7 @@ $as_echo_n "checking for libMesh version 0.9.5 or newer... " >&6; }
 
 #include <libmesh/libmesh_config.h>
 
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION >= 5))
+#if ((LIBMESH_MAJOR_VERSION > 0) || ((LIBMESH_MINOR_VERSION >= 9) && (LIBMES_SUBMINOR_VERSION >= 5)))
 #else
 asdf
 #endif
