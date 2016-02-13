@@ -3,6 +3,7 @@ c     Routines to compute quantities related to variable coefficient
 c     generalized Laplace operators.
 c
 c     Created on 27 May 2010 by Thomas Fai
+c     Modified on 12 Feb 2016 by Nishant Nangia
 c
 c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
@@ -46,7 +47,7 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes (f0,f1) = alpha div mu grad (u0,u1) + beta (u0,u1) +
+c     Computes (f0,f1) = alpha div mu (grad (u0,u1) + grad(u0,u1)^T) + beta (u0,u1) +
 c     gamma (v0,v1).
 c
 c     Computes the side-centered variable coefficient generalized
@@ -96,15 +97,15 @@ c
       INTEGER i0,i1
       REAL    fac0,fac1
 c
-c     Compute the discrete divergence of mu grad (u0,u1).
+c     Compute the discrete divergence of mu (grad (u0,u1) + grad (u0,u1)^T).
 c
-      fac0 = 1.d0/(dx(0)**2.d0)
-      fac1 = 1.d0/(dx(1)**2.d0)
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
 
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
             f0(i0,i1) = alpha*(
-     &           0.5d0*fac0*(
+     &           0.5d0*fac0**2.d0*(
      &           (mu(i0,i1)+mu(i0+1,i1)+mu(i0,i1+1)+mu(i0+1,i1+1))*
      &           (u0(i0+1,i1)-u0(i0,i1))-
      &           (mu(i0,i1)+mu(i0-1,i1)+mu(i0,i1+1)+mu(i0-1,i1+1))*
@@ -120,7 +121,7 @@ c
       do i1 = ilower1,iupper1+1
          do i0 = ilower0,iupper0
             f1(i0,i1) = alpha*(
-     &           0.5d0*fac1*(
+     &           0.5d0*fac1**2.d0*(
      &           (mu(i0,i1)+mu(i0+1,i1)+mu(i0,i1+1)+mu(i0+1,i1+1))*
      &           (u1(i0,i1+1)-u1(i0,i1))-
      &           (mu(i0,i1)+mu(i0+1,i1)+mu(i0,i1-1)+mu(i0+1,i1-1))*
