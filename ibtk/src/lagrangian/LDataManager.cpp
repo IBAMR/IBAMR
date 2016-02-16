@@ -167,6 +167,9 @@ static Timer* t_compute_node_offsets;
 // Assume max(U)dt/dx <= 2.
 static const int CFL_WIDTH = 2;
 
+// Default floating point tolerance.
+static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
 }
@@ -960,9 +963,8 @@ LDataManager::computeLagrangianStructureBoundingBox(const int structure_id, cons
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    Point X_lower(Point::Constant((std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
-    Point X_upper(
-        Point::Constant(-(std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_lower(Point::Constant(std::numeric_limits<double>::max()));
+    Point X_upper(Point::Constant(std::numeric_limits<double>::lowest()));
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double, 2>& X_data =
@@ -1002,9 +1004,8 @@ LDataManager::reinitLagrangianStructure(const Point& X_center, const int structu
     // Compute the bounding box of the structure in its reference configuration.
     const boost::multi_array_ref<double, 2>& X0_data =
         *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
-    Point X_lower(Point::Constant((std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
-    Point X_upper(
-        Point::Constant(-(std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_lower(Point::Constant(std::numeric_limits<double>::max()));
+    Point X_upper(Point::Constant(std::numeric_limits<double>::lowest()));
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
@@ -1427,7 +1428,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
                     TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
                 }
                 X[d] = std::max(X[d], domain_x_lower[d]);
-                X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
+                X[d] = std::min(X[d], domain_x_upper[d] - (domain_x_upper[d] - domain_x_lower[d]) * TOL);
             }
             Vector periodic_displacement = X_real - X;
             IntVector<NDIM> periodic_offset;
