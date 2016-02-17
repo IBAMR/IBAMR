@@ -1,8 +1,8 @@
-//This is original IBStandardInitializer.h file 
-//Modified by Baky to use with CIBMethod class
+// This is original IBStandardInitializer.h file
+// Modified by Baky to use with CIBMethod class
 
 // Filename: CIBStandardInitializer.h
- // Created on 22 Nov 2006 by Boyce Griffith
+// Created on 22 Nov 2006 by Boyce Griffith
 //
 // Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
@@ -554,39 +554,38 @@ public:
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
-   /*!
-     * \return The initial position of the the protoype specified vertex in CM coordinate frame.
-     */
-IBTK::Point getPrototypeVertexPosn(const int level_number, const int structID, const int nodeID) const ;
+    /*!
+      * \return The initial position of the the protoype specified vertex in CM coordinate frame.
+      */
+    IBTK::Point getPrototypeVertexPosn(const int level_number, const int structID, const int nodeID) const;
 
-   /*!
-     * \return The initial position of the specified vertex.
-     */
-IBTK::Point getInitialVertexPosn(const int level_number, const int structID, const int nodeID) const;
+    /*!
+      * \return The initial position of the specified vertex.
+      */
+    IBTK::Point getInitialVertexPosn(const int level_number, const int structID, const int nodeID) const;
 
-   /*!
-     * \return The initial position of the specified vertex.
-     */
-Eigen::Vector3d getInitialCOMStructure(const int level_number, const int structID) const;
+    /*!
+      * \return The initial position of the specified vertex.
+      */
+    Eigen::Vector3d getInitialCOMStructure(const int level_number, const int structID) const;
 
-   /*!
-     * \return The initial orientation of the specified structure.
-     */
-Eigen::Quaterniond* getStructureQuaternion(const int level_number, const int structID);
+    /*!
+      * \return The initial orientation of the specified structure.
+      */
+    Eigen::Quaterniond* getStructureQuaternion(const int level_number, const int structID);
     /*!
      * \brief set rigid part clones parameters
      */
-void getClonesParameters(int& num_structs_types, 
-			 std::vector<int >& structs_clones_num,
-			 std::vector<StructureClonesInputOptions>&   clones_velocity_constriants_type,
-			 std::vector<StructureClonesInputOptions>&   clones_external_force_type,
-			 std::vector<std::vector<int> >&  clones_free_dofs,
-			 std::vector<std::vector<std::string> >&  VelMuParseStrings,
-			 std::vector<std::vector<std::string> >&  ForceMuParseStrings,
-			 std::vector<std::vector<double> >&  d_random_force_scaling);
+    void getClonesParameters(int& num_structs_types,
+                             std::vector<int>& structs_clones_num,
+                             std::vector<StructureClonesInputOptions>& clones_velocity_constriants_type,
+                             std::vector<StructureClonesInputOptions>& clones_external_force_type,
+                             std::vector<std::vector<int> >& clones_free_dofs,
+                             std::vector<std::vector<std::string> >& VelMuParseStrings,
+                             std::vector<std::vector<std::string> >& ForceMuParseStrings,
+                             std::vector<std::vector<double> >& d_random_force_scaling);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -698,7 +697,7 @@ private:
     /*!
      * \return The initial position of the specified vertex.
      */
-    IBTK::Point getVertexPosn(const std::pair<int, int>& point_index, int level_number)const;
+    IBTK::Point getVertexPosn(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
@@ -707,15 +706,15 @@ private:
                                      int level_number,
                                      const double* domain_x_lower,
                                      const double* domain_x_upper,
-                                     const SAMRAI::hier::IntVector<NDIM>& periodic_shift)const;
+                                     const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
 
     /*!
      * \reads the shifts and orientations of structure clones.
      */
     void readClonesCenterPositions(const std::string& fileNameCenters,
-				   const unsigned num_clones,
-				   double *coords,
-				   double *direction);
+                                   const unsigned num_clones,
+                                   double* coords,
+                                   double* direction);
 
     /*!
      * \return The target point specifications associated with a particular
@@ -829,7 +828,7 @@ private:
     /*
      * Orienation information.
      */
-    std::vector<std::vector< Eigen::Quaterniond > > d_quaternion;
+    std::vector<std::vector<Eigen::Quaterniond> > d_quaternion;
 
     /*
      * Edge data structures.
@@ -991,18 +990,18 @@ private:
      * purposes.
      */
     std::vector<unsigned int> d_global_index_offset;
-    
-    //information for structure clones
+
+    // information for structure clones
     unsigned d_num_structs_types;
     std::vector<int> d_structs_clones_num;
-    std::vector<std::vector<Eigen::Vector3d > > d_X_com;
-    std::vector<std::vector <int> > d_struct_prototype_map;
+    std::vector<std::vector<Eigen::Vector3d> > d_X_com;
+    std::vector<std::vector<int> > d_struct_prototype_map;
 
-    std::vector<StructureClonesInputOptions>   d_clones_velocity_constraints;
-    std::vector<StructureClonesInputOptions>   d_clones_external_force;
-    std::vector<std::vector<int> >  d_uniform_clones_free_dofs;
-    std::vector<std::vector<double> >  d_random_force_scaling;
-    std::vector<std::vector<std::string> >  d_constraint_velocity_strings,  d_external_force_strings;
+    std::vector<StructureClonesInputOptions> d_clones_velocity_constraints;
+    std::vector<StructureClonesInputOptions> d_clones_external_force;
+    std::vector<std::vector<int> > d_uniform_clones_free_dofs;
+    std::vector<std::vector<double> > d_random_force_scaling;
+    std::vector<std::vector<std::string> > d_constraint_velocity_strings, d_external_force_strings;
 };
 } // namespace IBAMR
 

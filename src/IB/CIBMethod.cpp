@@ -1534,22 +1534,22 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
                 geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = -R_dr[1];    //(1,3)
                 geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
 #elif(NDIM == 3)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;   //(1,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;   //(1,4)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,4)
                 geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM] = R_dr[2];  //(1,5)
                 geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
 
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = 0.0;   //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,3)
                 geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 1] = 0.0;   //(2,5)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,5)
                 geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 1] = R_dr[0];  //(2,6)
 
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 2] = 0.0;       //(3,1)
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 2] = 0.0;   //(3,2)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 2] = 1.0;   //(3,3)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 2] = 0.0;          //(3,1)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,2)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 2] = 1.0;      //(3,3)
                 geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 2] = R_dr[1];  //(3,4)
                 geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 2] = 0.0;   //(3,6)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,6)
 #endif
             }
         }
