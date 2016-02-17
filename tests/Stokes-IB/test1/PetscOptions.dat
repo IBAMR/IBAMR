@@ -1,0 +1,26 @@
+
+-options_left
+-ib_ksp_monitor_true_residual 
+-ib_snes_type ksponly 
+-ib_ksp_converged_reason  
+-stokes_ib_pc_level_0_ksp_type gmres
+-stokes_ib_pc_level_0_pc_type asm
+-stokes_ib_pc_level_0_sub_pc_type lu
+-stokes_ib_pc_level_0_sub_pc_factor_shift_type nonzero 
+-stokes_ib_pc_level_pc_fieldsplit_type schur 
+-stokes_ib_pc_level_pc_fieldsplit_detect_saddle_point  
+-stokes_ib_pc_level_pc_fieldsplit_schur_precondition selfp         #Schur complement is approximated by A11 - A10 inv(diag(A00)) A01 
+-stokes_ib_pc_level_fieldsplit_pressure_pc_type mg                 #Supported with selfp type
+-stokes_ib_pc_level_fieldsplit_velocity_pc_type mg 
+-stokes_ib_pc_level_fieldsplit_velocity_ksp_type preonly
+-stokes_ib_pc_level_fieldsplit_pressure_ksp_type preonly
+-stokes_ib_pc_level_fieldsplit_pressure_ksp_max_it 2
+-stokes_ib_pc_level_fieldsplit_velocity_ksp_max_it 2
+ 
+# Diagnostics
+#-stokes_ib_pc_level_0_ksp_monitor_true_residual
+#-stokes_ib_pc_level_0_fieldsplit_velocity_ksp_monitor_true_residual
+#-stokes_ib_pc_level_0_fieldsplit_pressure_ksp_monitor_true_residual
+#-stokes_ib_pc_level_0_fieldsplit_pressure_ksp_view 
+#-stokes_ib_pc_level_0_fieldsplit_velocity_ksp_view
+#-stokes_ib_pc_level_0_fieldsplit_pressure_pc_type lsc

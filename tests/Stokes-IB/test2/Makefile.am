@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST = input2d.cylinder README
+EXTRA_DIST = input2d.cylinder PetscOptions.dat README
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -19,6 +19,7 @@ tests: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/input2d.cylinder $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_256.vertex $(PWD) ; \
           cp -f $(srcdir)/cylinder2d_256.spring $(PWD) ; \
+          cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
           cp -f $(srcdir)/README $(PWD) ; \
 	fi ;
 
@@ -28,5 +29,6 @@ clean-local:
 	  rm -f $(builddir)/input2d.cylinder ; \
 	  rm -f $(builddir)/cylinder2d_256.vertex ; \
           rm -f $(builddir)/cylinder2d_256.spring ; \
+          rm -f $(builddir)/PetscOptions.dat ; \
           rm -f $(builddir)/README ; \
 	fi ;
