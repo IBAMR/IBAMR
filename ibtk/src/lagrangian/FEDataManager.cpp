@@ -159,6 +159,7 @@ static Timer* t_build_ghosted_solution_vector;
 static Timer* t_spread;
 static Timer* t_prolong_data;
 static Timer* t_interp;
+static Timer* t_interp_weighted;
 static Timer* t_restrict_data;
 static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
@@ -919,27 +920,27 @@ FEDataManager::prolongData(const int f_data_idx,
 } // prolongData
 
 void
-FEDataManager::interp(const int f_data_idx,
-                      NumericVector<double>& F_vec,
-                      NumericVector<double>& X_vec,
-                      const std::string& system_name,
-                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                      const double fill_data_time)
+FEDataManager::interpWeighted(const int f_data_idx,
+                              NumericVector<double>& F_vec,
+                              NumericVector<double>& X_vec,
+                              const std::string& system_name,
+                              const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                              const double fill_data_time)
 {
-    interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
+    interpWeighted(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
     return;
-} // interp
+} // interpWeighted
 
 void
-FEDataManager::interp(const int f_data_idx,
-                      NumericVector<double>& F_vec,
-                      NumericVector<double>& X_vec,
-                      const std::string& system_name,
-                      const FEDataManager::InterpSpec& interp_spec,
-                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
-                      const double fill_data_time)
+FEDataManager::interpWeighted(const int f_data_idx,
+                              NumericVector<double>& F_vec,
+                              NumericVector<double>& X_vec,
+                              const std::string& system_name,
+                              const FEDataManager::InterpSpec& interp_spec,
+                              const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                              const double fill_data_time)
 {
-    IBTK_TIMER_START(t_interp);
+    IBTK_TIMER_START(t_interp_weighted);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -998,7 +999,7 @@ FEDataManager::interp(const int f_data_idx,
     // Loop over the patches to interpolate values to the element quadrature
     // points from the grid, then use these values to compute the projection of
     // the interpolated velocity field onto the FE basis functions.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    F_vec.zero();
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
@@ -1145,14 +1146,46 @@ FEDataManager::interp(const int f_data_idx,
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
-                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+                F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
             }
             qp_offset += n_qp;
         }
     }
+    F_vec.close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    IBTK_TIMER_STOP(t_interp_weighted);
+    return;
+} // interpWeighted
+
+void
+FEDataManager::interp(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                      const double fill_data_time)
+{
+    interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
+    return;
+} // interp
+
+void
+FEDataManager::interp(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const FEDataManager::InterpSpec& interp_spec,
+                      const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
+                      const double fill_data_time)
+{
+    IBTK_TIMER_START(t_interp);
+
+    // Interpolate quantity at quadrature points and filter it to nodal points.
+    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time);
 
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix);
@@ -1290,6 +1323,7 @@ FEDataManager::restrictData(const int f_data_idx,
                 }
                 elem->point(k) = X_node_cache[k];
             }
+
             Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
                           IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
             box.grow(IntVector<NDIM>(1));
@@ -1954,6 +1988,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
+
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
                 }
@@ -2067,6 +2102,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
         t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
         t_prolong_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData()");
+        t_interp_weighted = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interpWeighted()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
         t_restrict_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictData()");
         t_build_l2_projection_solver =

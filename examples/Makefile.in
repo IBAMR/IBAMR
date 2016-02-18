@@ -491,7 +491,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB
+SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE
 all: all-recursive
 
 .SUFFIXES:
@@ -822,6 +822,8 @@ examples:
 	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
