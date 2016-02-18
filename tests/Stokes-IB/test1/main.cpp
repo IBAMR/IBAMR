@@ -97,7 +97,11 @@ int main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string PetscOptionsFile = input_db->getString("petsc_options_file");
+#if (!PETSC_VERSION_RELEASE)
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, PetscOptionsFile.c_str(), PETSC_TRUE);
+#else
             PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+#endif
         }
 
         // Get various standard options set in the input file.
