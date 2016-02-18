@@ -1,0 +1,3 @@
+This is an example of mixture of prescribed and free DOFs for two bodies. The outer shell (structure 0) moves
+relative to the inner sphere (structure 1). The mobility matrices (both fluid and body mobility) of two
+structures are formed independently and are distributed to different processors (for parallel runs).
