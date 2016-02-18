@@ -41,9 +41,9 @@ namespace IBAMR
  * \brief Class MobilityFunctions provides empirical functions/fits for
  * forming mobility matrix needed for fully constraint based IB method.
  */
-
 class MobilityFunctions
 {
+public:
     /*!
      * \brief Construct the mobility matrix from empirical fits.
      *
@@ -74,7 +74,6 @@ class MobilityFunctions
      *
      * \param mm Pointer to mobility matrix.
      */
-public:
     static void constructEmpiricalMobilityMatrix(const char* kernel_name,
                                                  const double mu,
                                                  const double rho,

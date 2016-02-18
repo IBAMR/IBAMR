@@ -41,7 +41,6 @@
 
 namespace IBAMR
 {
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(const std::string& object_name,
