@@ -298,31 +298,6 @@ enum_to_string<StochasticStressTensorType>(StochasticStressTensorType val)
     return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
 } // enum_to_string
 
-enum MobilitySolverType
-{
-    DIRECT,
-    KRYLOV,
-    UNKNOWN_MOBILITY_SOLVER_TYPE = -1
-};
-
-template <>
-inline MobilitySolverType
-string_to_enum<MobilitySolverType>(const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "DIRECT") == 0) return DIRECT;
-    if (strcasecmp(val.c_str(), "KRYLOV") == 0) return KRYLOV;
-    return UNKNOWN_MOBILITY_SOLVER_TYPE;
-} // string_to_enum
-
-template <>
-inline std::string
-enum_to_string<MobilitySolverType>(MobilitySolverType val)
-{
-    if (val == DIRECT) return "DIRECT";
-    if (val == KRYLOV) return "KRYLOV";
-    return "UNKNOWN_MOBILITY_SOLVER_TYPE";
-} // enum_to_string
-
 /*!
  * \brief Enumerated type for different forms of dense mobility matrix.
  */

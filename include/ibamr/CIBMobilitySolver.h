@@ -243,6 +243,12 @@ private:
     double d_interp_scale, d_spread_scale, d_reg_mob_scale;
 
     // Type of mobility solver to be used
+    enum MobilitySolverType
+    {
+        DIRECT,
+        KRYLOV,
+        UNKNOWN_MOBILITY_SOLVER_TYPE = -1
+    };
     MobilitySolverType d_mobility_solver_type;
 
 }; // CIBMobilitySolver

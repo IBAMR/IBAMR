@@ -1,79 +1,60 @@
-/*
+// Filename: MobilityFunctions.cpp
+// Created on 17 Feb 2016 by Bakytzhan Kallemov and Amneet Bhalla
+//
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of The University of North Carolina nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
- \brief This is library to generate a mobility matrix based on standard 3,4 and 6 point Peskin kernel
- \date $April 15, 2015$
-
-NDIM identifier must be defined before any call of the functions
-
-The following function are available
-
-getHydroRadius
-  - Returns a hydrodynamic radius of a single "blob" for the corresponding Peskin kernel
-  input parameters
-  IBKernelName  name of the kernel {"IB3","IB4","IB6"}
-
-getEmpiricalMobilityComponents
-  - Generates empirical f(r) and g(r) functions values for a the NDIM X NDIM block of Mobility Matrix for two markers
-  input parameters
-  IBKernelName  		name of the kernel {"IB3","IB4","IB6"}
-  MU			fluid viscosity
-  rho			fluid density
-  Dt			time step used in the fluid solver
-  r			distance between markers
-  DX			grid spacing
-  resetAllConstants 	whether all constant must be reset if beta(viscous CFL number) is changed (otherwise will use
-the previous beta for fitting formula)
-  L_domain		length of the domain (used only only for 2 dimensional steady stokes)
-  F_MobilityValue		a pointer to return f(r) value
-  G_Mobilityvalue		a pointer to return g(r) value
-
-
-getEmpiricalMobilityMatrix
-  - Generates an empirical Mobility Matrix
-  input parameters
-  IBKernelName  		name of the kernel {"IB3","IB4","IB6"}
-  MU			fluid viscosity
-  rho			fluid density
-  Dt			time step used in the fluid solver
-  DX			grid spacing
-  X			a pointer to array of size NDIM*N that containts coordinates of markers
-  N			numbers of markers
-  resetAllConstants 	whether all constant must be reset if beta(viscous CFL number) is changed (otherwise will use
-the previous beta for fitting formula)
-  PERIODIC_CORRECTION	periodic corrections for f(r) function, set to 0.0 for all other cases or if it's not known.
-  L_domain		length of the domain (used only only for 2 dimensional steady stokes)
-  MM			a pointer to return a moblity matrix stored in column-major format. The allocated space size for
-MM must be non less than sizeof(double)*(NDIM*N)^2
-
-
-
-getRPYMobilityMatrix
-  - Generates an Mobility Matrix based on Ronte-Prager-Yamakawa (RPY) approximation
-  input parameters
-  IBKernelName  		name of the kernel {"IB3","IB4","IB6"}
-  MU			fluid viscosity
-  DX			grid spacing
-  X			a pointer to array of size NDIM*N that containts coordinates of markers
-  N			numbers of markers
-  PERIODIC_CORRECTION	periodic corrections for f(r) function, set to 0.0 for all other cases or if it's not known.
-  MM			a pointer to return a moblity matrix stored in column-major format. The allocated space size for
-MM must be non less than sizeof(double)*(NDIM*N)^2
-
-*/
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
+#include "ibamr/MobilityFunctions.h"
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
+namespace
+{
 #ifndef KRON
 #define KRON(i, j) ((i == j) ? 1 : 0) // Kronecker symbol
 #endif
 
-static const double MOB_FIT_FG_TOL = 1.0e-5; // min distance between blobs to apply empirical fitting
-static const double ZERO_TOL = 1.0e-10;      // tolerance for zero value
-static double MOB_FIT_FACTOR;                // constant for normalization
-static int reUse = 0;                        // flag for reuse data
+const double MOB_FIT_FG_TOL = 1.0e-5; // min distance between blobs to apply empirical fitting
+const double ZERO_TOL = 1.0e-10;      // tolerance for zero value
+double MOB_FIT_FACTOR;                // constant for normalization
+int reUse = 0;                        // flag for reuse data
+
 typedef enum _KERNEL_TYPES
 {
     IB3,
@@ -85,21 +66,25 @@ typedef enum _KERNEL_TYPES
 // Hydro radii for each kernel IB3,IB4,IB6
 const double MOB_FIT_HydroRadius[] = { 0.91, 1.255, 1.4685 };
 
-static double HRad; // current hydrodynamic radius
+// current hydrodynamic radius
+double HRad;
 
 // coefficients of empirical fit for steady stokes
-static double F_s[7];
-static double G_s[4];
+double F_s[7];
+double G_s[4];
+
 // coefficients of empirical fit for finite beta
-static double F_b[10];
-static double G_b[6];
+double F_b[10];
+double G_b[6];
+
 // coefficients of empirical fit for f(0)
-static double Z_b[5];
+double Z_b[5];
 #if (NDIM == 2)
 static double Z_s[3];
 #endif
 
-static KERNEL_TYPES GetKernelType(const char* IBKernelName)
+KERNEL_TYPES
+GetKernelType(const char* IBKernelName)
 {
     if (!strcmp(IBKernelName, "IB_3")) return IB3;
     if (!strcmp(IBKernelName, "IB_4")) return IB4;
@@ -107,21 +92,19 @@ static KERNEL_TYPES GetKernelType(const char* IBKernelName)
 
     fprintf(stderr, "IBEmpiricalMobility: Unknown interpolation kernel type.\n");
     exit(EXIT_FAILURE);
-}
+} // GetKernelType
 
-/*!
- * returns Hydrodynamic radius value
- */
-double getHydroRadius(const char* IBKernelName)
+// Returns Hydrodynamic radius value
+double
+getHydroRadius(const char* IBKernelName)
 {
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
     return MOB_FIT_HydroRadius[CurrentKernelType];
-}
+} // getHydroRadius
 
-/*!
- * returns squared norm of the vector
- */
-static double get_sqnorm(const double* a_vec)
+// Returns squared norm of the vector.
+double
+get_sqnorm(const double* a_vec)
 {
 #if (NDIM == 3)
     return a_vec[0] * a_vec[0] + a_vec[1] * a_vec[1] + a_vec[2] * a_vec[2];
@@ -130,12 +113,11 @@ static double get_sqnorm(const double* a_vec)
 #endif
 
     return -1.0;
-}
+} // get_sqnorm
 
-/*!
- * returns a value based on linear interpolation of array
- */
-static double InterpolateLinear(const double* Xin, const double* Yin, const int N, double X0)
+// Returns a value based on linear interpolation of array.
+double
+InterpolateLinear(const double* Xin, const double* Yin, const int N, double X0)
 {
     if (fabs(X0 - Xin[0]) < ZERO_TOL) return Yin[0];
     if (X0 < Xin[0]) return Yin[0] + (Yin[1] - Yin[0]) / (Xin[1] - Xin[0]) * (X0 - Xin[0]);
@@ -147,9 +129,10 @@ static double InterpolateLinear(const double* Xin, const double* Yin, const int 
         if (X0 <= Xin[indx + 1]) break;
     }
     return Yin[indx] + (Yin[indx + 1] - Yin[indx]) / (Xin[indx + 1] - Xin[indx]) * (X0 - Xin[indx]);
-}
+} // InterpolateLinear
 
-static void InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
+void
+InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
 {
     // data for initialization
 
@@ -158,12 +141,9 @@ static void InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta
 
 #if (NDIM == 3)
     // coefficients for steady stokes 3D
-    const double F_stokes_coeff[][3] = { { 1.769, 1.263, 1.097 },
-                                         { 1.637, 1.535, 1.60533 },
-                                         { 1.362, 0.8134, 0.566 },
-                                         { 0.6825, 0.1812, 0.0886 },
-                                         { 1.074, 0.6436, 0.4432 },
-                                         { 0.6814, 0.181, 0.08848 },
+    const double F_stokes_coeff[][3] = { { 1.769, 1.263, 1.097 },   { 1.637, 1.535, 1.60533 },
+                                         { 1.362, 0.8134, 0.566 },  { 0.6825, 0.1812, 0.0886 },
+                                         { 1.074, 0.6436, 0.4432 }, { 0.6814, 0.181, 0.08848 },
                                          { 0.2609, 0.1774, 0.1567 } };
     const double G_stokes_coeff[][3] = { { 4.314, 11.08, 17.54 }, { 0.1106, 0.1759, 0.2365 } };
 
@@ -398,15 +378,11 @@ static void InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta
         G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[MOB_FIT_current][cnt], num_cases, beta);
 #endif
     return;
-};
+} // InterpolateConstants
 
-/*!
- * initialization of all constants.
- */
-static void
+void
 InitializeAllConstants(const char* IBKernelName, const double MU, const double rho, const double Dt, const double DX)
 {
-
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
     double beta;
     // finding beta
@@ -430,12 +406,11 @@ InitializeAllConstants(const char* IBKernelName, const double MU, const double r
 #endif
 
     InterpolateConstants(CurrentKernelType, beta);
-}
 
-/* !
-**  _F_R_INF
-*/
-static double _F_R_INF(const double rr, const double Dx, const double L_domain)
+} // InitializeAllConstants
+
+double
+_F_R_INF(const double rr, const double Dx, const double L_domain)
 {
     const double r = rr / Dx;
 #if (NDIM == 3)
@@ -461,10 +436,8 @@ static double _F_R_INF(const double rr, const double Dx, const double L_domain)
 #endif
 } // _F_R_INF
 
-/* !
-**  _G_R_INF
-*/
-static double _G_R_INF(const double rr, const double Dx)
+double
+_G_R_INF(const double rr, const double Dx)
 {
     const double r = rr / Dx;
 #if (NDIM == 3)
@@ -478,10 +451,8 @@ static double _G_R_INF(const double rr, const double Dx)
 #endif
 } // _G_R_INF
 
-/* !
-**  _F_R_BETA
-*/
-static double _F_R_BETA(const double rr, const double Dx, const double beta, const double L_domain)
+double
+_F_R_BETA(const double rr, const double Dx, const double beta, const double L_domain)
 {
     const double r = rr / Dx;
 
@@ -522,12 +493,10 @@ static double _F_R_BETA(const double rr, const double Dx, const double beta, con
     }
 
 #endif
-}
+} // _F_R_BETA
 
-/* !
-**  _G_R_BETA
-*/
-static double _G_R_BETA(const double rr, const double Dx, const double beta)
+double
+_G_R_BETA(const double rr, const double Dx, const double beta)
 {
     const double r = rr / Dx;
 
@@ -558,21 +527,20 @@ static double _G_R_BETA(const double rr, const double Dx, const double beta)
         return _G_R_INF(rr, Dx);
     }
 #endif
-}
+} // _G_R_BETA
 
-/*!
- * computes Empirical Mobility components f(r) and g(r)
- */
-void getEmpiricalMobilityComponents(const char* IBKernelName,
-                                    const double MU,
-                                    const double rho,
-                                    const double Dt,
-                                    const double r,
-                                    const double DX,
-                                    const int resetAllConstants,
-                                    const double L_domain,
-                                    double* F_MobilityValue,
-                                    double* G_Mobilityvalue)
+// Computes Empirical Mobility components f(r) and g(r)
+void
+getEmpiricalMobilityComponents(const char* IBKernelName,
+                               const double MU,
+                               const double rho,
+                               const double Dt,
+                               const double r,
+                               const double DX,
+                               const int resetAllConstants,
+                               const double L_domain,
+                               double* F_MobilityValue,
+                               double* G_Mobilityvalue)
 {
     // Reuse same static constants for efficiency
     if (resetAllConstants) reUse = 0;
@@ -599,54 +567,24 @@ void getEmpiricalMobilityComponents(const char* IBKernelName,
         *G_Mobilityvalue = MOB_FIT_FACTOR * _G_R_BETA(r, DX, beta);           // time-dependent g(r)
     }
     return;
+} // getEmpiricalMobilityComponents
 }
 
-/*!
- * returns Self-Mobility value
- */
-double getEmpiricalSelfMobility(const char* IBKernelName,
-                                const double MU,
-                                const double rho,
-                                const double Dt,
-                                const double DX,
-                                const int resetAllConstants,
-                                const double L_domain)
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+void
+MobilityFunctions::constructEmpiricalMobilityMatrix(const char* IBKernelName,
+                                                    const double MU,
+                                                    const double rho,
+                                                    const double Dt,
+                                                    const double DX,
+                                                    const double* X,
+                                                    const int N,
+                                                    const int resetAllConstants,
+                                                    const double /*PERIODIC_CORRECTION*/,
+                                                    const double L_domain,
+                                                    double* MM)
 {
-    if (resetAllConstants) reUse = 0;
-    if (!reUse)
-    {
-        InitializeAllConstants(IBKernelName, MU, rho, Dt, DX);
-        reUse = 1;
-    }
-    double beta;
-    // finding beta
-    if (MU <= ZERO_TOL)
-        beta = 0.0; // invisid case
-    else
-        beta = MU * Dt / (rho * DX * DX);
-
-    if (rho < ZERO_TOL)
-        return MOB_FIT_FACTOR * _F_R_INF(0., DX, L_domain);
-    else
-        return MOB_FIT_FACTOR * _F_R_BETA(0., DX, beta, L_domain);
-}
-
-/*!
- * generates and returns Empirical Mobility Matrix
- */
-void getEmpiricalMobilityMatrix(const char* IBKernelName,
-                                const double MU,
-                                const double rho,
-                                const double Dt,
-                                const double DX,
-                                const double* X,
-                                const int N,
-                                const int resetAllConstants,
-                                const double PERIODIC_CORRECTION,
-                                const double L_domain,
-                                double* MM)
-{
-
     int row, col;
     for (row = 0; row < N; row++)
         for (col = 0; col <= row; col++)
@@ -681,18 +619,16 @@ void getEmpiricalMobilityMatrix(const char* IBKernelName,
                 }
         }
     return;
-}
+} // constructEmpiricalMobilityMatrix
 
-/*!
- * generates and returns RPY Mobility Matrix
- */
-void getRPYMobilityMatrix(const char* IBKernelName,
-                          const double MU,
-                          const double DX,
-                          const double* X,
-                          const int N,
-                          const double PERIODIC_CORRECTION,
-                          double* MM)
+void
+MobilityFunctions::constructRPYMobilityMatrix(const char* IBKernelName,
+                                              const double MU,
+                                              const double DX,
+                                              const double* X,
+                                              const int N,
+                                              const double PERIODIC_CORRECTION,
+                                              double* MM)
 {
     HRad = getHydroRadius(IBKernelName) * DX;
     const double mu_tt = 1. / (6.0 * M_PI * MU * HRad);
@@ -757,4 +693,10 @@ void getRPYMobilityMatrix(const char* IBKernelName,
             }
         } // column loop
     return;
-}
+} // constructRPYMobilityMatrix
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // IBAMR
+
+//////////////////////////////////////////////////////////////////////////////

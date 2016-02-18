@@ -91,7 +91,7 @@ ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vecto
 {
     // intentionally left blank.
     return;
-} //
+} // ConstrainedNodalVel
 
 // These forces on the structure are computed when the "above" velocities are prescribed on them.
 void

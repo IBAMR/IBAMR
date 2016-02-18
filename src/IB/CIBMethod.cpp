@@ -34,34 +34,13 @@
 
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/MobilityFunctions.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/LSiloDataWriter.h"
 
 namespace IBAMR
 {
-extern "C" {
-
-void getEmpiricalMobilityMatrix(const char* kernel_name,
-                                const double mu,
-                                const double rho,
-                                const double dt,
-                                const double dx,
-                                const double* X,
-                                const int n,
-                                const bool reset_constants,
-                                const double periodic_correction,
-                                const double l_domain,
-                                double* mm);
-
-void getRPYMobilityMatrix(const char* kernel_name,
-                          const double mu,
-                          const double dx,
-                          const double* X,
-                          const int n,
-                          const double periodic_correction,
-                          double* mm);
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -1422,21 +1401,22 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     {
         if (mat_type == RPY)
         {
-            getRPYMobilityMatrix(ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat_data);
+            MobilityFunctions::constructRPYMobilityMatrix(
+                ib_kernel, mu, grid_dx[0], &XW[0], num_nodes, f_periodic_corr, mobility_mat_data);
         }
         else if (mat_type == EMPIRICAL)
         {
-            getEmpiricalMobilityMatrix(ib_kernel,
-                                       mu,
-                                       rho,
-                                       dt,
-                                       grid_dx[0],
-                                       &XW[0],
-                                       num_nodes,
-                                       0,
-                                       f_periodic_corr,
-                                       domain_extents[0],
-                                       mobility_mat_data);
+            MobilityFunctions::constructEmpiricalMobilityMatrix(ib_kernel,
+                                                                mu,
+                                                                rho,
+                                                                dt,
+                                                                grid_dx[0],
+                                                                &XW[0],
+                                                                num_nodes,
+                                                                0,
+                                                                f_periodic_corr,
+                                                                domain_extents[0],
+                                                                mobility_mat_data);
         }
         else
         {

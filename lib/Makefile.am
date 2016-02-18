@@ -87,7 +87,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
 ../src/IB/KrylovFreeBodyMobilitySolver.cpp \
 ../src/IB/KrylovMobilitySolver.cpp \
-../src/IB/MobilityFunctions.c \
+../src/IB/MobilityFunctions.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
 ../src/IB/StaggeredStokesIBBoxRelaxationFACOperator.cpp \
 ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
@@ -222,6 +222,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
