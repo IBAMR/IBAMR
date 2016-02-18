@@ -1265,10 +1265,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     }
 
     std::sort(local_vel_dofs.begin(), local_vel_dofs.end());
+    local_vel_dofs.erase(std::unique(local_vel_dofs.begin(), local_vel_dofs.end()),
+                           local_vel_dofs.end());
     const int n_local_vel_dofs = static_cast<int>(local_vel_dofs.size());
     ISCreateGeneral(PETSC_COMM_WORLD, n_local_vel_dofs, &local_vel_dofs[0], PETSC_COPY_VALUES, &is_field[0]);
 
     std::sort(local_pressure_dofs.begin(), local_pressure_dofs.end());
+    local_pressure_dofs.erase(std::unique(local_pressure_dofs.begin(), local_pressure_dofs.end()),
+                         local_pressure_dofs.end());
     const int n_local_pressure_dofs = static_cast<int>(local_pressure_dofs.size());
     ISCreateGeneral(PETSC_COMM_WORLD, n_local_pressure_dofs, &local_pressure_dofs[0], PETSC_COPY_VALUES, &is_field[1]);
 
