@@ -341,8 +341,8 @@ main(int argc, char* argv[])
 
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
 	    if (ib_method_ops->flagRegrid()){
-	      time_integrator->regridHierarchy();
-	      navier_stokes_integrator->setStokesSolverNeedsInit();
+	        time_integrator->regridHierarchy();
+		navier_stokes_integrator->setStokesSolverNeedsInit();
 	    }
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
