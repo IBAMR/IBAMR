@@ -307,7 +307,11 @@ main(int argc, char* argv[])
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
-            if (ib_method_ops->flagRegrid()) time_integrator->regridHierarchy();
+            if (ib_method_ops->flagRegrid())
+            {
+                time_integrator->regridHierarchy();
+                navier_stokes_integrator->setStokesSolverNeedsInit();
+            }
 
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
