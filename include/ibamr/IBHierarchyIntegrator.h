@@ -148,6 +148,11 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
+     * Return a pointer to the velocity physical boundary conditions
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
+
+    /*!
      * Basic functions to prepare to advance data from current_time to new_time.
      *
      * A default implementation is provided that sets the current values of

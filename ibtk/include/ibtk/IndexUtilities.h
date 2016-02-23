@@ -108,6 +108,25 @@ public:
                                                   const SAMRAI::hier::Index<NDIM>& iupper);
 
     /*!
+     * \brief Convert (i,j,k,d) index for a DOF to an integer mapping on a patch level.
+     *
+     * \param i AMR index representing the (i,j,k) data cell index.
+     *
+     * \param domain_lower Lower index of the domain.
+     *
+     * \param num_cells Number of data array cells for a patch level.
+     *
+     * \param depth Data depth
+     *
+     * \return The linear mapping of an AMR index to a continuous non-negative
+     * integer space.
+     */
+    static int getIntegerMapping(const SAMRAI::hier::Index<NDIM>& i,
+                                 const SAMRAI::hier::Index<NDIM>& domain_lower,
+                                 const SAMRAI::hier::Index<NDIM>& num_cells,
+                                 const int depth);
+
+    /*!
      * \return The cell index corresponding to location \p X relative
      * to the extents of the supplied Cartesian grid patch geometry and
      * patch box.

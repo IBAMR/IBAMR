@@ -82,7 +82,6 @@
 
 class StokesIBSolver : public IBAMR::StaggeredStokesSolver
 {
-
 public:
     StokesIBSolver(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                    Pointer<StaggeredStokesIBBoxRelaxationFACOperator> fac_op,
@@ -178,7 +177,6 @@ public:
 
     void initializeSolver(Vec x, Vec b)
     {
-
         d_finest_ln = d_hierarchy->getFinestLevelNumber();
         d_hier_velocity_data_ops->resetLevels(0, d_finest_ln);
 
@@ -231,8 +229,8 @@ public:
             {
                 int n;
                 VecGetLocalSize(b, &n);
-                MatCreateShell(PETSC_COMM_WORLD, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
-                               &d_ksp_mat);
+                MatCreateShell(
+                    PETSC_COMM_WORLD, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_ksp_mat);
             }
             MatShellSetOperation(d_ksp_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(StokesIBSolver::matApply2));
 
@@ -386,14 +384,15 @@ private:
         solver->d_ghost_fill_schd->fillData(half_time);
         solver->d_ib_ops->interpolateLinearizedVelocity(solver->d_u_idx,
                                                         std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+                                                        std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                                        half_time);
         solver->d_ib_ops->computeLinearizedResidual(X0, X);
 
         // Compute linearized force F = A/2*[dt*J*[u/2]]
         solver->d_ib_ops->computeLinearizedLagrangianForce(X, half_time);
         solver->d_hier_velocity_data_ops->setToScalar(solver->d_f_idx, 0.0);
-        solver->d_ib_ops->spreadLinearizedForce(solver->d_f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(),
-                                                half_time);
+        solver->d_ib_ops->spreadLinearizedForce(
+            solver->d_f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
         solver->d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, solver->d_f_idx);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
@@ -420,15 +419,20 @@ private:
 
         Vec left, right;
         MatCreateVecs(solver->d_SAJ, &right, &left);
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(right, u_idx, solver->d_u_dof_idx, p_idx,
-                                                              solver->d_p_dof_idx, finest_level);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            right, u_idx, solver->d_u_dof_idx, p_idx, solver->d_p_dof_idx, finest_level);
         MatMult(solver->d_SAJ, right, left);
         Pointer<RefineSchedule<NDIM> > ghost_fill_sched =
             StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(f_u_dup_idx, g_p_dup_idx, finest_level);
         Pointer<RefineSchedule<NDIM> > data_synch_sched =
             StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(f_u_dup_idx, g_p_dup_idx, finest_level);
-        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(left, f_u_dup_idx, solver->d_u_dof_idx, g_p_dup_idx,
-                                                                solver->d_p_dof_idx, finest_level, data_synch_sched,
+        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(left,
+                                                                f_u_dup_idx,
+                                                                solver->d_u_dof_idx,
+                                                                g_p_dup_idx,
+                                                                solver->d_p_dof_idx,
+                                                                finest_level,
+                                                                data_synch_sched,
                                                                 ghost_fill_sched);
 
         // Evaluate the Eulerian terms.
@@ -484,7 +488,8 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -533,22 +538,28 @@ int main(int argc, char* argv[])
 
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
 
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBImplicitStaggeredHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
-            navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBImplicitStaggeredHierarchyIntegrator("IBHierarchyIntegrator",
+                                                       app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                       ib_method_ops,
+                                                       navier_stokes_integrator);
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector, box_generator, load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -683,14 +694,16 @@ int main(int argc, char* argv[])
 
             level->allocatePatchData(u_dof_index_idx, current_time);
             level->allocatePatchData(p_dof_index_idx, current_time);
-            StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(num_dofs_per_proc[ln], u_dof_index_idx,
-                                                                            p_dof_index_idx, level);
+            StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+                num_dofs_per_proc[ln], u_dof_index_idx, p_dof_index_idx, level);
         }
 
         //====================================================================
         // Get a sense of Lagrangian nodes distribution among processors
-        PetscSynchronizedPrintf(PETSC_COMM_WORLD, "Local Lagrangian nodes on proc [%d] are : %d\n",
-                                SAMRAI_MPI::getRank(), lag_data_manager->getNumberOfLocalNodes(finest_ln));
+        PetscSynchronizedPrintf(PETSC_COMM_WORLD,
+                                "Local Lagrangian nodes on proc [%d] are : %d\n",
+                                SAMRAI_MPI::getRank(),
+                                lag_data_manager->getNumberOfLocalNodes(finest_ln));
         PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
 
         // Get the matrix/matrix-free representation of force Jacobian (A).
@@ -710,8 +723,11 @@ int main(int argc, char* argv[])
 
         // Get the matrix representation of J at the finest level
         Mat J = PETSC_NULL;
-        ib_method_ops->constructInterpOp(J, PETScMatUtilities::ib_4_interp_fcn, PETScMatUtilities::ib_4_interp_stencil,
-                                         num_dofs_per_proc[finest_ln], u_dof_index_idx);
+        ib_method_ops->constructInterpOp(J,
+                                         PETScMatUtilities::ib_4_interp_fcn,
+                                         PETScMatUtilities::ib_4_interp_stencil,
+                                         num_dofs_per_proc[finest_ln],
+                                         u_dof_index_idx);
 
         // Configure the fac pc/op
         fac_pc->setPhysicalBcCoefs(navier_stokes_integrator->getIntermediateVelocityBoundaryConditions(),
@@ -813,8 +829,10 @@ int main(int argc, char* argv[])
 
         hier_velocity_data_ops->linearSum(u_ib_idx, 0.5, u_current_idx, 0.5, u_ins_idx);
         ghost_fill_schd->fillData(new_time);
-        ib_method_ops->interpolateVelocity(u_ib_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                           std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+        ib_method_ops->interpolateVelocity(u_ib_idx,
+                                           std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                           std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                           half_time);
 
         // Compute the final value of the updated positions of the Lagrangian
         // structure.
@@ -829,9 +847,18 @@ int main(int argc, char* argv[])
         // Build SAJ mat for the coarsest level using SAMRAI operators
         Mat SAJ_coarsest_samrai;
         MatDuplicate(SAJ_coarsest_petsc, MAT_SHARE_NONZERO_PATTERN, &SAJ_coarsest_samrai);
-        buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai, SAJ, num_dofs_per_proc, u_var, p_var, u_ib_idx,
-                                            p_ins_idx, u_dof_index_idx, p_dof_index_idx, patch_hierarchy,
-                                            hier_velocity_data_ops, hier_pressure_data_ops,
+        buildSAJCoarsestFromSAMRAIOperators(SAJ_coarsest_samrai,
+                                            SAJ,
+                                            num_dofs_per_proc,
+                                            u_var,
+                                            p_var,
+                                            u_ib_idx,
+                                            p_ins_idx,
+                                            u_dof_index_idx,
+                                            p_dof_index_idx,
+                                            patch_hierarchy,
+                                            hier_velocity_data_ops,
+                                            hier_pressure_data_ops,
                                             lag_data_manager->getGhostCellWidth());
 
         // Print both versions of the matrices
@@ -881,19 +908,20 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
-                                         Mat& SAJ_fine,
-                                         std::vector<std::vector<int> > num_dofs_per_proc,
-                                         Pointer<SideVariable<NDIM, double> > u_var,
-                                         Pointer<CellVariable<NDIM, double> > /*p_var*/,
-                                         const int u_idx,
-                                         const int p_idx,
-                                         const int u_dof_index_idx,
-                                         const int p_dof_index_idx,
-                                         Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                         Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_velocity_data_ops,
-                                         Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_pressure_data_ops,
-                                         IntVector<NDIM> gcw)
+void
+buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
+                                    Mat& SAJ_fine,
+                                    std::vector<std::vector<int> > num_dofs_per_proc,
+                                    Pointer<SideVariable<NDIM, double> > u_var,
+                                    Pointer<CellVariable<NDIM, double> > /*p_var*/,
+                                    const int u_idx,
+                                    const int p_idx,
+                                    const int u_dof_index_idx,
+                                    const int p_dof_index_idx,
+                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                    Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_velocity_data_ops,
+                                    Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_pressure_data_ops,
+                                    IntVector<NDIM> gcw)
 {
     // Level info.
     const int coarsest_ln = 0;
@@ -961,8 +989,13 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
         VecAssemblyBegin(x);
         VecAssemblyEnd(x);
 
-        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(x, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx,
-                                                                coarsest_level, data_synch_sched_coarse,
+        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(x,
+                                                                u_idx,
+                                                                u_dof_index_idx,
+                                                                p_idx,
+                                                                p_dof_index_idx,
+                                                                coarsest_level,
+                                                                data_synch_sched_coarse,
                                                                 ghost_fill_sched_coarse);
 
         // Zero-out fine data
@@ -975,8 +1008,8 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
 
         prolongation_schedule->fillData(0.0);
 
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(X, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx,
-                                                              finest_level);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            X, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, finest_level);
         MatMult(SAJ_fine, X, Y);
 
         // Zero-out fine data
@@ -987,8 +1020,13 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
         hier_velocity_data_ops->setToScalar(u_idx, 0.0, /*interior_only*/ false);
         hier_velocity_data_ops->resetLevels(coarsest_ln, finest_ln);
 
-        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Y, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx,
-                                                                finest_level, data_synch_sched_fine,
+        StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Y,
+                                                                u_idx,
+                                                                u_dof_index_idx,
+                                                                p_idx,
+                                                                p_dof_index_idx,
+                                                                finest_level,
+                                                                data_synch_sched_fine,
                                                                 ghost_fill_sched_fine);
         // Zero-out coarse data
         hier_pressure_data_ops->resetLevels(coarsest_ln, coarsest_ln);
@@ -999,8 +1037,8 @@ void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
         hier_velocity_data_ops->resetLevels(coarsest_ln, finest_ln);
 
         restriction_schedule->coarsenData();
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(y, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx,
-                                                              coarsest_level);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+            y, u_idx, u_dof_index_idx, p_idx, p_dof_index_idx, coarsest_level);
 
         PetscScalar* y_array;
         VecGetArray(y, &y_array);
