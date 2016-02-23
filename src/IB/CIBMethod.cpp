@@ -741,10 +741,15 @@ CIBMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
+    const bool is_steady_stokes = MathUtilities<double>::equalEps(d_rho, 0.0);
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
-    setRotationMatrix(d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
+    setRotationMatrix(is_steady_stokes ? d_rot_vel_current : d_rot_vel_half,
+                      d_quaternion_current,
+                      d_quaternion_new,
+                      rotation_mat,
+                      dt);
 
     // Get the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -800,8 +805,9 @@ CIBMethod::midpointStep(const double current_time, const double new_time)
             R_dr = rotation_mat[struct_handle] * dr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_new[d] =
-                    d_center_of_mass_current[struct_handle][d] + R_dr[d] + dt * d_trans_vel_half[struct_handle][d];
+                X_new[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d] +
+                           dt * (is_steady_stokes ? d_trans_vel_current[struct_handle][d] :
+                                                    d_trans_vel_half[struct_handle][d]);
 
                 if (periodic_shift[d])
                 {
