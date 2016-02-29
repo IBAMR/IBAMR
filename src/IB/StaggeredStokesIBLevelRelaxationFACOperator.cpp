@@ -121,7 +121,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
       d_level_solver_default_options_prefix(default_options_prefix + "level_"),
       d_level_solver_abs_residual_tol(1.0e-50),
       d_level_solver_rel_residual_tol(1.0e-5),
-      d_level_solver_max_iterations(10)
+      d_level_solver_max_iterations(10),
+      d_SAJ_fill(1.0)
 {
     // Indicate that this subclass handles initializaing the coarse-grid solver.
     d_coarse_solver_init_subclass = true;
@@ -136,6 +137,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
             d_level_solver_abs_residual_tol = input_db->getDouble("level_solver_abs_residual_tol");
         if (input_db->keyExists("level_solver_max_iterations"))
             d_level_solver_max_iterations = input_db->getInteger("level_solver_max_iterations");
+        if (input_db->keyExists("SAJ_fill")) d_SAJ_fill = input_db->getDouble("SAJ_fill");
         if (input_db->isDatabase("level_solver_db"))
         {
             d_level_solver_db = input_db->getDatabase("level_solver_db");
@@ -478,7 +480,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     {
         if (ln == d_finest_ln)
         {
-            ierr = MatPtAP(d_A_mat, d_J_mat, MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
+            ierr = MatPtAP(d_A_mat, d_J_mat, MAT_INITIAL_MATRIX, d_SAJ_fill, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
 
             // Compute the scale for the spreading operator.
@@ -493,7 +495,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
         else
         {
-            ierr = MatPtAP(d_SAJ_mat[ln + 1], d_prolongation_mat[ln], MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
+            ierr = MatPtAP(d_SAJ_mat[ln + 1], d_prolongation_mat[ln], MAT_INITIAL_MATRIX, d_SAJ_fill, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
             ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_restriction_mat[ln], NULL);
             IBTK_CHKERRQ(ierr);
