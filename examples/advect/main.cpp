@@ -45,11 +45,14 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
 #include <ibamr/AdvectorExplicitPredictorPatchOps.h>
-#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <TimeRefinementIntegrator.h>
+
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
+
 #include "QInit.h"
 #include "UFunction.h"
 

@@ -52,11 +52,13 @@
 #include <ibamr/IMPInitializer.h>
 #include <ibamr/IMPMethod.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
 
 // Elasticity model data.
 namespace ModelData
