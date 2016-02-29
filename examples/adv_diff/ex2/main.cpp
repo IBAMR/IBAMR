@@ -44,10 +44,12 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
