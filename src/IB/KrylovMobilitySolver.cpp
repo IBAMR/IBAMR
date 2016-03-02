@@ -902,7 +902,7 @@ KrylovMobilitySolver::resetKSPPC()
     char pc_type_str[len];
     PetscBool flg;
 #if (!PETSC_VERSION_RELEASE)
-    PetscOptionsGetString(NULL,d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
 #else
     PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
 #endif

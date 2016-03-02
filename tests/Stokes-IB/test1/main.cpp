@@ -85,6 +85,8 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+    SAMRAIManager::setMaxNumberPatchDataEntries(2056);
+
 
     { // cleanup dynamically allocated objects prior to shutdown
 
