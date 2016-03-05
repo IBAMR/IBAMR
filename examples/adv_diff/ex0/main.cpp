@@ -44,9 +44,12 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <LocationIndexRobinBcCoefs.h>
+
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
+
 #include "QInit.h"
 #include "UFunction.h"
 

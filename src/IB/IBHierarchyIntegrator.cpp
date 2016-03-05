@@ -187,6 +187,12 @@ IBHierarchyIntegrator::getFluidSourceVariable() const
     return d_q_var;
 } // getFluidSourceVariable
 
+IBTK::RobinPhysBdryPatchStrategy*
+IBHierarchyIntegrator::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op;
+} // getVelocityPhysBdryOp
+
 void
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                     const double new_time,

@@ -1,0 +1,3 @@
+The example show shows the variable number of free DOFs in usage. A 2d plate is dragged with an
+imposed velocity for a certain time, after which it translates freely but with locked 
+rotational motion.  

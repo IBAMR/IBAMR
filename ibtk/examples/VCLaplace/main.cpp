@@ -47,6 +47,8 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+// Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
 /*******************************************************************************
@@ -182,8 +184,10 @@ main(int argc, char* argv[])
 
         // Create an object to communicate ghost cell data.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent u_transaction(u_side_idx, "CUBIC_COARSEN", "LINEAR");
-        InterpolationTransactionComponent mu_transaction(mu_node_idx, "CONSTANT_COARSEN", "LINEAR");
+        InterpolationTransactionComponent u_transaction(
+            u_side_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
+        InterpolationTransactionComponent mu_transaction(
+            mu_node_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false);
         vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] = u_transaction;
         transactions[1] = mu_transaction;

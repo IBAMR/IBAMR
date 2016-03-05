@@ -57,7 +57,6 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
-// IWYU pragma: no_include "petsc-private/petscimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

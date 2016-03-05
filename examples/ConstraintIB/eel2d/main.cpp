@@ -51,13 +51,15 @@
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/LData.h>
 
-// Application
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
+
+// Application objects
 #include "IBEELKinematics.h"
 
 // Function prototypes

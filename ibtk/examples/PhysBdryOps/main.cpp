@@ -46,6 +46,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
+
+// Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
 /*******************************************************************************

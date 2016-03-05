@@ -399,8 +399,14 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                       d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                                       d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
-            node_set->push_back(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(new LNode(lagrangian_idx,
+                                          global_petsc_idx,
+                                          local_petsc_idx,
+                                          /*initial*/ periodic_offset,
+                                          /*current*/ periodic_offset,
+                                          /*initial*/ periodic_displacement,
+                                          /*current*/ periodic_displacement,
+                                          node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);

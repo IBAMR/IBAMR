@@ -200,7 +200,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
             }
 
             double l = std::numeric_limits<double>::max();
-            double u = -(l - std::numeric_limits<double>::epsilon());
+            double u = std::numeric_limits<double>::lowest();
             for (Box<NDIM>::Iterator b(stencil_box_crse); b; b++)
             {
                 const double& m = (*cdata)(b(), depth);

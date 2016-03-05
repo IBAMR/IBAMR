@@ -51,10 +51,18 @@ namespace IBTK
 inline LNode::LNode(const int lagrangian_nidx,
                     const int global_petsc_nidx,
                     const int local_petsc_nidx,
-                    const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-                    const Vector& periodic_displacement,
+                    const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset,
+                    const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
+                    const Vector& initial_periodic_displacement,
+                    const Vector& current_periodic_displacement,
                     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
-    : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
+    : LNodeIndex(lagrangian_nidx,
+                 global_petsc_nidx,
+                 local_petsc_nidx,
+                 initial_periodic_offset,
+                 current_periodic_offset,
+                 initial_periodic_displacement,
+                 current_periodic_displacement),
       d_node_data(node_data)
 {
     setupNodeDataTypeArray();
