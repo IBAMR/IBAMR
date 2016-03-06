@@ -2163,7 +2163,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // to the physical coordinates.
                 X_node_cache.resize(n_node_side);
                 x_min = IBTK::Point::Constant(std::numeric_limits<double>::max());
-                x_max = IBTK::Point::Constant(std::numeric_limits<double>::lowest());
+                x_max = IBTK::Point::Constant(-std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     X_node_cache[k] = side_elem->point(k);

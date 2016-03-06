@@ -964,7 +964,7 @@ LDataManager::computeLagrangianStructureBoundingBox(const int structure_id, cons
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
     Point X_lower(Point::Constant(std::numeric_limits<double>::max()));
-    Point X_upper(Point::Constant(std::numeric_limits<double>::lowest()));
+    Point X_upper(Point::Constant(-std::numeric_limits<double>::max()));
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double, 2>& X_data =
@@ -1005,7 +1005,7 @@ LDataManager::reinitLagrangianStructure(const Point& X_center, const int structu
     const boost::multi_array_ref<double, 2>& X0_data =
         *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
     Point X_lower(Point::Constant(std::numeric_limits<double>::max()));
-    Point X_upper(Point::Constant(std::numeric_limits<double>::lowest()));
+    Point X_upper(Point::Constant(-std::numeric_limits<double>::max()));
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
