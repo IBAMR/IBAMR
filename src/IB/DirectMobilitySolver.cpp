@@ -505,7 +505,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             const std::pair<double, double>& scale = d_mat_scale_map[mat_name];
             const int managing_proc = d_mat_proc_map[mat_name];
 
-            if (mat_type == FILE && !read_files[file_counter])
+            if (mat_type == READ_FROM_FILE && !read_files[file_counter])
             {
                 // Get the matrix from file.
                 const std::string& filename = d_mat_filename_map[mat_name];
