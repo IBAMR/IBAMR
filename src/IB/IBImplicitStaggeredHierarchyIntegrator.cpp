@@ -351,8 +351,6 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
-        level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data);
         if (!d_solve_for_position && ln == finest_ln)
         {
             level->deallocatePatchData(d_u_dof_index_idx);

@@ -497,8 +497,6 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
             level->deallocatePatchData(d_p_idx);
             level->deallocatePatchData(d_q_idx);
         }
-        level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data);
     }
 
     // Execute any registered callbacks.
