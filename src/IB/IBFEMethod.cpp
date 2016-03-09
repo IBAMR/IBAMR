@@ -545,6 +545,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
             d_Phi_systems[part]->solution->localize(*d_Phi_half_vecs[part]);
         }
     }
+
+    // Update the mask data.
+    getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
     return;
 } // preprocessIntegrateData
 
@@ -956,11 +959,15 @@ IBFEMethod::initializeFEData()
 void
 IBFEMethod::registerEulerianVariables()
 {
-    // Register a cc variable for plotting nodal Lambda.
     const IntVector<NDIM> ghosts = 1;
     mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
-    registerVariable(
-        mask_current_idx, mask_new_idx, mask_scratch_idx, mask_var, ghosts, "CONSERVATIVE_COARSEN", "LIENAR_REFINE");
+    registerVariable(mask_current_idx,
+                     mask_new_idx,
+                     mask_scratch_idx,
+                     mask_var,
+                     ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
     return;
 } // registerEulerianVariables
 
