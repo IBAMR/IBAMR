@@ -361,13 +361,13 @@ public:
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    virtual void registerEulerianVariables();
+    void registerEulerianVariables();
 
     /*!
      * \brief Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
-    virtual void registerEulerianCommunicationAlgorithms();
+    void registerEulerianCommunicationAlgorithms();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy

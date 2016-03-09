@@ -110,6 +110,9 @@ public:
     static const std::string PHI_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
+    int mask_current_idx, mask_new_idx, mask_scratch_idx;
+
     /*!
      * \brief Constructor.
      */
@@ -406,6 +409,11 @@ public:
      * IBHierarchyIntegrator::initializePatchHierarchy().
      */
     void initializeFEData();
+
+    /*!
+     * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
+     */
+    void registerEulerianVariables();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy

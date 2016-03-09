@@ -954,6 +954,17 @@ IBFEMethod::initializeFEData()
 } // initializeFEData
 
 void
+IBFEMethod::registerEulerianVariables()
+{
+    // Register a cc variable for plotting nodal Lambda.
+    const IntVector<NDIM> ghosts = 1;
+    mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
+    registerVariable(
+        mask_current_idx, mask_new_idx, mask_scratch_idx, mask_var, ghosts, "CONSERVATIVE_COARSEN", "LIENAR_REFINE");
+    return;
+} // registerEulerianVariables
+
+void
 IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
                                      int /*u_data_idx*/,
