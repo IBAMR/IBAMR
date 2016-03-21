@@ -1,30 +1,32 @@
 // physical parameters
-L     = 2.5                                        // width  of computational domain
-H     = 0.41                                       // height of computational domain
-RHO   = 1.0e3
-MU    = 1.0
-U_BAR = 2.0
-U_MAX = 5.0
-D     = 0.1
-RE    = U_BAR*D*RHO/MU
+L     = 2.46            // width  of computational domain (m)
+H     = 0.41            // height of computational domain (m)
+RHO   = 1.0e3           // fluid mass density (kg/m^3)
+NU    = 1.0e-3          // dynamic viscosity (m^2/s)
+MU    = RHO*NU          // kinematic viscosity
+U_BAR = 2.0             // mean flow rate (m/s)
+U_MAX = 5.0             // (estimated) maximum velocity (m/s)
+D     = 0.1             // cylinder diameter (m)
+RE    = U_BAR*D*RHO/MU  // Reynolds number
 
 // grid spacing parameters
-MAX_LEVELS = 1                                     // maximum number of levels in locally refined grid
+MAX_LEVELS = 4                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
-N = 41                                             // actual    number of grid cells on coarsest grid level
+N = 8                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
 DX0 = L/N                                          // mesh width on coarsest grid level
 DX  = L/NFINEST                                    // mesh width on finest   grid level
 MFAC = 1.0                                         // ratio of Lagrangian mesh width to Cartesian mesh width
-BLOCK_ELEM_TYPE = "QUAD4"                          // type of element to use for discretization of the circular block
-BEAM_ELEM_TYPE  = "QUAD4"                          // type of element to use for discretization of the thin beam
+BLOCK_ELEM_TYPE = "TRI6"                           // type of element to use for discretization of the circular block
+BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
 
 // solver parameters
-IB_DELTA_FUNCTION          = "IB_4"                // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+BLOCK_KERNEL_FUNCTION      = "PIECEWISE_LINEAR"
+BEAM_KERNEL_FUNCTION       = "IB_3"                // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = FALSE                 // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE                 // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
-IB_POINT_DENSITY           = 2.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+IB_POINT_DENSITY           = 1.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"           // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0                 // initial simulation time
 END_TIME                   = 20.0                  // final simulation time
@@ -34,8 +36,8 @@ CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"     // convective time stepping t
 CONVECTIVE_OP_TYPE         = "PPM"                 // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.125                 // maximum CFL number
-DT                         = 0.3*CFL_MAX*DX/U_MAX  // maximum timestep size
+CFL_MAX                    = 0.15                  // maximum CFL number
+DT                         = 0.15*CFL_MAX*DX/U_MAX  // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
@@ -57,10 +59,12 @@ NU_S = 0.4
 LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
 
 // penalty parameters
-KAPPA_S = 6.25e4 * DX / DT^2
+C1_S = 0.0
+KAPPA_S = 2*2.5e4 * DX / DT^2
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR
+   H = H
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -72,7 +76,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0,0.5*(1.0-cos(0.5*pi*t)),1.0)"
+   gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*if(t < 2.0,0.5*(1.0-cos(0.5*pi*t)),1.0)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -107,7 +111,6 @@ IBHierarchyIntegrator {
 }
 
 IBFEMethod {
-   IB_delta_fcn               = IB_DELTA_FUNCTION
    split_forces               = SPLIT_FORCES
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
