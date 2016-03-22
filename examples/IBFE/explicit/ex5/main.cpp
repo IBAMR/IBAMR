@@ -352,6 +352,7 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IBFE solver.
+        ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
