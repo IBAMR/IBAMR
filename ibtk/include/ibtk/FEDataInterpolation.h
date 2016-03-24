@@ -335,7 +335,7 @@ private:
 
     // Data associated with systems.
     std::vector<const libMesh::System*> d_systems;
-    std::vector<FEDataManager::SystemDofMapCache> d_system_dof_map_caches;
+    std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches;
     std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
     std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
     std::vector<libMesh::NumericVector<double>*> d_system_data;

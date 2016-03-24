@@ -1148,7 +1148,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& Phi_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     DofMap& Phi_dof_map = Phi_dof_map_cache.get_dof_map();
     std::vector<unsigned int> Phi_dof_indices;
     FEType Phi_fe_type = Phi_dof_map_cache.variable_type(0);
@@ -1359,7 +1359,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-        FEDataManager::SystemDofMapCache& G_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+        FEDataManager::SystemDofMapCache& G_dof_map_cache =
+            *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
         DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
         FEType G_fe_type = G_dof_map_cache.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1538,7 +1539,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& G_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
     FEType G_fe_type = G_dof_map_cache.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1815,7 +1816,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    FEDataManager::SystemDofMapCache& G_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
     FEType G_fe_type = G_dof_map_cache.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2070,7 +2071,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& G_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
     FEType G_fe_type = G_dof_map_cache.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2079,7 +2080,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& X_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;

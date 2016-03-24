@@ -55,6 +55,7 @@
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
+#include "libmesh/elem.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/system.h"
@@ -129,8 +130,6 @@ public:
             // Optimize for the case that we are iterating through the elements.
             if (d_last_lookup != d_dof_cache.end())
             {
-                typedef std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > >::iterator
-                    cache_iterator;
                 if (d_last_lookup->first == elem_id)
                 {
                     // intentionally blank
@@ -372,12 +371,12 @@ public:
     /*!
      * \return The DofMapCache for a specified system.
      */
-    SystemDofMapCache& getDofMapCache(const std::string& system_name);
+    SystemDofMapCache* getDofMapCache(const std::string& system_name);
 
     /*!
      * \return The DofMapCache for a specified system.
      */
-    SystemDofMapCache& getDofMapCache(unsigned int system_num);
+    SystemDofMapCache* getDofMapCache(unsigned int system_num);
 
     /*!
      * \return The level number to which the equations system object managed by

@@ -364,14 +364,14 @@ FEDataManager::getEquationSystems() const
     return d_es;
 } // getEquationSystems
 
-FEDataManager::SystemDofMapCache&
+FEDataManager::SystemDofMapCache*
 FEDataManager::getDofMapCache(const std::string& system_name)
 {
     TBOX_ASSERT(d_es);
     return getDofMapCache(d_es->get_system(system_name).number());
 }
 
-FEDataManager::SystemDofMapCache&
+FEDataManager::SystemDofMapCache*
 FEDataManager::getDofMapCache(unsigned int system_num)
 {
     Pointer<SystemDofMapCache> dof_map_cache = d_system_dof_map_cache[system_num];
@@ -380,7 +380,7 @@ FEDataManager::getDofMapCache(unsigned int system_num)
         d_system_dof_map_cache[system_num] = new SystemDofMapCache(d_es->get_system(system_num));
         dof_map_cache = d_system_dof_map_cache[system_num];
     }
-    return *dof_map_cache;
+    return dof_map_cache.getPointer();
 } // getDofMapCache
 
 int
@@ -562,8 +562,8 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
-    SystemDofMapCache& F_dof_map_cache = getDofMapCache(system_name);
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map_cache.variable_type(0);
@@ -793,8 +793,8 @@ FEDataManager::prolongData(const int f_data_idx,
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
-    SystemDofMapCache& F_dof_map_cache = getDofMapCache(system_name);
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map_cache.variable_type(0);
@@ -1028,8 +1028,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
-    SystemDofMapCache& F_dof_map_cache = getDofMapCache(system_name);
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map_cache.variable_type(0);
@@ -1301,8 +1301,8 @@ FEDataManager::restrictData(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
-    SystemDofMapCache& F_dof_map_cache = getDofMapCache(system_name);
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType F_fe_type = F_dof_map_cache.variable_type(0);
@@ -1509,7 +1509,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
-        SystemDofMapCache& dof_map_cache = getDofMapCache(system_name);
+        SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         dof_map_cache.get_dof_map().compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map_cache.variable_type(0);
@@ -1640,7 +1640,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
-        SystemDofMapCache& dof_map_cache = getDofMapCache(system_name);
+        SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
         FEType fe_type = dof_map_cache.variable_type(0);
         for (unsigned i = 0; i < system.n_vars(); ++i) TBOX_ASSERT(dof_map_cache.variable_type(i) == fe_type);
         std::vector<unsigned int> dof_indices;
@@ -1779,7 +1779,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 
     /*if (!F_vec.closed())*/ F_vec.close();
     const System& system = d_es->get_system(system_name);
-    SystemDofMapCache& dof_map_cache = getDofMapCache(system_name);
+    SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
     if (consistent_mass_matrix)
     {
         std::pair<libMesh::LinearSolver<double>*, SparseMatrix<double>*> proj_solver_components =
@@ -1999,7 +1999,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
-        SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+        SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map_cache.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
@@ -2259,7 +2259,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
-        SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+        SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map_cache.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
@@ -2415,7 +2415,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule;
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map_cache.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
@@ -2619,7 +2619,7 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 {
     System& system = d_es->get_system(system_name);
     const unsigned int sys_num = system.number();
-    SystemDofMapCache& dof_map_cache = getDofMapCache(system_name);
+    SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
     const unsigned int first_local_dof = dof_map_cache.get_dof_map().first_dof();
     const unsigned int end_local_dof = dof_map_cache.get_dof_map().end_dof();
 
@@ -2704,7 +2704,7 @@ FEDataManager::updateMaskingData(NumericVector<double>& X_vec, const double fill
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    SystemDofMapCache& X_dof_map_cache = getDofMapCache(COORDINATES_SYSTEM_NAME);
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType X_fe_type = X_dof_map_cache.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
