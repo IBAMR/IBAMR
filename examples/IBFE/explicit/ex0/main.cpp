@@ -251,23 +251,27 @@ main(int argc, char* argv[])
         }
 
         // Set up post processor to recover computed stresses.
-        Pointer<IBFEPostProcessor> ib_post_processor;
-#if 0
         Pointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
         {
             Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
             Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
             HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
-                /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN",
+                /*data_idx*/ -1,
+                "LINEAR_REFINE",
+                /*use_cf_bdry_interpolation*/ false,
+                "CONSERVATIVE_COARSEN",
                 "LINEAR");
-            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH,
+            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
+                                                    QGAUSS,
+                                                    FIFTH,
                                                     /*use_adaptive_quadrature*/ false,
-                                                    /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
-            ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
-                                                                          p_ghostfill, p_interp_spec);
+                                                    /*point_density*/ 2.0,
+                                                    /*use_consistent_mass_matrix*/ true,
+                                                    /*use_one_sided_interaction*/ false);
+            ib_post_processor->registerInterpolatedScalarEulerianVariable(
+                "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
         }
-#endif
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error

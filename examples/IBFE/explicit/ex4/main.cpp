@@ -300,32 +300,43 @@ main(int argc, char* argv[])
 
         // Set up post processor to recover computed stresses.
         ib_method_ops->initializeFEEquationSystems();
-        Pointer<IBFEPostProcessor> ib_post_processor;
-#if 0
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+
         Pointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
 
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
         pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dev", MONOMIAL, CONSTANT,
+        ib_post_processor->registerTensorVariable("sigma_dev",
+                                                  MONOMIAL,
+                                                  CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  vector<SystemData>(), &PK1_dev_stress_fcn_data);
+                                                  vector<SystemData>(),
+                                                  &PK1_dev_stress_fcn_data);
 
         pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dil", MONOMIAL, CONSTANT,
+        ib_post_processor->registerTensorVariable("sigma_dil",
+                                                  MONOMIAL,
+                                                  CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  vector<SystemData>(), &PK1_dil_stress_fcn_data);
+                                                  vector<SystemData>(),
+                                                  &PK1_dil_stress_fcn_data);
 
         Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
         HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
             /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
-        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
-                                                /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
-        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
-                                                                      p_ghostfill, p_interp_spec);
-#endif
+        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
+                                                QGAUSS,
+                                                FIFTH,
+                                                /*use_adaptive_quadrature*/ false,
+                                                /*point_density*/ 2.0,
+                                                /*use_consistent_mass_matrix*/ true,
+                                                /*use_one_sided_interaction*/ false);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
+
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
