@@ -54,8 +54,10 @@
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/dof_map.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/system.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -107,6 +109,95 @@ namespace IBTK
 class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
+    class SystemDofMapCache
+    {
+    public:
+        inline SystemDofMapCache(libMesh::System& system)
+            : d_system(system), d_dof_map(system.get_dof_map()), d_last_lookup(d_dof_cache.end())
+        {
+        }
+
+        inline ~SystemDofMapCache()
+        {
+        }
+
+        inline void
+        dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
+        {
+            const libMesh::dof_id_type elem_id = elem->id();
+
+            // Optimize for the case that we are iterating through the elements.
+            if (d_last_lookup != d_dof_cache.end())
+            {
+                typedef std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > >::iterator
+                    cache_iterator;
+                if (d_last_lookup->first == elem_id)
+                {
+                    // intentionally blank
+                }
+                else
+                {
+                    ++d_last_lookup;
+                }
+
+                if (d_last_lookup != d_dof_cache.end() && d_last_lookup->first == elem_id)
+                {
+                    std::vector<std::vector<unsigned int> >& elem_dof_indices = d_last_lookup->second;
+                    if (elem_dof_indices.size() < var + 1)
+                    {
+                        elem_dof_indices.resize(var + 1);
+                    }
+                    if (elem_dof_indices[var].empty())
+                    {
+                        d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
+                    }
+                    dof_indices = elem_dof_indices[var];
+                    return;
+                }
+            }
+
+            // We are looking for an element that is not adjacent to the last look-up.
+            d_last_lookup = d_dof_cache.find(elem_id);
+            if (d_last_lookup == d_dof_cache.end())
+            {
+                d_last_lookup =
+                    d_dof_cache.insert(std::make_pair(elem_id, std::vector<std::vector<unsigned int> >())).first;
+            }
+            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_last_lookup->second;
+            if (elem_dof_indices.size() < var + 1)
+            {
+                elem_dof_indices.resize(var + 1);
+            }
+            if (elem_dof_indices[var].empty())
+            {
+                d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
+            }
+            dof_indices = elem_dof_indices[var];
+            return;
+        }
+
+        inline libMesh::FEType variable_type(const unsigned int var)
+        {
+            return d_dof_map.variable_type(var);
+        }
+
+        inline libMesh::System& get_system() const
+        {
+            return d_system;
+        }
+
+        inline libMesh::DofMap& get_dof_map() const
+        {
+            return d_dof_map;
+        }
+
+    private:
+        libMesh::System& d_system;
+        libMesh::DofMap& d_dof_map;
+        std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > >::iterator d_last_lookup;
+    };
+
     /*!
      * \brief Struct InterpSpec encapsulates data needed to specify the manner
      * in which Eulerian-to-Lagrangian interpolation is performed when using an
@@ -277,6 +368,16 @@ public:
      * the FEDataManager.
      */
     libMesh::EquationSystems* getEquationSystems() const;
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache& getDofMapCache(const std::string& system_name);
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    SystemDofMapCache& getDofMapCache(unsigned int system_num);
 
     /*!
      * \return The level number to which the equations system object managed by
@@ -786,6 +887,7 @@ private:
      */
     libMesh::EquationSystems* d_es;
     int d_level_number;
+    std::map<unsigned int, SAMRAI::tbox::Pointer<SystemDofMapCache> > d_system_dof_map_cache;
 
     /*
      * Data to manage mappings between mesh elements and grid patches.

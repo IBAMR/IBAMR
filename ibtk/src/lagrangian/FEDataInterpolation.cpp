@@ -151,6 +151,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
     // collection of variables/data.  In either case, we need to register it here.
     const size_t system_idx = d_systems.size();
     d_systems.push_back(&system);
+    d_system_dof_map_caches.push_back(d_fe_data_manager->getDofMapCache(system.name()));
     std::set<int> all_vars_set;
     all_vars_set.insert(vars.begin(), vars.end());
     all_vars_set.insert(grad_vars.begin(), grad_vars.end());
@@ -403,8 +404,7 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
     d_system_elem_data.resize(num_systems);
     for (size_t system_idx = 0; system_idx < num_systems; ++system_idx)
     {
-        const System& system = *d_systems[system_idx];
-        const DofMap& system_dof_map = system.get_dof_map();
+        FEDataManager::SystemDofMapCache& system_dof_map_cache = d_system_dof_map_caches[system_idx];
         const std::vector<int>& all_vars = d_system_all_vars[system_idx];
         const size_t num_vars = all_vars.size();
 
@@ -413,7 +413,7 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
         NumericVector<double>* system_data = d_system_data[system_idx];
         for (size_t k = 0; k < num_vars; ++k)
         {
-            system_dof_map.dof_indices(d_current_elem, dof_indices[k], all_vars[k]);
+            system_dof_map_cache.dof_indices(d_current_elem, dof_indices[k], all_vars[k]);
         }
         boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
         get_values_for_interpolation(elem_data, *system_data, dof_indices);
