@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "boost/tuple/tuple.hpp"
+#include "ibamr/IBFEMethod.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/libmesh_utilities.h"
@@ -115,11 +116,10 @@ public:
         void* ctx)
     {
         TBOX_ASSERT(ctx);
-        std::pair<IBTK::TensorMeshFcnPtr, void*>* PK1_stress_fcn_data =
-            static_cast<std::pair<IBTK::TensorMeshFcnPtr, void*>*>(ctx);
+        IBFEMethod::PK1StressFcnData* PK1_stress_fcn_data = static_cast<IBFEMethod::PK1StressFcnData*>(ctx);
         TBOX_ASSERT(PK1_stress_fcn_data);
-        IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->first;
-        void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->second;
+        IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->fcn;
+        void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->ctx;
         libMesh::TensorValue<double> PP;
         PK1_stress_fcn(PP, FF, X, s, elem, system_var_data, system_grad_var_data, data_time, PK1_stress_fcn_ctx);
         sigma = PP * FF.transpose() / FF.det();
