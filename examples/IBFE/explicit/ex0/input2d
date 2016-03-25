@@ -14,8 +14,6 @@ MFAC = 4.0                                     // ratio of Lagrangian mesh width
 ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
 CONVERGENCE_STUDY = FALSE                      // indicate whether we are performing a convergence study or not;
                                                // if so, attempt to make "nested" structural meshes
-ONE_SIDED_INTERACTION = TRUE
-
 // problem parameters
 SMOOTH_CASE = FALSE
 
