@@ -1148,10 +1148,10 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
+    const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
-    DofMap& Phi_dof_map = Phi_dof_map_cache.get_dof_map();
     std::vector<unsigned int> Phi_dof_indices;
-    FEType Phi_fe_type = Phi_dof_map_cache.variable_type(0);
+    FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1359,13 +1359,13 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+        const DofMap& G_dof_map = G_system.get_dof_map();
         FEDataManager::SystemDofMapCache& G_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
-        DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
-        FEType G_fe_type = G_dof_map_cache.variable_type(0);
+        FEType G_fe_type = G_dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(G_dof_map_cache.variable_type(d) == G_fe_type);
+            TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
         }
         std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1539,12 +1539,12 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+    const DofMap& G_dof_map = G_system.get_dof_map();
     FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
-    DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
-    FEType G_fe_type = G_dof_map_cache.variable_type(0);
+    FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(G_dof_map_cache.variable_type(d) == G_fe_type);
+        TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1816,12 +1816,12 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
-    DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
-    FEType G_fe_type = G_dof_map_cache.variable_type(0);
+    System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+    const DofMap& G_dof_map = G_system.get_dof_map();
+    FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(G_dof_map_cache.variable_type(d) == G_fe_type);
+        TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -2071,12 +2071,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& G_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& G_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
-    DofMap& G_dof_map = G_dof_map_cache.get_dof_map();
-    FEType G_fe_type = G_dof_map_cache.variable_type(0);
+    DofMap& G_dof_map = G_system.get_dof_map();
+    FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(G_dof_map_cache.variable_type(d) == G_fe_type);
+        TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -2494,16 +2493,10 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
-    const bool use_one_sided_interaction = false;
-    d_default_interp_spec = FEDataManager::InterpSpec("IB_4",
-                                                      QGAUSS,
-                                                      INVALID_ORDER,
-                                                      use_adaptive_quadrature,
-                                                      point_density,
-                                                      interp_use_consistent_mass_matrix,
-                                                      use_one_sided_interaction);
-    d_default_spread_spec = FEDataManager::SpreadSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_one_sided_interaction);
+    d_default_interp_spec = FEDataManager::InterpSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
+    d_default_spread_spec =
+        FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_split_normal_force = false;
     d_split_tangential_force = false;
@@ -2596,11 +2589,6 @@ void
 IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
-    if (db->isBool("use_one_sided_interpolation"))
-        d_default_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interpolation");
-    else if (db->isBool("use_one_sided_interaction"))
-        d_default_interp_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
-
     if (db->isString("interp_delta_fcn"))
         d_default_interp_spec.kernel_fcn = db->getString("interp_delta_fcn");
     else if (db->isString("IB_delta_fcn"))
@@ -2636,11 +2624,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
     // Spreading settings.
-    if (db->isBool("use_one_sided_spreading"))
-        d_default_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_spreading");
-    else if (db->isBool("use_one_sided_interaction"))
-        d_default_spread_spec.use_one_sided_interaction = db->getBool("use_one_sided_interaction");
-
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
     else if (db->isString("IB_delta_fcn"))

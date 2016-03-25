@@ -169,7 +169,6 @@ static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
 static Timer* t_put_to_database;
-static Timer* t_update_masking_data;
 
 // Version of FEDataManager restart file data.
 static const int FE_DATA_MANAGER_VERSION = 1;
@@ -407,19 +406,6 @@ FEDataManager::getDefaultSpreadSpec() const
     return d_default_spread_spec;
 } // getDefaultSpreadSpec
 
-Pointer<SideVariable<NDIM, double> >
-FEDataManager::getMaskingVariable() const
-{
-    return d_mask_var;
-
-} // getMaskingVariable
-
-int
-FEDataManager::getMaskingVariablePatchDataIndex() const
-{
-    return d_mask_idx;
-} // getMaskingVariablePatchDataIndex
-
 const std::vector<std::vector<Elem*> >&
 FEDataManager::getActivePatchElementMap() const
 {
@@ -534,16 +520,9 @@ FEDataManager::spread(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
-    // Update the masking data.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    if (spread_spec.use_one_sided_interaction)
-    {
-        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-        updateMaskingData(X_vec, fill_data_time);
-    }
-
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -562,14 +541,17 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType F_fe_type = F_dof_map_cache.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map_cache.variable_type(i) == F_fe_type);
-    FEType X_fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
@@ -722,17 +704,7 @@ FEDataManager::spread(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            if (spread_spec.use_one_sided_interaction)
-            {
-                Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-                LEInteractor::spread(
-                    mask_data, f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
-            }
-            else
-            {
-                LEInteractor::spread(
-                    f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
-            }
+            LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
         if (f_phys_bdry_op)
         {
@@ -793,14 +765,17 @@ FEDataManager::prolongData(const int f_data_idx,
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
+    const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(system_name);
+    const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType F_fe_type = F_dof_map_cache.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map_cache.variable_type(i) == F_fe_type);
-    FEType X_fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
@@ -1012,14 +987,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
-    // Update the masking data.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    if (interp_spec.use_one_sided_interaction)
-    {
-        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-        updateMaskingData(X_vec, fill_data_time);
-    }
-
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
@@ -1028,14 +995,17 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType F_fe_type = F_dof_map_cache.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map_cache.variable_type(i) == F_fe_type);
-    FEType X_fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
@@ -1070,6 +1040,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
 
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1163,17 +1134,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         if (sc_data)
         {
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-            if (interp_spec.use_one_sided_interaction)
-            {
-                Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-                LEInteractor::interpolate(
-                    F_qp, n_vars, X_qp, NDIM, mask_data, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
-            }
-            else
-            {
-                LEInteractor::interpolate(
-                    F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
-            }
+            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
 
         // Loop over the elements and accumulate the right-hand-side values.
@@ -1222,7 +1183,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             }
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map_cache.get_dof_map().constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
+                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
                 F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
             }
             qp_offset += n_qp;
@@ -1301,14 +1262,17 @@ FEDataManager::restrictData(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
     SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType F_fe_type = F_dof_map_cache.variable_type(0);
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map_cache.variable_type(i) == F_fe_type);
-    FEType X_fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
@@ -1470,7 +1434,7 @@ FEDataManager::restrictData(const int f_data_idx,
             }
             for (unsigned int i = 0; i < n_vars; ++i)
             {
-                F_dof_map_cache.get_dof_map().constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
+                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
                 F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
             }
         }
@@ -1509,10 +1473,11 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
+        DofMap& dof_map = system.get_dof_map();
         SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-        dof_map_cache.get_dof_map().compute_sparsity(mesh);
+        dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
-        FEType fe_type = dof_map_cache.variable_type(0);
+        FEType fe_type = dof_map.variable_type(0);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -1523,7 +1488,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         solver->init();
 
         SparseMatrix<double>* M_mat = SparseMatrix<double>::build(comm).release();
-        M_mat->attach_dof_map(dof_map_cache.get_dof_map());
+        M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
         // Loop over the mesh to construct the system matrix.
@@ -1534,7 +1499,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
-            for (unsigned int var_num = 0; var_num < dof_map_cache.get_dof_map().n_variables(); ++var_num)
+            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
                 const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
@@ -1551,7 +1516,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                         }
                     }
                 }
-                dof_map_cache.get_dof_map().constrain_element_matrix(M_e, dof_indices);
+                dof_map.constrain_element_matrix(M_e, dof_indices);
                 M_mat->add_matrix(M_e, dof_indices);
             }
         }
@@ -1578,7 +1543,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                     if (elem->is_node_on_side(n, side))
                     {
                         Node* node = elem->get_node(n);
-                        for (unsigned int var_num = 0; var_num < dof_map_cache.get_dof_map().n_variables(); ++var_num)
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
                             dof_map_cache.dof_indices(elem, dof_indices, var_num);
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
@@ -1586,7 +1551,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                             {
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (!dof_map_cache.get_dof_map().is_constrained_dof(node_dof_index)) continue;
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
                                      cit != dof_indices.end();
                                      ++cit)
@@ -1640,9 +1605,10 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
+        const DofMap& dof_map = system.get_dof_map();
         SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-        FEType fe_type = dof_map_cache.variable_type(0);
-        for (unsigned i = 0; i < system.n_vars(); ++i) TBOX_ASSERT(dof_map_cache.variable_type(i) == fe_type);
+        FEType fe_type = dof_map.variable_type(0);
+        for (unsigned i = 0; i < system.n_vars(); ++i) TBOX_ASSERT(dof_map.variable_type(i) == fe_type);
         std::vector<unsigned int> dof_indices;
         AutoPtr<FEBase> fe_trap(FEBase::build(dim, fe_type));
         AutoPtr<FEBase> fe_simpson(FEBase::build(dim, fe_type));
@@ -1689,7 +1655,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             const std::vector<double>& JxW = fe->get_JxW();
             const std::vector<std::vector<double> >& phi = fe->get_phi();
             fe->reinit(elem);
-            for (unsigned int var_num = 0; var_num < dof_map_cache.get_dof_map().n_variables(); ++var_num)
+            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
                 M_diag_e.resize(static_cast<int>(dof_indices.size()));
@@ -1709,7 +1675,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                         }
                     }
                 }
-                dof_map_cache.get_dof_map().constrain_element_vector(M_diag_e, dof_indices);
+                dof_map.constrain_element_vector(M_diag_e, dof_indices);
                 M_vec->add_vector(M_diag_e, dof_indices);
             }
         }
@@ -1735,14 +1701,14 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                     if (elem->is_node_on_side(n, side))
                     {
                         Node* node = elem->get_node(n);
-                        for (unsigned int var_num = 0; var_num < dof_map_cache.get_dof_map().n_variables(); ++var_num)
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (!dof_map_cache.get_dof_map().is_constrained_dof(node_dof_index)) continue;
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 M_vec->set(node_dof_index, 1.0);
                             }
                         }
@@ -1779,7 +1745,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 
     /*if (!F_vec.closed())*/ F_vec.close();
     const System& system = d_es->get_system(system_name);
-    SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
+    const DofMap& dof_map = system.get_dof_map();
     if (consistent_mass_matrix)
     {
         std::pair<libMesh::LinearSolver<double>*, SparseMatrix<double>*> proj_solver_components =
@@ -1822,7 +1788,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         converged = true;
     }
     U_vec.close();
-    dof_map_cache.get_dof_map().enforce_constraints_exactly(system, &U_vec);
+    dof_map.enforce_constraints_exactly(system, &U_vec);
 
     IBTK_TIMER_STOP(t_compute_l2_projection);
     return converged;
@@ -1999,10 +1965,12 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
+        System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-        FEType fe_type = X_dof_map_cache.variable_type(0);
-        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
+        FEType fe_type = X_dof_map.variable_type(0);
+        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
@@ -2169,16 +2137,6 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_qp_count_var = new CellVariable<NDIM, double>(d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
-    // Register the force/velocity masking variable with the VariableDatabase and create
-    // its ghost cell filling algorithm.
-    const IntVector<NDIM> mask_gcw = IntVector<NDIM>::max(
-        d_ghost_width,
-        IntVector<NDIM>(std::max(LEInteractor::getStencilSize(default_interp_spec.kernel_fcn) + 1,
-                                 LEInteractor::getStencilSize(default_spread_spec.kernel_fcn) + 1)));
-    d_mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
-    d_mask_idx = var_db->registerVariableAndContext(d_mask_var, d_context, mask_gcw);
-    d_ghost_fill_alg.registerRefine(d_mask_idx, d_mask_idx, d_mask_idx, NULL);
-
     // Setup Timers.
     IBTK_DO_ONCE(
         t_reinit_element_mappings =
@@ -2202,8 +2160,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector =
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");
-        t_update_masking_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateMaskingData()"););
+        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
 } // FEDataManager
 
@@ -2259,10 +2216,12 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
+        System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
         SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-        FEType fe_type = X_dof_map_cache.variable_type(0);
-        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
+        FEType fe_type = X_dof_map.variable_type(0);
+        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
@@ -2415,10 +2374,12 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule;
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == fe_type);
+    FEType fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
     AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
@@ -2619,16 +2580,14 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 {
     System& system = d_es->get_system(system_name);
     const unsigned int sys_num = system.number();
-    SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-    const unsigned int first_local_dof = dof_map_cache.get_dof_map().first_dof();
-    const unsigned int end_local_dof = dof_map_cache.get_dof_map().end_dof();
+    const DofMap& dof_map = system.get_dof_map();
+    const unsigned int first_local_dof = dof_map.first_dof();
+    const unsigned int end_local_dof = dof_map.end_dof();
 
     // Include non-local DOF constraint dependencies for local DOFs in the list
     // of ghost DOFs.
     std::vector<unsigned int> constraint_dependency_dof_list;
-    for (DofConstraints::const_iterator i = dof_map_cache.get_dof_map().constraint_rows_begin();
-         i != dof_map_cache.get_dof_map().constraint_rows_end();
-         ++i)
+    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
     {
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
@@ -2685,154 +2644,6 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
     ghost_dofs.insert(ghost_dofs.end(), ghost_dof_set.begin(), ghost_dof_set.end());
     return;
 } // collectGhostDOFIndices
-
-void
-FEDataManager::updateMaskingData(NumericVector<double>& X_vec, const double fill_time)
-{
-    IBTK_TIMER_START(t_update_masking_data);
-
-    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
-    // discretization.  It should be straightforward to generalize it to work
-    // with other data centerings.
-    //
-    // NOTE #2: This code is specialized for isoparametric elements.  It is less
-    // clear how to relax this assumption.
-
-    // Extract the mesh.
-    const MeshBase& mesh = d_es->get_mesh();
-    const unsigned int dim = mesh.mesh_dimension();
-    TBOX_ASSERT(dim == NDIM);
-
-    // Extract the FE systems and DOF maps, and setup the FE object.
-    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType X_fe_type = X_dof_map_cache.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map_cache.variable_type(d) == X_fe_type);
-
-    // Communicate any unsynchronized ghost data and extract the underlying
-    // solution data.
-    /*if (!X_vec.closed())*/ X_vec.close();
-    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-    Vec X_global_vec = X_petsc_vec->vec();
-    Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-    double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
-
-    // Loop over the patches and demark the inside and outside region of the body.
-    boost::multi_array<double, 2> X_node;
-    std::vector<libMesh::Point> s_node_cache, X_node_cache;
-    Point X_min, X_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-    {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > mask_data = patch->getPatchData(d_mask_idx);
-        const Box<NDIM>& ghost_box = mask_data->getGhostBox();
-        mask_data->fillAll(0.0, ghost_box);
-
-        // The relevant collection of elements.
-        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const size_t num_active_patch_elems = patch_elems.size();
-        if (!num_active_patch_elems) continue;
-
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
-
-        boost::array<Box<NDIM>, NDIM> side_boxes;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-        }
-
-        // Loop over the elements and find the Eulerian region inside the body.
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems[e_idx];
-            const unsigned int n_node = elem->n_nodes();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-            }
-
-            // Cache the nodal and physical coordinates of the element,
-            // determine the bounding box of the current configuration of the
-            // element, and set the nodal coordinates of the element to
-            // correspond to the physical coordinates.
-            s_node_cache.resize(n_node);
-            X_node_cache.resize(n_node);
-            X_min = Point::Constant(+0.5 * std::numeric_limits<double>::max());
-            X_max = Point::Constant(-0.5 * std::numeric_limits<double>::max());
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                s_node_cache[k] = elem->point(k);
-                libMesh::Point& X = X_node_cache[k];
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X(d) = X_vec(X_dof_indices[d][k]);
-                    X_min[d] = std::min(X_min[d], X(d));
-                    X_max[d] = std::max(X_max[d], X(d));
-                }
-                elem->point(k) = X;
-            }
-            Box<NDIM> box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
-            box.grow(IntVector<NDIM>(1));
-            box = box * patch_box;
-
-            // Loop over coordinate directions and look for the Eulerian grid points
-            // that are covered by the element.
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                // Loop over the relevant range of indices.
-                for (SideIterator<NDIM> b(box, axis); b; b++)
-                {
-                    const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s))
-                    {
-                        libMesh::Point p;
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            p(d) =
-                                patch_x_lower[d] +
-                                patch_dx[d] * (static_cast<double>(i_s(d) - patch_lower[d]) + (d == axis ? 0.0 : 0.5));
-                        }
-                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
-                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
-                        if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
-                        {
-                            (*mask_data)(i_s, /*depth*/ 0) = 1.0;
-                        }
-                    }
-                }
-            }
-
-            // Restore the nodal coordinates.
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                elem->point(k) = s_node_cache[k];
-            }
-        }
-    }
-
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-
-    // Fill the ghost cell region of masking data.
-    d_ghost_fill_alg.createSchedule(level)->fillData(fill_time);
-
-    IBTK_TIMER_STOP(t_update_masking_data);
-    return;
-
-} // updateMaskingData
 
 void
 FEDataManager::getFromRestart()

@@ -267,8 +267,7 @@ main(int argc, char* argv[])
                                                     FIFTH,
                                                     /*use_adaptive_quadrature*/ false,
                                                     /*point_density*/ 2.0,
-                                                    /*use_consistent_mass_matrix*/ true,
-                                                    /*use_one_sided_interaction*/ false);
+                                                    /*use_consistent_mass_matrix*/ true);
             ib_post_processor->registerInterpolatedScalarEulerianVariable(
                 "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
         }
@@ -342,46 +341,6 @@ main(int argc, char* argv[])
         // Deallocate initialization objects.
         app_initializer.setNull();
 
-        // Create plotting variables for masking data.
-        const bool one_sided_interaction = input_db->getBoolWithDefault("ONE_SIDED_INTERACTION", false);
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
-        hier_math_ops.resetLevels(finest_ln, finest_ln);
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> var_ctx = new VariableContext("context");
-        Pointer<CellVariable<NDIM, double> > mask_cc_var = new CellVariable<NDIM, double>("mask_cc_var", NDIM);
-        const int mask_cc_idx = var_db->registerVariableAndContext(mask_cc_var, var_ctx, 0);
-        for (int ln = 0; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            if (!level->checkAllocated(mask_cc_idx)) level->allocatePatchData(mask_cc_idx);
-
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > mask_cc_data = patch->getPatchData(mask_cc_idx);
-                mask_cc_data->fillAll(0.0);
-            }
-        }
-        if (dump_viz_data)
-        {
-            if (uses_visit)
-            {
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    std::ostringstream mask_stream;
-                    mask_stream << "mask_var_" << d;
-                    visit_data_writer->registerPlotQuantity(mask_stream.str(), "SCALAR", mask_cc_idx, d);
-                }
-            }
-        }
-
-        // Get masking data from FEDataManagers.
-        Pointer<SideVariable<NDIM, double> > mask_sc_var = ib_method_ops->getFEDataManager(0)->getMaskingVariable();
-        const int mask_sc_idx = ib_method_ops->getFEDataManager(0)->getMaskingVariablePatchDataIndex();
-
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
@@ -390,6 +349,7 @@ main(int argc, char* argv[])
         const Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
 
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
@@ -400,6 +360,8 @@ main(int argc, char* argv[])
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
         visit_data_writer->registerPlotQuantity("P error", "SCALAR", p_cloned_idx);
 
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx);
@@ -465,28 +427,6 @@ main(int argc, char* argv[])
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
                 {
-                    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-                    {
-                        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                        if (!level->checkAllocated(mask_cc_idx)) level->allocatePatchData(mask_cc_idx);
-
-                        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                        {
-                            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                            Pointer<CellData<NDIM, double> > mask_cc_data = patch->getPatchData(mask_cc_idx);
-                            mask_cc_data->fillAll(0.0);
-                        }
-                    }
-                    if (one_sided_interaction)
-                    {
-                        hier_math_ops.interp(mask_cc_idx,
-                                             mask_cc_var,
-                                             mask_sc_idx,
-                                             mask_sc_var,
-                                             Pointer<HierarchyGhostCellInterpolation>(NULL),
-                                             0.0,
-                                             true);
-                    }
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 }

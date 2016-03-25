@@ -121,8 +121,6 @@ IBHierarchyIntegrator {
 IBFEMethod {
    IB_delta_fcn               = IB_DELTA_FUNCTION
    split_forces               = SPLIT_FORCES
-   use_one_sided_interpolation = ONE_SIDED_INTERACTION
-   use_one_sided_spreading     = ONE_SIDED_INTERACTION
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY

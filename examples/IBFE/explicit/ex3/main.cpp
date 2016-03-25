@@ -297,8 +297,7 @@ main(int argc, char* argv[])
                                                 FIFTH,
                                                 /*use_adaptive_quadrature*/ false,
                                                 /*point_density*/ 2.0,
-                                                /*use_consistent_mass_matrix*/ true,
-                                                /*use_one_sided_interaction*/ false);
+                                                /*use_consistent_mass_matrix*/ true);
         ib_post_processor->registerInterpolatedScalarEulerianVariable(
             "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
 

@@ -113,8 +113,7 @@ public:
     class SystemDofMapCache
     {
     public:
-        inline SystemDofMapCache(libMesh::System& system)
-            : d_system(system), d_dof_map(system.get_dof_map()), d_last_lookup(d_dof_cache.end())
+        inline SystemDofMapCache(libMesh::System& system) : d_system(system), d_dof_map(system.get_dof_map())
         {
         }
 
@@ -126,44 +125,12 @@ public:
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
             const libMesh::dof_id_type elem_id = elem->id();
-
-            // Optimize for the case that we are iterating through the elements.
-            if (d_last_lookup != d_dof_cache.end())
+            if (d_dof_cache.size() <= elem_id)
             {
-                if (d_last_lookup->first == elem_id)
-                {
-                    // intentionally blank
-                }
-                else
-                {
-                    ++d_last_lookup;
-                }
-
-                if (d_last_lookup != d_dof_cache.end() && d_last_lookup->first == elem_id)
-                {
-                    std::vector<std::vector<unsigned int> >& elem_dof_indices = d_last_lookup->second;
-                    if (elem_dof_indices.size() < var + 1)
-                    {
-                        elem_dof_indices.resize(var + 1);
-                    }
-                    if (elem_dof_indices[var].empty())
-                    {
-                        d_dof_map.dof_indices(elem, elem_dof_indices[var], var);
-                    }
-                    dof_indices = elem_dof_indices[var];
-                    return;
-                }
+                d_dof_cache.resize(elem_id + 1);
             }
-
-            // We are looking for an element that is not adjacent to the last look-up.
-            d_last_lookup = d_dof_cache.find(elem_id);
-            if (d_last_lookup == d_dof_cache.end())
-            {
-                d_last_lookup =
-                    d_dof_cache.insert(std::make_pair(elem_id, std::vector<std::vector<unsigned int> >())).first;
-            }
-            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_last_lookup->second;
-            if (elem_dof_indices.size() < var + 1)
+            std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
+            if (elem_dof_indices.size() <= var)
             {
                 elem_dof_indices.resize(var + 1);
             }
@@ -175,26 +142,10 @@ public:
             return;
         }
 
-        inline libMesh::FEType variable_type(const unsigned int var)
-        {
-            return d_dof_map.variable_type(var);
-        }
-
-        inline libMesh::System& get_system() const
-        {
-            return d_system;
-        }
-
-        inline libMesh::DofMap& get_dof_map() const
-        {
-            return d_dof_map;
-        }
-
     private:
         libMesh::System& d_system;
         libMesh::DofMap& d_dof_map;
-        std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
-        std::map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > >::iterator d_last_lookup;
+        std::vector<std::vector<std::vector<unsigned int> > > d_dof_cache;
     };
 
     /*!
@@ -213,15 +164,13 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_consistent_mass_matrix,
-                   bool use_one_sided_interaction)
+                   bool use_consistent_mass_matrix)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
-              use_consistent_mass_matrix(use_consistent_mass_matrix),
-              use_one_sided_interaction(use_one_sided_interaction)
+              use_consistent_mass_matrix(use_consistent_mass_matrix)
         {
         }
 
@@ -231,7 +180,6 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_consistent_mass_matrix;
-        bool use_one_sided_interaction;
     };
 
     /*!
@@ -249,14 +197,12 @@ public:
                    const libMesh::QuadratureType& quad_type,
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
-                   double point_density,
-                   const bool use_one_sided_interaction)
+                   double point_density)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
-              point_density(point_density),
-              use_one_sided_interaction(use_one_sided_interaction)
+              point_density(point_density)
         {
         }
 
@@ -265,7 +211,6 @@ public:
         libMesh::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
-        bool use_one_sided_interaction;
     };
 
     /*!
@@ -787,11 +732,6 @@ private:
                                 const std::string& system_name);
 
     /*!
-     * Update the masking variable to demark the inside and outside of the body region.
-     */
-    void updateMaskingData(libMesh::NumericVector<double>& X_vec, const double fill_time);
-
-    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.
@@ -845,14 +785,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
-
-    /*
-     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
-     * side variable used to keep track of the force and velocity DOFs that are
-     * inside and outside of the body region.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_mask_var;
-    int d_mask_idx;
 
     /*
      * SAMRAI::xfer::RefineAlgorithm pointer to fill the ghost cell region of
