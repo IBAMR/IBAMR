@@ -185,7 +185,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
                                                ghost_fill_transaction,
                                                d_fe_data_manager->getDefaultInterpSpec());
     return;
-} //
+} // registerInterpolatedScalarEulerianVariable
 
 void
 IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(

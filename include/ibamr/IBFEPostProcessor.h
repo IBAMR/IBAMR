@@ -129,9 +129,6 @@ public:
     /*!
      * \brief Function for reconstructing a deformed material axis.  A pointer
      * to the system number must be passed as the ctx argument.
-     *
-     * \note Assumes that the material axis is described by a piecewise constant
-     * field.
      */
     static inline void deformed_material_axis_fcn(
         libMesh::VectorValue<double>& f,
@@ -154,9 +151,6 @@ public:
     /*!
      * \brief Function for reconstructing a deformed, normalized material axis.
      * A pointer to the system number must be passed as the ctx argument.
-     *
-     * \note Assumes that the material axis is described by a piecewise constant
-     * field.
      */
     static inline void deformed_normalized_material_axis_fcn(
         libMesh::VectorValue<double>& f,
@@ -179,9 +173,6 @@ public:
     /*!
      * \brief Function for reconstructing the stretch in a material axis.  A
      * pointer to the system number must be passed as the ctx argument.
-     *
-     * \note Assumes that the material axis is described by a piecewise constant
-     * field.
      */
     static inline void material_axis_stretch_fcn(
         double& lambda,

@@ -229,6 +229,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
         fe.setupInterpolatedSystemDataIndexes(
             tensor_var_fcn_system_idxs[k], d_tensor_var_system_data[k], equation_systems);
     }
+
     fe.init(/*use_IB_ghosted_vecs*/ false);
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
