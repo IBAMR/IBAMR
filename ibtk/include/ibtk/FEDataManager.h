@@ -53,6 +53,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
+#include "boost/unordered_map.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
@@ -113,7 +114,7 @@ public:
     class SystemDofMapCache
     {
     public:
-        inline SystemDofMapCache(libMesh::System& system) : d_system(system), d_dof_map(system.get_dof_map())
+        inline SystemDofMapCache(libMesh::System& system) : d_dof_map(system.get_dof_map())
         {
         }
 
@@ -125,10 +126,6 @@ public:
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
             const libMesh::dof_id_type elem_id = elem->id();
-            if (d_dof_cache.size() <= elem_id)
-            {
-                d_dof_cache.resize(elem_id + 1);
-            }
             std::vector<std::vector<unsigned int> >& elem_dof_indices = d_dof_cache[elem_id];
             if (elem_dof_indices.size() <= var)
             {
@@ -143,9 +140,8 @@ public:
         }
 
     private:
-        libMesh::System& d_system;
         libMesh::DofMap& d_dof_map;
-        std::vector<std::vector<std::vector<unsigned int> > > d_dof_cache;
+        boost::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
     };
 
     /*!
@@ -526,7 +522,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateQuadratureRule(libMesh::QBase*& qrule,
                                      libMesh::QuadratureType quad_type,
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
@@ -544,7 +540,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateInterpQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateInterpQuadratureRule(libMesh::QBase*& qrule,
                                            const InterpSpec& spec,
                                            libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
@@ -559,7 +555,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateSpreadQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateSpreadQuadratureRule(libMesh::QBase*& qrule,
                                            const SpreadSpec& spec,
                                            libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
