@@ -1831,7 +1831,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
     AutoPtr<QBase> default_qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
-    QBase* qrule_face = NULL;
+    AutoPtr<QBase> qrule_face;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -1914,11 +1914,11 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
-                const bool qrule_needs_reinit = d_fe_data_managers[part]->updateSpreadQuadratureRule(
+                const bool qrule_changed = d_fe_data_managers[part]->updateSpreadQuadratureRule(
                     qrule_face, d_spread_spec[part], side_elem.get(), X_node, patch_dx_min);
-                if (qrule_needs_reinit)
+                if (qrule_changed)
                 {
-                    fe.attachQuadratureRuleFace(qrule_face);
+                    fe.attachQuadratureRuleFace(qrule_face.get());
                 }
                 fe.reinit(elem, side);
                 fe.interpolate(elem, side);

@@ -540,7 +540,7 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QBase* qrule = NULL;
+    AutoPtr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
@@ -624,11 +624,7 @@ FEDataManager::spread(const int f_data_idx,
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_needs_reinit = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-            if (qrule_needs_reinit)
-            {
-                qrule->init(elem->type(), elem->p_level());
-            }
+            updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
             n_qp_patch += qrule->n_points();
         }
         if (!n_qp_patch) continue;
@@ -637,7 +633,7 @@ FEDataManager::spread(const int f_data_idx,
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
-        qrule = NULL;
+        qrule.reset();
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -652,8 +648,8 @@ FEDataManager::spread(const int f_data_idx,
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_needs_reinit = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
-            if (qrule_needs_reinit)
+            const bool qrule_changed = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
+            if (qrule_changed)
             {
                 // NOTE: Because we are only using the shape function values for
                 // the FE object associated with X, we only need to reinitialize
@@ -661,8 +657,8 @@ FEDataManager::spread(const int f_data_idx,
                 // notice that the shape function values depend only on the
                 // element type and quadrature rule, not on the element
                 // geometry.
-                F_fe->attach_quadrature_rule(qrule);
-                X_fe->attach_quadrature_rule(qrule);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
                 if (X_fe != F_fe) X_fe->reinit(elem);
             }
             F_fe->reinit(elem);
@@ -994,7 +990,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QBase* qrule = NULL;
+    AutoPtr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
@@ -1069,11 +1065,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_needs_reinit = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            if (qrule_needs_reinit)
-            {
-                qrule->init(elem->type(), elem->p_level());
-            }
+            updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
             n_qp_patch += qrule->n_points();
         }
         if (!n_qp_patch) continue;
@@ -1082,7 +1074,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         std::fill(F_qp.begin(), F_qp.end(), 0.0);
 
         // Loop over the elements and compute the positions of the quadrature points.
-        qrule = NULL;
+        qrule.reset();
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -1092,8 +1084,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_needs_reinit = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            if (qrule_needs_reinit)
+            const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+            if (qrule_changed)
             {
                 // NOTE: Because we are only using the shape function values for
                 // the FE object associated with X, we only need to reinitialize
@@ -1101,7 +1093,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // notice that the shape function values depend only on the
                 // element type and quadrature rule, not on the element
                 // geometry.
-                X_fe->attach_quadrature_rule(qrule);
+                X_fe->attach_quadrature_rule(qrule.get());
                 X_fe->reinit(elem);
             }
             const unsigned int n_node = elem->n_nodes();
@@ -1142,7 +1134,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         }
 
         // Loop over the elements and accumulate the right-hand-side values.
-        qrule = NULL;
+        qrule.reset();
         qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -1157,8 +1149,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_needs_reinit = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
-            if (qrule_needs_reinit)
+            const bool qrule_changed = updateInterpQuadratureRule(qrule, interp_spec, elem, X_node, patch_dx_min);
+            if (qrule_changed)
             {
                 // NOTE: Because we are only using the shape function values for
                 // the FE object associated with X, we only need to reinitialize
@@ -1166,8 +1158,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // notice that the shape function values depend only on the
                 // element type and quadrature rule, not on the element
                 // geometry.
-                F_fe->attach_quadrature_rule(qrule);
-                X_fe->attach_quadrature_rule(qrule);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
                 if (X_fe != F_fe) X_fe->reinit(elem);
             }
             F_fe->reinit(elem);
@@ -1799,7 +1791,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 } // computeL2Projection
 
 bool
-FEDataManager::updateQuadratureRule(QBase*& qrule,
+FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
                                     QuadratureType type,
                                     Order order,
                                     bool use_adaptive_quadrature,
@@ -1808,8 +1800,9 @@ FEDataManager::updateQuadratureRule(QBase*& qrule,
                                     const boost::multi_array<double, 2>& X_node,
                                     const double dx_min)
 {
+    unsigned int elem_dim = elem->dim();
     const ElemType elem_type = elem->type();
-    unsigned int dim = elem->dim();
+    const unsigned int elem_p_level = elem->p_level();
     if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
@@ -1829,25 +1822,20 @@ FEDataManager::updateQuadratureRule(QBase*& qrule,
                           "or QGRID\n");
         }
     }
-    static boost::unordered_map<QuadratureType, boost::unordered_map<Order, boost::unordered_map<ElemType, QBase*> > >
-        s_qrules; // TODO: this should be deallocated properly
-    bool qrule_needs_reinit = false;
-    QBase* old_qrule = qrule;
-    qrule = s_qrules[type][order][elem_type];
-    if (!qrule)
+    bool qrule_updated = false;
+    if (!qrule || qrule->type() != type || qrule->get_dim() != elem_dim || qrule->get_order() != order ||
+        qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
     {
-        s_qrules[type][order][elem_type] =
-            (type == QGRID ? AutoPtr<QBase>(new QGrid(dim, order)) : QBase::build(type, dim, order)).release();
-        qrule = s_qrules[type][order][elem_type];
+        qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
         // qrule->allow_rules_with_negative_weights = false;
-        qrule_needs_reinit = true;
+        qrule->init(elem_type, elem_p_level);
+        qrule_updated = true;
     }
-    qrule_needs_reinit = (qrule != old_qrule) || qrule_needs_reinit;
-    return qrule_needs_reinit;
+    return qrule_updated;
 }
 
 bool
-FEDataManager::updateInterpQuadratureRule(QBase*& qrule,
+FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
                                           const FEDataManager::InterpSpec& spec,
                                           Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -1858,7 +1846,7 @@ FEDataManager::updateInterpQuadratureRule(QBase*& qrule,
 }
 
 bool
-FEDataManager::updateSpreadQuadratureRule(QBase*& qrule,
+FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                           const FEDataManager::SpreadSpec& spec,
                                           Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -1971,7 +1959,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         const MeshBase& mesh = d_es->get_mesh();
         const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        QBase* qrule = NULL;
+        AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2025,16 +2013,16 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_needs_reinit =
+                const bool qrule_changed =
                     updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_needs_reinit)
+                if (qrule_changed)
                 {
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule);
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -2222,7 +2210,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        QBase* qrule = NULL;
+        AutoPtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2270,16 +2258,16 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_needs_reinit =
+                const bool qrule_changed =
                     updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_needs_reinit)
+                if (qrule_changed)
                 {
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule);
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -2382,7 +2370,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const MeshBase& mesh = d_es->get_mesh();
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
-    QBase* qrule = NULL;
+    AutoPtr<QBase> qrule;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
@@ -2498,16 +2486,16 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_needs_reinit =
+                const bool qrule_changed =
                     updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, X_node, patch_dx_min);
-                if (qrule_needs_reinit)
+                if (qrule_changed)
                 {
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
-                    fe->attach_quadrature_rule(qrule);
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 bool found_qp = false;
