@@ -824,7 +824,7 @@ FEDataManager::prolongData(const int f_data_idx,
             s_node_cache.resize(n_node);
             X_node_cache.resize(n_node);
             X_min = Point::Constant(std::numeric_limits<double>::max());
-            X_max = Point::Constant(std::numeric_limits<double>::lowest());
+            X_max = Point::Constant(-std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -1311,7 +1311,7 @@ FEDataManager::restrictData(const int f_data_idx,
             s_node_cache.resize(n_node);
             X_node_cache.resize(n_node);
             X_min = Point::Constant(std::numeric_limits<double>::max());
-            X_max = Point::Constant(std::numeric_limits<double>::lowest());
+            X_max = Point::Constant(-std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -2270,7 +2270,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
         Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
         Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
         elem_lower_bound = Point::Constant(std::numeric_limits<double>::max());
-        elem_upper_bound = Point::Constant(std::numeric_limits<double>::lowest());
+        elem_upper_bound = Point::Constant(-std::numeric_limits<double>::max());
 
         const unsigned int n_nodes = elem->n_nodes();
         dof_indices.clear();

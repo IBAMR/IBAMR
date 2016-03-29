@@ -46,6 +46,8 @@
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+// Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
 /*******************************************************************************
