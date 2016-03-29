@@ -259,6 +259,7 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
+            pout << "Advancing hierarchy by timestep size " << dt << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
