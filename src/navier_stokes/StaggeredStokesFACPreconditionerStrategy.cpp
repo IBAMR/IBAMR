@@ -534,9 +534,6 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
 #endif
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
-        d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
-        d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
 
@@ -746,6 +743,9 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
         d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
+        d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
+        d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),

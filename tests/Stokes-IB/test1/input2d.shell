@@ -1,9 +1,5 @@
-// -stokes_ib_pc_level_pc_asm_local_type multiplicative
-// -stokes_ib_pc_level_0_pc_asm_local_type multiplicative
-// -stokes_ib_pc_level_0_sub_pc_type lu
-// -stokes_ib_pc_level_sub_pc_type lu
-// -stokes_ib_pc_level_sub_pc_factor_nonzeros_along_diagonal
-// -stokes_ib_pc_level_pc_asm_type BASIC
+// PETSc command line
+petsc_options_file = "PetscOptions.dat"
 
 // physical parameters
 MU  = 1.0                           // the viscosity
@@ -118,7 +114,7 @@ IBHierarchyIntegrator {
             use_ksp_as_smoother   = TRUE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
-	    pc_type               = "asm"
+	    pc_type               = "fieldsplit"
             shell_pc_type         = "additive"
 
             subdomain_box_size      = N  , N
@@ -157,7 +153,7 @@ IBStandardInitializer {
       ratio = 500.0
       alpha_explicit = 3.93
       level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = ratio*alpha_explicit/DT 
+      uniform_spring_stiffness = 1.0*ratio*alpha_explicit/DT 
    }
 }
 

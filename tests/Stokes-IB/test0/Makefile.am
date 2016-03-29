@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST = input2d README
+EXTRA_DIST = input2d PetscOptions.dat README
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -18,6 +18,7 @@ tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/markers2d.vertex $(PWD) ; \
+          cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
           cp -f $(srcdir)/README $(PWD) ; \
 	fi ;
 
@@ -27,5 +28,6 @@ clean-local:
 	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/markers2d.vertex ; \
 	  rm -f $(builddir)/{*.dat,*.info}; \
+          rm -f $(builddir)/PetscOptions.dat ; \
           rm -f $(builddir)/README ; \
 	fi ;
