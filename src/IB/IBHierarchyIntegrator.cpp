@@ -249,12 +249,13 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
-    if (d_time_stepping_type == TRAPEZOIDAL_RULE)
+    switch (d_time_stepping_type)
     {
+    case FORWARD_EULER:
+    case TRAPEZOIDAL_RULE:
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
-    }
-    else
-    {
+        break;
+    default:
         d_f_current_idx = -1;
     }
 
