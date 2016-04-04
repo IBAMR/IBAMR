@@ -183,6 +183,48 @@ public:
     //\}
 
     /*!
+     * \brief Support for degrees of freedom not associated with the AMR grid hierarchy.
+     */
+    //\{
+
+    /*!
+     * \brief Provide a MatNest matrix to use in solving the augmented system.
+     *
+     * \note In the solve, the (0,0) block of this matrix will be
+     * replaced by the operator associated with the parent KrylovLinearSolver.
+     *
+     * This matrix is responsible for coupling the Eulerian variables to
+     * the extra degrees of freedom not associated with the AMR grid hierarchy.
+     *
+     * \note Must be called before the solver is initialized.
+     */
+    void setAugmentedOperator(Mat A_augmented);
+
+    /*!
+     * \brief Provide VecNest vectors to use in solving the augmented system.
+     *
+     * \note In the solve, the 0 entries of these vector will be replaced by
+     * the solution and right-hand side vectors associated with the parent
+     * KrylovLinearSolver.
+     *
+     * \note Must be called before the solver is initialized.
+     */
+    void setAugmentedVectors(Vec x_augmented, Vec b_augmented);
+
+    /*!
+     * \brief Reset the VecNest vectors to use in solving the augmented system.
+     *
+     * \note In the solve, the 0 entries of these vector will be replaced by
+     * the solution and right-hand side vectors associated with the parent
+     * KrylovLinearSolver.
+     *
+     * \note Can be called after the solver is initialized.
+     */
+    void resetAugmentedVectors(Vec x_augmented, Vec b_augmented);
+
+    //\}
+
+    /*!
      * \name Krylov solver functionality.
      */
     //\{
@@ -397,28 +439,42 @@ private:
      */
     static PetscErrorCode PCApply_SAMRAI(PC pc, Vec x, Vec y);
 
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApplyAugmented_SAMRAI(PC pc, Vec x, Vec y);
+
     //\}
 
     std::string d_ksp_type;
 
     bool d_reinitializing_solver;
 
-    Vec d_petsc_x, d_petsc_b;
-
     std::string d_options_prefix;
 
+    // Data structures for the full system, which may include DOFs associated
+    // with both the AMR grid hierarchy and additional DOFs.
     MPI_Comm d_petsc_comm;
     KSP d_petsc_ksp;
     Mat d_petsc_mat;
-    MatNullSpace d_petsc_nullsp;
     bool d_managing_petsc_ksp;
     bool d_user_provided_mat;
     bool d_user_provided_pc;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
-    Vec d_petsc_nullspace_constant_vec;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace;
+
+    // Data structures for the (0,0) block, which corresponds to the DOFs
+    // associated with the AMR grid hierarchy.
+    Mat d_petsc_A00_mat;
+    Vec d_petsc_x0, d_petsc_b0;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_A00_nullspace_constant_vec;
+    Vec d_petsc_A00_nullspace_constant_vec;
+    MatNullSpace d_petsc_A00_nullsp;
+
+    bool d_using_augmented_DOFs;
+    Mat d_A_augmented;
+    Vec d_x_augmented, d_b_augmented;
 };
 } // namespace IBTK
 
