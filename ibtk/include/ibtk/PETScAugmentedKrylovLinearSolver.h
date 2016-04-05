@@ -313,8 +313,11 @@ protected:
 
     /*!
      * \brief Apply the preconditioner for the augmented system.
+     *
+     * \note A default implementation is provided that applies the Cartesian grid preconditioner to the SAMRAI data and
+     * the identity operator to the extra data.
      */
-    virtual void PCApplyAugmented(Vec x, Vec y) = 0;
+    virtual void PCApplyAugmented(Vec x, Vec y);
 
 private:
     /*!

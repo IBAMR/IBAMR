@@ -454,6 +454,15 @@ PETScAugmentedKrylovLinearSolver::initializeSolverStateAugmented(const SAMRAIVec
     return;
 } // initializeSolverStateAugmented
 
+void
+PETScAugmentedKrylovLinearSolver::PCApplyAugmented(Vec x, Vec y)
+{
+    PetscErrorCode ierr;
+    ierr = VecCopy(x, y);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // PCApplyAugmented
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
