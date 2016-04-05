@@ -347,8 +347,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
 
-    std::string d_stokes_solver_type, d_stokes_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
+    std::string d_stokes_solver_type, d_stokes_precond_type, d_stokes_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db, d_stokes_sub_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
 

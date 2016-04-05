@@ -577,9 +577,13 @@ PETScAugmentedKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(
-            d_petsc_comm, 3, 3, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat); // XXXX dirty
-                                                                                                           // hack
+        ierr = MatCreateShell(d_petsc_comm,
+                              1 + (SAMRAI_MPI::getRank() == 0 ? 2 : 0),
+                              1 + (SAMRAI_MPI::getRank() == 0 ? 2 : 0),
+                              PETSC_DETERMINE,
+                              PETSC_DETERMINE,
+                              static_cast<void*>(this),
+                              &d_petsc_mat); // XXXX dirty hack
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatShellSetOperation(

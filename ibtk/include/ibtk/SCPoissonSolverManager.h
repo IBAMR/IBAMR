@@ -107,17 +107,23 @@ public:
      * Allocate a new SCPoissonSolver object of the specified type with a
      * preconditioner of a specified type.
      *
-     * \note The preconditioner settings are used only when the allocated solver
+     * \note The preconditioner settings are used only when the parent solver
      * is a KrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> allocateSolver(const std::string& solver_type,
-                                                        const std::string& solver_object_name,
-                                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-                                                        const std::string& solver_default_options_prefix,
-                                                        const std::string& precond_type,
-                                                        const std::string& precond_object_name,
-                                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
-                                                        const std::string& precond_default_options_prefix) const;
+    SAMRAI::tbox::Pointer<PoissonSolver>
+    allocateSolver(const std::string& solver_type,
+                   const std::string& solver_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   const std::string& solver_default_options_prefix,
+                   const std::string& precond_type,
+                   const std::string& precond_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
+                   const std::string& precond_default_options_prefix,
+                   const std::string& sub_precond_type = "",
+                   const std::string& sub_precond_object_name = "",
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_precond_input_db =
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(),
+                   const std::string& sub_precond_default_options_prefix = "") const;
 
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.

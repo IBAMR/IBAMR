@@ -142,7 +142,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
     std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
-        TBOX_ERROR("StaggeredStokesSolverManager::allocateSolver():\n"
+        TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: "
                    << solver_type
                    << "\n");
@@ -158,14 +158,27 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              const std::string& precond_type,
                                              const std::string& precond_object_name,
                                              Pointer<Database> precond_input_db,
-                                             const std::string& precond_default_options_prefix) const
+                                             const std::string& precond_default_options_prefix,
+                                             const std::string& sub_precond_type,
+                                             const std::string& sub_precond_object_name,
+                                             Pointer<Database> sub_precond_input_db,
+                                             const std::string& sub_precond_default_options_prefix) const
 {
     Pointer<StaggeredStokesSolver> solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
-    if (p_solver)
-        p_solver->setPreconditioner(
-            allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
+    if (p_solver && !precond_type.empty())
+    {
+        Pointer<StaggeredStokesSolver> precond = allocateSolver(precond_type,
+                                                                precond_object_name,
+                                                                precond_input_db,
+                                                                precond_default_options_prefix,
+                                                                sub_precond_type,
+                                                                sub_precond_object_name,
+                                                                sub_precond_input_db,
+                                                                sub_precond_default_options_prefix);
+        if (precond) p_solver->setPreconditioner(precond);
+    }
     return solver;
 } // allocateSolver
 

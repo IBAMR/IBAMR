@@ -715,6 +715,14 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     }
     if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
 
+    if (db->keyExists("velocity_sub_precond_type"))
+    {
+        d_velocity_sub_precond_type = db->getString("velocity_sub_precond_type");
+        if (db->keyExists("velocity_sub_precond_db"))
+            d_velocity_sub_precond_db = db->getDatabase("velocity_sub_precond_db");
+    }
+    if (!d_velocity_sub_precond_db) d_velocity_sub_precond_db = new MemoryDatabase("velocity_sub_precond_db");
+
     if (db->keyExists("pressure_solver_type"))
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
@@ -728,6 +736,14 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     }
     if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
+
+    if (db->keyExists("pressure_sub_precond_type"))
+    {
+        d_pressure_sub_precond_type = db->getString("pressure_sub_precond_type");
+        if (db->keyExists("pressure_sub_precond_db"))
+            d_pressure_sub_precond_db = db->getDatabase("pressure_sub_precond_db");
+    }
+    if (!d_pressure_sub_precond_db) d_pressure_sub_precond_db = new MemoryDatabase("pressure_sub_precond_db");
 
     if (db->keyExists("regrid_projection_solver_type"))
     {
@@ -746,6 +762,15 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     }
     if (!d_regrid_projection_precond_db)
         d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
+
+    if (db->keyExists("regrid_projection_sub_precond_type"))
+    {
+        d_regrid_projection_sub_precond_type = db->getString("regrid_projection_sub_precond_type");
+        if (db->keyExists("regrid_projection_sub_precond_db"))
+            d_regrid_projection_sub_precond_db = db->getDatabase("regrid_projection_sub_precond_db");
+    }
+    if (!d_regrid_projection_sub_precond_db)
+        d_regrid_projection_sub_precond_db = new MemoryDatabase("regrid_projection_sub_precond_db");
     return;
 } // getFromInput
 
