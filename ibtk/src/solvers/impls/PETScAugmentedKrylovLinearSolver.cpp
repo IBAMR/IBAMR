@@ -226,6 +226,8 @@ PETScAugmentedKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     d_A->setHomogeneousBc(true);
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->imposeSolBcs(x);
 
     int n_vecs = 2;
     Vec x_vecs[] = { d_petsc_x, extra_x_vec };
@@ -236,10 +238,9 @@ PETScAugmentedKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     Vec multi_b;
     ierr = VecCreateMultiVec(d_petsc_comm, n_vecs, b_vecs, &multi_b);
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSolve(d_petsc_ksp, multi_x, multi_b);
+
+    ierr = KSPSolve(d_petsc_ksp, multi_b, multi_x);
     IBTK_CHKERRQ(ierr);
-    d_A->setHomogeneousBc(d_homogeneous_bc);
-    d_A->imposeSolBcs(x);
 
     // Get iterations count and residual norm.
     ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
@@ -577,7 +578,8 @@ PETScAugmentedKrylovLinearSolver::resetKSPOperators()
     if (!d_petsc_mat)
     {
         ierr = MatCreateShell(
-            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
+            d_petsc_comm, 3, 3, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat); // XXXX dirty
+                                                                                                           // hack
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatShellSetOperation(
@@ -681,14 +683,6 @@ PETScAugmentedKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     krylov_solver->MatVecMultAugmented(x, y);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
-    int n_sub_vecs;
-    ierr = VecMultiVecGetNumberOfSubVecs(y, &n_sub_vecs);
-    IBTK_CHKERRQ(ierr);
-    for (int k = 0; k < n_sub_vecs; ++k)
-    {
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y_vecs[k]));
-        IBTK_CHKERRQ(ierr);
-    }
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI
 
@@ -725,14 +719,6 @@ PETScAugmentedKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     krylov_solver->PCApplyAugmented(x, y);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
-    int n_sub_vecs;
-    ierr = VecMultiVecGetNumberOfSubVecs(y, &n_sub_vecs);
-    IBTK_CHKERRQ(ierr);
-    for (int k = 0; k < n_sub_vecs; ++k)
-    {
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y_vecs[k]));
-        IBTK_CHKERRQ(ierr);
-    }
 
     // Reset the configuration of the preconditioner object.
     krylov_solver->d_pc_solver->setInitialGuessNonzero(pc_initial_guess_nonzero);

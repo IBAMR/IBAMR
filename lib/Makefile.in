@@ -263,6 +263,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -388,6 +389,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredUpwindConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
@@ -499,6 +501,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -624,6 +627,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredUpwindConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
@@ -811,6 +815,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
+	../include/ibamr/PETScAugmentedKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1233,6 +1238,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
+	../include/ibamr/PETScAugmentedKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1332,6 +1338,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -1686,6 +1693,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -2001,6 +2011,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -2289,6 +2302,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
@@ -2325,6 +2339,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
@@ -3490,6 +3505,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp' object='../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; then $(CYGPATH_W) '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' object='../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+
+../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj: ../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj `if test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' object='../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj `if test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
@@ -4988,6 +5017,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp' object='../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; then $(CYGPATH_W) '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' object='../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+
+../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj: ../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj `if test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp' object='../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-PETScAugmentedKrylovStaggeredStokesSolver.obj `if test -f '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; then $(CYGPATH_W) '../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
