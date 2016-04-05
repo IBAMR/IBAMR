@@ -524,7 +524,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                 IBTK_CHKERRQ(ierr);
                 ierr = PCSetType(sub_pc, PCLU);
                 IBTK_CHKERRQ(ierr);
-                ierr = PCFactorReorderForNonzeroDiagonal(sub_pc, std::numeric_limits<double>::epsilon());
+                ierr = PCFactorSetShiftType(sub_pc, MAT_SHIFT_NONZERO);
                 IBTK_CHKERRQ(ierr);
                 ierr = KSPSetUp(sub_ksp);
                 IBTK_CHKERRQ(ierr);

@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <set>
 #include <vector>
 
 #include "ArrayData.h"
@@ -730,15 +731,11 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<I
             // The nonoverlapping subdomains.
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][k];
             Box<NDIM> side_box_local[NDIM];
-            int box_local_dofs_size = 0;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 side_box_local[axis] = SideGeometry<NDIM>::toSideBox(box_local, axis);
-                box_local_dofs_size += side_box_local[axis].size();
             }
-            box_local_dofs_size += box_local.size();
-            std::vector<int> box_local_dofs;
-            box_local_dofs.reserve(box_local_dofs_size);
+            std::set<int> box_local_dofs;
 
             // Get the local DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
@@ -756,33 +753,32 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<I
                     if (!at_upper_subdomain_bdry || at_upper_physical_bdry || at_upper_cf_bdry)
                     {
                         const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                        box_local_dofs.push_back((*u_dof_data)(i_s));
+                        box_local_dofs.insert((*u_dof_data)(i_s));
                     }
                 }
             }
             for (Box<NDIM>::Iterator b(box_local); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
-                box_local_dofs.push_back((*p_dof_data)(i));
+                box_local_dofs.insert((*p_dof_data)(i));
             }
-            std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_local = static_cast<int>(box_local_dofs.size());
+            PetscInt* box_local_dof_arr;
+            PetscMalloc1(n_local, &box_local_dof_arr);
+            std::copy(box_local_dofs.begin(), box_local_dofs.end(), box_local_dof_arr);
             ISCreateGeneral(
-                PETSC_COMM_SELF, n_local, &box_local_dofs[0], PETSC_COPY_VALUES, &is_nonoverlap[subdomain_counter]);
+                PETSC_COMM_SELF, n_local, box_local_dof_arr, PETSC_OWN_POINTER, &is_nonoverlap[subdomain_counter]);
 
             // The overlapping subdomains.
             const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][k];
             Box<NDIM> side_box_overlap[NDIM];
-            int box_overlap_dofs_size = 0;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 side_box_overlap[axis] = SideGeometry<NDIM>::toSideBox(box_overlap, axis);
-                box_overlap_dofs_size += side_box_overlap[axis].size();
             }
-            box_overlap_dofs_size += box_overlap.size();
-            std::vector<int> box_overlap_dofs;
-            box_overlap_dofs.reserve(box_overlap_dofs_size);
+            std::set<int> box_overlap_dofs;
 
+            // Get the overlap DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator b(side_box_overlap[axis]); b; b++)
@@ -796,7 +792,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<I
                     // Some of the DOFs may be on other processors.
                     if (dof_idx >= 0)
                     {
-                        box_overlap_dofs.push_back(dof_idx);
+                        box_overlap_dofs.insert(dof_idx);
                     }
                 }
             }
@@ -810,16 +806,15 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<I
                 // Some of the DOFs may be on other processors.
                 if (dof_idx >= 0)
                 {
-                    box_overlap_dofs.push_back(dof_idx);
+                    box_overlap_dofs.insert(dof_idx);
                 }
             }
-
-            std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
-            box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
-                                   box_overlap_dofs.end());
             const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+            PetscInt* box_overlap_dof_arr;
+            PetscMalloc1(n_overlap, &box_overlap_dof_arr);
+            std::copy(box_overlap_dofs.begin(), box_overlap_dofs.end(), box_overlap_dof_arr);
             ISCreateGeneral(
-                PETSC_COMM_SELF, n_overlap, &box_overlap_dofs[0], PETSC_COPY_VALUES, &is_overlap[subdomain_counter]);
+                PETSC_COMM_SELF, n_overlap, box_overlap_dof_arr, PETSC_OWN_POINTER, &is_overlap[subdomain_counter]);
         }
     }
     return;
@@ -1205,15 +1200,15 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     is_field_name.resize(2);
 
     // Name of the fields.
-    is_field_name[0] = "velocity";
-    is_field_name[1] = "pressure";
+    static const int U_FIELD_IDX = 0;
+    static const int P_FIELD_IDX = 1;
+    is_field_name[U_FIELD_IDX] = "velocity";
+    is_field_name[P_FIELD_IDX] = "pressure";
 
     // DOFs on this processor.
     const int mpi_rank = SAMRAI_MPI::getRank();
     const int n_local_dofs = num_dofs_per_proc[mpi_rank];
-    std::vector<int> local_vel_dofs, local_pressure_dofs;
-    local_vel_dofs.reserve(n_local_dofs);
-    local_pressure_dofs.reserve(n_local_dofs);
+    std::set<int> local_u_dofs, local_p_dofs;
 
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int last_local_dof = first_local_dof + n_local_dofs;
@@ -1247,7 +1242,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
                 const int dof_idx = (*u_dof_data)(i_s);
                 if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
                 {
-                    local_vel_dofs.push_back(dof_idx);
+                    local_u_dofs.insert(dof_idx);
                 }
             }
         }
@@ -1259,19 +1254,22 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
             const int dof_idx = (*p_dof_data)(i);
             if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
             {
-                local_pressure_dofs.push_back(dof_idx);
+                local_p_dofs.insert(dof_idx);
             }
         }
     }
 
-    std::sort(local_vel_dofs.begin(), local_vel_dofs.end());
-    const int n_local_vel_dofs = static_cast<int>(local_vel_dofs.size());
-    ISCreateGeneral(PETSC_COMM_WORLD, n_local_vel_dofs, &local_vel_dofs[0], PETSC_COPY_VALUES, &is_field[0]);
+    const int n_local_u_dofs = static_cast<int>(local_u_dofs.size());
+    PetscInt* local_u_dof_arr;
+    PetscMalloc1(n_local_u_dofs, &local_u_dof_arr);
+    std::copy(local_u_dofs.begin(), local_u_dofs.end(), local_u_dof_arr);
+    ISCreateGeneral(PETSC_COMM_WORLD, n_local_u_dofs, local_u_dof_arr, PETSC_OWN_POINTER, &is_field[U_FIELD_IDX]);
 
-    std::sort(local_pressure_dofs.begin(), local_pressure_dofs.end());
-    const int n_local_pressure_dofs = static_cast<int>(local_pressure_dofs.size());
-    ISCreateGeneral(PETSC_COMM_WORLD, n_local_pressure_dofs, &local_pressure_dofs[0], PETSC_COPY_VALUES, &is_field[1]);
-
+    const int n_local_p_dofs = static_cast<int>(local_p_dofs.size());
+    PetscInt* local_p_dof_arr;
+    PetscMalloc1(n_local_p_dofs, &local_p_dof_arr);
+    std::copy(local_p_dofs.begin(), local_p_dofs.end(), local_p_dof_arr);
+    ISCreateGeneral(PETSC_COMM_WORLD, n_local_p_dofs, local_p_dof_arr, PETSC_OWN_POINTER, &is_field[P_FIELD_IDX]);
     return;
 } // constructPatchLevelFields
 

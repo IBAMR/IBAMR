@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST = input2d.shell README
+EXTRA_DIST = input2d.shell PetscOptions.dat README
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -20,6 +20,7 @@ tests: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/shell2d_64.vertex $(PWD) ; \
           cp -f $(srcdir)/shell2d_64.spring $(PWD) ; \
           cp -f $(srcdir)/generate_shell2d.m $(PWD) ; \
+          cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
           cp -f $(srcdir)/README $(PWD) ; \
 	fi ;
 
@@ -30,5 +31,6 @@ clean-local:
 	  rm -f $(builddir)/shell2d_64.vertex ; \
           rm -f $(builddir)/shell2d_64.spring ; \
           rm -f $(builddir)/generate_shell2d.m ; \
+          rm -f $(builddir)/PetscOptions.dat ; \
           rm -f $(builddir)/README ; \
 	fi ;

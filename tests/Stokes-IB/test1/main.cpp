@@ -85,6 +85,7 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+    SAMRAIManager::setMaxNumberPatchDataEntries(2056);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -93,6 +94,17 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        // Read default Petsc options
+        if (input_db->keyExists("petsc_options_file"))
+        {
+            std::string PetscOptionsFile = input_db->getString("petsc_options_file");
+#if (!PETSC_VERSION_RELEASE)
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, PetscOptionsFile.c_str(), PETSC_TRUE);
+#else
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+#endif
+        }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -246,6 +258,7 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
+            pout << "Advancing hierarchy by timestep size " << dt << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);

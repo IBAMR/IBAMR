@@ -320,6 +320,7 @@ private:
      * Data structures for elasticity and prolongation operator respresentation
      * on various patch levels.
      */
+    double d_SAJ_fill;
     std::vector<Mat> d_SAJ_mat, d_prolongation_mat;
     std::vector<Vec> d_scale_restriction_mat;
 

@@ -1233,21 +1233,21 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
         {
             // The nonoverlapping subdomains.
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][i];
-            const int box_local_size = box_local.size();
-            std::vector<int> box_local_dofs;
-            box_local_dofs.reserve(box_local_size * data_depth);
+            std::set<int> box_local_dofs;
             for (Box<NDIM>::Iterator b(box_local); b; b++)
             {
                 const CellIndex<NDIM>& i = b();
                 for (int d = 0; d < data_depth; ++d)
                 {
-                    box_local_dofs.push_back((*dof_data)(i, d));
+                    box_local_dofs.insert((*dof_data)(i, d));
                 }
             }
-            std::sort(box_local_dofs.begin(), box_local_dofs.end());
-            const int n_idx = static_cast<int>(box_local_dofs.size());
+            const int n_local = static_cast<int>(box_local_dofs.size());
+            PetscInt* box_local_dof_arr;
+            PetscMalloc1(n_local, &box_local_dof_arr);
+            std::copy(box_local_dofs.begin(), box_local_dofs.end(), box_local_dof_arr);
             ISCreateGeneral(
-                PETSC_COMM_SELF, n_idx, &box_local_dofs[0], PETSC_COPY_VALUES, &is_nonoverlap[subdomain_counter]);
+                PETSC_COMM_SELF, n_local, box_local_dof_arr, PETSC_OWN_POINTER, &is_nonoverlap[subdomain_counter]);
 
             // The overlapping subdomains.
             if (!there_is_overlap)
@@ -1258,9 +1258,7 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
             else
             {
                 const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][i];
-                const int box_overlap_size = box_overlap.size();
-                std::vector<int> box_overlap_dofs;
-                box_overlap_dofs.reserve(box_overlap_size * data_depth);
+                std::set<int> box_overlap_dofs;
                 for (Box<NDIM>::Iterator b(box_overlap); b; b++)
                 {
                     const CellIndex<NDIM>& i = b();
@@ -1273,16 +1271,16 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_ove
                         const int dof_idx = (*dof_data)(i, d);
                         if (dof_idx >= 0)
                         {
-                            box_overlap_dofs.push_back(dof_idx);
+                            box_overlap_dofs.insert(dof_idx);
                         }
                     }
                 }
-                std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
-                box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
-                                       box_overlap_dofs.end());
-                const int n_idx = static_cast<int>(box_overlap_dofs.size());
+                const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+                PetscInt* box_overlap_dof_arr;
+                PetscMalloc1(n_overlap, &box_overlap_dof_arr);
+                std::copy(box_overlap_dofs.begin(), box_overlap_dofs.end(), box_overlap_dof_arr);
                 ISCreateGeneral(
-                    PETSC_COMM_SELF, n_idx, &box_overlap_dofs[0], PETSC_COPY_VALUES, &is_overlap[subdomain_counter]);
+                    PETSC_COMM_SELF, n_overlap, box_overlap_dof_arr, PETSC_OWN_POINTER, &is_overlap[subdomain_counter]);
             }
         }
     }
@@ -1385,14 +1383,11 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
             // The nonoverlapping subdomains.
             const Box<NDIM>& box_local = nonoverlap_boxes[patch_counter][k];
             Box<NDIM> side_box_local[NDIM];
-            int box_local_dofs_size = 0;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 side_box_local[axis] = SideGeometry<NDIM>::toSideBox(box_local, axis);
-                box_local_dofs_size += side_box_local[axis].size();
             }
-            std::vector<int> box_local_dofs;
-            box_local_dofs.reserve(box_local_dofs_size);
+            std::set<int> box_local_dofs;
 
             // Get the local DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
@@ -1410,27 +1405,27 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
                     if (!at_upper_subdomain_bdry || at_upper_physical_bdry || at_upper_cf_bdry)
                     {
                         const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                        box_local_dofs.push_back((*dof_data)(i_s));
+                        box_local_dofs.insert((*dof_data)(i_s));
                     }
                 }
             }
-            std::sort(box_local_dofs.begin(), box_local_dofs.end());
             const int n_local = static_cast<int>(box_local_dofs.size());
+            PetscInt* box_local_dof_arr;
+            PetscMalloc1(n_local, &box_local_dof_arr);
+            std::copy(box_local_dofs.begin(), box_local_dofs.end(), box_local_dof_arr);
             ISCreateGeneral(
-                PETSC_COMM_SELF, n_local, &box_local_dofs[0], PETSC_COPY_VALUES, &is_nonoverlap[subdomain_counter]);
+                PETSC_COMM_SELF, n_local, box_local_dof_arr, PETSC_OWN_POINTER, &is_nonoverlap[subdomain_counter]);
 
             // The overlapping subdomains.
             const Box<NDIM>& box_overlap = overlap_boxes[patch_counter][k];
             Box<NDIM> side_box_overlap[NDIM];
-            int box_overlap_dofs_size = 0;
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 side_box_overlap[axis] = SideGeometry<NDIM>::toSideBox(box_overlap, axis);
-                box_overlap_dofs_size += side_box_overlap[axis].size();
             }
-            std::vector<int> box_overlap_dofs;
-            box_overlap_dofs.reserve(box_overlap_dofs_size);
+            std::set<int> box_overlap_dofs;
 
+            // Get the overlap DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator b(side_box_overlap[axis]); b; b++)
@@ -1444,16 +1439,16 @@ PETScMatUtilities::constructPatchLevelASMSubdomains_side(std::vector<IS>& is_ove
                     // Some of the DOFs may be on other processors.
                     if (dof_idx >= 0)
                     {
-                        box_overlap_dofs.push_back(dof_idx);
+                        box_overlap_dofs.insert(dof_idx);
                     }
                 }
             }
-            std::sort(box_overlap_dofs.begin(), box_overlap_dofs.end());
-            box_overlap_dofs.erase(std::unique(box_overlap_dofs.begin(), box_overlap_dofs.end()),
-                                   box_overlap_dofs.end());
             const int n_overlap = static_cast<int>(box_overlap_dofs.size());
+            PetscInt* box_overlap_dof_arr;
+            PetscMalloc1(n_overlap, &box_overlap_dof_arr);
+            std::copy(box_overlap_dofs.begin(), box_overlap_dofs.end(), box_overlap_dof_arr);
             ISCreateGeneral(
-                PETSC_COMM_SELF, n_overlap, &box_overlap_dofs[0], PETSC_COPY_VALUES, &is_overlap[subdomain_counter]);
+                PETSC_COMM_SELF, n_overlap, box_overlap_dof_arr, PETSC_OWN_POINTER, &is_overlap[subdomain_counter]);
         }
     }
     return;

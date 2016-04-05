@@ -121,7 +121,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
       d_level_solver_default_options_prefix(default_options_prefix + "level_"),
       d_level_solver_abs_residual_tol(1.0e-50),
       d_level_solver_rel_residual_tol(1.0e-5),
-      d_level_solver_max_iterations(10)
+      d_level_solver_max_iterations(10),
+      d_SAJ_fill(1.0)
 {
     // Indicate that this subclass handles initializaing the coarse-grid solver.
     d_coarse_solver_init_subclass = true;
@@ -136,6 +137,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
             d_level_solver_abs_residual_tol = input_db->getDouble("level_solver_abs_residual_tol");
         if (input_db->keyExists("level_solver_max_iterations"))
             d_level_solver_max_iterations = input_db->getInteger("level_solver_max_iterations");
+        if (input_db->keyExists("SAJ_fill")) d_SAJ_fill = input_db->getDouble("SAJ_fill");
         if (input_db->isDatabase("level_solver_db"))
         {
             d_level_solver_db = input_db->getDatabase("level_solver_db");
@@ -402,9 +404,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
         Pointer<StaggeredStokesPETScLevelSolver> level_solver = d_level_solvers[level_num];
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
-        level_solver->setMaxIterations(d_level_solver_max_iterations);
-        level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
-        level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 
         bool initial_guess_nonzero = true;
@@ -478,7 +477,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     {
         if (ln == d_finest_ln)
         {
-            ierr = MatPtAP(d_A_mat, d_J_mat, MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
+            ierr = MatPtAP(d_A_mat, d_J_mat, MAT_INITIAL_MATRIX, d_SAJ_fill, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
 
             // Compute the scale for the spreading operator.
@@ -493,7 +492,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
         else
         {
-            ierr = MatPtAP(d_SAJ_mat[ln + 1], d_prolongation_mat[ln], MAT_INITIAL_MATRIX, 1.0, &d_SAJ_mat[ln]);
+            ierr = MatPtAP(d_SAJ_mat[ln + 1], d_prolongation_mat[ln], MAT_INITIAL_MATRIX, d_SAJ_fill, &d_SAJ_mat[ln]);
             IBTK_CHKERRQ(ierr);
             ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_restriction_mat[ln], NULL);
             IBTK_CHKERRQ(ierr);
@@ -516,6 +515,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
+        d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
+        d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         Pointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
@@ -543,6 +545,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         level_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
         level_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        level_solver->setMaxIterations(d_level_solver_max_iterations);
+        level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
+        level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         level_solver->setHomogeneousBc(true);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         Pointer<StaggeredStokesPETScLevelSolver> p_level_solver = level_solver;

@@ -486,7 +486,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.cpp
-EXTRA_DIST = input2d.cylinder README
+EXTRA_DIST = input2d.cylinder PetscOptions.dat README
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(SOURCES)
@@ -794,6 +794,7 @@ tests: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/input2d.cylinder $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_256.vertex $(PWD) ; \
           cp -f $(srcdir)/cylinder2d_256.spring $(PWD) ; \
+          cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
           cp -f $(srcdir)/README $(PWD) ; \
 	fi ;
 
@@ -803,6 +804,7 @@ clean-local:
 	  rm -f $(builddir)/input2d.cylinder ; \
 	  rm -f $(builddir)/cylinder2d_256.vertex ; \
           rm -f $(builddir)/cylinder2d_256.spring ; \
+          rm -f $(builddir)/PetscOptions.dat ; \
           rm -f $(builddir)/README ; \
 	fi ;
 

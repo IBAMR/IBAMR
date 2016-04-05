@@ -1,3 +1,6 @@
+// PETSc command line
+petsc_options_file = "PetscOptions.dat"
+
 // physical parameters
 R   = 0.5                                 // the cylinder radius
 Re  = 200.0                               // the Reynolds number

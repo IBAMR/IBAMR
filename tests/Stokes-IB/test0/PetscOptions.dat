@@ -1,0 +1,4 @@
+-ib_ksp_monitor_true_residual  
+-stokes_ib_pc_level_sub_pc_factor_shift_type nonzero 
+-stokes_ib_pc_level_sub_pc_type lu 
+-stokes_ib_pc_level_0_ksp_type preonly

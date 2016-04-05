@@ -505,6 +505,17 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        // Read default Petsc options
+        if (input_db->keyExists("petsc_options_file"))
+        {
+            std::string PetscOptionsFile = input_db->getString("petsc_options_file");
+#if (!PETSC_VERSION_RELEASE)
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, PetscOptionsFile.c_str(), PETSC_TRUE);
+#else
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+#endif
+        }
+
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
