@@ -1,26 +1,33 @@
-
--options_left
--ib_ksp_monitor_true_residual 
+-ib_ksp_converged_reason
+-ib_ksp_rtol 1e-6
+-ib_ksp_monitor_true_residual
 -ib_snes_type ksponly 
--ib_ksp_converged_reason  
--stokes_ib_pc_level_0_ksp_type gmres
--stokes_ib_pc_level_0_pc_type asm
--stokes_ib_pc_level_0_sub_pc_type lu
--stokes_ib_pc_level_0_sub_pc_factor_shift_type nonzero 
--stokes_ib_pc_level_pc_fieldsplit_type schur 
--stokes_ib_pc_level_pc_fieldsplit_detect_saddle_point  
--stokes_ib_pc_level_pc_fieldsplit_schur_precondition selfp         #Schur complement is approximated by A11 - A10 inv(diag(A00)) A01 
--stokes_ib_pc_level_fieldsplit_pressure_pc_type mg                 #Supported with selfp type
--stokes_ib_pc_level_fieldsplit_velocity_pc_type mg 
--stokes_ib_pc_level_fieldsplit_velocity_ksp_type preonly
--stokes_ib_pc_level_fieldsplit_pressure_ksp_type preonly
--stokes_ib_pc_level_fieldsplit_pressure_ksp_max_it 2
--stokes_ib_pc_level_fieldsplit_velocity_ksp_max_it 2
- 
-# Diagnostics
-#-stokes_ib_pc_level_0_ksp_monitor_true_residual
-#-stokes_ib_pc_level_0_fieldsplit_velocity_ksp_monitor_true_residual
-#-stokes_ib_pc_level_0_fieldsplit_pressure_ksp_monitor_true_residual
-#-stokes_ib_pc_level_0_fieldsplit_pressure_ksp_view 
-#-stokes_ib_pc_level_0_fieldsplit_velocity_ksp_view
-#-stokes_ib_pc_level_0_fieldsplit_pressure_pc_type lsc
+
+# basic level smoother configuration:
+-stokes_ib_pc_level_ksp_type richardson
+-stokes_ib_pc_level_ksp_richardson_self_scale               # makes little-to-no difference
+-stokes_ib_pc_level_ksp_max_it 2
+-stokes_ib_pc_level_ksp_norm_type none
+
+-stokes_ib_pc_level_pc_type fieldsplit
+-stokes_ib_pc_level_pc_fieldsplit_type schur
+-stokes_ib_pc_level_pc_fieldsplit_schur_precondition selfp
+-stokes_ib_pc_level_pc_fieldsplit_schur_fact_type full      # all other choices are much slower
+
+# fieldsplit A00 block:
+-stokes_ib_pc_level_fieldsplit_velocity_ksp_type preonly    # fancier solvers do not improve convergence
+-stokes_ib_pc_level_fieldsplit_velocity_ksp_max_it 1
+-stokes_ib_pc_level_fieldsplit_velocity_ksp_norm_type none
+-stokes_ib_pc_level_fieldsplit_velocity_pc_type sor
+
+# fieldsplit Schur block:
+-stokes_ib_pc_level_fieldsplit_pressure_ksp_type chebyshev  # Cheby+SOR is much faster than other simple solvers
+-stokes_ib_pc_level_fieldsplit_pressure_ksp_max_it 2        # need to do at least 2 iterations here
+-stokes_ib_pc_level_fieldsplit_pressure_ksp_norm_type none
+-stokes_ib_pc_level_fieldsplit_pressure_pc_type sor
+-stokes_ib_pc_level_fieldsplit_pressure_mat_schur_complement_ainv_type diag  # lump is much slower
+
+# coarse solver configuration:
+-stokes_ib_pc_level_0_ksp_type preonly
+-stokes_ib_pc_level_0_pc_type lu
+-stokes_ib_pc_level_0_pc_factor_shift_type nonzero
