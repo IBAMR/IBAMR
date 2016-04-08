@@ -578,8 +578,8 @@ PETScAugmentedKrylovLinearSolver::resetKSPOperators()
     if (!d_petsc_mat)
     {
         ierr = MatCreateShell(d_petsc_comm,
-                              1 + (SAMRAI_MPI::getRank() == 0 ? 2 : 0),
-                              1 + (SAMRAI_MPI::getRank() == 0 ? 2 : 0),
+                              1 + (SAMRAI_MPI::getRank() == 0 ? 3 : 0),
+                              1 + (SAMRAI_MPI::getRank() == 0 ? 3 : 0),
                               PETSC_DETERMINE,
                               PETSC_DETERMINE,
                               static_cast<void*>(this),
