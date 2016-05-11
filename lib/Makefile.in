@@ -216,6 +216,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp ../src/IB/IBSourceSpec.cpp \
 	../src/IB/IBSourceSpecFactory.cpp \
@@ -337,6 +338,8 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBPDForceGen.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBPDMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBSourceSpec.$(OBJEXT) \
@@ -452,6 +455,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp ../src/IB/IBSourceSpec.cpp \
 	../src/IB/IBSourceSpecFactory.cpp \
@@ -573,6 +577,8 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBPDForceGen.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBPDMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBSourceSpec.$(OBJEXT) \
@@ -780,6 +786,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBPDForceGen.h ../include/ibamr/IBPDMethod.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBSourceSpec.h \
 	../include/ibamr/IBSpringForceFunctions.h \
@@ -1202,6 +1209,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/IBLagrangianSourceStrategy.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBPDForceGen.h ../include/ibamr/IBPDMethod.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBSourceSpec.h \
 	../include/ibamr/IBSpringForceFunctions.h \
@@ -1285,6 +1293,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBMethod.cpp \
 	../src/IB/IBMethodPostProcessStrategy.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp ../src/IB/IBSourceSpec.cpp \
 	../src/IB/IBSourceSpecFactory.cpp \
@@ -1542,6 +1551,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBPDForceGen.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBPDMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -1870,6 +1883,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBPDForceGen.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBPDMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT):  \
@@ -2163,6 +2180,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethodPostProcessStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po@am__quote@
@@ -2222,6 +2241,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethodPostProcessStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po@am__quote@
@@ -2776,6 +2797,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethodPostProcessStrategy.cpp' object='../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBMethodPostProcessStrategy.obj `if test -f '../src/IB/IBMethodPostProcessStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBMethodPostProcessStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethodPostProcessStrategy.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBPDForceGen.o: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR2d_a-IBPDForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+
+../src/IB/libIBAMR2d_a-IBPDForceGen.obj: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDForceGen.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR2d_a-IBPDForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBPDMethod.o: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR2d_a-IBPDMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+
+../src/IB/libIBAMR2d_a-IBPDMethod.obj: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR2d_a-IBPDMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IBRodForceSpec.o: ../src/IB/IBRodForceSpec.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBRodForceSpec.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo -c -o ../src/IB/libIBAMR2d_a-IBRodForceSpec.o `test -f '../src/IB/IBRodForceSpec.cpp' || echo '$(srcdir)/'`../src/IB/IBRodForceSpec.cpp
@@ -4274,6 +4323,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethodPostProcessStrategy.cpp' object='../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBMethodPostProcessStrategy.obj `if test -f '../src/IB/IBMethodPostProcessStrategy.cpp'; then $(CYGPATH_W) '../src/IB/IBMethodPostProcessStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethodPostProcessStrategy.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBPDForceGen.o: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR3d_a-IBPDForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+
+../src/IB/libIBAMR3d_a-IBPDForceGen.obj: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDForceGen.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR3d_a-IBPDForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBPDMethod.o: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR3d_a-IBPDMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+
+../src/IB/libIBAMR3d_a-IBPDMethod.obj: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR3d_a-IBPDMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IBRodForceSpec.o: ../src/IB/IBRodForceSpec.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBRodForceSpec.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo -c -o ../src/IB/libIBAMR3d_a-IBRodForceSpec.o `test -f '../src/IB/IBRodForceSpec.cpp' || echo '$(srcdir)/'`../src/IB/IBRodForceSpec.cpp

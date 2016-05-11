@@ -112,6 +112,9 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex6/Makefile
   examples/IBFE/explicit/ex7/Makefile
   examples/IBFE/explicit/ex8/Makefile
+  examples/IBPD/Makefile
+  examples/IBPD/explicit/Makefile
+  examples/IBPD/explicit/ex0/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile

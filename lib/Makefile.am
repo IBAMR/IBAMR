@@ -72,6 +72,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
 ../src/IB/IBMethod.cpp \
 ../src/IB/IBMethodPostProcessStrategy.cpp \
+../src/IB/IBPDForceGen.cpp \
+../src/IB/IBPDMethod.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
 ../src/IB/IBSourceSpec.cpp \
@@ -192,6 +194,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBLagrangianSourceStrategy.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBPDForceGen.h \
+../include/ibamr/IBPDMethod.h \
 ../include/ibamr/IBRodForceSpec.h \
 ../include/ibamr/IBSourceSpec.h \
 ../include/ibamr/IBSpringForceFunctions.h \
