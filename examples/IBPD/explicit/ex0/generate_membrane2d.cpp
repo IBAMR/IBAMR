@@ -35,8 +35,8 @@ main(int argc, char** argv)
 {
     // Problem parameters
 
-    const int ndivx = 100; // num points in x direction.
-    const int ndivy = 100; // num points in y direction.
+    const int ndivx = 200; // num points in x direction.
+    const int ndivy = 200; // num points in y direction.
     const int nbnd = 3;
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
 

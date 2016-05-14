@@ -64,20 +64,29 @@ namespace
 {
 // Version of IBPDMethod restart file data.
 static const int IB_PD_METHOD_VERSION = 1;
+static const int interior_begin = 0;
+static const int interior_end = 39999;
+static const int bottom_begin = 40000;
+static const int bottom_end = 40617;
+static const int top_begin = 40618;
+static const int top_end = 41235;
+static const int left_begin = 41236;
+static const int left_end = 41835;
+static const int right_begin = 41836;
+static const int right_end = 42435;
 
+static const double dens = 1.0;
+static const double DX  = 1.0/199.0;
 static const double t_ramp = 5.0;
 void
-get_bodyforce(double* f_vec, const double* X, const double time)
+get_bodyforce(double* f_vec, const double* X, const double t)
 {
-    // fx = 8 x (2 + 3 y)
-    // fy = 11 + 4 x^2 + 61 y + 56 y^2
     const double x = X[0];
     const double y = X[1];
-    const double A = tanh(time);
-    const double B = 1.0 / cosh(time);
-    const double C = -2 * A * B * B;
-    f_vec[0] = x * y * C - (8 * x * (2 + 3 * y)) * A;
-    f_vec[1] = y * y * C - (11 + 4 * x * x + 61 * y + 56 * y * y) * A;
+
+    f_vec[0] = -2 * x * (1/cosh(t) * 1/cosh(t)) *(-5*y + 6*y*cosh(2*t) + 4*sinh(2*t))* tanh(t);
+    f_vec[1] = -tanh(t)* (11 + 2*y*y*(1/cosh(t) * 1/cosh(t)) + 61*y*tanh(t) +
+                         4*(x*x + 14*y*y)* tanh(t)*tanh(t));
     return;
 } // get_bodyforce
 
@@ -91,8 +100,7 @@ get_trac(Eigen::Vector2d& trac, const Eigen::Vector2d& normal, const double* X_0
     static const double M = 1.0;
     static const Eigen::Matrix2d II = Eigen::Matrix2d::Identity();
     Eigen::Matrix2d FF;
-    FF << y + 1, x, 0, 2 * y + 1;
-    FF *= tanh(t);
+    FF << y*tanh(t) + 1, x*tanh(t), 0, 2*y*tanh(t) + 1;
     const Eigen::Matrix2d E = 0.5 * (FF.transpose() * FF - II);
     const double trE = E.trace();
 
@@ -268,17 +276,6 @@ IBPDMethod::eulerStep(const double current_time, const double new_time)
 {
     // IBMethod::eulerStep(current_time, new_time);
 
-    static const int interior_begin = 0;
-    static const int interior_end = 9999;
-    static const int bottom_begin = 10000;
-    static const int bottom_end = 10317;
-    static const int top_begin = 10318;
-    static const int top_end = 10635;
-    static const int left_begin = 10636;
-    static const int left_end = 10935;
-    static const int right_begin = 10936;
-    static const int right_end = 11235;
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -322,25 +319,8 @@ IBPDMethod::eulerStep(const double current_time, const double new_time)
 void
 IBPDMethod::midpointStep(const double current_time, const double new_time)
 {
-    static const int interior_begin = 0;
-    static const int interior_end = 9999;
-    static const int bottom_begin = 10000;
-    static const int bottom_end = 10317;
-    static const int top_begin = 10318;
-    static const int top_end = 10635;
-    static const int left_begin = 10636;
-    static const int left_end = 10935;
-    static const int right_begin = 10936;
-    static const int right_end = 11235;
 
     const double dt = new_time - current_time;
-    static const double dx = 1.0 / 99.0;
-    static const double delta = 3.015 * dx;
-    static const double L = 2.0;
-    static const double M = 1.0;
-    static const double emod = M * (3 * L + 2 * M) / (L + M);
-    static const double bc = 12.0 * emod / (M_PI * std::pow(delta, 4));
-    static const double dens = 1.0; // 0.25 *dt *dt * ((4.0/3.0) * M_PI * std::pow(delta, 3)) * bc / dx;
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -355,59 +335,19 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
         Pointer<LData> U_current_data = d_U_current_data[ln];
         Pointer<LData> U_new_data = d_U_new_data[ln];
 
-        Pointer<LData> F_current_data = d_F_current_data[ln];
         Pointer<LData> F_half_data = d_F_half_data[ln];
 
         boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
 
-        boost::multi_array_ref<double, 2>& F_current_data_array = *F_current_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& F_half_data_array = *F_half_data->getLocalFormVecArray();
 
         boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
 
-        // Determine damping constant.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        double cn1 = 0.0;
-        double cn2 = 0.0;
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            const int local_idx = node_idx->getLocalPETScIndex();
-
-            const double* U_current = &U_current_data_array[local_idx][0];
-            const double* X_0 = &X_0_data_array[local_idx][0];
-            const double* X_current = &X_current_data_array[local_idx][0];
-            const double* F_current = &F_current_data_array[local_idx][0];
-            const double* F_half = &F_half_data_array[local_idx][0];
-            if (lag_idx >= interior_begin && lag_idx <= interior_end)
-            {
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    const double disp = X_current[d] - X_0[d];
-                    cn2 += disp * disp;
-
-                    if (MathUtilities<double>::equalEps(U_current[d], 0.0)) continue;
-                    cn1 -= disp * disp * (F_half[d] - F_current[d]) / (dt * U_current[d] * dens);
-                }
-            }
-        }
-        cn1 = SAMRAI_MPI::sumReduction(cn1);
-        cn2 = SAMRAI_MPI::sumReduction(cn2);
-
-        double cn = 0.0;
-        if (!MathUtilities<double>::equalEps(cn2, 0.0))
-        {
-            const double x = cn1 / cn2;
-            if (x > 0.0) cn = 2.0 * sqrt(x);
-            if (cn > 2) cn = 1.9;
-        }
-        std::cout << "cn ==== " << cn << std::endl;
-
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
@@ -430,11 +370,7 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
                 get_bodyforce(bforce, X_0, current_time);
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    /*U_new[d] =  ((2.0 - cn * dt) * U_current[d]
-                                 + 2.0 * dt / dens * (F_half[d] + bforce[d])) / (2.0 + cn * dt);*/
-
-                    U_new[d] = U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
-
+                    U_new[d] = U_current[d] + (dt / dens) * (1.0*F_half[d] + 1.0*bforce[d]);
                     X_new[d] = X_current[d] + dt * U_new[d];
                 }
             }
@@ -449,7 +385,7 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 0.0 * trac[d] / (dx));
+                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] / (DX));
                     X_new[d] = X_current[d] + dt * U_new[d];
                 }
             }
@@ -464,7 +400,7 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 0.0 * trac[d] / (dx));
+                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] / (DX));
                     X_new[d] = X_current[d] + dt * U_new[d];
                 }
             }
@@ -479,7 +415,7 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 0.0 * trac[d] / (dx));
+                    U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] / (DX));
                     X_new[d] = X_current[d] + dt * U_new[d];
                 }
             }
