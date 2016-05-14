@@ -71,6 +71,21 @@ namespace IBAMR
 
 namespace
 {
+
+/*static const int interior_begin = 0;
+static const int interior_end = 39999;
+static const int bottom_begin = 40000;
+static const int bottom_end = 40617;
+static const int top_begin = 40618;
+static const int top_end = 41235;
+static const int left_begin = 41236;
+static const int left_end = 41835;
+static const int right_begin = 41836;
+static const int right_end = 42435;
+
+static const double dens = 1.0;
+static const double DX  = 1.0/199.0;*/
+
 void
 resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
 {
@@ -121,25 +136,6 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
     return;
 } // resetLocalOrNonlocalPETScIndices
 
-template <typename mat_type, typename vec_type>
-void
-get_PK1(mat_type& PK1, const vec_type& X)
-{
-    const double L = 2.0;
-    const double M = 1.0;
-
-    const double& x = X(0);
-    const double& y = X(1);
-    const double trE = (std::pow(y + 1, 2) + std::pow(x, 2) + std::pow(2 * y + 1, 2) - 2) / 2.0;
-
-    PK1(0, 0) = L * trE * (y + 1) + M * (std::pow(y + 1, 3) - (y + 1) + x * x * (y + 1));
-    PK1(0, 1) = L * trE * x + M * (x * std::pow(y + 1, 2) + x * x * x - x + x * std::pow(2 * y + 1, 2));
-    PK1(1, 0) = M * x * (y + 1) * (2 * y + 1);
-    PK1(1, 1) = L * trE * (2 * y + 1) + M * (2 * y + 1) * (x * x + std::pow(2 * y + 1, 2) - 1);
-
-    return;
-
-} // get_PK1
 
 template <typename mat_type, typename vec_type>
 void
@@ -152,14 +148,6 @@ get_PK1(mat_type& PK1, const Eigen::Map<const mat_type>& FF, const vec_type& X, 
     mat_type E = 0.5 * (FF.transpose() * FF - II);
     const double trE = E.trace();
     PK1 = L * trE * FF + 2 * M * FF * E;
-
-    /* if (lag_idx == 0)
-     {
-         const double& x = X(0);
-         const double& y = X(1);
-         const double trE_ana = (std::pow(y + 1, 2) + std::pow(x,2) + std::pow(2*y + 1,2) - 2)/2.0;
-         pout << "\ntr(E) analytical = " << trE_ana << " and numerical = " << trE << std::endl;
-     }*/
 
     return;
 
@@ -225,12 +213,12 @@ pd_pk1force_damage_function(const double horizon,
     get_PK1(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    // vec_type trac = (PK1_mastr*B_mastr + PK1_slave*B_slave)*(X0_slave - X0_mastr);
-    // F_mastr +=   vol_slave * trac;
-    // F_slave += - vol_mastr * trac;
-    vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr);
-    F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
-    F_slave += -std::pow(vol_mastr, -2.0 / 3.0) * trac;
+    vec_type trac = (PK1_mastr*B_mastr + PK1_slave*B_slave)*(X0_slave - X0_mastr);
+    F_mastr +=   vol_slave * trac;
+    F_slave += - vol_mastr * trac;
+    //vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr);
+    //F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
+    //F_slave += -std::pow(vol_mastr, -2.0 / 3.0) * trac;
 
     // Compute damage.
     const double stretch = (R - R0) / R0;
@@ -365,25 +353,6 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     }
     d_dX_data[level_number]->restoreArrays();
 
-    // Transform all of the cached indices to correspond to a data depth of
-    // NDIM.
-    /*std::transform(d_bond_data[level_number].petsc_mastr_node_idxs.begin(),
-                   d_bond_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_bond_data[level_number].petsc_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_bond_data[level_number].petsc_slave_node_idxs.begin(),
-                   d_bond_data[level_number].petsc_slave_node_idxs.end(),
-                   d_bond_data[level_number].petsc_slave_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_bond_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   d_bond_data[level_number].petsc_global_mastr_node_idxs.end(),
-                   d_bond_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_bond_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   d_bond_data[level_number].petsc_global_slave_node_idxs.end(),
-                   d_bond_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));*/
-
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
     return;
@@ -403,18 +372,6 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     int ierr;
-
-    static const int interior_begin = 0;
-    static const int interior_end = 9999;
-    static const int bottom_begin = 10000;
-    static const int bottom_end = 10317;
-    static const int top_begin = 10318;
-    static const int top_end = 10635;
-    static const int left_begin = 10636;
-    static const int left_end = 10935;
-    static const int right_begin = 10936;
-    static const int right_end = 11235;
-    static const double DX = 1.0 / 99.0;
 
     // Initialize various ghost data.
     Pointer<LData> F_ghost_data = d_F_ghost_data[level_number];
@@ -436,8 +393,8 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
-    // Pointer<LData> dX_data = d_dX_data[level_number];
-    // ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
+    Pointer<LData> dX_data = d_dX_data[level_number];
+    ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     TBOX_ASSERT(X_data);
     ierr = VecCopy(X_data->getVec(), X_ghost_data->getVec());
     IBTK_CHKERRQ(ierr);
@@ -564,7 +521,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     ierr = VecGhostUpdateEnd(D_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
     IBTK_CHKERRQ(ierr);
 
-    {
+    /*{
         boost::multi_array_ref<double, 2>& FF_ghost_data_array = *FF_ghost_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& F_data_array = *F_data->getLocalFormVecArray();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -607,7 +564,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         }
         FF_ghost_data->restoreArrays();
         F_data->restoreArrays();
-    }
+    }*/
 
     // Compute the damage factor.
     boost::multi_array_ref<double, 1>& D_data_array = *D_data->getLocalFormArray();
@@ -784,15 +741,13 @@ IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
             const double& fail = bond_params[4];
 
             Eigen::Map<IBTK::Vector> eig_Q0(Q0);
-            eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
+            //eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
                 eig_B_slave(&B_node[B_slave_idx]);
-            eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
-            eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
-            // eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-            // eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
-            // eig_B_mastr.noalias() += fail  * eig_Q0 * eig_Q0.transpose();
-            // eig_B_slave.noalias() += fail  * eig_Q0 * eig_Q0.transpose();
+            //eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
+            //eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
+             eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
+             eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -817,16 +772,13 @@ IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
         const double& fail = bond_params[4];
 
         Eigen::Map<IBTK::Vector> eig_Q0(Q0);
-        eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
+        //eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
             eig_B_slave(&B_node[B_slave_idx]);
-        eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
-        eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
-
-        // eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-        // eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
-        // eig_B_mastr.noalias() += fail  * eig_Q0 * eig_Q0.transpose();
-        // eig_B_slave.noalias() += fail  * eig_Q0 * eig_Q0.transpose();
+        //eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
+        //eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
+         eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
+         eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
     }
 
     X0_data->restoreArrays();
@@ -904,8 +856,6 @@ IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData
                 eig_FF_slave(&FF_node[FF_slave_idx]);
             eig_FF_mastr.noalias() += fail * vol_slave * eig_Q * eig_Q0.transpose();
             eig_FF_slave.noalias() += fail * vol_mastr * eig_Q * eig_Q0.transpose();
-            // eig_FF_mastr.noalias() += fail * eig_Q * eig_Q0.transpose();
-            // eig_FF_slave.noalias() += fail * eig_Q * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -930,6 +880,7 @@ IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData
 #if (NDIM == 3)
         Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
+
         const double* bond_params = parameters[k];
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
@@ -940,8 +891,6 @@ IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData
             eig_FF_slave(&FF_node[FF_slave_idx]);
         eig_FF_mastr.noalias() += fail * vol_slave * eig_Q * eig_Q0.transpose();
         eig_FF_slave.noalias() += fail * vol_mastr * eig_Q * eig_Q0.transpose();
-        // eig_FF_mastr.noalias() += fail * vol_slave * eig_Q * eig_Q0.transpose();
-        // eig_FF_slave.noalias() += fail * vol_mastr * eig_Q * eig_Q0.transpose();
     }
 
     X_data->restoreArrays();

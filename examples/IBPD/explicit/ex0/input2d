@@ -17,7 +17,7 @@ NT        = 100000
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-DT                  = 5.0e-4                   // maximum timestep size
+DT                  = 1.0e-4                   // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
 END_TIME            = 10.0                     // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
@@ -147,12 +147,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 50 
+   viz_dump_interval           = 100 
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 100
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
