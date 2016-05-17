@@ -138,30 +138,6 @@ namespace
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
-inline void
-get_x_and_FF(libMesh::VectorValue<double>& x,
-             libMesh::TensorValue<double>& FF,
-             const std::vector<double>& x_data,
-             const std::vector<VectorValue<double> >& grad_x_data,
-             const unsigned int dim = NDIM)
-{
-    x.zero();
-    FF.zero();
-    for (unsigned int i = 0; i < dim; ++i)
-    {
-        x(i) = x_data[i];
-        for (unsigned int j = 0; j < dim; ++j)
-        {
-            FF(i, j) = grad_x_data[i](j);
-        }
-    }
-    for (unsigned int i = dim; i < LIBMESH_DIM; ++i)
-    {
-        FF(i, i) = 1.0;
-    }
-    return;
-}
-
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
                           unsigned int time_step_number,
@@ -176,6 +152,7 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
 }
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
+const std::string IBFEMethod::COORDS0_SYSTEM_NAME = "IB initial coordinates system";
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFEMethod::DP_SYSTEM_NAME = "IB pressure jump system";
 const std::string IBFEMethod::FORCE_SYSTEM_NAME = "IB force system";
@@ -303,6 +280,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
     d_X_half_vecs.resize(d_num_parts);
     d_X_IB_ghost_vecs.resize(d_num_parts);
 
+    d_X0_systems.resize(d_num_parts);
+    d_X0_vecs.resize(d_num_parts);
+
     d_U_systems.resize(d_num_parts);
     d_U_current_vecs.resize(d_num_parts);
     d_U_new_vecs.resize(d_num_parts);
@@ -327,6 +307,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
 
+        d_X0_systems[part] = &d_equation_systems[part]->get_system(COORDS0_SYSTEM_NAME);
+        d_X0_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X0_systems[part]->current_local_solution.get());
+
         d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
         d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
@@ -350,6 +333,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_X_systems[part]->solution->localize(*d_X_current_vecs[part]);
         d_X_systems[part]->solution->localize(*d_X_new_vecs[part]);
         d_X_systems[part]->solution->localize(*d_X_half_vecs[part]);
+
+        d_X0_systems[part]->solution->close();
+        d_X0_systems[part]->solution->localize(*d_X0_vecs[part]);
 
         d_U_systems[part]->solution->close();
         d_U_systems[part]->solution->localize(*d_U_current_vecs[part]);
@@ -407,6 +393,9 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
     d_X_new_vecs.clear();
     d_X_half_vecs.clear();
     d_X_IB_ghost_vecs.clear();
+
+    d_X0_systems.clear();
+    d_X0_vecs.clear();
 
     d_U_systems.clear();
     d_U_current_vecs.clear();
@@ -634,6 +623,14 @@ IBFEMethod::initializeFEEquationSystems()
                 X_system.add_variable(os.str(), d_fe_order, d_fe_family);
             }
 
+            System& X0_system = equation_systems->add_system<System>(COORDS0_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "X0_" << d;
+                X0_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
+
             System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -689,6 +686,7 @@ IBFEMethod::initializeFEData()
 
         // Assemble systems.
         System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+        System& X0_system = equation_systems->get_system<System>(COORDS0_SYSTEM_NAME);
         System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
         System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
@@ -696,6 +694,9 @@ IBFEMethod::initializeFEData()
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
+
+        X0_system.assemble_before_solve = false;
+        X0_system.assemble();
 
         dX_system.assemble_before_solve = false;
         dX_system.assemble();
@@ -915,7 +916,28 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
         TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
     }
     std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    }
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+
+    System& X0_system = equation_systems->get_system(COORDS0_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& X0_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS0_SYSTEM_NAME);
+    const DofMap& X0_dof_map = X0_system.get_dof_map();
+    FEType X0_fe_type = X0_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X0_dof_map.variable_type(d) == X0_fe_type);
+    }
+    TBOX_ASSERT(X0_fe_type == X_fe_type);
+    std::vector<std::vector<unsigned int> > X0_dof_indices(NDIM);
+
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
@@ -926,28 +948,43 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
     fe.registerSystem(F_system, vars, vars); // compute phi and dphi for the force system
-    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     std::vector<size_t> force_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(
         force_fcn_system_idxs, d_lag_force_fcn_data[part].system_data, equation_systems);
     fe.init(/*use_IB_ghosted_vecs*/ false);
 
+    AutoPtr<FEBase> X_fe_base(FEBase::build(dim, X_fe_type));
+    X_fe_base->attach_quadrature_rule(qrule.get());
+    const std::vector<std::vector<double> >& X_phi = X_fe_base->get_phi();
+    const std::vector<std::vector<double> >& X_dphi_dxi = X_fe_base->get_dphidxi();
+    const std::vector<std::vector<double> >& X_dphi_deta = X_fe_base->get_dphideta();
+
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
     const std::vector<std::vector<double> >& phi = fe.getPhi(F_fe_type);
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
-        fe.getGradVarInterpolation();
+    std::vector<const std::vector<double>*> force_var_data;
+    std::vector<const std::vector<VectorValue<double> >*> force_grad_var_data;
 
-    std::vector<const std::vector<double> *> force_var_data, surface_force_var_data, surface_pressure_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> force_grad_var_data, surface_force_grad_var_data,
-        surface_pressure_grad_var_data;
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
+    PetscVector<double>* X0_petsc_vec = static_cast<PetscVector<double>*>(d_X0_vecs[part]);
+    Vec X0_global_vec = X0_petsc_vec->vec();
+    Vec X0_local_vec;
+    VecGhostGetLocalForm(X0_global_vec, &X0_local_vec);
+    double* X0_local_soln;
+    VecGetArray(X0_local_vec, &X0_local_soln);
 
     // Loop over the elements to compute the right-hand side vector.
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F, F_b, F_s, F_qp, n, x;
-    boost::multi_array<double, 2> X_node;
+    TensorValue<double> FF;
+    VectorValue<double> F, F_qp, N, Tau1, Tau2, X, n, s, tau1, tau2, x;
+    double dA_da;
+    boost::multi_array<double, 2> X_node, X0_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -957,19 +994,42 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
         {
             F_dof_map_cache.dof_indices(elem, F_dof_indices[d], d);
             F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
+
+            X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+            X0_dof_map_cache.dof_indices(elem, X0_dof_indices[d], d);
         }
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
         fe.interpolate(elem);
+        X_fe_base->reinit(elem);
+        get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+        get_values_for_interpolation(X0_node, *X0_petsc_vec, X0_local_soln, X0_dof_indices);
         const unsigned int n_qp = qrule->n_points();
         const size_t n_basis = phi.size();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const libMesh::Point& X = q_point[qp];
-            const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
-            get_x_and_FF(x, FF, x_data, grad_x_data);
-            tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+            s = q_point[qp];
+
+            interpolate(&X(0), qp, X0_node, X_phi);
+            interpolate(&Tau1(0), qp, X0_node, X_dphi_dxi);
+            if (dim == 1)
+                Tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+            else
+                interpolate(&Tau2(0), qp, X0_node, X_dphi_deta);
+            N = Tau1.cross(Tau2);
+
+            interpolate(&x(0), qp, X_node, X_phi);
+            interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
+            if (dim == 1)
+                tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+            else
+                interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+            n = tau1.cross(tau2);
+
+            dA_da = sqrt(N * N) / sqrt(n * n);
+
+            N = N.unit();
+            n = n.unit();
 
             if (d_lag_force_fcn_data[part].fcn)
             {
@@ -977,18 +1037,17 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 // point and add the corresponding forces to the
                 // right-hand-side vector.
                 fe.setInterpolatedDataPointers(force_var_data, force_grad_var_data, force_fcn_system_idxs, elem, qp);
-                d_lag_force_fcn_data[part].fcn(F_b,
-                                               FF,
-                                               x,
-                                               X,
-                                               elem,
-                                               force_var_data,
-                                               force_grad_var_data,
-                                               data_time,
-                                               d_lag_force_fcn_data[part].ctx);
+                d_lag_force_fcn_data[part].fcn(
+                    F, FF, x, s, elem, force_var_data, force_grad_var_data, data_time, d_lag_force_fcn_data[part].ctx);
+
+                if (d_split_normal_force)
+                {
+                    F = F - (F * n) * n;
+                }
+
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
-                    F_qp = F_b * phi[k][qp] * JxW[qp];
+                    F_qp = F * phi[k][qp] * JxW[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         F_rhs_e[i](k) += F_qp(i);
@@ -1008,6 +1067,12 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 
     // Solve for F.
     d_fe_data_managers[part]->computeL2Projection(F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    VecRestoreArray(X0_local_vec, &X0_local_soln);
+    VecGhostRestoreLocalForm(X0_global_vec, &X0_local_vec);
     return;
 } // computeInteriorForceDensity
 
@@ -1378,6 +1443,13 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     }
     X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+    X_system.solution->localize(*X_system.current_local_solution);
+
+    // Keep track of the initial coordinates.
+    System& X0_system = equation_systems->get_system(COORDS0_SYSTEM_NAME);
+    NumericVector<double>& X0_coords = *X0_system.solution;
+    X0_coords = X_coords;
+    X0_system.solution->localize(*X0_system.current_local_solution);
     return;
 } // initializeCoordinates
 
