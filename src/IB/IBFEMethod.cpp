@@ -924,7 +924,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
     const DofMap& dP_dof_map = dP_system.get_dof_map();
     FEDataManager::SystemDofMapCache& dP_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DP_SYSTEM_NAME);
     TBOX_ASSERT(dP_dof_map.variable_type(0) == F_fe_type);
-    std::vector<unsigned int> dP_dof_indices(NDIM);
+    std::vector<unsigned int> dP_dof_indices;
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
@@ -1050,12 +1050,20 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 d_lag_force_fcn_data[part].fcn(
                     F, FF, x, s, elem, force_var_data, force_grad_var_data, data_time, d_lag_force_fcn_data[part].ctx);
 
+                // extract the pressure jump
                 double dP = F * n * dA_da;
+
+                // Split off the normal and/or tangential parts of the force (if requested).
                 if (d_split_normal_force)
                 {
                     F = F - (F * n) * n;
                 }
+                if (d_split_tangential_force)
+                {
+                    F = (F * n) * n;
+                }
 
+                // Accumulate the RHS values.
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = F * phi[k][qp] * JxW[qp];
@@ -1093,14 +1101,13 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 } // computeInteriorForceDensity
 
 void
-IBFEMethod::imposeJumpConditions(const int /*f_data_idx*/,
+IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                  PetscVector<double>& /*F_ghost_vec*/,
-                                 PetscVector<double>& /*X_ghost_vec*/,
-                                 PetscVector<double>& /*dP_ghost_vec*/,
-                                 const double /*data_time*/,
-                                 const unsigned int /*part*/)
+                                 PetscVector<double>& X_ghost_vec,
+                                 PetscVector<double>& dP_ghost_vec,
+                                 const double data_time,
+                                 const unsigned int part)
 {
-#if 0
     if (!d_split_normal_force && !d_split_tangential_force) return;
 
     // Check to see if we need to integrate the normal surface force.
@@ -1111,39 +1118,43 @@ IBFEMethod::imposeJumpConditions(const int /*f_data_idx*/,
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    TBOX_ASSERT(dim == NDIM);
+    TBOX_ASSERT(dim == NDIM - 1);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    System& F_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    DofMap& F_dof_map = F_system.get_dof_map();
-    FEType F_fe_type = F_dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
-    }
-    std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-    std::vector<int> vars(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-    std::vector<int> no_vars;
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    }
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
 
-    FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-    fe.attachQuadratureRule(qrule.get());
-    const size_t F_sys_idx = fe.registerInterpolatedSystem(F_system, vars, no_vars, &F_ghost_vec);
-    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
-    std::vector<size_t> force_fcn_system_idxs;
-    fe.setupInterpolatedSystemDataIndexes(
-        force_fcn_system_idxs, d_lag_force_fcn_data[part].system_data, equation_systems);
-    fe.init(/*use_IB_ghosted_vecs*/ true);
+    System& dP_system = equation_systems->get_system(DP_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& dP_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DP_SYSTEM_NAME);
+    DofMap& dP_dof_map = dP_system.get_dof_map();
+    TBOX_ASSERT(dP_dof_map.variable_type(0) == X_fe_type);
+    std::vector<unsigned int> dP_dof_indices;
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
-        fe.getGradVarInterpolation();
+    AutoPtr<FEBase> X_fe_base(FEBase::build(dim, X_fe_type));
+    const std::vector<std::vector<double> >& X_phi = X_fe_base->get_phi();
+    const std::vector<std::vector<double> >& X_dphi_dxi = X_fe_base->get_dphidxi();
+    const std::vector<std::vector<double> >& X_dphi_deta = X_fe_base->get_dphideta();
 
-    std::vector<const std::vector<double> *> force_var_data;
-    std::vector<const std::vector<VectorValue<double> > *> force_grad_var_data;
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_ghost_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
+    PetscVector<double>* dP_petsc_vec = static_cast<PetscVector<double>*>(&dP_ghost_vec);
+    Vec dP_global_vec = dP_petsc_vec->vec();
+    Vec dP_local_vec;
+    VecGhostGetLocalForm(dP_global_vec, &dP_local_vec);
+    double* dP_local_soln;
+    VecGetArray(dP_local_vec, &dP_local_soln);
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
@@ -1151,10 +1162,11 @@ IBFEMethod::imposeJumpConditions(const int /*f_data_idx*/,
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> G, F, F_s, n, x;
-    std::vector<libMesh::Point> X_node_cache, x_node_cache;
+    std::vector<libMesh::Point> s_node_cache, x_node_cache;
+    VectorValue<double> n, s, tau1, tau2, x;
     IBTK::Point x_min, x_max;
+    boost::multi_array<double, 2> X_node;
+    boost::multi_array<double, 1> dP_node;
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
@@ -1185,130 +1197,118 @@ IBFEMethod::imposeJumpConditions(const int /*f_data_idx*/,
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
-            fe.reinit(elem);
-            fe.collectDataForInterpolation(elem);
-
-            TBOX_ERROR("FINISH ME!\n");
-#if 0
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            const unsigned int n_node = elem->n_nodes();
+            for (int d = 0; d < NDIM; ++d)
             {
-                // Skip non-physical boundaries.
-                if (!is_physical_bdry(elem, side, boundary_info, G_dof_map)) continue;
+                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+            }
+            dP_dof_map_cache.dof_indices(elem, dP_dof_indices);
 
-                // Skip Dirichlet boundaries.
-                if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+            get_values_for_interpolation(dP_node, *dP_petsc_vec, dP_local_soln, dP_dof_indices);
 
-                // Construct a side element.
-                AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
-                const unsigned int n_node_side = side_elem->n_nodes();
-                for (int d = 0; d < NDIM; ++d)
+            // Cache the nodal and physical coordinates of the side element,
+            // determine the bounding box of the current configuration of
+            // the side element, and set the nodal coordinates to correspond
+            // to the physical coordinates.
+            s_node_cache.resize(n_node);
+            x_node_cache.resize(n_node);
+            x_min = IBTK::Point::Constant(std::numeric_limits<double>::max());
+            x_max = IBTK::Point::Constant(-std::numeric_limits<double>::max());
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                libMesh::Point& x = x_node_cache[k];
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(side_elem.get(), side_dof_indices[d], d);
+                    x(d) = X_ghost_vec(X_dof_indices[d][k]);
+                    x_min[d] = std::min(x_min[d], x(d));
+                    x_max[d] = std::max(x_max[d], x(d));
                 }
+                elem->point(k) = x;
+            }
+            Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
+            box.grow(IntVector<NDIM>(1));
+            box = box * patch_box;
 
-                // Cache the nodal and physical coordinates of the side element,
-                // determine the bounding box of the current configuration of
-                // the side element, and set the nodal coordinates to correspond
-                // to the physical coordinates.
-                X_node_cache.resize(n_node_side);
-                x_min = IBTK::Point::Constant(std::numeric_limits<double>::max());
-                x_max = IBTK::Point::Constant(-std::numeric_limits<double>::max());
-                for (unsigned int k = 0; k < n_node_side; ++k)
+            // Loop over coordinate directions and look for intersections
+            // with the background fluid grid.
+            intersection_ref_coords.clear();
+            intersection_indices.clear();
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Setup a unit vector pointing in the coordinate direction of interest.
+                VectorValue<double> q;
+                q(axis) = 1.0;
+
+                // Loop over the relevant range of indices.
+                Box<NDIM> axis_box = box;
+                axis_box.lower(axis) = 0;
+                axis_box.upper(axis) = 0;
+                for (BoxIterator<NDIM> b(axis_box); b; b++)
                 {
-                    X_node_cache[k] = side_elem->point(k);
-                    libMesh::Point& x = x_node_cache[k];
+                    const Index<NDIM>& i_c = b();
+                    libMesh::Point r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        x(d) = X_ghost_vec(side_dof_indices[d][k]);
-                        x_min[d] = std::min(x_min[d], x(d));
-                        x_max[d] = std::max(x_max[d], x(d));
+                        r(d) = (d == axis ? 0.0 :
+                                            x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
                     }
-                    side_elem->point(k) = x;
-                }
-                Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
-                              IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-                box.grow(IntVector<NDIM>(1));
-                box = box * patch_box;
-
-                // Loop over coordinate directions and look for intersections
-                // with the background fluid grid.
-                intersection_ref_coords.clear();
-                intersection_indices.clear();
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    // Setup a unit vector pointing in the coordinate direction
-                    // of interest.
-                    VectorValue<double> q;
-                    q(axis) = 1.0;
-
-                    // Loop over the relevant range of indices.
-                    Box<NDIM> axis_box = box;
-                    axis_box.lower(axis) = 0;
-                    axis_box.upper(axis) = 0;
-                    for (BoxIterator<NDIM> b(axis_box); b; b++)
-                    {
-                        const Index<NDIM>& i_c = b();
-                        libMesh::Point r;
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            r(d) = (d == axis ? 0.0 : x_lower[d] +
-                                                          dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5));
-                        }
 #if (NDIM == 2)
-                        intersect_line_with_edge(intersections, static_cast<Edge*>(side_elem.get()), r, q);
+                    intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q);
 #endif
 #if (NDIM == 3)
-                        intersect_line_with_face(intersections, static_cast<Face*>(side_elem.get()), r, q);
+                    intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q);
 #endif
-                        for (unsigned int k = 0; k < intersections.size(); ++k)
+                    for (unsigned int k = 0; k < intersections.size(); ++k)
+                    {
+                        libMesh::Point x = r + intersections[k].first * q;
+                        SideIndex<NDIM> i_s(i_c, axis, 0);
+                        i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
+
+                        // Only keep the first intersection for each location on the grid.
+                        if (!num_intersections(i_s))
                         {
-                            libMesh::Point x = r + intersections[k].first * q;
-                            SideIndex<NDIM> i_s(i_c, axis, 0);
-                            i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                             intersection_ref_coords.push_back(intersections[k].second);
                             intersection_indices.push_back(i_s);
                             num_intersections(i_s) += 1;
                         }
                     }
                 }
+            }
 
-                // Restore the element coordinates.
-                for (unsigned int k = 0; k < n_node_side; ++k)
-                {
-                    side_elem->point(k) = X_node_cache[k];
-                }
+            // Restore the element coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
 
-                // If there are no intersection points, then continue to the
-                // next side.
-                if (intersection_ref_coords.empty()) continue;
+            // If there are no intersection points, then continue to the next side.
+            if (intersection_ref_coords.empty()) continue;
 
-                // Evaluate the jump conditions and apply them to the Eulerian
-                // grid.
-                const bool impose_dp_dn_jumps = false;
-                static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
-                fe.reinit(elem, side, TOL, &intersection_ref_coords);
-                fe.interpolate(elem, side);
-                const size_t n_qp = intersection_ref_coords.size();
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    const SideIndex<NDIM>& i_s = intersection_indices[qp];
-                    const unsigned int axis = i_s.getAxis();
-                    const libMesh::Point& X = intersection_ref_coords[qp];
-                    const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
-                    const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
-                    get_x_and_FF(x, FF, x_data, grad_x_data);
-                    const double J = std::abs(FF.det());
-                    tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                    n = (FF_inv_trans * normal_face[qp]).unit();
-                    const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
-                    const std::vector<double>& G_data = fe_interp_var_data[qp][G_sys_idx];
-                    std::copy(G_data.begin(), G_data.end(), &G(0));
+            // Evaluate the jump conditions and apply them to the Eulerian grid.
+            X_fe_base->reinit(elem, &intersection_ref_coords);
+            const size_t n_qp = intersection_ref_coords.size();
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                interpolate(&x(0), qp, X_node, X_phi);
+                interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
+                if (dim == 1)
+                    tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+                else
+                    interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+                n = tau1.cross(tau2);
+
+                double dP = interpolate(qp, dP_node, X_phi);
+
+                const SideIndex<NDIM>& i_s = intersection_indices[qp];
+                const unsigned int axis = i_s.getAxis();
 #if !defined(NDEBUG)
-                    for (unsigned int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (d == axis)
                     {
-                        if (d == axis)
-                        {
                             const double x_lower_bound = x_lower[d] +
                                                          (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
                                                          sqrt(std::numeric_limits<double>::epsilon());
@@ -1316,116 +1316,35 @@ IBFEMethod::imposeJumpConditions(const int /*f_data_idx*/,
                                                          (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
                                                          sqrt(std::numeric_limits<double>::epsilon());
                             TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
-                        }
-                        else
-                        {
-                            const double x_intersection =
-                                x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
-                            const double x_interp = x(d);
-                            const double rel_diff =
-                                std::abs(x_intersection - x_interp) /
-                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
-                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
-                        }
-                    }
-#endif
-                    F.zero();
-
-                    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
-                    {
-                        if (d_PK1_stress_fcn_data[part][k].fcn)
-                        {
-                            // Compute the value of the first Piola-Kirchhoff
-                            // stress tensor at the quadrature point and compute
-                            // the corresponding force.
-                            fe.setInterpolatedDataPointers(
-                                PK1_var_data[k], PK1_grad_var_data[k], PK1_fcn_system_idxs[k], elem, qp);
-                            d_PK1_stress_fcn_data[part][k].fcn(PP,
-                                                               FF,
-                                                               x,
-                                                               X,
-                                                               elem,
-                                                               PK1_var_data[k],
-                                                               PK1_grad_var_data[k],
-                                                               data_time,
-                                                               d_PK1_stress_fcn_data[part][k].ctx);
-                            F -= PP * normal_face[qp];
-                        }
-                    }
-
-                    if (d_lag_surface_pressure_fcn_data[part].fcn)
-                    {
-                        // Compute the value of the pressure at the quadrature
-                        // point and compute the corresponding force.
-                        double P = 0.0;
-                        fe.setInterpolatedDataPointers(surface_pressure_var_data,
-                                                       surface_pressure_grad_var_data,
-                                                       surface_pressure_fcn_system_idxs,
-                                                       elem,
-                                                       qp);
-                        d_lag_surface_pressure_fcn_data[part].fcn(P,
-                                                                  FF,
-                                                                  x,
-                                                                  X,
-                                                                  elem,
-                                                                  side,
-                                                                  surface_pressure_var_data,
-                                                                  surface_pressure_grad_var_data,
-                                                                  data_time,
-                                                                  d_lag_surface_pressure_fcn_data[part].ctx);
-                        F -= P * J * FF_inv_trans * normal_face[qp];
-                    }
-
-                    if (d_lag_surface_force_fcn_data[part].fcn)
-                    {
-                        // Compute the value of the surface force at the
-                        // quadrature point and compute the corresponding force.
-                        fe.setInterpolatedDataPointers(surface_force_var_data,
-                                                       surface_force_grad_var_data,
-                                                       surface_force_fcn_system_idxs,
-                                                       elem,
-                                                       qp);
-                        d_lag_surface_force_fcn_data[part].fcn(F_s,
-                                                               FF,
-                                                               x,
-                                                               X,
-                                                               elem,
-                                                               side,
-                                                               surface_force_var_data,
-                                                               surface_force_grad_var_data,
-                                                               data_time,
-                                                               d_lag_surface_force_fcn_data[part].ctx);
-                        F += F_s;
-                    }
-
-                    F *= dA_da;
-
-                    // Determine the value of the interior force density at the
-                    // boundary, and convert it to force per unit volume in the
-                    // current configuration.  This value determines the
-                    // discontinuity in the normal derivative of the pressure at
-                    // the fluid-structure interface.
-                    if (impose_dp_dn_jumps)
-                    {
-                        G /= J;
                     }
                     else
                     {
-                        G.zero();
+                        const double x_intersection =
+                            x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
+                        const double x_interp = x(d);
+                        const double rel_diff = std::abs(x_intersection - x_interp) /
+                                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
+                        TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
                     }
-
-                    // Impose the jump conditions.
-                    const double x_cell_bdry =
-                        x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
-                    const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] - x(axis);
-                    const double C_p = F * n - h * G(axis);
-                    (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
                 }
-            }
 #endif
+
+                // Impose the jump conditions.
+                //                const double x_cell_bdry =
+                //                        x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
+                //                const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
+                //                x(axis);
+                const double C_p = dP;
+                (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
+            }
         }
     }
-#endif
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    VecRestoreArray(dP_local_vec, &dP_local_soln);
+    VecGhostRestoreLocalForm(dP_global_vec, &dP_local_vec);
     return;
 } // imposeJumpConditions
 
