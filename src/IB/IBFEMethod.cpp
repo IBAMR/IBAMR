@@ -1268,12 +1268,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
 
                         // Only keep the first intersection for each location on the grid.
-                        if (!num_intersections(i_s))
-                        {
-                            intersection_ref_coords.push_back(intersections[k].second);
-                            intersection_indices.push_back(i_s);
-                            num_intersections(i_s) += 1;
-                        }
+                        intersection_ref_coords.push_back(intersections[k].second);
+                        intersection_indices.push_back(i_s);
+                        num_intersections(i_s) += 1;
                     }
                 }
             }
@@ -1299,6 +1296,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 else
                     interpolate(&tau2(0), qp, X_node, X_dphi_deta);
                 n = tau1.cross(tau2);
+                n = n.unit();
 
                 double dP = interpolate(qp, dP_node, X_phi);
 
@@ -1328,13 +1326,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     }
                 }
 #endif
-
                 // Impose the jump conditions.
                 //                const double x_cell_bdry =
                 //                        x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
                 //                const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
                 //                x(axis);
-                const double C_p = dP;
+                const double C_p = dP / num_intersections(i_s);
                 (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
             }
         }
