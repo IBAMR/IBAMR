@@ -627,6 +627,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
                          libMesh::Point r,
                          libMesh::VectorValue<double> q)
 {
+    static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
     t_vals.resize(0);
     switch (elem->type())
     {
@@ -679,7 +680,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
             const double v = -(A00 * C2 - A10 * C1) / det;
 
             // Look for intersections within the element interior.
-            if (u >= 0.0 && v >= 0.0 && (u + v) <= 1.0)
+            if (u >= 0.0 - TOL && v >= 0.0 - TOL && (u + v) <= 1.0 + TOL)
             {
                 double t;
                 if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
@@ -772,7 +773,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
         for (unsigned int k = 0; k < v_vals.size(); ++k)
         {
             double v = v_vals[k];
-            if (v >= 0.0 && v <= 1.0)
+            if (v >= 0.0 - TOL && v <= 1.0 + TOL)
             {
                 double u;
                 const double a = v * A2 + B2;
@@ -786,7 +787,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
                     u = (-v * C2 - D2) / a;
                 }
 
-                if (u >= 0.0 && u <= 1.0)
+                if (u >= 0.0 - TOL && u <= 1.0 + TOL)
                 {
                     double t;
                     if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
