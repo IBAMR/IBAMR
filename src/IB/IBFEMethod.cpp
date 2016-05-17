@@ -1185,6 +1185,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
+        Box<NDIM> side_boxes[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+        }
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
@@ -1268,9 +1273,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
 
                         // Only keep the first intersection for each location on the grid.
-                        intersection_ref_coords.push_back(intersections[k].second);
-                        intersection_indices.push_back(i_s);
-                        num_intersections(i_s) += 1;
+                        if (side_boxes[axis].contains(i_s))
+                        {
+                            intersection_ref_coords.push_back(intersections[k].second);
+                            intersection_indices.push_back(i_s);
+                            num_intersections(i_s) += 1;
+                        }
                     }
                 }
             }
