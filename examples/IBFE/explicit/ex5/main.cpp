@@ -108,26 +108,9 @@ kernel(double x)
 // Elasticity model data.
 namespace ModelData
 {
-// Tether (penalty) stress function.
-static double c1_s = 1.0e5;
-void
-PK1_stress_function(TensorValue<double>& PP,
-                    const TensorValue<double>& FF,
-                    const libMesh::Point& /*x*/,
-                    const libMesh::Point& /*X*/,
-                    Elem* const /*elem*/,
-                    const vector<const vector<double>*>& /*var_data*/,
-                    const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                    double /*time*/,
-                    void* /*ctx*/)
-{
-    PP = 2.0 * c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
-    return;
-} // PK1_stress_function
-
 // Tether (penalty) force functions.
-static double kappa_s_body = 1.0e6;
-static double eta_s_body = 0.0;
+static double kappa_s = 1.0e6;
+static double eta_s = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
                       const TensorValue<double>& /*FF*/,
@@ -142,29 +125,7 @@ tether_force_function(VectorValue<double>& F,
     const std::vector<double>& U = *var_data[0];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s_body * (X(d) - x(d)) - eta_s_body * U[d];
-    }
-    return;
-} // tether_force_function
-
-static double kappa_s_surface = 1.0e6;
-static double eta_s_surface = 0.0;
-void
-tether_force_function(VectorValue<double>& F,
-                      const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x,
-                      const libMesh::Point& X,
-                      Elem* const /*elem*/,
-                      const unsigned short /*side*/,
-                      const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                      double /*time*/,
-                      void* /*ctx*/)
-{
-    const std::vector<double>& U = *var_data[0];
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        F(d) = kappa_s_surface * (X(d) - x(d)) - eta_s_surface * U[d];
+        F(d) = kappa_s * (X(d) - x(d)) - eta_s * U[d];
     }
     return;
 } // tether_force_function
@@ -293,14 +254,11 @@ main(int argc, char* argv[])
         solid_mesh.boundary_info->sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
-        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+        bool use_boundary_mesh = true;
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
 
-        c1_s = input_db->getDouble("C1_S");
-        kappa_s_body = input_db->getDouble("KAPPA_S_BODY");
-        eta_s_body = input_db->getDouble("ETA_S_BODY");
-        kappa_s_surface = input_db->getDouble("KAPPA_S_SURFACE");
-        eta_s_surface = input_db->getDouble("ETA_S_SURFACE");
+        kappa_s = input_db->getDouble("KAPPA_S");
+        eta_s = input_db->getDouble("ETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -356,29 +314,8 @@ main(int argc, char* argv[])
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
-        if (use_boundary_mesh)
-        {
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
-        }
-        else
-        {
-            IBFEMethod::PK1StressFcnData PK1_stress_data(PK1_stress_function);
-            PK1_stress_data.quad_order =
-                Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_QUAD_ORDER", "THIRD"));
-            ib_method_ops->registerPK1StressFunction(PK1_stress_data);
-
-            IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
-
-            IBFEMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data);
-            ib_method_ops->registerLagSurfaceForceFunction(surface_fcn_data);
-
-            if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
-            {
-                ib_method_ops->registerStressNormalizationPart();
-            }
-        }
+        IBFEMethod::LagForceFcnData body_fcn_data(tether_force_function, sys_data);
+        ib_method_ops->registerLagForceFunction(body_fcn_data);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -579,6 +516,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
+#if 0
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
@@ -732,6 +670,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             U_max_norm_stream << loop_time << " " << U_max_norm << endl;
         }
     }
+#endif
 #endif
     return;
 } // postprocess_data
