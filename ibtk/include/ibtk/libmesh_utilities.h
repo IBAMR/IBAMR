@@ -482,6 +482,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
                          libMesh::Point r,
                          libMesh::VectorValue<double> q)
 {
+    static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
     t_vals.resize(0);
     switch (elem->type())
     {
@@ -519,7 +520,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         const double u = -b / a;
 
         // Look for intersections within the element interior.
-        if (u >= -1.0 && u <= 1.0)
+        if (u >= -1.0 - TOL && u <= 1.0 + TOL)
         {
             double t;
             if (std::abs(q(0)) >= std::abs(q(1)))
@@ -589,7 +590,7 @@ intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals
         for (unsigned int k = 0; k < u_vals.size(); ++k)
         {
             double u = u_vals[k];
-            if (u >= -1.0 && u <= 1.0)
+            if (u >= -1.0 - TOL && u <= 1.0 + TOL)
             {
                 double t;
                 if (std::abs(q(0)) >= std::abs(q(1)))

@@ -95,9 +95,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@am__append_4 = 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/CIBFEMethod.cpp \
-@LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEMethod.cpp \
-@LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpec.cpp \
@@ -105,10 +103,7 @@ host_triplet = @host@
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/CIBFEMethod.h \
-@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEMethod.h \
-@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
-@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IMPInitializer.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IMPMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/MaterialPointSpec.h
@@ -283,9 +278,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
-	../src/IB/CIBFEMethod.cpp \
-	../src/IB/IBFECentroidPostProcessor.cpp \
-	../src/IB/IBFEMethod.cpp ../src/IB/IBFEPostProcessor.cpp \
+	../src/IB/CIBFEMethod.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IMPMethod.cpp ../src/IB/IMPInitializer.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
@@ -302,9 +295,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/IB/libIBAMR2d_a-CIBFEMethod.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
@@ -521,9 +512,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
-	../src/IB/CIBFEMethod.cpp \
-	../src/IB/IBFECentroidPostProcessor.cpp \
-	../src/IB/IBFEMethod.cpp ../src/IB/IBFEPostProcessor.cpp \
+	../src/IB/CIBFEMethod.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IMPMethod.cpp ../src/IB/IMPInitializer.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
@@ -540,9 +529,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/IB/libIBAMR3d_a-CIBFEMethod.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
@@ -838,11 +825,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesSolverManager.h \
 	../include/ibamr/StokesBcCoefStrategy.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
-	../include/ibamr/CIBFEMethod.h \
-	../include/ibamr/IBFECentroidPostProcessor.h \
-	../include/ibamr/IBFEMethod.h \
-	../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
-	../include/ibamr/IBFEPostProcessor.h \
+	../include/ibamr/CIBFEMethod.h ../include/ibamr/IBFEMethod.h \
 	../include/ibamr/IMPInitializer.h ../include/ibamr/IMPMethod.h \
 	../include/ibamr/MaterialPointSpec.h
 HEADERS = $(pkg_include_HEADERS)
@@ -1755,11 +1738,7 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2073,11 +2052,7 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBFEMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2161,9 +2136,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Po@am__quote@
@@ -2220,9 +2193,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Po@am__quote@
@@ -3800,20 +3771,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CIBFEMethod.obj `if test -f '../src/IB/CIBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/CIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBFEMethod.cpp'; fi`
 
-../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFECentroidPostProcessor.cpp' object='../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
-
-../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj: ../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFECentroidPostProcessor.cpp' object='../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
-
 ../src/IB/libIBAMR2d_a-IBFEMethod.o: ../src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEMethod.o `test -f '../src/IB/IBFEMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
@@ -3827,20 +3784,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEMethod.cpp' object='../src/IB/libIBAMR2d_a-IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEMethod.obj `if test -f '../src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEMethod.cpp'; fi`
-
-../src/IB/libIBAMR2d_a-IBFEPostProcessor.o: ../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEPostProcessor.cpp' object='../src/IB/libIBAMR2d_a-IBFEPostProcessor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
-
-../src/IB/libIBAMR2d_a-IBFEPostProcessor.obj: ../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFEPostProcessor.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFEPostProcessor.obj `if test -f '../src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEPostProcessor.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEPostProcessor.cpp' object='../src/IB/libIBAMR2d_a-IBFEPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFEPostProcessor.obj `if test -f '../src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEPostProcessor.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IMPMethod.o: ../src/IB/IMPMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IMPMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IMPMethod.o `test -f '../src/IB/IMPMethod.cpp' || echo '$(srcdir)/'`../src/IB/IMPMethod.cpp
@@ -5312,20 +5255,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CIBFEMethod.obj `if test -f '../src/IB/CIBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/CIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CIBFEMethod.cpp'; fi`
 
-../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFECentroidPostProcessor.cpp' object='../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
-
-../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj: ../src/IB/IBFECentroidPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFECentroidPostProcessor.cpp' object='../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.obj `if test -f '../src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFECentroidPostProcessor.cpp'; fi`
-
 ../src/IB/libIBAMR3d_a-IBFEMethod.o: ../src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEMethod.o `test -f '../src/IB/IBFEMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
@@ -5339,20 +5268,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEMethod.cpp' object='../src/IB/libIBAMR3d_a-IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEMethod.obj `if test -f '../src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEMethod.cpp'; fi`
-
-../src/IB/libIBAMR3d_a-IBFEPostProcessor.o: ../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEPostProcessor.cpp' object='../src/IB/libIBAMR3d_a-IBFEPostProcessor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEPostProcessor.o `test -f '../src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFEPostProcessor.cpp
-
-../src/IB/libIBAMR3d_a-IBFEPostProcessor.obj: ../src/IB/IBFEPostProcessor.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFEPostProcessor.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFEPostProcessor.obj `if test -f '../src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEPostProcessor.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBFEPostProcessor.cpp' object='../src/IB/libIBAMR3d_a-IBFEPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFEPostProcessor.obj `if test -f '../src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '../src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFEPostProcessor.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IMPMethod.o: ../src/IB/IMPMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IMPMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IMPMethod.o `test -f '../src/IB/IMPMethod.cpp' || echo '$(srcdir)/'`../src/IB/IMPMethod.cpp

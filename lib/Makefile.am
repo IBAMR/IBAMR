@@ -147,9 +147,7 @@ DIM_INDEPENDENT_SOURCES = \
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
   ../src/IB/CIBFEMethod.cpp \
-  ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEMethod.cpp \
-  ../src/IB/IBFEPostProcessor.cpp \
   ../src/IB/IMPMethod.cpp \
   ../src/IB/IMPInitializer.cpp \
   ../src/IB/MaterialPointSpec.cpp \
@@ -254,10 +252,7 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/CIBFEMethod.h \
-  ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEMethod.h \
-  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
-  ../include/ibamr/IBFEPostProcessor.h \
   ../include/ibamr/IMPInitializer.h \
   ../include/ibamr/IMPMethod.h \
   ../include/ibamr/MaterialPointSpec.h
