@@ -175,6 +175,13 @@ StaggeredStokesIBLevelRelaxationFACOperator::~StaggeredStokesIBLevelRelaxationFA
 } // ~StaggeredStokesIBLevelRelaxationFACOperator
 
 void
+StaggeredStokesIBLevelRelaxationFACOperator::setIBTimeSteppingType(TimeSteppingType time_stepping_type)
+{
+    d_time_stepping_type = time_stepping_type;
+    return;
+} // setIBTimeSteppingType
+
+void
 StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
 {
     if (d_is_initialized)
@@ -429,6 +436,21 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
 {
     int ierr;
 
+    const double dt = d_new_time - d_current_time;
+    double kappa = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        kappa = 1.0;
+        break;
+    case TRAPEZOIDAL_RULE:
+    case MIDPOINT_RULE:
+        kappa = 0.5;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+
     // Construct patch level DOFs.
     d_num_dofs_per_proc.resize(d_finest_ln + 1);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
@@ -485,7 +507,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             const double* const dx0 = grid_geom->getDx();
             IntVector<NDIM> ratio = finest_level->getRatio();
-            double spread_scale = -0.25 * (d_new_time - d_current_time);
+            double spread_scale = -kappa * kappa * dt;
             for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d) / dx0[d];
             ierr = MatScale(d_SAJ_mat[ln], spread_scale);
             IBTK_CHKERRQ(ierr);
