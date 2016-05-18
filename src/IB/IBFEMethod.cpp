@@ -558,7 +558,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IBFEMethod::eulerStep(const double current_time, const double new_time)
+IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;

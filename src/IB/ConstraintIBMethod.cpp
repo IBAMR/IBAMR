@@ -2009,9 +2009,9 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
 } // updateStructurePositionEulerStep
 
 void
-ConstraintIBMethod::eulerStep(double current_time, double new_time)
+ConstraintIBMethod::forwardEulerStep(double current_time, double new_time)
 {
-    IBMethod::eulerStep(current_time, new_time);
+    IBMethod::forwardEulerStep(current_time, new_time);
 
     IBTK_TIMER_START(t_eulerStep);
     updateStructurePositionEulerStep();

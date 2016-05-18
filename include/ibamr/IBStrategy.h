@@ -217,7 +217,7 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    virtual void eulerStep(double current_time, double new_time) = 0;
+    virtual void forwardEulerStep(double current_time, double new_time) = 0;
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
