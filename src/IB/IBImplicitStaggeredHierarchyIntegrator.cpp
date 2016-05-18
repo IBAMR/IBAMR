@@ -697,6 +697,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     default:
         TBOX_ERROR("unsupported time stepping type\n");
     }
+    stokes_fac_op->setIBTimeSteppingType(d_time_stepping_type);
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = NULL;
