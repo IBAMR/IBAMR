@@ -344,16 +344,6 @@ public:
     const SpreadSpec& getDefaultSpreadSpec() const;
 
     /*!
-     * \return Variable that tracks the inside and outside of the body.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getMaskingVariable() const;
-
-    /*!
-     * \return Variable patch data index that tracks the inside and outside of the body.
-     */
-    int getMaskingVariablePatchDataIndex() const;
-
-    /*!
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
