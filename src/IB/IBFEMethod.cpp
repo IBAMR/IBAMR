@@ -1306,7 +1306,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 n = tau1.cross(tau2);
                 n = n.unit();
 
-                double dP = interpolate(qp, dP_node, X_phi);
+
 
                 const SideIndex<NDIM>& i_s = intersection_indices[qp];
                 const unsigned int axis = i_s.getAxis();
@@ -1339,7 +1339,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 //                        x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
                 //                const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
                 //                x(axis);
-                const double C_p = dP / num_intersections(i_s);
+                 const double C_p = interpolate(qp, dP_node, X_phi);
                 (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
             }
         }
