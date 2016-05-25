@@ -516,7 +516,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
-#if 0
+
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
@@ -603,7 +603,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                     U_qp_vec[d] = U_qp(d);
                 }
                 tether_force_function(
-                    F_qp, FF_qp, x_qp, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                    F_qp, FF_qp, x_qp, q_point_face[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     F_integral[d] += F_qp(d) * JxW_face[qp];
@@ -670,7 +670,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             U_max_norm_stream << loop_time << " " << U_max_norm << endl;
         }
     }
-#endif
+
 #endif
     return;
 } // postprocess_data
