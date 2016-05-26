@@ -71,20 +71,19 @@ namespace IBAMR
 
 namespace
 {
-
-/*static const int interior_begin = 0;
+static const int interior_begin = 0;
 static const int interior_end = 39999;
 static const int bottom_begin = 40000;
-static const int bottom_end = 40617;
-static const int top_begin = 40618;
-static const int top_end = 41235;
-static const int left_begin = 41236;
-static const int left_end = 41835;
-static const int right_begin = 41836;
-static const int right_end = 42435;
+static const int bottom_end = 40201;
+static const int top_begin = 40202;
+static const int top_end = 40403;
+static const int left_begin = 40404;
+static const int left_end = 40603;
+static const int right_begin = 40604;
+static const int right_end = 40803;
 
 static const double dens = 1.0;
-static const double DX  = 1.0/199.0;*/
+static const double DX = 1.0 / 199.0;
 
 void
 resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
@@ -174,6 +173,8 @@ pd_pk1force_damage_function(const double horizon,
                             double* parameters,
                             const Eigen::Map<const vec_type>& X0_mastr,
                             const Eigen::Map<const vec_type>& X0_slave,
+                            const Eigen::Map<const vec_type>& X_mastr,
+                            const Eigen::Map<const vec_type>& X_slave,
                             const Eigen::Map<const mat_type>& FF_mastr,
                             const Eigen::Map<const mat_type>& FF_slave,
                             const Eigen::Map<const mat_type>& B_mastr,
@@ -213,12 +214,20 @@ pd_pk1force_damage_function(const double horizon,
     get_PK1(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    vec_type trac = (PK1_mastr*B_mastr + PK1_slave*B_slave)*(X0_slave - X0_mastr);
-    F_mastr +=   vol_slave * trac;
-    F_slave += - vol_mastr * trac;
-    //vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr);
-    //F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
-    //F_slave += -std::pow(vol_mastr, -2.0 / 3.0) * trac;
+    const double penalty_fac = 0.0 * 1e-2;
+    vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
+    // vec_type h =  0.5*(FF_mastr+ FF_slave)*(X0_slave - X0_mastr) - (X_slave - X_mastr);
+    // vec_type pen_trac = penalty_fac*(h.dot(X_slave - X_mastr))*(X_slave - X_mastr);
+    // vec_type pen_trac = penalty_fac*h;
+    // vec_type trac = (PK1_mastr*B_mastr + PK1_slave*B_slave)*(X0_slave - X0_mastr);
+    vec_type trac_mastr = (-1.0 * PK1_mastr + 1.0 * PK1_slave) * B_mastr * (X0_slave - X0_mastr);
+    vec_type trac_slave = (-1.0 * PK1_slave + 1.0 * PK1_mastr) * B_slave * (X0_mastr - X0_slave);
+    F_mastr += vol_slave * trac_mastr + pen_trac;
+    F_slave += vol_mastr * trac_slave - pen_trac;
+    // vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr) +  penalty_fac*((X_slave - X0_slave)-(X_mastr -
+    // X0_mastr));
+    // F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
+    // F_slave += -std::pow(vol_mastr, -2.0 / 3.0) * trac;
 
     // Compute damage.
     const double stretch = (R - R0) / R0;
@@ -285,7 +294,9 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     d_bond_data.resize(new_size);
     d_X0_ghost_data.resize(new_size);
     d_X_ghost_data.resize(new_size);
+    d_X_mean_ghost_data.resize(new_size);
     d_F_ghost_data.resize(new_size);
+    d_N_ghost_data.resize(new_size);
     d_dmg_ghost_data.resize(new_size);
     d_B_ghost_data.resize(new_size);
     d_FF_ghost_data.resize(new_size);
@@ -318,9 +329,17 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     X_name_stream << "IBPDForceGen::X_ghost_" << level_number;
     d_X_ghost_data[level_number] = new LData(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
+    std::ostringstream X_mean_name_stream;
+    X_mean_name_stream << "IBPDForceGen::X_mean_ghost_" << level_number;
+    d_X_mean_ghost_data[level_number] = new LData(X_mean_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
     std::ostringstream F_name_stream;
     F_name_stream << "IBPDForceGen::F_ghost_" << level_number;
     d_F_ghost_data[level_number] = new LData(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
+    std::ostringstream N_name_stream;
+    N_name_stream << "IBPDForceGen::N_ghost_" << level_number;
+    d_N_ghost_data[level_number] = new LData(N_name_stream.str(), num_local_nodes, 1, nonlocal_petsc_idxs);
 
     std::ostringstream dmg_name_stream;
     dmg_name_stream << "IBPDForceGen::dmg_ghost_" << level_number;
@@ -383,6 +402,15 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
+    Pointer<LData> N_ghost_data = d_N_ghost_data[level_number];
+    Vec N_ghost_local_form_vec;
+    ierr = VecGhostGetLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(N_ghost_local_form_vec, 0.0);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
+    IBTK_CHKERRQ(ierr);
+
     Pointer<LData> D_ghost_data = d_dmg_ghost_data[level_number];
     Vec D_ghost_local_form_vec;
     ierr = VecGhostGetLocalForm(D_ghost_data->getVec(), &D_ghost_local_form_vec);
@@ -401,6 +429,15 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateEnd(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+
+    Pointer<LData> X_mean_ghost_data = d_X_mean_ghost_data[level_number];
+    Vec X_mean_ghost_local_form_vec;
+    ierr = VecGhostGetLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(X_mean_ghost_local_form_vec, 0.0);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
     Pointer<LData> X0_ghost_data = d_X0_ghost_data[level_number];
@@ -429,6 +466,40 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostRestoreLocalForm(FF_ghost_data->getVec(), &FF_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
+
+    // Compute mean position
+    computeMeanPosition(
+        X_mean_ghost_data, N_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateBegin(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateEnd(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+
+    {
+        boost::multi_array_ref<double, 1>& N_ghost_data_array = *N_ghost_data->getLocalFormArray();
+        boost::multi_array_ref<double, 2>& X_mean_ghost_data_array = *X_mean_ghost_data->getLocalFormVecArray();
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int local_idx = node_idx->getLocalPETScIndex();
+            double* X_mean = &X_mean_ghost_data_array[local_idx][0];
+            double* N = &N_ghost_data_array[local_idx];
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                X_mean[d] /= N[0];
+            }
+        }
+        ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+        IBTK_CHKERRQ(ierr);
+        X_mean_ghost_data->restoreArrays();
+    }
 
     // Compute shape tensor.
     computeShapeTensor(B_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
@@ -685,6 +756,94 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
     }
     return;
 } // initializeBondLevelData
+
+void
+IBPDForceGen::computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
+                                  SAMRAI::tbox::Pointer<IBTK::LData> N_data,
+                                  SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*hierarchy*/,
+                                  int level_number,
+                                  double /*data_time*/,
+                                  IBTK::LDataManager* /*l_data_manager*/)
+{
+    const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
+    if (num_bonds == 0) return;
+
+    const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
+    const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
+    double** const parameters = &d_bond_data[level_number].parameters[0];
+    double* const X_mean_node = X_mean_data->getGhostedLocalFormVecArray()->data();
+    double* const N_node = N_data->getGhostedLocalFormArray()->data();
+    const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
+
+    static const int BLOCKSIZE = 16; // this parameter needs to be tuned
+    int k, kblock, kunroll, X_mastr_idx, X_slave_idx, N_mastr_idx, N_slave_idx;
+    kblock = 0;
+    for (; kblock < (num_bonds - 1) / BLOCKSIZE;
+         ++kblock) // ensure that the last block is NOT handled by this first loop
+    {
+        PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(parameters + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+        {
+            k = kblock * BLOCKSIZE + kunroll;
+            X_mastr_idx = petsc_mastr_node_idxs[k] * NDIM;
+            X_slave_idx = petsc_slave_node_idxs[k] * NDIM;
+            N_mastr_idx = petsc_mastr_node_idxs[k];
+            N_slave_idx = petsc_slave_node_idxs[k];
+#if !defined(NDEBUG)
+            TBOX_ASSERT(X_mastr_idx != X_slave_idx);
+            TBOX_ASSERT(N_mastr_idx != N_slave_idx);
+#endif
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_mean_node + NDIM * petsc_mastr_node_idxs[k + 1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_mean_node + NDIM * petsc_slave_node_idxs[k + 1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node + NDIM * petsc_mastr_node_idxs[k + 1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node + NDIM * petsc_slave_node_idxs[k + 1]);
+            PREFETCH_READ_NTA(parameters[k + 1]);
+            PREFETCH_READ_NTA(N_node + k + 1);
+
+            const double* bond_params = parameters[k];
+            const double& fail = bond_params[4];
+
+            N_node[N_mastr_idx] += fail * 1.0;
+            N_node[N_slave_idx] += fail * 1.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                X_mean_node[X_mastr_idx + d] += fail * X_node[X_slave_idx + d];
+                X_mean_node[X_slave_idx + d] += fail * X_node[X_mastr_idx + d];
+            }
+        }
+    }
+    for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
+    {
+        X_mastr_idx = petsc_mastr_node_idxs[k] * NDIM;
+        X_slave_idx = petsc_slave_node_idxs[k] * NDIM;
+        N_mastr_idx = petsc_mastr_node_idxs[k];
+        N_slave_idx = petsc_slave_node_idxs[k];
+#if !defined(NDEBUG)
+        TBOX_ASSERT(X_mastr_idx != X_slave_idx);
+        TBOX_ASSERT(N_mastr_idx != N_slave_idx);
+#endif
+
+        const double* bond_params = parameters[k];
+        const double& fail = bond_params[4];
+
+        N_node[N_mastr_idx] += fail * 1.0;
+        N_node[N_slave_idx] += fail * 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X_mean_node[X_mastr_idx + d] += fail * X_node[X_slave_idx + d];
+            X_mean_node[X_slave_idx + d] += fail * X_node[X_mastr_idx + d];
+        }
+    }
+
+    X_data->restoreArrays();
+    X_mean_data->restoreArrays();
+    N_data->restoreArrays();
+
+    return;
+} // computeMeanPosition
 
 void
 IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
@@ -993,6 +1152,7 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
             if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
 
             Eigen::Map<const IBTK::Vector> eig_X0_mastr(&X0_node[X_F_mastr_idx]), eig_X0_slave(&X0_node[X_F_slave_idx]);
+            Eigen::Map<const IBTK::Vector> eig_X_mastr(&X_node[X_F_mastr_idx]), eig_X_slave(&X_node[X_F_slave_idx]);
             Eigen::Map<IBTK::Vector> eig_F_mastr(&F_node[X_F_mastr_idx]), eig_F_slave(&F_node[X_F_slave_idx]);
             Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[FF_B_mastr_idx]),
                 eig_B_slave(&B_node[FF_B_slave_idx]);
@@ -1006,6 +1166,8 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
                                                               parameters[k],
                                                               eig_X0_mastr,
                                                               eig_X0_slave,
+                                                              eig_X_mastr,
+                                                              eig_X_slave,
                                                               eig_FF_mastr,
                                                               eig_FF_slave,
                                                               eig_B_mastr,
@@ -1048,6 +1210,7 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
         if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
 
         Eigen::Map<const IBTK::Vector> eig_X0_mastr(&X0_node[X_F_mastr_idx]), eig_X0_slave(&X0_node[X_F_slave_idx]);
+        Eigen::Map<const IBTK::Vector> eig_X_mastr(&X0_node[X_F_mastr_idx]), eig_X_slave(&X0_node[X_F_slave_idx]);
         Eigen::Map<IBTK::Vector> eig_F_mastr(&F_node[X_F_mastr_idx]), eig_F_slave(&F_node[X_F_slave_idx]);
         Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[FF_B_mastr_idx]),
             eig_B_slave(&B_node[FF_B_slave_idx]);
@@ -1060,6 +1223,8 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
                                                           parameters[k],
                                                           eig_X0_mastr,
                                                           eig_X0_slave,
+                                                          eig_X_mastr,
+                                                          eig_X_slave,
                                                           eig_FF_mastr,
                                                           eig_FF_slave,
                                                           eig_B_mastr,

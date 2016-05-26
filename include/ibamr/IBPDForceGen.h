@@ -131,8 +131,8 @@ private:
         std::vector<double*> parameters;
     };
     std::vector<BondData> d_bond_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_X0_ghost_data, d_B_ghost_data, d_FF_ghost_data,
-        d_F_ghost_data, d_dmg_ghost_data, d_dX_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_X0_ghost_data, d_X_mean_ghost_data,
+        d_B_ghost_data, d_FF_ghost_data, d_F_ghost_data, d_N_ghost_data, d_dmg_ghost_data, d_dX_data;
     std::vector<bool> d_is_initialized;
     //\}
 
@@ -140,6 +140,15 @@ private:
      * PD tensor routines.
      */
     //\{
+
+    void computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
+                             SAMRAI::tbox::Pointer<IBTK::LData> N_data,
+                             SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             int level_number,
+                             double data_time,
+                             IBTK::LDataManager* l_data_manager);
+
     void computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
                             SAMRAI::tbox::Pointer<IBTK::LData> X0_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
