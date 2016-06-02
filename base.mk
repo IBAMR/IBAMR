@@ -60,6 +60,8 @@ libibamr         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libibamr_shared) $
 ##### Must define these, or thisdir does not work ######
 srcs-core.cpp :=
 srcs-ibtk.cpp :=
+srcs-core.F   :=
+srcs-ibtk.F   :=
 
 ##### Top level Rule #####
 all : $(libibamr)
@@ -141,12 +143,19 @@ $(OBJDIR)/%.o : %.cu | $$(@D)/.DIR
 	$(IBAMR_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
 	@$(IBAMR_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
 
+# We need to do this nonsense because the Fortran preprocessor only operates in "traditional" mode, preventing concatenation
 $(OBJDIR)/%.o : %.F | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
-	cd $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
+	cd $(MODDIR) && $(CPP) $(FCPPFLAGS) $(abspath $<) | $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FC_DEPFLAGS) -o $(abspath $@)
 else
-	$(IBAMR_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
+	@$(CP) $(abspath $<) $(abspath $<).C
+	@$(CPP) $(FCPPFLAGS) $(abspath $<).C > $@.F
+	$(IBAMR_COMPILE.F) $@.F -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
+	@$(RM) $(abspath $<).C
 endif
+
+%.F : %.f.m4
+	$(M4) -DTOP_SRCDIR=$(IBAMR_DIR) -DSAMRAI_FORTDIR=$(IBAMR_DIR)/$(IBAMR_ARCH)/include $< > $@
 
 %/.DIR :
 	@mkdir -p $(@D)

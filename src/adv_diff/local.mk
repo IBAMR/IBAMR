@@ -9,3 +9,5 @@ srcs-core.cpp += $(call thisdir, \
 	AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	AdvDiffStochasticForcing.cpp \
 	)
+
+include $(call incsubdirs,fortran)

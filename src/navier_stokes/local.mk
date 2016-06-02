@@ -36,3 +36,5 @@ srcs-core.cpp += $(call thisdir, \
 	StokesBcCoefStrategy.cpp \
 	StokesSpecifications.cpp \
 	)
+
+include $(call incsubdirs,fortran)
