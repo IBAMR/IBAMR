@@ -63,8 +63,47 @@ srcs-ibtk.cpp :=
 srcs-core.F   :=
 srcs-ibtk.F   :=
 
+srcs-IB_explicit_0.cpp :=
+srcs-IB_explicit_1.cpp :=
+srcs-IB_explicit_2.cpp :=
+srcs-IB_explicit_3.cpp :=
+srcs-IB_explicit_4.cpp :=
+srcs-IB_explicit_5.cpp :=
+srcs-IB_explicit_6.cpp :=
+srcs-IB_implicit_0.cpp :=
+srcs-IB_implicit_1.cpp :=
+srcs-IB_implicit_2.cpp :=
+srcs-IBFE_explicit_0.cpp :=
+srcs-IBFE_explicit_1.cpp :=
+srcs-IBFE_explicit_2.cpp :=
+srcs-IBFE_explicit_3.cpp :=
+srcs-IBFE_explicit_4.cpp :=
+srcs-IBFE_explicit_5.cpp :=
+srcs-IBFE_explicit_6.cpp :=
+srcs-IBFE_explicit_7.cpp :=
+srcs-IBFE_explicit_8.cpp :=
+srcs-IMP_explicit_0.cpp :=
+srcs-adv_diff_0.cpp :=
+srcs-adv_diff_1.cpp :=
+srcs-adv_diff_2.cpp :=
+srcs-advect.cpp :=
+srcs-navier_stokes_0.cpp :=
+srcs-navier_stokes_1.cpp :=
+srcs-navier_stokes_2.cpp :=
+srcs-navier_stokes_3.cpp :=
+srcs-navier_stokes_4.cpp :=
+srcs-navier_stokes_5.cpp :=
+srcs-navier_stokes_6.cpp :=
+
+#  IBFE_explicit_0 IBFE_explicit_1 IBFE_explicit_2 IBFE_explicit_3 IBFE_explicit_4 IBFE_explicit_5 IBFE_explicit_6 IBFE_explicit_7 IBFE_explicit_8
+#  IMP_explicit_0
+examples := IB_explicit_0 IB_explicit_1 IB_explicit_2 IB_explicit_3 IB_explicit_4 IB_explicit_5 IB_explicit_6 IB_implicit_0 IB_implicit_1 IB_implicit_2 \
+  adv_diff_0 adv_diff_1 adv_diff_2 advect \
+  navier_stokes_0 advect navier_stokes_1 advect navier_stokes_2 advect navier_stokes_3 advect navier_stokes_4 advect navier_stokes_5 navier_stokes_6 \
+  ConstraintIB_eel2d
+
 ##### Top level Rule #####
-all : $(libibamr)
+all : $(libibamr) $(examples)
 
 ##### Inclusions #####
 # Recursively include files for all targets, needs to be defined before the source rules
@@ -85,6 +124,131 @@ pkgs := ibtk core
 langs := c cu cpp F
 concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
+
+srcs-IB_explicit_0.o := $(foreach ex, IB_explicit_0, $(call concatlang,$(ex)))
+srcs-IB_explicit_1.o := $(foreach ex, IB_explicit_1, $(call concatlang,$(ex)))
+srcs-IB_explicit_2.o := $(foreach ex, IB_explicit_2, $(call concatlang,$(ex)))
+srcs-IB_explicit_3.o := $(foreach ex, IB_explicit_3, $(call concatlang,$(ex)))
+srcs-IB_explicit_4.o := $(foreach ex, IB_explicit_4, $(call concatlang,$(ex)))
+srcs-IB_explicit_5.o := $(foreach ex, IB_explicit_5, $(call concatlang,$(ex)))
+srcs-IB_explicit_6.o := $(foreach ex, IB_explicit_6, $(call concatlang,$(ex)))
+srcs-IB_implicit_0.o := $(foreach ex, IB_implicit_0, $(call concatlang,$(ex)))
+srcs-IB_implicit_1.o := $(foreach ex, IB_implicit_1, $(call concatlang,$(ex)))
+srcs-IB_implicit_2.o := $(foreach ex, IB_implicit_2, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_0.o := $(foreach ex, IBFE_explicit_0, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_1.o := $(foreach ex, IBFE_explicit_1, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_2.o := $(foreach ex, IBFE_explicit_2, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_3.o := $(foreach ex, IBFE_explicit_3, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_4.o := $(foreach ex, IBFE_explicit_4, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_5.o := $(foreach ex, IBFE_explicit_5, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_6.o := $(foreach ex, IBFE_explicit_6, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_7.o := $(foreach ex, IBFE_explicit_7, $(call concatlang,$(ex)))
+srcs-IBFE_explicit_8.o := $(foreach ex, IBFE_explicit_8, $(call concatlang,$(ex)))
+srcs-IMP_explicit_0.o := $(foreach ex, IMP_explicit_0, $(call concatlang,$(ex)))
+srcs-adv_diff_0.o := $(foreach ex, adv_diff_0, $(call concatlang,$(ex)))
+srcs-adv_diff_1.o := $(foreach ex, adv_diff_1, $(call concatlang,$(ex)))
+srcs-adv_diff_2.o := $(foreach ex, adv_diff_2, $(call concatlang,$(ex)))
+srcs-advect.o := $(foreach ex, advvect, $(call concatlang,$(ex)))
+srcs-navier_stokes_0.o := $(foreach ex, navier_stokes_0, $(call concatlang,$(ex)))
+srcs-navier_stokes_1.o := $(foreach ex, navier_stokes_1, $(call concatlang,$(ex)))
+srcs-navier_stokes_2.o := $(foreach ex, navier_stokes_2, $(call concatlang,$(ex)))
+srcs-navier_stokes_3.o := $(foreach ex, navier_stokes_3, $(call concatlang,$(ex)))
+srcs-navier_stokes_4.o := $(foreach ex, navier_stokes_4, $(call concatlang,$(ex)))
+srcs-navier_stokes_5.o := $(foreach ex, navier_stokes_5, $(call concatlang,$(ex)))
+srcs-navier_stokes_6.o := $(foreach ex, navier_stokes_6, $(call concatlang,$(ex)))
+
+IB_explicit_0: $(srcs-IB_explicit_0.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_1: $(srcs-IB_explicit_1.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_2: $(srcs-IB_explicit_2.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_3: $(srcs-IB_explicit_3.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_3.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_4: $(srcs-IB_explicit_4.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_4.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_5: $(srcs-IB_explicit_5.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_5.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_explicit_6: $(srcs-IB_explicit_6.o)
+	$(CLINKER) -o $@ $(srcs-IB_explicit_6.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_implicit_0: $(srcs-IB_implicit_0.o)
+	$(CLINKER) -o $@ $(srcs-IB_implicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_implicit_1: $(srcs-IB_implicit_1.o)
+	$(CLINKER) -o $@ $(srcs-IB_implicit_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IB_implicit_2: $(srcs-IB_implicit_2.o)
+	$(CLINKER) -o $@ $(srcs-IB_implicit_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_0: $(srcs-IBFE_explicit_0.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_1: $(srcs-IBFE_explicit_1.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_2: $(srcs-IBFE_explicit_2.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_3: $(srcs-IBFE_explicit_3.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_3.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_4: $(srcs-IBFE_explicit_4.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_4.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_5: $(srcs-IBFE_explicit_5.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_5.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_6: $(srcs-IBFE_explicit_6.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_6.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_7: $(srcs-IBFE_explicit_7.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_7.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IBFE_explicit_8: $(srcs-IBFE_explicit_8.o)
+	$(CLINKER) -o $@ $(srcs-IBFE_explicit_8.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+IMP_explicit_0: $(srcs-IMP_explicit_0.o)
+	$(CLINKER) -o $@ $(srcs-IMP_explicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+adv_diff_0: $(srcs-adv_diff_0.o)
+	$(CLINKER) -o $@ $(srcs-adv_diff_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+adv_diff_1: $(srcs-adv_diff_1.o)
+	$(CLINKER) -o $@ $(srcs-adv_diff_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+adv_diff_2: $(srcs-adv_diff_2.o)
+	$(CLINKER) -o $@ $(srcs-adv_diff_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+advect: $(srcs-advect.o)
+	$(CLINKER) -o $@ $(srcs-advect.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_0: $(srcs-navier_stokes_0.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_1: $(srcs-navier_stokes_1.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_2: $(srcs-navier_stokes_2.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_3: $(srcs-navier_stokes_3.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_3.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_4: $(srcs-navier_stokes_4.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_4.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_5: $(srcs-navier_stokes_5.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_5.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+navier_stokes_6: $(srcs-navier_stokes_6.o)
+	$(CLINKER) -o $@ $(srcs-navier_stokes_6.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
 
 $(libibamr_libname) : $(srcs.o) | $$(@D)/.DIR
 	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(PETSC_EXTERNAL_LIB_BASIC)
