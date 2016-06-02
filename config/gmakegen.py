@@ -55,6 +55,9 @@ class GMakefileGenerator(ConfigReader):
       self.framework.outputMakeMacro(f, 'IBAMR_INCLUDE', '-I${IBAMR_DIR}/include -I${IBAMR_DIR}/ibtk/include '+' '.join(inc))
       self.framework.outputMakeMacro(f, 'IBAMR_LIB',  '-L${IBAMR_DIR}/${IBAMR_ARCH}/lib -libamr '+' '.join(lib))
       f.write('CFLAGS += ${IBAMR_INCLUDE} ${BOOST_INCLUDE} -DNDIM=2\n')
+      f.write('FFLAGS += -ffixed-line-length-164\n')
+      f.write('FCPPFLAGS += ${IBAMR_INCLUDE}\n')
+      f.write('DIM = 2\n')
       f.write('include ${IBAMR_DIR}/${IBAMR_ARCH}/lib/petsc/conf/ibamrvariables\n\ninclude ${IBAMR_DIR}/base.mk\n')
     return
 
