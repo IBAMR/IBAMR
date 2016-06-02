@@ -94,13 +94,14 @@ srcs-navier_stokes_3.cpp :=
 srcs-navier_stokes_4.cpp :=
 srcs-navier_stokes_5.cpp :=
 srcs-navier_stokes_6.cpp :=
+srcs-ConstraintIB_eel2d.cpp :=
 
 #  IBFE_explicit_0 IBFE_explicit_1 IBFE_explicit_2 IBFE_explicit_3 IBFE_explicit_4 IBFE_explicit_5 IBFE_explicit_6 IBFE_explicit_7 IBFE_explicit_8
 #  IMP_explicit_0
+#  ConstraintIB_eel2d
 examples := IB_explicit_0 IB_explicit_1 IB_explicit_2 IB_explicit_3 IB_explicit_4 IB_explicit_5 IB_explicit_6 IB_implicit_0 IB_implicit_1 IB_implicit_2 \
   adv_diff_0 adv_diff_1 adv_diff_2 advect \
   navier_stokes_0 advect navier_stokes_1 advect navier_stokes_2 advect navier_stokes_3 advect navier_stokes_4 advect navier_stokes_5 navier_stokes_6 \
-  ConstraintIB_eel2d
 
 ##### Top level Rule #####
 all : $(libibamr) $(examples)
@@ -156,6 +157,7 @@ srcs-navier_stokes_3.o := $(foreach ex, navier_stokes_3, $(call concatlang,$(ex)
 srcs-navier_stokes_4.o := $(foreach ex, navier_stokes_4, $(call concatlang,$(ex)))
 srcs-navier_stokes_5.o := $(foreach ex, navier_stokes_5, $(call concatlang,$(ex)))
 srcs-navier_stokes_6.o := $(foreach ex, navier_stokes_6, $(call concatlang,$(ex)))
+srcs-ConstraintIB_eel2d.o := $(foreach ex, ConstraintIB_eel2d, $(call concatlang,$(ex)))
 
 IB_explicit_0: $(srcs-IB_explicit_0.o)
 	$(CLINKER) -o $@ $(srcs-IB_explicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
@@ -249,6 +251,9 @@ navier_stokes_5: $(srcs-navier_stokes_5.o)
 
 navier_stokes_6: $(srcs-navier_stokes_6.o)
 	$(CLINKER) -o $@ $(srcs-navier_stokes_6.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
+
+ConstraintIB_eel2d: $(srcs-ConstraintIB_eel2d.o)
+	$(CLINKER) -o $@ $(srcs-ConstraintIB_eel2d.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
 
 $(libibamr_libname) : $(srcs.o) | $$(@D)/.DIR
 	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(PETSC_EXTERNAL_LIB_BASIC)
