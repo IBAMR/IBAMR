@@ -31,8 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
+#include <ibamrconf.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
