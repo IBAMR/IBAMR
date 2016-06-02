@@ -8,3 +8,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	RobinPhysBdryPatchStrategy.cpp \
 	StaggeredPhysicalBoundaryHelper.cpp \
 	)
+
+include $(call incsubdirs,fortran)

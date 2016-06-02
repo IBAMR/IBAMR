@@ -18,3 +18,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	LSiloDataWriter.cpp \
 	LTransaction.cpp \
 	)
+
+include $(call incsubdirs,fortran)

@@ -3,3 +3,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	CartSideDoubleCubicCoarsen.cpp \
 	LMarkerCoarsen.cpp \
 	)
+
+include $(call incsubdirs,fortran)

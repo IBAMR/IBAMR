@@ -5,3 +5,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	PETScVecUtilities.cpp \
 	PoissonUtilities.cpp \
 	)
+
+include $(call incsubdirs,fortran)

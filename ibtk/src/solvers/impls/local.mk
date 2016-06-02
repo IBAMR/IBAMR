@@ -31,3 +31,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	SCPoissonHypreLevelSolver.cpp \
 	)
 endif
+
+include $(call incsubdirs,fortran)

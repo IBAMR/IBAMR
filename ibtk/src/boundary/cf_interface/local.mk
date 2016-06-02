@@ -4,3 +4,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	CartSideDoubleQuadraticCFInterpolation.cpp \
 	CoarseFineBoundaryRefinePatchStrategy.cpp \
 	)
+
+include $(call incsubdirs,fortran)

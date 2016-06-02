@@ -6,3 +6,5 @@ srcs-ibtk.cpp += $(call thisdir, \
 	CartSideDoubleSpecializedLinearRefine.cpp \
 	LMarkerRefine.cpp \
 	)
+
+include $(call incsubdirs,fortran)
