@@ -437,7 +437,10 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+            
+            
             time_integrator->advanceHierarchy(dt);
+            exit(0);
             loop_time += dt;
 
             pout << "\n";

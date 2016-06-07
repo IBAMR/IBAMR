@@ -108,6 +108,10 @@ public:
     static const std::string COORDS0_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string DP_SYSTEM_NAME;
+    static const std::string DU_M_SYSTEM_NAME;
+    static const std::string DU_P_SYSTEM_NAME;
+    static const std::string DU_M_SIDE_SYSTEM_NAME;
+    static const std::string DU_P_SIDE_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
@@ -427,7 +431,15 @@ protected:
     void imposeJumpConditions(int f_data_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
-                              libMesh::PetscVector<double>& dP_vec,
+                              libMesh::PetscVector<double>& dU_m_vec,
+                              libMesh::PetscVector<double>& dU_p_vec,
+                              libMesh::PetscVector<double>& dU_m_side_vec,
+                              libMesh::PetscVector<double>& dU_p_side_vec,
+                              libMesh::PetscVector<double>& dP_ghost_vec,
+                              libMesh::PetscVector<double>& dU_m_ghost_vec,
+                              libMesh::PetscVector<double>& dU_p_ghost_vec,
+                              libMesh::PetscVector<double>& dU_m_side_ghost_vec,
+                              libMesh::PetscVector<double>& dU_p_side_ghost_vec,
                               double data_time,
                               unsigned int part);
 
@@ -471,12 +483,16 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_F_systems, d_dP_systems;
+    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_dU_p_systems,d_dU_m_systems, d_dU_p_side_systems, d_dU_m_side_systems, d_F_systems, d_dP_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_dP_half_vecs, d_dP_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_dU_p_half_vecs, d_dU_p_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_dU_m_half_vecs, d_dU_m_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_dU_p_side_half_vecs, d_dU_p_side_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_dU_m_side_half_vecs, d_dU_m_side_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 

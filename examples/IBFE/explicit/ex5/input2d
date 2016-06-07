@@ -18,7 +18,8 @@ PK1_DIL_QUAD_ORDER = "FIFTH"
 
 // solver parameters
 IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
+SPLIT_NORMAL_FORCES        = TRUE              // whether to split interior and boundary forces
+SPLIT_TANGENTIAL_FORCES	   = TRUE
 USE_JUMP_CONDITIONS        = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
@@ -96,7 +97,8 @@ IBHierarchyIntegrator {
 
 IBFEMethod {
    IB_delta_fcn                = IB_DELTA_FUNCTION
-   split_normal_force          = SPLIT_FORCES
+   split_normal_force          = SPLIT_NORMAL_FORCES
+   split_tangential_force      = SPLIT_TANGENTIAL_FORCES
    use_jump_conditions         = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
