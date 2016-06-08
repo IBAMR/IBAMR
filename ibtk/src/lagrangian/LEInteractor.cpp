@@ -107,6 +107,9 @@
 
 #define LAGRANGIAN_BSPLINE_5_INTERP_FC IBTK_FC_FUNC_(lagrangian_bspline_5_interp2d, LAGRANGIAN_BSPLINE_5_INTERP2D)
 #define LAGRANGIAN_BSPLINE_5_SPREAD_FC IBTK_FC_FUNC_(lagrangian_bspline_5_spread2d, LAGRANGIAN_BSPLINE_5_SPREAD2D)
+
+#define LAGRANGIAN_BSPLINE_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_bspline_6_interp2d, LAGRANGIAN_BSPLINE_6_INTERP2D)
+#define LAGRANGIAN_BSPLINE_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_bspline_6_spread2d, LAGRANGIAN_BSPLINE_6_SPREAD2D)
 #endif
 
 #if (NDIM == 3)
@@ -150,6 +153,9 @@
 
 #define LAGRANGIAN_BSPLINE_5_INTERP_FC IBTK_FC_FUNC_(lagrangian_bspline_5_interp3d, LAGRANGIAN_BSPLINE_5_INTERP3D)
 #define LAGRANGIAN_BSPLINE_5_SPREAD_FC IBTK_FC_FUNC_(lagrangian_bspline_5_spread3d, LAGRANGIAN_BSPLINE_5_SPREAD3D)
+
+#define LAGRANGIAN_BSPLINE_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_bspline_6_interp3d, LAGRANGIAN_BSPLINE_6_INTERP3D)
+#define LAGRANGIAN_BSPLINE_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_bspline_6_spread3d, LAGRANGIAN_BSPLINE_6_SPREAD3D)
 #endif
 
 extern "C" {
@@ -814,6 +820,66 @@ void LAGRANGIAN_BSPLINE_5_SPREAD_FC(const double*,
                                     const int&,
 #endif
                                     double*);
+
+void LAGRANGIAN_BSPLINE_6_INTERP_FC(const double*,
+                                    const double*,
+                                    const double*,
+                                    const int&,
+#if (NDIM == 2)
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+#endif
+#if (NDIM == 3)
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+#endif
+                                    const double*,
+                                    const int*,
+                                    const double*,
+                                    const int&,
+                                    const double*,
+                                    double*);
+
+void LAGRANGIAN_BSPLINE_6_SPREAD_FC(const double*,
+                                    const double*,
+                                    const double*,
+                                    const int&,
+                                    const int*,
+                                    const double*,
+                                    const int&,
+                                    const double*,
+                                    const double*,
+#if (NDIM == 2)
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+#endif
+#if (NDIM == 3)
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+                                    const int&,
+#endif
+                                    double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -879,6 +945,7 @@ LEInteractor::getStencilSize(const std::string& kernel_fcn)
     if (kernel_fcn == "BSPLINE_3") return 4;
     if (kernel_fcn == "BSPLINE_4") return 4;
     if (kernel_fcn == "BSPLINE_5") return 6;
+    if (kernel_fcn == "BSPLINE_6") return 6;
     if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
                << "  Unknown kernel function "
@@ -3029,6 +3096,38 @@ LEInteractor::interpolate(double* const Q_data,
                                        X_data,
                                        Q_data);
     }
+    else if (interp_fcn == "BSPLINE_6")
+    {
+        LAGRANGIAN_BSPLINE_6_INTERP_FC(dx,
+                                       x_lower,
+                                       x_upper,
+                                       q_depth,
+#if (NDIM == 2)
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       q_gcw(0),
+                                       q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       ilower(2),
+                                       iupper(2),
+                                       q_gcw(0),
+                                       q_gcw(1),
+                                       q_gcw(2),
+#endif
+                                       q_data,
+                                       &local_indices[0],
+                                       &periodic_shifts[0],
+                                       local_indices_size,
+                                       X_data,
+                                       Q_data);
+    }
     else if (interp_fcn == "USER_DEFINED")
     {
         userDefinedInterpolate(Q_data,
@@ -3426,6 +3525,38 @@ LEInteractor::spread(double* const q_data,
     else if (spread_fcn == "BSPLINE_5")
     {
         LAGRANGIAN_BSPLINE_5_SPREAD_FC(dx,
+                                       x_lower,
+                                       x_upper,
+                                       q_depth,
+                                       &local_indices[0],
+                                       &periodic_shifts[0],
+                                       local_indices_size,
+                                       X_data,
+                                       Q_data,
+#if (NDIM == 2)
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       q_gcw(0),
+                                       q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       ilower(2),
+                                       iupper(2),
+                                       q_gcw(0),
+                                       q_gcw(1),
+                                       q_gcw(2),
+#endif
+                                       q_data);
+    }
+    else if (spread_fcn == "BSPLINE_6")
+    {
+        LAGRANGIAN_BSPLINE_6_SPREAD_FC(dx,
                                        x_lower,
                                        x_upper,
                                        q_depth,

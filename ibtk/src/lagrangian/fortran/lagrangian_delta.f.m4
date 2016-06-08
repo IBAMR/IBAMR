@@ -356,6 +356,40 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Returns the interpolation weight phi(r) for the 6-point B-spline.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_bspline_6_delta(x)
+c
+      implicit none
+      double precision lagrangian_bspline_6_delta,modx,r,r2,r3,r4,r5,x
+c
+      modx = dabs(x)
+      r = modx + 3.d0;
+      r2 = r*r
+      r3 = r2*r
+      r4 = r3*r
+      r5 = r4*r
+      if (modx .le. 1.d0) then
+         lagrangian_bspline_6_delta = (1.d0/60.d0)*(2193.d0 - 3465.d0*r
+     &        + 2130.d0*r2 - 630.d0*r3 + 90.d0*r4 - 5.d0*r5)
+      elseif (modx .le. 2.d0) then
+         lagrangian_bspline_6_delta = (1.d0/120.d0)*(-10974.d0 +
+     &        12270.d0*r - 5340.d0*r2 + 1140.d0*r3 - 120.d0*r4 + 5.d0
+     &        *r5)
+      elseif (modx .le. 3.d0) then
+         lagrangian_bspline_6_delta = (1.d0/120.d0)*(7776.d0 - 6480.d0*r
+     $        + 2160.d0*r2 - 360.d0*r3 + 30.d0*r4 - r5)
+      else
+         lagrangian_bspline_6_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Initializes the lookup table for the interpolation weight phi(r)
 c     for the IB 4-point delta function.
 c
