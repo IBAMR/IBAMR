@@ -271,6 +271,125 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Returns the interpolation weight phi(r) for the 3-point B-spline.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_bspline_3_delta(x)
+c
+      implicit none
+      double precision lagrangian_bspline_3_delta,modx,r,r2,x
+c
+      modx = dabs(x)
+      r = modx + 1.5d0
+      r2 = r*r
+      if (modx .le. 0.5d0) then
+         lagrangian_bspline_3_delta = 0.5d0*(-2.d0*r2 + 6.d0*r - 3.d0)
+      elseif (modx .le. 1.5d0) then
+         lagrangian_bspline_3_delta = 0.5d0*(r2 - 6.d0*r + 9.d0)
+      else
+         lagrangian_bspline_3_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Returns the interpolation weight phi(r) for the 4-point B-spline.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_bspline_4_delta(x)
+c
+      implicit none
+      double precision lagrangian_bspline_4_delta,modx,r,r2,r3,x
+c
+      modx = dabs(x)
+      r = modx + 2.d0
+      r2 = r*r
+      r3 = r2*r
+      if (modx .le. 1.d0) then
+         lagrangian_bspline_4_delta = (1.d0/6.d0)*(3.d0*r3 - 24.d0*r2 +
+     &        60.d0*r - 44.d0)
+      elseif (modx .le. 2.d0) then
+         lagrangian_bspline_4_delta = (1.d0/6.d0)*(-r3 + 12.d0*r2 -
+     &        48.d0*r + 64.d0)
+      else
+         lagrangian_bspline_4_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Returns the interpolation weight phi(r) for the 5-point B-spline.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_bspline_5_delta(x)
+c
+      implicit none
+      double precision lagrangian_bspline_5_delta,modx,r,r2,r3,r4,x
+c
+      modx = dabs(x)
+      r = modx + 2.5d0;
+      r2 = r*r
+      r3 = r2*r
+      r4 = r3*r
+      if (modx .le. 0.5d0) then
+         lagrangian_bspline_5_delta = (1.d0/24.d0)*(6.d0*r4 - 60.d0*r3 +
+     &        210.d0*r2 - 300.d0*r + 155.d0)
+      elseif (modx .le. 1.5d0) then
+         lagrangian_bspline_5_delta = (1.d0/24.d0)*(-4.d0*r4 + 60.d0*r3
+     &        - 330.d0*r2 + 780.d0*r - 655.d0)
+      elseif (modx .le. 2.5d0) then
+         lagrangian_bspline_5_delta = (1.d0/24.d0)*(r4 - 20.d0*r3 +
+     &        150.d0*r2 - 500.d0*r + 625.d0)
+      else
+         lagrangian_bspline_5_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Returns the interpolation weight phi(r) for the 6-point B-spline.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_bspline_6_delta(x)
+c
+      implicit none
+      double precision lagrangian_bspline_6_delta,modx,r,r2,r3,r4,r5,x
+c
+      modx = dabs(x)
+      r = modx + 3.d0;
+      r2 = r*r
+      r3 = r2*r
+      r4 = r3*r
+      r5 = r4*r
+      if (modx .le. 1.d0) then
+         lagrangian_bspline_6_delta = (1.d0/60.d0)*(2193.d0 - 3465.d0*r
+     &        + 2130.d0*r2 - 630.d0*r3 + 90.d0*r4 - 5.d0*r5)
+      elseif (modx .le. 2.d0) then
+         lagrangian_bspline_6_delta = (1.d0/120.d0)*(-10974.d0 +
+     &        12270.d0*r - 5340.d0*r2 + 1140.d0*r3 - 120.d0*r4 + 5.d0
+     &        *r5)
+      elseif (modx .le. 3.d0) then
+         lagrangian_bspline_6_delta = (1.d0/120.d0)*(7776.d0 - 6480.d0*r
+     $        + 2160.d0*r2 - 360.d0*r3 + 30.d0*r4 - r5)
+      else
+         lagrangian_bspline_6_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Initializes the lookup table for the interpolation weight phi(r)
 c     for the IB 4-point delta function.
 c
