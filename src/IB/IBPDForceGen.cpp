@@ -43,7 +43,6 @@
 #include <set>
 #include <utility>
 
-#include "Eigen/Dense"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -71,7 +70,7 @@ namespace IBAMR
 
 namespace
 {
-static const int interior_begin = 0;
+/*static const int interior_begin = 0;
 static const int interior_end = 39999;
 static const int bottom_begin = 40000;
 static const int bottom_end = 40201;
@@ -82,8 +81,8 @@ static const int left_end = 40603;
 static const int right_begin = 40604;
 static const int right_end = 40803;
 
-static const double dens = 1.0;
-static const double DX = 1.0 / 199.0;
+static const double dens = 1.0;*/
+static const double DX = 0.25 / 199.0;
 
 void
 resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
@@ -135,14 +134,63 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
     return;
 } // resetLocalOrNonlocalPETScIndices
 
-
-template <typename mat_type, typename vec_type>
-void
-get_PK1(mat_type& PK1, const Eigen::Map<const mat_type>& FF, const vec_type& X, int lag_idx)
+double
+default_inf_fcn(double R0, double delta)
 {
-    const double L = 2.0;
-    const double M = 1.0;
+    static const double A = 2;
+    static const double C = 60.0 / (7.0 * M_PI * A * A);
 
+    double W;
+
+    double r = R0 / delta;
+    if (r < 1)
+    {
+        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+    }
+    else if (r <= 2)
+    {
+        W = C * std::pow((2.0 - r), 3) / 6.0;
+    }
+    else
+    {
+        W = 0.0;
+    }
+
+    return W;
+
+} // default_inf_fcn
+
+double
+default_vol_frac_fcn(double R0, double horizon, double delta)
+{
+    double vol_frac;
+    if (R0 <= (horizon - delta))
+    {
+        vol_frac = 1.0;
+    }
+    else if (R0 <= (horizon + delta))
+    {
+        vol_frac = (horizon + delta - R0) / (2.0 * delta);
+    }
+    else
+    {
+        vol_frac = 0.0;
+    }
+
+    return vol_frac;
+
+} // default_vol_frac_fcn
+
+void
+default_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
+                const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
+                const Eigen::Map<const IBTK::Vector>& /*X0*/,
+                int /*lag_idx*/)
+{
+    static const double L = 1.0;
+    static const double M = 1.0;
+
+    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
     static const mat_type II = mat_type::Identity();
     mat_type E = 0.5 * (FF.transpose() * FF - II);
     const double trE = E.trace();
@@ -150,42 +198,27 @@ get_PK1(mat_type& PK1, const Eigen::Map<const mat_type>& FF, const vec_type& X, 
 
     return;
 
-} // get_PK1
+} // default_PK1_fcn
 
-template <typename mat_type>
-void
-get_trac(IBTK::Vector& trac, const Eigen::Map<const mat_type>& eig_FF, const IBTK::Vector& normal)
-{
-    mat_type PK1;
-    IBTK::Vector X;
-    get_PK1(PK1, eig_FF, X, -1);
-
-    trac = PK1 * normal;
-
-    return;
-}
-
-template <typename vec_type, typename mat_type>
 Eigen::Vector4d
-pd_pk1force_damage_function(const double horizon,
-                            const double delta,
-                            const double R,
-                            double* parameters,
-                            const Eigen::Map<const vec_type>& X0_mastr,
-                            const Eigen::Map<const vec_type>& X0_slave,
-                            const Eigen::Map<const vec_type>& X_mastr,
-                            const Eigen::Map<const vec_type>& X_slave,
-                            const Eigen::Map<const mat_type>& FF_mastr,
-                            const Eigen::Map<const mat_type>& FF_slave,
-                            const Eigen::Map<const mat_type>& B_mastr,
-                            const Eigen::Map<const mat_type>& B_slave,
-                            Eigen::Map<vec_type>& F_mastr,
-                            Eigen::Map<vec_type>& F_slave,
-                            const int lag_mastr_node_idx,
-                            const int lag_slave_node_idx)
+default_force_damage_fcn(const double horizon,
+                         const double delta,
+                         const double R,
+                         double* parameters,
+                         const Eigen::Map<const IBTK::Vector>& X0_mastr,
+                         const Eigen::Map<const IBTK::Vector>& X0_slave,
+                         const Eigen::Map<const IBTK::Vector>& X_mastr,
+                         const Eigen::Map<const IBTK::Vector>& X_slave,
+                         const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_mastr,
+                         const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_slave,
+                         const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_mastr,
+                         const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_slave,
+                         Eigen::Map<IBTK::Vector>& F_mastr,
+                         Eigen::Map<IBTK::Vector>& F_slave,
+                         const int lag_mastr_node_idx,
+                         const int lag_slave_node_idx)
 {
     // Bond parameters
-
     // 0 --> Kappa, 1 --> R0, 2--> user defined
     const double& R0 = parameters[1];
     const double& vol_mastr = parameters[2];
@@ -194,36 +227,27 @@ pd_pk1force_damage_function(const double horizon,
     const double& critical_stretch = parameters[5];
 
     // Volume correction
-    double vol_frac = 1.0;
-    /*if (R0  <= (horizon - delta))
-    {
-        vol_frac = 1.0;
-    }
-    else if(R0  <= (horizon + delta))
-    {
-        vol_frac = (horizon + delta - R0)/(2.0 * delta);
-    }
-    else
-    {
-        vol_frac = 0.0;
-    }*/
+    double vol_frac = default_vol_frac_fcn(R0, horizon, delta);
 
     // PK1 stress tensor
+    typedef IBTK::Vector vec_type;
+    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
     mat_type PK1_mastr, PK1_slave;
-    get_PK1(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
-    get_PK1(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
+    default_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
+    default_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
+    const double W = default_inf_fcn(R0, delta);
     const double penalty_fac = 0.0 * 1e-2;
     vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
     // vec_type h =  0.5*(FF_mastr+ FF_slave)*(X0_slave - X0_mastr) - (X_slave - X_mastr);
     // vec_type pen_trac = penalty_fac*(h.dot(X_slave - X_mastr))*(X_slave - X_mastr);
     // vec_type pen_trac = penalty_fac*h;
-    // vec_type trac = (PK1_mastr*B_mastr + PK1_slave*B_slave)*(X0_slave - X0_mastr);
-    vec_type trac_mastr = (-1.0 * PK1_mastr + 1.0 * PK1_slave) * B_mastr * (X0_slave - X0_mastr);
-    vec_type trac_slave = (-1.0 * PK1_slave + 1.0 * PK1_mastr) * B_slave * (X0_mastr - X0_slave);
-    F_mastr += vol_slave * trac_mastr + pen_trac;
-    F_slave += vol_mastr * trac_slave - pen_trac;
+    vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
+    // vec_type trac_mastr = (-1.0 * PK1_mastr + 1.0 * PK1_slave) * B_mastr * (X0_slave - X0_mastr);
+    // vec_type trac_slave = (-1.0 * PK1_slave + 1.0 * PK1_mastr) * B_slave * (X0_mastr - X0_slave);
+    F_mastr += vol_slave * trac + pen_trac;
+    F_slave += -vol_mastr * trac - pen_trac;
     // vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr) +  penalty_fac*((X_slave - X0_slave)-(X_mastr -
     // X0_mastr));
     // F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
@@ -243,7 +267,7 @@ pd_pk1force_damage_function(const double horizon,
 
     return D;
 
-} // pd_pk1force_damage_function
+} // default_force_damage_fcn
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -263,6 +287,8 @@ IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.
             d_ds = input_db->getDouble("ds");
         }
     }
+    registerBondForceSpecificationFunction(
+        0, &default_PK1_fcn, &default_force_damage_fcn, &default_inf_fcn, &default_vol_frac_fcn);
 
     return;
 } // IBStandardForceGen
@@ -272,6 +298,22 @@ IBPDForceGen::~IBPDForceGen()
     // intentionally blank
     return;
 } // ~IBPDForceGen
+
+void
+IBPDForceGen::registerBondForceSpecificationFunction(int force_fcn_index,
+                                                     const BondPK1FcnPtr bond_PK1_fcn_ptr,
+                                                     const BondForceDamageFcnPtr bond_force_damage_fcn_ptr,
+                                                     const BondInfluenceFcnPtr bond_inf_fcn_ptr,
+                                                     const BondVolFracFcnPtr bond_vol_frac_fcn_ptr)
+{
+    d_bond_PK1_fcn_map[force_fcn_index] = bond_PK1_fcn_ptr;
+    d_bond_force_damage_fcn_map[force_fcn_index] = bond_force_damage_fcn_ptr;
+    d_bond_inf_fcn_map[force_fcn_index] = bond_inf_fcn_ptr;
+    d_bond_vol_frac_fcn_map[force_fcn_index] = bond_vol_frac_fcn_ptr;
+
+    return;
+
+} // registerBondForceSpecificationFunction
 
 void
 IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -592,51 +634,6 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     ierr = VecGhostUpdateEnd(D_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
     IBTK_CHKERRQ(ierr);
 
-    /*{
-        boost::multi_array_ref<double, 2>& FF_ghost_data_array = *FF_ghost_data->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& F_data_array = *F_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
-            const int lag_idx = node_idx->getLagrangianIndex();
-            const double* FF = &FF_ghost_data_array[local_idx][0];
-            double* F = &F_data_array[local_idx][0];
-            Eigen::Map<IBTK::Vector> eig_F(F);
-            Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF(FF);
-
-            if (lag_idx >= left_begin && lag_idx <= left_end)
-            {
-                IBTK::Vector normal, trac;
-                normal << -1.0, 0.0;
-
-                get_trac(trac, eig_FF, normal);
-                trac /= DX;
-                eig_F += trac;
-            }
-            else if (lag_idx >= right_begin && lag_idx <= right_end)
-            {
-                IBTK::Vector normal, trac;
-                normal << 1.0, 0.0;
-
-                get_trac(trac, eig_FF, normal);
-                trac /= DX;
-                eig_F += trac;
-            }
-            else if (lag_idx >= top_begin && lag_idx <= top_end)
-            {
-                IBTK::Vector normal, trac;
-                normal << 0.0, 1.0;
-
-                get_trac(trac, eig_FF, normal);
-                trac /= DX;
-                eig_F += trac;
-            }
-        }
-        FF_ghost_data->restoreArrays();
-        F_data->restoreArrays();
-    }*/
-
     // Compute the damage factor.
     boost::multi_array_ref<double, 1>& D_data_array = *D_data->getLocalFormArray();
     boost::multi_array_ref<double, 2>& D_ghost_data_array = *D_ghost_data->getLocalFormVecArray();
@@ -677,6 +674,10 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
     std::vector<int>& petsc_slave_node_idxs = d_bond_data[level_number].petsc_slave_node_idxs;
     std::vector<int>& petsc_global_mastr_node_idxs = d_bond_data[level_number].petsc_global_mastr_node_idxs;
     std::vector<int>& petsc_global_slave_node_idxs = d_bond_data[level_number].petsc_global_slave_node_idxs;
+    std::vector<BondForceDamageFcnPtr>& force_dmg_fcns = d_bond_data[level_number].force_dmg_fcns;
+    std::vector<BondPK1FcnPtr>& force_PK1_fcns = d_bond_data[level_number].force_PK1_fcns;
+    std::vector<BondInfluenceFcnPtr>& force_inf_fcns = d_bond_data[level_number].force_inf_fcns;
+    std::vector<BondVolFracFcnPtr>& force_vol_frac_fcns = d_bond_data[level_number].force_vol_frac_fcns;
     std::vector<double*>& parameters = d_bond_data[level_number].parameters;
 
     // The LMesh object provides the set of local Lagrangian nodes.
@@ -700,6 +701,10 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
     petsc_slave_node_idxs.resize(num_bonds);
     petsc_global_mastr_node_idxs.resize(num_bonds);
     petsc_global_slave_node_idxs.resize(num_bonds);
+    force_dmg_fcns.resize(num_bonds);
+    force_PK1_fcns.resize(num_bonds);
+    force_inf_fcns.resize(num_bonds);
+    force_vol_frac_fcns.resize(num_bonds);
     parameters.resize(num_bonds);
 
     // Setup the data structures used to compute bond forces.
@@ -716,17 +721,22 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
 #endif
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+        const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         std::vector<std::vector<double> >& params = force_spec->getParameters();
-        const unsigned int num_bonds = force_spec->getNumberOfSprings();
+        const unsigned int n_mastr_bonds = force_spec->getNumberOfSprings();
 #if !defined(NDEBUG)
-        TBOX_ASSERT(num_bonds == slv.size());
-        TBOX_ASSERT(num_bonds == params.size());
+        TBOX_ASSERT(n_mastr_bonds == slv.size());
+        TBOX_ASSERT(n_mastr_bonds == params.size());
 #endif
-        for (unsigned int k = 0; k < num_bonds; ++k)
+        for (unsigned int k = 0; k < n_mastr_bonds; ++k)
         {
             lag_mastr_node_idxs[current_bond] = lag_idx;
             lag_slave_node_idxs[current_bond] = slv[k];
             petsc_mastr_node_idxs[current_bond] = petsc_idx;
+            force_dmg_fcns[current_bond] = d_bond_force_damage_fcn_map[fcn[k]];
+            force_PK1_fcns[current_bond] = d_bond_PK1_fcn_map[fcn[k]];
+            force_inf_fcns[current_bond] = d_bond_inf_fcn_map[fcn[k]];
+            force_vol_frac_fcns[current_bond] = d_bond_vol_frac_fcn_map[fcn[k]];
             parameters[current_bond] = params.empty() ? NULL : &params[k][0];
             ++current_bond;
         }
@@ -758,10 +768,10 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
 } // initializeBondLevelData
 
 void
-IBPDForceGen::computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
-                                  SAMRAI::tbox::Pointer<IBTK::LData> N_data,
-                                  SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*hierarchy*/,
+IBPDForceGen::computeMeanPosition(Pointer<LData> X_mean_data,
+                                  Pointer<LData> N_data,
+                                  Pointer<LData> X_data,
+                                  Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                   int level_number,
                                   double /*data_time*/,
                                   IBTK::LDataManager* /*l_data_manager*/)
@@ -846,25 +856,37 @@ IBPDForceGen::computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data
 } // computeMeanPosition
 
 void
-IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
-                                 SAMRAI::tbox::Pointer<IBTK::LData> X0_data,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*hierarchy*/,
+IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
+                                 Pointer<LData> X0_data,
+                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
                                  int level_number,
                                  double /*data_time*/,
-                                 IBTK::LDataManager* /*l_data_manager*/)
+                                 LDataManager* /*l_data_manager*/)
 {
     const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const double* dx0 = grid_geom->getDx();
+    double dx[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+        dx[d] = dx0[d] / ratio[d];
+    }
+    const double delta = d_ds * (*std::min_element(dx, dx + NDIM));
+
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
+    const BondInfluenceFcnPtr* const force_inf_fcns = &d_bond_data[level_number].force_inf_fcns[0];
     double* const B_node = B_data->getGhostedLocalFormVecArray()->data();
     const double* const X0_node = X0_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, X_mastr_idx, X_slave_idx, B_mastr_idx, B_slave_idx;
-    double Q0[NDIM];
+    double Q0[NDIM], R0;
     kblock = 0;
     for (; kblock < (num_bonds - 1) / BLOCKSIZE;
          ++kblock) // ensure that the last block is NOT handled by this first loop
@@ -894,19 +916,25 @@ IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
 #if (NDIM == 3)
             Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
+
+#if (NDIM == 2)
+            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
+#endif
+#if (NDIM == 3)
+            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
+#endif
+
             const double* bond_params = parameters[k];
             const double& vol_mastr = bond_params[2];
             const double& vol_slave = bond_params[3];
             const double& fail = bond_params[4];
+            const double W = force_inf_fcns[k](R0, delta);
 
             Eigen::Map<IBTK::Vector> eig_Q0(Q0);
-            //eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
                 eig_B_slave(&B_node[B_slave_idx]);
-            //eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
-            //eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
-             eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-             eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
+            eig_B_mastr.noalias() += W * fail * vol_slave * eig_Q0 * eig_Q0.transpose();
+            eig_B_slave.noalias() += W * fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -925,19 +953,24 @@ IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
 #if (NDIM == 3)
         Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
+
+#if (NDIM == 2)
+        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
+#endif
+#if (NDIM == 3)
+        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
+#endif
         const double* bond_params = parameters[k];
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
+        const double W = force_inf_fcns[k](R0, delta);
 
         Eigen::Map<IBTK::Vector> eig_Q0(Q0);
-        //eig_Q0 = eig_Q0.cwiseProduct(eig_Q0);
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
             eig_B_slave(&B_node[B_slave_idx]);
-        //eig_B_mastr += fail * vol_slave * eig_Q0.asDiagonal();
-        //eig_B_slave += fail * vol_mastr * eig_Q0.asDiagonal();
-         eig_B_mastr.noalias() += fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-         eig_B_slave.noalias() += fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
+        eig_B_mastr.noalias() += W * fail * vol_slave * eig_Q0 * eig_Q0.transpose();
+        eig_B_slave.noalias() += W * fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
     }
 
     X0_data->restoreArrays();
@@ -947,27 +980,39 @@ IBPDForceGen::computeShapeTensor(SAMRAI::tbox::Pointer<IBTK::LData> B_data,
 } // computeShapeTensor
 
 void
-IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData> FF_data,
-                                               SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                               SAMRAI::tbox::Pointer<IBTK::LData> X0_data,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > /*hierarchy*/,
+IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
+                                               Pointer<LData> X_data,
+                                               Pointer<LData> X0_data,
+                                               Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                int level_number,
                                                double /*data_time*/,
-                                               IBTK::LDataManager* /*l_data_manager*/)
+                                               LDataManager* /*l_data_manager*/)
 {
     const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    const double* dx0 = grid_geom->getDx();
+    double dx[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+        dx[d] = dx0[d] / ratio[d];
+    }
+    const double delta = d_ds * (*std::min_element(dx, dx + NDIM));
+
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
+    const BondInfluenceFcnPtr* const force_inf_fcns = &d_bond_data[level_number].force_inf_fcns[0];
     double* const FF_node = FF_data->getGhostedLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
     const double* const X0_node = X0_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, X_mastr_idx, X_slave_idx, FF_mastr_idx, FF_slave_idx;
-    double Q[NDIM], Q0[NDIM];
+    double Q[NDIM], Q0[NDIM], R0;
     kblock = 0;
     for (; kblock < (num_bonds - 1) / BLOCKSIZE;
          ++kblock) // ensure that the last block is NOT handled by this first loop
@@ -1005,16 +1050,25 @@ IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData
 #if (NDIM == 3)
             Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
+
+#if (NDIM == 2)
+            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
+#endif
+#if (NDIM == 3)
+            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
+#endif
+
             const double* bond_params = parameters[k];
             const double& vol_mastr = bond_params[2];
             const double& vol_slave = bond_params[3];
             const double& fail = bond_params[4];
+            const double W = force_inf_fcns[k](R0, delta);
 
             Eigen::Map<const IBTK::Vector> eig_Q(Q), eig_Q0(Q0);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_mastr_idx]),
                 eig_FF_slave(&FF_node[FF_slave_idx]);
-            eig_FF_mastr.noalias() += fail * vol_slave * eig_Q * eig_Q0.transpose();
-            eig_FF_slave.noalias() += fail * vol_mastr * eig_Q * eig_Q0.transpose();
+            eig_FF_mastr.noalias() += W * fail * vol_slave * eig_Q * eig_Q0.transpose();
+            eig_FF_slave.noalias() += W * fail * vol_mastr * eig_Q * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -1040,16 +1094,24 @@ IBPDForceGen::computeDeformationGradientTensor(SAMRAI::tbox::Pointer<IBTK::LData
         Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
 
+#if (NDIM == 2)
+        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
+#endif
+#if (NDIM == 3)
+        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
+#endif
+
         const double* bond_params = parameters[k];
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
+        const double W = force_inf_fcns[k](R0, delta);
 
         Eigen::Map<const IBTK::Vector> eig_Q(Q), eig_Q0(Q0);
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_mastr_idx]),
             eig_FF_slave(&FF_node[FF_slave_idx]);
-        eig_FF_mastr.noalias() += fail * vol_slave * eig_Q * eig_Q0.transpose();
-        eig_FF_slave.noalias() += fail * vol_mastr * eig_Q * eig_Q0.transpose();
+        eig_FF_mastr.noalias() += W * fail * vol_slave * eig_Q * eig_Q0.transpose();
+        eig_FF_slave.noalias() += W * fail * vol_mastr * eig_Q * eig_Q0.transpose();
     }
 
     X_data->restoreArrays();
@@ -1091,6 +1153,7 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
+    const BondForceDamageFcnPtr* const force_dmg_fcns = &d_bond_data[level_number].force_dmg_fcns[0];
     double* const F_node = F_data->getGhostedLocalFormVecArray()->data();
     double* const D_node = D_data->getGhostedLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
@@ -1160,22 +1223,22 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
                 &FF_node[FF_B_mastr_idx]),
                 eig_FF_slave(&FF_node[FF_B_slave_idx]);
 
-            Eigen::Vector4d dmg = pd_pk1force_damage_function(horizon,
-                                                              delta,
-                                                              R,
-                                                              parameters[k],
-                                                              eig_X0_mastr,
-                                                              eig_X0_slave,
-                                                              eig_X_mastr,
-                                                              eig_X_slave,
-                                                              eig_FF_mastr,
-                                                              eig_FF_slave,
-                                                              eig_B_mastr,
-                                                              eig_B_slave,
-                                                              eig_F_mastr,
-                                                              eig_F_slave,
-                                                              lag_mastr_node_idxs[k],
-                                                              lag_slave_node_idxs[k]);
+            Eigen::Vector4d dmg = force_dmg_fcns[k](horizon,
+                                                    delta,
+                                                    R,
+                                                    parameters[k],
+                                                    eig_X0_mastr,
+                                                    eig_X0_slave,
+                                                    eig_X_mastr,
+                                                    eig_X_slave,
+                                                    eig_FF_mastr,
+                                                    eig_FF_slave,
+                                                    eig_B_mastr,
+                                                    eig_B_slave,
+                                                    eig_F_mastr,
+                                                    eig_F_slave,
+                                                    lag_mastr_node_idxs[k],
+                                                    lag_slave_node_idxs[k]);
 
             D_node[dmg_mastr_idx + 0] += dmg[0];
             D_node[dmg_mastr_idx + 1] += dmg[1];
@@ -1217,22 +1280,22 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
         Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_B_mastr_idx]),
             eig_FF_slave(&FF_node[FF_B_slave_idx]);
 
-        Eigen::Vector4d dmg = pd_pk1force_damage_function(horizon,
-                                                          delta,
-                                                          R,
-                                                          parameters[k],
-                                                          eig_X0_mastr,
-                                                          eig_X0_slave,
-                                                          eig_X_mastr,
-                                                          eig_X_slave,
-                                                          eig_FF_mastr,
-                                                          eig_FF_slave,
-                                                          eig_B_mastr,
-                                                          eig_B_slave,
-                                                          eig_F_mastr,
-                                                          eig_F_slave,
-                                                          lag_mastr_node_idxs[k],
-                                                          lag_slave_node_idxs[k]);
+        Eigen::Vector4d dmg = force_dmg_fcns[k](horizon,
+                                                delta,
+                                                R,
+                                                parameters[k],
+                                                eig_X0_mastr,
+                                                eig_X0_slave,
+                                                eig_X_mastr,
+                                                eig_X_slave,
+                                                eig_FF_mastr,
+                                                eig_FF_slave,
+                                                eig_B_mastr,
+                                                eig_B_slave,
+                                                eig_F_mastr,
+                                                eig_F_slave,
+                                                lag_mastr_node_idxs[k],
+                                                lag_slave_node_idxs[k]);
 
         D_node[dmg_mastr_idx + 0] += dmg[0];
         D_node[dmg_mastr_idx + 1] += dmg[1];

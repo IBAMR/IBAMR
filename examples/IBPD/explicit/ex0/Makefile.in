@@ -88,7 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d membrane2d_generator
+@SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d membrane3d_generator
 subdir = examples/IBPD/explicit/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -118,25 +118,25 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
-@SAMRAI2D_ENABLED_TRUE@	membrane2d_generator$(EXEEXT)
-am_main2d_OBJECTS = main2d-main.$(OBJEXT)
-main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 = main3d$(EXEEXT) \
+@SAMRAI3D_ENABLED_TRUE@	membrane3d_generator$(EXEEXT)
+am_main3d_OBJECTS = main3d-main.$(OBJEXT)
+main3d_OBJECTS = $(am_main3d_OBJECTS)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
+main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_membrane2d_generator_OBJECTS =  \
-	membrane2d_generator-generate_membrane2d.$(OBJEXT)
-membrane2d_generator_OBJECTS = $(am_membrane2d_generator_OBJECTS)
-membrane2d_generator_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-membrane2d_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+am_membrane3d_generator_OBJECTS =  \
+	membrane3d_generator-generate_membrane3d.$(OBJEXT)
+membrane3d_generator_OBJECTS = $(am_membrane3d_generator_OBJECTS)
+membrane3d_generator_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+membrane3d_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(membrane2d_generator_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -172,7 +172,7 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-DIST_SOURCES = $(main2d_SOURCES) $(membrane2d_generator_SOURCES)
+DIST_SOURCES = $(main3d_SOURCES) $(membrane3d_generator_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -492,15 +492,14 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.cpp generate_membrane2d.cpp
-EXTRA_DIST = input2d generate_membrane2d.cpp membrane2d.vertex \
-	membrane2d.spring
-main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = main.cpp
-membrane2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-membrane2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-membrane2d_generator_SOURCES = generate_membrane2d.cpp
+SOURCES = main.cpp generate_membrane3d.cpp
+EXTRA_DIST = input3d generate_membrane3d.cpp
+main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_SOURCES = main.cpp
+membrane3d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+membrane3d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+membrane3d_generator_SOURCES = generate_membrane3d.cpp
 all: all-am
 
 .SUFFIXES:
@@ -536,13 +535,13 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
-	@rm -f main2d$(EXEEXT)
-	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
+main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
+	@rm -f main3d$(EXEEXT)
+	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
-membrane2d_generator$(EXEEXT): $(membrane2d_generator_OBJECTS) $(membrane2d_generator_DEPENDENCIES) $(EXTRA_membrane2d_generator_DEPENDENCIES) 
-	@rm -f membrane2d_generator$(EXEEXT)
-	$(AM_V_CXXLD)$(membrane2d_generator_LINK) $(membrane2d_generator_OBJECTS) $(membrane2d_generator_LDADD) $(LIBS)
+membrane3d_generator$(EXEEXT): $(membrane3d_generator_OBJECTS) $(membrane3d_generator_DEPENDENCIES) $(EXTRA_membrane3d_generator_DEPENDENCIES) 
+	@rm -f membrane3d_generator$(EXEEXT)
+	$(AM_V_CXXLD)$(membrane3d_generator_LINK) $(membrane3d_generator_OBJECTS) $(membrane3d_generator_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -550,8 +549,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/membrane2d_generator-generate_membrane2d.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -577,33 +576,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-main2d-main.o: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main2d-main.o' libtool=no @AMDEPBACKSLASH@
+main3d-main.o: main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
 
-main2d-main.obj: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.obj -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
+main3d-main.obj: main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.obj -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
 
-membrane2d_generator-generate_membrane2d.o: generate_membrane2d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane2d_generator-generate_membrane2d.o -MD -MP -MF $(DEPDIR)/membrane2d_generator-generate_membrane2d.Tpo -c -o membrane2d_generator-generate_membrane2d.o `test -f 'generate_membrane2d.cpp' || echo '$(srcdir)/'`generate_membrane2d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane2d_generator-generate_membrane2d.Tpo $(DEPDIR)/membrane2d_generator-generate_membrane2d.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane2d.cpp' object='membrane2d_generator-generate_membrane2d.o' libtool=no @AMDEPBACKSLASH@
+membrane3d_generator-generate_membrane3d.o: generate_membrane3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane3d_generator-generate_membrane3d.o -MD -MP -MF $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo -c -o membrane3d_generator-generate_membrane3d.o `test -f 'generate_membrane3d.cpp' || echo '$(srcdir)/'`generate_membrane3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo $(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane3d.cpp' object='membrane3d_generator-generate_membrane3d.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane2d_generator-generate_membrane2d.o `test -f 'generate_membrane2d.cpp' || echo '$(srcdir)/'`generate_membrane2d.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane3d_generator-generate_membrane3d.o `test -f 'generate_membrane3d.cpp' || echo '$(srcdir)/'`generate_membrane3d.cpp
 
-membrane2d_generator-generate_membrane2d.obj: generate_membrane2d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane2d_generator-generate_membrane2d.obj -MD -MP -MF $(DEPDIR)/membrane2d_generator-generate_membrane2d.Tpo -c -o membrane2d_generator-generate_membrane2d.obj `if test -f 'generate_membrane2d.cpp'; then $(CYGPATH_W) 'generate_membrane2d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane2d.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane2d_generator-generate_membrane2d.Tpo $(DEPDIR)/membrane2d_generator-generate_membrane2d.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane2d.cpp' object='membrane2d_generator-generate_membrane2d.obj' libtool=no @AMDEPBACKSLASH@
+membrane3d_generator-generate_membrane3d.obj: generate_membrane3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane3d_generator-generate_membrane3d.obj -MD -MP -MF $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo -c -o membrane3d_generator-generate_membrane3d.obj `if test -f 'generate_membrane3d.cpp'; then $(CYGPATH_W) 'generate_membrane3d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane3d.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo $(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane3d.cpp' object='membrane3d_generator-generate_membrane3d.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane2d_generator-generate_membrane2d.obj `if test -f 'generate_membrane2d.cpp'; then $(CYGPATH_W) 'generate_membrane2d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane2d.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane3d_generator-generate_membrane3d.obj `if test -f 'generate_membrane3d.cpp'; then $(CYGPATH_W) 'generate_membrane3d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane3d.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -821,17 +820,15 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d $(PWD) ; \
-	  cp -f $(srcdir)/membrane2d.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/generate_membrane2d.cpp $(PWD) ; \
+	  cp -f $(srcdir)/input3d $(PWD) ; \
+	  cp -f $(srcdir)/generate_membrane3d.cpp $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input2d ; \
-	  rm -f $(builddir)/membrane2d.{vertex,spring} ; \
-	  rm -f $(builddir)/generate_membrane2d.cpp ; \
+	  rm -f $(builddir)/input3d ; \
+	  rm -f $(builddir)/generate_membrane3d.cpp ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

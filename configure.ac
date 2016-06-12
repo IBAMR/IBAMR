@@ -123,6 +123,7 @@ AC_CONFIG_FILES([
   examples/IBPD/Makefile
   examples/IBPD/explicit/Makefile
   examples/IBPD/explicit/ex0/Makefile
+  examples/IBPD/explicit/ex1/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
