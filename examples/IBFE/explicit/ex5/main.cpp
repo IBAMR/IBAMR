@@ -440,7 +440,6 @@ main(int argc, char* argv[])
             
             
             time_integrator->advanceHierarchy(dt);
-            exit(0);
             loop_time += dt;
 
             pout << "\n";
