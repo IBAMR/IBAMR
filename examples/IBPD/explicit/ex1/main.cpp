@@ -63,10 +63,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-static const int N = 64;
-static const double MFAC = 2.0;
+static const int N = 128;
+static const double MFAC = 1.0;
 static const double ds = (1.0 / N) * MFAC;
-static const double w = 0.0625;
+static const double w = 0.2;
+static const double xc = 0.2;
+static const double yc = 0.2;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -118,10 +120,43 @@ my_vol_frac_fcn(double R0, double horizon, double delta)
 void
 my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
            const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
-           const Eigen::Map<const IBTK::Vector>& /*X0*/,
+           const Eigen::Map<const IBTK::Vector>& X0,
            int /*lag_idx*/)
 {
-    PK1 = (1.0 / w) * FF;
+    const double yy = X0(1) - yc;
+    const double xx = X0(0) - xc;
+
+    const double dis = sqrt(1.0 - 4.0 * xx + 2.0 * yy + yy * yy);
+    const double s0 = 0.5 * (1.0 + yy - dis);
+    const double s1 = 0.5 * (-1.0 + yy + dis);
+
+    if ((s0 < 0.0 && abs(s0) > 1e-8) || (s1 < 0.0 && abs(s1) > 1e-8))
+    {
+        std::cout << "s0 = " << s0 << "\ts1 = " << s1 << std::endl;
+        TBOX_ERROR("Negative s' encountered \n");
+    }
+
+    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> FF0;
+    FF0 << 1.0 + s1, s0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0;
+    const double J0 = FF0.determinant();
+
+    PK1 = (1.0 / w) * (1 / J0) * FF * FF0 * FF0.transpose();
+
+    const double x_ana = s0 + s0 * s1 + xc;
+    const double y_ana = s0 + s1 + yc;
+    if (!MathUtilities<double>::equalEps(x_ana, X0(0)) || !MathUtilities<double>::equalEps(y_ana, X0(1)))
+    {
+        TBOX_ERROR("Mismatch in values.\n"
+                   << " x_ana = "
+                   << x_ana
+                   << " x_num = "
+                   << X0(0)
+                   << " y_ana = "
+                   << y_ana
+                   << " y_num = "
+                   << X0(1)
+                   << "\n");
+    }
 
     return;
 
@@ -165,12 +200,10 @@ my_force_damage_fcn(const double horizon,
 
     // Compute PD force.
     const double W = my_inf_fcn(R0, delta);
-    const double penalty_fac = 0.0 * 1e2;
-    // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    F_mastr += vol_slave * trac * vol_slave + pen_trac;
-    F_slave += -vol_mastr * trac * vol_mastr - pen_trac;
+    trac(2) = 0.0;
+    F_mastr += vol_slave * trac * vol_slave;
+    F_slave += -vol_mastr * trac * vol_mastr;
 
     // Compute damage.
     const double stretch = (R - R0) / R0;
@@ -187,6 +220,92 @@ my_force_damage_fcn(const double horizon,
     return D;
 
 } // my_force_damage_fcn
+
+class MyIBPDMethod : public IBPDMethod
+{
+public:
+    MyIBPDMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart = true)
+        : IBPDMethod(object_name, input_db, register_for_restart)
+    {
+        return;
+    } // MyIBPDMethod
+
+    ~MyIBPDMethod()
+    {
+        return;
+    } // ~MyIBPDMethod
+
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+    {
+        IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+            Pointer<LData> U_current_data = d_U_current_data[ln];
+            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
+
+            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            {
+                const LNode* const node_idx = *cit;
+                const int local_idx = node_idx->getLocalPETScIndex();
+
+                double* U_current = &U_current_data_array[local_idx][0];
+                U_current[2] = 0.0;
+            }
+        }
+
+        return;
+    } // preprocessIntegrateData
+
+    void midpointStep(const double current_time, const double new_time)
+    {
+        IBPDMethod::midpointStep(current_time, new_time);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
+            Pointer<LData> X_new_data = d_X_new_data[ln];
+            Pointer<LData> U_new_data = d_U_new_data[ln];
+
+            boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
+
+            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            {
+                const LNode* const node_idx = *cit;
+                const int local_idx = node_idx->getLocalPETScIndex();
+
+                double* U_new = &U_new_data_array[local_idx][0];
+                const double* X_0 = &X_0_data_array[local_idx][0];
+                double* X_new = &X_new_data_array[local_idx][0];
+
+                U_new[2] = 0.0;
+                X_new[2] = X_0[2];
+            }
+
+            X_0_data->restoreArrays();
+            X_new_data->restoreArrays();
+            U_new_data->restoreArrays();
+        }
+
+        return;
+
+    } // midpointStep
+};
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -244,8 +363,8 @@ main(int argc, char* argv[])
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
-        Pointer<IBPDMethod> ib_method_ops =
-            new IBPDMethod("IBPDMethod", app_initializer->getComponentDatabase("IBPDMethod"));
+        Pointer<MyIBPDMethod> ib_method_ops =
+            new MyIBPDMethod("MyIBPDMethod", app_initializer->getComponentDatabase("IBPDMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -395,6 +514,9 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+
+            bool at_regrid = time_integrator->atRegridPoint();
+            if (at_regrid) ib_method_ops->setIBPDForceGenNeedsInit();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

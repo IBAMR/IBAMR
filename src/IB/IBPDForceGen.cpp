@@ -70,19 +70,6 @@ namespace IBAMR
 
 namespace
 {
-/*static const int interior_begin = 0;
-static const int interior_end = 39999;
-static const int bottom_begin = 40000;
-static const int bottom_end = 40201;
-static const int top_begin = 40202;
-static const int top_end = 40403;
-static const int left_begin = 40404;
-static const int left_end = 40603;
-static const int right_begin = 40604;
-static const int right_end = 40803;
-
-static const double dens = 1.0;*/
-static const double DX = 0.25 / 199.0;
 
 void
 resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
@@ -187,14 +174,11 @@ default_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
                 const Eigen::Map<const IBTK::Vector>& /*X0*/,
                 int /*lag_idx*/)
 {
-    static const double L = 1.0;
-    static const double M = 1.0;
-
     typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
     static const mat_type II = mat_type::Identity();
     mat_type E = 0.5 * (FF.transpose() * FF - II);
     const double trE = E.trace();
-    PK1 = L * trE * FF + 2 * M * FF * E;
+    PK1 = IBPDForceGen::s_lame_0 * trE * FF + 2 * IBPDForceGen::s_lame_1 * FF * E;
 
     return;
 
@@ -238,20 +222,9 @@ default_force_damage_fcn(const double horizon,
 
     // Compute PD force.
     const double W = default_inf_fcn(R0, delta);
-    const double penalty_fac = 0.0 * 1e-2;
-    vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    // vec_type h =  0.5*(FF_mastr+ FF_slave)*(X0_slave - X0_mastr) - (X_slave - X_mastr);
-    // vec_type pen_trac = penalty_fac*(h.dot(X_slave - X_mastr))*(X_slave - X_mastr);
-    // vec_type pen_trac = penalty_fac*h;
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    // vec_type trac_mastr = (-1.0 * PK1_mastr + 1.0 * PK1_slave) * B_mastr * (X0_slave - X0_mastr);
-    // vec_type trac_slave = (-1.0 * PK1_slave + 1.0 * PK1_mastr) * B_slave * (X0_mastr - X0_slave);
-    F_mastr += vol_slave * trac + pen_trac;
-    F_slave += -vol_mastr * trac - pen_trac;
-    // vec_type trac = (PK1_mastr + PK1_slave) * (X0_slave - X0_mastr) +  penalty_fac*((X_slave - X0_slave)-(X_mastr -
-    // X0_mastr));
-    // F_mastr += std::pow(vol_slave, -2.0 / 3.0) * trac;
-    // F_slave += -std::pow(vol_mastr, -2.0 / 3.0) * trac;
+    F_mastr += vol_slave * trac;
+    F_slave += -vol_mastr * trac;
 
     // Compute damage.
     const double stretch = (R - R0) / R0;
@@ -270,9 +243,12 @@ default_force_damage_fcn(const double horizon,
 } // default_force_damage_fcn
 }
 
+double IBPDForceGen::s_lame_0 = 1.0;
+double IBPDForceGen::s_lame_1 = 1.0;
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.0)
+IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.0), d_use_mean_disp(false)
 {
     // Get values from input database.
     if (input_db)
@@ -285,6 +261,11 @@ IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.
         if (input_db->keyExists("ds"))
         {
             d_ds = input_db->getDouble("ds");
+        }
+
+        if (input_db->keyExists("use_mean_displacement"))
+        {
+            d_use_mean_disp = input_db->getBool("use_mean_displacement");
         }
     }
     registerBondForceSpecificationFunction(
@@ -323,6 +304,7 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
                                   LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
+    plog << "IBPDForceGen::initializeLevelData(): initializing IBPDForceGen level data." << std::endl;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -334,15 +316,15 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     const int new_size = std::max(level_number + 1, static_cast<int>(d_is_initialized.size()));
 
     d_bond_data.resize(new_size);
-    d_X0_ghost_data.resize(new_size);
-    d_X_ghost_data.resize(new_size);
-    d_X_mean_ghost_data.resize(new_size);
-    d_F_ghost_data.resize(new_size);
-    d_N_ghost_data.resize(new_size);
-    d_dmg_ghost_data.resize(new_size);
-    d_B_ghost_data.resize(new_size);
-    d_FF_ghost_data.resize(new_size);
-    d_dX_data.resize(new_size);
+    d_X0_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_X_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_X_mean_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_F_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_N_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_dmg_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_B_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_FF_ghost_data.resize(new_size, Pointer<LData>(NULL));
+    d_dX_data.resize(new_size, Pointer<LData>(NULL));
     d_is_initialized.resize(new_size, false);
 
     // Keep track of all of the nonlocal PETSc indices required to compute the
@@ -371,17 +353,21 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     X_name_stream << "IBPDForceGen::X_ghost_" << level_number;
     d_X_ghost_data[level_number] = new LData(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
-    std::ostringstream X_mean_name_stream;
-    X_mean_name_stream << "IBPDForceGen::X_mean_ghost_" << level_number;
-    d_X_mean_ghost_data[level_number] = new LData(X_mean_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    if (d_use_mean_disp)
+    {
+        std::ostringstream X_mean_name_stream;
+        X_mean_name_stream << "IBPDForceGen::X_mean_ghost_" << level_number;
+        d_X_mean_ghost_data[level_number] =
+            new LData(X_mean_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
+        std::ostringstream N_name_stream;
+        N_name_stream << "IBPDForceGen::N_ghost_" << level_number;
+        d_N_ghost_data[level_number] = new LData(N_name_stream.str(), num_local_nodes, 1, nonlocal_petsc_idxs);
+    }
 
     std::ostringstream F_name_stream;
     F_name_stream << "IBPDForceGen::F_ghost_" << level_number;
     d_F_ghost_data[level_number] = new LData(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
-
-    std::ostringstream N_name_stream;
-    N_name_stream << "IBPDForceGen::N_ghost_" << level_number;
-    d_N_ghost_data[level_number] = new LData(N_name_stream.str(), num_local_nodes, 1, nonlocal_petsc_idxs);
 
     std::ostringstream dmg_name_stream;
     dmg_name_stream << "IBPDForceGen::dmg_ghost_" << level_number;
@@ -414,8 +400,10 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
     }
     d_dX_data[level_number]->restoreArrays();
 
-    // Indicate that the level data has been initialized.
+    // Indicate that the level data has been initialized and we need to compute shape tensor.
     d_is_initialized[level_number] = true;
+    d_compute_shape_tensor = true;
+
     return;
 } // initializeLevelData
 
@@ -444,15 +432,6 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<LData> N_ghost_data = d_N_ghost_data[level_number];
-    Vec N_ghost_local_form_vec;
-    ierr = VecGhostGetLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecSet(N_ghost_local_form_vec, 0.0);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostRestoreLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
-
     Pointer<LData> D_ghost_data = d_dmg_ghost_data[level_number];
     Vec D_ghost_local_form_vec;
     ierr = VecGhostGetLocalForm(D_ghost_data->getVec(), &D_ghost_local_form_vec);
@@ -474,13 +453,25 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     Pointer<LData> X_mean_ghost_data = d_X_mean_ghost_data[level_number];
-    Vec X_mean_ghost_local_form_vec;
-    ierr = VecGhostGetLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecSet(X_mean_ghost_local_form_vec, 0.0);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostRestoreLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
+    Pointer<LData> N_ghost_data = d_N_ghost_data[level_number];
+    if (d_use_mean_disp)
+    {
+        Vec X_mean_ghost_local_form_vec;
+        ierr = VecGhostGetLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecSet(X_mean_ghost_local_form_vec, 0.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(X_mean_ghost_data->getVec(), &X_mean_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+
+        Vec N_ghost_local_form_vec;
+        ierr = VecGhostGetLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecSet(N_ghost_local_form_vec, 0.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(N_ghost_data->getVec(), &N_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+    }
 
     Pointer<LData> X0_ghost_data = d_X0_ghost_data[level_number];
     Pointer<LData> X0 = l_data_manager->getLData("X0", level_number);
@@ -492,13 +483,16 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     Pointer<LData> B_ghost_data = d_B_ghost_data[level_number];
-    Vec B_ghost_local_form_vec;
-    ierr = VecGhostGetLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecSet(B_ghost_local_form_vec, 0.0);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostRestoreLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
-    IBTK_CHKERRQ(ierr);
+    if (d_compute_shape_tensor)
+    {
+        Vec B_ghost_local_form_vec;
+        ierr = VecGhostGetLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecSet(B_ghost_local_form_vec, 0.0);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
+        IBTK_CHKERRQ(ierr);
+    }
 
     Pointer<LData> FF_ghost_data = d_FF_ghost_data[level_number];
     Vec FF_ghost_local_form_vec;
@@ -510,83 +504,105 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     // Compute mean position
-    computeMeanPosition(
-        X_mean_ghost_data, N_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
-    ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostUpdateBegin(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostUpdateEnd(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-
+    if (d_use_mean_disp)
     {
-        boost::multi_array_ref<double, 1>& N_ghost_data_array = *N_ghost_data->getLocalFormArray();
-        boost::multi_array_ref<double, 2>& X_mean_ghost_data_array = *X_mean_ghost_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
-            double* X_mean = &X_mean_ghost_data_array[local_idx][0];
-            double* N = &N_ghost_data_array[local_idx];
+        computeMeanPosition(
+            X_mean_ghost_data, N_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+        ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateBegin(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(N_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
 
-            for (int d = 0; d < NDIM; ++d)
+        {
+            boost::multi_array_ref<double, 1>& N_ghost_data_array = *N_ghost_data->getLocalFormArray();
+            boost::multi_array_ref<double, 2>& X_mean_ghost_data_array = *X_mean_ghost_data->getLocalFormVecArray();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
-                X_mean[d] /= N[0];
+                const LNode* const node_idx = *cit;
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* X_mean = &X_mean_ghost_data_array[local_idx][0];
+                double* N = &N_ghost_data_array[local_idx];
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_mean[d] /= N[0];
+                }
             }
+            ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+            IBTK_CHKERRQ(ierr);
+            X_mean_ghost_data->restoreArrays();
         }
-        ierr = VecGhostUpdateBegin(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(X_mean_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        X_mean_ghost_data->restoreArrays();
     }
 
     // Compute shape tensor.
-    computeShapeTensor(B_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
-    ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-    IBTK_CHKERRQ(ierr);
-
+    if (d_compute_shape_tensor)
     {
-        boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        computeShapeTensor(B_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+        ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+        IBTK_CHKERRQ(ierr);
+
         {
-            const LNode* const node_idx = *cit;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            const int local_idx = node_idx->getLocalPETScIndex();
-            double* B = &B_ghost_data_array[local_idx][0];
-            Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
-
-            // Scale the matrix.
-            const double B_00 = eig_B(0, 0);
-            eig_B *= (1.0 / B_00);
-
-            // Invert the scaled matrix.
-            bool invertible;
-            eig_B.computeInverseWithCheck(eig_B, invertible);
-            if (!invertible)
+            boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
-                pout << " Lagrangian index = " << lag_idx << "\nScaled B tensor is \n" << eig_B << "\n";
-                TBOX_ERROR("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inverse failed.\n");
-            }
+                const LNode* const node_idx = *cit;
+                const int lag_idx = node_idx->getLagrangianIndex();
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* B = &B_ghost_data_array[local_idx][0];
+                Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
 
-            // Scale the matrix back.
-            eig_B *= (1.0 / B_00);
+                // Scale the matrix.
+                const double B_00 = eig_B(0, 0);
+                eig_B *= (1.0 / B_00);
+
+                // Invert the scaled matrix.
+                bool invertible;
+                eig_B.computeInverseWithCheck(eig_B, invertible);
+                if (!invertible)
+                {
+                    TBOX_ERROR("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
+                               << " Lagrangian index = "
+                               << lag_idx
+                               << "\nScaled B tensor is \n"
+                               << eig_B
+                               << "\n"
+                               << " Scaling factor B_00 = "
+                               << B_00
+                               << "\n");
+                }
+
+                // Scale back the inverse-matrix.
+                eig_B *= (1.0 / B_00);
+            }
+            ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+            IBTK_CHKERRQ(ierr);
+            B_ghost_data->restoreArrays();
         }
-        ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        B_ghost_data->restoreArrays();
+        d_compute_shape_tensor = false;
     }
 
     // Compute the deformation gradient tensor.
     // FF = int_k {Y outer X}_k . Inv{B}
-    computeDeformationGradientTensor(
-        FF_ghost_data, X_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    if (d_use_mean_disp)
+    {
+        computeDeformationGradientTensor(
+            FF_ghost_data, X_mean_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    }
+    else
+    {
+        computeDeformationGradientTensor(
+            FF_ghost_data, X_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    }
     ierr = VecGhostUpdateBegin(FF_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateEnd(FF_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
