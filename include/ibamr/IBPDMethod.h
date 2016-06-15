@@ -102,9 +102,14 @@ public:
     ~IBPDMethod();
 
     /*!
-     * Supply a Lagrangian force object.
+     * \brief Supply a Lagrangian force object.
      */
     void registerIBPDForceGen(SAMRAI::tbox::Pointer<IBAMR::IBPDForceGen> ib_pd_fcn);
+
+    /*!
+     * \brief Indicate if Lagrangian force object needs initialization.
+     */
+    void setIBPDForceGenNeedsInit();
 
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.

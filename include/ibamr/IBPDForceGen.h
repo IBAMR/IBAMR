@@ -69,6 +69,11 @@ public:
     ~IBPDForceGen();
 
     /*!
+     * \brief Lame parameters for default PK1 function.
+     */
+    static double s_lame_0, s_lame_1;
+
+    /*!
      * \brief Function pointer to compute state based bond forces.
      */
     typedef Eigen::Vector4d (*BondForceDamageFcnPtr)(
@@ -90,17 +95,23 @@ public:
         const int lag_slave_node_idx);
 
     /*!
-     * \brief Function pointer to compute influence of a bond based upon its distance.
+     * \brief Function pointer to compute influence of slave idx of a bond based upon
+     * its distance from master idx.
      */
     typedef double (*BondInfluenceFcnPtr)(double R0, double delta);
 
     /*!
-     * \brief Function pointer to compute influence of a bond based upon its distance.
+     * \brief Function pointer to compute volume fraction of slave idx of a bond
+     * based upon its distance.
      */
     typedef double (*BondVolFracFcnPtr)(double R0, double horizon, double delta);
 
     /*!
      * \brief Function pointer to define PK1 stress tensor.
+     *
+     * \NOTE The default PK1 stress tensor corresponds to St-Venant Kirchoff model
+     * with Lame's parameters, 0 and 1, defined by static data memebers, s_lame_0 and
+     * s_lame_1, respectively.
      */
     typedef void (*BondPK1FcnPtr)(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
                                   const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
@@ -201,6 +212,8 @@ private:
      * PD tensor routines.
      */
     //\{
+
+    bool d_use_mean_disp, d_compute_shape_tensor;
 
     void computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
                              SAMRAI::tbox::Pointer<IBTK::LData> N_data,

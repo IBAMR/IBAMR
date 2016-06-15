@@ -105,6 +105,13 @@ IBPDMethod::registerIBPDForceGen(Pointer<IBPDForceGen> ib_pd_force_fcn)
 } // registerIBPDForceGen
 
 void
+IBPDMethod::setIBPDForceGenNeedsInit()
+{
+    d_ib_pd_force_fcn_needs_init = true;
+    return;
+} // setIBPDForceGenNeedsInit()
+
+void
 IBPDMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
