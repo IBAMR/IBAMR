@@ -1286,8 +1286,8 @@ ConstraintIBMethod::calculateVolumeElement()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
                 Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-		Pointer<CartesianGridGeometry<NDIM> > ggeom = level->getGridGeometry();
-		const IntVector<NDIM>& ratio = level->getRatio();
+                Pointer<CartesianGridGeometry<NDIM> > ggeom = level->getGridGeometry();
+                const IntVector<NDIM>& ratio = level->getRatio();
                 const double* const dx = pgeom->getDx();
                 const Box<NDIM>& patch_box = patch->getBox();
 #if (NDIM == 2)
@@ -1308,8 +1308,8 @@ ConstraintIBMethod::calculateVolumeElement()
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
                         const double* const X = &X_data[local_idx][0];			
-			const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
-			
+                        const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
+
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
                 } // on a patch
