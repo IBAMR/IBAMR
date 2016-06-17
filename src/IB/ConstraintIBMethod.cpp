@@ -51,6 +51,7 @@
 #include "ibamr/namespaces.h"
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/CCLaplaceOperator.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
@@ -1285,10 +1286,10 @@ ConstraintIBMethod::calculateVolumeElement()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
                 Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<CartesianGridGeometry<NDIM> > ggeom = level->getGridGeometry();
+                const IntVector<NDIM>& ratio = level->getRatio();
                 const double* const dx = pgeom->getDx();
-                const double* const XLower = pgeom->getXLower();
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Index<NDIM>& ilower = patch_box.lower();
 #if (NDIM == 2)
                 const double patch_cell_vol = dx[0] * dx[1];
 #endif
@@ -1306,18 +1307,9 @@ ConstraintIBMethod::calculateVolumeElement()
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        const double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> Lag2Eul_cellindex(
-                            Index<NDIM>(int(floor((X[0] - XLower[0]) / dx[0])) + ilower(0)
-#if (NDIM > 1)
-                                            ,
-                                        int(floor((X[1] - XLower[1]) / dx[1])) + ilower(1)
-#if (NDIM > 2)
-                                            ,
-                                        int(floor((X[2] - XLower[2]) / dx[2])) + ilower(2)
-#endif
-#endif
-                                            ));
+                        const double* const X = &X_data[local_idx][0];			
+                        const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
+
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
                 } // on a patch
@@ -2530,3 +2522,5 @@ ConstraintIBMethod::calculatePower()
 } // calculatePower
 
 } // IBAMR
+
+
