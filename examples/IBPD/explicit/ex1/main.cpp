@@ -191,6 +191,13 @@ my_force_damage_fcn(const double horizon,
     // Volume correction
     double vol_frac = my_vol_frac_fcn(R0, horizon, delta);
 
+    // Estimate failure
+    const double stretch = (R - R0) / R0;
+    /*if (!MathUtilities<double>::equalEps(fail, 0.0) && std::fabs(stretch) > critical_stretch)
+    {
+        fail = 0.0;
+    }*/
+
     // PK1 stress tensor
     typedef IBTK::Vector vec_type;
     typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
@@ -202,16 +209,11 @@ my_force_damage_fcn(const double horizon,
     const double W = my_inf_fcn(R0, delta);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
     trac(2) = 0.0;
-    F_mastr += vol_slave * trac * vol_slave;
-    F_slave += -vol_mastr * trac * vol_mastr;
+    F_mastr += fail * vol_slave * trac * vol_slave;
+    F_slave += -fail * vol_mastr * trac * vol_mastr;
 
     // Compute damage.
-    const double stretch = (R - R0) / R0;
     Eigen::Vector4d D;
-    if (std::fabs(stretch) > critical_stretch)
-    {
-        fail = 1.0;
-    }
     D(0) = vol_slave * vol_frac * fail;
     D(1) = vol_slave * vol_frac;
     D(2) = vol_mastr * vol_frac * fail;
