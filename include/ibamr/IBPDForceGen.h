@@ -119,6 +119,17 @@ public:
                                   int lag_idx);
 
     /*!
+     * \brief Function pointer to define (extra) stress on Target points.
+     *
+     */
+    typedef void (*TargetPointForceFcnPtr)(const Eigen::Map<const IBTK::Vector>& X,
+                                           const Eigen::Map<const IBTK::Vector>& X_target,
+                                           const Eigen::Map<const IBTK::Vector>& U,
+                                           double K,
+                                           double E,
+                                           int lag_idx,
+                                           Eigen::Map<IBTK::Vector>& F);
+    /*!
      * \brief Register a bond force and damage, influence, volume fraction, PK1 stress
      * specification function with the force generator.
      *
@@ -126,7 +137,7 @@ public:
      * particular bond for the specified displacement, PK1 stress tensor, rest
      * length, and Lagrangian index.
      *
-     * \note By default, functions default_PK1_fcn(), default_force_damage_fcn(), default_inf_fcn(),
+     * \NOTE By default, functions default_PK1_fcn(), default_force_damage_fcn(), default_inf_fcn(),
      * and default_vol_frac_fcn() are associated with \a force_fcn_idx 0.
      */
     void registerBondForceSpecificationFunction(int force_fcn_index,
@@ -134,6 +145,13 @@ public:
                                                 const BondForceDamageFcnPtr bond_force_damage_fcn_ptr = NULL,
                                                 const BondInfluenceFcnPtr bond_inf_fcn_ptr = NULL,
                                                 const BondVolFracFcnPtr bond_vol_frac_fcn_ptr = NULL);
+
+    /*!
+     * \brief Register target point force function with the force generator.
+     *
+     * \NOTE By default, default_target_point_force_fcn() is
+     */
+    void registerTargetPointForceFunction(const TargetPointForceFcnPtr target_point_force_fcn_ptr);
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level
@@ -183,7 +201,7 @@ private:
     IBPDForceGen& operator=(const IBPDForceGen& that);
 
     /*!
-     * \name Horizon.
+     * \name Horizon and Lagrangian point spacing w.r.t Eulerian mesh spacing.
      */
     double d_horizon, d_ds;
 
@@ -203,6 +221,15 @@ private:
         std::vector<double*> parameters;
     };
     std::vector<BondData> d_bond_data;
+
+    struct TargetPointData
+    {
+        std::vector<int> petsc_node_idxs, petsc_global_node_idxs;
+        std::vector<const double *> kappa, eta;
+        std::vector<const IBTK::Point*> X0;
+    };
+    std::vector<TargetPointData> d_target_point_data;
+
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_X0_ghost_data, d_X_mean_ghost_data,
         d_B_ghost_data, d_FF_ghost_data, d_F_ghost_data, d_N_ghost_data, d_dmg_ghost_data, d_dX_data;
     std::vector<bool> d_is_initialized;
@@ -212,7 +239,6 @@ private:
      * PD tensor routines.
      */
     //\{
-
     bool d_use_mean_disp, d_compute_shape_tensor;
 
     void computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
@@ -238,8 +264,9 @@ private:
                                           double data_time,
                                           IBTK::LDataManager* l_data_manager);
     //\}
+
     /*!
-     * Bond force routines and functions.
+     * Bond force routines and user-defined functions.
      */
     //\{
     void initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
@@ -264,6 +291,28 @@ private:
     std::map<int, BondInfluenceFcnPtr> d_bond_inf_fcn_map;
     std::map<int, BondVolFracFcnPtr> d_bond_vol_frac_fcn_map;
     std::map<int, BondPK1FcnPtr> d_bond_PK1_fcn_map;
+    //\}
+
+    /*!
+     * TargetPoint force routines.
+     */
+    //\{
+    void initializeTargetPointLevelData(std::set<int>& nonlocal_petsc_idx_set,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                        int level_number,
+                                        double init_data_time,
+                                        bool initial_time,
+                                        IBTK::LDataManager* l_data_manager);
+
+    void computeLagrangianTargetPointForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+                                           SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                           SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                           int level_number,
+                                           double data_time,
+                                           IBTK::LDataManager* l_data_manager);
+
+    TargetPointForceFcnPtr d_target_point_force_fcn;
     //\}
 };
 } // namespace IBAMR

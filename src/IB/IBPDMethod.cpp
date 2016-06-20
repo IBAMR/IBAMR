@@ -196,23 +196,27 @@ IBPDMethod::computeLagrangianForce(const double data_time)
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     std::vector<Pointer<LData> >* F_data = NULL;
     std::vector<Pointer<LData> >* X_data = NULL;
+    std::vector<Pointer<LData> >* U_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
         F_data = &d_F_current_data;
         X_data = &d_X_current_data;
+        U_data = &d_U_current_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
         d_F_half_needs_ghost_fill = true;
         F_data = &d_F_half_data;
         X_data = &d_X_half_data;
+        U_data = &d_U_half_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         d_F_new_needs_ghost_fill = true;
         F_data = &d_F_new_data;
         X_data = &d_X_new_data;
+        U_data = &d_U_new_data;
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -222,7 +226,7 @@ IBPDMethod::computeLagrangianForce(const double data_time)
             d_ib_pd_force_fcn->computeLagrangianForceAndDamage((*F_data)[ln],
                                                                d_l_data_manager->getLData("damage", ln),
                                                                (*X_data)[ln],
-                                                               Pointer<LData>(NULL) /*U*/,
+                                                               (*U_data)[ln],
                                                                d_hierarchy,
                                                                ln,
                                                                data_time,
