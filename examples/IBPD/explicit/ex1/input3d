@@ -133,7 +133,7 @@ VelocityBcCoefs_2 {
 }
 
 IBPDForceGen {
-   horizon        = 3.015
+   horizon        = 2.015
    ds             = 1.0
 }
 
@@ -149,6 +149,7 @@ IBStandardInitializer {
 
    sheet3d {
      level_number = MAX_LEVELS - 1
+     enable_target_points = FALSE
    }
 }
 

@@ -191,9 +191,10 @@ default_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
 } // default_PK1_fcn
 
 Eigen::Vector4d
-default_force_damage_fcn(const double horizon,
-                         const double delta,
-                         const double R,
+default_force_damage_fcn(const double /*horizon*/,
+                         const double /*delta*/,
+                         const double W,
+                         const double vol_frac,
                          double* parameters,
                          const Eigen::Map<const IBTK::Vector>& X0_mastr,
                          const Eigen::Map<const IBTK::Vector>& X0_slave,
@@ -216,10 +217,8 @@ default_force_damage_fcn(const double horizon,
     double& fail = parameters[4];
     const double& critical_stretch = parameters[5];
 
-    // Volume correction
-    double vol_frac = default_vol_frac_fcn(R0, horizon, delta);
-
     // Estimate failure.
+    const double R = (X_slave - X_mastr).norm();
     const double stretch = (R - R0) / R0;
     if (!MathUtilities<double>::equalEps(fail, 0.0) && std::fabs(stretch) > critical_stretch)
     {
@@ -234,7 +233,6 @@ default_force_damage_fcn(const double horizon,
     default_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    const double W = default_inf_fcn(R0, delta);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
     F_mastr += fail * vol_slave * trac * vol_slave;
     F_slave += -fail * vol_mastr * trac * vol_mastr;
@@ -815,18 +813,20 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
     {
         dx[d] = dx0[d] / ratio[d];
     }
+    const double horizon = d_horizon * (*std::max_element(dx, dx + NDIM));
     const double delta = d_ds * (*std::min_element(dx, dx + NDIM));
 
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
     const BondInfluenceFcnPtr* const force_inf_fcns = &d_bond_data[level_number].force_inf_fcns[0];
+    const BondVolFracFcnPtr* const force_vol_frac_fcns = &d_bond_data[level_number].force_vol_frac_fcns[0];
     double* const B_node = B_data->getGhostedLocalFormVecArray()->data();
     const double* const X0_node = X0_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, X_mastr_idx, X_slave_idx, B_mastr_idx, B_slave_idx;
-    double Q0[NDIM], R0;
+    double Q0[NDIM], R0, W, vol_frac;
     kblock = 0;
     for (; kblock < (num_bonds - 1) / BLOCKSIZE;
          ++kblock) // ensure that the last block is NOT handled by this first loop
@@ -857,24 +857,19 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
             Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
 
-#if (NDIM == 2)
-            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
-#endif
-#if (NDIM == 3)
-            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
-#endif
-
             const double* bond_params = parameters[k];
             const double& vol_mastr = bond_params[2];
             const double& vol_slave = bond_params[3];
             const double& fail = bond_params[4];
-            const double W = force_inf_fcns[k](R0, delta);
+            R0 = parameters[k][1];
+            W = force_inf_fcns[k](R0, delta);
+            vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
             Eigen::Map<IBTK::Vector> eig_Q0(Q0);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
                 eig_B_slave(&B_node[B_slave_idx]);
-            eig_B_mastr.noalias() += W * fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-            eig_B_slave.noalias() += W * fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
+            eig_B_mastr.noalias() += fail * W * vol_frac * vol_slave * eig_Q0 * eig_Q0.transpose();
+            eig_B_slave.noalias() += fail * W * vol_frac * vol_mastr * eig_Q0 * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -894,23 +889,19 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
         Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
 
-#if (NDIM == 2)
-        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
-#endif
-#if (NDIM == 3)
-        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
-#endif
         const double* bond_params = parameters[k];
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
-        const double W = force_inf_fcns[k](R0, delta);
+        R0 = parameters[k][1];
+        W = force_inf_fcns[k](R0, delta);
+        vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
         Eigen::Map<IBTK::Vector> eig_Q0(Q0);
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B_mastr(&B_node[B_mastr_idx]),
             eig_B_slave(&B_node[B_slave_idx]);
-        eig_B_mastr.noalias() += W * fail * vol_slave * eig_Q0 * eig_Q0.transpose();
-        eig_B_slave.noalias() += W * fail * vol_mastr * eig_Q0 * eig_Q0.transpose();
+        eig_B_mastr.noalias() += fail * W * vol_frac * vol_slave * eig_Q0 * eig_Q0.transpose();
+        eig_B_slave.noalias() += fail * W * vol_frac * vol_mastr * eig_Q0 * eig_Q0.transpose();
     }
 
     X0_data->restoreArrays();
@@ -940,19 +931,21 @@ IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
     {
         dx[d] = dx0[d] / ratio[d];
     }
+    const double horizon = d_horizon * (*std::min_element(dx, dx + NDIM));
     const double delta = d_ds * (*std::min_element(dx, dx + NDIM));
 
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
     const BondInfluenceFcnPtr* const force_inf_fcns = &d_bond_data[level_number].force_inf_fcns[0];
+    const BondVolFracFcnPtr* const force_vol_frac_fcns = &d_bond_data[level_number].force_vol_frac_fcns[0];
     double* const FF_node = FF_data->getGhostedLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
     const double* const X0_node = X0_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, X_mastr_idx, X_slave_idx, FF_mastr_idx, FF_slave_idx;
-    double Q[NDIM], Q0[NDIM], R0;
+    double Q[NDIM], Q0[NDIM], R0, W, vol_frac;
     kblock = 0;
     for (; kblock < (num_bonds - 1) / BLOCKSIZE;
          ++kblock) // ensure that the last block is NOT handled by this first loop
@@ -991,24 +984,19 @@ IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
             Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
 
-#if (NDIM == 2)
-            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
-#endif
-#if (NDIM == 3)
-            R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
-#endif
-
             const double* bond_params = parameters[k];
             const double& vol_mastr = bond_params[2];
             const double& vol_slave = bond_params[3];
             const double& fail = bond_params[4];
-            const double W = force_inf_fcns[k](R0, delta);
+            R0 = parameters[k][1];
+            W = force_inf_fcns[k](R0, delta);
+            vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
             Eigen::Map<const IBTK::Vector> eig_Q(Q), eig_Q0(Q0);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_mastr_idx]),
                 eig_FF_slave(&FF_node[FF_slave_idx]);
-            eig_FF_mastr.noalias() += W * fail * vol_slave * eig_Q * eig_Q0.transpose();
-            eig_FF_slave.noalias() += W * fail * vol_mastr * eig_Q * eig_Q0.transpose();
+            eig_FF_mastr.noalias() += fail * W * vol_frac * vol_slave * eig_Q * eig_Q0.transpose();
+            eig_FF_slave.noalias() += fail * W * vol_frac * vol_mastr * eig_Q * eig_Q0.transpose();
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_bonds; ++k)
@@ -1034,24 +1022,19 @@ IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
         Q0[2] = X0_node[X_slave_idx + 2] - X0_node[X_mastr_idx + 2];
 #endif
 
-#if (NDIM == 2)
-        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1]);
-#endif
-#if (NDIM == 3)
-        R0 = sqrt(Q0[0] * Q0[0] + Q0[1] * Q0[1] + Q0[2] * Q0[2]);
-#endif
-
         const double* bond_params = parameters[k];
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
-        const double W = force_inf_fcns[k](R0, delta);
+        R0 = parameters[k][1];
+        W = force_inf_fcns[k](R0, delta);
+        vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
         Eigen::Map<const IBTK::Vector> eig_Q(Q), eig_Q0(Q0);
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_mastr_idx]),
             eig_FF_slave(&FF_node[FF_slave_idx]);
-        eig_FF_mastr.noalias() += W * fail * vol_slave * eig_Q * eig_Q0.transpose();
-        eig_FF_slave.noalias() += W * fail * vol_mastr * eig_Q * eig_Q0.transpose();
+        eig_FF_mastr.noalias() += fail * W * vol_frac * vol_slave * eig_Q * eig_Q0.transpose();
+        eig_FF_slave.noalias() += fail * W * vol_frac * vol_mastr * eig_Q * eig_Q0.transpose();
     }
 
     X_data->restoreArrays();
@@ -1201,6 +1184,8 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
     const int* const petsc_slave_node_idxs = &d_bond_data[level_number].petsc_slave_node_idxs[0];
     double** const parameters = &d_bond_data[level_number].parameters[0];
     const BondForceDamageFcnPtr* const force_dmg_fcns = &d_bond_data[level_number].force_dmg_fcns[0];
+    const BondInfluenceFcnPtr* const force_inf_fcns = &d_bond_data[level_number].force_inf_fcns[0];
+    const BondVolFracFcnPtr* const force_vol_frac_fcns = &d_bond_data[level_number].force_vol_frac_fcns[0];
     double* const F_node = F_data->getGhostedLocalFormVecArray()->data();
     double* const D_node = D_data->getGhostedLocalFormVecArray()->data();
     const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
@@ -1210,7 +1195,7 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, X_F_mastr_idx, X_F_slave_idx, FF_B_mastr_idx, FF_B_slave_idx, dmg_mastr_idx, dmg_slave_idx;
-    double Q[NDIM], R;
+    double Q[NDIM], R, R0, W, vol_frac;
     kblock = 0;
     for (; kblock < (num_bonds - 1) / BLOCKSIZE;
          ++kblock) // ensure that the last block is NOT handled by this first loop
@@ -1270,9 +1255,14 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
                 &FF_node[FF_B_mastr_idx]),
                 eig_FF_slave(&FF_node[FF_B_slave_idx]);
 
+            R0 = parameters[k][1];
+            W = force_inf_fcns[k](R0, delta);
+            vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
+
             Eigen::Vector4d dmg = force_dmg_fcns[k](horizon,
                                                     delta,
-                                                    R,
+                                                    W,
+                                                    vol_frac,
                                                     parameters[k],
                                                     eig_X0_mastr,
                                                     eig_X0_slave,
@@ -1311,12 +1301,14 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
 #if (NDIM == 3)
         Q[2] = X_node[X_F_slave_idx + 2] - X_node[X_F_mastr_idx + 2];
 #endif
+
 #if (NDIM == 2)
         R = sqrt(Q[0] * Q[0] + Q[1] * Q[1]);
 #endif
 #if (NDIM == 3)
         R = sqrt(Q[0] * Q[0] + Q[1] * Q[1] + Q[2] * Q[2]);
 #endif
+
         if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
 
         Eigen::Map<const IBTK::Vector> eig_X0_mastr(&X0_node[X_F_mastr_idx]), eig_X0_slave(&X0_node[X_F_slave_idx]);
@@ -1327,9 +1319,14 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
         Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF_mastr(&FF_node[FF_B_mastr_idx]),
             eig_FF_slave(&FF_node[FF_B_slave_idx]);
 
+        R0 = parameters[k][1];
+        W = force_inf_fcns[k](R0, delta);
+        vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
+
         Eigen::Vector4d dmg = force_dmg_fcns[k](horizon,
                                                 delta,
-                                                R,
+                                                W,
+                                                vol_frac,
                                                 parameters[k],
                                                 eig_X0_mastr,
                                                 eig_X0_slave,

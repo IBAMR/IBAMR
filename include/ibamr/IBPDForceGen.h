@@ -79,7 +79,8 @@ public:
     typedef Eigen::Vector4d (*BondForceDamageFcnPtr)(
         const double horizon,
         const double delta,
-        const double R,
+        const double W,
+        const double vol_frac,
         double* parameters,
         const Eigen::Map<const IBTK::Vector>& X0_mastr,
         const Eigen::Map<const IBTK::Vector>& X0_slave,
@@ -91,8 +92,8 @@ public:
         const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_slave,
         Eigen::Map<IBTK::Vector>& F_mastr,
         Eigen::Map<IBTK::Vector>& F_slave,
-        const int lag_mastr_node_idx,
-        const int lag_slave_node_idx);
+        int lag_mastr_node_idx,
+        int lag_slave_node_idx);
 
     /*!
      * \brief Function pointer to compute influence of slave idx of a bond based upon

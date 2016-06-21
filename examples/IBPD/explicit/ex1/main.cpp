@@ -163,9 +163,10 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
 } // my_PK1_fcn
 
 Eigen::Vector4d
-my_force_damage_fcn(const double horizon,
-                    const double delta,
-                    const double R,
+my_force_damage_fcn(const double /*horizon*/,
+                    const double /*delta*/,
+                    const double W,
+                    const double vol_frac,
                     double* parameters,
                     const Eigen::Map<const IBTK::Vector>& X0_mastr,
                     const Eigen::Map<const IBTK::Vector>& X0_slave,
@@ -188,10 +189,8 @@ my_force_damage_fcn(const double horizon,
     double& fail = parameters[4];
     const double& critical_stretch = parameters[5];
 
-    // Volume correction
-    double vol_frac = my_vol_frac_fcn(R0, horizon, delta);
-
     // Estimate failure
+    const double R = (X_slave - X_mastr).norm();
     const double stretch = (R - R0) / R0;
     /*if (!MathUtilities<double>::equalEps(fail, 0.0) && std::fabs(stretch) > critical_stretch)
     {
@@ -206,7 +205,6 @@ my_force_damage_fcn(const double horizon,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    const double W = my_inf_fcn(R0, delta);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
     trac(2) = 0.0;
     F_mastr += fail * vol_slave * trac * vol_slave;
