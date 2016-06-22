@@ -673,6 +673,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
 				
                 //~ imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, *d_dU_m_vec,*d_dU_p_vec,*d_dU_m_side_vec,*d_dU_p_side_vec, *dP_ghost_vec, data_time, part);
 
+				
                 imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, *d_dU_m_half_vecs[part],*d_dU_p_half_vecs[part],*d_dU_m_side_half_vecs[part],*d_dU_p_side_half_vecs[part], *dP_ghost_vec, *dU_m_ghost_vec, *dU_p_ghost_vec, *dU_m_side_ghost_vec, *dU_p_side_ghost_vec, data_time, part);
             }
         }
@@ -1199,16 +1200,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
             F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
             X0_dof_map_cache.dof_indices(elem, X0_dof_indices[d], d);
-            
-            
-            //~ dU_dof_map_cache.dof_indices(elem, dU_dof_indices[d], d);
-            //~ dU_rhs_e[d].resize(static_cast<int>(dU_dof_indices[d].size()));
-            
-            
-            
-            
-            
-            
+
             
         }
         fe.reinit(elem);
@@ -1281,20 +1273,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         F_rhs_e[i](k) += F_qp(i);
-                        
-                        
-						//~ const double x_cell_bdry =
-										//~ x_lower[i] + static_cast<double>(i_s(i) - patch_lower[i]) * dx[i];
-										//~ 
-						//~ const double SDH = ( (x(i) - x_cell_bdry)) ;   //Signed Distance h
-								//~ 
-									//~ 
-						//~ TBOX_ASSERT(fabs(x(i) - x_cell_bdry)< dx[i] && (x(i) - x_cell_bdry)<0);
-									//~ 
-						//~ const double C_u = SDH*(F(i)-F*n*n(i))*n(i);
-                        
-                        //~ dU_rhs_e[i](k) += C_u;
-                        
+
                     }
                     double dP_qp = dP * phi[k][qp] * JxW[qp];
                     dP_rhs_e(k) += dP_qp;
@@ -1362,6 +1341,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     
     std::vector<const std::vector<double>*> force_var_data;
     std::vector<const std::vector<VectorValue<double> >*> force_grad_var_data;
+    
 
     System& F_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& F_dof_map = F_system.get_dof_map();
@@ -1371,7 +1351,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) {
       TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
     }
-    std::vector<std::vector<unsigned int>> F_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
 
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
@@ -1409,7 +1389,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
       TBOX_ASSERT(X0_dof_map.variable_type(d) == X0_fe_type);
     }
     TBOX_ASSERT(X0_fe_type == X_fe_type);
-    std::vector<std::vector<unsigned int>> X0_dof_indices(NDIM);
+    std::vector<std::vector<unsigned int> > X0_dof_indices(NDIM);
 
     AutoPtr<NumericVector<double> > dU_m_rhs_vec = dU_m_vec.zero_clone();
     DenseVector<double> dU_m_rhs_e;
@@ -1496,7 +1476,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     VecGetArray(dP_local_vec, &dP_local_soln);
     //~ }
 
-    //const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
+    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
     const std::vector<std::vector<double> >& phi = fe.getPhi(F_fe_type);
     
@@ -1519,23 +1499,25 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     boost::multi_array<double, 1> dU_m_side_node;
     boost::multi_array<double, 1> dU_p_side_node;
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    
+  
 
     //~ if (integrate_normal_force)
     //~ {
     std::vector<libMesh::Point> intersection_ref_coords_p;
-    std::vector<SideIndex<NDIM>> intersection_indices_p;
+    std::vector<SideIndex<NDIM> > intersection_indices_p;
     //~ }
     //~ if (integrate_tangential_force)
     //~ {
     std::vector<libMesh::Point> intersection_ref_coords_um;
-    std::vector<SideIndex<NDIM>> intersection_indices_um;
+    std::vector<SideIndex<NDIM> > intersection_indices_um;
     std::vector<libMesh::Point> intersection_ref_coords_up;
-    std::vector<SideIndex<NDIM>> intersection_indices_up;
+    std::vector<SideIndex<NDIM> > intersection_indices_up;
 
     std::vector<libMesh::Point> intersectionSide_ref_coords_up;
-    std::vector<SideIndex<NDIM>> intersectionSide_indices_up;
+    std::vector<SideIndex<NDIM> > intersectionSide_indices_up;
     std::vector<libMesh::Point> intersectionSide_ref_coords_um;
-    std::vector<SideIndex<NDIM>> intersectionSide_indices_um;
+    std::vector<SideIndex<NDIM> > intersectionSide_indices_um;
     //~ }
 
     std::vector<std::pair<double, libMesh::Point> > intersections;
@@ -1597,11 +1579,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
+            
             const size_t n_basis = phi.size();
             const unsigned int n_node = elem->n_nodes();
 
             for (int d = 0; d < NDIM; ++d)
             {
+				F_dof_map_cache.dof_indices(elem, F_dof_indices[d], d);
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 X0_dof_map_cache.dof_indices(elem, X0_dof_indices[d], d);
                 F_dof_map_cache.dof_indices(elem, F_dof_indices[d], d);
@@ -1943,6 +1927,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                           const size_t n_qp = intersection_ref_coords_um.size();
 
                           for (unsigned int qp = 0; qp < n_qp; ++qp) {
+							  
+							s = q_point[qp];
 
                             interpolate(&X(0), qp, X0_node, X_phi);
                             interpolate(&Tau1(0), qp, X0_node, X_dphi_dxi);
@@ -1972,19 +1958,16 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                               // point and add the
                               // corresponding forces to the
                               // right-hand-side vector.
-                              fe.setInterpolatedDataPointers(
-                                  force_var_data, force_grad_var_data,
-                                  force_fcn_system_idxs, elem, qp);
-                              d_lag_force_fcn_data[part].fcn(
-                                  F, FF, x, s, elem, force_var_data,
-                                  force_grad_var_data, data_time,
-                                  d_lag_force_fcn_data[part].ctx);
+                              
+								fe.setInterpolatedDataPointers(force_var_data, force_grad_var_data, force_fcn_system_idxs, elem, qp);
+								d_lag_force_fcn_data[part].fcn(F, FF, x, s, elem, force_var_data, force_grad_var_data, data_time, d_lag_force_fcn_data[part].ctx);
+                      
 
                               const SideIndex<NDIM> &i_s =
                                   intersection_indices_um[qp];
                               const unsigned int axis = i_s.getAxis();
 
-                              // Accumulate the RHS values.
+                              //~ // Accumulate the RHS values.
                               for (unsigned int k = 0; k < n_basis; ++k) {
 
                                 const double x_cell_bdry =
@@ -1997,13 +1980,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                     ((x(axis) -
                                       x_cell_bdry)); // Signed Distance h
 
-                                //~
-                                // TBOX_ASSERT(fabs(x(axis)
-                                //-
-                                // x_cell_bdry)<
-                                // dx[axis] &&
-                                //(x(axis) -
-                                // x_cell_bdry)<0);
+                                //~ //~
+                                //~ // TBOX_ASSERT(fabs(x(axis)
+                                //~ //-
+                                //~ // x_cell_bdry)<
+                                //~ // dx[axis] &&
+                                //~ //(x(axis) -
+                                //~ // x_cell_bdry)<0);
 
                                 const double C_u =
                                     SDH * (F(axis) - F * n * n(axis)) * n(axis);
@@ -2022,6 +2005,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                           const size_t n_qp = intersection_ref_coords_up.size();
 
                           for (unsigned int qp = 0; qp < n_qp; ++qp) {
+							  
+							s = q_point[qp];
 
                             interpolate(&X(0), qp, X0_node, X_phi);
                             interpolate(&Tau1(0), qp, X0_node, X_dphi_dxi);
@@ -2101,6 +2086,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                               intersectionSide_indices_up.size();
 
                           for (unsigned int qp = 0; qp < n_qp; ++qp) {
+							  
+							s = q_point[qp];
 
                             interpolate(&X(0), qp, X0_node, X_phi);
                             interpolate(&Tau1(0), qp, X0_node, X_dphi_dxi);
@@ -2171,22 +2158,21 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 					}
 				}
 	
-		
+			
 				
-		        if (integrate_tangential_force && !intersectionSide_ref_coords_um.empty())
-                
-               {
+						if (integrate_tangential_force && 
+						!intersectionSide_ref_coords_um.empty()) {
 				   
 				   
 				   	X_fe_base->reinit(elem, &intersectionSide_ref_coords_um);
 					const size_t n_qp = intersectionSide_indices_um.size();
 					
-
+				
 					
 					for (unsigned int qp = 0; qp < n_qp; ++qp)
 					{
 						
-						
+						s = q_point[qp];
 						
 						interpolate(&X(0), qp, X0_node, X_phi);
 						interpolate(&Tau1(0), qp, X0_node, X_dphi_dxi);
@@ -2236,7 +2222,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 										//~ // Impose the jump conditions.
 						const double x_mid_side = x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis] + 0.5) * dx[axis];
 
-                                                //~ TBOX_ASSERT(x(axis)<=
+                                                // TBOX_ASSERT(x(axis)<=
                                                 // x_mid_side);
 
                                                 const double SDH =
@@ -2257,11 +2243,18 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                 }
                                                 }
                                         }
-                        }
+                                        
+                                      
+                }
+             
+               
         }
-        exit(0);
+                 
+      
+     
     }
 
+  
     d_fe_data_managers[part]->computeL2Projection(dU_m_vec, *dU_m_rhs_vec, DU_M_SYSTEM_NAME, d_use_consistent_mass_matrix);
     d_fe_data_managers[part]->computeL2Projection(dU_p_vec, *dU_p_rhs_vec, DU_P_SYSTEM_NAME, d_use_consistent_mass_matrix);
     d_fe_data_managers[part]->computeL2Projection(dU_m_side_vec, *dU_m_side_rhs_vec, DU_M_SIDE_SYSTEM_NAME, d_use_consistent_mass_matrix);
