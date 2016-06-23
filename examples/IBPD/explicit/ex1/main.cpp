@@ -207,8 +207,8 @@ my_force_damage_fcn(const double /*horizon*/,
     // Compute PD force.
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
     trac(2) = 0.0;
-    F_mastr += fail * vol_slave * trac * vol_slave;
-    F_slave += -fail * vol_mastr * trac * vol_mastr;
+    F_mastr += fail * (vol_frac * vol_slave) * trac * (vol_frac * vol_slave);
+    F_slave += -fail * (vol_frac * vol_mastr) * trac * (vol_frac * vol_mastr);
 
     // Compute damage.
     Eigen::Vector4d D;
