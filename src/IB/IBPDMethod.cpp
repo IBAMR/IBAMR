@@ -272,11 +272,19 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Indicate that the force strategy needs to be re-initialized.
     d_ib_pd_force_fcn_needs_init = true;
 
+    const int struct_ln = d_hierarchy->getFinestLevelNumber();
     if (initial_time)
     {
-        const int struct_ln = d_hierarchy->getFinestLevelNumber();
         VecSet(d_l_data_manager->getLData("damage", struct_ln)->getVec(), 0.0);
     }
+
+    // Register plot quantities.
+    if (d_silo_writer)
+    {
+        Pointer<LData> dmg_data = d_l_data_manager->getLData("damage", struct_ln);
+        d_silo_writer->registerVariableData("damage", dmg_data, struct_ln);
+    }
+
     return;
 } // initializePatchHierarchy
 

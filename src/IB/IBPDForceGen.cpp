@@ -234,8 +234,8 @@ default_force_damage_fcn(const double /*horizon*/,
 
     // Compute PD force.
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    F_mastr += fail * vol_slave * trac * vol_slave;
-    F_slave += -fail * vol_mastr * trac * vol_mastr;
+    F_mastr += fail * (vol_frac * vol_slave) * trac * (vol_frac * vol_slave);
+    F_slave += -fail * (vol_frac * vol_mastr) * trac * (vol_frac * vol_mastr);
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -591,8 +591,8 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
 
             // Scale the matrix.
-            const double B_00 = eig_B(0, 0);
-            eig_B *= (1.0 / B_00);
+            const double scale = eig_B.norm();
+            eig_B *= (1.0 / scale);
 
             // Invert the scaled matrix.
             bool invertible;
@@ -605,13 +605,13 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
                            << "\nScaled B tensor is \n"
                            << eig_B
                            << "\n"
-                           << " Scaling factor B_00 = "
-                           << B_00
+                           << " Scaling factor  = "
+                           << scale
                            << "\n");
             }
 
             // Scale back the inverse-matrix.
-            eig_B *= (1.0 / B_00);
+            eig_B *= (1.0 / scale);
         }
 
         ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
