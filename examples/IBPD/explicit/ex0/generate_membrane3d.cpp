@@ -1,3 +1,7 @@
+// Filename: generate_membrane3d.cpp
+// Created on 24 Jun 2016 by Amneet Bhalla
+// All rights reserved.
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -31,7 +35,7 @@ sort_edge(Edge& e)
 }
 
 int
-main(int argc, char** argv)
+main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
 

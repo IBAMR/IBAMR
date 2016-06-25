@@ -1,3 +1,7 @@
+// Filename: generate_failed_sheet3d.cpp
+// Created on 24 Jun 2016 by Amneet Bhalla
+// All rights reserved.
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -31,12 +35,11 @@ sort_edge(Edge& e)
 }
 
 int
-main(int argc, char** argv)
+main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
     const double R = 0.4;
     const double w = 0.4;
-    const double gamma = 0.0;
     const double x_c = 0.3;
     const double y_c = 0.3;
     const double z_c = 0.5;

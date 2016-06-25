@@ -32,6 +32,9 @@
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
+// C++ headers.
+#include <complex>
+
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
@@ -68,36 +71,204 @@ namespace ModelData
 // Problem parameters.
 static const double R = 0.25;
 static const double w = 0.0625;
-static const double gamma = 0.0;
-static const double mu = 1.0;
+static const double xc = 0.5;
+static const double yc = 0.5;
+static std::complex<double> G(0.1, 0.0);
 
-// Coordinate mapping function.
-void
-coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+double
+get_radius(const std::complex<double> x, const std::complex<double> y)
 {
-    X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
-    X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
-    return;
-} // coordinate_mapping_function
+    const std::complex<double> c2(2.0, 0.0);
+    const std::complex<double> c3(3.0, 0.0);
+    const std::complex<double> c4(4.0, 0.0);
+    const std::complex<double> c5(5.0, 0.0);
+    const std::complex<double> c6(6.0, 0.0);
+
+    std::complex<double> radius =
+        (-3.0 * G +
+         3.0 *
+             std::sqrt(
+                 std::pow(x, c2) + std::pow(y, c2) + (std::pow(G, c2) - std::pow(x, c2) - std::pow(y, c2)) / 3.0 +
+                 std::pow(-std::pow(G, c2) + std::pow(x, c2) + std::pow(y, c2), c2) /
+                     (3. *
+                      std::pow(std::pow(G, c6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                                   3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                                   3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                   3.0 * std::pow(G, c2) *
+                                       (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)) -
+                                   6.0 * std::sqrt(3) *
+                                       std::sqrt(std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                                 (-std::pow(G, c6) +
+                                                  3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                                  std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                                  3.0 * std::pow(G, c2) *
+                                                      (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) +
+                                                       std::pow(y, c4)))),
+                               0.3333333333333333)) +
+                 std::pow(
+                     std::pow(G, c6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                         3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                         3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                         3.0 * std::pow(G, c2) *
+                             (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)) -
+                         6.0 * std::sqrt(3) *
+                             std::sqrt(
+                                 std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                 (-std::pow(G, c6) + 3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                  std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                  3.0 * std::pow(G, c2) *
+                                      (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)))),
+                     0.3333333333333333) /
+                     3.) +
+         3.0 *
+             std::sqrt(
+                 std::pow(G, c2) + std::pow(x, c2) + std::pow(y, c2) +
+                 (-std::pow(G, c2) + std::pow(x, c2) + std::pow(y, c2)) / 3. -
+                 std::pow(-std::pow(G, c2) + std::pow(x, c2) + std::pow(y, c2), c2) /
+                     (3. *
+                      std::pow(std::pow(G, c6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                                   3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                                   3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                   3.0 * std::pow(G, c2) *
+                                       (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)) -
+                                   6.0 * std::sqrt(3) *
+                                       std::sqrt(std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                                 (-std::pow(G, c6) +
+                                                  3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                                  std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                                  3.0 * std::pow(G, c2) *
+                                                      (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) +
+                                                       std::pow(y, c4)))),
+                               0.3333333333333333)) -
+                 std::pow(
+                     std::pow(G, c6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                         3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                         3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                         3.0 * std::pow(G, c2) *
+                             (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)) -
+                         6.0 * std::sqrt(3) *
+                             std::sqrt(
+                                 std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                 (-std::pow(G, c6) + 3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                  std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                  3.0 * std::pow(G, c2) *
+                                      (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)))),
+                     0.3333333333333333) /
+                     3. +
+                 (2.0 * G * (std::pow(x, c2) - std::pow(y, c2))) /
+                     std::sqrt(
+                         std::pow(x, c2) + std::pow(y, c2) +
+                         (std::pow(G, c2) - std::pow(x, c2) - std::pow(y, c2)) / 3. +
+                         std::pow(-std::pow(G, c2) + std::pow(x, c2) + std::pow(y, c2), c2) /
+                             (3. *
+                              std::pow(
+                                  std::pow(G, c6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                                      3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                                      3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                      3.0 * std::pow(G, c2) *
+                                          (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) +
+                                           std::pow(y, c4)) -
+                                      6.0 * std::sqrt(3) *
+                                          std::sqrt(std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                                    (-std::pow(G, c6) +
+                                                     3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                                     std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                                     3.0 * std::pow(G, c2) *
+                                                         (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) +
+                                                          std::pow(y, c4)))),
+                                  0.3333333333333333)) +
+                         std::pow(
+                             std::pow(G, 6) - std::pow(x, c6) - 3.0 * std::pow(x, c4) * std::pow(y, c2) -
+                                 3.0 * std::pow(x, c2) * std::pow(y, c4) - std::pow(y, c6) -
+                                 3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                 3.0 * std::pow(G, c2) *
+                                     (std::pow(x, c4) - 16.0 * std::pow(x, c2) * std::pow(y, c2) + std::pow(y, c4)) -
+                                 6.0 * std::sqrt(3) *
+                                     std::sqrt(std::pow(G, c2) * std::pow(x, c2) * std::pow(y, c2) *
+                                               (-std::pow(G, c6) +
+                                                3.0 * std::pow(G, c4) * (std::pow(x, c2) + std::pow(y, c2)) +
+                                                std::pow(std::pow(x, c2) + std::pow(y, c2), c3) -
+                                                3.0 * std::pow(G, c2) *
+                                                    (std::pow(x, c4) - 7.0 * std::pow(x, c2) * std::pow(y, c2) +
+                                                     std::pow(y, c4)))),
+                             0.3333333333333333) /
+                             3.))) /
+        6.;
+
+    return radius.real();
+}
+
+double
+get_angle(const double x, const double y, const double r)
+{
+    double s = std::atan2(y * r / (r + G.real()), x);
+
+    return s;
+}
 
 // Stress tensor function.
 bool smooth_case = false;
 void
 PK1_stress_function(TensorValue<double>& PP,
                     const TensorValue<double>& FF,
-                    const libMesh::Point& /*X*/,
-                    const libMesh::Point& /*s*/,
+                    const libMesh::Point& /*x*/,
+                    const libMesh::Point& X0,
                     Elem* const /*elem*/,
                     const std::vector<NumericVector<double>*>& /*system_data*/,
                     double /*time*/,
                     void* /*ctx*/)
 {
-    PP = (mu / w) * FF;
-    if (smooth_case)
+    const std::complex<double> xx(X0(0) - xc, 0.0), yy(X0(1) - yc, 0.0);
+    const double radius_soln = get_radius(xx, yy);
+    const double angle_soln = get_angle(X0(0) - xc, X0(1) - yc, radius_soln);
+
+    const double s1 = radius_soln - R;
+    const double s0 = angle_soln * R;
+
+    if ((s1 > w && std::abs(s1 - w) > 1e-6) || (s1 < 0.0 && std::abs(s1) > 1e-6))
+    {
+        std::cout << "s1 = " << s1 << " not in (0.0, " << w << ")\t diff is: " << s1 - w << std::endl;
+    }
+
+    if (std::abs(s0) > M_PI * R)
+    {
+        std::cout << " s0 = " << s0 << " not in (" << -M_PI * R << ", " << M_PI * R << ")" << std::endl;
+    }
+
+    const TensorValue<double> FF0(-(R + s1) / R * sin(s0 / R),
+                                  cos(s0 / R),
+                                  0.0,
+                                  (R + G.real() + s1) / R * cos(s0 / R),
+                                  sin(s0 / R),
+                                  0.0,
+                                  0.0,
+                                  0.0,
+                                  1.0);
+    const double J0 = FF0.det();
+
+    PP = (1.0 / w) * (1 / J0) * FF * FF0 * FF0.transpose();
+
+    const double x_ana = (R + s1) * cos(s0 / R) + xc;
+    const double y_ana = (R + G.real() + s1) * sin(s0 / R) + yc;
+    if (!MathUtilities<double>::equalEps(x_ana, X0(0)) || !MathUtilities<double>::equalEps(y_ana, X0(1)))
+    {
+        TBOX_ERROR("Mismatch in values.\n"
+                   << " x_ana = "
+                   << x_ana
+                   << " x_num = "
+                   << X0(0)
+                   << " y_ana = "
+                   << y_ana
+                   << " y_num = "
+                   << X0(1)
+                   << "\n");
+    }
+
+    /*if (smooth_case)
     {
         PP(0, 1) = 0.0;
         PP(1, 1) = 0.0;
-    }
+    }*/
     return;
 } // PK1_stress_function
 }
@@ -168,26 +339,30 @@ main(int argc, char* argv[])
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(init.comm(), NDIM);
-        const double R = 0.25;
-        const double w = 0.0625;
-        const double dx0 = 1.0 / 64.0;
         const double dx = input_db->getDouble("DX");
         const double MFAC = input_db->getDouble("MFAC");
         const double ds = MFAC * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        bool nested_meshes = input_db->getBoolWithDefault("CONVERGENCE_STUDY", false);
-        const int n_x = nested_meshes ? round(16.0 * round(2.0 * M_PI * R / dx0 / 16.0) / MFAC) * round(dx0 / dx) :
-                                        ceil(2.0 * M_PI * R / ds);
-        const int n_y = nested_meshes ? round(4.0 * round(w / dx0 / 4.0) / MFAC) * round(dx0 / dx) : ceil(w / ds);
-        MeshTools::Generation::build_square(
-            mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, Utility::string_to_enum<ElemType>(elem_type));
-        VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
-        PeriodicBoundary pbc(boundary_translation);
-        pbc.myboundary = 3;
-        pbc.pairedboundary = 1;
+        const int n_x = ceil(2 * M_PI * R / ds);
+        const int n_y = ceil(w / ds);
+        const double delta = ds / 4.0;
+        MeshTools::Generation::build_square(mesh,
+                                            n_x,
+                                            n_y,
+                                            -M_PI * R + delta,
+                                            M_PI * R - delta,
+                                            0.0 + delta,
+                                            w - delta,
+                                            Utility::string_to_enum<ElemType>(elem_type));
+        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        {
+            Node* n = *it;
+            libMesh::Point& X = *n;
+            const libMesh::Point s = X;
 
-        // Configure stress tensor options.
-        smooth_case = input_db->getBool("SMOOTH_CASE");
+            X(0) = (R + s(1)) * cos(s(0) / R) + xc;
+            X(1) = (R + G.real() + s(1)) * sin(s(0) / R) + yc;
+        }
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -240,7 +415,6 @@ main(int argc, char* argv[])
 
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->registerPK1StressFunction(PK1_stress_function);
 
         // Create Eulerian initial condition specification objects.  These
@@ -300,11 +474,6 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-        {
-            System& system = equation_systems->get_system(k);
-            system.get_dof_map().add_periodic_boundary(pbc);
-        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 

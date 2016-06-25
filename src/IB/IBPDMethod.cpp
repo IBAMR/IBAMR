@@ -1,7 +1,7 @@
 // Filename: IBPDMethod.cpp
 // Created on 08 Apr 2016 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -180,7 +180,7 @@ IBPDMethod::midpointStep(const double current_time, const double new_time)
 } // midpointStep
 
 void
-IBPDMethod::trapezoidalStep(const double current_time, const double new_time)
+IBPDMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR(d_object_name << "::trapezoidalStep():\n"
                              << "  time-stepping type TRAPEZOIDAL_RULE not supported by class IBPDMethod;\n"

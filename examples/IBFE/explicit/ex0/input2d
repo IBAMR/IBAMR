@@ -181,7 +181,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(END_TIME/(50*DT))
+   viz_dump_interval           = 1 //int(END_TIME/(50*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

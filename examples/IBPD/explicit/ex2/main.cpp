@@ -1,4 +1,5 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// Filename: main.cpp
+// Created on 24 Jun 2016 by Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
