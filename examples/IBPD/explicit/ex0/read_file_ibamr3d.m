@@ -1,4 +1,7 @@
-clear all;
+% Filename : read_file_ibamr3d.m % Created on 24 Jun 2016 by Amneet Bhalla %
+    All rights reserved.
+
+    clear all;
 clc;
 cla;
 

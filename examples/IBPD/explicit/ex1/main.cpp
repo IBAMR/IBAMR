@@ -1,4 +1,5 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// Filename: main.cpp
+// Created on 24 Jun 2016 by Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -170,8 +171,8 @@ my_force_damage_fcn(const double /*horizon*/,
                     double* parameters,
                     const Eigen::Map<const IBTK::Vector>& X0_mastr,
                     const Eigen::Map<const IBTK::Vector>& X0_slave,
-                    const Eigen::Map<const IBTK::Vector>& X_mastr,
-                    const Eigen::Map<const IBTK::Vector>& X_slave,
+                    const Eigen::Map<const IBTK::Vector>& /*X_mastr*/,
+                    const Eigen::Map<const IBTK::Vector>& /*X_slave*/,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_mastr,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_slave,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_mastr,
@@ -186,7 +187,6 @@ my_force_damage_fcn(const double /*horizon*/,
     const double& vol_mastr = parameters[2];
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
-    const double& critical_stretch = parameters[5];
 
     // PK1 stress tensor
     typedef IBTK::Vector vec_type;
