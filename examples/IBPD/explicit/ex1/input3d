@@ -22,21 +22,7 @@ VelocityInitialConditions {
 }
 
 PressureInitialConditions {
-   R = 0.25
-   w = 0.0625
-   mu = 1.0
-
-   PI = 3.14159265358979
-   p0_smooth = (mu*PI/(3*w))*(R^2 - (R+w)^3/R)
-   p0_sharp = mu*PI*R
-
    function = "0.0"
-
-// smooth case
-// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
-
-// sharp case
-   //function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_sharp - mu/(R+w)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_sharp + (mu/w)*R/(R+w)),p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
 }
 
 // solver parameters
@@ -149,7 +135,6 @@ IBStandardInitializer {
 
    sheet3d {
      level_number = MAX_LEVELS - 1
-     enable_target_points = FALSE
    }
 }
 
@@ -195,7 +180,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1 //int(END_TIME/(50*DT))
+   viz_dump_interval           = 1 
    viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 

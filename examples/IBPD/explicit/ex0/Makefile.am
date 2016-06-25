@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp generate_membrane3d.cpp
-EXTRA_DIST  = input3d
+EXTRA_DIST  = input3d read_file_ibamr3d.m
 EXTRA_DIST += generate_membrane3d.cpp
 
 EXTRA_PROGRAMS =
@@ -23,6 +23,7 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/generate_membrane3d.cpp $(PWD) ; \
+	  cp -f $(srcdir)/read_file_ibamr3d.m $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -30,4 +31,5 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/generate_membrane3d.cpp ; \
+	  rm -f $(builddir)/read_file_ibamr3d.m ; \
 	fi ;

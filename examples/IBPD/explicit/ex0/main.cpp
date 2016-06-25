@@ -65,48 +65,18 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-static const int ndivx = 101;
-static const int ndivy = 101;
-static const int ndivz = 3;
-static const int totnode = ndivx * ndivy * ndivz;
 static const int left_begin = 0;
-static const int left_end = 2 * ndivy * ndivz - 1;
-static const int right_begin = totnode - 2 * ndivy * ndivz;
-static const int right_end = totnode - 1;
+static const int left_end = 76 * 3 * 2 - 1;
+static const int right_begin = 76 * 3 * 149;
+static const int right_end = 76 * 3 * 151 - 1;
 
-static const double dens = 1.0;
-static const double L = 2.0;
-static const double M = 1.0;
-static const double DX = 0.25 / 100.0;
-
-void
-get_bodyforce(double* f_vec, const double* X, const double t)
-{
-    const double x = X[0];
-    const double y = X[1];
-
-    f_vec[0] = -2 * x * (1 / cosh(t) * 1 / cosh(t)) * (-5 * y + 6 * y * cosh(2 * t) + 4 * sinh(2 * t)) * tanh(t);
-    f_vec[1] = -tanh(t) * (11 + 2 * y * y * (1 / cosh(t) * 1 / cosh(t)) + 61 * y * tanh(t) +
-                           4 * (x * x + 14 * y * y) * tanh(t) * tanh(t));
-    return;
-} // get_bodyforce
-
-void
-get_trac(Eigen::Vector2d& trac, const Eigen::Vector2d& normal, const double* X_0, const double t)
-{
-    const double x = X_0[0];
-    const double y = X_0[1];
-
-    static const Eigen::Matrix2d II = Eigen::Matrix2d::Identity();
-    Eigen::Matrix2d FF;
-    FF << y * tanh(t) + 1, x * tanh(t), 0, 2 * y * tanh(t) + 1;
-    const Eigen::Matrix2d E = 0.5 * (FF.transpose() * FF - II);
-    const double trE = E.trace();
-
-    const Eigen::Matrix2d PK1 = L * trE * FF + 2 * M * FF * E;
-    trac = PK1 * normal;
-
-} // get_trac
+static const double dens = 7850.0;
+static const double DX = 1.0 / 75.0;
+static const double E = 200.0e9;
+static const double P = 1.0 / 3.0;
+static const double L = E * P / ((1. + P) * (1. - 2. * P));
+static const double M = E / (2. * (1. + P));
+static const double appres = 200.0e6;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -135,8 +105,10 @@ my_inf_fcn(double R0, double /*delta*/)
 } // my_inf_fcn
 
 double
-my_vol_frac_fcn(double R0, double horizon, double delta)
+my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
+    double horizon = 2.015 * DX;
+    double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
     {
@@ -163,23 +135,24 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
 {
     typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
     static const mat_type II = mat_type::Identity();
-    mat_type E = 0.5 * (FF.transpose() * FF - II);
-    const double trE = E.trace();
-    PK1 = L * trE * FF + 2 * M * FF * E;
+    mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    const double tr_e = e.trace();
+    PK1 = L * tr_e * II + 2 * M * e;
 
     return;
 
 } // my_PK1_fcn
 
 Eigen::Vector4d
-my_force_damage_fcn(const double horizon,
-                    const double delta,
-                    const double R,
+my_force_damage_fcn(const double /*horizon*/,
+                    const double /*delta*/,
+                    const double W,
+                    const double vol_frac,
                     double* parameters,
                     const Eigen::Map<const IBTK::Vector>& X0_mastr,
                     const Eigen::Map<const IBTK::Vector>& X0_slave,
-                    const Eigen::Map<const IBTK::Vector>& X_mastr,
-                    const Eigen::Map<const IBTK::Vector>& X_slave,
+                    const Eigen::Map<const IBTK::Vector>& /*X_mastr*/,
+                    const Eigen::Map<const IBTK::Vector>& /*X_slave*/,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_mastr,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_slave,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_mastr,
@@ -191,14 +164,9 @@ my_force_damage_fcn(const double horizon,
 {
     // Bond parameters
     // 0 --> Kappa, 1 --> R0, 2--> user defined
-    const double& R0 = parameters[1];
     const double& vol_mastr = parameters[2];
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
-    const double& critical_stretch = parameters[5];
-
-    // Volume correction
-    double vol_frac = my_vol_frac_fcn(R0, horizon, delta);
 
     // PK1 stress tensor
     typedef IBTK::Vector vec_type;
@@ -208,21 +176,15 @@ my_force_damage_fcn(const double horizon,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    const double W = my_inf_fcn(R0, delta);
-    const double penalty_fac = 0.0 * 1e2;
+    // const double penalty_fac = 0.0;
     // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
+    // vec_type pen_trac = penalty_fac * (X_slave  - X_mastr);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    F_mastr += vol_slave * trac + pen_trac;
-    F_slave += -vol_mastr * trac - pen_trac;
+    F_mastr += vol_frac * vol_slave * trac;
+    F_slave += -vol_frac * vol_mastr * trac;
 
     // Compute damage.
-    const double stretch = (R - R0) / R0;
     Eigen::Vector4d D;
-    if (std::fabs(stretch) > critical_stretch)
-    {
-        fail = 1.0;
-    }
     D(0) = vol_slave * vol_frac * fail;
     D(1) = vol_slave * vol_frac;
     D(2) = vol_mastr * vol_frac * fail;
@@ -234,12 +196,22 @@ my_force_damage_fcn(const double horizon,
 
 class MyIBPDMethod : public IBPDMethod
 {
+private:
+    std::fstream d_ss_stream;
+
 public:
     MyIBPDMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart = true)
         : IBPDMethod(object_name, input_db, register_for_restart)
     {
         bool from_restart = RestartManager::getManager()->isFromRestart();
-        if (!from_restart) tbox::Utilities::recursiveMkdir("./data");
+        if (!from_restart)
+        {
+            tbox::Utilities::recursiveMkdir("./data");
+
+            std::ostringstream sstream;
+            sstream << "./data/check_ss.txt";
+            d_ss_stream.open(sstream.str().c_str(), std::fstream::out);
+        }
 
         return;
 
@@ -253,43 +225,6 @@ public:
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles)
     {
         IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
-
-        const double start_time = d_ib_solver->getStartTime();
-        const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
-        if (initial_time)
-        {
-            const int coarsest_ln = 0;
-            const int finest_ln = d_hierarchy->getFinestLevelNumber();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-                Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
-                Pointer<LData> U_current_data = d_U_current_data[ln];
-
-                boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-                boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
-
-                const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-                const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
-                for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-                {
-                    const LNode* const node_idx = *cit;
-                    const int local_idx = node_idx->getLocalPETScIndex();
-
-                    const double* X_0 = &X_0_data_array[local_idx][0];
-                    double* U_current = &U_current_data_array[local_idx][0];
-
-                    const double u_dot = X_0[0] * X_0[1] * std::pow(cosh(initial_time), -2);
-                    const double v_dot = X_0[1] * X_0[1] * std::pow(cosh(initial_time), -2);
-                    U_current[0] = u_dot;
-                    U_current[1] = v_dot;
-                    U_current[2] = 0.0;
-                }
-            }
-        }
-
         return;
     } // preprocessIntegrateData
 
@@ -377,8 +312,10 @@ public:
 
     void eulerStep(const double current_time, const double new_time)
     {
+        const double dt = new_time - current_time;
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -386,46 +323,43 @@ public:
             Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
             Pointer<LData> X_current_data = d_X_current_data[ln];
             Pointer<LData> X_half_data = d_X_half_data[ln];
-            Pointer<LData> U_half_data = d_U_half_data[ln];
+            Pointer<LData> U_current_data = d_U_current_data[ln];
 
             boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
             boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
             boost::multi_array_ref<double, 2>& X_half_data_array = *X_half_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& U_half_data_array = *U_half_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                const int lag_idx = node_idx->getLagrangianIndex();
                 const int local_idx = node_idx->getLocalPETScIndex();
 
+                const double* U_current = &U_current_data_array[local_idx][0];
+                const double* X_current = &X_current_data_array[local_idx][0];
                 const double* X_0 = &X_0_data_array[local_idx][0];
-                double* U_half = &U_half_data_array[local_idx][0];
                 double* X_half = &X_half_data_array[local_idx][0];
-                double* X_current = &X_current_data_array[local_idx][0];
 
-                const double u = X_0[0] * X_0[1] * tanh(new_time);
-                const double v = X_0[1] * X_0[1] * tanh(new_time);
-                // const double u_dot = X_0[0] * X_0[1] * std::pow(cosh(new_time), -2);
-                // const double v_dot = X_0[1] * X_0[1] * std::pow(cosh(new_time), -2);
-
-                // Dirichlet BC at bottom.
-                if (lag_idx % ndivy == 0)
+                for (int d = 0; d < 2; ++d)
                 {
-                    X_half[0] = X_0[0] + u;
-                    X_half[1] = X_0[1] + v;
-                    X_half[2] = X_0[2];
+                    X_half[d] = X_current[d] + 0.5 * dt * (U_current[d]);
                 }
+                X_half[2] = X_0[2];
             }
+
+            X_current_data->restoreArrays();
+            X_half_data->restoreArrays();
+            U_current_data->restoreArrays();
         }
         return;
     } // eulerStep
 
     void midpointStep(const double current_time, const double new_time)
     {
+        static const double cn = 4e8;
+
         const double dt = new_time - current_time;
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -464,84 +398,44 @@ public:
                 double* X_new = &X_new_data_array[local_idx][0];
                 double* F_half = &F_half_data_array[local_idx][0];
 
-                const double u = X_0[0] * X_0[1] * tanh(new_time);
-                const double v = X_0[1] * X_0[1] * tanh(new_time);
-                const double u_dot = X_0[0] * X_0[1] * std::pow(cosh(new_time), -2);
-                const double v_dot = X_0[1] * X_0[1] * std::pow(cosh(new_time), -2);
 
                 if (lag_idx >= left_begin && lag_idx <= left_end)
                 {
-                    Eigen::Vector2d normal(-1.0, 0.0);
-                    Eigen::Vector2d trac;
-
                     double bforce[NDIM] = { 0.0 };
-                    get_bodyforce(bforce, X_0, current_time);
-                    get_trac(trac, normal, X_0, current_time);
-
+                    bforce[0] = -appres / DX;
                     for (int d = 0; d < 2; ++d)
                     {
-                        U_new[d] =
-                            U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] / (DX));
-                        X_new[d] = X_current[d] + dt * (U_new[d]);
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
+                    X_new[2] = X_0[2];
                 }
                 else if (lag_idx >= right_begin && lag_idx <= right_end)
                 {
-                    Eigen::Vector2d normal(1.0, 0.0);
-                    Eigen::Vector2d trac;
-
                     double bforce[NDIM] = { 0.0 };
-                    get_bodyforce(bforce, X_0, current_time);
-                    get_trac(trac, normal, X_0, current_time);
-
+                    bforce[0] = appres / DX;
                     for (int d = 0; d < 2; ++d)
                     {
-                        U_new[d] =
-                            U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] / (DX));
-                        X_new[d] = X_current[d] + dt * (U_new[d]);
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
-                }
-                else if (lag_idx % ndivy == 0)
-                {
-                    for (int d = 0; d < 2; ++d)
-                    {
-                        U_new[d] = 0.0;
-                        X_new[d] = X_0[d];
-                    }
-                }
-                else if (lag_idx % (ndivy - 1) == 0)
-                {
-                    U_new[0] = u_dot;
-                    U_new[1] = v_dot;
-                    X_new[0] = X_0[0] + u;
-                    X_new[1] = X_0[1] + v;
-
-                    /*Eigen::Vector2d normal(0.0, 1.0);
-                    Eigen::Vector2d trac;
-
-                    double bforce[NDIM] = {0.0};
-                    get_bodyforce(bforce, X_0, current_time);
-                    get_trac(trac, normal, X_0, current_time);
-
-                    for (int d = 0; d < 2; ++d)
-                    {
-
-                        U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d] + 1.0 * trac[d] /
-                    (DX));
-                        X_new[d] = X_current[d] + dt * (U_new[d]);
-                    }*/
+                    X_new[2] = X_0[2];
                 }
                 else
                 {
-                    double bforce[NDIM] = { 0.0 };
-                    get_bodyforce(bforce, X_0, current_time);
-
                     for (int d = 0; d < 2; ++d)
                     {
-                        U_new[d] = U_current[d] + (dt / dens) * (1.0 * F_half[d] + 1.0 * bforce[d]);
-                        X_new[d] = X_current[d] + dt * (U_new[d]);
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
+                    X_new[2] = X_0[2];
                 }
+                if (lag_idx == 3 * 76 * 75 + 76 + 37)
+                {
+                    d_ss_stream << new_time << "\t" << X_0[0] << "\t" << X_0[1] << "\t" << X_new[0] << "\t" << X_new[1]
+                                << "\n";
+                }
+
             }
 
             X_0_data->restoreArrays();
@@ -555,6 +449,22 @@ public:
         return;
 
     } // midpointStep
+
+    void spreadForce(const int /*f_data_idx*/,
+                     RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                     const double /*data_time*/)
+    {
+        return;
+    } // spreadForce
+
+    void interpolateVelocity(const int /*u_data_idx*/,
+                             const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                             const double /*data_time*/)
+    {
+        return;
+    } // interpolateVelocity
 };
 
 /*******************************************************************************

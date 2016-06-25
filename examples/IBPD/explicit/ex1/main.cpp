@@ -183,19 +183,10 @@ my_force_damage_fcn(const double /*horizon*/,
 {
     // Bond parameters
     // 0 --> Kappa, 1 --> R0, 2--> user defined
-    const double& R0 = parameters[1];
     const double& vol_mastr = parameters[2];
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
     const double& critical_stretch = parameters[5];
-
-    // Estimate failure
-    const double R = (X_slave - X_mastr).norm();
-    const double stretch = (R - R0) / R0;
-    /*if (!MathUtilities<double>::equalEps(fail, 0.0) && std::fabs(stretch) > critical_stretch)
-    {
-        fail = 0.0;
-    }*/
 
     // PK1 stress tensor
     typedef IBTK::Vector vec_type;
