@@ -420,6 +420,10 @@ protected:
     void computeInteriorForceDensity(libMesh::PetscVector<double>& F_vec,
                                      libMesh::PetscVector<double>& X_vec,
                                      libMesh::PetscVector<double>& dP_vec,
+                                     libMesh::PetscVector<double>& dU_m_vec,
+                                     libMesh::PetscVector<double>& dU_p_vec,
+                                     libMesh::PetscVector<double>& dU_m_side_vec,
+                                     libMesh::PetscVector<double>& dU_p_side_vec,
                                      double data_time,
                                      unsigned int part);
 
@@ -431,10 +435,6 @@ protected:
     void imposeJumpConditions(int f_data_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
-                              libMesh::PetscVector<double>& dU_m_vec,
-                              libMesh::PetscVector<double>& dU_p_vec,
-                              libMesh::PetscVector<double>& dU_m_side_vec,
-                              libMesh::PetscVector<double>& dU_p_side_vec,
                               libMesh::PetscVector<double>& dP_ghost_vec,
                               libMesh::PetscVector<double>& dU_m_ghost_vec,
                               libMesh::PetscVector<double>& dU_p_ghost_vec,
