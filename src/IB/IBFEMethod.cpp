@@ -1395,6 +1395,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                  PetscVector<double>& dU_p_side_ghost_vec,
                                  const double data_time,
                                  const unsigned int part)
+                                 
 {
     if (!d_split_normal_force && !d_split_tangential_force) return;
 
@@ -2176,11 +2177,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                                 if (axis == 1)
                                                 {
-                                                    C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
+                                                    C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
                                                 }
                                                 else
                                                 {
-                                                    C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+                                                    C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
                                                 }
 
                                                 (*f_data)(i_s_side_um) +=
@@ -2226,11 +2227,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                         if (axis == 1)
                                         {
-                                            C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
+                                            C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
                                         }
                                         else
                                         {
-                                            C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+                                            C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
                                         }
 
                                         (*f_data)(i_s_side_up) +=
