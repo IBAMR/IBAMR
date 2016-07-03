@@ -177,9 +177,6 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    // const double penalty_fac = 0.0;
-    // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    // vec_type pen_trac = penalty_fac * (X_slave  - X_mastr);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
     F_mastr += vol_frac * vol_slave * trac;
     F_slave += -vol_frac * vol_mastr * trac;
@@ -343,11 +340,10 @@ public:
                 const double* X_0 = &X_0_data_array[local_idx][0];
                 double* X_half = &X_half_data_array[local_idx][0];
 
-                for (int d = 0; d < 2; ++d)
+                for (int d = 0; d < NDIM; ++d)
                 {
                     X_half[d] = X_current[d] + 0.5 * dt * (U_current[d]);
                 }
-                X_half[2] = X_0[2];
             }
 
             X_current_data->restoreArrays();
@@ -399,44 +395,39 @@ public:
                 double* X_new = &X_new_data_array[local_idx][0];
                 double* F_half = &F_half_data_array[local_idx][0];
 
-
                 if (lag_idx >= left_begin && lag_idx <= left_end)
                 {
                     double bforce[NDIM] = { 0.0 };
                     bforce[0] = -appres / DX;
-                    for (int d = 0; d < 2; ++d)
+                    for (int d = 0; d < NDIM; ++d)
                     {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
-                    X_new[2] = X_0[2];
                 }
                 else if (lag_idx >= right_begin && lag_idx <= right_end)
                 {
                     double bforce[NDIM] = { 0.0 };
                     bforce[0] = appres / DX;
-                    for (int d = 0; d < 2; ++d)
+                    for (int d = 0; d < NDIM; ++d)
                     {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
-                    X_new[2] = X_0[2];
                 }
                 else
                 {
-                    for (int d = 0; d < 2; ++d)
+                    for (int d = 0; d < NDIM; ++d)
                     {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
                     }
-                    X_new[2] = X_0[2];
                 }
                 if (lag_idx == 3 * 76 * 75 + 76 + 37)
                 {
                     d_ss_stream << new_time << "\t" << X_0[0] << "\t" << X_0[1] << "\t" << X_new[0] << "\t" << X_new[1]
                                 << "\n";
                 }
-
             }
 
             X_0_data->restoreArrays();
