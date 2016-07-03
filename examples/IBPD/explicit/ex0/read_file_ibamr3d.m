@@ -1,11 +1,11 @@
-% Filename : read_file_ibamr3d.m % Created on 24 Jun 2016 by Amneet Bhalla %
+% Filename : read_file_ibamr3d.m % Created on 24 Jun 2016 by Amneet Bhalla % %
     All rights reserved.
 
     clear all;
 clc;
 cla;
 
-A = load('data/D_7000_0.0007');
+A = load('data/D_5000_0.0005');
 
 length = 151;
 num_rows = 76;
@@ -53,9 +53,8 @@ hold on;
 figure(3) plot(Y( :, 75), V( :, 75), 'k*-', Y( :, 75), -(1.0 / 3.0) * (200E6 / 200E9) * (Y( :, 75) - 0.25), '--');
 xlabel('y') ylabel('u_y') legend('PD solution', 'Analytical');
 hold on;
-% %
 
-    A = load('data/D_9500_0.00095');
+% % A = load('data/D_9500_0.00095');
 X = zeros(num_rows, length);
 Y = zeros(num_rows, length);
 U = zeros(num_rows, length);
