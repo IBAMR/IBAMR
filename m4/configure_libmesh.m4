@@ -52,21 +52,21 @@ if test "$LIBMESH_ENABLED" = yes; then
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
   AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh.h]))
   AC_CHECK_HEADER([libmesh/libmesh_config.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh_config.h]))
-  AC_MSG_CHECKING([for libMesh version 0.9.5 or newer])
+  AC_MSG_CHECKING([for libMesh version 1.0.0 or newer])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/libmesh_config.h>
 
 #if !defined LIBMESH_SUBMINOR_VERSION
 #define LIBMESH_SUBMINOR_VERSION LIBMESH_MICRO_VERSION
 #endif
-#if ((LIBMESH_MAJOR_VERSION > 0) || ((LIBMESH_MINOR_VERSION >= 9) && (LIBMESH_SUBMINOR_VERSION >= 5)))
+#if ((LIBMESH_MAJOR_VERSION >= 1) || ((LIBMESH_MINOR_VERSION >= 0) && (LIBMESH_SUBMINOR_VERSION >= 0)))
 #else
 asdf
 #endif
   ]])],[LIBMESH_VERSION_VALID=yes],[LIBMESH_VERSION_VALID=no])
   AC_MSG_RESULT([${LIBMESH_VERSION_VALID}])
   if test "$LIBMESH_VERSION_VALID" = no; then
-    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 0.9.5 or newer])
+    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.0.0 or newer])
   fi
   AC_MSG_NOTICE([obtaining libMesh configuration information from libmesh_common.h])
   AC_RUN_IFELSE([AC_LANG_SOURCE([
