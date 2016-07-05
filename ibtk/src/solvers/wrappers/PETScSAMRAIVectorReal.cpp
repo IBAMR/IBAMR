@@ -105,6 +105,42 @@ static Timer* t_vec_dot_norm2;
 #define PSVR_CAST2(v) (PETScSAMRAIVectorReal::getSAMRAIVector(v))
 
 PetscErrorCode
+VecDuplicateVecs_SAMRAI(Vec v, PetscInt m, Vec* V[])
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(V);
+#endif
+    PetscErrorCode ierr;
+    ierr = PetscMalloc1(m, V);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < m; ++i)
+    {
+        ierr = VecDuplicate(v, *V + i);
+        IBTK_CHKERRQ(ierr);
+    }
+    PetscFunctionReturn(0);
+} // VecDuplicateVecs
+
+PetscErrorCode
+VecDestroyVecs_SAMRAI(PetscInt m, Vec vv[])
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(vv);
+#endif
+    PetscErrorCode ierr;
+    for (PetscInt i = 0; i < m; ++i)
+    {
+        ierr = VecDestroy(&vv[i]);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = PetscFree(vv);
+    IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+} // VecDestroyVecs
+
+PetscErrorCode
 VecDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_dot);
@@ -727,8 +763,8 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<NDIM, Pets
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
     IBTK_DO_ONCE(DvOps.duplicate = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
-                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
-                 DvOps.destroyvecs = VecDestroyVecs_Default;
+                 DvOps.duplicatevecs = VecDuplicateVecs_SAMRAI;
+                 DvOps.destroyvecs = VecDestroyVecs_SAMRAI;
                  DvOps.dot = VecDot_SAMRAI;
                  DvOps.mdot = VecMDot_SAMRAI;
                  DvOps.norm = VecNorm_SAMRAI;

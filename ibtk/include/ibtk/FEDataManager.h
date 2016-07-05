@@ -53,6 +53,7 @@
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/auto_ptr.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "tbox/Pointer.h"
@@ -62,11 +63,6 @@ namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
-namespace libMesh
-{
-template <typename Tp>
-class AutoPtr;
-} // namespace libMesh
 
 namespace SAMRAI
 {
