@@ -23207,6 +23207,50 @@ $as_echo "${LIBMESH_VERSION_VALID}" >&6; }
   if test "$LIBMESH_VERSION_VALID" = no; then
     as_fn_error $? "invalid libMesh version detected: please use libMesh 1.0.0 or newer" "$LINENO" 5
   fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if libMesh is configured with UniquePtr ***disabled***" >&5
+$as_echo_n "checking if libMesh is configured with UniquePtr ***disabled***... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/auto_ptr.h>
+
+#if defined(UniquePtr)
+#if (UniquePtr == AutoPtr)
+// intentionally blank
+#else
+asdf
+#endif
+#else
+asdf
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_HAS_UNIQUEPTR=no
+else
+  LIBMESH_HAS_UNIQUEPTR=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_VERSION_VALID}" >&5
+$as_echo "${LIBMESH_VERSION_VALID}" >&6; }
+  if test "$LIBMESH_HAS_UNIQUEPTR" = yes; then
+    as_fn_error $? "please rerun libMesh configure with UniquePtr disabled (--disable-unique-ptr)" "$LINENO" 5
+  fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
   if test "$cross_compiling" = yes; then :
