@@ -492,11 +492,7 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-#if (!PETSC_VERSION_RELEASE)
     ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#else
-    ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#endif
     IBTK_CHKERRQ(ierr);
     std::string pc_type = d_pc_type;
     if (flg)

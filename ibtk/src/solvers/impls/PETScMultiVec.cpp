@@ -99,6 +99,46 @@ VecDuplicate_MultiVec(Vec v, Vec* newv)
 } // VecDuplicate_MultiVec
 
 #undef __FUNCT__
+#define __FUNCT__ "VecDuplicateVecs_MultiVec"
+PetscErrorCode
+VecDuplicateVecs_MultiVec(Vec v, PetscInt m, Vec* V[])
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(V);
+#endif
+    PetscErrorCode ierr;
+    ierr = PetscMalloc1(m, V);
+    CHKERRQ(ierr);
+    for (PetscInt i = 0; i < m; ++i)
+    {
+        ierr = VecDuplicate(v, *V + i);
+        CHKERRQ(ierr);
+    }
+    PetscFunctionReturn(0);
+} // VecDuplicateVecs
+
+#undef __FUNCT__
+#define __FUNCT__ "VecDestroyVecs_MultiVec"
+PetscErrorCode
+VecDestroyVecs_MultiVec(PetscInt m, Vec vv[])
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(vv);
+#endif
+    PetscErrorCode ierr;
+    for (PetscInt i = 0; i < m; ++i)
+    {
+        ierr = VecDestroy(&vv[i]);
+        CHKERRQ(ierr);
+    }
+    ierr = PetscFree(vv);
+    CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+} // VecDestroyVecs
+
+#undef __FUNCT__
 #define __FUNCT__ "VecDot_MultiVec"
 PetscErrorCode
 VecDot_MultiVec(Vec x, Vec y, PetscScalar* val)
@@ -941,8 +981,8 @@ VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec; DvOps.duplicatevecs = VecDuplicateVecs_Default;
-                 DvOps.destroyvecs = VecDestroyVecs_Default;
+    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec; DvOps.duplicatevecs = VecDuplicateVecs_MultiVec;
+                 DvOps.destroyvecs = VecDestroyVecs_MultiVec;
                  DvOps.dot = VecDot_MultiVec;
                  DvOps.mdot = VecMDot_MultiVec;
                  DvOps.norm = VecNorm_MultiVec;

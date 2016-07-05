@@ -124,6 +124,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
       d_level_solver_max_iterations(10),
       d_SAJ_fill(1.0)
 {
+    // Set the time stepping type to UNKNOWN to ensure that the IB solver sets it correctly.
+    d_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
+
     // Indicate that this subclass handles initializaing the coarse-grid solver.
     d_coarse_solver_init_subclass = true;
 

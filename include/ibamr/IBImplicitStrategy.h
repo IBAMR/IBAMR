@@ -159,7 +159,7 @@ public:
     /*!
     * Advance the positions of the Lagrangian structure using backward Euler.
     */
-    virtual void backwardEulerStep(double current_time, double new_time);
+    virtual void backwardEulerStep(double current_time, double new_time) = 0;
 
 protected:
 private:
