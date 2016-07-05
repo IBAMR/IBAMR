@@ -245,12 +245,7 @@ public:
             static const size_t len = 255;
             char pc_type_str[len];
             PetscBool flg;
-#if (!PETSC_VERSION_RELEASE)
             PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#else
-            PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#endif
-
             std::string pc_type = "shell";
             if (flg)
             {
@@ -508,12 +503,8 @@ main(int argc, char* argv[])
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
-            std::string PetscOptionsFile = input_db->getString("petsc_options_file");
-#if (!PETSC_VERSION_RELEASE)
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, PetscOptionsFile.c_str(), PETSC_TRUE);
-#else
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
-#endif
+            std::string petsc_options_file = input_db->getString("petsc_options_file");
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
