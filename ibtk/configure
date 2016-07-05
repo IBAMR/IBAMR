@@ -1665,7 +1665,7 @@ Optional Packages:
                           libMesh compile mode options include opt, devel,
                           dbg, prof, oprof [default=opt]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
-  --with-boost=DIR        prefix of Boost 1.46.1 [guess]
+  --with-boost=DIR        prefix of Boost 1.57.0 [guess]
   --with-eigen=PATH       location of required Eigen installation
   --with-hdf5=PATH        location of required HDF5 installation
   --with-hypre=PATH       location of required hypre installation
@@ -26730,7 +26730,7 @@ echo "first check for a system Boost library; if not found, revert to bundled Bo
 $as_unset boost_cv_inc_path
 echo "$as_me: this is boost.m4 serial 22" >&5
 boost_save_IFS=$IFS
-boost_version_req=1.46.1
+boost_version_req=1.57.0
 IFS=.
 set x $boost_version_req 0 0 0
 IFS=$boost_save_IFS
@@ -26871,7 +26871,7 @@ $as_echo "$as_me: could not find system Boost library, using bundled Boost libra
   with_boost="$CONTRIB_SRCDIR"
   echo "$as_me: this is boost.m4 serial 22" >&5
 boost_save_IFS=$IFS
-boost_version_req=1.46.1
+boost_version_req=1.57.0
 IFS=.
 set x $boost_version_req 0 0 0
 IFS=$boost_save_IFS
