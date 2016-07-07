@@ -190,14 +190,22 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    if (d_time_stepping_type != BACKWARD_EULER && d_time_stepping_type != MIDPOINT_RULE)
+    switch (d_time_stepping_type)
     {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+    case MIDPOINT_RULE:
+        break;
+    default:
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): time_stepping_type = "
                    << enum_to_string<TimeSteppingType>(d_time_stepping_type)
                    << "\n"
                    << "  only supported time_stepping_types are:\n"
                    << "    "
                    << enum_to_string<TimeSteppingType>(BACKWARD_EULER)
+                   << "\n"
+                   << "    "
+                   << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE)
                    << "\n"
                    << "    "
                    << enum_to_string<TimeSteppingType>(MIDPOINT_RULE)
@@ -245,6 +253,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     }
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
 
+#if 0
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
     //
@@ -253,6 +262,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     if (d_enable_logging)
         plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
     d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
+#endif
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
