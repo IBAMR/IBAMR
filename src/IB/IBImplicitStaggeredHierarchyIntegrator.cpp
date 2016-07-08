@@ -1366,7 +1366,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
                                                      velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X0, X);
 
-    // Compute linearized force F = kappa*A*(kappa*dt*J*[u]) = kappa^2*dt*A*J[u].
+    // Compute linearized force F = kappa*A*X.
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, force_time);
     if (d_enable_logging)
     {
@@ -1378,7 +1378,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
-    d_hier_velocity_data_ops->axpy(f_u_idx, -kappa * kappa, d_f_idx, f_u_idx);
+    d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
     return ierr;
