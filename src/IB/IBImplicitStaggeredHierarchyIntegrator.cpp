@@ -306,6 +306,8 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
                                  "velocity to the Lagrangian mesh\n";
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -832,6 +834,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     default:
         TBOX_ERROR("unsupported time stepping type\n");
     }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1035,6 +1039,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     default:
         TBOX_ERROR("unsupported time stepping type\n");
     }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1185,6 +1191,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
         TBOX_ERROR("unsupported time stepping type\n");
     }
     d_hier_velocity_data_ops->scale(d_u_idx, -1.0, d_u_idx);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1289,6 +1297,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     default:
         TBOX_ERROR("unsupported time stepping type\n");
     }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1348,6 +1358,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_ib_implicit_ops->createSolverVecs(&X, &X0);
     d_ib_implicit_ops->setupSolverVecs(NULL, &X0);
     d_hier_velocity_data_ops->scale(d_u_idx, -kappa, u_idx);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1469,6 +1481,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 
     // Step 2: lag_y := lag_x + dt*J*eul_y/2
     d_hier_velocity_data_ops->scale(d_u_idx, -0.5, eul_y->getComponentDescriptorIndex(0));
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1549,6 +1563,8 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
     d_hier_velocity_data_ops->scale(d_u_idx, 0.25, d_u_scratch_vec->getComponentDescriptorIndex(0));
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
