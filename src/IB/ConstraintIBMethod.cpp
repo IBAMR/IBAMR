@@ -38,24 +38,24 @@
 #include <algorithm>
 #include <cmath>
 
-#include "PatchHierarchy.h"
-#include "HierarchyDataOpsManager.h"
-#include "VariableDatabase.h"
-#include "tbox/Utilities.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
+#include "HierarchyDataOpsManager.h"
+#include "PatchHierarchy.h"
+#include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
 #include "ibamr/namespaces.h"
-#include "ibtk/LNodeSetData.h"
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
-#include "ibtk/FACPreconditioner.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/FACPreconditioner.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -1307,7 +1307,7 @@ ConstraintIBMethod::calculateVolumeElement()
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        const double* const X = &X_data[local_idx][0];			
+                        const double* const X = &X_data[local_idx][0];
                         const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
 
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
@@ -2001,9 +2001,9 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
 } // updateStructurePositionEulerStep
 
 void
-ConstraintIBMethod::eulerStep(double current_time, double new_time)
+ConstraintIBMethod::forwardEulerStep(double current_time, double new_time)
 {
-    IBMethod::eulerStep(current_time, new_time);
+    IBMethod::forwardEulerStep(current_time, new_time);
 
     IBTK_TIMER_START(t_eulerStep);
     updateStructurePositionEulerStep();
@@ -2522,5 +2522,3 @@ ConstraintIBMethod::calculatePower()
 } // calculatePower
 
 } // IBAMR
-
-

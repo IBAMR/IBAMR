@@ -202,7 +202,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian "
                                          "forward Euler step\n";
-            d_ib_method_ops->eulerStep(current_time, new_time);
+            d_ib_method_ops->forwardEulerStep(current_time, new_time);
         }
         break;
     default:
@@ -362,7 +362,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     {
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
-        d_ib_method_ops->eulerStep(current_time, new_time);
+        d_ib_method_ops->forwardEulerStep(current_time, new_time);
     }
     else
     {
