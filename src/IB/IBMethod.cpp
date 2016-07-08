@@ -167,6 +167,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_spread_kernel_fcn = "IB_4";
     d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
                         LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
+    d_force_jac_mffd = false;
     d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
@@ -572,20 +573,62 @@ IBMethod::setLinearizedPosition(Vec& X_vec, const double data_time)
     IBTK_CHKERRQ(ierr);
     ierr = VecGetSize(X_vec, &n_global);
     IBTK_CHKERRQ(ierr);
-    ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOptionsPrefix(d_force_jac, "ib_jac_");
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetFromOptions(d_force_jac);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(d_force_jac, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
+
+    if (d_force_jac_mffd)
+    {
+        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetOptionsPrefix(d_force_jac, "ib_jac_");
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetFromOptions(d_force_jac);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMFFDSetBase(d_force_jac, (*X_jac_data)[level_num]->getVec(), NULL);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyBegin(d_force_jac, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(d_force_jac, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        std::vector<int> d_nnz, o_nnz;
+        d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(
+            d_nnz, o_nnz, d_hierarchy, level_num, d_l_data_manager);
+        std::vector<int> d_nnz_unblocked(NDIM * d_nnz.size()), o_nnz_unblocked(NDIM * o_nnz.size());
+        for (unsigned int k = 0; k < d_nnz.size(); ++k)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_nnz_unblocked[NDIM * k + d] = NDIM * d_nnz[k];
+                o_nnz_unblocked[NDIM * k + d] = NDIM * o_nnz[k];
+            }
+        }
+        ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                            n_local,
+                            n_local,
+                            n_global,
+                            n_global,
+                            0,
+                            n_local ? &d_nnz_unblocked[0] : NULL,
+                            0,
+                            n_local ? &o_nnz_unblocked[0] : NULL,
+                            &d_force_jac);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetBlockSize(d_force_jac, NDIM);
+        IBTK_CHKERRQ(ierr);
+        d_ib_force_fcn->computeLagrangianForceJacobian(d_force_jac,
+                                                       MAT_FINAL_ASSEMBLY,
+                                                       1.0,
+                                                       (*X_jac_data)[level_num],
+                                                       0.0,
+                                                       Pointer<IBTK::LData>(NULL),
+                                                       d_hierarchy,
+                                                       level_num,
+                                                       data_time,
+                                                       d_l_data_manager);
+    }
     return;
 } // setLinearizedPosition
 
@@ -2018,6 +2061,7 @@ IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
         if (db->isBool("normalize_source_strength"))
             d_normalize_source_strength = db->getBool("normalize_source_strength");
     }
+    if (db->keyExists("force_jac_mffd")) d_force_jac_mffd = db->getBool("force_jac_mffd");
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))

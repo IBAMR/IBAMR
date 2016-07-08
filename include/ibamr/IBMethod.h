@@ -665,6 +665,7 @@ private:
     /*!
      * Jacobian data.
      */
+    bool d_force_jac_mffd;
     Mat d_force_jac;
     double d_force_jac_data_time;
 };
