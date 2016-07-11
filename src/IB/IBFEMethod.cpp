@@ -679,7 +679,6 @@ IBFEMethod::spreadForce(const int f_data_idx,
             if (d_use_jump_conditions)
             {
 				
-                //~ imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, *d_dU_m_vec,*d_dU_p_vec,*d_dU_m_side_vec,*d_dU_p_side_vec, *dP_ghost_vec, data_time, part);
 
                 imposeJumpConditions(f_data_idx,
                                      *F_ghost_vec,
@@ -1303,15 +1302,17 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 if (d_split_normal_force && !d_split_tangential_force)
                 {
                     F = F - (F * n) * n;
+                   
                 }
                 else if (d_split_tangential_force && !d_split_normal_force)
                 {
                     F = (F * n) * n;
+					 
                 }
                 else if (d_split_tangential_force && d_split_normal_force)
                 {
 					
-					F = 0.0;
+					 F = 0.0;
 				}
 				
 				
@@ -1859,6 +1860,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                                 dx[axis] +
                                                             1.0) +
                                                         patch_lower[axis];
+                                                        
+    
 
                                                     if (side_boxes[axis]
                                                             .contains(i_sss)) {
@@ -1890,24 +1893,24 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 												i_c_neighbor(axis) += 1;
 												SideIndex<NDIM> i_su(i_c_neighbor, dd, 0);
 												i_su(axis) = std::floor((xu(axis) - x_lower[axis])/ dx[axis] + 0.5) + patch_lower[axis];
-												if (side_boxes[axis].contains(i_su))
-												{
+												//~ if (side_boxes[axis].contains(i_su))
+												//~ {
 													intersectionSide_indices_up.push_back(i_su);
 													num_intersectionsSide_up(i_su) += 1;
 													intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-												}
+												//~ }
 								}
 								else 
 								{	
 												SideIndex<NDIM> i_su(i_c_neighbor, dd, 0);
 												i_su(axis) = std::floor((xu(axis) - x_lower[axis])/ dx[axis]) + patch_lower[axis];
 												
-												if (side_boxes[axis].contains(i_su))
-												{
+												//~ if (side_boxes[axis].contains(i_su))
+												//~ {
 													intersectionSide_indices_up.push_back(i_su);
 													num_intersectionsSide_up(i_su) += 1;
 													intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-												}
+												//~ }
 										
 								}
 							}
@@ -1924,12 +1927,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 									SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
 									i_suu(axis) = std::floor((xuu(axis) - x_lower[axis])/ dx[axis]) + patch_lower[axis];
 									
-									if (side_boxes[axis].contains(i_suu))
-									{
+									//~ if (side_boxes[axis].contains(i_suu))
+									//~ {
 										intersectionSide_indices_um.push_back(i_suu);
 										num_intersectionsSide_um(i_suu) += 1;
 										intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
-									}
+									//~ }
 											
 								}
 								else
@@ -1938,12 +1941,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 									SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
 									i_suu(axis) = std::floor((xuu(axis) - x_lower[axis])/ dx[axis] - 0.5) + patch_lower[axis];
 									
-									if (side_boxes[axis].contains(i_suu))
-									{
+									//~ if (side_boxes[axis].contains(i_suu))
+									//~ {
 										intersectionSide_indices_um.push_back(i_suu);
 										num_intersectionsSide_um(i_suu) += 1;
 										intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
-									}
+									//~ }
 								}
 							}
 								
@@ -2025,7 +2028,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                         // Now use the computed weak solution and the intersection info to actually apply the jump
 
-                        if (integrate_tangential_force && !intersection_ref_coords_um.empty())
+                        if (integrate_tangential_force && !intersection_ref_coords_um.empty() && (intersection_indices_um.size() == intersection_indices_up.size()))
                         {
                             //~ && intersectionSide_ref_coords.empty()) continue;
 
@@ -2053,6 +2056,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                                     const SideIndex<NDIM>& i_s = intersection_indices_um[qp];
                                                     const unsigned int axis = i_s.getAxis();
+                                                    const SideIndex<NDIM>& i_s_up = intersection_indices_up[qp];
+                                                    
+                                                    if (side_boxes[axis].contains(i_s) && side_boxes[axis].contains(i_s_up)) {
 
                                                     const double x_cell_bdry =
                                                         x_lower[axis] +
@@ -2068,15 +2074,18 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                     if (axis == 0)
                                                     {
                                                         C_u = SDH * interpolate(qp, dU_m_node, X_phi);
+														
                                                     }
                                                     else
                                                     {
                                                         C_u = SDH * interpolate(qp, dU_p_node, X_phi);
+                                                       
                                                     }
 
-                                                    const SideIndex<NDIM>& i_s_up = intersection_indices_up[qp];
+                                                    //~ const SideIndex<NDIM>& i_s_up = intersection_indices_up[qp];
                                                     (*f_data)(i_s_up) +=
                                                         (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u / (dx[axis] * dx[axis]));
+													}
                                                 }
                         }
 
@@ -2109,8 +2118,14 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                 const SideIndex<NDIM>& i_s = intersection_indices_up[qp];
                                 const unsigned int axis = i_s.getAxis();
+                                
+                                 const SideIndex<NDIM>& i_s_um = intersection_indices_um[qp];
+                                
+                                 if (side_boxes[axis].contains(i_s) && side_boxes[axis].contains(i_s_um) ) {
+									 
+									                                        
 
-                                const SideIndex<NDIM>& i_s_um = intersection_indices_um[qp];
+                               
 
                                 const double x_cell_bdry =
                                     x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
@@ -2123,14 +2138,18 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                 if (axis == 0)
                                 {
-                                    C_u = SDH * interpolate(qp, dU_m_node, X_phi);
+                                   C_u = SDH * interpolate(qp, dU_m_node, X_phi);
+									
                                 }
                                 else
                                 {
-                                    C_u = SDH * interpolate(qp, dU_p_node, X_phi);
+                                   C_u = SDH * interpolate(qp, dU_p_node, X_phi);
+									
                                 }
 
                                 (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * C_u / (dx[axis] * dx[axis]);
+                                
+								}
                             }
                                 }
 
@@ -2141,11 +2160,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                 // 1) u_yy, u_zz  (in the x-momentum equation)
                                 // 2) v_xx, v_zz  (in the y-momentum equation)
 
-                                if (integrate_tangential_force && !intersectionSide_ref_coords_up.empty())
+                                if (integrate_tangential_force && !intersectionSide_ref_coords_up.empty() && (intersectionSide_indices_um.size() == intersectionSide_indices_up.size()))
 
                                 {
                                     X_fe_base->reinit(elem, &intersectionSide_ref_coords_up);
                                     const size_t n_qp = intersectionSide_indices_up.size();
+                                    //~ TBOX_ASSERT(intersectionSide_indices_um.size() == intersectionSide_indices_up.size());
 
                                         for (unsigned int qp = 0; qp < n_qp; ++qp)
 					{
@@ -2161,6 +2181,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 						n = n.unit();
 							
 						const unsigned int dd = i_s.getAxis();
+						
+						                       if (side_boxes[dd].contains(i_s)) {
 
                                                 const SideIndex<NDIM>& i_s_side_um = intersectionSide_indices_um[qp];
 
@@ -2177,15 +2199,18 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                                 if (axis == 1)
                                                 {
-                                                    C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+													C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+													
                                                 }
                                                 else
                                                 {
                                                     C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
+												
                                                 }
 
                                                 (*f_data)(i_s_side_um) +=
                                                     (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u / (dx[axis] * dx[axis]));
+												}
                                         }
                                 }
 
@@ -2194,7 +2219,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                 {
                                     X_fe_base->reinit(elem, &intersectionSide_ref_coords_um);
                                     const size_t n_qp = intersectionSide_ref_coords_um.size();
-
                                     for (unsigned int qp = 0; qp < n_qp; ++qp)
                                     {
                                         const SideIndex<NDIM>& i_s = intersectionSide_indices_um[qp];
@@ -2209,6 +2233,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                         n = n.unit();
 
                                         const unsigned int dd = i_s.getAxis();
+                                        
+                                        
+                                        if (side_boxes[dd].contains(i_s)) {
 
                                         const SideIndex<NDIM>& i_s_side_up = intersectionSide_indices_up[qp];
 
@@ -2227,344 +2254,23 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                         if (axis == 1)
                                         {
-                                            C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+                                           C_u = SDH * interpolate(qp, dU_p_side_node, X_phi);
+                                           
                                         }
                                         else
                                         {
-                                            C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
+                                           C_u = SDH * interpolate(qp, dU_m_side_node, X_phi);
+                                           
                                         }
 
                                         (*f_data)(i_s_side_up) +=
                                             (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u / (dx[axis] * dx[axis]));
+										}
                                     }
                                 }
 #endif
         }
     }
-
-    /*
-
-      local_patch_num = 0;
-
-      for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-      {
-          // The relevant collection of elements.
-          const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
-          const size_t num_active_patch_elems = patch_elems.size();
-          if (num_active_patch_elems == 0) continue;
-
-          const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-          Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-          const Box<NDIM>& patch_box = patch->getBox();
-          Box<NDIM> side_boxes[NDIM];
-          for (int d = 0; d < NDIM; ++d)
-          {
-              side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
-          }
-          const CellIndex<NDIM>& patch_lower = patch_box.lower();
-          const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-          const double* const x_lower = patch_geom->getXLower();
-          const double* const dx = patch_geom->getDx();
-
-
-                  //~ if (integrate_tangential_force)
-                  //~ {
-                          SideData<NDIM, int> num_intersections_um(patch_box, 1, IntVector<NDIM>(0));
-                          num_intersections_um.fillAll(0);
-
-                          SideData<NDIM, int> num_intersections_up(patch_box, 1, IntVector<NDIM>(0));
-                          num_intersections_up.fillAll(0);
-
-
-                          SideData<NDIM, int> num_intersectionsSide_um(patch_box, 1, IntVector<NDIM>(0));
-                          num_intersectionsSide_um.fillAll(0);
-
-                          SideData<NDIM, int> num_intersectionsSide_up(patch_box, 1, IntVector<NDIM>(0));
-                          num_intersectionsSide_up.fillAll(0);
-                  //~ }
-
-
-
-          // Loop over the elements.
-          for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-          {
-              Elem* const elem = patch_elems[e_idx];
-              const unsigned int n_node = elem->n_nodes();
-
-                          dU_m_dof_map_cache.dof_indices(elem, dU_m_dof_indices);
-                          dU_m_rhs_e.resize(static_cast<int>(dU_m_dof_indices.size()));
-                          get_values_for_interpolation(dU_m_node, *dU_m_petsc_vec, dU_m_local_soln, dU_m_dof_indices);
-
-
-                          dU_p_dof_map_cache.dof_indices(elem, dU_p_dof_indices);
-                          dU_p_rhs_e.resize(static_cast<int>(dU_p_dof_indices.size()));
-                          get_values_for_interpolation(dU_p_node, *dU_p_petsc_vec, dU_p_local_soln, dU_p_dof_indices);
-
-
-
-                          dU_m_side_dof_map_cache.dof_indices(elem, dU_m_side_dof_indices);
-                          dU_m_side_rhs_e.resize(static_cast<int>(dU_m_side_dof_indices.size()));
-                          get_values_for_interpolation(dU_m_side_node, *dU_m_side_petsc_vec, dU_m_side_local_soln,
-  dU_m_side_dof_indices);
-
-
-                          dU_p_side_dof_map_cache.dof_indices(elem, dU_p_side_dof_indices);
-                          dU_p_side_rhs_e.resize(static_cast<int>(dU_p_side_dof_indices.size()));
-                          get_values_for_interpolation(dU_p_side_node, *dU_p_side_petsc_vec, dU_p_side_local_soln,
-  dU_p_side_dof_indices);
-
-
-
-              for (int d = 0; d < NDIM; ++d)
-              {
-                  X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-              }
-
-              get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-
-
-              // Cache the nodal and physical coordinates of the side element,
-              // determine the bounding box of the current configuration of
-              // the side element, and set the nodal coordinates to correspond
-              // to the physical coordinates.
-              s_node_cache.resize(n_node);
-              x_node_cache.resize(n_node);
-              x_min = IBTK::Point::Constant(std::numeric_limits<double>::max());
-              x_max = IBTK::Point::Constant(-std::numeric_limits<double>::max());
-              for (unsigned int k = 0; k < n_node; ++k)
-              {
-                  s_node_cache[k] = elem->point(k);
-                  libMesh::Point& x = x_node_cache[k];
-                  for (unsigned int d = 0; d < NDIM; ++d)
-                  {
-                      x(d) = X_ghost_vec(X_dof_indices[d][k]);
-                      x_min[d] = std::min(x_min[d], x(d));
-                      x_max[d] = std::max(x_max[d], x(d));
-                  }
-                  elem->point(k) = x;
-              }
-              Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
-                            IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-              box.grow(IntVector<NDIM>(1));
-              box = box * patch_box;
-
-              // Loop over coordinate directions and look for intersections
-              // with the background fluid grid.
-                          if (integrate_normal_force)
-                          {
-                                  intersection_ref_coords_p.clear();
-                                  intersection_indices_p.clear();
-                          }
-
-                          if (integrate_tangential_force)
-                          {
-                                  intersection_ref_coords_um.clear();
-                                  intersection_indices_um.clear();
-
-                                  intersection_ref_coords_up.clear();
-                                  intersection_indices_up.clear();
-
-                                  intersectionSide_ref_coords_um.clear();
-                                  intersectionSide_indices_um.clear();
-
-                                  intersectionSide_ref_coords_up.clear();
-                                  intersectionSide_indices_up.clear();
-                          }
-
-
-
-              for (unsigned int axis = 0; axis < NDIM; ++axis)
-              {
-                  // Setup a unit vector pointing in the coordinate direction of interest.
-                  VectorValue<double> q;
-                  q(axis) = 1.0;
-
-                  // Loop over the relevant range of indices.
-                  Box<NDIM> axis_box = box;
-                  axis_box.lower(axis) = 0;
-                  axis_box.upper(axis) = 0;
-                  for (BoxIterator<NDIM> b(axis_box); b; b++)
-                  {
-                      const Index<NDIM>& i_c = b();
-                      libMesh::Point r;
-                      libMesh::Point rs;
-                      for (unsigned int d = 0; d < NDIM; ++d)
-                      {
-                          r(d) = (d == axis ? 0.0 :
-                                              x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) +
-  0.5));
-
-                          rs(d) = (d == axis ? 0.0 :
-                                                                                          x_lower[d] + dx[d] *
-  (static_cast<double>(i_c(d) - patch_lower[d])));
-                      }
-  #if (NDIM == 2)
-                      intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q);
-                                          intersect_line_with_edge(intersectionsSide, static_cast<Edge*>(elem), rs, q);
-  #endif
-  #if (NDIM == 3)
-                      intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q);
-  #endif
-
-
-                                                  if (integrate_tangential_force)
-                                                  {
-                                                                  for (unsigned int k = 0; k < intersections.size();
-  ++k)
-                                                                  {
-                                                                          libMesh::Point xs = r + intersections[k].first
-  * q;
-                                                                          SideIndex<NDIM> i_ss(i_c, axis, 0);
-                                                                          i_ss(axis) = std::floor((xs(axis) -
-  x_lower[axis]) / dx[axis]) + patch_lower[axis];
-
-                                                                          if (side_boxes[axis].contains(i_ss))
-                                                                          {
-                                                                                  intersection_ref_coords_um.push_back(intersections[k].second);
-                                                                                  intersection_indices_um.push_back(i_ss);
-                                                                                  num_intersections_um(i_ss) += 1;
-                                                                          }
-                                                                  }
-
-
-                                                                  for (unsigned int k = 0; k < intersections.size();
-  ++k)
-                                                                  {
-                                                                          libMesh::Point xss = r +
-  intersections[k].first * q;
-                                                                          Index<NDIM> i_c_neighbor = i_c;
-                                                                          i_c_neighbor(axis) += 1;
-
-                                                                          SideIndex<NDIM> i_sss(i_c_neighbor, axis, 0);
-                                                                          i_sss(axis) = std::floor((xss(axis) -
-  x_lower[axis]) / dx[axis] + 1.0) + patch_lower[axis];
-
-                                                                          if (side_boxes[axis].contains(i_sss))
-                                                                          {
-                                                                                  intersection_ref_coords_up.push_back(intersections[k].second);
-                                                                                  intersection_indices_up.push_back(i_sss);
-                                                                                  num_intersections_up(i_sss) += 1;
-                                                                          }
-                                                                  }
-
-
-
-
-
-                                                  //// This will cache the point to the right(or top) of the
-  intersection along the side cell
-
-  #if (NDIM == 2)
-
-                                                          for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
-                                                          {
-                                                                  libMesh::Point xu = rs + intersectionsSide[k].first *
-  q;
-                                                                  int dd = (axis == 0 ? 1 : 0);
-
-                                                                  Index<NDIM> i_c_neighbor = i_c;
-
-                                                                  if ( fmod (xu(axis)-x_lower[axis], dx[axis])>=
-  0.5*dx[axis])
-                                                                  {
-                                                                                                  i_c_neighbor(axis) +=
-  1;
-                                                                                                  SideIndex<NDIM>
-  i_su(i_c_neighbor, dd, 0);
-                                                                                                  i_su(axis) =
-  std::floor((xu(axis) - x_lower[axis])/ dx[axis] + 0.5) + patch_lower[axis];
-                                                                                                  if
-  (side_boxes[axis].contains(i_su))
-                                                                                                  {
-                                                                                                          intersectionSide_indices_up.push_back(i_su);
-                                                                                                          num_intersectionsSide_up(i_su)
-  += 1;
-                                                                                                          intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-                                                                                                  }
-                                                                  }
-                                                                  else
-                                                                  {
-                                                                                                  SideIndex<NDIM>
-  i_su(i_c_neighbor, dd, 0);
-                                                                                                  i_su(axis) =
-  std::floor((xu(axis) - x_lower[axis])/ dx[axis]) + patch_lower[axis];
-
-                                                                                                  if
-  (side_boxes[axis].contains(i_su))
-                                                                                                  {
-                                                                                                          intersectionSide_indices_up.push_back(i_su);
-                                                                                                          num_intersectionsSide_up(i_su)
-  += 1;
-                                                                                                          intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-                                                                                                  }
-
-                                                                  }
-                                                          }
-
-
-                                                          for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
-                                                          {
-                                                                  libMesh::Point xuu = rs + intersectionsSide[k].first *
-  q;
-                                                                  int dd = (axis == 0 ? 1 : 0);
-                                                                  Index<NDIM> i_c_neighbor = i_c;
-                                                                  if ( fmod (xuu(axis)-x_lower[axis],
-  dx[axis])>0.5*dx[axis])
-                                                                  {
-
-                                                                          SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
-                                                                          i_suu(axis) = std::floor((xuu(axis) -
-  x_lower[axis])/ dx[axis]) + patch_lower[axis];
-
-                                                                          if (side_boxes[axis].contains(i_suu))
-                                                                          {
-                                                                                  intersectionSide_indices_um.push_back(i_suu);
-                                                                                  num_intersectionsSide_um(i_suu) += 1;
-                                                                                  intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
-                                                                          }
-
-                                                                  }
-                                                                  else
-                                                                  {
-                                                                          i_c_neighbor(axis) -= 1;
-                                                                          SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
-                                                                          i_suu(axis) = std::floor((xuu(axis) -
-  x_lower[axis])/ dx[axis] - 0.5) + patch_lower[axis];
-
-                                                                          if (side_boxes[axis].contains(i_suu))
-                                                                          {
-                                                                                  intersectionSide_indices_um.push_back(i_suu);
-                                                                                  num_intersectionsSide_um(i_suu) += 1;
-                                                                                  intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
-                                                                          }
-                                                                  }
-                                                          }
-
-  #endif
-
-
-                                                  }
-
-
-                  }
-              }
-
-              // Restore the element coordinates.
-              for (unsigned int k = 0; k < n_node; ++k)
-              {
-                  elem->point(k) = s_node_cache[k];
-              }
-
-
-
-
-
-
-
-
-          }
-      }
-      * */
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
