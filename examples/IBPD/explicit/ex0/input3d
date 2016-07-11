@@ -141,6 +141,7 @@ IBPDForceGen {
 IBPDMethod {
    delta_fcn      = DELTA_FUNCTION
    enable_logging = ENABLE_LOGGING
+   use_mean_displacement = TRUE
 }
 
 IBStandardInitializer {
