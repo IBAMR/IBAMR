@@ -108,7 +108,7 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    double horizon = 2.015 * DX;
+    double horizon = 1.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -152,8 +152,8 @@ my_force_damage_fcn(const double /*horizon*/,
                     double* parameters,
                     const Eigen::Map<const IBTK::Vector>& X0_mastr,
                     const Eigen::Map<const IBTK::Vector>& X0_slave,
-                    const Eigen::Map<const IBTK::Vector>& /*X_mastr*/,
-                    const Eigen::Map<const IBTK::Vector>& /*X_slave*/,
+                    const Eigen::Map<const IBTK::Vector>& X_mastr,
+                    const Eigen::Map<const IBTK::Vector>& X_slave,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_mastr,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF_slave,
                     const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& B_mastr,
@@ -177,9 +177,12 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
+    const double penalty_fac = 0.0;
+    //vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
+    vec_type pen_trac = penalty_fac * (X_slave  - X_mastr);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    F_mastr += vol_frac * vol_slave * trac;
-    F_slave += -vol_frac * vol_mastr * trac;
+    F_mastr += vol_frac * vol_slave * trac  + pen_trac;
+    F_slave += -vol_frac * vol_mastr * trac -  pen_trac;
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -355,7 +358,7 @@ public:
 
     void midpointStep(const double current_time, const double new_time)
     {
-        static const double cn = 4e8;
+        static const double cn =  4e8;
 
         const double dt = new_time - current_time;
         const int coarsest_ln = 0;
