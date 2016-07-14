@@ -164,12 +164,12 @@ IBPDMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IBPDMethod::eulerStep(const double current_time, const double new_time)
+IBPDMethod::forwardEulerStep(const double current_time, const double new_time)
 {
-    IBMethod::eulerStep(current_time, new_time);
+    IBMethod::forwardEulerStep(current_time, new_time);
 
     return;
-} // eulerStep
+} // forwardEulerStep
 
 void
 IBPDMethod::midpointStep(const double current_time, const double new_time)
