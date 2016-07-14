@@ -134,7 +134,7 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
+    horizon        = 1.015
     ds             = 1.0
 }
 

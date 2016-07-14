@@ -311,7 +311,7 @@ public:
         return;
     } // postprocessIntegrateData
 
-    void eulerStep(const double current_time, const double new_time)
+    void forwardEulerStep(const double current_time, const double new_time)
     {
         const double dt = new_time - current_time;
         const int coarsest_ln = 0;
@@ -354,7 +354,7 @@ public:
             U_current_data->restoreArrays();
         }
         return;
-    } // eulerStep
+    } // forwardEulerStep
 
     void midpointStep(const double current_time, const double new_time)
     {
