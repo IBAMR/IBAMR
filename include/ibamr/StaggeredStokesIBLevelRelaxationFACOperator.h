@@ -53,14 +53,15 @@
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
 #include "petscao.h"
 #include "petscmat.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 namespace boost
 {
@@ -158,6 +159,11 @@ public:
      * \name Functions for configuring the solver.
      */
     //\{
+
+    /*!
+     * \brief Set the IB time stepping type.
+     */
+    void setIBTimeSteppingType(TimeSteppingType time_stepping_type);
 
     /*!
      * \brief Set the IB-force Jacobian at the finest patch level (where the
@@ -305,6 +311,11 @@ private:
     int d_u_dof_index_idx, d_p_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+
+    /*
+     * The time stepping type.
+     */
+    TimeSteppingType d_time_stepping_type;
 
     /*
      * Jacobian of the elasticity force at the finest patch level.

@@ -198,7 +198,7 @@ public:
      * Set the value of the intermediate position vector used in evaluating the
      * linearized problem.
      */
-    void setLinearizedPosition(Vec& X_vec);
+    void setLinearizedPosition(Vec& X_vec, double data_time);
 
     /*!
      * Compute the residual on the specified level of the patch hierarchy.
@@ -242,17 +242,22 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void eulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the (explicit)
-     * midpoint rule.
+     * Advance the positions of the Lagrangian structure using the backward Euler
+     * method.
+     */
+    void backwardEulerStep(double current_time, double new_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the midpoint rule.
      */
     void midpointStep(double current_time, double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the (explicit)
-     * trapezoidal rule.
+     * Advance the positions of the Lagrangian structure using the trapezoidal
+     * rule.
      */
     void trapezoidalStep(double current_time, double new_time);
 
@@ -271,7 +276,7 @@ public:
     /*!
      * Construct the linearized Lagrangian force Jacobian.
      */
-    void constructLagrangianForceJacobian(Mat& A, MatType mat_type);
+    void constructLagrangianForceJacobian(Mat& A, MatType mat_type, double data_time);
 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
@@ -298,9 +303,10 @@ public:
      */
     void constructInterpOp(Mat& J,
                            void (*spread_fnc)(const double, double*),
-                           const int stencil_width,
+                           int stencil_width,
                            const std::vector<int>& num_dofs_per_proc,
-                           const int dof_index_idx);
+                           int dof_index_idx,
+                           double data_time);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -656,7 +662,12 @@ private:
      */
     void getFromRestart();
 
+    /*!
+     * Jacobian data.
+     */
+    bool d_force_jac_mffd;
     Mat d_force_jac;
+    double d_force_jac_data_time;
 };
 } // namespace IBAMR
 

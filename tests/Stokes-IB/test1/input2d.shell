@@ -108,14 +108,14 @@ IBHierarchyIntegrator {
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
 	level_solver_rel_residual_tol = 1.0e-12
 	level_solver_abs_residual_tol = 1.0e-50
-	level_solver_max_iterations = 2
+	level_solver_max_iterations = 1
 	level_solver_db
 	{
             use_ksp_as_smoother   = TRUE
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
 	    pc_type               = "fieldsplit"
-            shell_pc_type         = "additive"
+            shell_pc_type         = "multiplicative"
 
             subdomain_box_size      = N  , N
             subdomain_overlap_size  = 0, 0
@@ -124,13 +124,13 @@ IBHierarchyIntegrator {
 	coarse_solver_type  = "PETSC_LEVEL_SOLVER"
 	coarse_solver_rel_residual_tol = 1.0e-12
 	coarse_solver_abs_residual_tol = 1.0e-50
-	coarse_solver_max_iterations = 5
+	coarse_solver_max_iterations = 1
 	coarse_solver_db
 	{
             use_ksp_as_smoother   = FALSE
 	    initial_guess_nonzero = TRUE
-	    ksp_type              = "gmres"
-	    pc_type               = "asm"
+	    ksp_type              = "preonly"
+	    pc_type               = "lu"
 
             subdomain_box_size      = N , N
             subdomain_overlap_size  = 0, 0
