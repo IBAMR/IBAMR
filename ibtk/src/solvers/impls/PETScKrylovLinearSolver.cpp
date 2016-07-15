@@ -758,9 +758,10 @@ PETScKrylovLinearSolver::resetMatNullspace()
         for (unsigned int k = 0; k < nullspace_vecs.size(); ++k)
         {
             Vec petsc_nvec = nullspace_vecs[k];
-            double norm_vec;
-            VecNorm(petsc_nvec, NORM_2, &norm_vec);
-            ierr = VecScale(petsc_nvec, 1.0 / norm_vec);
+            double norm;
+            ierr = VecNorm(petsc_nvec, NORM_2, &norm);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScale(petsc_nvec, 1.0 / norm);
             IBTK_CHKERRQ(ierr);
         }
 
