@@ -38,6 +38,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <limits>
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
