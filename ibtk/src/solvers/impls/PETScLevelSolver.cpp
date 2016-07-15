@@ -729,10 +729,10 @@ PETScLevelSolver::setupNullspace()
         ierr = MatCreateVecs(d_petsc_mat, NULL, &petsc_nullspace_vec);
         IBTK_CHKERRQ(ierr);
         copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k]);
-        double dot;
-        ierr = VecDot(petsc_nullspace_vec, petsc_nullspace_vec, &dot);
+        double norm;
+        ierr = VecNorm(petsc_nullspace_vec, NORM_2, &norm);
         IBTK_CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
+        ierr = VecScale(petsc_nullspace_vec, 1.0 / norm);
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
