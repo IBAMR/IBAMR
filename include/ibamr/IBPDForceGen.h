@@ -240,7 +240,7 @@ private:
      * PD tensor routines.
      */
     //\{
-    bool d_use_mean_disp, d_compute_shape_tensor;
+    bool d_use_mean_disp;
 
     void computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
                              SAMRAI::tbox::Pointer<IBTK::LData> N_data,

@@ -220,7 +220,7 @@ default_force_damage_fcn(const double /*horizon*/,
     // Estimate failure.
     const double R = (X_slave - X_mastr).norm();
     const double stretch = (R - R0) / R0;
-    if (!MathUtilities<double>::equalEps(fail, 0.0) && std::fabs(stretch) > critical_stretch)
+    if (MathUtilities<double>::equalEps(fail, 1.0) && std::fabs(stretch) > critical_stretch)
     {
         fail = 0.0;
     }
@@ -435,7 +435,6 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
 
     // Indicate that the level data has been initialized and we need to compute shape tensor.
     d_is_initialized[level_number] = true;
-    d_compute_shape_tensor = true;
 
     return;
 } // initializeLevelData
@@ -516,16 +515,13 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     Pointer<LData> B_ghost_data = d_B_ghost_data[level_number];
-    if (d_compute_shape_tensor)
-    {
-        Vec B_ghost_local_form_vec;
-        ierr = VecGhostGetLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecSet(B_ghost_local_form_vec, 0.0);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostRestoreLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
-        IBTK_CHKERRQ(ierr);
-    }
+    Vec B_ghost_local_form_vec;
+    ierr = VecGhostGetLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(B_ghost_local_form_vec, 0.0);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(B_ghost_data->getVec(), &B_ghost_local_form_vec);
+    IBTK_CHKERRQ(ierr);
 
     Pointer<LData> FF_ghost_data = d_FF_ghost_data[level_number];
     Vec FF_ghost_local_form_vec;
@@ -573,54 +569,50 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     }
 
     // Compute shape tensor.
-    if (d_compute_shape_tensor)
+    computeShapeTensor(B_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+
+    boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        computeShapeTensor(B_ghost_data, X0_ghost_data, hierarchy, level_number, data_time, l_data_manager);
-        ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);
-        IBTK_CHKERRQ(ierr);
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
+        const int local_idx = node_idx->getLocalPETScIndex();
+        double* B = &B_ghost_data_array[local_idx][0];
+        Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
 
-        boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        // Scale the matrix.
+        const double scale = eig_B.norm();
+        eig_B *= (1.0 / scale);
+
+        // Invert the scaled matrix.
+        bool invertible;
+        eig_B.computeInverseWithCheck(eig_B, invertible);
+        if (!invertible)
         {
-            const LNode* const node_idx = *cit;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            const int local_idx = node_idx->getLocalPETScIndex();
-            double* B = &B_ghost_data_array[local_idx][0];
-            Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
-
-            // Scale the matrix.
-            const double scale = eig_B.norm();
-            eig_B *= (1.0 / scale);
-
-            // Invert the scaled matrix.
-            bool invertible;
-            eig_B.computeInverseWithCheck(eig_B, invertible);
-            if (!invertible)
-            {
-                TBOX_ERROR("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
-                           << " Lagrangian index = "
-                           << lag_idx
-                           << "\nScaled B tensor is \n"
-                           << eig_B
-                           << "\n"
-                           << " Scaling factor  = "
-                           << scale
-                           << "\n");
-            }
-
-            // Scale back the inverse-matrix.
-            eig_B *= (1.0 / scale);
+            TBOX_ERROR("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
+                       << " Lagrangian index = "
+                       << lag_idx
+                       << "\nScaled B tensor is \n"
+                       << eig_B
+                       << "\n"
+                       << " Scaling factor  = "
+                       << scale
+                       << "\n");
         }
 
-        ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        B_ghost_data->restoreArrays();
-        d_compute_shape_tensor = false;
+        // Scale back the inverse-matrix.
+        eig_B *= (1.0 / scale);
     }
+
+    ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostUpdateEnd(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+    B_ghost_data->restoreArrays();
 
     // Compute the deformation gradient tensor.
     // FF = int_k {Y outer X}_k . Inv{B}
@@ -861,7 +853,7 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
             const double& vol_mastr = bond_params[2];
             const double& vol_slave = bond_params[3];
             const double& fail = bond_params[4];
-            R0 = parameters[k][1];
+            R0 = bond_params[1];
             W = force_inf_fcns[k](R0, delta);
             vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
@@ -893,7 +885,7 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
-        R0 = parameters[k][1];
+        R0 = bond_params[1];
         W = force_inf_fcns[k](R0, delta);
         vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
@@ -1026,7 +1018,7 @@ IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
         const double& vol_mastr = bond_params[2];
         const double& vol_slave = bond_params[3];
         const double& fail = bond_params[4];
-        R0 = parameters[k][1];
+        R0 = bond_params[1];
         W = force_inf_fcns[k](R0, delta);
         vol_frac = force_vol_frac_fcns[k](R0, horizon, delta);
 
