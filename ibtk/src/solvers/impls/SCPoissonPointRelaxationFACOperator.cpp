@@ -694,7 +694,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
+    Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -819,7 +819,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     // Setup fill pattern spec objects.
     if (d_poisson_spec.dIsConstant())
     {
-        d_op_stencil_fill_pattern = new SideNoCornersFillPattern(SIDEG, true, false, false);
+        d_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), true, false, false);
     }
     else
     {
