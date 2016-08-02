@@ -224,9 +224,12 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
             Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new, rot_vel_current, rot_vel_half,
                 rot_vel_new;
 
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, trans_vel_current, rot_vel_current);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, trans_vel_half, rot_vel_half);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, trans_vel_new, rot_vel_new);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_current_time, trans_vel_current, rot_vel_current, d_constrained_velocity_fcns_data[part].ctx);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_half_time, trans_vel_half, rot_vel_half, d_constrained_velocity_fcns_data[part].ctx);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_new_time, trans_vel_new, rot_vel_new, d_constrained_velocity_fcns_data[part].ctx);
 
             // Update only prescribed velocities in the internal data structure.
             for (int d = 0; d < NDIM; ++d)
@@ -273,7 +276,8 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
                 Eigen::Vector3d F_ext, T_ext;
                 if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
                 {
-                    d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
+                    d_ext_force_torque_fcn_data[part].forcetorquefcn(
+                        d_new_time, F_ext, T_ext, d_ext_force_torque_fcn_data[part].ctx);
                 }
                 else
                 {
