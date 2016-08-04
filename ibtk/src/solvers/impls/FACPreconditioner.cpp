@@ -161,24 +161,7 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
         d_r->allocateVectorData();
         d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
-        switch (d_cycle_type)
-        {
-        case V_CYCLE:
-            FACVCycle(u, *d_f, d_finest_ln);
-            break;
-        case W_CYCLE:
-            FACWCycle(u, *d_f, d_finest_ln);
-            break;
-        case F_CYCLE:
-            FACFCycle(u, *d_f, d_finest_ln);
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                                     << "  unrecognized FAC cycle type: "
-                                     << enum_to_string<MGCycleType>(d_cycle_type)
-                                     << "."
-                                     << std::endl);
-        }
+        FACCycle(u, *d_f, d_finest_ln);
         d_f->deallocateVectorData();
         d_r->deallocateVectorData();
     }
@@ -355,7 +338,7 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
 } // FACVCycleNoPreSmoothing
 
 void
-FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+FACPreconditioner::FACCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -385,7 +368,20 @@ FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal
         }
 
         // Recursively call the FAC algorithm.
-        FACVCycle(u, f, level_num - 1);
+        switch (d_cycle_type)
+        {
+        case W_CYCLE:
+            FACCycle(u, f, level_num - 1);
+        case V_CYCLE:
+            FACCycle(u, f, level_num - 1);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::solveSystem():\n"
+                                     << "  unrecognized FAC cycle type: "
+                                     << enum_to_string<MGCycleType>(d_cycle_type)
+                                     << "."
+                                     << std::endl);
+        }
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
@@ -399,103 +395,7 @@ FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal
         }
     }
     return;
-} // FACVCycle
-
-void
-FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        // Solve Au = f on the coarsest level.
-        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
-        d_recompute_residual = true;
-    }
-    else
-    {
-        // Smooth the error on the current level.
-        if (d_num_pre_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-            d_recompute_residual = true;
-        }
-
-        // Compute the composite-grid residual on the current level and the next
-        // coarser level, and restrict the residual to the next coarser level.
-        if (d_recompute_residual)
-        {
-            d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
-            d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
-        }
-        else
-        {
-            d_fac_strategy->restrictResidual(f, f, level_num - 1);
-        }
-
-        // Recursively call the FAC algorithm.
-        FACWCycle(u, f, level_num - 1);
-        FACWCycle(u, f, level_num - 1);
-
-        // Prolong the error from the next coarser level and correct the
-        // solution on level.
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-
-        // Smooth error on level.
-        if (d_num_post_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
-            d_recompute_residual = true;
-        }
-    }
-    return;
-} // FACWCycle
-
-void
-FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        // Solve Au = f on the coarsest level.
-        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
-        d_recompute_residual = true;
-    }
-    else
-    {
-        // Smooth the error on the current level.
-        if (d_num_pre_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-            d_recompute_residual = true;
-        }
-
-        // Compute the composite-grid residual on the current level and the next
-        // coarser level, and restrict the residual to the next coarser level.
-        if (d_recompute_residual)
-        {
-            d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
-            d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
-        }
-        else
-        {
-            d_fac_strategy->restrictResidual(f, f, level_num - 1);
-        }
-
-        // Recursively call the FAC algorithm.
-        FACWCycle(u, f, level_num - 1);
-        FACVCycle(u, f, level_num - 1);
-
-        // Prolong the error from the next coarser level and correct the
-        // solution on level.
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-
-        // Smooth error on level.
-        if (d_num_post_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
-            d_recompute_residual = true;
-        }
-    }
-    return;
-} // FACFCycle
+} // FACCycle
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -503,7 +403,6 @@ void
 FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
-
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
     if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
     if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
