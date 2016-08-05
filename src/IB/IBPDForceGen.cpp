@@ -586,26 +586,35 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
 
         // Scale the matrix.
         const double scale = eig_B.norm();
-        eig_B *= (1.0 / scale);
+        if (!MathUtilities<double>::equalEps(scale, 0.0))
+        {
+            eig_B *= (1.0 / scale);
+        }
 
         // Invert the scaled matrix.
         bool invertible;
         eig_B.computeInverseWithCheck(eig_B, invertible);
         if (!invertible)
         {
-            TBOX_ERROR("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
-                       << " Lagrangian index = "
-                       << lag_idx
-                       << "\nScaled B tensor is \n"
-                       << eig_B
-                       << "\n"
-                       << " Scaling factor  = "
-                       << scale
-                       << "\n");
+            TBOX_WARNING("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
+                         << " Lagrangian index = "
+                         << lag_idx
+                         << "\nScaled B tensor is \n"
+                         << eig_B
+                         << "\n"
+                         << " Scaling factor  = "
+                         << scale
+                         << "\n"
+                         << "Setting inverse of B tensor to zero"
+                         << "\n");
+            eig_B.setZero();
         }
 
         // Scale back the inverse-matrix.
-        eig_B *= (1.0 / scale);
+        if (!MathUtilities<double>::equalEps(scale, 0.0))
+        {
+            eig_B *= (1.0 / scale);
+        }
     }
 
     ierr = VecGhostUpdateBegin(B_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
