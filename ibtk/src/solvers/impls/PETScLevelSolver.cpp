@@ -768,42 +768,63 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     ierr = VecSet(y, 0.0);
     IBTK_CHKERRQ(ierr);
 
-    // Apply the preconditioner.
-    Vec res_vec;
-    ierr = VecDuplicate(x, &res_vec);
+    // Make sure initial value of y is zero upon entry to preconditioner.
+    ierr = VecSet(y, 0.0);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(x, res_vec);
+
+    // Apply the preconditioner.
+    Vec r_vec;
+    ierr = VecDuplicate(x, &r_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecCopy(x, r_vec);
     IBTK_CHKERRQ(ierr);
 
     PetscInt first_local_dof;
     ierr = VecGetOwnershipRange(y, &first_local_dof, NULL);
     IBTK_CHKERRQ(ierr);
 
-    PetscScalar *err_array, *res_array;
-    ierr = VecGetArray(y, &err_array);
+    PetscScalar *e_array, *r_array;
+    ierr = VecGetArray(y, &e_array);
     IBTK_CHKERRQ(ierr);
-    ierr = VecGetArray(res_vec, &res_array);
+    ierr = VecGetArray(r_vec, &r_array);
     IBTK_CHKERRQ(ierr);
 
-    const int& n_subdomains = solver->d_no_subdomains;
-    for (int subdomain = 0; subdomain < n_subdomains; ++subdomain)
+    const int& no_subdomains = solver->d_no_subdomains;
+    for (int subdomain = 0; subdomain < no_subdomains; ++subdomain)
     {
         Mat& sub_mat = solver->d_subdomain_mat[subdomain];
         KSP& sub_ksp = solver->d_subdomain_ksp[subdomain];
 
-        // Get local (box) DOFs.
-        IS& local_dofs = solver->d_subdomain_row_is[subdomain];
-        PetscInt is_size_local;
-        ierr = ISGetLocalSize(local_dofs, &is_size_local);
+        // Get overlapping and non-overlapping subdomain DOFs.
+        IS& overlap_dofs = solver->d_overlap_is[subdomain];
+        const PetscInt* is_overlap_array;
+        ierr = ISGetIndices(overlap_dofs, &is_overlap_array);
         IBTK_CHKERRQ(ierr);
-        std::vector<int> local_indices(is_size_local);
-        for (int i = 0; i < is_size_local; ++i)
+
+        IS& nonoverlap_dofs = solver->d_nonoverlap_is[subdomain];
+        const PetscInt* is_nonoverlap_array;
+        ierr = ISGetIndices(nonoverlap_dofs, &is_nonoverlap_array);
+        IBTK_CHKERRQ(ierr);
+
+        PetscInt is_size_overlap;
+        ierr = ISGetLocalSize(overlap_dofs, &is_size_overlap);
+        PetscInt is_size_nonoverlap;
+        ierr = ISGetLocalSize(nonoverlap_dofs, &is_size_nonoverlap);
+
+        IBTK_CHKERRQ(ierr);
+        std::vector<int> overlap_indices(is_size_overlap), nonoverlap_indices(is_size_nonoverlap);
+        int i = 0, j = 0;
+        for (; i < is_size_overlap; ++i)
         {
-            local_indices[i] = i;
+            overlap_indices[i] = i;
+            if (j < is_size_nonoverlap && is_overlap_array[i] == is_nonoverlap_array[j])
+            {
+                nonoverlap_indices[j] = i;
+                ++j;
+            }
         }
-        const PetscInt* is_local_array;
-        ierr = ISGetIndices(local_dofs, &is_local_array);
-        IBTK_CHKERRQ(ierr);
+        TBOX_ASSERT(i == is_size_overlap);
+        TBOX_ASSERT(j == is_size_nonoverlap);
 
         // Create little block Vecs for solving local sytem.
         Vec r, e;
@@ -811,12 +832,12 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
         IBTK_CHKERRQ(ierr);
 
         // Copy to/from various Vecs
-        std::vector<double> local_values(is_size_local);
-        for (int i = 0; i < is_size_local; ++i)
+        std::vector<double> overlap_values(is_size_overlap);
+        for (int i = 0; i < is_size_overlap; ++i)
         {
-            local_values[i] = res_array[is_local_array[i] - first_local_dof];
+            overlap_values[i] = r_array[is_overlap_array[i] - first_local_dof];
         }
-        ierr = VecSetValues(r, is_size_local, &local_indices[0], &local_values[0], INSERT_VALUES);
+        ierr = VecSetValues(r, is_size_overlap, &overlap_indices[0], &overlap_values[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
         ierr = VecAssemblyBegin(r);
         IBTK_CHKERRQ(ierr);
@@ -828,15 +849,17 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
         IBTK_CHKERRQ(ierr);
 
         // Update error vector.
-        ierr = VecGetValues(e, is_size_local, &local_indices[0], &local_values[0]);
+        ierr = VecGetValues(e, is_size_overlap, &overlap_indices[0], &overlap_values[0]);
         IBTK_CHKERRQ(ierr);
-        for (int i = 0; i < is_size_local; ++i)
+        for (int i = 0; i < is_size_nonoverlap; ++i)
         {
-            err_array[is_local_array[i] - first_local_dof] = local_values[i];
+            e_array[is_nonoverlap_array[i] - first_local_dof] = overlap_values[nonoverlap_indices[i]];
         }
 
         // Restore IS indices.
-        ierr = ISRestoreIndices(local_dofs, &is_local_array);
+        ierr = ISRestoreIndices(overlap_dofs, &is_overlap_array);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISRestoreIndices(nonoverlap_dofs, &is_nonoverlap_array);
         IBTK_CHKERRQ(ierr);
 
         // Destroy temporary PETSc objects
@@ -846,7 +869,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
         IBTK_CHKERRQ(ierr);
     }
 
-    ierr = VecRestoreArray(y, &err_array);
+    ierr = VecRestoreArray(y, &e_array);
     IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(y);
     IBTK_CHKERRQ(ierr);
@@ -854,7 +877,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
 
     // Destroy temporary objects.
-    ierr = VecDestroy(&res_vec);
+    ierr = VecDestroy(&r_vec);
     IBTK_CHKERRQ(ierr);
 
     // Reflect change in PETSc state.
