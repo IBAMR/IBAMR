@@ -328,12 +328,13 @@ protected:
      * \name Support for additive and multiplicative Schwarz preconditioners.
      */
     //\{
+    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
     int d_n_local_subdomains, d_n_subdomains_max;
     std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
     std::vector<VecScatter> d_restriction, d_prolongation;
     std::vector<KSP> d_sub_ksp;
-    Mat* d_sub_mat;
+    Mat *d_sub_mat, *d_sub_bc_mat;
     std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
