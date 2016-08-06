@@ -79,7 +79,6 @@ static Timer* t_deallocate_solver_state;
 PETScLevelSolver::PETScLevelSolver()
     : d_hierarchy(),
       d_level_num(-1),
-      d_use_ksp_as_smoother(false),
       d_ksp_type(KSPGMRES),
       d_shell_pc_type(""),
       d_options_prefix(""),
@@ -320,13 +319,6 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
     IBTK_CHKERRQ(ierr);
 
-    // For level smoothers skip computing norms.
-    if (d_use_ksp_as_smoother)
-    {
-        ierr = KSPSetNormType(d_petsc_ksp, KSP_NORM_NONE);
-        IBTK_CHKERRQ(ierr);
-    }
-
     // Setup KSP PC.
     PC ksp_pc;
     ierr = KSPGetPC(d_petsc_ksp, &ksp_pc);
@@ -406,8 +398,6 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         d_prolongation.resize(d_n_subdomains_max);
         d_sub_x.resize(d_n_subdomains_max);
         d_sub_y.resize(d_n_subdomains_max);
-
-        // Restrict the global vector to the local vectors.
         for (int i = 0; i < d_n_subdomains_max; ++i)
         {
             int overlap_is_size = 0, nonoverlap_is_size = 0;
@@ -675,8 +665,6 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
         if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
         if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
-        if (input_db->keyExists("use_ksp_as_smoother"))
-            d_use_ksp_as_smoother = input_db->getBool("use_ksp_as_smoother");
         if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
         if (input_db->keyExists("pc_type")) d_pc_type = input_db->getString("pc_type");
         if (input_db->keyExists("shell_pc_type")) d_shell_pc_type = input_db->getString("shell_pc_type");

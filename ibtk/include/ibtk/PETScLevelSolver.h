@@ -120,19 +120,6 @@ public:
     void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
 
     /*!
-     * \brief Get MSM subdomains.
-     */
-    void getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains);
-
-    /*!
-     * \brief Get MSM subdomains with red-black ordering.
-     */
-    void getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
-                          std::vector<IS>** red_cols_subdomains,
-                          std::vector<IS>** black_rows_subdomains,
-                          std::vector<IS>** black_cols_subdomains);
-
-    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -314,7 +301,6 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    bool d_use_ksp_as_smoother;
     std::string d_ksp_type, d_pc_type, d_shell_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
