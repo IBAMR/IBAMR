@@ -40,7 +40,6 @@
 
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
-#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
@@ -119,16 +118,6 @@ allocate_petsc_krylov_solver(const std::string& object_name,
     krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
-
-Pointer<StaggeredStokesSolver>
-allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
-                                           Pointer<Database> input_db,
-                                           const std::string& default_options_prefix)
-{
-    Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-        new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix);
-    return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
-} // allocate_box_relaxation_fac_preconditioner
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -192,8 +181,8 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     registerSolverFactoryFunction(BLOCK_FACTORIZATION_PRECONDITIONER,
                                   StaggeredStokesBlockFactorizationPreconditioner::allocate_solver);
     registerSolverFactoryFunction(PROJECTION_PRECONDITIONER, StaggeredStokesProjectionPreconditioner::allocate_solver);
-    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, allocate_box_relaxation_fac_preconditioner);
-    registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER, allocate_box_relaxation_fac_preconditioner);
+    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
+                                  StaggeredStokesLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(LEVEL_RELAXATION_FAC_PRECONDITIONER,
                                   StaggeredStokesLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);

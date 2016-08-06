@@ -202,24 +202,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                        d_p_dof_index_idx,
                                                                        d_level,
                                                                        d_cf_boundary);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_subdomain_row_is,
-                                                                       d_subdomain_col_is,
-                                                                       d_box_size,
-                                                                       d_overlap_size,
-                                                                       d_num_dofs_per_proc,
-                                                                       d_u_dof_index_idx,
-                                                                       d_p_dof_index_idx,
-                                                                       d_level);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMSMSubdomains(d_red_subdomain_row_is,
-                                                                       d_red_subdomain_col_is,
-                                                                       d_black_subdomain_row_is,
-                                                                       d_black_subdomain_col_is,
-                                                                       d_box_size,
-                                                                       d_overlap_size,
-                                                                       d_num_dofs_per_proc,
-                                                                       d_u_dof_index_idx,
-                                                                       d_p_dof_index_idx,
-                                                                       d_level);
 
     // Set IS'es for field split preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
