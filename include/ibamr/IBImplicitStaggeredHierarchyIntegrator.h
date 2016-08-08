@@ -42,7 +42,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesSolver.h"
