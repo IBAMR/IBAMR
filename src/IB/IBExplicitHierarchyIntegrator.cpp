@@ -169,8 +169,10 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
                                      "to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);
         d_ib_method_ops->spreadForce(
             d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
@@ -202,7 +204,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian "
                                          "forward Euler step\n";
-            d_ib_method_ops->eulerStep(current_time, new_time);
+            d_ib_method_ops->forwardEulerStep(current_time, new_time);
         }
         break;
     default:
@@ -253,8 +255,10 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);
         d_ib_method_ops->spreadForce(
             d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         break;
     case TRAPEZOIDAL_RULE:
         if (d_current_num_cycles == 1 || cycle_num > 0)
@@ -270,8 +274,10 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                          "to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+            d_u_phys_bdry_op->setHomogeneousBc(true);
             d_ib_method_ops->spreadForce(
                 d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), new_time);
+            d_u_phys_bdry_op->setHomogeneousBc(false);
             d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
         }
         break;
@@ -331,6 +337,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         d_ib_method_ops->interpolateVelocity(d_u_idx,
                                              getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                              getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -342,6 +349,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         d_ib_method_ops->interpolateVelocity(d_u_idx,
                                              getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                              getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -362,7 +370,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     {
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
-        d_ib_method_ops->eulerStep(current_time, new_time);
+        d_ib_method_ops->forwardEulerStep(current_time, new_time);
     }
     else
     {
@@ -400,6 +408,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                      "pressure to the Lagrangian mesh\n";
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_p_phys_bdry_op->setPatchDataIndex(d_p_idx);
+        d_p_phys_bdry_op->setHomogeneousBc(false);
         d_ib_method_ops->interpolatePressure(d_p_idx,
                                              getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
                                              getGhostfillRefineSchedules(d_object_name + "::p"),
@@ -433,6 +442,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
                                  "velocity to the Lagrangian mesh\n";
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_method_ops->interpolateVelocity(d_u_idx,
                                          getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                          getGhostfillRefineSchedules(d_object_name + "::u"),

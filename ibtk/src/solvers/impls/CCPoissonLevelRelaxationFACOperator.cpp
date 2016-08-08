@@ -541,40 +541,6 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
 
-    PetscViewer matlab_viewer;
-    const int debug_ln = d_coarsest_ln;
-    const KSP& level_ksp = debug_ln == 0 ?
-                               dynamic_cast<PETScLevelSolver*>(d_coarse_solver.getPointer())->getPETScKSP() :
-                               dynamic_cast<PETScLevelSolver*>(d_level_solvers[debug_ln].getPointer())->getPETScKSP();
-    KSPSetUp(level_ksp);
-    Mat level_mat;
-    KSPGetOperators(level_ksp, &level_mat, NULL);
-    std::ostringstream level_mat_filename;
-    level_mat_filename << "level_" << debug_ln << "_mat";
-    PetscViewerBinaryOpen(PETSC_COMM_WORLD, level_mat_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
-    PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-    MatView(level_mat, matlab_viewer);
-
-    PC pc;
-    KSPGetPC(level_ksp, &pc);
-    KSP* subksp;
-    PetscInt nlocal, first;
-    PCASMGetSubKSP(pc, &nlocal, &first, &subksp);
-    for (int i = 0; i < nlocal; i++)
-    {
-        Mat sub_mat;
-        KSPGetOperators(subksp[i], &sub_mat, PETSC_NULL);
-
-        std::ostringstream filename;
-        filename << "level_" << debug_ln << "_sub_mat_" << i;
-        PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
-        MatView(sub_mat, matlab_viewer);
-    }
-
-    // Destroy Petsc reader
-    PetscViewerDestroy(&matlab_viewer);
-
     // Setup specialized transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen()););

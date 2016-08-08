@@ -182,6 +182,16 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     }
     d_petsc_pc = d_petsc_mat;
 
+#if 0
+    std::ostringstream os;
+    os << "system_mat_level_" << d_level_num << ".m";
+    PetscViewer mat_viewer;
+    PetscViewerASCIIOpen(PETSC_COMM_WORLD, os.str().c_str(), &mat_viewer);
+    PetscViewerPushFormat(mat_viewer, PETSC_VIEWER_ASCII_MATLAB);
+    MatView(d_petsc_mat, mat_viewer);
+    PetscViewerDestroy(&mat_viewer);
+#endif
+
     // Construct subdomains for ASM and MSM preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
                                                                        d_nonoverlap_is,

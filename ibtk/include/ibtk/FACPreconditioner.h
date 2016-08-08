@@ -279,17 +279,9 @@ protected:
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
-    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
-
-    void FACWCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
-
-    void FACFCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
+    void FACCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                  int level_num);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

@@ -101,13 +101,18 @@ VecDuplicate_MultiVec(Vec v, Vec* newv)
 #undef __FUNCT__
 #define __FUNCT__ "VecDuplicateVecs_MultiVec"
 PetscErrorCode
-VecDuplicateVecs_MultiVec(Vec w, PetscInt m, Vec* V[])
+VecDuplicateVecs_MultiVec(Vec v, PetscInt m, Vec* V[])
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(V);
+#endif
     PetscErrorCode ierr;
-    *V = new Vec[m];
-    for (PetscInt i = 0; i < m; i++)
+    ierr = PetscMalloc1(m, V);
+    CHKERRQ(ierr);
+    for (PetscInt i = 0; i < m; ++i)
     {
-        ierr = VecDuplicate(w, *V + i);
+        ierr = VecDuplicate(v, *V + i);
         CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
@@ -116,15 +121,20 @@ VecDuplicateVecs_MultiVec(Vec w, PetscInt m, Vec* V[])
 #undef __FUNCT__
 #define __FUNCT__ "VecDestroyVecs_MultiVec"
 PetscErrorCode
-VecDestroyVecs_MultiVec(PetscInt m, Vec v[])
+VecDestroyVecs_MultiVec(PetscInt m, Vec vv[])
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(vv);
+#endif
     PetscErrorCode ierr;
-    for (PetscInt i = 0; i < m; i++)
+    for (PetscInt i = 0; i < m; ++i)
     {
-        ierr = VecDestroy(&v[i]);
+        ierr = VecDestroy(&vv[i]);
         CHKERRQ(ierr);
     }
-    delete[] v;
+    ierr = PetscFree(vv);
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
 } // VecDestroyVecs
 

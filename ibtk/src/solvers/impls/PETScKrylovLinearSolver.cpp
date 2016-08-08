@@ -680,11 +680,7 @@ PETScKrylovLinearSolver::resetKSPPC()
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-#if (!PETSC_VERSION_RELEASE)
     ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#else
-    ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-#endif
     IBTK_CHKERRQ(ierr);
     std::string pc_type = "shell";
     if (flg)
@@ -733,11 +729,7 @@ PETScKrylovLinearSolver::resetMatNullspace()
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
-#if (!PETSC_VERSION_RELEASE)
     ierr = PetscOptionsHasName(NULL, d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
-#else
-    ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg);
-#endif
     IBTK_CHKERRQ(ierr);
     if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
@@ -766,10 +758,10 @@ PETScKrylovLinearSolver::resetMatNullspace()
         for (unsigned int k = 0; k < nullspace_vecs.size(); ++k)
         {
             Vec petsc_nvec = nullspace_vecs[k];
-            double dot;
-            ierr = VecDot(petsc_nvec, petsc_nvec, &dot);
+            double norm;
+            ierr = VecNorm(petsc_nvec, NORM_2, &norm);
             IBTK_CHKERRQ(ierr);
-            ierr = VecScale(petsc_nvec, 1.0 / sqrt(dot));
+            ierr = VecScale(petsc_nvec, 1.0 / norm);
             IBTK_CHKERRQ(ierr);
         }
 

@@ -168,9 +168,9 @@ PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, 
 } // postprocessIntegrateData
 
 void
-PenaltyIBMethod::eulerStep(const double current_time, const double new_time)
+PenaltyIBMethod::forwardEulerStep(const double current_time, const double new_time)
 {
-    IBMethod::eulerStep(current_time, new_time);
+    IBMethod::forwardEulerStep(current_time, new_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

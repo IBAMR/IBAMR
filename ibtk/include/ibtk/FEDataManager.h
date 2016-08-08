@@ -67,11 +67,6 @@ namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
-namespace libMesh
-{
-template <typename Tp>
-class AutoPtr;
-} // namespace libMesh
 
 namespace SAMRAI
 {

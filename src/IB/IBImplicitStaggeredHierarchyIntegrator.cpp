@@ -190,14 +190,26 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    if (d_time_stepping_type != MIDPOINT_RULE)
+    switch (d_time_stepping_type)
     {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+    case MIDPOINT_RULE:
+        break;
+    default:
         TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): time_stepping_type = "
                    << enum_to_string<TimeSteppingType>(d_time_stepping_type)
                    << "\n"
-                   << "  currently only time_stepping_type = "
+                   << "  only supported time_stepping_types are:\n"
+                   << "    "
+                   << enum_to_string<TimeSteppingType>(BACKWARD_EULER)
+                   << "\n"
+                   << "    "
+                   << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE)
+                   << "\n"
+                   << "    "
                    << enum_to_string<TimeSteppingType>(MIDPOINT_RULE)
-                   << " is supported\n");
+                   << "\n");
     }
 
     const int coarsest_ln = 0;
@@ -241,6 +253,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     }
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
 
+#if 0
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
     //
@@ -248,7 +261,8 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     // curvilinear mesh and should not need to be re-interpolated.
     if (d_enable_logging)
         plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-    d_ib_implicit_ops->eulerStep(current_time, new_time);
+    d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
+#endif
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -268,7 +282,6 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_
     {
         integrateHierarchy_velocity(current_time, new_time, cycle_num);
     }
-
     return;
 } // integrateHierarchy
 
@@ -293,6 +306,8 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
                                  "velocity to the Lagrangian mesh\n";
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -384,6 +399,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+    return;
 } // initializeHierarchyIntegrator
 
 int
@@ -664,9 +680,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
 
     // Setup Stokes operator.
     Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
-#if !defined(NDEBUG)
     TBOX_ASSERT(p_stokes_solver);
-#endif
     d_stokes_op = p_stokes_solver->getStaggeredStokesOperator();
     d_stokes_op->setSolutionTime(new_time);
     d_stokes_op->setTimeInterval(current_time, new_time);
@@ -680,18 +694,40 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
                                       d_ins_hier_integrator->getProjectionBoundaryConditions());
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> stokes_fac_op = stokes_fac_pc->getFACPreconditionerStrategy();
     Mat elastic_op = NULL;
-    d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ);
+    double data_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        data_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        data_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    stokes_fac_op->setIBTimeSteppingType(d_time_stepping_type);
+    d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = NULL;
     if (d_jac_delta_fcn == "IB_4")
     {
-        d_ib_implicit_ops->constructInterpOp(
-            interp_op, ib_4_interp_fcn, ib_4_interp_stencil, d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
+        d_ib_implicit_ops->constructInterpOp(interp_op,
+                                             ib_4_interp_fcn,
+                                             ib_4_interp_stencil,
+                                             d_num_dofs_per_proc[finest_ln],
+                                             d_u_dof_index_idx,
+                                             data_time);
     }
     else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
     {
-        d_ib_implicit_ops->constructInterpOp(
-            interp_op, pwl_interp_fcn, pwl_interp_stencil, d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
+        d_ib_implicit_ops->constructInterpOp(interp_op,
+                                             pwl_interp_fcn,
+                                             pwl_interp_stencil,
+                                             d_num_dofs_per_proc[finest_ln],
+                                             d_u_dof_index_idx,
+                                             data_time);
     }
     else
     {
@@ -775,20 +811,50 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ins_hier_integrator->resetSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
-    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_scratch_idx);
     if (d_enable_logging)
     {
         plog << d_object_name
              << "::integrateHierarchy_velocity(): interpolating Eulerian velocity to the Lagrangian mesh\n";
     }
+    int u_new_idx = eul_sol_vec->getComponentDescriptorIndex(0);
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        velocity_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        velocity_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           half_time);
+                                           velocity_time);
 
     // Compute the final value of the updated positions of the Lagrangian
     // structure.
-    d_ib_implicit_ops->midpointStep(current_time, new_time);
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
+        break;
+    case TRAPEZOIDAL_RULE:
+        d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
+        break;
+    case MIDPOINT_RULE:
+        d_ib_implicit_ops->midpointStep(current_time, new_time);
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
 
     // Deallocate PETSc Vecs.
     ierr = VecDestroy(&d_X_current);
@@ -838,7 +904,9 @@ PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x, Vec f)
 {
     PetscErrorCode ierr;
-    const double half_time = d_integrator_time + 0.5 * d_current_dt;
+    const double current_time = d_integrator_time;
+    const double new_time = current_time + d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
 
     Vec* component_sol_vecs;
     Vec* component_rhs_vecs;
@@ -864,8 +932,27 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
 
+    double force_time = std::numeric_limits<double>::quiet_NaN();
+    double kappa = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        force_time = new_time;
+        kappa = 1.0;
+        break;
+    case TRAPEZOIDAL_RULE:
+        force_time = new_time;
+        kappa = 0.5;
+        break;
+    case MIDPOINT_RULE:
+        force_time = half_time;
+        kappa = 1.0;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
     d_ib_implicit_ops->setUpdatedPosition(X);
-    d_ib_implicit_ops->computeLagrangianForce(half_time);
+    d_ib_implicit_ops->computeLagrangianForce(force_time);
     if (d_enable_logging)
     {
         plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
@@ -875,19 +962,33 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadForce(
-        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
-    d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
+    d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
     IBTK_CHKERRQ(ierr);
 
     // Evaluate the Lagrangian terms.
-    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        velocity_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        velocity_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           half_time);
+                                           velocity_time);
     d_ib_implicit_ops->computeResidual(R);
 
     // Ensure that PETSc sees that the state of the RHS vector has changed.
@@ -904,7 +1005,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     PetscErrorCode ierr;
     const double current_time = d_integrator_time;
     const double new_time = current_time + d_current_dt;
-    const double half_time = d_integrator_time + 0.5 * d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
     Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(f);
@@ -921,15 +1022,63 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_stokes_op->apply(*u, *f_u);
 
     // Compute the new position of the structure.
-    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        velocity_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
+        velocity_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                            getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
-                                           half_time);
-    d_ib_implicit_ops->midpointStep(current_time, new_time);
+                                           velocity_time);
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
+        break;
+    case TRAPEZOIDAL_RULE:
+        d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
+        break;
+    case MIDPOINT_RULE:
+        d_ib_implicit_ops->midpointStep(current_time, new_time);
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
 
-    // Subtract the spreaded F[X^n+1/2] from the RHS
-    d_ib_implicit_ops->computeLagrangianForce(half_time);
+    // Subtract f = S[F] from the RHS.
+    double force_time = std::numeric_limits<double>::quiet_NaN();
+    double kappa = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        force_time = new_time;
+        kappa = 1.0;
+        break;
+    case TRAPEZOIDAL_RULE:
+        force_time = new_time;
+        kappa = 0.5;
+        break;
+    case MIDPOINT_RULE:
+        force_time = half_time;
+        kappa = 1.0;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_ib_implicit_ops->computeLagrangianForce(force_time);
     if (d_enable_logging)
     {
         plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
@@ -939,11 +1088,10 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadForce(
-        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
-    d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
+    d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
-
     return ierr;
 } // IBFunction_velocity
 
@@ -969,6 +1117,24 @@ PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
+    const double current_time = d_integrator_time;
+    const double new_time = current_time + d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
+
+    double data_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        data_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        data_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
@@ -978,8 +1144,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, 
     ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs);
     IBTK_CHKERRQ(ierr);
     Vec X = component_sol_vecs[1];
-    d_ib_implicit_ops->setLinearizedPosition(X);
-
+    d_ib_implicit_ops->setLinearizedPosition(X, data_time);
     return ierr;
 } // IBJacobianSetup_position
 
@@ -987,6 +1152,10 @@ PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, Vec x, Mat A, Mat /*B*/)
 {
     PetscErrorCode ierr;
+    const double current_time = d_integrator_time;
+    const double new_time = current_time + d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
+
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
@@ -994,7 +1163,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
 
     // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it as
     // a base vector in matrix-free Lagrangian force Jacobian.
-    const double half_time = d_integrator_time + 0.5 * d_current_dt;
     Vec X_new;
     ierr = VecDuplicate(d_X_current, &X_new);
     IBTK_CHKERRQ(ierr);
@@ -1005,18 +1173,33 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_new_idx = u->getComponentDescriptorIndex(0);
-    d_hier_velocity_data_ops->linearSum(d_u_idx, -0.5, u_new_idx, -0.5, u_current_idx);
-
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        velocity_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_new_idx, 0.5, u_current_idx);
+        velocity_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_hier_velocity_data_ops->scale(d_u_idx, -1.0, d_u_idx);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
-                                                     half_time);
+                                                     velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(d_X_current, X_new);
-    d_ib_implicit_ops->setLinearizedPosition(X_new);
+    d_ib_implicit_ops->setLinearizedPosition(X_new, velocity_time);
 
     ierr = VecDestroy(&X_new);
     IBTK_CHKERRQ(ierr);
-
     return ierr;
 } // IBJacobianSetup_velocity
 
@@ -1044,7 +1227,9 @@ PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
 {
     PetscErrorCode ierr;
-    const double half_time = d_integrator_time + 0.5 * d_current_dt;
+    const double current_time = d_integrator_time;
+    const double new_time = current_time + d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
 
     Vec* component_sol_vecs;
     Vec* component_rhs_vecs;
@@ -1066,8 +1251,20 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     // Evaluate the Eulerian terms.
     d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
-
-    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
+    double force_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        force_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        force_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, force_time);
     if (d_enable_logging)
     {
         plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
@@ -1077,24 +1274,39 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadLinearizedForce(
-        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
+        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
     IBTK_CHKERRQ(ierr);
 
     // Evaluate the Lagrangian terms.
-    d_hier_velocity_data_ops->scale(d_u_idx, 0.5, u_idx);
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_idx);
+        velocity_time = new_time;
+        break;
+    case MIDPOINT_RULE:
+        d_hier_velocity_data_ops->scale(d_u_idx, 0.5, u_idx);
+        velocity_time = half_time;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
-                                                     half_time);
+                                                     velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, R);
 
     // Ensure that PETSc sees that the state of the RHS vector has changed.
     // This is a nasty hack.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
-
     return ierr;
 } // IBJacobianApply_position
 
@@ -1102,7 +1314,9 @@ PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
 {
     PetscErrorCode ierr;
-    const double half_time = d_integrator_time + 0.5 * d_current_dt;
+    const double current_time = d_integrator_time;
+    const double new_time = current_time + d_current_dt;
+    const double half_time = current_time + 0.5 * d_current_dt;
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
     Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(f);
@@ -1114,20 +1328,44 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
 
-    // Compute position residual X = dt*J*[u/2] = 0 - dt*J*[-u/2]
+    // Compute position residual X = dt*kappa*J[u] = 0 - (-kappa)*dt*J[u].
+    double force_time = std::numeric_limits<double>::quiet_NaN();
+    double velocity_time = std::numeric_limits<double>::quiet_NaN();
+    double kappa = std::numeric_limits<double>::quiet_NaN();
+    switch (d_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        force_time = new_time;
+        velocity_time = new_time;
+        kappa = 1.0;
+        break;
+    case TRAPEZOIDAL_RULE:
+        force_time = new_time;
+        velocity_time = new_time;
+        kappa = 0.5;
+        break;
+    case MIDPOINT_RULE:
+        force_time = half_time;
+        velocity_time = half_time;
+        kappa = 0.5;
+        break;
+    default:
+        TBOX_ERROR("unsupported time stepping type\n");
+    }
     Vec X, X0;
     d_ib_implicit_ops->createSolverVecs(&X, &X0);
     d_ib_implicit_ops->setupSolverVecs(NULL, &X0);
-
-    d_hier_velocity_data_ops->scale(d_u_idx, -0.5, u_idx);
+    d_hier_velocity_data_ops->scale(d_u_idx, -kappa, u_idx);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
-                                                     half_time);
+                                                     velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X0, X);
 
-    // Compute linearized force F = A/2*[dt*J*[u/2]]
-    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
+    // Compute linearized force F = kappa*A*X.
+    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, force_time);
     if (d_enable_logging)
     {
         plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
@@ -1137,13 +1375,11 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadLinearizedForce(
-        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
-    d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+        d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
+    d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
-
     return ierr;
-
 } // IBJacobianApply_velocity
 
 PetscErrorCode
@@ -1169,6 +1405,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 {
+    TBOX_ASSERT(d_time_stepping_type == MIDPOINT_RULE);
+
     PetscErrorCode ierr;
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
 
@@ -1241,6 +1479,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 
     // Step 2: lag_y := lag_x + dt*J*eul_y/2
     d_hier_velocity_data_ops->scale(d_u_idx, -0.5, eul_y->getComponentDescriptorIndex(0));
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
@@ -1253,6 +1493,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 
     // Step 4: eul_y := eul_y + inv(L)*S*A*lag_y/2
     d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
+    ierr = VecScale(lag_y, 0.5);
+    IBTK_CHKERRQ(ierr);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
@@ -1303,6 +1545,8 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
 {
+    TBOX_ASSERT(d_time_stepping_type == MIDPOINT_RULE);
+
     const double half_time = d_integrator_time + 0.5 * d_current_dt;
 
     // The Schur complement is: I-dt*J*inv(L)*S*A/4
@@ -1316,7 +1560,9 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
     d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
-    d_hier_velocity_data_ops->scale(d_u_idx, 0.5, d_u_scratch_vec->getComponentDescriptorIndex(0));
+    d_hier_velocity_data_ops->scale(d_u_idx, 0.25, d_u_scratch_vec->getComponentDescriptorIndex(0));
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),

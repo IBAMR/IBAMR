@@ -190,12 +190,12 @@ IBStrategySet::interpolateVelocity(int u_data_idx,
 } // interpolateVelocity
 
 void
-IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_time)
+IBStrategySet::IBStrategySet::forwardEulerStep(double current_time, double new_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->eulerStep(current_time, new_time);
+        (*cit)->forwardEulerStep(current_time, new_time);
     }
     return;
 } // eulerStep

@@ -105,28 +105,38 @@ static Timer* t_vec_dot_norm2;
 #define PSVR_CAST2(v) (PETScSAMRAIVectorReal::getSAMRAIVector(v))
 
 PetscErrorCode
-VecDuplicateVecs_SAMRAI(Vec w, PetscInt m, Vec* V[])
+VecDuplicateVecs_SAMRAI(Vec v, PetscInt m, Vec* V[])
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(V);
+#endif
     PetscErrorCode ierr;
-    *V = new Vec[m];
-    for (PetscInt i = 0; i < m; i++)
+    ierr = PetscMalloc1(m, V);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < m; ++i)
     {
-        ierr = VecDuplicate(w, *V + i);
-        CHKERRQ(ierr);
+        ierr = VecDuplicate(v, *V + i);
+        IBTK_CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
 } // VecDuplicateVecs
 
 PetscErrorCode
-VecDestroyVecs_SAMRAI(PetscInt m, Vec v[])
+VecDestroyVecs_SAMRAI(PetscInt m, Vec vv[])
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(m >= 0);
+    TBOX_ASSERT(vv);
+#endif
     PetscErrorCode ierr;
-    for (PetscInt i = 0; i < m; i++)
+    for (PetscInt i = 0; i < m; ++i)
     {
-        ierr = VecDestroy(&v[i]);
-        CHKERRQ(ierr);
+        ierr = VecDestroy(&vv[i]);
+        IBTK_CHKERRQ(ierr);
     }
-    delete[] v;
+    ierr = PetscFree(vv);
+    IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 } // VecDestroyVecs
 

@@ -66,7 +66,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -122,8 +122,8 @@ main(int argc, char* argv[])
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
-            std::string PetscOptionsFile = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+            std::string petsc_options_file = input_db->getString("petsc_options_file");
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.

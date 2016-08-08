@@ -360,7 +360,7 @@ protected:
     /*
      * Ghost cell width.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_gcw;
+    SAMRAI::hier::IntVector<NDIM> d_gcw;
 
     /*!
      * \name Hierarchy-dependent objects.

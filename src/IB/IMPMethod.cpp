@@ -555,7 +555,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IMPMethod::eulerStep(const double current_time, const double new_time)
+IMPMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -610,7 +610,7 @@ IMPMethod::eulerStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // eulerStep
+} // forwardEulerStep
 
 void
 IMPMethod::midpointStep(const double current_time, const double new_time)
