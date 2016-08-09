@@ -479,20 +479,17 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-            if (d_n_local_subdomains > 0)
+            ierr = MatGetSubMatrices(d_petsc_mat,
+                                     d_n_local_subdomains,
+                                     d_n_local_subdomains ? &d_overlap_is[0] : NULL,
+                                     d_n_local_subdomains ? &local_idxs[0] : NULL,
+                                     MAT_INITIAL_MATRIX,
+                                     &d_sub_bc_mat);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < d_n_local_subdomains; ++i)
             {
-                ierr = MatGetSubMatrices(d_petsc_mat,
-                                         d_n_local_subdomains,
-                                         &d_overlap_is[0],
-                                         &local_idxs[0],
-                                         MAT_INITIAL_MATRIX,
-                                         &d_sub_bc_mat);
+                ierr = MatScale(d_sub_bc_mat[i], -1.0);
                 IBTK_CHKERRQ(ierr);
-                for (int i = 0; i < d_n_local_subdomains; ++i)
-                {
-                    ierr = MatScale(d_sub_bc_mat[i], -1.0);
-                    IBTK_CHKERRQ(ierr);
-                }
             }
             ierr = ISDestroy(&local_idx);
             IBTK_CHKERRQ(ierr);
