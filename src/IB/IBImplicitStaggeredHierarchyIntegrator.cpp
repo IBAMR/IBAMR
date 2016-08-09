@@ -151,6 +151,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     // Set default configuration options.
     d_solve_for_position = false;
+    d_use_structure_predictor = false;
     d_jac_delta_fcn = "IB_4";
 
     // Set options from input.
@@ -160,8 +161,14 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
             d_solve_for_position = input_db->getBool("eliminate_eulerian_vars");
         else if (input_db->keyExists("eliminate_lagrangian_vars"))
             d_solve_for_position = !input_db->getBool("eliminate_lagrangian_vars");
-
+        if (input_db->keyExists("use_structure_predictor"))
+            d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("jacobian_delta_fcn")) d_jac_delta_fcn = input_db->getString("jacobian_delta_fcn");
+    }
+
+    if (d_use_structure_predictor)
+    {
+        pout << "WARNING: explicit predictor for the structural configuration appears to be nonlinearly unstable!\n";
     }
 
     if (!d_solve_for_position)
@@ -253,16 +260,17 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     }
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
 
-#if 0
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
     //
     // NOTE: The velocity should already have been interpolated to the
     // curvilinear mesh and should not need to be re-interpolated.
-    if (d_enable_logging)
-        plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-    d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
-#endif
+    if (d_use_structure_predictor)
+    {
+        if (d_enable_logging)
+            plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+        d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
+    }
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
