@@ -654,8 +654,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<I
     // owns a given DOF along patch boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(
-        u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
