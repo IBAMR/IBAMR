@@ -398,6 +398,9 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         d_prolongation.resize(d_n_subdomains_max);
         d_sub_x.resize(d_n_subdomains_max);
         d_sub_y.resize(d_n_subdomains_max);
+#if !defined(NDEBUG)
+        std::set<int> idxs;
+#endif
         for (int i = 0; i < d_n_subdomains_max; ++i)
         {
             int overlap_is_size = 0, nonoverlap_is_size = 0;
@@ -422,6 +425,10 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                     overlap_indices[ii] = ii;
                     if (jj < nonoverlap_is_size && overlap_is_arr[ii] == nonoverlap_is_arr[jj])
                     {
+#if !defined(NDEBUG)
+                        TBOX_ASSERT(idxs.find(overlap_is_arr[ii]) == idxs.end());
+                        idxs.insert(overlap_is_arr[ii]);
+#endif
                         nonoverlap_indices[jj] = ii;
                         ++jj;
                     }
@@ -458,7 +465,11 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = VecScatterCreate(d_sub_y[i], d_local_nonoverlap_is[i], d_petsc_b, nonoverlap_is, &d_prolongation[i]);
             IBTK_CHKERRQ(ierr);
         }
-
+#if !defined(NDEBUG)
+        int n_local_dofs;
+        VecGetSize(d_local_x, &n_local_dofs);
+        TBOX_ASSERT(n_local_dofs == static_cast<int>(idxs.size()));
+#endif
         if (d_shell_pc_type == "multiplicative")
         {
             PetscInt n_lo, n_hi;
