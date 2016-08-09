@@ -195,6 +195,11 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
+        if (d_enable_logging)
+            plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian "
+                                     "forward Euler step\n";
+        d_ib_method_ops->forwardEulerStep(current_time, new_time);
+        break;
     case MIDPOINT_RULE:
     case TRAPEZOIDAL_RULE:
         if (num_cycles == 1)
