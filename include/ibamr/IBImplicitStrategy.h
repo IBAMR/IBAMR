@@ -156,11 +156,6 @@ public:
                                    int dof_index_idx,
                                    double data_time) = 0;
 
-    /*!
-    * Advance the positions of the Lagrangian structure using backward Euler.
-    */
-    virtual void backwardEulerStep(double current_time, double new_time) = 0;
-
 protected:
 private:
     /*!

@@ -772,7 +772,7 @@ IBMethod::backwardEulerStep(const double current_time, const double new_time)
     *X_half_needs_ghost_fill = true;
 
     return;
-} // eulerStep
+} // backwardEulerStep
 
 void
 IBMethod::midpointStep(const double current_time, const double new_time)

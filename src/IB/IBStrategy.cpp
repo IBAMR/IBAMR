@@ -167,6 +167,13 @@ IBStrategy::updateFixedLEOperators()
     return;
 } // updateFixedLEOperators
 
+void
+IBStrategy::backwardEulerStep(double /*current_time*/, double /*new_time*/)
+{
+    TBOX_ERROR("IBStrategy::backwardEulerStep(): unimplemented\n");
+    return;
+} // backwardEulerStep
+
 bool
 IBStrategy::hasFluidSources() const
 {

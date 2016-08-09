@@ -99,6 +99,16 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& 
                                                              bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
+    // Set default configuration options.
+    d_use_structure_predictor = true;
+
+    // Set options from input.
+    if (input_db)
+    {
+        if (input_db->keyExists("use_structure_predictor"))
+            d_use_structure_predictor = input_db->getBool("use_structure_predictor");
+    }
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -161,6 +171,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
+    case BACKWARD_EULER:
     case TRAPEZOIDAL_RULE:
         if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
         d_ib_method_ops->computeLagrangianForce(current_time);
@@ -173,18 +184,19 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         d_ib_method_ops->spreadForce(
             d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
         d_u_phys_bdry_op->setHomogeneousBc(false);
-        d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+        if (d_f_current_idx != -1) d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
         // intentionally blank
         break;
     default:
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                                 << "\n"
-                                 << "  supported time stepping types are: FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(
+            d_object_name
+            << "::preprocessIntegrateHierarchy():\n"
+            << "  unsupported time stepping type: "
+            << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+            << "\n"
+            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute an initial prediction of the updated positions of the Lagrangian
@@ -192,31 +204,11 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
     //
     // NOTE: The velocity should already have been interpolated to the
     // curvilinear mesh and should not need to be re-interpolated.
-    switch (d_time_stepping_type)
+    if (d_use_structure_predictor)
     {
-    case FORWARD_EULER:
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian "
-                                     "forward Euler step\n";
+            plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
         d_ib_method_ops->forwardEulerStep(current_time, new_time);
-        break;
-    case MIDPOINT_RULE:
-    case TRAPEZOIDAL_RULE:
-        if (num_cycles == 1)
-        {
-            if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian "
-                                         "forward Euler step\n";
-            d_ib_method_ops->forwardEulerStep(current_time, new_time);
-        }
-        break;
-    default:
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                                 << "\n"
-                                 << "  supported time stepping types are: FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Execute any registered callbacks.
@@ -241,15 +233,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
-        if (cycle_num > 0)
-        {
-            IBAMR_DO_ONCE(
-                {
-                    pout << "IBExplicitHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: time_stepping_type = " << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n";
-                });
-        }
+    case BACKWARD_EULER:
+        // intentionally blank
         break;
     case MIDPOINT_RULE:
         if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
@@ -264,17 +249,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         d_u_phys_bdry_op->setHomogeneousBc(false);
         break;
     case TRAPEZOIDAL_RULE:
-        if (d_current_num_cycles == 1 || cycle_num > 0)
+        if (d_use_structure_predictor || cycle_num > 0)
         {
-            // NOTE: If (current_num_cycles > 1 && cycle_num == 0), the
-            // force computed here would be the same as that computed above
-            // in preprocessIntegrateHierarchy(), so we don't bother to
-            // recompute it.
+            // NOTE: We do not re-compute the force unless it could have changed.
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
             d_ib_method_ops->computeLagrangianForce(new_time);
             if (d_enable_logging)
-                plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force "
-                                         "to the Eulerian grid\n";
+                plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
             d_u_phys_bdry_op->setHomogeneousBc(true);
@@ -285,12 +266,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         }
         break;
     default:
-        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                 << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                                 << "\n"
-                                 << "  supported time stepping types are: FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(
+            d_object_name
+            << "::integrateHierarchy():\n"
+            << "  unsupported time stepping type: "
+            << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+            << "\n"
+            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute the Lagrangian source/sink strengths and spread them to the
@@ -332,7 +314,17 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
-        // intentionally blank
+    case BACKWARD_EULER:
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+        if (d_enable_logging)
+            plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
+                                     "the Lagrangian mesh\n";
+        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             new_time);
         break;
     case MIDPOINT_RULE:
         d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
@@ -359,12 +351,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                              new_time);
         break;
     default:
-        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                 << "  unsupported time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type)
-                                 << "\n"
-                                 << "  supported time stepping types are: FORWARD_EULER, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(
+            d_object_name
+            << "::integrateHierarchy():\n"
+            << "  unsupported time stepping type: "
+            << enum_to_string<TimeSteppingType>(d_time_stepping_type)
+            << "\n"
+            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute an updated prediction of the updated positions of the Lagrangian
@@ -380,7 +373,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         switch (d_time_stepping_type)
         {
         case FORWARD_EULER:
-            // intentionally blank
+        case BACKWARD_EULER:
+            d_ib_method_ops->backwardEulerStep(current_time, new_time);
             break;
         case MIDPOINT_RULE:
             if (d_enable_logging)
@@ -397,7 +391,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                      << "  unsupported time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_time_stepping_type)
                                      << "\n"
-                                     << "  supported time stepping types are: FORWARD_EULER, "
+                                     << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, "
                                         "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
