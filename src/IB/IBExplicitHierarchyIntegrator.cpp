@@ -195,8 +195,6 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
-        // intentionally blank
-        break;
     case MIDPOINT_RULE:
     case TRAPEZOIDAL_RULE:
         if (num_cycles == 1)
