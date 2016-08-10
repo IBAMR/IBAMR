@@ -138,6 +138,12 @@ public:
     virtual double getDt() const;
 
     /*!
+     * \brief Zero-out the provided vector on the specified level of the patch
+     * hierarchy.
+     */
+    virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
+
+    /*!
      * \brief Restrict the residual from the source vector to the destination
      * vector on the specified level of the patch hierarchy.
      *

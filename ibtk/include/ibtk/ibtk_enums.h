@@ -69,9 +69,10 @@ inline std::string enum_to_string(T /*val*/)
  */
 enum MGCycleType
 {
+    F_CYCLE,
+    FMG_CYCLE,
     V_CYCLE,
     W_CYCLE,
-    F_CYCLE,
     UNKNOWN_MG_CYCLE_TYPE = -1
 };
 
@@ -79,15 +80,18 @@ template <>
 inline MGCycleType
 string_to_enum<MGCycleType>(const std::string& val)
 {
+    if (strcasecmp(val.c_str(), "F") == 0) return F_CYCLE;
+    if (strcasecmp(val.c_str(), "F_CYCLE") == 0) return F_CYCLE;
+    if (strcasecmp(val.c_str(), "F-CYCLE") == 0) return F_CYCLE;
+    if (strcasecmp(val.c_str(), "FMG") == 0) return FMG_CYCLE;
+    if (strcasecmp(val.c_str(), "FMG_CYCLE") == 0) return FMG_CYCLE;
+    if (strcasecmp(val.c_str(), "FMG-CYCLE") == 0) return FMG_CYCLE;
     if (strcasecmp(val.c_str(), "V") == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "V_CYCLE") == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "V-CYCLE") == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "W") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W_CYCLE") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W-CYCLE") == 0) return W_CYCLE;
-    if (strcasecmp(val.c_str(), "F") == 0) return F_CYCLE;
-    if (strcasecmp(val.c_str(), "F_CYCLE") == 0) return F_CYCLE;
-    if (strcasecmp(val.c_str(), "F-CYCLE") == 0) return F_CYCLE;
     return UNKNOWN_MG_CYCLE_TYPE;
 } // string_to_enum
 
@@ -95,9 +99,10 @@ template <>
 inline std::string
 enum_to_string<MGCycleType>(MGCycleType val)
 {
+    if (val == F_CYCLE) return "F_CYCLE";
+    if (val == FMG_CYCLE) return "FMG_CYCLE";
     if (val == V_CYCLE) return "V_CYCLE";
     if (val == W_CYCLE) return "W_CYCLE";
-    if (val == F_CYCLE) return "F_CYCLE";
     return "UNKNOWN_MG_CYCLE_TYPE";
 } // enum_to_string
 
