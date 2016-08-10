@@ -72,6 +72,57 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+void
+generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
+                              std::vector<std::set<int> >& nonoverlap_std,
+                              std::vector<IS>& overlap_petsc,
+                              std::vector<IS>& nonoverlap_petsc)
+{
+    // Destroy old IS'es and generate new ones.
+    int ierr;
+    for (unsigned int k = 0; k < overlap_petsc.size(); ++k)
+    {
+        ierr = ISDestroy(&overlap_petsc[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    overlap_petsc.clear();
+    for (unsigned int k = 0; k < nonoverlap_petsc.size(); ++k)
+    {
+        ierr = ISDestroy(&nonoverlap_petsc[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+    nonoverlap_petsc.clear();
+
+    const int n_overlap_subdomains = static_cast<int>(overlap_std.size());
+    overlap_petsc.resize(n_overlap_subdomains);
+    for (int k = 0; k < n_overlap_subdomains; ++k)
+    {
+        PetscInt* overlap_dof_arr;
+        const int n_overlap_dofs = static_cast<int>(overlap_std[k].size());
+        ierr = PetscMalloc1(n_overlap_dofs, &overlap_dof_arr);
+        IBTK_CHKERRQ(ierr);
+        std::copy(overlap_std[k].begin(), overlap_std[k].end(), overlap_dof_arr);
+        ierr = ISCreateGeneral(PETSC_COMM_SELF, n_overlap_dofs, overlap_dof_arr, PETSC_OWN_POINTER, &overlap_petsc[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const int n_nonoverlap_subdomains = static_cast<int>(nonoverlap_std.size());
+    nonoverlap_petsc.resize(n_nonoverlap_subdomains);
+    for (int k = 0; k < n_nonoverlap_subdomains; ++k)
+    {
+        PetscInt* nonoverlap_dof_arr;
+        const int n_nonoverlap_dofs = static_cast<int>(nonoverlap_std[k].size());
+        ierr = PetscMalloc1(n_nonoverlap_dofs, &nonoverlap_dof_arr);
+        IBTK_CHKERRQ(ierr);
+        std::copy(nonoverlap_std[k].begin(), nonoverlap_std[k].end(), nonoverlap_dof_arr);
+        ierr = ISCreateGeneral(
+            PETSC_COMM_SELF, n_nonoverlap_dofs, nonoverlap_dof_arr, PETSC_OWN_POINTER, &nonoverlap_petsc[k]);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    return;
+} // generate_petsc_is_from_std_is
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -347,7 +398,12 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     // Setup the preconditioner.
     if (d_pc_type == "asm")
     {
-        int num_subdomains = static_cast<int>(d_overlap_is.size());
+        // Generate user-defined subdomains.
+        std::vector<std::set<int> > overlap_is, nonoverlap_is;
+        generateASMSubdomains(overlap_is, nonoverlap_is);
+        generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+
+        int num_subdomains = static_cast<int>(overlap_is.size());
         if (num_subdomains == 0)
         {
             IS is;
@@ -367,9 +423,31 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
 
     if (d_pc_type == "fieldsplit")
     {
-        const int n_fields = static_cast<int>(d_field_is.size());
+        std::vector<std::set<int> > field_is;
+        std::vector<std::string> field_name;
+        generateFieldSplitSubdomains(field_name, field_is);
+        d_field_name = field_name;
+        const int n_fields = static_cast<int>(field_is.size());
+
+        // Destroy old IS'es and generate new ones.
+        for (unsigned int k = 0; k < d_field_is.size(); ++k)
+        {
+            ierr = ISDestroy(&d_field_is[k]);
+            IBTK_CHKERRQ(ierr);
+        }
+        d_field_is.clear();
+
+        d_field_is.resize(n_fields);
         for (int k = 0; k < n_fields; ++k)
         {
+            PetscInt* field_dof_arr;
+            const int n_field_dofs = static_cast<int>(field_is[k].size());
+            ierr = PetscMalloc1(n_field_dofs, &field_dof_arr);
+            IBTK_CHKERRQ(ierr);
+            std::copy(field_is[k].begin(), field_is[k].end(), field_dof_arr);
+            ierr = ISCreateGeneral(PETSC_COMM_SELF, n_field_dofs, field_dof_arr, PETSC_OWN_POINTER, &d_field_is[k]);
+            IBTK_CHKERRQ(ierr);
+
             ierr = PCFieldSplitSetIS(ksp_pc, d_field_name[k].c_str(), d_field_is[k]);
             IBTK_CHKERRQ(ierr);
         }
@@ -383,8 +461,12 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         ierr = MatCreateVecs(diagonal_mat_block, &d_local_x, &d_local_y);
         IBTK_CHKERRQ(ierr);
 
-        d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
+        // Generate user-defined subdomains.
+        std::vector<std::set<int> > overlap_is, nonoverlap_is;
+        generateASMSubdomains(overlap_is, nonoverlap_is);
+        d_n_local_subdomains = static_cast<int>(overlap_is.size());
         d_n_subdomains_max = SAMRAI_MPI::maxReduction(d_n_local_subdomains);
+        generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
 
         // Get the local submatrices.
         ierr = MatGetSubMatrices(
@@ -423,6 +505,9 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                 for (; ii < overlap_is_size; ++ii)
                 {
                     overlap_indices[ii] = ii;
+
+                    // Keep the local indices of nonoverlap DOFs in an array.
+                    // Since we have sorted IS'es, it is easier to locate contigous nonoverlap DOFs.
                     if (jj < nonoverlap_is_size && overlap_is_arr[ii] == nonoverlap_is_arr[jj])
                     {
 #if !defined(NDEBUG)
@@ -538,11 +623,16 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         {
             ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Additive);
             IBTK_CHKERRQ(ierr);
-            std::string pc_name = d_options_prefix + "PCApply_Additive";
+            std::string pc_name = d_options_prefix + "PC_Additive";
+            ierr = PCShellSetName(ksp_pc, pc_name.c_str());
+            IBTK_CHKERRQ(ierr);
         }
         else if (d_shell_pc_type == "multiplicative")
         {
             ierr = PCShellSetApply(ksp_pc, PETScLevelSolver::PCApply_Multiplicative);
+            IBTK_CHKERRQ(ierr);
+            std::string pc_name = d_options_prefix + "PC_Multiplicative";
+            ierr = PCShellSetName(ksp_pc, pc_name.c_str());
             IBTK_CHKERRQ(ierr);
         }
         else
@@ -685,6 +775,25 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
     }
     return;
 } // init
+
+void
+PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
+                                        std::vector<std::set<int> >& nonoverlap_is)
+{
+    TBOX_ERROR("PETScLevelSolver::generateASMSubdomains(): Subclasses need to generate ASM subdomains. \n");
+
+    return;
+} // generateASMSubdomains
+
+void
+PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& field_names,
+                                               std::vector<std::set<int> >& field_is)
+{
+    TBOX_ERROR(
+        "PETScLevelSolver::generateFieldSplitSubdomains(): Subclasses need to generate FieldSplit subdomains. \n");
+
+    return;
+} // generateFieldSplitSubdomains
 
 void
 PETScLevelSolver::setupNullspace()
