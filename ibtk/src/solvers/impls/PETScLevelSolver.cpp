@@ -588,7 +588,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             Mat& sub_mat = d_sub_mat[i];
             ierr = KSPCreate(PETSC_COMM_SELF, &sub_ksp);
             IBTK_CHKERRQ(ierr);
-            std::string sub_prefix = d_options_prefix + "_sub_";
+            std::string sub_prefix = d_options_prefix + "_sub";
             ierr = KSPSetOptionsPrefix(sub_ksp, sub_prefix.c_str());
             IBTK_CHKERRQ(ierr);
             ierr = KSPSetOperators(sub_ksp, sub_mat, sub_mat);
