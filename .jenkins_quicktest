@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e 
+set -o pipefail
+./configure \
+  CFLAGS="-g -O1 -Wall" \
+  CXXFLAGS="-g -O1 -Wall" \
+  FCFLAGS="-g -O1 -Wall" \
+  CC=$HOME/linux/openmpi/1.10.2/bin/mpicc \
+  CXX=$HOME/linux/openmpi/1.10.2/bin/mpicxx \
+  FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
+  CPPFLAGS="-DOMPI_SKIP_MPICXX" \
+  LDFLAGS="-lgtest" \
+  --with-hypre=$PETSC_DIR/$PETSC_ARCH \
+  --with-samrai=$HOME/samrai/2.4.4/linux-debug \
+  --with-hdf5=$HOME/linux/hdf5/1.8.16 \
+  --with-blitz=$HOME/linux/blitz/0.10 \
+  --with-silo=$HOME/linux/silo/4.10 \
+  --with-boost=$HOME/linux/boost/1.61.0 \
+  --enable-libmesh \
+  --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
+  --with-libmesh-method=dbg
+make -kj4 lib
+make -kj4 examples
