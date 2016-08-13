@@ -499,38 +499,25 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // is the "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
-        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_"
-        "var");
+        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
     Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
-        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_"
-        "var");
+        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
-    int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
         Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
-            {
-                (*u_dof_index_data)(SideIndex<NDIM>(b(), component_axis, SideIndex<NDIM>::Lower)) = counter++;
-            }
-        }
     }
 
-    // Synchronize the patch number and preliminary DOF index data at patch
-    // boundaries to determine which patch owns a given DOF along patch
-    // boundaries.
+    // Synchronize the patch number at patch boundaries to determine which patch
+    // owns a given DOF along patch boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.registerRefine(
@@ -539,7 +526,6 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;
-    counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -553,9 +539,11 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
-                const bool u_mastr_loc = ((*u_dof_index_data)(is) == counter++) && ((*patch_num_data)(is) == patch_num);
-                (*u_mastr_loc_data)(is) = u_mastr_loc;
-                if (LIKELY(u_mastr_loc)) ++local_dof_count;
+                if ((*patch_num_data)(is) == patch_num)
+                {
+                    (*u_mastr_loc_data)(is) = true;
+                    ++local_dof_count;
+                }
             }
         }
         local_dof_count += CellGeometry<NDIM>::toCellBox(patch_box).size();
@@ -571,7 +559,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
-    counter = local_dof_offset;
+    int counter = local_dof_offset;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -596,10 +584,14 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
                 const Index<NDIM>& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
-                    if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
-                    const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
-                    if (UNLIKELY(!(*u_mastr_loc_data)(is))) continue;
-                    (*u_dof_index_data)(is) = counter++;
+                    if (data_boxes[component_axis].contains(ic))
+                    {
+                        const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
+                        if ((*u_mastr_loc_data)(is))
+                        {
+                            (*u_dof_index_data)(is) = counter++;
+                        }
+                    }
                 }
             }
         }
@@ -608,6 +600,9 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
             (*p_dof_index_data)(b()) = counter++;
         }
     }
+#if !defined(NDEBUG)
+    TBOX_ASSERT(counter - local_dof_offset == num_dofs_per_proc[mpi_rank]);
+#endif
 
     // Deallocate patch_num variable data.
     patch_level->deallocatePatchData(patch_num_idx);

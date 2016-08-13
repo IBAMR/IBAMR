@@ -93,8 +93,8 @@ public:
      * additive Schwarz method.
      */
     static void
-    constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
-                                     std::vector<IS>& is_nonoverlap,
+    constructPatchLevelASMSubdomains(std::vector<std::set<int> >& is_overlap,
+                                     std::vector<std::set<int> >& is_nonoverlap,
                                      const SAMRAI::hier::IntVector<NDIM>& box_size,
                                      const SAMRAI::hier::IntVector<NDIM>& overlap_size,
                                      const std::vector<int>& num_dofs_per_proc,
@@ -105,36 +105,9 @@ public:
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
-     * multiplicative Schwarz method.
-     */
-    static void constructPatchLevelMSMSubdomains(std::vector<IS>& is_row,
-                                                 std::vector<IS>& is_col,
-                                                 const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                                 const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                                 const std::vector<int>& num_dofs_per_proc,
-                                                 int u_dof_index_idx,
-                                                 int p_dof_index_idx,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
-
-    /*!
-     * \brief Partition the patch level into subdomains suitable to be used for
-     * multiplicative Schwarz method using red-black subdomain ordering.
-     */
-    static void constructPatchLevelMSMSubdomains(std::vector<IS>& is_red_row,
-                                                 std::vector<IS>& is_red_col,
-                                                 std::vector<IS>& is_black_row,
-                                                 std::vector<IS>& is_black_col,
-                                                 const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                                 const SAMRAI::hier::IntVector<NDIM>& overlap_size,
-                                                 const std::vector<int>& num_dofs_per_proc,
-                                                 int u_dof_index_idx,
-                                                 int p_dof_index_idx,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
-    /*!
-     * \brief Partition the patch level into subdomains suitable to be used for
      * PCFieldSplit preconditioner.
      */
-    static void constructPatchLevelFields(std::vector<IS>& is_field,
+    static void constructPatchLevelFields(std::vector<std::set<int> >& is_field,
                                           std::vector<std::string>& is_field_name,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int u_dof_index_idx,

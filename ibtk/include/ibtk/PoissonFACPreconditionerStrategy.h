@@ -244,6 +244,11 @@ public:
     //\{
 
     /*!
+     * \brief Zero the supplied vector.
+     */
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+
+    /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *

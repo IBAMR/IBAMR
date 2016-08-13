@@ -309,6 +309,14 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
 } // setRestrictionMethod
 
 void
+PoissonFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+{
+    const int data_idx = vec.getComponentDescriptorIndex(0);
+    d_level_data_ops[level_num]->setToScalar(data_idx, 0.0, /*interior_only*/ false);
+    return;
+} // setToZero
+
+void
 PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
                                                    SAMRAIVectorReal<NDIM, double>& dst,
                                                    int dst_ln)

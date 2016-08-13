@@ -102,6 +102,16 @@ public:
 
 protected:
     /*!
+     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     */
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is);
+
+    /*!
+     * \brief Generate IS/subdomains for fieldsplit type preconditioners.
+     */
+    void generateFieldSplitSubdomains(std::vector<std::string>& field_names, std::vector<std::set<int> >& field_is);
+
+    /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,

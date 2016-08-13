@@ -259,6 +259,12 @@ protected:
     TimeSteppingType d_time_stepping_type;
 
     /*!
+     * Flag indicating whether to use an explicit predictor for the structure
+     * configuration in the time stepping scheme.
+     */
+    bool d_use_structure_predictor;
+
+    /*!
      * Flags to determine whether warnings or error messages should be emitted
      * when time step size changes are encountered.
      */

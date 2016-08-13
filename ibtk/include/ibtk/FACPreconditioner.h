@@ -279,9 +279,19 @@ protected:
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
-    void FACCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                 int level_num,
+                 int mu);
+
+    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                int level_num);
+
+    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  int level_num);
+                  int level_num,
+                  int mu);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -290,7 +300,6 @@ protected:
     MGCycleType d_cycle_type;
     int d_num_pre_sweeps, d_num_post_sweeps;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f, d_r;
-    bool d_recompute_residual;
 
 private:
     /*!

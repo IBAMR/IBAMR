@@ -360,6 +360,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
 
     // Determine the global node offset and the number of local nodes.
     const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
+    const int num_nodes = l_data_manager->getNumberOfNodes(level_number);
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix used to store the
@@ -508,8 +509,8 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
     o_nnz.resize(num_local_nodes);
     for (int k = 0; k < num_local_nodes; ++k)
     {
-        d_nnz[k] = static_cast<int>(d_nnz_vec_arr[k]);
-        o_nnz[k] = static_cast<int>(o_nnz_vec_arr[k]);
+        d_nnz[k] = std::min(static_cast<int>(d_nnz_vec_arr[k]), num_local_nodes);
+        o_nnz[k] = std::min(static_cast<int>(o_nnz_vec_arr[k]), num_nodes - num_local_nodes);
     }
 
     ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);
