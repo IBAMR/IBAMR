@@ -91,7 +91,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/KrylovMobilitySolver.cpp \
 ../src/IB/MobilityFunctions.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
-../src/IB/StaggeredStokesIBBoxRelaxationFACOperator.cpp \
 ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
@@ -129,7 +128,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SpongeLayerForceFunction.cpp \
 ../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
 ../src/navier_stokes/StaggeredStokesBlockPreconditioner.cpp \
-../src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.cpp \
 ../src/navier_stokes/StaggeredStokesFACPreconditioner.cpp \
 ../src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp \
 ../src/navier_stokes/StaggeredStokesLevelRelaxationFACOperator.cpp \
@@ -233,10 +231,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/SpongeLayerForceFunction.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
-../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
-../include/ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \

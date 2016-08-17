@@ -429,6 +429,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_method_ops->initializePatchHierarchy(hierarchy,
                                               gridding_alg,
                                               d_u_idx,

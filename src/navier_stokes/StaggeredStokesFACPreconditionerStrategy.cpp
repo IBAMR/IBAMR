@@ -420,6 +420,19 @@ StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::strin
 } // setRestrictionMethods
 
 void
+StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+{
+    const int U_data_idx = vec.getComponentDescriptorIndex(0);
+    const int P_data_idx = vec.getComponentDescriptorIndex(1);
+    static const bool interior_only = false;
+    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, level_num, level_num);
+    level_sc_data_ops.setToScalar(U_data_idx, 0.0, interior_only);
+    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, level_num, level_num);
+    level_cc_data_ops.setToScalar(P_data_idx, 0.0, interior_only);
+    return;
+} // setToZero
+
+void
 StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
                                                            SAMRAIVectorReal<NDIM, double>& dst,
                                                            int dst_ln)

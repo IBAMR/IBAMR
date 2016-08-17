@@ -65,7 +65,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -75,7 +75,7 @@ ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d&
 } // ConstrainedCOMOuterVel
 
 void
-NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << 0.0, 0.0, 0.0;
     T_ext << 0.0, 0.0, 0.0;
@@ -130,7 +130,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -347,6 +347,9 @@ main(int argc, char* argv[])
             }
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            pout << "\n\nNet rigid force and torque on plate is : \n" << ib_method_ops->getNetRigidGeneralizedForce(0)
+                 << "\n\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

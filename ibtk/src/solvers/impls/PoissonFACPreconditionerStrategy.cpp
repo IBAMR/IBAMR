@@ -157,6 +157,11 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     // Get values from the input database.
     if (input_db)
     {
+        if (input_db->keyExists("ghost_cell_width"))
+        {
+            int gcw = input_db->getInteger("ghost_cell_width");
+            for (int d = 0; d < NDIM; ++d) d_gcw(d) = gcw;
+        }
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method"))
             d_prolongation_method = input_db->getString("prolongation_method");
@@ -302,6 +307,14 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
     d_restriction_method = restriction_method;
     return;
 } // setRestrictionMethod
+
+void
+PoissonFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+{
+    const int data_idx = vec.getComponentDescriptorIndex(0);
+    d_level_data_ops[level_num]->setToScalar(data_idx, 0.0, /*interior_only*/ false);
+    return;
+} // setToZero
 
 void
 PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,

@@ -221,6 +221,15 @@ public:
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
+     * backward Euler method.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void backwardEulerStep(double current_time, double new_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
     virtual void midpointStep(double current_time, double new_time) = 0;

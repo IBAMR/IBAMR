@@ -120,19 +120,6 @@ public:
     void getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains, std::vector<IS>** overlapping_subdomains);
 
     /*!
-     * \brief Get MSM subdomains.
-     */
-    void getMSMSubdomains(std::vector<IS>** rows_subdomains, std::vector<IS>** cols_subdomains);
-
-    /*!
-     * \brief Get MSM subdomains with red-black ordering.
-     */
-    void getMSMSubdomains(std::vector<IS>** red_rows_subdomains,
-                          std::vector<IS>** red_cols_subdomains,
-                          std::vector<IS>** black_rows_subdomains,
-                          std::vector<IS>** black_cols_subdomains);
-
-    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -262,6 +249,18 @@ protected:
     void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
+     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     */
+    virtual void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
+                                       std::vector<std::set<int> >& nonoverlap_is);
+
+    /*!
+     * \brief Generate IS/subdomains for fieldsplit type preconditioners.
+     */
+    virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
+                                              std::vector<std::set<int> >& field_is);
+
+    /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     virtual void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
@@ -314,7 +313,6 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    bool d_use_ksp_as_smoother;
     std::string d_ksp_type, d_pc_type, d_shell_pc_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
@@ -325,26 +323,17 @@ protected:
     //\}
 
     /*!
-     * \name Domain decomposing preconditioners
+     * \name Support for additive and multiplicative Schwarz preconditioners.
      */
     //\{
+    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-
-    // ASM and MSM type preconditioners.
-    std::vector<IS> d_overlap_is, d_nonoverlap_is;
-    std::vector<IS> d_subdomain_row_is, d_subdomain_col_is;
-    std::vector<IS> d_red_subdomain_row_is, d_red_subdomain_col_is;
-    std::vector<IS> d_black_subdomain_row_is, d_black_subdomain_col_is;
-    int d_no_subdomains, d_no_red_subdomains, d_no_black_subdomains;
-
-    // Various matrices for ASM and MSM type preconditioners.
-    Mat d_diagonal_mat;
-    Mat *d_subdomain_bc_mat, *d_subdomain_mat;
-    Mat *d_red_subdomain_bc_mat, *d_red_subdomain_mat;
-    Mat *d_black_subdomain_bc_mat, *d_black_subdomain_mat;
-
-    // Various KSPs.
-    std::vector<KSP> d_subdomain_ksp, d_red_subdomain_ksp, d_black_subdomain_ksp;
+    int d_n_local_subdomains, d_n_subdomains_max;
+    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
+    std::vector<VecScatter> d_restriction, d_prolongation;
+    std::vector<KSP> d_sub_ksp;
+    Mat *d_sub_mat, *d_sub_bc_mat;
+    std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
     /*!

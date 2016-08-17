@@ -66,7 +66,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -79,7 +79,7 @@ ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
 
 // Center of mass velocity
 void
-ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -95,7 +95,7 @@ ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vecto
 
 // These forces on the structure are computed when the "above" velocities are prescribed on them.
 void
-NetExternalForceTorqueOuter(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+NetExternalForceTorqueOuter(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << 100.916, 1351.74, 0.000916801;
     T_ext << -2.23858e-09, 58206.1, -1.12567e-09;
@@ -104,7 +104,7 @@ NetExternalForceTorqueOuter(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
 } // NetExternalForceTorqueOuter
 
 void
-NetExternalForceTorqueInner(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+NetExternalForceTorqueInner(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << -116.762, -201.82, -0.00128781;
     T_ext << 1.46423e-09, -1393.33, 9.03505e-10;
@@ -152,7 +152,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
