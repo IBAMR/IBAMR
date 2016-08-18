@@ -27,16 +27,16 @@ test2d_SOURCES = $(TEST_DRIVER)
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d.case{C,S2,SP}* $(PWD) ; \
+	  cp -f $(srcdir)/input2d* $(PWD) ; \
 	fi ;
 
 gtest: $(GTEST_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d.case{C,S2,SP}* $(PWD) ; \
+	  cp -f $(srcdir)/input2d* $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS) $(GTEST_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input2d.case{C,S2,SP}* ; \
+	  rm -f $(builddir)/input2d* ; \
 	fi ;
