@@ -13,3 +13,8 @@ examples:
 	@(cd ex6 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex7 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex8 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+gtest:
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  cp -f $(srcdir)/runTests.sh $(PWD) ; \
+	fi ;
+	./runTests.sh
