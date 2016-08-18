@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST  = input3d shell_3d_in.vertex shell_3d_out.vertex PetscOptions.dat
+EXTRA_DIST  = input3d shell_3d_in.vertex shell_3d_out.vertex petsc_options.dat
 
 EXTRA_PROGRAMS =
 if SAMRAI3D_ENABLED
@@ -18,7 +18,7 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/*.vertex $(PWD) ; \
-	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
+	  cp -f $(srcdir)/petsc_options.dat $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -26,7 +26,7 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
           rm -f $(builddir)/*.vertex ; \
-          rm -f $(builddir)/PetscOptions.dat ; \
+          rm -f $(builddir)/petsc_options.dat ; \
 	fi ;
 
 
