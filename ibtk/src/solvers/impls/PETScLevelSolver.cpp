@@ -445,9 +445,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = PetscMalloc1(n_field_dofs, &field_dof_arr);
             IBTK_CHKERRQ(ierr);
             std::copy(field_is[k].begin(), field_is[k].end(), field_dof_arr);
-            ierr = ISCreateGeneral(PETSC_COMM_SELF, n_field_dofs, field_dof_arr, PETSC_OWN_POINTER, &d_field_is[k]);
+            ierr = ISCreateGeneral(PETSC_COMM_WORLD, n_field_dofs, field_dof_arr, PETSC_OWN_POINTER, &d_field_is[k]);
             IBTK_CHKERRQ(ierr);
-
             ierr = PCFieldSplitSetIS(ksp_pc, d_field_name[k].c_str(), d_field_is[k]);
             IBTK_CHKERRQ(ierr);
         }
