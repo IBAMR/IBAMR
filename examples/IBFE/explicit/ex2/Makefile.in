@@ -13,7 +13,6 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -80,12 +79,13 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/Make-rules $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/config/depcomp
-EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-GTEST_PROGRAMS = $(am__EXEEXT_3) $(am__EXEEXT_4)
+EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d 
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d 
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = test3d
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(EXAMPLES) $(GTESTS)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = main3d 
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_5 = test3d
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(EXAMPLES) $(GTESTS) 
 subdir = examples/IBFE/explicit/ex2
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -118,13 +118,19 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT)
 @LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	main3d$(EXEEXT)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 =  \
+am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	test2d$(EXEEXT)
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_4 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	test3d$(EXEEXT)
-am__installdirs = "$(DESTDIR)$(GTESTdir)"
-PROGRAMS = $(GTEST_PROGRAMS)
-am__objects_1 = main2d-ex2_main.$(OBJEXT)
+am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_3) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_6)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_3) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_6)
+am__objects_1 = main2d-ex_main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -135,7 +141,7 @@ am__v_lt_1 =
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = main3d-ex2_main.$(OBJEXT)
+am__objects_2 = main3d-ex_main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
@@ -510,10 +516,11 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-GTESTdir = $(top_builddir)/examples/IBFE/explicit/ex2/
-EXAMPLE_DRIVER = ex2_main.cpp
-TEST_DRIVER = test_main.cpp
+EXAMPLE_DRIVER = ex_main.cpp
+GTEST_DRIVER = test_main.cpp
 EXTRA_DIST = input2d input3d input2d.test input3d.test
+EXAMPLES = $(am__append_1) $(am__append_4)
+GTESTS = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
@@ -522,10 +529,10 @@ main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_SOURCES = $(EXAMPLE_DRIVER)
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-test2d_SOURCES = $(TEST_DRIVER)
+test2d_SOURCES = $(GTEST_DRIVER)
 test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-test3d_SOURCES = $(TEST_DRIVER)
+test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -561,55 +568,6 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-GTESTPROGRAMS: $(GTEST_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	@list='$(GTEST_PROGRAMS)'; test -n "$(GTESTdir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(GTESTdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(GTESTdir)" || exit 1; \
-	fi; \
-	for p in $$list; do echo "$$p $$p"; done | \
-	sed 's/$(EXEEXT)$$//' | \
-	while read p p1; do if test -f $$p \
-	 || test -f $$p1 \
-	  ; then echo "$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n;h' \
-	    -e 's|.*|.|' \
-	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
-	sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
-	    else { print "f", $$3 "/" $$4, $$1; } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	    test -z "$$files" || { \
-	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(GTESTdir)$$dir'"; \
-	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(GTESTdir)$$dir" || exit $$?; \
-	    } \
-	; done
-
-uninstall-GTESTPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(GTEST_PROGRAMS)'; test -n "$(GTESTdir)" || list=; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
-	      -e 's/$$/$(EXEEXT)/' \
-	`; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(GTESTdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(GTESTdir)" && rm -f $$files
-
-clean-GTESTPROGRAMS:
-	@list='$(GTEST_PROGRAMS)'; test -n "$$list" || exit 0; \
-	echo " rm -f" $$list; \
-	rm -f $$list || exit $$?; \
-	test -n "$(EXEEXT)" || exit 0; \
-	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
-	echo " rm -f" $$list; \
-	rm -f $$list
 
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
@@ -633,8 +591,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex2_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex2_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@
 
@@ -662,33 +620,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-main2d-ex2_main.o: ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex2_main.o -MD -MP -MF $(DEPDIR)/main2d-ex2_main.Tpo -c -o main2d-ex2_main.o `test -f 'ex2_main.cpp' || echo '$(srcdir)/'`ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex2_main.Tpo $(DEPDIR)/main2d-ex2_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex2_main.cpp' object='main2d-ex2_main.o' libtool=no @AMDEPBACKSLASH@
+main2d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.o -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex2_main.o `test -f 'ex2_main.cpp' || echo '$(srcdir)/'`ex2_main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
 
-main2d-ex2_main.obj: ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex2_main.obj -MD -MP -MF $(DEPDIR)/main2d-ex2_main.Tpo -c -o main2d-ex2_main.obj `if test -f 'ex2_main.cpp'; then $(CYGPATH_W) 'ex2_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex2_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex2_main.Tpo $(DEPDIR)/main2d-ex2_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex2_main.cpp' object='main2d-ex2_main.obj' libtool=no @AMDEPBACKSLASH@
+main2d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.obj -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex2_main.obj `if test -f 'ex2_main.cpp'; then $(CYGPATH_W) 'ex2_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex2_main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
 
-main3d-ex2_main.o: ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex2_main.o -MD -MP -MF $(DEPDIR)/main3d-ex2_main.Tpo -c -o main3d-ex2_main.o `test -f 'ex2_main.cpp' || echo '$(srcdir)/'`ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex2_main.Tpo $(DEPDIR)/main3d-ex2_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex2_main.cpp' object='main3d-ex2_main.o' libtool=no @AMDEPBACKSLASH@
+main3d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.o -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex2_main.o `test -f 'ex2_main.cpp' || echo '$(srcdir)/'`ex2_main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
 
-main3d-ex2_main.obj: ex2_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex2_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex2_main.Tpo -c -o main3d-ex2_main.obj `if test -f 'ex2_main.cpp'; then $(CYGPATH_W) 'ex2_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex2_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex2_main.Tpo $(DEPDIR)/main3d-ex2_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex2_main.cpp' object='main3d-ex2_main.obj' libtool=no @AMDEPBACKSLASH@
+main3d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex2_main.obj `if test -f 'ex2_main.cpp'; then $(CYGPATH_W) 'ex2_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex2_main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
 
 test2d-test_main.o: test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
@@ -808,11 +766,8 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile
 installdirs:
-	for dir in "$(DESTDIR)$(GTESTdir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -846,8 +801,7 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-GTESTPROGRAMS clean-generic clean-libtool clean-local \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -867,7 +821,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-GTESTPROGRAMS
+install-data-am:
 
 install-dvi: install-dvi-am
 
@@ -913,34 +867,33 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-GTESTPROGRAMS
+uninstall-am:
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
-	clean-GTESTPROGRAMS clean-generic clean-libtool clean-local \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-GTESTPROGRAMS \
-	install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-GTESTPROGRAMS uninstall-am
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-local cscopelist-am ctags ctags-am \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXTRA_PROGRAMS)
+examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input* $(PWD) ; \
 	fi ;
 
-gtest: $(GTEST_PROGRAMS)
+gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input* $(PWD) ; \
 	fi ;

@@ -1,23 +1,24 @@
 #include <gtest/gtest.h>
-#include "ex6.cpp"
+#include "example.cpp"
 
-int example_argc;
-char** example_argv;
-bool ExampleRuns;
-bool runExample(int, char**);
+int ex_argc;
+char** ex_argv;
+bool ex_runs;
+bool run_example(int, char**);
 
 TEST(IBFE_ex6, 2d) {
-    ExampleRuns = runExample(example_argc, example_argv);
-    EXPECT_EQ(ExampleRuns, true);
+    ex_runs = run_example(ex_argc, ex_argv);
+    EXPECT_EQ(ex_runs, true);
 }
 
-TEST(IBFE_ex6, 3d) {
-    ExampleRuns = runExample(example_argc, example_argv);
-    EXPECT_EQ(ExampleRuns, true);
-}
+/*TEST(IBFE_ex6, 3d) {
+    ex_runs = run_example(ex_argc, ex_argv);
+    EXPECT_EQ(ex_runs, true);
+}*/
+
 int main( int argc, char** argv ) {
     testing::InitGoogleTest( &argc, argv ); 
-    example_argc = argc;
-    example_argv = argv;
+    ex_argc = argc;
+    ex_argv = argv;
     return RUN_ALL_TESTS( );
 }

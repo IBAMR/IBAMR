@@ -316,10 +316,8 @@ using namespace ModelData;
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-extern int example_argc;
-extern char** example_argv;
 
-bool runExample(int argc, char** argv)
+bool run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
