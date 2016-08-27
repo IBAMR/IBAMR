@@ -16,4 +16,4 @@ int main( int argc, char** argv ) {
     ex_argc = argc;
     ex_argv = argv;
     return RUN_ALL_TESTS( );
-
+}

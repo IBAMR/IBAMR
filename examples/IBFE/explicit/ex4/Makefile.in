@@ -80,12 +80,12 @@ host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/Make-rules $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/config/depcomp
 EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d convergence_tester2d
-@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
-@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(EXAMPLES) $(GTESTS)
-@SAMRAI3D_ENABLED_TRUE@am__append_4 = main3d convergence_tester3d
-@SAMRAI3D_ENABLED_TRUE@am__append_5 = test3d
-@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(EXAMPLES) $(GTESTS)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d convergence_tester2d
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(EXAMPLES) $(GTESTS)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = main3d convergence_tester3d
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_5 = test3d
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(EXAMPLES) $(GTESTS)
 subdir = examples/IBFE/explicit/ex4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -114,16 +114,24 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
-@SAMRAI2D_ENABLED_TRUE@	convergence_tester2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT) \
-@SAMRAI3D_ENABLED_TRUE@	convergence_tester3d$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	convergence_tester2d$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	main3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	convergence_tester3d$(EXEEXT)
 am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = test2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = test3d$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	test2d$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	test3d$(EXEEXT)
 am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 = $(am__EXEEXT_3) $(am__EXEEXT_6)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_3) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_6)
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_3) \
+@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_6)
 am_convergence_tester2d_OBJECTS =  \
 	convergence_tester2d-convergence_tester.$(OBJEXT)
 convergence_tester2d_OBJECTS = $(am_convergence_tester2d_OBJECTS)
@@ -945,7 +953,6 @@ uninstall-am:
 
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
-if LIBMESH_ENABLED = 
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
