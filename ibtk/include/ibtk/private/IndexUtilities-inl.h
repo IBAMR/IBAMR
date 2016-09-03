@@ -90,27 +90,6 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return idx;
 } // getCellIndex
 
-inline int
-IndexUtilities::getIntegerMapping(const SAMRAI::hier::Index<NDIM>& i,
-                                  const SAMRAI::hier::Index<NDIM>& domain_lower,
-                                  const SAMRAI::hier::Index<NDIM>& num_cells,
-                                  const int depth)
-{
-#if (NDIM == 1)
-    return (i(0) - domain_lower(0) + depth * num_cells(0));
-#elif(NDIM == 2)
-    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) + depth * num_cells(0) * num_cells(1));
-#elif(NDIM == 3)
-    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) +
-            (i(2) - domain_lower(2)) * num_cells(0) * num_cells(1) +
-            depth * num_cells(0) * num_cells(1) * num_cells(2));
-
-#else
-    return -1;
-#endif
-
-} // getIntegerMapping
-
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(const DoubleArray& X,
@@ -147,23 +126,40 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 inline int
 IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
                                   const SAMRAI::hier::Index<NDIM>& domain_lower,
-                                  const SAMRAI::hier::Index<NDIM>& num_cells,
+                                  const SAMRAI::hier::Index<NDIM>& n_cells,
                                   const int depth,
-                                  const int offset)
+                                  const int offset,
+                                  const SAMRAI::hier::IntVector<NDIM>& periodic_shift)
 {
+    SAMRAI::hier::Index<NDIM> idx = i;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (periodic_shift(d) && idx(d) >= domain_lower(d) + periodic_shift(d))
+        {
+            idx(d) -= periodic_shift(d);
+        }
+
+        if (periodic_shift(d) && idx(d) < domain_lower(d))
+        {
+            idx(d) += periodic_shift(d);
+        }
+    }
+
 #if (NDIM == 1)
-    return (i(0) - domain_lower(0) + depth * num_cells(0) + offset);
+    return (idx(0) - domain_lower(0) + depth * n_cells(0) + offset);
 #elif(NDIM == 2)
-    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) + depth * num_cells(0) * num_cells(1) +
+    return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) + depth * n_cells(0) * n_cells(1) +
             offset);
 #elif(NDIM == 3)
-    return (i(0) - domain_lower(0) + (i(1) - domain_lower(1)) * num_cells(0) +
-            (i(2) - domain_lower(2)) * num_cells(0) * num_cells(1) +
-            depth * num_cells(0) * num_cells(1) * num_cells(2) + offset);
+    return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) +
+            (idx(2) - domain_lower(2)) * n_cells(0) * n_cells(1) + depth * n_cells(0) * n_cells(1) * n_cells(2) +
+            offset);
+
 #else
     return -1;
 #endif
-} // getIntegerMapping
+
+} // mapIndexToInteger
 
 inline SAMRAI::hier::IntVector<NDIM>
 IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,

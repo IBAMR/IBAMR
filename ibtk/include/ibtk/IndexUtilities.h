@@ -108,25 +108,6 @@ public:
                                                   const SAMRAI::hier::Index<NDIM>& iupper);
 
     /*!
-     * \brief Convert (i,j,k,d) index for a DOF to an integer mapping on a patch level.
-     *
-     * \param i AMR index representing the (i,j,k) data cell index.
-     *
-     * \param domain_lower Lower index of the domain.
-     *
-     * \param num_cells Number of data array cells for a patch level.
-     *
-     * \param depth Data depth
-     *
-     * \return The linear mapping of an AMR index to a continuous non-negative
-     * integer space.
-     */
-    static int getIntegerMapping(const SAMRAI::hier::Index<NDIM>& i,
-                                 const SAMRAI::hier::Index<NDIM>& domain_lower,
-                                 const SAMRAI::hier::Index<NDIM>& num_cells,
-                                 const int depth);
-
-    /*!
      * \return The cell index corresponding to location \p X relative
      * to the extents of the supplied Cartesian grid patch geometry and
      * patch box.
@@ -183,14 +164,18 @@ public:
      * for different components of the variable, e.g., a sc-variable. Different
      * components can have different depth.
      *
+     * \param periodic_shift Periodic shift in each direction.
+     *
      * \return The linear mapping of an AMR index to a continuous non-negative
      * integer space.
      */
-    static int mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
-                                 const SAMRAI::hier::Index<NDIM>& domain_lower,
-                                 const SAMRAI::hier::Index<NDIM>& num_cells,
-                                 const int depth,
-                                 const int offset = 0);
+    static int
+    mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
+                      const SAMRAI::hier::Index<NDIM>& domain_lower,
+                      const SAMRAI::hier::Index<NDIM>& num_cells,
+                      const int depth,
+                      const int offset = 0,
+                      const SAMRAI::hier::IntVector<NDIM>& periodic_shift = SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
      * \brief Partition a patch box into subdomains of size \em box_size

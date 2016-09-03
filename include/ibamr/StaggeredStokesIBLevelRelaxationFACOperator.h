@@ -300,6 +300,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
+     * Velocity prolongation type.
+     */
+    std::string d_u_petsc_prolongation_method;
+
+    /*
      * Application ordering of u from MAC DOFs on various patch levels.
      */
     std::vector<AO> d_u_app_ordering;
