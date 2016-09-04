@@ -80,6 +80,8 @@ AC_CONFIG_FILES([
   examples/Makefile
   examples/CCLaplace/Makefile
   examples/CCPoisson/Makefile
+  examples/PETScOps/Makefile
+  examples/PETScOps/ProlongationMat/Makefile
   examples/PhysBdryOps/Makefile
   examples/SCLaplace/Makefile
   examples/SCPoisson/Makefile

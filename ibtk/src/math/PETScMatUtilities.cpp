@@ -1097,8 +1097,6 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                 for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
                 data_offset += side_offset;
             }
-            IntVector<NDIM> coarse_periodic_shift_axis = 0;
-            coarse_periodic_shift_axis(axis) = coarse_periodic_shift(axis);
 
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
             {
@@ -1120,27 +1118,21 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                 const CellIndex<NDIM> I_U = I_L + offset;
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    bool inside_periodic_domain = coarse_periodic_shift_axis(axis);
-                    bool inside_range = inside_periodic_domain || coarse_domain_side_boxes[axis].contains(I_L);
-
                     samrai_petsc_map[d * n_interpolants] =
-                        inside_range ? IndexUtilities::mapIndexToInteger(I_L,
-                                                                         coarse_domain_lower,
-                                                                         coarse_num_cells[axis],
-                                                                         d,
-                                                                         coarse_ao_offset + data_offset,
-                                                                         coarse_periodic_shift_axis) :
-                                       -1;
+                        IndexUtilities::mapIndexToInteger(I_L,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
 
-                    inside_range = inside_periodic_domain || coarse_domain_side_boxes[axis].contains(I_U);
                     samrai_petsc_map[d * n_interpolants + 1] =
-                        inside_range ? IndexUtilities::mapIndexToInteger(I_U,
-                                                                         coarse_domain_lower,
-                                                                         coarse_num_cells[axis],
-                                                                         d,
-                                                                         coarse_ao_offset + data_offset,
-                                                                         coarse_periodic_shift_axis) :
-                                       -1;
+                        IndexUtilities::mapIndexToInteger(I_U,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
                 }
                 AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
 #if !defined(NDEBUG)
@@ -1153,7 +1145,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                                                                        coarse_num_cells[axis],
                                                                        d,
                                                                        coarse_ao_offset + data_offset,
-                                                                       coarse_periodic_shift_axis);
+                                                                       coarse_periodic_shift);
                         TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I_L
                                                        << " and SAMRAI mapping "
                                                        << domain
@@ -1252,26 +1244,21 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                 const CellIndex<NDIM> I_U = I_L + offset;
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    bool inside_periodic_domain = coarse_periodic_shift_axis(axis);
-                    bool inside_range = inside_periodic_domain || coarse_domain_side_boxes[axis].contains(I_L);
                     samrai_petsc_map[d * n_interpolants] =
-                        inside_range ? IndexUtilities::mapIndexToInteger(I_L,
-                                                                         coarse_domain_lower,
-                                                                         coarse_num_cells[axis],
-                                                                         d,
-                                                                         coarse_ao_offset + data_offset,
-                                                                         coarse_periodic_shift_axis) :
-                                       -1;
+                        IndexUtilities::mapIndexToInteger(I_L,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
 
-                    inside_range = inside_periodic_domain || coarse_domain_side_boxes[axis].contains(I_U);
                     samrai_petsc_map[d * n_interpolants + 1] =
-                        inside_range ? IndexUtilities::mapIndexToInteger(I_U,
-                                                                         coarse_domain_lower,
-                                                                         coarse_num_cells[axis],
-                                                                         d,
-                                                                         coarse_ao_offset + data_offset,
-                                                                         coarse_periodic_shift_axis) :
-                                       -1;
+                        IndexUtilities::mapIndexToInteger(I_U,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
                 }
                 AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
 
@@ -1390,8 +1377,6 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                 for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
                 data_offset += side_offset;
             }
-            IntVector<NDIM> coarse_periodic_shift_axis = 0;
-            coarse_periodic_shift_axis(axis) = coarse_periodic_shift(axis);
 
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
             {
@@ -1524,14 +1509,12 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                     for (int ip = 0; ip < n_interpolants; ++ip)
                     {
                         samrai_petsc_map[d * n_interpolants + ip] =
-                            coarse_domain_side_boxes[axis].contains(interpolants[ip]) ?
-                                IndexUtilities::mapIndexToInteger(interpolants[ip],
-                                                                  coarse_domain_lower,
-                                                                  coarse_num_cells[axis],
-                                                                  d,
-                                                                  coarse_ao_offset + data_offset,
-                                                                  coarse_periodic_shift_axis) :
-                                -1;
+                            IndexUtilities::mapIndexToInteger(interpolants[ip],
+                                                              coarse_domain_lower,
+                                                              coarse_num_cells[axis],
+                                                              d,
+                                                              coarse_ao_offset + data_offset,
+                                                              coarse_periodic_shift);
                     }
                 }
                 AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
@@ -1545,7 +1528,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                                                                        coarse_num_cells[axis],
                                                                        d,
                                                                        coarse_ao_offset + data_offset,
-                                                                       coarse_periodic_shift_axis);
+                                                                       coarse_periodic_shift);
                         TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I
                                                        << " and SAMRAI mapping "
                                                        << domain
@@ -1611,8 +1594,6 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                 for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
                 data_offset += side_offset;
             }
-            IntVector<NDIM> coarse_periodic_shift_axis = 0;
-            coarse_periodic_shift_axis(axis) = coarse_periodic_shift(axis);
 
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
             {
@@ -1742,14 +1723,12 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                     for (int ip = 0; ip < n_interpolants; ++ip)
                     {
                         samrai_petsc_map[d * n_interpolants + ip] =
-                            coarse_domain_side_boxes[axis].contains(interpolants[ip]) ?
-                                IndexUtilities::mapIndexToInteger(interpolants[ip],
-                                                                  coarse_domain_lower,
-                                                                  coarse_num_cells[axis],
-                                                                  d,
-                                                                  coarse_ao_offset + data_offset,
-                                                                  coarse_periodic_shift_axis) :
-                                -1;
+                            IndexUtilities::mapIndexToInteger(interpolants[ip],
+                                                              coarse_domain_lower,
+                                                              coarse_num_cells[axis],
+                                                              d,
+                                                              coarse_ao_offset + data_offset,
+                                                              coarse_periodic_shift);
                     }
                 }
                 AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
@@ -1831,7 +1810,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                     int n_cols = 0;
                     for (int ip = 0; ip < n_interpolants; ++ip)
                     {
-                        if (samrai_petsc_map[d * n_interpolants + ip] > 0)
+                        if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
                         {
                             ++n_cols;
                         }
@@ -1893,7 +1872,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         int k = 0;
                         for (int ip = 0; ip < n_interpolants; ++ip)
                         {
-                            if (samrai_petsc_map[d * n_interpolants + ip] > 0)
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
                             {
                                 col[k] = samrai_petsc_map[d * n_interpolants + ip];
                                 col_val[k] = values[ip];
@@ -1953,7 +1932,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         int k = 0;
                         for (int ip = 0; ip < n_interpolants; ++ip)
                         {
-                            if (samrai_petsc_map[d * n_interpolants + ip] > 0)
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
                             {
                                 col[k] = samrai_petsc_map[d * n_interpolants + ip];
                                 col_val[k] = values[ip];
@@ -1963,7 +1942,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         TBOX_ASSERT(k == n_cols);
                     }
 #if (NDIM == 3)
-                    else if (axis == 3)
+                    else if (axis == 2)
                     {
                         w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
                         w1 = interpolants[0](1) < interpolants[4](1) ? w[1] : 1.0 - w[1];
@@ -2010,7 +1989,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         int k = 0;
                         for (int ip = 0; ip < n_interpolants; ++ip)
                         {
-                            if (samrai_petsc_map[d * n_interpolants + ip] > 0)
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
                             {
                                 col[k] = samrai_petsc_map[d * n_interpolants + ip];
                                 col_val[k] = values[ip];

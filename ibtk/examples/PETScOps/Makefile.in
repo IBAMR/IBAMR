@@ -87,7 +87,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = examples
+subdir = examples/PETScOps
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
@@ -498,7 +498,7 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = CCLaplace CCPoisson PETScOps PhysBdryOps SCLaplace SCPoisson VCLaplace
+SUBDIRS = ProlongationMat 
 all: all-recursive
 
 .SUFFIXES:
@@ -512,9 +512,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/PETScOps/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/Makefile
+	  $(AUTOMAKE) --foreign examples/PETScOps/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -822,13 +822,7 @@ all:
 	fi ;
 
 examples:
-	@(cd CCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd CCPoisson   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd PETScOps    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd PhysBdryOps && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd SCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd SCPoisson   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd VCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd ProlongationMat && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
