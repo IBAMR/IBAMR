@@ -127,10 +127,20 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardForceGen::IBStandardForceGen()
+IBStandardForceGen::IBStandardForceGen(Pointer<Database> input_db)
 {
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
+
+    // Set some default values.
+    d_log_target_point_displacements = false;
+
+    // Set up force generator from input.
+    if (input_db)
+    {
+        if (input_db->keyExists("log_target_point_displacements"))
+            d_log_target_point_displacements = input_db->getBool("log_target_point_displacements");
+    }
     return;
 } // IBStandardForceGen
 
@@ -1254,8 +1264,9 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
                                                       const double /*data_time*/,
                                                       LDataManager* const /*l_data_manager*/)
 {
+    double max_displacement = 0.0;
+
     const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
-    if (num_target_points == 0) return;
     const int* const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
     const double** const kappa = &d_target_point_data[level_number].kappa[0];
     const double** const eta = &d_target_point_data[level_number].eta[0];
@@ -1266,7 +1277,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 
     static const int BLOCKSIZE = 16; // This parameter needs to be tuned.
     int k, kblock, kunroll, idx;
-    double K, E;
+    double K, E, dX;
     const double* X_target;
     kblock = 0;
     for (; kblock < (num_target_points - 1) / BLOCKSIZE;
@@ -1293,6 +1304,17 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
             F_node[idx + 2] += K * (X_target[2] - X_node[idx + 2]) - E * U_node[idx + 2];
 #endif
+            if (d_log_target_point_displacements)
+            {
+                dX = 0.0;
+                dX += (X_target[0] - X_node[idx + 0]) * (X_target[0] - X_node[idx + 0]);
+                dX += (X_target[1] - X_node[idx + 1]) * (X_target[1] - X_node[idx + 1]);
+#if (NDIM == 3)
+                dX += (X_target[2] - X_node[idx + 2]) * (X_target[2] - X_node[idx + 2]);
+#endif
+                dX = sqrt(dX);
+                max_displacement = std::max(max_displacement, dX);
+            }
         }
     }
     for (k = kblock * BLOCKSIZE; k < num_target_points; ++k)
@@ -1306,6 +1328,23 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
         F_node[idx + 2] += K * (X_target[2] - X_node[idx + 2]) - E * U_node[idx + 2];
 #endif
+        if (d_log_target_point_displacements)
+        {
+            dX = 0.0;
+            dX += (X_target[0] - X_node[idx + 0]) * (X_target[0] - X_node[idx + 0]);
+            dX += (X_target[1] - X_node[idx + 1]) * (X_target[1] - X_node[idx + 1]);
+#if (NDIM == 3)
+            dX += (X_target[2] - X_node[idx + 2]) * (X_target[2] - X_node[idx + 2]);
+#endif
+            dX = sqrt(dX);
+            max_displacement = std::max(max_displacement, dX);
+        }
+    }
+
+    if (d_log_target_point_displacements)
+    {
+        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        plog << "IBStandardForceGen: maximum target point displacement: " << max_displacement << "\n";
     }
 
     F_data->restoreArrays();

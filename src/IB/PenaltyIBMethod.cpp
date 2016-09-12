@@ -291,6 +291,8 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    double max_displacement = 0.0;
+
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -302,12 +304,17 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
+            double dX;
             for (i = 0; i < n_local; ++i)
             {
+                dX = 0.0;
                 for (d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
+                    dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
+                dX = sqrt(dX);
+                max_displacement = std::max(max_displacement, dX);
             }
         }
         d_F_current_needs_ghost_fill = true;
@@ -325,15 +332,19 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
-            double X_half, Y_half;
+            double X_half, Y_half, dX;
             for (i = 0; i < n_local; ++i)
             {
+                dX = 0.0;
                 for (d = 0; d < NDIM; ++d)
                 {
                     X_half = 0.5 * (X[NDIM * i + d] + X_new[NDIM * i + d]);
                     Y_half = 0.5 * (Y[NDIM * i + d] + Y_new[NDIM * i + d]);
                     F[NDIM * i + d] += K[i] * (Y_half - X_half);
+                    dX += (Y_half - X_half) * (Y_half - X_half);
                 }
+                dX = sqrt(dX);
+                max_displacement = std::max(max_displacement, dX);
             }
         }
         d_F_half_needs_ghost_fill = true;
@@ -349,15 +360,26 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
+            double dX;
             for (i = 0; i < n_local; ++i)
             {
+                dX = 0.0;
                 for (d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
+                    dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
                 }
+                dX = sqrt(dX);
+                max_displacement = std::max(max_displacement, dX);
             }
         }
         d_F_new_needs_ghost_fill = true;
+    }
+
+    if (d_do_log)
+    {
+        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        plog << d_object_name << "::computeLagrangianForce(): maximum point displacement: " << max_displacement << "\n";
     }
     return;
 } // computeLagrangianForce
