@@ -2,26 +2,43 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.cpp
-EXTRA_DIST = input2d
+EXAMPLE_DRIVER = ex_main.cpp
+GTEST_DRIVER = test_main.cpp
+EXTRA_DIST = input2d input2d.test
 
+GTESTS =
+EXAMPLES =
+CONVERGENCE_TESTERS =
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
-EXTRA_PROGRAMS += main2d convergence_tester2d
+EXAMPLES += main2d
+GTESTS += test2d
+CONVERGENCE_TESTERS += convergence_tester2d
+EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES) $(CONVERGENCE_TESTERS)
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = $(SOURCES)
+main2d_SOURCES = $(EXAMPLE_DRIVER)
+
+test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+test2d_SOURCES = $(GTEST_DRIVER)
 
 convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 convergence_tester2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 convergence_tester2d_SOURCES = convergence_tester.cpp
 
-examples: $(EXTRA_PROGRAMS)
+examples: $(EXAMPLES) $(CONVERGENCE_TESTERS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	fi ;
+
+gtest: $(GTESTS)
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  cp -f $(srcdir)/input2d* $(PWD) ; \
+	fi ;
+	./test2d input2d.test --gtest_filter=*.2d
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)

@@ -1,32 +1,29 @@
 // physical parameters
-Re  = 1000.0                                  // Reynolds number
-MU  = 1/Re                                    // fluid viscosity
-RHO = 1.0                                     // fluid density
+MU  = 0.0001                              // fluid viscosity
+RHO = 1.0                                 // fluid density
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3                                // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                // refinement ratio between levels
-N = 4                                         // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N      // effective number of grid cells on finest   grid level
-DX_FINEST = L/NFINEST                         // grid spacing on finest grid level
+MAX_LEVELS = 3                            // maximum number of levels in locally refined grid
+REF_RATIO  = 4                            // refinement ratio between levels
+N = 16                                    // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
 // solver parameters
-SOLVER_TYPE        = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
-U_MAX              = 1.0                      // maximum flow speed
-CFL_MAX            = 0.3                      // maximum CFL number
-DT_MAX             = CFL_MAX*DX_FINEST/U_MAX  // maximum timestep size corresponding to specified CFL number
-START_TIME         = 0.0e0                    // initial simulation time
-END_TIME           = 100*DT_MAX               // final simulation time
-GROW_DT            = 2.0e0                    // growth factor for timesteps
-NUM_CYCLES         = 1                        // number of cycles of fixed-point iteration
-CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"        // convective time stepping type
-CONVECTIVE_OP_TYPE = "PPM"                    // convective differencing discretization type
-CONVECTIVE_FORM    = "ADVECTIVE"              // how to compute the convective terms
-NORMALIZE_PRESSURE = TRUE                     // whether to explicitly force the pressure to have mean zero
-VORTICITY_TAGGING  = TRUE                     // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER         = 1                        // sized of tag buffer used by grid generation algorithm
-REGRID_INTERVAL    = int(1/CFL_MAX)           // how frequently to regrid the patch hierarchy
+SOLVER_TYPE        = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
+CFL_MAX            = 0.3                  // maximum CFL number
+DT_MAX             = 0.5/NFINEST          // maximum timestep size
+START_TIME         = 0.0e0                // initial simulation time
+END_TIME           = 3*DT_MAX            // final simulation time
+GROW_DT            = 2.0e0                // growth factor for timesteps
+NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
+CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretization type
+CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
+NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
+VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
+REGRID_INTERVAL    = int(1/CFL_MAX)       // how frequently to regrid the patch hierarchy
 OUTPUT_U           = TRUE
 OUTPUT_P           = TRUE
 OUTPUT_F           = FALSE
@@ -38,38 +35,11 @@ ENABLE_LOGGING     = TRUE
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
-VelocityBcCoefs_0 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "1.0"
-}
-
-VelocityBcCoefs_1 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+VelocityInitialConditions {
+   rho = 80.0
+   delta = 0.05
+   function_0 = "if(X1 < 0.5,tanh(rho*(X1-0.25)),tanh(rho*(0.75-X1)))"
+   function_1 = "delta*sin(2.0*pi*(X0+0.25))"
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -86,7 +56,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.125,0.0625
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
@@ -113,7 +83,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.125,0.0625
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
@@ -133,7 +103,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 16
+   viz_dump_interval           = NFINEST/8
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
@@ -153,7 +123,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
    x_lo = 0,0
    x_up = L,L
-   periodic_dimension = 0,0
+   periodic_dimension = 1,1
 }
 
 GriddingAlgorithm {
@@ -168,21 +138,13 @@ GriddingAlgorithm {
    }
    smallest_patch_size {
       level_0 =   4,  4  // all finer levels will use same values as level_0
-
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR","REFINE_BOXES"
-   RefineBoxes {
-        level_0 = [( (REF_RATIO^0)*N/2 - 1,(REF_RATIO^0)*N - 1),((REF_RATIO^0)*N/2,(REF_RATIO^0)*N - 1)]
-        level_1 = [( (REF_RATIO^1)*N/2 - 1,(REF_RATIO^1)*N - 1),((REF_RATIO^1)*N/2,(REF_RATIO^1)*N - 1)]
-        level_2 = [( (REF_RATIO^2)*N/2 - 1,(REF_RATIO^2)*N - 1),((REF_RATIO^2)*N/2,(REF_RATIO^2)*N - 1)]
-        level_3 = [( (REF_RATIO^3)*N/2 - 1,(REF_RATIO^3)*N - 1),((REF_RATIO^3)*N/2,(REF_RATIO^3)*N - 1)]
-        level_4 = [( (REF_RATIO^4)*N/2 - 1,(REF_RATIO^4)*N - 1),((REF_RATIO^4)*N/2,(REF_RATIO^4)*N - 1)]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {

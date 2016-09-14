@@ -17,7 +17,7 @@ U_MAX              = 1.0                      // maximum flow speed
 CFL_MAX            = 0.3                      // maximum CFL number
 DT_MAX             = CFL_MAX*DX_FINEST/U_MAX  // maximum timestep size corresponding to specified CFL number
 START_TIME         = 0.0e0                    // initial simulation time
-END_TIME           = 100*DT_MAX               // final simulation time
+END_TIME           = 10*DT_MAX               // final simulation time
 GROW_DT            = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES         = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -52,7 +52,7 @@ VelocityBcCoefs_0 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "1.0"
+   gcoef_function_3 = "0.5*(1+sin(2*PI*X_0-0.5*PI))"
 }
 
 VelocityBcCoefs_1 {
@@ -86,7 +86,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.125,0.0625
+   vorticity_rel_thresh          = 0.25
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
@@ -113,7 +113,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.125,0.0625
+   vorticity_rel_thresh          = 0.25
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
