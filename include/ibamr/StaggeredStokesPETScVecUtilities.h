@@ -37,6 +37,7 @@
 
 #include <vector>
 
+#include "petscao.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
@@ -130,6 +131,26 @@ public:
                                               int u_dof_index_idx,
                                               int p_dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Create an application ordering object (AO) that creates a mapping
+     * between global PETSc indices and mapping of SAMRAI data indices for patch
+     * data index \em dof_index_idx to a nonnegative integer \f$ (i,j,k,d):-> p \f$
+     * on a SAMRAI::hier::PatchLevel.
+     *
+     *\see IndexUtilities::mapIndexToInteger() for
+     * details on the integer mapping of SAMRAI data indices.
+     *
+     * \param ao_offset An integer offset used for integer mapping of SAMRAI
+     * data indices.
+     */
+    static void constructPatchLevelAO(AO& ao,
+                                      std::vector<int>& num_dofs_per_proc,
+                                      int u_dof_index_idx,
+                                      int p_dof_index_idx,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                      int& u_ao_offset,
+                                      int& p_ao_offset);
 
     //\}
 
