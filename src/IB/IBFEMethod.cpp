@@ -1614,14 +1614,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                                0.5)); // In 2D this corresponds to applying jumps for
                                                                       // [p],[ux] and [vy]
 
-                        rs(d) =
-                            (d == axis ?
-                                 0.0 :
-                                 x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
-                                                                                                       // corresponds to
-                                                                                                       // applying jumps
-                                                                                                       // for [uy] and
-                                                                                                       // [vx]
+                        rs(d) = (d == axis ?
+                                     0.0 :
+                                     x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
+                        // corresponds to
+                        // applying jumps
+                        // for [uy] and
+                        // [vx]
                     }
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q);
@@ -1907,7 +1906,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                                         (*f_data)(i_s_up) += (n(axis) > 0.0 ? 1.0 : -1.0) *
                                                                              (C_u / (dx[axis] * dx[axis]));
-                                                                                                        }
+                                                    }
                                                 }
                         }
 
@@ -1975,7 +1974,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                      }
 
                                      (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * C_u / (dx[axis] * dx[axis]);
-                                                                }
+                                 }
                             }
                                 }
 

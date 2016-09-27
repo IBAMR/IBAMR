@@ -429,7 +429,7 @@ protected:
      * Lagrangian structure.
      */
     void imposeJumpConditions(int f_data_idx,
-							  int mask_current_idx,
+                              int mask_current_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               libMesh::PetscVector<double>& dP_ghost_vec,
@@ -437,7 +437,6 @@ protected:
                               libMesh::PetscVector<double>& dv_ghost_vec,
                               double data_time,
                               unsigned int part);
-
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -479,7 +478,8 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_du_systems, d_dv_systems, d_F_systems, d_dP_systems;
+    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_du_systems, d_dv_systems, d_F_systems,
+        d_dP_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
@@ -487,7 +487,6 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_dP_half_vecs, d_dP_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_du_half_vecs, d_du_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_dv_half_vecs, d_dv_IB_ghost_vecs;
-
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
