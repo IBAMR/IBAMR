@@ -21,5 +21,5 @@ set -o pipefail
   --with-libmesh-method=dbg
 make -kj4 lib
 make -kj4 examples
-cd amples/navier_stokes/
+cd examples/navier_stokes/
 make gtest

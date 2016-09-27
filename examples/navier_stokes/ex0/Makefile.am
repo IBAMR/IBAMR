@@ -47,8 +47,8 @@ gtest: $(GTESTS)
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	  cp -f $(srcdir)/input2d.forced_flow $(PWD) ; \
 	fi ;
-	./test2d input2d.test --gtest_filter=*.2d
-	./test3d input3d.test --gtest_filter=*.3d
+	./test2d input2d.test --gtest_filter=*.2d*
+	./test3d input3d.test --gtest_filter=*.3d*
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)

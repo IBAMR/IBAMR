@@ -69,7 +69,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
+double
 run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
@@ -77,6 +77,8 @@ run_example(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+    // create variable to store u error in to aid in testing
+    double uMax_norm;
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -304,10 +306,13 @@ run_example(int argc, char* argv[])
         {
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
+
             pout << "Error in u at time " << loop_time << ":\n"
                  << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
+
+                 uMax_norm = hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx);
         }
 
         Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -319,7 +324,10 @@ run_example(int argc, char* argv[])
                  << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n";
+
+                 uMax_norm = hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx);
         }
+
 
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
@@ -329,6 +337,9 @@ run_example(int argc, char* argv[])
              << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
+            //pL1_norm  = hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx);
+            //pL2_norm  = hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx);
+            //pMax_norm = hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx);
         if (dump_viz_data && uses_visit)
         {
             time_integrator->setupPlotData();
@@ -339,10 +350,10 @@ run_example(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
+    //double test_results[2] = {uMax_norm, pMax_norm};
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
+    return uMax_norm;
 } // run_example
 
 void

@@ -17,11 +17,11 @@ endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = $(EXAMPLES)
+main2d_SOURCES = $(EXAMPLE_DRIVER)
 
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-test2d_SOURCES = $(GTESTS)
+test2d_SOURCES = $(GTEST_DRIVER)
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
