@@ -42,21 +42,6 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
-namespace mu
-{
-class Parser;
-} // namespace mu
-
-namespace IBTK
-{
-class HierarchyMathsOps;
-} // namespace IBTK
-namespace IBAMR
-{
-class CIBStandardInitializer;
-class CIBStaggeredStokesOperator;
-} // namespace IBAMR
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR

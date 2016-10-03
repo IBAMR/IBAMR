@@ -174,6 +174,7 @@ main(int argc, char* argv[])
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("CIBStandardInitializer"));
+        ib_initializer->init();
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Specify kinematics of the structures.

@@ -38,7 +38,9 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <vector>
 
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

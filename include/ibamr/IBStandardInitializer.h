@@ -473,6 +473,21 @@ public:
                                                    bool initial_time);
 
     /*!
+     * \brief Initialize structure specific configurations.
+     */
+    virtual void init();
+
+    /*!
+     * \brief Initialize initial position of structure on a patch level.
+     *
+     * \note A default empty implementation is provided.
+     */
+    virtual void initializePosnDataOnPatchLevel(int strct_num,
+                                                int level_number,
+                                                int& num_vertices,
+                                                std::vector<IBTK::Point>& vertex_posn);
+
+    /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
     void initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
@@ -584,6 +599,11 @@ private:
      * grid.
      */
     void initializeLSiloDataWriter(int level_number);
+
+    /*!
+     * \brief Initialize vertex data programmatically.
+     */
+    void initializeStructurePosition();
 
     /*!
      * \brief Read the vertex data from one or more input files.
@@ -738,6 +758,11 @@ private:
      * and for error reporting purposes.
      */
     std::string d_object_name;
+
+    /*
+     * If we are reading vertex files.
+     */
+    bool d_read_vertex_files;
 
     /*
      * The boolean value determines whether file read batons are employed to

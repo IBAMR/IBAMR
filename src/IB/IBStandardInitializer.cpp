@@ -129,6 +129,7 @@ discard_comments(const std::string& input_string)
 
 IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
     : d_object_name(object_name),
+      d_read_vertex_files(true),
       d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
@@ -206,46 +207,6 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
-    // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
-    const bool is_from_restart = restart_manager->isFromRestart();
-
-    // Process the input files only if we are not starting from a restart file.
-    if (!is_from_restart)
-    {
-        // Process the vertex information.
-        readVertexFiles(".vertex");
-
-        // Process the spring information.
-        readSpringFiles(".spring", /*input_uses_global_idxs*/ false);
-
-        // Process the crosslink spring ("x-spring") information.
-        readXSpringFiles(".xspring", /*input_uses_global_idxs*/ true);
-
-        // Process the beam information.
-        readBeamFiles(".beam", /*input_uses_global_idxs*/ false);
-
-        // Process the rod information.
-        readRodFiles(".rod", /*input_uses_global_idxs*/ false);
-
-        // Process the target point information.
-        readTargetPointFiles(".target");
-
-        // Process the anchor point information.
-        readAnchorPointFiles(".anchor");
-
-        // Process the mass information.
-        readBoundaryMassFiles(".mass");
-
-        // Process the directors information.
-        readDirectorFiles(".director");
-
-        // Process the instrumentation information.
-        readInstrumentationFiles(".inst");
-
-        // Process the source information.
-        readSourceFiles(".source");
-    }
     return;
 } // IBStandardInitializer
 
@@ -326,6 +287,69 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHier
     }
     return local_node_count;
 } // computeLocalNodeCountOnPatchLevel
+
+void
+IBStandardInitializer::init()
+{
+    // Check to see if we are starting from a restart file.
+    RestartManager* restart_manager = RestartManager::getManager();
+    const bool is_from_restart = restart_manager->isFromRestart();
+
+    // Process the input files only if we are not starting from a restart file.
+    if (!is_from_restart)
+    {
+        // Process the vertex information.
+        if (d_read_vertex_files)
+            readVertexFiles(".vertex");
+        else
+            initializeStructurePosition();
+
+        // Process the spring information.
+        readSpringFiles(".spring", /*input_uses_global_idxs*/ false);
+
+        // Process the crosslink spring ("x-spring") information.
+        readXSpringFiles(".xspring", /*input_uses_global_idxs*/ true);
+
+        // Process the beam information.
+        readBeamFiles(".beam", /*input_uses_global_idxs*/ false);
+
+        // Process the rod information.
+        readRodFiles(".rod", /*input_uses_global_idxs*/ false);
+
+        // Process the target point information.
+        readTargetPointFiles(".target");
+
+        // Process the anchor point information.
+        readAnchorPointFiles(".anchor");
+
+        // Process the mass information.
+        readBoundaryMassFiles(".mass");
+
+        // Process the directors information.
+        readDirectorFiles(".director");
+
+        // Process the instrumentation information.
+        readInstrumentationFiles(".inst");
+
+        // Process the source information.
+        readSourceFiles(".source");
+    }
+
+    return;
+
+} // init
+
+void
+IBStandardInitializer::initializePosnDataOnPatchLevel(int /*strct_num*/,
+                                                      int /*level_number*/,
+                                                      int& /*num_vertices*/,
+                                                      std::vector<IBTK::Point>& /*vertex_posn*/)
+{
+    TBOX_ERROR("IBStandardInitializer::initializePosnDataOnPatchLevel()\n"
+               << "  default implementation employed, nothing is initialized.\n"
+               << "Subclasses need to implement this function.\n");
+
+} // initializePosnDataOnPatchLevel
 
 void
 IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
@@ -845,6 +869,53 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
     if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 } // readVertexFiles
+
+void
+IBStandardInitializer::initializeStructurePosition()
+{
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const size_t num_base_filename = d_base_filename[ln].size();
+        d_num_vertex[ln].resize(num_base_filename, 0);
+        d_vertex_offset[ln].resize(num_base_filename, std::numeric_limits<int>::max());
+        d_vertex_posn[ln].resize(num_base_filename);
+        for (unsigned int j = 0; j < num_base_filename; ++j)
+        {
+            if (j == 0)
+            {
+                d_vertex_offset[ln][j] = 0;
+            }
+            else
+            {
+                d_vertex_offset[ln][j] = d_vertex_offset[ln][j - 1] + d_num_vertex[ln][j - 1];
+            }
+
+            initializePosnDataOnPatchLevel(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
+#if !defined(NDEBUG)
+            if (d_num_vertex[ln][j] <= 0)
+            {
+                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_num_vertex[ln][j] << " of structure "
+                                         << j
+                                         << " on level "
+                                         << ln
+                                         << std::endl);
+            }
+#endif
+
+            // Shift and scale the position of structures
+            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+            {
+                Point& X = d_vertex_posn[ln][j][k];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X[d] = d_length_scale_factor * (X[d] + d_posn_shift[d]);
+                }
+            }
+        }
+    }
+
+    return;
+} // initializeStructurePosition
 
 void
 IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
@@ -3401,6 +3472,9 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
     TBOX_ASSERT(db);
 #endif
 
+    // Determine if the position of the vertices are read from input files.
+    if (db->keyExists("read_vertex_files")) d_read_vertex_files = db->getBool("read_vertex_files");
+
     // Determine whether to use "batons" to prevent multiple MPI processes from
     // reading the same file at once.
     if (db->keyExists("use_file_batons")) d_use_file_batons = db->getBool("use_file_batons");
@@ -3543,6 +3617,28 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
                                          << "Key data `"
                                          << strct_name
                                          << "' not found in input.");
+            }
+        }
+    }
+    else if (db->keyExists("structure_levels"))
+    {
+        const int num_levels = db->getArraySize("structure_levels");
+        std::vector<int> strct_levels(num_levels);
+        db->getIntegerArray("structure_levels", &strct_levels[0], num_levels);
+        std::vector<int> num_strcts(num_levels);
+        db->getIntegerArray("num_structures_levels", &num_strcts[0], num_levels);
+
+        for (int k = 0; k < num_levels; ++k)
+        {
+            const int ln = strct_levels[k];
+            const int num_strcts_on_ln = num_strcts[k];
+            d_base_filename[ln].resize(num_strcts_on_ln);
+
+            for (int s = 0; s < num_strcts_on_ln; ++s)
+            {
+                std::ostringstream strct_name_stream;
+                strct_name_stream << "body_" << s << "_ln_" << ln;
+                d_base_filename[ln][s] = strct_name_stream.str();
             }
         }
     }
