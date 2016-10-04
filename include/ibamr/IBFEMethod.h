@@ -246,6 +246,18 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time);
 
+
+
+
+
+    //~ void interpolateVelocityWithJump(
+		//~ int u_data_idx,
+        //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        //~ libMesh::PetscVector<double>& du_ghost_vec,
+        //~ libMesh::PetscVector<double>& dv_ghost_vec,
+       // const IBTK::FEDataManager::InterpSpec& interp_spec,
+        //~ double data_time);
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
