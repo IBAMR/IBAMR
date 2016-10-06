@@ -511,6 +511,8 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
 
 
 
+
+
 //  interpolate velocity by including the jump condition 
 
 void
@@ -519,7 +521,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-	
+
 	
 	const int ndim = 2;
 	
@@ -550,20 +552,13 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         X_vec->localize(*X_ghost_vec);
         
         
-        //~ PetscVector<double>* du_vec = d_du_half_vecs[part];
-        //~ PetscVector<double>* dv_vec = d_dv_half_vecs[part];
-        //~ du_vec->localize(*du_ghost_vec);
-        //~ dv_vec->localize(*dv_ghost_vec);
         
-        
-        
-		EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-		const MeshBase& mesh = equation_systems->get_mesh();
-		const unsigned int dim = mesh.mesh_dimension();
-		AutoPtr<QBase> qrule;
 
 		// Extract the FE systems and DOF maps, and setup the FE object.
-		
+		EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();	
+		const MeshBase& mesh = equation_systems->get_mesh();
+		const unsigned int dim = mesh.mesh_dimension();
+		AutoPtr<QBase> qrule;	
 		System& U_system = equation_systems->get_system(VELOCITY_SYSTEM_NAME);
 		const unsigned int n_vars = U_system.n_vars();
 		const DofMap& U_dof_map = U_system.get_dof_map();
@@ -573,15 +568,14 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 		{
 			TBOX_ASSERT(U_dof_map.variable_type(d) == U_fe_type);
 		}
-		std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-		
-		
-		
+
+		std::vector<std::vector<unsigned int> > U_dof_indices(n_vars);
+		std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
 		
 		System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
 		const DofMap& X_dof_map = X_system.get_dof_map();
 		FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
-		std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+
 		FEType X_fe_type = X_dof_map.variable_type(0);
 
 		for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
@@ -634,13 +628,18 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 		VecGetArray(X_local_vec, &X_local_soln);
 			
 			
-
+		
 		AutoPtr<NumericVector<double> > U_rhs_vec = (*U_vec).zero_clone();
+		
+		(*U_rhs_vec).zero();
 		DenseVector<double> U_rhs_e[n_vars];
 
-		boost::multi_array<double, 2> X_node, du_node, dv_node;
-		std::vector<double> U_qp, X_qp, du_qp, dv_qp;
+		boost::multi_array<double, 2> X_node;
+		boost::multi_array<double, 2> du_node, dv_node;
+		std::vector<double> U_qp, X_qp;
+		std::vector<double> du_qp, dv_qp;
 		
+		du_ghost_vec->close();
 		PetscVector<double>* du_petsc_vec = static_cast<PetscVector<double>*>(du_ghost_vec);
 		Vec du_global_vec = du_petsc_vec->vec();
 		Vec du_local_vec;
@@ -648,18 +647,22 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 		double* du_local_soln;
 		VecGetArray(du_local_vec, &du_local_soln);
 
+		dv_ghost_vec->close();
 		PetscVector<double>* dv_petsc_vec = static_cast<PetscVector<double>*>(dv_ghost_vec);
 		Vec dv_global_vec = dv_petsc_vec->vec();
 		Vec dv_local_vec;
 		VecGhostGetLocalForm(dv_global_vec, &dv_local_vec);
 		double* dv_local_soln;
 		VecGetArray(dv_local_vec, &dv_local_soln);
+
 		VectorValue<double> ju, jv;
 
 		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
 		const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
 		const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-        
+		
+		
+		
         
         int local_patch_num = 0;
 		for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -678,6 +681,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
 			// Setup vectors to store the values of U and X at the quadrature
 			// points.
+			//
+			// All this loop is doing is computing the total number of quadraturee
+			// points associated with all of the elements we are currently
+			// processing.  That number is n_qp_patch.
 			unsigned int n_qp_patch = 0;
 			for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
 			{
@@ -685,18 +692,11 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
 					X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-					du_dof_map_cache.dof_indices(elem, du_dof_indices[d], d);
-					dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
 				}
 				get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 				FEDataManager::updateInterpQuadratureRule(qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, patch_dx_min);
 				n_qp_patch += qrule->n_points();
-				
-				get_values_for_interpolation(du_node, *du_petsc_vec, du_local_soln, du_dof_indices);
-
-				get_values_for_interpolation(dv_node, *dv_petsc_vec, dv_local_soln, dv_dof_indices);    
-			}
-			
+			}			
 			
 			if (!n_qp_patch) continue;
 			U_qp.resize(n_vars * n_qp_patch);
@@ -714,8 +714,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
 					X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+					du_dof_map_cache.dof_indices(elem, du_dof_indices[d], d);
+					dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
 				}
 				get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+				get_values_for_interpolation(du_node, *du_petsc_vec, du_local_soln, du_dof_indices);
+				get_values_for_interpolation(dv_node, *dv_petsc_vec, dv_local_soln, dv_dof_indices);    
 				const bool qrule_changed = FEDataManager::updateInterpQuadratureRule(qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, patch_dx_min);
 				if (qrule_changed)
 				{
@@ -730,47 +734,51 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 				}
 				const unsigned int n_node = elem->n_nodes();
 				const unsigned int n_qp = qrule->n_points();
+				
+				// Zero out the values of X, du, and dv prior to accumulation.
 				double* X_begin = &X_qp[NDIM * qp_offset];
 				std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
+				double* du_begin = &du_qp[NDIM * qp_offset];
+				std::fill(du_begin, du_begin + NDIM * n_qp, 0.0);
+				double* dv_begin = &dv_qp[NDIM * qp_offset];
+				std::fill(dv_begin, dv_begin + NDIM * n_qp, 0.0);
+							
+				// Interpolate X, du, and dv at all of the quadrature points
+				// via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
+				// each qp.
 				for (unsigned int k = 0; k < n_node; ++k)
 				{
 					for (unsigned int qp = 0; qp < n_qp; ++qp)
 					{
 						const double& p_X = phi_X[k][qp];
-						interpolate(&ju(0), qp, du_node, phi_X);
-						interpolate(&jv(0), qp, dv_node, phi_X);
 						for (unsigned int i = 0; i < NDIM; ++i)
 						{
-							X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
-							du_qp[NDIM * (qp_offset + qp) + i] = ju(i);
-							dv_qp[NDIM * (qp_offset + qp) + i] = jv(i); 
+							X_qp [NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+							du_qp[NDIM * (qp_offset + qp) + i] += du_node[k][i] * p_X;
+							dv_qp[NDIM * (qp_offset + qp) + i] += dv_node[k][i] * p_X;
 						}
 					}
 				}
-				qp_offset += n_qp;
-				
+				qp_offset += n_qp;				
 			}
-
+			// Interpolate values from the Cartesian grid patch to the quadrature 
+			// points. 
+			// Note: Values are interpolated only to those quadrature points that 
+			// are within the patch interior
 			
 			const Box<NDIM>& interp_box = patch->getBox();
 			Pointer<SideData<NDIM, double> >  u_sc_data = patch->getPatchData(u_data_idx);
-			Pointer<SideData<NDIM, double> >  mask_sc_data = patch->getPatchData(mask_current_idx);
-							 
+			//~ Pointer<SideData<NDIM, double> >  mask_sc_data = patch->getPatchData(mask_current_idx);
 
 			const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
+			
+			const int u_depth = u_sc_data->getDepth();
 
 			
 			const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 			const double* const x_lower = pgeom->getXLower();
 			const double* const x_upper = pgeom->getXUpper();
 			const double* const dx = pgeom->getDx();
-
-
-			Box<NDIM> side_boxes[NDIM];
-			for (int d = 0; d < NDIM; ++d)
-			{
-				side_boxes[d] = SideGeometry<NDIM>::toSideBox(interp_box, d);
-			}
 
 		    std::vector<int> local_indices;
 			local_indices.clear();
@@ -787,213 +795,208 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
 
 
-
-			if (local_indices.empty()) return;
+			//~ if (local_indices.empty()) return;
+			
 			std::vector<double> periodic_shifts(NDIM * local_indices.size());
-			const int local_indices_size = static_cast<int>(local_indices.size());
-			const IntVector<NDIM>& ilower = interp_box.lower();
-			const IntVector<NDIM>& iupper = interp_box.upper();
+	
 
-			
-			 
-			
-			
-			boost::array<int, 2> ic_trimmed_lower, ic_trimmed_upper, ic_lower, ic_upper, ic_center;
-			boost::array<double, 2> X_shifted, X_cell;
-			boost::array<double, 2> w0, w1;
 		    const int nindices = static_cast<int>(local_indices.size());
 		    
-		    //~ double* const u_sc_node = (u_sc_data).getLocalFormVecArray()->data();
-		    
-		    
+		    pout<<"number of local indices = "<< nindices<<"\n\n";
+		   
 		    typedef boost::multi_array_types::extent_range range;
-		    
-		    
-		    //~ const double * u_sc_node = u_sc_data->getPointer();
 
-			//~ boost::multi_array_ref<double, 2>& u_sc_array = u_sc_data[level_num]->getLocalFormVecArray();
-			
-			
-			
-			if (nindices)
+			if (!local_indices.empty())
 			{
-				for (unsigned int k = 0; k < n_qp_patch; ++k)
-				{
+				
+
+			
+					boost::array<int, 2> ic_trimmed_lower, ic_trimmed_upper, ic_lower, ic_upper, ic_center;
+					boost::array<double, 2> X_shifted, X_cell;
+					boost::array<double, 2> w0, w1;
+					boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+					const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
+					std::vector<double> Q_data_axis(local_sz);
 					
+					x_lower_axis[0] = x_lower_axis[1] = x_upper_axis[0] = x_upper_axis[1] = 0.0;
 					
-							
-						const int s = local_indices[k];
-				    
-	
-							
-							
-							for (int d = 0; d < ndim; ++d) 
-							{
-								X_shifted[d] = X_qp[d + s * ndim] + periodic_shifts[d + k * ndim];
-							}
-							
-										
-											
+					Box<NDIM> side_boxes[NDIM];
+					
+					for (unsigned int axis = 0; axis < NDIM; ++axis)
+					{
 						
-						
-						for (unsigned int d = 0; d < ndim; ++d) 
+						for (unsigned int d = 0; d < NDIM; ++d)
 						{
-							ic_center[d] = ilower[d] + NINT((X_shifted[d]-x_lower[d])/dx[d]-0.5);
-							X_cell[d] = x_lower[d] + (static_cast<double>(ic_center[d]-ilower[d]) + 0.5 )*dx[d];
-							
-							
-							
-							if ( X_shifted[d] < X_cell[d] )
-							{
-							   ic_lower[d] = ic_center[d]-1;
-							   ic_upper[d] = ic_center[d];
-
-							}
-							else
-							{
-							   ic_lower[d] = ic_center[d];
-							   ic_upper[d] = ic_center[d]+1;
-
-							}
-							ic_trimmed_lower[d] = std::max(ic_lower[d],ilower[d]- u_gcw[d]);
-							ic_trimmed_upper[d] = std::min(ic_upper[d],iupper[d]+ u_gcw[d]);
+							x_lower_axis[d] = x_lower[d];
+							x_upper_axis[d] = x_upper[d];
 						}
-						
-
-						
-						
-						
-							if ( X_shifted[0] <= X_cell[0] )
-							{
-							   w0[0] = (X_cell[0]-X_shifted[0])/dx[0];
-							   
-							   
-							   w0[1] = 1.0 - w0[0];
-							}
-							else
-							{
-							   w0[0] = 1.0 + (X_cell[0]-X_shifted[0])/dx[0];
-							   w0[1] = 1.0 - w0[0];
-							}
-							
-							
-							if ( X_shifted[1] <= X_cell[1] )
-							{
-							   w1[0] = (X_cell[1]-X_shifted[1])/dx[1];
-							   
-							   w1[1] = 1.0 - w1[0];
-							}
-							else
-							{
-							   w1[0] = 1.0 + (X_cell[1]-X_shifted[1])/dx[1];
-							   w1[1] = 1.0 - w1[0];
-							}
-							
-
-						
-						boost::multi_array<double, 2> ujump (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
-				
-				
-						boost::multi_array<double, 2> vjump (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
-						
-						
-						ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] + w1[0]*du_qp[1 + s * ndim]);
-						ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] - w1[0]*du_qp[1 + s * ndim]);
-						ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] + w1[1]*du_qp[1 + s * ndim]);
-						ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] - w1[1]*du_qp[1 + s * ndim]);
-						vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] + w1[0]*dv_qp[1 + s * ndim]);
-						vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] - w1[0]*dv_qp[1 + s * ndim]);
-						vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] + w1[1]*dv_qp[1 + s * ndim]);
-						vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] - w1[1]*dv_qp[1 + s * ndim]);
-						
+						x_lower_axis[axis] -= 0.5*dx[axis];
+						x_upper_axis[axis] += 0.5*dx[axis];
+	
+						for (int d = 0; d < NDIM; ++d)
+						{
+							side_boxes[d] = SideGeometry<NDIM>::toSideBox(interp_box, d);
+						}
 					
-						//~ const int u_depth = u_sc_data->getDepth();
-		    
-						//~ boost::const_multi_array_ref<double, ndim + 1 > u_sc_array(u_sc_data->getPointer(u_depth), (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)][range(0, u_depth)]), boost::fortran_storage_order());
-		    
-		    
-						//~ boost::const_multi_array_ref<double, ndim > uy_sc_array(u_sc_data->getPointer(1,u_depth), (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]), boost::fortran_storage_order());
-		    
+						const IntVector<NDIM>& ilower = side_boxes[axis].lower();
+						const IntVector<NDIM>& iupper = side_boxes[axis].upper();	
 						
 						
-						double CC= 0.0;
-						
-						for (int d = 0; d < ndim; ++d) 
-						
-							if (side_boxes[d].contains(s))
-							{
-							{
-								U_qp[d + s * ndim] = 0.0;
+								
+		
+						boost::const_multi_array_ref<double, ndim + 1 > u_sc_data_array(u_sc_data->getPointer(axis),(boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(ilower[1] - u_gcw[1],
+                                                                                     iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),boost::fortran_storage_order());
+		
+		
+		
+		
+					
+					
+						for (unsigned int k = 0; k < nindices; ++k)
+						{
+							
+									const int s = local_indices[k];
+					
+									
+									for (int d = 0; d < ndim; ++d) 
+									{
+										X_shifted[d] = X_qp[d + s * ndim] + periodic_shifts[d + k * ndim];
+									}
+									
+
+								
+									for (unsigned int d = 0; d < ndim; ++d) 
+									{
+										ic_center[d] = ilower[d] + NINT((X_shifted[d]-x_lower_axis[d])/dx[d]-0.5);
+										X_cell[d] = x_lower_axis[d] + (static_cast<double>(ic_center[d]-ilower[d]) + 0.5 )*dx[d];
+									
+									
+										
+										if ( X_shifted[d] <= X_cell[d] )
+										{
+										   ic_lower[d] = ic_center[d]-1;
+										   ic_upper[d] = ic_center[d];
+
+										}
+										else
+										{
+										   ic_lower[d] = ic_center[d];
+										   ic_upper[d] = ic_center[d]+1;
+
+										}
+										ic_trimmed_lower[d] = std::max(ic_lower[d],ilower[d]- u_gcw[d]);
+										ic_trimmed_upper[d] = std::min(ic_upper[d],iupper[d]+ u_gcw[d]);
+									}
 								
 
-								for (int ic1 = ic_trimmed_lower[1]; ic1 <= ic_trimmed_upper[1]; ++ic1)
-								{
-								   for (int ic0 = ic_trimmed_lower[0]; ic0 <= ic_trimmed_upper[0]; ++ic0)
-								   {
-										 //~ const Index<NDIM> iic = IndexUtilities::getCellIndex(X_cell, x_lower, x_upper, dx, ilower, iupper);
-										 //~ Index<NDIM> ii = iic;
-										 //~ 
-										 //~ TBOX_ASSERT(static_cast<double>(ii(1)-ic_trimmed_upper[1])<=0.0);
-										 //~ TBOX_ASSERT(static_cast<double>(ii(1)-ic_trimmed_lower[1])>=0.0);
-										 //~ 
-										 //~ TBOX_ASSERT(static_cast<double>(ii(0)-ic_trimmed_upper[0])<=0.0);
-										 //~ TBOX_ASSERT(static_cast<double>(ii(0)-ic_trimmed_lower[0])>=0.0);
-										 //~ TBOX_ASSERT(n_vars == ndim);
-//~ 
-										 //~ if (static_cast<double>(ii(1) - ic1) > 0.0) ii(1) -= 1;
-										 //~ if (static_cast<double>(ic1 - ii(1)) > 0.0) ii(1) += 1;
-										 //~ 
-										 //~ if (static_cast<double>(ii(0) - ic0) > 0.0) ii(0) -= 1;
-										 //~ if (static_cast<double>(ic0 - ii(0)) > 0.0) ii(0) += 1;
-										 //~ 
-										 //~ 
-										 //~ SideIndex<NDIM> i_ss(ii, d, 0);
-						//~ 
-										 //~ i_ss(0) = ic0;
-										 //~ i_ss(1) = ic1;
-		
-										 //~ if (d == 0  && (*mask_sc_data)(i_ss)>0)
-										 //~ {
-											 //~ 
-											//~ // CC = ujump[ic0][ic1];	
-											//~ CC = 0.0;
-											//~ 
-										 //~ }
-										 //~ else if (d == 1 && (*mask_sc_data)(i_ss)>0)
-										 //~ {
-											//~ // CC = vjump[ic0][ic1];
-											//~ CC = 0.0;
-											//~ 
-										 //~ }
-										 //~ else
-										 //~ {
-											//~ CC = 0.0;
-										 //~ }
-										 //~ ArrayData<ndim, double>& arraydata = (u_sc_data)->getArrayData();
-										 //~ const ArrayData<NDIM, double>& q_data,
-										 
-										 const Index<NDIM> idx(ic0, ic1);
-										 SideIndex<NDIM> i_ss(idx, d, 0);
-										 
-										 //~ const double pp = (d == 0 ? ux_sc_array[ic0][ic1] : uy_sc_array[ic0][ic1]);
-										 //~ U_qp[d + s * ndim] += w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*u_sc_array[ic0][ic1][d] + CC;
-										 U_qp[d + s * ndim] = U_qp[d + s * ndim] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*(*u_sc_data)(i_ss) + CC;
-
+								
+								
+								
+									if ( X_shifted[0] <= X_cell[0] )
+									{
+									   w0[0] = (X_cell[0]-X_shifted[0])/dx[0];
+									   
+									   
+									   w0[1] = 1.0 - w0[0];
 									}
-								}
-							 } //dimension
-						 }
-						 }
-						 
-						 
-				
-				 	
-				
-		}
+									else
+									{
+									   w0[0] = 1.0 + (X_cell[0]-X_shifted[0])/dx[0];
+									   w0[1] = 1.0 - w0[0];
+									}
+									
+									
+									if ( X_shifted[1] <= X_cell[1] )
+									{
+									   w1[0] = (X_cell[1]-X_shifted[1])/dx[1];
+									   w1[1] = 1.0 - w1[0];
+									}
+									else
+									{
+									   w1[0] = 1.0 + (X_cell[1]-X_shifted[1])/dx[1];
+									   w1[1] = 1.0 - w1[0];
+									}
+									
+
+								
+									boost::multi_array<double, 2> ujump (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
+							
+							
+									boost::multi_array<double, 2> vjump (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
+									
+									
+									ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] + w1[0]*du_qp[1 + s * ndim]);
+									ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] - w1[0]*du_qp[1 + s * ndim]);
+									ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] + w1[1]*du_qp[1 + s * ndim]);
+									ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] - w1[1]*du_qp[1 + s * ndim]);
+									vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] + w1[0]*dv_qp[1 + s * ndim]);
+									vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] - w1[0]*dv_qp[1 + s * ndim]);
+									vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] + w1[1]*dv_qp[1 + s * ndim]);
+									vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] - w1[1]*dv_qp[1 + s * ndim]);
+								
+
+								
+									double CC= 0.0;
+									// const int depth = 1;
+									
+									for (int d = 0; d < u_depth; ++d) 
+									{
+
+											Q_data_axis[s ] = 0.0;
+											
+
+											for (int ic1 = ic_trimmed_lower[1]; ic1 <= ic_trimmed_upper[1]; ++ic1)
+											{
+											   for (int ic0 = ic_trimmed_lower[0]; ic0 <= ic_trimmed_upper[0]; ++ic0)
+											   {
+
+													//~ const Index<NDIM> idx(ic0, ic1);
+													 //~ SideIndex<NDIM> i_ss(idx, axis, 0);
+					//~ 
+													 //~ if (axis == 0  && (*mask_sc_data)(i_ss)>0)
+													 //~ {
+														 //~ // 
+														 //~ // CC = ujump[ic0][ic1];	
+														   //~ CC = 0.0; 
+														//~ 
+													 //~ }
+													 //~ else if (axis == 1 && (*mask_sc_data)(i_ss)>0)
+													 //~ {
+														 //~ // CC = vjump[ic0][ic1];
+														   //~ CC = 0.0;
+														//~ 
+													 //~ }
+													 //~ else
+													 //~ {
+														//~ CC = 0.0;
+													 //~ }
+												
+													 
+													 
+
+													 //Q_data_axis[s ] = Q_data_axis[ s ] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*(*u_sc_data)(i_ss) + CC;
+													 // u_sc_data_array
+													 
+													 Q_data_axis[s ] = Q_data_axis[ s ] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*u_sc_data_array[ic0][ic1][d];
+
+												}
+											}
+										 } //depth
+							}
+					
+						for (unsigned int k = 0; k < nindices; ++k)
+						{
+							U_qp[n_vars*local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+						}
+						
+								 
+					}		 
+					
+						
+					
+			}
 			
-			
-			
-			//~ u_sc_array[level_num]->restoreArrays();
+		
 				
 		// Loop over the elements and accumulate the right-hand-side values.
 			qrule.reset();
@@ -1049,29 +1052,29 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 			
 		
 		}
-		//~ 
-		//~ 
-	//~ //	for (unsigned int i = 0; i < NDIM; ++i)
-     //~ //   {
-      //~ //      U_dof_map.constrain_element_vector(U_rhs_e[i], U_dof_indices[i]);
-       //~ //     U_rhs_vec->add_vector(U_rhs_e[i], U_dof_indices[i]);
-//~ 
-      //~ //  }
+	
         
-			//~ U_rhs_vec->close();
+		U_rhs_vec->close();
 
-			VecRestoreArray(X_local_vec, &X_local_soln);
-			VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+		VecRestoreArray(X_local_vec, &X_local_soln);
+		VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 			
-			VecRestoreArray(du_local_vec, &du_local_soln);
-			VecGhostRestoreLocalForm(du_global_vec, &du_local_vec);
+		VecRestoreArray(du_local_vec, &du_local_soln);
+		VecGhostRestoreLocalForm(du_global_vec, &du_local_vec);
 			
-			VecRestoreArray(dv_local_vec, &dv_local_soln);
-			VecGhostRestoreLocalForm(dv_global_vec, &dv_local_vec);
+		VecRestoreArray(dv_local_vec, &dv_local_soln);
+		VecGhostRestoreLocalForm(dv_global_vec, &dv_local_vec);
         
         
-			d_fe_data_managers[part]->computeL2Projection(*U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_use_consistent_mass_matrix);
+		d_fe_data_managers[part]->computeL2Projection(*U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME,  IBFEMethod::getDefaultInterpSpec().use_consistent_mass_matrix);
 
+
+	    d_du_IB_ghost_vecs[part]->close();
+        d_dv_IB_ghost_vecs[part]->close();
+        d_X_half_vecs[part]->close();
+        d_X_current_vecs[part]->close();
+        d_X_new_vecs[part]->close();
+        d_U_new_vecs[part]->close();
         
 	}
         
