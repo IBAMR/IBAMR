@@ -768,7 +768,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 			
 			const Box<NDIM>& interp_box = patch->getBox();
 			Pointer<SideData<NDIM, double> >  u_sc_data = patch->getPatchData(u_data_idx);
-			//~ Pointer<SideData<NDIM, double> >  mask_sc_data = patch->getPatchData(mask_current_idx);
+			Pointer<SideData<NDIM, double> >  mask_sc_data = patch->getPatchData(mask_current_idx);
 
 			const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
 			
@@ -794,15 +794,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 			}
 
 
-
-			//~ if (local_indices.empty()) return;
 			
 			std::vector<double> periodic_shifts(NDIM * local_indices.size());
 	
 
 		    const int nindices = static_cast<int>(local_indices.size());
 		    
-		    pout<<"number of local indices = "<< nindices<<"\n\n";
 		   
 		    typedef boost::multi_array_types::extent_range range;
 
@@ -846,8 +843,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 		
 						boost::const_multi_array_ref<double, ndim + 1 > u_sc_data_array(u_sc_data->getPointer(axis),(boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(ilower[1] - u_gcw[1],
                                                                                      iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),boost::fortran_storage_order());
-		
-		
+                                                                                     
+  						boost::const_multi_array_ref<double, ndim + 1 > mask_sc_data_array(mask_sc_data->getPointer(axis),(boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(ilower[1] - u_gcw[1],
+                                                                                     iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),boost::fortran_storage_order());
+                                                                           
 		
 		
 					
@@ -925,19 +924,40 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 									boost::multi_array<double, 2> vjump (boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
 									
 									
-									ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] + w1[0]*du_qp[1 + s * ndim]);
-									ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] - w1[0]*du_qp[1 + s * ndim]);
-									ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] + w1[1]*du_qp[1 + s * ndim]);
-									ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] - w1[1]*du_qp[1 + s * ndim]);
-									vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] + w1[0]*dv_qp[1 + s * ndim]);
-									vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] - w1[0]*dv_qp[1 + s * ndim]);
-									vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] + w1[1]*dv_qp[1 + s * ndim]);
-									vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] - w1[1]*dv_qp[1 + s * ndim]);
+									 ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] + w1[0]*du_qp[1 + s * ndim]);
+									 vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] + w1[0]*dv_qp[1 + s * ndim]);
+									 
+									 ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] - w1[0]*du_qp[1 + s * ndim]);
+									 ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] + w1[1]*du_qp[1 + s * ndim]);
+									 ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] - w1[1]*du_qp[1 + s * ndim]);
+									 
+									 vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] - w1[0]*dv_qp[1 + s * ndim]);
+									 vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] + w1[1]*dv_qp[1 + s * ndim]);
+									 vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] - w1[1]*dv_qp[1 + s * ndim]);
+									
+									
+									
+									
+									
+									
+									
+									//~ ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] + w1[1]*du_qp[1 + s * ndim]);
+									//~ vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] + w1[1]*dv_qp[1 + s * ndim]);
+									//~ 
+									//~ ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] - w1[1]*du_qp[1 + s * ndim]);
+									//~ vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] - w1[1]*dv_qp[1 + s * ndim]);
+																		//~ 
+//~ 
+									//~ ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] - w1[0]*du_qp[1 + s * ndim]);
+									//~ vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] - w1[0]*dv_qp[1 + s * ndim]);
+																		//~ 
+									//~ ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] + w1[0]*du_qp[1 + s * ndim]);
+									//~ vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] + w1[0]*dv_qp[1 + s * ndim]);
+
 								
 
 								
 									double CC= 0.0;
-									// const int depth = 1;
 									
 									for (int d = 0; d < u_depth; ++d) 
 									{
@@ -949,35 +969,23 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 											{
 											   for (int ic0 = ic_trimmed_lower[0]; ic0 <= ic_trimmed_upper[0]; ++ic0)
 											   {
+					
+													 if (axis == 0  && fabs(mask_sc_data_array[ic0][ic1][d] - 1.0)< 0.0001)
+													 {
+															CC = ujump[ic0][ic1];
 
-													//~ const Index<NDIM> idx(ic0, ic1);
-													 //~ SideIndex<NDIM> i_ss(idx, axis, 0);
-					//~ 
-													 //~ if (axis == 0  && (*mask_sc_data)(i_ss)>0)
-													 //~ {
-														 //~ // 
-														 //~ // CC = ujump[ic0][ic1];	
-														   //~ CC = 0.0; 
-														//~ 
-													 //~ }
-													 //~ else if (axis == 1 && (*mask_sc_data)(i_ss)>0)
-													 //~ {
-														 //~ // CC = vjump[ic0][ic1];
-														   //~ CC = 0.0;
-														//~ 
-													 //~ }
-													 //~ else
-													 //~ {
-														//~ CC = 0.0;
-													 //~ }
-												
+														
+													 }
+													 else if (axis == 1 && fabs(mask_sc_data_array[ic0][ic1][d] - 1.0)< 0.0001)
+													 {
+														  CC = vjump[ic0][ic1];	
+													 }
+													 else
+													 {
+														  CC = 0.0;
+													 }
 													 
-													 
-
-													 //Q_data_axis[s ] = Q_data_axis[ s ] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*(*u_sc_data)(i_ss) + CC;
-													 // u_sc_data_array
-													 
-													 Q_data_axis[s ] = Q_data_axis[ s ] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*u_sc_data_array[ic0][ic1][d];
+													 Q_data_axis[s ] = Q_data_axis[ s ] + w0[ic0 - ic_lower[0]]*w1[ ic1 - ic_lower[1]]*u_sc_data_array[ic0][ic1][d] + CC;
 
 												}
 											}
@@ -2457,10 +2465,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                     const SideIndex<NDIM>& i_s = intersection_indices_um[qp];
                                                     const unsigned int axis = i_s.getAxis();
                                                     const SideIndex<NDIM>& i_s_up = intersection_indices_up[qp];
+                                                    
 
                                                     if (side_boxes[axis].contains(i_s) &&
                                                         side_boxes[axis].contains(i_s_up))
                                                     {
+														TBOX_ASSERT(i_s.getAxis() == i_s_up.getAxis());
                                                         const double x_cell_bdry =
                                                             x_lower[axis] +
                                                             static_cast<double>(i_s(axis) - patch_lower[axis]) *
@@ -2486,7 +2496,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                                         if (n(axis) > 0.0)
                                                         {
-                                                            (*mask_current)(i_s) = -1.0;
+                                                            (*mask_current)(i_s) = 0.0;
                                                         }
                                                         else
                                                         {
@@ -2533,6 +2543,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                  if (side_boxes[axis].contains(i_s) && side_boxes[axis].contains(i_s_um))
                                  {
+									 TBOX_ASSERT(i_s.getAxis() == i_s_um.getAxis());
+									 
                                      const double x_cell_bdry =
                                          x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
 
@@ -2559,7 +2571,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                      }
                                      else
                                      {
-                                         (*mask_current)(i_s) = -1.0;
+                                         (*mask_current)(i_s) = 0.0;
                                      }
 
                                      (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * C_u / (dx[axis] * dx[axis]);
@@ -2628,7 +2640,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                 }
                                                 else
                                                 {
-                                                    (*mask_current)(i_s) = -1.0;
+                                                    (*mask_current)(i_s) = 0.0;
                                                 }
 
                                                 (*f_data)(i_s_side_um) +=
@@ -2688,7 +2700,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                                         if (n(axis) > 0.0)
                                         {
-                                            (*mask_current)(i_s) = -1.0;
+                                            (*mask_current)(i_s) = 0.0;
                                         }
                                         else
                                         {
