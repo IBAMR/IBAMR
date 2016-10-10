@@ -225,6 +225,11 @@ public:
                             double new_time,
                             int cycle_num);
 
+    /*!
+     * Explicitly remove nullspace components from a solution vector.
+     */
+    void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
+
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -345,7 +350,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_rhs_vec;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
-    bool d_vectors_need_init;
+    bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
     std::string d_stokes_solver_type, d_stokes_precond_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
