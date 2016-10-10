@@ -532,6 +532,7 @@ protected:
      */
     IBTK::LDataManager* d_l_data_manager;
     std::string d_interp_kernel_fcn, d_spread_kernel_fcn;
+    bool d_error_if_points_leave_domain;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
