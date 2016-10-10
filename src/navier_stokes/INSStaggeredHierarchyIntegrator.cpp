@@ -525,6 +525,11 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     }
     if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase("stokes_precond_db");
 
+    // Flag to determine whether we explicitly remove any null space components.
+    d_explicitly_remove_nullspace = false;
+    if (input_db->keyExists("explicitly_remove_nullspace"))
+        d_explicitly_remove_nullspace = input_db->getBool("explicitly_remove_nullspace");
+
     // Setup physical boundary conditions objects.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_U_bc_coefs.resize(NDIM);
@@ -1279,6 +1284,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         plog << d_object_name
              << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()
              << "\n";
+    if (d_explicitly_remove_nullspace) removeNullSpace(d_sol_vec);
 
     // Reset the solution and right-hand-side vectors.
     resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
@@ -1664,6 +1670,19 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
     }
     return;
 } // resetSolverVectors
+
+void
+INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
+{
+    if (d_nul_vecs.empty()) return;
+    for (size_t k = 0; k < d_nul_vecs.size(); ++k)
+    {
+        const double sol_dot_nul = sol_vec->dot(d_nul_vecs[k]);
+        const double nul_L2_norm = sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
+        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
+    }
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
