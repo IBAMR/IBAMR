@@ -364,6 +364,7 @@ protected:
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
+    bool d_error_if_points_leave_domain;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*

@@ -142,6 +142,7 @@ public:
     getManager(const std::string& name,
                const std::string& default_interp_kernel_fcn,
                const std::string& default_spread_kernel_fcn,
+               bool error_if_points_leave_domain = false,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
                bool register_for_restart = true);
 
@@ -902,6 +903,7 @@ protected:
     LDataManager(const std::string& object_name,
                  const std::string& default_interp_kernel_fcn,
                  const std::string& default_spread_kernel_fcn,
+                 bool error_if_points_leave_domain,
                  const SAMRAI::hier::IntVector<NDIM>& ghost_width,
                  bool register_for_restart = true);
 
@@ -1089,6 +1091,12 @@ private:
      */
     const std::string d_default_interp_kernel_fcn;
     const std::string d_default_spread_kernel_fcn;
+
+    /*
+     * Whether to emit an error message if IB points "escape" from the computational
+     * domain.
+     */
+    bool d_error_if_points_leave_domain;
 
     /*
      * SAMRAI::hier::IntVector object that determines the ghost cell width of

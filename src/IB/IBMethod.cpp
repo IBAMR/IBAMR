@@ -165,6 +165,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     // Set some default values.
     d_interp_kernel_fcn = "IB_4";
     d_spread_kernel_fcn = "IB_4";
+    d_error_if_points_leave_domain = false;
     d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
                         LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
     d_force_jac_mffd = false;
@@ -186,8 +187,12 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     }
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(
-        d_object_name + "::LDataManager", d_interp_kernel_fcn, d_spread_kernel_fcn, d_ghosts, d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
+                                                d_interp_kernel_fcn,
+                                                d_spread_kernel_fcn,
+                                                d_error_if_points_leave_domain,
+                                                d_ghosts,
+                                                d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
@@ -2061,6 +2066,8 @@ IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
         if (db->isBool("normalize_source_strength"))
             d_normalize_source_strength = db->getBool("normalize_source_strength");
     }
+    if (db->keyExists("error_if_points_leave_domain"))
+        d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
     if (db->keyExists("force_jac_mffd")) d_force_jac_mffd = db->getBool("force_jac_mffd");
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");

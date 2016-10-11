@@ -193,6 +193,7 @@ IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db,
     d_silo_writer = NULL;
 
     // Set some default values.
+    d_error_if_points_leave_domain = false;
     d_ghosts = LEInteractor::getMinimumGhostWidth(KERNEL_FCN);
     d_do_log = false;
 
@@ -202,8 +203,12 @@ IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(
-        d_object_name + "::LDataManager", KERNEL_FCN, KERNEL_FCN, d_ghosts, d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
+                                                KERNEL_FCN,
+                                                KERNEL_FCN,
+                                                d_error_if_points_leave_domain,
+                                                d_ghosts,
+                                                d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Reset the current time step interval.
@@ -1257,6 +1262,8 @@ IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
             d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
     }
+    if (db->keyExists("error_if_points_leave_domain"))
+        d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))
