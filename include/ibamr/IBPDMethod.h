@@ -102,6 +102,41 @@ public:
     ~IBPDMethod();
 
     /*!
+     * Typedef specifying interface for coordinate mapping function.
+     */
+    typedef void (*CoordinateMappingFcnPtr)(Eigen::Map<IBTK::Point>& X, Eigen::Map<const IBTK::Point>& X0, int lag_idx, int level_number, void* ctx);
+
+    /*!
+     * Struct encapsulating coordinate mapping function data.
+     */
+    struct CoordinateMappingFcnData
+    {
+        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        {
+        }
+
+        CoordinateMappingFcnPtr fcn;
+        void* ctx;
+    };
+
+    /*!
+     * \brief Register the (optional) function used to initialize the physical
+     * coordinates from the Lagrangian coordinates.
+     *
+     * \note If no function is provided, the initial physical coordinates are
+     * taken to be the same as the Lagrangian coordinate system, i.e., the
+     * initial coordinate mapping is assumed to be the identity mapping.
+     */
+    void registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx = NULL);
+
+    /*!
+     * \brief Register the (optional) function data used to initialize the physical
+     * coordinates from the Lagrangian coordinates.
+     */
+    void
+    registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data);
+
+    /*!
      * \brief Supply a Lagrangian force object.
      */
     void registerIBPDForceGen(SAMRAI::tbox::Pointer<IBAMR::IBPDForceGen> ib_pd_fcn);
@@ -112,25 +147,30 @@ public:
     void setIBPDForceGenNeedsInit();
 
     /*!
-     * Register Eulerian variables with the parent IBHierarchyIntegrator.
+     * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
     void registerEulerianVariables();
 
     /*!
-     * Register Eulerian refinement or coarsening algorithms with the parent
+     * \brief Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
     void registerEulerianCommunicationAlgorithms();
 
     /*!
-     * Method to prepare to advance data from current_time to new_time.
+     * \brief Method to prepare to advance data from current_time to new_time.
      */
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
-     * Method to clean up data following call(s) to integrateHierarchy().
+     * \brief Method to clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
+
+    /*!
+     * \brief Initialize PD data.
+     */
+    void initializePDData();
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -264,6 +304,11 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * \brief Coordinate mapping function data.
+     */
+    CoordinateMappingFcnData d_coordinate_mapping_fcn_data;
 };
 } // namespace IBAMR
 

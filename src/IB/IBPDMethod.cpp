@@ -95,6 +95,20 @@ IBPDMethod::~IBPDMethod()
 } // ~IBPDMethod
 
 void
+IBPDMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx)
+{
+    registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx));
+    return;
+} // registerInitialCoordinateMappingFunction
+
+void
+IBPDMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data)
+{
+    d_coordinate_mapping_fcn_data = data;
+    return;
+} // registerInitialCoordinateMappingFunction
+
+void
 IBPDMethod::registerIBPDForceGen(Pointer<IBPDForceGen> ib_pd_force_fcn)
 {
 #if !defined(NDEBUG)
@@ -285,8 +299,86 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         d_silo_writer->registerVariableData("damage", dmg_data, struct_ln);
     }
 
+    // Initialize unshifted X0 data.
+    {
+        Pointer<LData> X0_unshifted_data = d_l_data_manager->getLData("X0_unshifted", struct_ln);
+        Pointer<LData> X0_data = d_l_data_manager->getLData("X0", struct_ln);
+
+        boost::multi_array_ref<double, 2>& X0_unshifted_data_array = *X0_unshifted_data->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X0_data_array = *X0_data->getLocalFormVecArray();
+
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int local_idx = node_idx->getLocalPETScIndex();
+            const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
+            double* const X0_unshifted = &X0_unshifted_data_array[local_idx][0];
+            const double* const X0 = &X0_data_array[local_idx][0];
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                X0_unshifted[d] = X0[d] + displacement_0[d];
+            }
+        }
+
+        X0_unshifted_data->restoreArrays();
+        X0_data->restoreArrays();
+    }
+
     return;
 } // initializePatchHierarchy
+
+void
+IBPDMethod::initializePDData()
+{
+
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) return;
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for(int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        const bool identity_mapping = !d_coordinate_mapping_fcn_data.fcn;
+        if (identity_mapping) break;
+
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        Pointer<LData> X0_data = d_l_data_manager->getLData("X0_unshifted", ln);
+        Pointer<LData> X_data = d_l_data_manager->getLData("X", ln);
+        boost::multi_array_ref<double, 2>& X0_data_array = *X0_data->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& X_data_array = *X_data->getLocalFormVecArray();
+
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
+            const double* X0 = &X0_data_array[local_idx][0];
+            double* X  = &X_data_array[local_idx][0];
+            Eigen::Map<const IBTK::Point> eig_X0(X0);
+            Eigen::Map<IBTK::Point> eig_X(X);
+            d_coordinate_mapping_fcn_data.fcn(eig_X, eig_X0, lag_idx, ln, d_coordinate_mapping_fcn_data.ctx);
+         }
+        X0_data->restoreArrays();
+        X_data->restoreArrays();
+
+        // Update ghost DOFs
+        X_data->beginGhostUpdate();
+        X_data->endGhostUpdate();
+
+        // Redistribute nodes.
+        d_l_data_manager->beginDataRedistribution(ln, ln);
+        d_l_data_manager->endDataRedistribution(ln, ln);
+    }
+
+    return;
+
+} // initializePDData
 
 void
 IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
@@ -303,8 +395,14 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        // Create Lagrange multiplier and regularization data.
+        // Create LData for damage variable.
         d_l_data_manager->createLData("damage", level_number, 1, /*manage_data*/ true);
+
+        // Create unshifted initial position of the structure.
+        Pointer<IBTK::LData> X0_unshifted_data = d_l_data_manager->createLData("X0_unshifted",
+                                                                               level_number,
+                                                                               NDIM,
+                                                                               /*manage_data*/ true);
     }
 
     return;
