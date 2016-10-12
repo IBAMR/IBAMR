@@ -476,8 +476,6 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
     Pointer<LData> dX_data = d_dX_data[level_number];
     ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
-    TBOX_ASSERT(X_data);
-    ierr = VecCopy(X_data->getVec(), X_ghost_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
@@ -506,7 +504,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     }
 
     Pointer<LData> X0_ghost_data = d_X0_ghost_data[level_number];
-    Pointer<LData> X0 = l_data_manager->getLData("X0", level_number);
+    Pointer<LData> X0 = l_data_manager->getLData("X0_unshifted", level_number);
     ierr = VecCopy(X0->getVec(), X0_ghost_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X0_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
