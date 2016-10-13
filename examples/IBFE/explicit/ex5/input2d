@@ -21,6 +21,7 @@ IB_DELTA_FUNCTION          = "PIECEWISE_LINEAR"            // the type of smooth
 SPLIT_NORMAL_FORCES        = TRUE              // whether to split the normal force on the interface (true value will includes the jump in the pressure)
 SPLIT_TANGENTIAL_FORCES	   = TRUE				//  whether to split the tangential force on the interface(true vaule will include jump in the velocity derivative)
 USE_JUMP_CONDITIONS        = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
+MODIFY_VEL_INTERP_JUMPS	   = TRUE              // Whether to apply the jump in the velocity interpolation or not
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
@@ -100,6 +101,7 @@ IBFEMethod {
    split_normal_force          = SPLIT_NORMAL_FORCES
    split_tangential_force      = SPLIT_TANGENTIAL_FORCES
    use_jump_conditions         = USE_JUMP_CONDITIONS
+   modify_vel_interp_jumps     = MODIFY_VEL_INTERP_JUMPS
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
 }

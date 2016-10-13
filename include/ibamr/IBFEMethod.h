@@ -511,6 +511,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
+    bool d_modify_vel_interp_jumps;
     libMesh::FEFamily d_fe_family;
     libMesh::Order d_fe_order;
     libMesh::QuadratureType d_quad_type;
