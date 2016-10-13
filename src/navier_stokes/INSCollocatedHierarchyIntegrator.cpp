@@ -1215,13 +1215,33 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
         d_Q_bdry_bc_fill_op->fillData(half_time);
+
+        // Account for momentum loss at sources/sinks.
         if (!d_creeping_flow)
         {
             d_hier_cc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
+            d_hier_cc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
         }
-        d_hier_cc_data_ops->axpy(
-            d_U_rhs_vec->getComponentDescriptorIndex(0), rho, d_F_div_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
+        else
+        {
+            d_hier_cc_data_ops->setToScalar(d_F_div_idx, 0.0);
+        }
+
+        // Add a pressure correction so that p is the mechanical pressure.
+        d_hier_math_ops->grad(d_F_div_idx,
+                              d_F_div_var,
+                              -mu,
+                              d_Q_scratch_idx,
+                              d_Q_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              +1.0,
+                              d_F_div_idx,
+                              d_F_div_var);
+
+        d_hier_cc_data_ops->add(
+            d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->subtract(
             d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
