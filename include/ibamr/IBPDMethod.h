@@ -170,7 +170,7 @@ public:
     /*!
      * \brief Initialize PD data.
      */
-    void initializePDData();
+    virtual void initializePDData();
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
