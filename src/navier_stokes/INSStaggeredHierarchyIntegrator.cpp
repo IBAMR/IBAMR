@@ -1504,6 +1504,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_problem_coefs.getRho();
+    const double mu = d_problem_coefs.getMu();
 
     if (rhs_vec->getComponentDescriptorIndex(0) != d_U_rhs_vec->getComponentDescriptorIndex(0))
     {
@@ -1586,13 +1587,34 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
         d_Q_bdry_bc_fill_op->fillData(half_time);
+
+        // Account for momentum loss at sources/sinks.
         if (!d_creeping_flow)
         {
             d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
+            d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
         }
-        d_hier_sc_data_ops->axpy(
-            rhs_vec->getComponentDescriptorIndex(0), rho, d_F_div_idx, rhs_vec->getComponentDescriptorIndex(0));
+        else
+        {
+            d_hier_sc_data_ops->setToScalar(d_F_div_idx, 0.0);
+        }
+
+        // Add a pressure correction so that p is the mechanical pressure.
+        d_hier_math_ops->grad(d_F_div_idx,
+                              d_F_div_var,
+                              /*synch_cf_bdry*/ true,
+                              -mu,
+                              d_Q_scratch_idx,
+                              d_Q_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              +1.0,
+                              d_F_div_idx,
+                              d_F_div_var);
+
+        d_hier_sc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
