@@ -102,6 +102,11 @@ bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >
 
 static const int LOWER = 0;
 static const int UPPER = 1;
+static const std::string CONSERVATIVE = "CONSERVATIVE";
+static const std::string RT0 = "RT0";
+static const std::string LINEAR = "LINEAR";
+
+#define SCD(a) static_cast<double>(a)
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -659,6 +664,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 
 void
 PETScMatUtilities::constructProlongationOp(Mat& mat,
+                                           const std::string& op_type,
                                            int dof_index_idx,
                                            const std::vector<int>& num_fine_dofs_per_proc,
                                            const std::vector<int>& num_coarse_dofs_per_proc,
@@ -675,25 +681,64 @@ PETScMatUtilities::constructProlongationOp(Mat& mat,
     Pointer<SideVariable<NDIM, int> > dof_index_sc_var = dof_index_var;
     if (dof_index_cc_var)
     {
-        constructProlongationOp_cell(mat,
-                                     dof_index_idx,
-                                     num_fine_dofs_per_proc,
-                                     num_coarse_dofs_per_proc,
-                                     fine_patch_level,
-                                     coarse_patch_level,
-                                     coarse_level_ao,
-                                     coarse_ao_offset);
+        if (op_type == CONSERVATIVE)
+        {
+            constructConservativeProlongationOp_cell(mat,
+                                                     dof_index_idx,
+                                                     num_fine_dofs_per_proc,
+                                                     num_coarse_dofs_per_proc,
+                                                     fine_patch_level,
+                                                     coarse_patch_level,
+                                                     coarse_level_ao,
+                                                     coarse_ao_offset);
+        }
+        else
+        {
+            TBOX_ERROR(
+                "PETScMatUtilities::constructProlongationOp(): Unsupported prolongation operator for cc-variable. "
+                "Given operator is "
+                << op_type
+                << ". Supported ops are: "
+                << CONSERVATIVE
+                << std::endl);
+        }
     }
     else if (dof_index_sc_var)
     {
-        constructProlongationOp_side(mat,
-                                     dof_index_idx,
-                                     num_fine_dofs_per_proc,
-                                     num_coarse_dofs_per_proc,
-                                     fine_patch_level,
-                                     coarse_patch_level,
-                                     coarse_level_ao,
-                                     coarse_ao_offset);
+        if (op_type == RT0)
+        {
+            constructRT0ProlongationOp_side(mat,
+                                            dof_index_idx,
+                                            num_fine_dofs_per_proc,
+                                            num_coarse_dofs_per_proc,
+                                            fine_patch_level,
+                                            coarse_patch_level,
+                                            coarse_level_ao,
+                                            coarse_ao_offset);
+        }
+        else if (op_type == LINEAR)
+        {
+            constructLinearProlongationOp_side(mat,
+                                               dof_index_idx,
+                                               num_fine_dofs_per_proc,
+                                               num_coarse_dofs_per_proc,
+                                               fine_patch_level,
+                                               coarse_patch_level,
+                                               coarse_level_ao,
+                                               coarse_ao_offset);
+        }
+        else
+        {
+            TBOX_ERROR(
+                "PETScMatUtilities::constructProlongationOp(): Unsupported prolongation operator for sc-variable. "
+                "Given operator is "
+                << op_type
+                << ". Supported ops are: "
+                << RT0
+                << " and "
+                << LINEAR
+                << std::endl);
+        }
     }
     else
     {
@@ -835,14 +880,14 @@ PETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<IS>& is_overlap,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
-                                                int dof_index_idx,
-                                                const std::vector<int>& num_fine_dofs_per_proc,
-                                                const std::vector<int>& num_coarse_dofs_per_proc,
-                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                const AO& coarse_level_ao,
-                                                const int coarse_ao_offset)
+PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
+                                                            int dof_index_idx,
+                                                            const std::vector<int>& num_fine_dofs_per_proc,
+                                                            const std::vector<int>& num_coarse_dofs_per_proc,
+                                                            Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                            Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                            const AO& coarse_level_ao,
+                                                            const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -972,17 +1017,17 @@ PETScMatUtilities::constructProlongationOp_cell(Mat& mat,
     IBTK_CHKERRQ(ierr);
     return;
 
-} // constructProlongationOp_cell
+} // constructConservativeProlongationOp_cell
 
 void
-PETScMatUtilities::constructProlongationOp_side(Mat& mat,
-                                                int dof_index_idx,
-                                                const std::vector<int>& num_fine_dofs_per_proc,
-                                                const std::vector<int>& num_coarse_dofs_per_proc,
-                                                Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                Pointer<PatchLevel<NDIM> > coarse_patch_level,
-                                                const AO& coarse_level_ao,
-                                                const int coarse_ao_offset)
+PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
+                                                   int dof_index_idx,
+                                                   const std::vector<int>& num_fine_dofs_per_proc,
+                                                   const std::vector<int>& num_coarse_dofs_per_proc,
+                                                   Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                   Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                   const AO& coarse_level_ao,
+                                                   const int coarse_ao_offset)
 {
     int ierr;
     if (mat)
@@ -998,21 +1043,19 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
 #endif
     const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
     const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
-
-    const BoxArray<NDIM>& fine_domain_boxes = fine_patch_level->getPhysicalDomain();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(fine_domain_boxes.size() == 1);
-#endif
-    const Index<NDIM>& fine_domain_lower = fine_domain_boxes[0].lower();
-    const Index<NDIM>& fine_domain_upper = fine_domain_boxes[0].upper();
-
-    boost::array<Index<NDIM>, NDIM> coarse_num_cells, fine_num_cells;
+    Box<NDIM> coarse_domain_side_boxes[NDIM];
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        coarse_domain_side_boxes[axis] = SideGeometry<NDIM>::toSideBox(coarse_domain_boxes[0], axis);
+    }
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
+    IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
+    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
-        offset(d) = 2;
+        offset(d) = coarse_periodic_shift(d) ? 1 : 2;
         coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
-        fine_num_cells[d] = fine_domain_upper - fine_domain_lower + offset;
     }
 
     // Ratio between fine and coarse levels.
@@ -1039,7 +1082,8 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
         const Box<NDIM>& fine_patch_box = fine_patch->getBox();
         Pointer<SideData<NDIM, int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
-        std::vector<int> samrai_petsc_map(2 * depth), local_row(depth);
+        const int n_interpolants = 2;
+        std::vector<int> samrai_petsc_map(n_interpolants * depth), local_row(depth);
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -1074,29 +1118,69 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
                 const CellIndex<NDIM> I_U = I_L + offset;
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
-                        I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
-                    samrai_petsc_map[depth + d] = IndexUtilities::mapIndexToInteger(
-                        I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
+                    samrai_petsc_map[d * n_interpolants] =
+                        IndexUtilities::mapIndexToInteger(I_L,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
+
+                    samrai_petsc_map[d * n_interpolants + 1] =
+                        IndexUtilities::mapIndexToInteger(I_U,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
                 }
-                AOApplicationToPetsc(coarse_level_ao, 2 * depth, &samrai_petsc_map[0]);
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+#if !defined(NDEBUG)
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    if (samrai_petsc_map[d * n_interpolants] < 0)
+                    {
+                        int domain = IndexUtilities::mapIndexToInteger(I_L,
+                                                                       coarse_domain_lower,
+                                                                       coarse_num_cells[axis],
+                                                                       d,
+                                                                       coarse_ao_offset + data_offset,
+                                                                       coarse_periodic_shift);
+                        TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I_L
+                                                       << " and SAMRAI mapping "
+                                                       << domain
+                                                       << " is mapped to "
+                                                       << samrai_petsc_map[d * n_interpolants]
+                                                       << " by AO object constructed for level "
+                                                       << coarse_patch_level->getLevelNumber()
+                                                       << ". Index "
+                                                       << I
+                                                       << " contained in coarse domain = "
+                                                       << coarse_domain_side_boxes[axis].contains(I_L)
+                                                       << std::endl);
+                    }
+                }
+#endif
 
                 for (unsigned d = 0; d < depth; ++d)
                 {
-                    if (samrai_petsc_map[d] >= j_coarse_lower && samrai_petsc_map[d] < j_coarse_upper)
+                    if (samrai_petsc_map[d * n_interpolants] >= 0 &&
+                        samrai_petsc_map[d * n_interpolants] >= j_coarse_lower && samrai_petsc_map[d] < j_coarse_upper)
                     {
                         d_nnz[local_row[d]] = 1;
                     }
-                    else
+                    else if (samrai_petsc_map[d * n_interpolants] >= 0)
                     {
                         o_nnz[local_row[d]] = 1;
                     }
 
-                    if (samrai_petsc_map[depth + d] >= j_coarse_lower && samrai_petsc_map[depth + d] < j_coarse_upper)
+                    if (samrai_petsc_map[d * n_interpolants + 1] >= 0 &&
+                        samrai_petsc_map[d * n_interpolants + 1] >= j_coarse_lower &&
+                        samrai_petsc_map[d * n_interpolants + 1] < j_coarse_upper)
                     {
                         d_nnz[local_row[d]] += 1;
                     }
-                    else
+                    else if (samrai_petsc_map[d * n_interpolants + 1] >= 0)
                     {
                         o_nnz[local_row[d]] += 1;
                     }
@@ -1125,13 +1209,384 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
         const Box<NDIM>& fine_patch_box = fine_patch->getBox();
         Pointer<SideData<NDIM, int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
         const unsigned depth = fine_dof_data->getDepth();
-        std::vector<int> samrai_petsc_map(2 * depth);
+        const int n_interpolants = 2;
+        std::vector<int> samrai_petsc_map(n_interpolants * depth);
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
             IntVector<NDIM> offset = 0;
             offset(axis) = 1;
 
+            int data_offset = 0;
+            for (int side = 0; side < axis; ++side)
+            {
+                int side_offset = depth;
+                for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
+                data_offset += side_offset;
+            }
+            IntVector<NDIM> coarse_periodic_shift_axis = 0;
+            coarse_periodic_shift_axis(axis) = coarse_periodic_shift(axis);
+
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
+            {
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                bool on_proc_fine_loc = true;
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    const int fine_dof_idx = (*fine_dof_data)(i_s, d);
+                    on_proc_fine_loc = on_proc_fine_loc && fine_dof_idx >= i_fine_lower && fine_dof_idx < i_fine_upper;
+                }
+                if (!on_proc_fine_loc) continue;
+
+                const CellIndex<NDIM> I = IndexUtilities::coarsen(i, fine_coarse_ratio);
+                const CellIndex<NDIM>& I_L = I;
+                const CellIndex<NDIM> I_U = I_L + offset;
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    samrai_petsc_map[d * n_interpolants] =
+                        IndexUtilities::mapIndexToInteger(I_L,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
+
+                    samrai_petsc_map[d * n_interpolants + 1] =
+                        IndexUtilities::mapIndexToInteger(I_U,
+                                                          coarse_domain_lower,
+                                                          coarse_num_cells[axis],
+                                                          d,
+                                                          coarse_ao_offset + data_offset,
+                                                          coarse_periodic_shift);
+                }
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    int row = (*fine_dof_data)(i_s, d);
+                    std::vector<int> col;
+                    std::vector<double> col_val(2);
+                    for (int ip = 0; ip < n_interpolants; ++ip)
+                    {
+                        if (samrai_petsc_map[d * n_interpolants + ip] < 0) continue;
+                        col.push_back(samrai_petsc_map[d * n_interpolants + ip]);
+                    }
+                    int col_size = static_cast<int>(col.size());
+                    TBOX_ASSERT(col_size >= 1);
+
+                    // w_L = 1 - [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
+                    double w_L = 1.0 -
+                                 (static_cast<double>(i(axis)) -
+                                  static_cast<double>(IndexUtilities::refine(I_L, fine_coarse_ratio)(axis))) /
+                                     static_cast<double>(fine_coarse_ratio(axis));
+
+                    col_val[0] = w_L;
+                    col_val[1] = 1.0 - w_L;
+                    if (col_size == 1)
+                    {
+                        col_val[0] += col_val[1];
+                    }
+
+                    ierr = MatSetValues(mat, 1, &row, col_size, &col[0], &col_val[0], INSERT_VALUES);
+                }
+            }
+        }
+    }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // constructRT0ProlongationOp_side
+
+void
+PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
+                                                      int dof_index_idx,
+                                                      const std::vector<int>& num_fine_dofs_per_proc,
+                                                      const std::vector<int>& num_coarse_dofs_per_proc,
+                                                      Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                      Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                      const AO& coarse_level_ao,
+                                                      const int coarse_ao_offset)
+{
+    int ierr;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    // Determine the grid and data extents for the coarse level and fine levels.
+    const BoxArray<NDIM>& coarse_domain_boxes = coarse_patch_level->getPhysicalDomain();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarse_domain_boxes.size() == 1);
+#endif
+    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    Box<NDIM> coarse_domain_side_boxes[NDIM];
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        coarse_domain_side_boxes[axis] = SideGeometry<NDIM>::toSideBox(coarse_domain_boxes[0], axis);
+    }
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
+    IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
+    boost::array<Index<NDIM>, NDIM> coarse_num_cells;
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        Index<NDIM> offset = 1;
+        offset(d) = coarse_periodic_shift(d) ? 1 : 2;
+        coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
+    }
+
+    // Ratio between fine and coarse levels.
+    const IntVector<NDIM>& coarse_ratio = coarse_patch_level->getRatio();
+    const IntVector<NDIM>& fine_ratio = fine_patch_level->getRatio();
+    const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
+
+    // Determine the matrix dimensions and index ranges.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int m_local = num_fine_dofs_per_proc[mpi_rank];
+    const int n_local = num_coarse_dofs_per_proc[mpi_rank];
+    const int i_fine_lower =
+        std::accumulate(num_fine_dofs_per_proc.begin(), num_fine_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_fine_upper = i_fine_lower + m_local;
+    const int j_coarse_lower =
+        std::accumulate(num_coarse_dofs_per_proc.begin(), num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
+    const int j_coarse_upper = j_coarse_lower + n_local;
+
+    // Determine the non-zero matrix structure for the refine operator.
+    std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
+    for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > fine_patch = fine_patch_level->getPatch(p());
+        const Box<NDIM>& fine_patch_box = fine_patch->getBox();
+        Pointer<SideData<NDIM, int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        const unsigned depth = fine_dof_data->getDepth();
+        const int n_interpolants = 4 * (NDIM - 1);
+        std::vector<int> samrai_petsc_map(n_interpolants * depth), local_row(depth);
+
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            int data_offset = 0;
+            for (int side = 0; side < axis; ++side)
+            {
+                int side_offset = depth;
+                for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
+                data_offset += side_offset;
+            }
+
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis)); b; b++)
+            {
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                bool on_proc_fine_loc = true;
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    local_row[d] = (*fine_dof_data)(i_s, d);
+
+                    on_proc_fine_loc = on_proc_fine_loc && local_row[d] >= i_fine_lower && local_row[d] < i_fine_upper;
+
+                    local_row[d] -= i_fine_lower;
+                }
+                if (!on_proc_fine_loc) continue;
+
+                const CellIndex<NDIM> I = IndexUtilities::coarsen(i, fine_coarse_ratio);
+                const CellIndex<NDIM> i_lower = IndexUtilities::refine(I, fine_coarse_ratio);
+
+                std::vector<CellIndex<NDIM> > interpolants(n_interpolants);
+                std::vector<IntVector<NDIM> > offsets(n_interpolants, 0);
+                int upperlower[NDIM];
+                for (int side = 0; side < NDIM; ++side)
+                {
+                    if (side == axis)
+                    {
+                        upperlower[side] = 1;
+                    }
+                    else
+                    {
+                        upperlower[side] = i(side) - i_lower(side) >= fine_coarse_ratio(side) / 2 ? 1 : -1;
+                    }
+                }
+
+                if (axis == 0)
+                {
+                    /***************************************
+                     *        2 -- 3          6 -- 7
+                     *     y  |    |  ---> z  |    |
+                     *        0 -- 1          4 -- 5
+                     *           x
+                     ***************************************/
+                    offsets[1](0) = upperlower[0];
+
+                    offsets[2](1) = upperlower[1];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](1) = upperlower[1];
+#if (NDIM == 3)
+                    offsets[4](2) = upperlower[2];
+
+                    offsets[5](0) = upperlower[0];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](1) = upperlower[1];
+                    offsets[6](2) = upperlower[2];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+#endif
+                }
+                else if (axis == 1)
+                {
+                    /************************************
+                     *        1 -- 3           5 -- 7
+                     *    y   |    |  ---> z   |    |
+                     *        0 -- 2           4 -- 6
+                     *           x
+                     ************************************/
+
+                    offsets[1](1) = upperlower[1];
+
+                    offsets[2](0) = upperlower[0];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](1) = upperlower[1];
+#if (NDIM == 3)
+                    offsets[4](2) = upperlower[2];
+
+                    offsets[5](1) = upperlower[1];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](0) = upperlower[0];
+                    offsets[6](2) = upperlower[2];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+#endif
+                }
+#if (NDIM == 3)
+                else if (axis == 2)
+                {
+                    /***********************************
+                     *        1 -- 3          5 -- 7
+                     *     z  |    |  ---> y  |    |
+                     *        0 -- 2          4 -- 6
+                     *           x
+                     **********************************/
+
+                    offsets[1](2) = upperlower[2];
+
+                    offsets[2](0) = upperlower[0];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](2) = upperlower[2];
+
+                    offsets[4](1) = upperlower[1];
+
+                    offsets[5](1) = upperlower[1];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](0) = upperlower[0];
+                    offsets[6](1) = upperlower[1];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+                }
+#endif
+
+                for (int ip = 0; ip < n_interpolants; ++ip)
+                {
+                    interpolants[ip] = I + offsets[ip];
+                }
+
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    for (int ip = 0; ip < n_interpolants; ++ip)
+                    {
+                        samrai_petsc_map[d * n_interpolants + ip] =
+                            IndexUtilities::mapIndexToInteger(interpolants[ip],
+                                                              coarse_domain_lower,
+                                                              coarse_num_cells[axis],
+                                                              d,
+                                                              coarse_ao_offset + data_offset,
+                                                              coarse_periodic_shift);
+                    }
+                }
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+#if !defined(NDEBUG)
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    if (samrai_petsc_map[d * n_interpolants] < 0)
+                    {
+                        int domain = IndexUtilities::mapIndexToInteger(interpolants[0],
+                                                                       coarse_domain_lower,
+                                                                       coarse_num_cells[axis],
+                                                                       d,
+                                                                       coarse_ao_offset + data_offset,
+                                                                       coarse_periodic_shift);
+                        TBOX_ERROR("Component axis = " << axis << " with coarse grid index " << I
+                                                       << " and SAMRAI mapping "
+                                                       << domain
+                                                       << " is mapped to "
+                                                       << samrai_petsc_map[d * n_interpolants]
+                                                       << " by AO object constructed for level "
+                                                       << coarse_patch_level->getLevelNumber()
+                                                       << ". Index "
+                                                       << I
+                                                       << " contained in coarse domain = "
+                                                       << coarse_domain_side_boxes[axis].contains(interpolants[0])
+                                                       << std::endl);
+                    }
+                }
+#endif
+
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    for (int ip = 0; ip < n_interpolants; ++ip)
+                    {
+                        const int idx = d * n_interpolants + ip;
+                        if (samrai_petsc_map[idx] < 0) continue;
+
+                        if (samrai_petsc_map[idx] >= j_coarse_lower && samrai_petsc_map[idx] < j_coarse_upper)
+                            d_nnz[local_row[d]] += 1;
+                        else
+                            o_nnz[local_row[d]] += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Create an empty matrix.
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        m_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        m_local ? &d_nnz[0] : NULL,
+                        0,
+                        m_local ? &o_nnz[0] : NULL,
+                        &mat);
+    IBTK_CHKERRQ(ierr);
+
+    // Determine the matrix-coefficients
+    for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > fine_patch = fine_patch_level->getPatch(p());
+        const Box<NDIM>& fine_patch_box = fine_patch->getBox();
+        Pointer<SideData<NDIM, int> > fine_dof_data = fine_patch->getPatchData(dof_index_idx);
+        const unsigned depth = fine_dof_data->getDepth();
+        const int n_interpolants = 4 * (NDIM - 1);
+        std::vector<int> samrai_petsc_map(n_interpolants * depth);
+
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
             int data_offset = 0;
             for (int side = 0; side < axis; ++side)
             {
@@ -1153,30 +1608,399 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
                 if (!on_proc_fine_loc) continue;
 
                 const CellIndex<NDIM> I = IndexUtilities::coarsen(i, fine_coarse_ratio);
-                const CellIndex<NDIM>& I_L = I;
-                const CellIndex<NDIM> I_U = I_L + offset;
-                for (unsigned d = 0; d < depth; ++d)
+                const CellIndex<NDIM> i_lower = IndexUtilities::refine(I, fine_coarse_ratio);
+
+                std::vector<CellIndex<NDIM> > interpolants(n_interpolants);
+                std::vector<IntVector<NDIM> > offsets(n_interpolants, 0);
+                int upperlower[NDIM];
+                for (int side = 0; side < NDIM; ++side)
                 {
-                    samrai_petsc_map[d] = IndexUtilities::mapIndexToInteger(
-                        I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
-                    samrai_petsc_map[depth + d] = IndexUtilities::mapIndexToInteger(
-                        I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
+                    if (side == axis)
+                    {
+                        upperlower[side] = 1;
+                    }
+                    else
+                    {
+                        upperlower[side] = i(side) - i_lower(side) >= fine_coarse_ratio(side) / 2 ? 1 : -1;
+                    }
                 }
-                AOApplicationToPetsc(coarse_level_ao, 2 * depth, &samrai_petsc_map[0]);
+
+                if (axis == 0)
+                {
+                    /***************************************
+                     *        2 -- 3          6 -- 7
+                     *     y  |    |  ---> z  |    |
+                     *        0 -- 1          4 -- 5
+                     *           x
+                     ***************************************/
+                    offsets[1](0) = upperlower[0];
+
+                    offsets[2](1) = upperlower[1];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](1) = upperlower[1];
+#if (NDIM == 3)
+                    offsets[4](2) = upperlower[2];
+
+                    offsets[5](0) = upperlower[0];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](1) = upperlower[1];
+                    offsets[6](2) = upperlower[2];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+#endif
+                }
+                else if (axis == 1)
+                {
+                    /************************************
+                     *        1 -- 3           5 -- 7
+                     *    y   |    |  ---> z   |    |
+                     *        0 -- 2           4 -- 6
+                     *           x
+                     ************************************/
+
+                    offsets[1](1) = upperlower[1];
+
+                    offsets[2](0) = upperlower[0];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](1) = upperlower[1];
+#if (NDIM == 3)
+                    offsets[4](2) = upperlower[2];
+
+                    offsets[5](1) = upperlower[1];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](0) = upperlower[0];
+                    offsets[6](2) = upperlower[2];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+#endif
+                }
+#if (NDIM == 3)
+                else if (axis == 2)
+                {
+                    /***********************************
+                     *        1 -- 3          5 -- 7
+                     *     z  |    |  ---> y  |    |
+                     *        0 -- 2          4 -- 6
+                     *           x
+                     **********************************/
+
+                    offsets[1](2) = upperlower[2];
+
+                    offsets[2](0) = upperlower[0];
+
+                    offsets[3](0) = upperlower[0];
+                    offsets[3](2) = upperlower[2];
+
+                    offsets[4](1) = upperlower[1];
+
+                    offsets[5](1) = upperlower[1];
+                    offsets[5](2) = upperlower[2];
+
+                    offsets[6](0) = upperlower[0];
+                    offsets[6](1) = upperlower[1];
+
+                    offsets[7](0) = upperlower[0];
+                    offsets[7](1) = upperlower[1];
+                    offsets[7](2) = upperlower[2];
+                }
+#endif
+
+                for (int ip = 0; ip < n_interpolants; ++ip)
+                {
+                    interpolants[ip] = I + offsets[ip];
+                }
 
                 for (unsigned d = 0; d < depth; ++d)
                 {
+                    for (int ip = 0; ip < n_interpolants; ++ip)
+                    {
+                        samrai_petsc_map[d * n_interpolants + ip] =
+                            IndexUtilities::mapIndexToInteger(interpolants[ip],
+                                                              coarse_domain_lower,
+                                                              coarse_num_cells[axis],
+                                                              d,
+                                                              coarse_ao_offset + data_offset,
+                                                              coarse_periodic_shift);
+                    }
+                }
+                AOApplicationToPetsc(coarse_level_ao, n_interpolants * depth, &samrai_petsc_map[0]);
+
+                for (unsigned d = 0; d < depth; ++d)
+                {
+                    // Interpolation weights in Cartesian axis.
+                    double w[NDIM];
+                    if (axis == 0)
+                    {
+                        w[0] = 1.0 -
+                               (SCD(i(0)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(0))) /
+                                   SCD(fine_coarse_ratio(0));
+
+                        w[1] = 1.0 -
+                               (0.5 + SCD(i(1)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                           fine_coarse_ratio)(1)) -
+                                SCD(fine_coarse_ratio(1) / 2.0)) /
+                                   SCD(fine_coarse_ratio(1));
+#if (NDIM == 3)
+
+                        w[2] = 1.0 -
+                               (0.5 + SCD(i(2)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                           fine_coarse_ratio)(2)) -
+                                SCD(fine_coarse_ratio(2) / 2.0)) /
+                                   SCD(fine_coarse_ratio(2));
+#endif
+                    }
+                    else if (axis == 1)
+                    {
+                        w[1] = 1.0 -
+                               (SCD(i(1)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(1))) /
+                                   SCD(fine_coarse_ratio(1));
+
+                        w[0] = 1.0 -
+                               (0.5 + SCD(i(0)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                           fine_coarse_ratio)(0)) -
+                                SCD(fine_coarse_ratio(0) / 2.0)) /
+                                   SCD(fine_coarse_ratio(0));
+#if (NDIM == 3)
+
+                        w[2] = 1.0 -
+                               (0.5 + SCD(i(2)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                           fine_coarse_ratio)(2)) -
+                                SCD(fine_coarse_ratio(2) / 2.0)) /
+                                   SCD(fine_coarse_ratio(2));
+#endif
+                    }
+#if (NDIM == 3)
+                    else if (axis == 2)
+                    {
+                        w[2] = 1.0 -
+                               (SCD(i(2)) - SCD(IndexUtilities::refine(interpolants[0], fine_coarse_ratio)(2))) /
+                                   SCD(fine_coarse_ratio(2));
+
+                        w[0] = 1.0 -
+                               (0.5 + SCD(i(0)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[2]),
+                                                           fine_coarse_ratio)(0)) -
+                                SCD(fine_coarse_ratio(0) / 2.0)) /
+                                   SCD(fine_coarse_ratio(0));
+
+                        w[1] = 1.0 -
+                               (0.5 + SCD(i(1)) -
+                                SCD(IndexUtilities::refine(IntVector<NDIM>::min(interpolants[0], interpolants[4]),
+                                                           fine_coarse_ratio)(1)) -
+                                SCD(fine_coarse_ratio(1) / 2.0)) /
+                                   SCD(fine_coarse_ratio(1));
+                    }
+#endif
+
                     int row = (*fine_dof_data)(i_s, d);
-                    int col[2] = { samrai_petsc_map[d], samrai_petsc_map[depth + d] };
+                    std::vector<int> col;
+                    std::vector<double> col_val;
+                    int n_cols = 0;
+                    for (int ip = 0; ip < n_interpolants; ++ip)
+                    {
+                        if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
+                        {
+                            ++n_cols;
+                        }
+                    }
+                    col.resize(n_cols);
+                    col_val.resize(n_cols);
 
-                    // w_L = 1 - [i(axis) - refine(I_L,ratio)(axis)]/ratio(axis)
-                    double w_L = 1.0 -
-                                 (static_cast<double>(i(axis)) -
-                                  static_cast<double>(IndexUtilities::refine(I_L, fine_coarse_ratio)(axis))) /
-                                     static_cast<double>(fine_coarse_ratio(axis));
+                    // Find weights.
+                    double w0, w1, w2 = 1.0;
+                    double values[8];
+                    if (axis == 0)
+                    {
+                        w0 = w[0];
+                        w1 = interpolants[0](1) < interpolants[2](1) ? w[1] : 1.0 - w[1];
+#if (NDIM == 3)
+                        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
+#endif
 
-                    double col_val[2] = { w_L, 1.0 - w_L };
-                    ierr = MatSetValues(mat, 1, &row, 2, col, col_val, INSERT_VALUES);
+                        values[0] = w0 * w1 * w2;
+                        values[1] = (1.0 - w0) * w1 * w2;
+                        values[2] = w0 * (1.0 - w1) * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
+                        {
+                            values[0] += values[2];
+                        }
+                        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
+                        {
+                            values[1] += values[3];
+                        }
+
+#if (NDIM == 3)
+                        values[4] = w0 * w1 * (1.0 - w2);
+                        values[5] = (1.0 - w0) * w1 * (1.0 - w2);
+                        values[6] = w0 * (1.0 - w1) * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
+                        {
+                            values[4] += values[6];
+                        }
+                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
+                        {
+                            values[5] += values[7];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
+                        {
+                            values[0] += values[4];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
+                        {
+                            values[1] += values[5];
+                        }
+#endif
+                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
+                        {
+                            values[0] += values[1];
+                        }
+
+                        int k = 0;
+                        for (int ip = 0; ip < n_interpolants; ++ip)
+                        {
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
+                            {
+                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
+                                col_val[k] = values[ip];
+                                k = k + 1;
+                            }
+                        }
+                        TBOX_ASSERT(k == n_cols);
+                    }
+                    else if (axis == 1)
+                    {
+                        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
+                        w1 = w[1];
+#if (NDIM == 3)
+                        w2 = interpolants[0](2) < interpolants[4](2) ? w[2] : 1.0 - w[2];
+#endif
+
+                        values[0] = w0 * w1 * w2;
+                        values[1] = w0 * (1.0 - w1) * w2;
+                        values[2] = (1.0 - w0) * w1 * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
+                        {
+                            values[0] += values[2];
+                        }
+                        values[3] = (1.0 - w0) * (1.0 - w1) * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
+                        {
+                            values[1] += values[3];
+                        }
+
+#if (NDIM == 3)
+                        values[4] = w0 * w1 * (1.0 - w2);
+                        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
+                        values[6] = (1.0 - w0) * w1 * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
+                        {
+                            values[4] += values[6];
+                        }
+                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
+                        {
+                            values[5] += values[7];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
+                        {
+                            values[0] += values[4];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
+                        {
+                            values[1] += values[5];
+                        }
+#endif
+                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
+                        {
+                            values[0] += values[1];
+                        }
+
+                        int k = 0;
+                        for (int ip = 0; ip < n_interpolants; ++ip)
+                        {
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
+                            {
+                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
+                                col_val[k] = values[ip];
+                                k = k + 1;
+                            }
+                        }
+                        TBOX_ASSERT(k == n_cols);
+                    }
+#if (NDIM == 3)
+                    else if (axis == 2)
+                    {
+                        w0 = interpolants[0](0) < interpolants[2](0) ? w[0] : 1.0 - w[0];
+                        w1 = interpolants[0](1) < interpolants[4](1) ? w[1] : 1.0 - w[1];
+                        w2 = w[2];
+
+                        values[0] = w0 * w1 * w2;
+                        values[1] = w0 * w1 * (1.0 - w2);
+                        values[2] = (1.0 - w0) * w1 * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 2] < 0)
+                        {
+                            values[0] += values[2];
+                        }
+                        values[3] = (1.0 - w0) * w1 * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 3] < 0)
+                        {
+                            values[1] += values[3];
+                        }
+
+                        values[4] = w0 * (1.0 - w1) * w2;
+                        values[5] = w0 * (1.0 - w1) * (1.0 - w2);
+                        values[6] = (1.0 - w0) * (1.0 - w1) * w2;
+                        if (samrai_petsc_map[d * n_interpolants + 6] < 0)
+                        {
+                            values[4] += values[6];
+                        }
+                        values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
+                        if (samrai_petsc_map[d * n_interpolants + 7] < 0)
+                        {
+                            values[5] += values[7];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 4] < 0)
+                        {
+                            values[0] += values[4];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 5] < 0)
+                        {
+                            values[1] += values[5];
+                        }
+                        if (samrai_petsc_map[d * n_interpolants + 1] < 0)
+                        {
+                            values[0] += values[1];
+                        }
+
+                        int k = 0;
+                        for (int ip = 0; ip < n_interpolants; ++ip)
+                        {
+                            if (samrai_petsc_map[d * n_interpolants + ip] >= 0)
+                            {
+                                col[k] = samrai_petsc_map[d * n_interpolants + ip];
+                                col_val[k] = values[ip];
+                                k = k + 1;
+                            }
+                        }
+                        TBOX_ASSERT(k == n_cols);
+                    }
+#endif
+                    ierr = MatSetValues(mat, 1, &row, n_cols, &col[0], &col_val[0], INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
                 }
             }
         }
@@ -1188,7 +2012,7 @@ PETScMatUtilities::constructProlongationOp_side(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructProlongationOp_side
+} // constructLinearProlongationOp_side
 
 void
 PETScMatUtilities::constructPatchLevelASMSubdomains_cell(std::vector<IS>& is_overlap,

@@ -19,7 +19,7 @@ examples: $(EXTRA_PROGRAMS)
 	  cp -f $(srcdir)/input3d.sphere $(PWD) ; \
 	  cp -f $(srcdir)/sphere_3d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/check_sol.m $(PWD) ; \
-	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
+	  cp -f $(srcdir)/petsc_options.dat $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -28,5 +28,5 @@ clean-local:
 	  rm -f $(builddir)/input3d.sphere ; \
           rm -f $(builddir)/sphere_3d.vertex ; \
 	  rm -f $(builddir)/check_sol.m ; \
-	  rm -f $(builddir)/PetscOptions.dat ; \
+	  rm -f $(builddir)/petsc_options.dat ; \
 	fi ;

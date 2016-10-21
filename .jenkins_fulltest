@@ -5,8 +5,8 @@ set -o pipefail
   CFLAGS="-g -O1 -Wall" \
   CXXFLAGS="-g -O1 -Wall" \
   FCFLAGS="-g -O1 -Wall" \
-  CC=$HOME/linux/openmpi/1.10.2/bin/mpicc \
-  CXX=$HOME/linux/openmpi/1.10.2/bin/mpicxx \
+  CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
+  CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
   FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
   CPPFLAGS="-DOMPI_SKIP_MPICXX" \
   LDFLAGS="-lgtest" \
@@ -18,6 +18,7 @@ set -o pipefail
   --with-boost=$HOME/linux/boost/1.61.0 \
   --enable-libmesh \
   --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
-  --with-libmesh-method=dbg
+  --with-libmesh-method=dbg \
+  --config-cache
 make -kj4 lib
 make -kj4 examples

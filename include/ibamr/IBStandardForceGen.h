@@ -86,7 +86,8 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBStandardForceGen();
+    IBStandardForceGen(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>());
 
     /*!
      * \brief Destructor.
@@ -285,6 +286,11 @@ private:
      */
     std::map<int, SpringForceFcnPtr> d_spring_force_fcn_map;
     std::map<int, SpringForceDerivFcnPtr> d_spring_force_deriv_fcn_map;
+
+    /*!
+     * \brief Logging settings.
+     */
+    bool d_log_target_point_displacements;
 };
 } // namespace IBAMR
 

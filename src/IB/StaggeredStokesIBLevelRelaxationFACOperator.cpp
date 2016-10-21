@@ -123,6 +123,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
       d_level_solver_abs_residual_tol(1.0e-50),
       d_level_solver_rel_residual_tol(1.0e-5),
       d_level_solver_max_iterations(10),
+      d_u_petsc_prolongation_method("RT0"),
       d_SAJ_fill(1.0)
 {
     // Set the time stepping type to UNKNOWN to ensure that the IB solver sets it correctly.
@@ -146,6 +147,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         {
             d_level_solver_db = input_db->getDatabase("level_solver_db");
         }
+        if (input_db->keyExists("U_petsc_prolongation_method"))
+            d_u_petsc_prolongation_method = input_db->getString("U_petsc_prolongation_method");
     }
 
     // Construct the DOF index variable/context.
@@ -488,6 +491,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(ln + 1);
         Pointer<PatchLevel<NDIM> > coarse_level = d_hierarchy->getPatchLevel(ln);
         PETScMatUtilities::constructProlongationOp(d_prolongation_mat[ln],
+                                                   d_u_petsc_prolongation_method,
                                                    d_u_dof_index_idx,
                                                    d_num_dofs_per_proc[ln + 1],
                                                    d_num_dofs_per_proc[ln],

@@ -631,7 +631,7 @@ CIBMethod::spreadForce(
 } // spreadForce
 
 void
-CIBMethod::eulerStep(const double current_time, const double new_time)
+CIBMethod::forwardEulerStep(double current_time, double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -738,10 +738,20 @@ CIBMethod::eulerStep(const double current_time, const double new_time)
     }
 
     return;
-} // eulerStep
+} // forwardEulerStep
 
 void
-CIBMethod::midpointStep(const double current_time, const double new_time)
+CIBMethod::backwardEulerStep(double current_time, double new_time)
+{
+    TBOX_ERROR(
+        "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "
+        "CIBMethod::forwardEulerStep() as predictor. \n");
+    return;
+
+} // backwardEulerStep
+
+void
+CIBMethod::midpointStep(double current_time, double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
@@ -866,7 +876,7 @@ CIBMethod::midpointStep(const double current_time, const double new_time)
 } // midpointStep
 
 void
-CIBMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
+CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
                << " Only mid-point rule is supported."

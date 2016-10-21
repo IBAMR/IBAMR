@@ -123,7 +123,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Read default Petsc options
@@ -287,6 +287,7 @@ main(int argc, char* argv[])
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_LU, LAPACK_LU), 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
         }
+        navier_stokes_integrator->setStokesSolverNeedsInit();
 
         // Deallocate initialization objects.
         app_initializer.setNull();

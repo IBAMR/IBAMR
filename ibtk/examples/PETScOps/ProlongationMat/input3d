@@ -1,0 +1,73 @@
+f {
+    function_0 = "if(X0 < 0, -X0, X0)"
+    function_1 = "if(X1 < 0, -X1, X1)"
+    function_2 = "if(X2 < 0, -X2, X2)"
+}
+
+prolongation_op_type = "LINEAR"
+RR = 4
+
+Main {
+// log file parameters
+   log_file_name = "ProlongationPETScMatTester3d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 8
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = -1, -1, -1   // lower end of computational domain.
+   x_up               = 1, 1, 1   // upper end of computational domain.
+   periodic_dimension = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = RR, RR, RR           // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512     // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   1,   1,   1     // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0,0), (N - 1, N - 1, N - 1)]
+      //level_0 = [(0,0,0), (N/2 - 1,N/2 - 1,N/2 - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::main::*"
+}

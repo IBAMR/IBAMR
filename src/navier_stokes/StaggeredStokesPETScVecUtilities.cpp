@@ -41,6 +41,7 @@
 
 #include "Box.h"
 #include "BoxList.h"
+#include "CartesianGridGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
@@ -524,6 +525,15 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
+    // For a single patch in a periodic domain, the far side DOFs are not master.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
+    const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(domain_boxes.size() == 1);
+#endif
+    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -531,15 +541,22 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM> patch_size = patch_box.numberCells();
+
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
         Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
+            const int upper_domain_side_idx = domain_upper(component_axis) + 1;
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
-                if ((*patch_num_data)(is) == patch_num)
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> is(i, component_axis, SideIndex<NDIM>::Lower);
+                bool fully_periodic_patch_in_axis =
+                    periodic_shift(component_axis) && (patch_size(component_axis) == periodic_shift(component_axis));
+                bool periodic_image = fully_periodic_patch_in_axis && (i(component_axis) == upper_domain_side_idx);
+                if ((*patch_num_data)(is) == patch_num && !periodic_image)
                 {
                     (*u_mastr_loc_data)(is) = true;
                     ++local_dof_count;
