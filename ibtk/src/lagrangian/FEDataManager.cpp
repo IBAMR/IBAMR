@@ -706,11 +706,11 @@ FEDataManager::spread(const int f_data_idx,
             Pointer<SideData<NDIM, double> > f_sc_data = f_data;
             LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
-        if (f_phys_bdry_op)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
-        }
+        // if (f_phys_bdry_op)
+        // {
+            // f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+            // f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+        // }
     }
 
     // Accumulate data.

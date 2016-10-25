@@ -746,8 +746,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             Pointer<SideData<NDIM, double> > mask_sc_data = patch->getPatchData(mask_current_idx);
 
             const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
+            //~ //const IntVector<NDIM>& mask_gcw = mask_sc_data->getGhostCellWidth();
 
             const int u_depth = u_sc_data->getDepth();
+            //~ //const int mask_depth = mask_sc_data->getDepth();
 
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
@@ -803,20 +805,20 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
                     const IntVector<NDIM>& ilower = side_boxes[axis].lower();
                     const IntVector<NDIM>& iupper = side_boxes[axis].upper();
-                    //~ #if (NDIM == 2)
+                //~ //    #if (NDIM == 2)
                     boost::const_multi_array_ref<double, ndim + 1> u_sc_data_array(
                         u_sc_data->getPointer(axis),
                         (boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(
                             ilower[1] - u_gcw[1], iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),
                         boost::fortran_storage_order());
 
-                    boost::const_multi_array_ref<double, ndim + 1> mask_sc_data_array(
-                        mask_sc_data->getPointer(axis),
-                        (boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(
-                            ilower[1] - u_gcw[1], iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),
-                        boost::fortran_storage_order());
+                //~ //    boost::const_multi_array_ref<double, ndim + 1> mask_sc_data_array(
+                //~ //        mask_sc_data->getPointer(axis),
+                 //~ //       (boost::extents[range(ilower[0] - mask_gcw[0], iupper[0] + mask_gcw[0] + 1)][range(
+                   //~ //         ilower[1] - mask_gcw[1], iupper[1] + mask_gcw[1] + 1)][range(0, mask_depth)]),
+                   //~ //     boost::fortran_storage_order());
 
-                    //~ #endif
+                   //~ // #endif
 
                     for (unsigned int k = 0; k < nindices; ++k)
                     {
@@ -877,45 +879,45 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(
                                 ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
 
-                        ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
-                            dx[0] * w0[1] * w1[1] * (w0[0] * du_qp[s * ndim] + w1[0] * du_qp[1 + s * ndim]);
-                        vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
-                            dx[1] * w0[1] * w1[1] * (w0[0] * dv_qp[s * ndim] + w1[0] * dv_qp[1 + s * ndim]);
+                        //~ ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
+                            //~ dx[0] * w0[1] * w1[1] * (w0[0] * du_qp[s * ndim] + w1[0] * du_qp[1 + s * ndim]);
+                        //~ vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
+                            //~ dx[1] * w0[1] * w1[1] * (w0[0] * dv_qp[s * ndim] + w1[0] * dv_qp[1 + s * ndim]);
 
-                        ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
-                            -dx[0] * w0[0] * w1[1] * (w0[1] * du_qp[s * ndim] - w1[0] * du_qp[1 + s * ndim]);
-                        ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
-                            -dx[0] * w0[0] * w1[0] * (w0[1] * du_qp[s * ndim] + w1[1] * du_qp[1 + s * ndim]);
-                        ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
-                            dx[0] * w0[1] * w1[0] * (w0[0] * du_qp[s * ndim] - w1[1] * du_qp[1 + s * ndim]);
+                        //~ ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
+                            //~ -dx[0] * w0[0] * w1[1] * (w0[1] * du_qp[s * ndim] - w1[0] * du_qp[1 + s * ndim]);
+                        //~ ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
+                            //~ -dx[0] * w0[0] * w1[0] * (w0[1] * du_qp[s * ndim] + w1[1] * du_qp[1 + s * ndim]);
+                        //~ ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
+                            //~ dx[0] * w0[1] * w1[0] * (w0[0] * du_qp[s * ndim] - w1[1] * du_qp[1 + s * ndim]);
 
-                        vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
-                            -dx[1] * w0[0] * w1[1] * (w0[1] * dv_qp[s * ndim] - w1[0] * dv_qp[1 + s * ndim]);
-                        vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
-                            -dx[1] * w0[0] * w1[0] * (w0[1] * dv_qp[s * ndim] + w1[1] * dv_qp[1 + s * ndim]);
-                        vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
-                            dx[1] * w0[1] * w1[0] * (w0[0] * dv_qp[s * ndim] - w1[1] * dv_qp[1 + s * ndim]);
+                        //~ vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
+                            //~ -dx[1] * w0[0] * w1[1] * (w0[1] * dv_qp[s * ndim] - w1[0] * dv_qp[1 + s * ndim]);
+                        //~ vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
+                            //~ -dx[1] * w0[0] * w1[0] * (w0[1] * dv_qp[s * ndim] + w1[1] * dv_qp[1 + s * ndim]);
+                        //~ vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
+                            //~ dx[1] * w0[1] * w1[0] * (w0[0] * dv_qp[s * ndim] - w1[1] * dv_qp[1 + s * ndim]);
 
-                        // ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] +
-                        // w1[1]*du_qp[1 + s * ndim]);
-                        // vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] +
-                        // w1[1]*dv_qp[1 + s * ndim]);
-                        //
-                        // ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] -
-                        // w1[1]*du_qp[1 + s * ndim]);
-                        // vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] -
-                        // w1[1]*dv_qp[1 + s * ndim]);
-                        //~
+                         ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] +
+                         w1[1]*du_qp[1 + s * ndim]);
+                         vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] +
+                         w1[1]*dv_qp[1 + s * ndim]);
+                        
+                         ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] -
+                         w1[1]*du_qp[1 + s * ndim]);
+                         vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] -
+                         w1[1]*dv_qp[1 + s * ndim]);
+                        
 
-                        // ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] -
-                        // w1[0]*du_qp[1 + s * ndim]);
-                        // vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] -
-                        // w1[0]*dv_qp[1 + s * ndim]);
-                        //~
-                        // ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] +
-                        // w1[0]*du_qp[1 + s * ndim]);
-                        // vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] +
-                        // w1[0]*dv_qp[1 + s * ndim]);
+                         ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] -
+                         w1[0]*du_qp[1 + s * ndim]);
+                         vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] -
+                         w1[0]*dv_qp[1 + s * ndim]);
+                        
+                         ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] +
+                         w1[0]*du_qp[1 + s * ndim]);
+                         vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] +
+                         w1[0]*dv_qp[1 + s * ndim]);
 
                         double CC = 0.0;
 
@@ -928,13 +930,19 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 {
                                     if (d_modify_vel_interp_jumps)
                                     {
-                                        if (axis == 0 && fabs(mask_sc_data_array[ic0][ic1][d] - 1.0) < 0.0001)
+										const Index<NDIM> ii(ic0, ic1);
+										const SideIndex<NDIM> i_s(ii, axis, 0);
+										
+										
+                                        if (axis == 0 && fabs((*mask_sc_data)(i_s) - 1.0) < 0.1*dx[axis]*dx[axis])
                                         {
                                             CC = ujump[ic0][ic1];
+                                            
                                         }
-                                        else if (axis == 1 && fabs(mask_sc_data_array[ic0][ic1][d] - 1.0) < 0.0001)
+                                        else if (axis == 1 && fabs((*mask_sc_data)(i_s) - 1.0) < 0.1*dx[axis]*dx[axis])
                                         {
                                             CC = vjump[ic0][ic1];
+                                          
                                         }
                                         else
                                         {
@@ -1046,6 +1054,7 @@ IBFEMethod::eulerStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1064,6 +1073,7 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1085,6 +1095,7 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1530,6 +1541,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                                         const double data_time,
                                         const unsigned int part)
 {
+	
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -1700,13 +1712,16 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
             if (dim == 1)
                 tau2 = VectorValue<double>(0.0, 0.0, 1.0);
             else
-                interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+				interpolate(&tau2(0), qp, X_node, X_dphi_deta);
             n = tau1.cross(tau2);
+           
 
             dA_da = sqrt(N * N) / sqrt(n * n);
+            
 
             N = N.unit();
             n = n.unit();
+          
 
             if (d_lag_force_fcn_data[part].fcn)
             {
@@ -1720,6 +1735,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 // extract the pressure jump
                 double dP = F * n * dA_da;
                 du = dA_da * (F(0) - F * n * n(0)) * n; // [ux] , [uy]
+                
                 dv = dA_da * (F(1) - F * n * n(1)) * n; // [vy] , [vy]
 
                 // Split off the normal and/or tangential parts of the force (if requested).
@@ -1748,6 +1764,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                         du_rhs_e[i](k) += du(i) * phi[k][qp] * JxW[qp];
                         dv_rhs_e[i](k) += dv(i) * phi[k][qp] * JxW[qp];
                     }
+                        
                     double dP_qp = dP * phi[k][qp] * JxW[qp];
                     dP_rhs_e(k) += dP_qp;
                 }
@@ -1760,6 +1777,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
         {
             F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices[i]);
             F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices[i]);
+			F_vec.add_vector(F_rhs_e[i], F_dof_indices[i]);
 
             du_dof_map.constrain_element_vector(du_rhs_e[i], du_dof_indices[i]);
             du_rhs_vec->add_vector(du_rhs_e[i], du_dof_indices[i]);
@@ -1772,10 +1790,24 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
     }
 
     // Solve for F, [[p]] and [[dU/dn]].
-    d_fe_data_managers[part]->computeL2Projection(F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    d_fe_data_managers[part]->computeL2Projection(du_vec, *du_rhs_vec, DU_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    d_fe_data_managers[part]->computeL2Projection(dv_vec, *dv_rhs_vec, DV_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    d_fe_data_managers[part]->computeL2Projection(dP_vec, *dP_rhs_vec, DP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    
+        d_fe_data_managers[part]->computeL2Projection(F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        
+		if (d_split_normal_force)
+        {
+			d_fe_data_managers[part]->computeL2Projection(dP_vec, *dP_rhs_vec, DP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        }
+        
+        if (d_split_tangential_force)
+        {
+            d_fe_data_managers[part]->computeL2Projection(du_vec, *du_rhs_vec, DU_SYSTEM_NAME, d_use_consistent_mass_matrix);
+			d_fe_data_managers[part]->computeL2Projection(dv_vec, *dv_rhs_vec, DV_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        }
+                
+           
+
+
+
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
@@ -1956,18 +1988,20 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     //~ if (integrate_normal_force)
     //~ {
     std::vector<libMesh::Point> intersection_ref_coords_p;
+    std::vector<libMesh::Point> intersectionSide_ref_coords_u;
+    std::vector<libMesh::Point> intersection_ref_coords_u;
+    
+    
     std::vector<SideIndex<NDIM> > intersection_indices_p;
     //~ }
     //~ if (integrate_tangential_force)
     //~ {
-    std::vector<libMesh::Point> intersection_ref_coords_um;
     std::vector<SideIndex<NDIM> > intersection_indices_um;
-    std::vector<libMesh::Point> intersection_ref_coords_up;
+
     std::vector<SideIndex<NDIM> > intersection_indices_up;
 
-    std::vector<libMesh::Point> intersectionSide_ref_coords_up;
     std::vector<SideIndex<NDIM> > intersectionSide_indices_up;
-    std::vector<libMesh::Point> intersectionSide_ref_coords_um;
+
     std::vector<SideIndex<NDIM> > intersectionSide_indices_um;
     //~ }
 
@@ -2089,24 +2123,27 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
             if (integrate_tangential_force)
             {
-                intersection_ref_coords_um.clear();
+                intersection_ref_coords_u.clear();
+                intersectionSide_ref_coords_u.clear();
+                
                 intersection_indices_um.clear();
-
-                intersection_ref_coords_up.clear();
                 intersection_indices_up.clear();
-
-                intersectionSide_ref_coords_um.clear();
                 intersectionSide_indices_um.clear();
-
-                intersectionSide_ref_coords_up.clear();
                 intersectionSide_indices_up.clear();
             }
+            VectorValue<double> DX;
+            
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+				 DX(axis) = dx[axis];
+			}
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Setup a unit vector pointing in the coordinate direction of interest.
                 VectorValue<double> q;
                 q(axis) = 1.0;
+                
 
                 // Loop over the relevant range of indices.
                 Box<NDIM> axis_box = box;
@@ -2133,8 +2170,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         // [vx]
                     }
 #if (NDIM == 2)
-                    intersect_line_with_edge(intersections, static_cast<Edge*>(elem), r, q);
-                    intersect_line_with_edge(intersectionsSide, static_cast<Edge*>(elem), rs, q);
+                    intersect_line_with_edge(intersections, static_cast<Edge*>(elem), DX, r, q);
+                    intersect_line_with_edge(intersectionsSide, static_cast<Edge*>(elem), DX, rs, q);
 #endif
 #if (NDIM == 3)
                     intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q);
@@ -2164,37 +2201,32 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             libMesh::Point xs = r + intersections[k].first * q;
                             SideIndex<NDIM> i_ss(i_c, axis, 0);
+                            Index<NDIM> i_c_neighbor = i_c;
+                            i_c_neighbor(axis) += 1;
+                            
+                            SideIndex<NDIM> i_sss(i_c_neighbor, axis, 0);
+                            i_sss(axis) = static_cast<int>(std::floor((xs(axis) - x_lower[axis]) / dx[axis] + 1.0)) +
+                                          patch_lower[axis];
+                            
+                            
                             i_ss(axis) =
                                 static_cast<int>(std::floor((xs(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
 
-                            if (side_boxes[axis].contains(i_ss))
+                            if (side_boxes[axis].contains(i_ss) && side_boxes[axis].contains(i_sss))
                             {
-                                intersection_ref_coords_um.push_back(intersections[k].second);
+                                intersection_ref_coords_u.push_back(intersections[k].second);
                                 intersection_indices_um.push_back(i_ss);
                                 num_intersections_um(i_ss) += 1;
-                            }
-                        }
-
-                        for (unsigned int k = 0; k < intersections.size(); ++k)
-                        {
-                            libMesh::Point xss = r + intersections[k].first * q;
-                            Index<NDIM> i_c_neighbor = i_c;
-                            i_c_neighbor(axis) += 1;
-
-                            SideIndex<NDIM> i_sss(i_c_neighbor, axis, 0);
-                            i_sss(axis) = static_cast<int>(std::floor((xss(axis) - x_lower[axis]) / dx[axis] + 1.0)) +
-                                          patch_lower[axis];
-
-                            if (side_boxes[axis].contains(i_sss))
-                            {
-                                intersection_ref_coords_up.push_back(intersections[k].second);
+                               
                                 intersection_indices_up.push_back(i_sss);
                                 num_intersections_up(i_sss) += 1;
+                                
                             }
                         }
 
+
 //// This will cache the point to the right(or top) of the intersection along
-/// the side cell
+// the side cell
 
 #if (NDIM == 2)
 
@@ -2203,70 +2235,60 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             libMesh::Point xu = rs + intersectionsSide[k].first * q;
                             int dd = (axis == 0 ? 1 : 0);
 
-                            Index<NDIM> i_c_neighbor = i_c;
-
                             if (fmod(xu(axis) - x_lower[axis], dx[axis]) >= 0.5 * dx[axis])
                             {
+                                SideIndex<NDIM> i_s_um(i_c, dd, 0);
+                                Index<NDIM> i_c_neighbor = i_c;
                                 i_c_neighbor(axis) += 1;
-                                SideIndex<NDIM> i_su(i_c_neighbor, dd, 0);
-                                i_su(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
-                                             patch_lower[axis];
-                                if (side_boxes[axis].contains(i_su))
-                                {
-                                    intersectionSide_indices_up.push_back(i_su);
-                                    num_intersectionsSide_up(i_su) += 1;
-                                    intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-                                }
-                            }
-                            else
-                            {
-                                SideIndex<NDIM> i_su(i_c_neighbor, dd, 0);
-                                i_su(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                             patch_lower[axis];
-
-                                if (side_boxes[axis].contains(i_su))
-                                {
-                                    intersectionSide_indices_up.push_back(i_su);
-                                    num_intersectionsSide_up(i_su) += 1;
-                                    intersectionSide_ref_coords_up.push_back(intersectionsSide[k].second);
-                                }
-                            }
-                        }
-
-                        for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
-                        {
-                            libMesh::Point xuu = rs + intersectionsSide[k].first * q;
-                            int dd = (axis == 0 ? 1 : 0);
-                            Index<NDIM> i_c_neighbor = i_c;
-                            if (fmod(xuu(axis) - x_lower[axis], dx[axis]) > 0.5 * dx[axis])
-                            {
-                                SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
-                                i_suu(axis) = static_cast<int>(std::floor((xuu(axis) - x_lower[axis]) / dx[axis])) +
+                             
+                                SideIndex<NDIM> i_s_up(i_c_neighbor, dd, 0);
+                          
+                                i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
+                                             patch_lower[axis];             
+                                i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
                                               patch_lower[axis];
-
-                                if (side_boxes[axis].contains(i_suu))
+                                              
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                                 {
-                                    intersectionSide_indices_um.push_back(i_suu);
-                                    num_intersectionsSide_um(i_suu) += 1;
-                                    intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
+									
+									intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                    intersectionSide_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide_up(i_s_up) += 1;
+                                    intersectionSide_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide_um(i_s_um) += 1;
+                                 
+                                }
+                            }
+                            else if (fmod(xu(axis) - x_lower[axis], dx[axis]) < 0.5 * dx[axis] && fmod(xu(axis) - x_lower[axis], dx[axis])>=0.0)
+                            {
+								
+								SideIndex<NDIM> i_s_up(i_c, dd, 0);
+								Index<NDIM> i_c_neighbor = i_c;
+								i_c_neighbor(axis) -= 1;
+                                SideIndex<NDIM> i_s_um(i_c_neighbor, dd, 0);
+                                
+                                i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+                                             patch_lower[axis];
+                                i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
+											 patch_lower[axis];
+
+                                if (side_boxes[axis].contains(i_s_up) &&  side_boxes[axis].contains(i_s_um))
+                                {
+                                    intersectionSide_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide_up(i_s_up) += 1;
+                                    intersectionSide_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide_up(i_s_um) += 1;
+                                    
+                                    intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
                                 }
                             }
                             else
                             {
-                                i_c_neighbor(axis) -= 1;
-                                SideIndex<NDIM> i_suu(i_c_neighbor, dd, 0);
-                                i_suu(axis) =
-                                    static_cast<int>(std::floor((xuu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
-                                    patch_lower[axis];
-
-                                if (side_boxes[axis].contains(i_suu))
-                                {
-                                    intersectionSide_indices_um.push_back(i_suu);
-                                    num_intersectionsSide_um(i_suu) += 1;
-                                    intersectionSide_ref_coords_um.push_back(intersectionsSide[k].second);
-                                }
-                            }
+								pout<< "improper side index found!"<<"\n\n";
+						    }
                         }
+
+       
 
 #endif
                     }
@@ -2282,6 +2304,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             // If there are no intersection points, then continue to the next side.
             //~ if (intersection_ref_coords.empty()) continue;
 
+
+
             // Evaluate the jump conditions and apply them to the Eulerian grid.
             if (integrate_normal_force && !intersection_ref_coords_p.empty())
             {
@@ -2294,10 +2318,10 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     if (dim == 1)
                         tau2 = VectorValue<double>(0.0, 0.0, 1.0);
                     else
-                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+                    interpolate(&tau2(0), qp, X_node, X_dphi_deta);
                     n = tau1.cross(tau2);
                     n = n.unit();
-
+		
                     const SideIndex<NDIM>& i_s = intersection_indices_p[qp];
                     const unsigned int axis = i_s.getAxis();
 #if !defined(NDEBUG)
@@ -2332,6 +2356,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     //                const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
                     //                x(axis);
                     const double C_p = interpolate(qp, dP_node, X_phi);
+                    
                     (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
                 }
             }
@@ -2341,10 +2366,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
             // Now use the computed weak solution and the intersection info to actually apply the jump
 
-            if (integrate_tangential_force && !intersection_ref_coords_um.empty() &&
-                (intersection_indices_um.size() == intersection_indices_up.size()))
+            if (integrate_tangential_force && !intersection_ref_coords_u.empty())
             {
-                //~ && intersectionSide_ref_coords.empty()) continue;
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
@@ -2353,9 +2376,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // 1) u_xx (in the x-momentum equation)
                 // 2) v_yy (in the y-momentum equation)
                 // 3) w_zz (in the z-momentum equation)
-
-                X_fe_base->reinit(elem, &intersection_ref_coords_um);
-                const size_t n_qp = intersection_ref_coords_um.size();
+				TBOX_ASSERT(intersection_indices_um.size() == intersection_indices_up.size());
+                X_fe_base->reinit(elem, &intersection_ref_coords_u);
+                const size_t n_qp = intersection_ref_coords_u.size();
 
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
@@ -2367,118 +2390,55 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         interpolate(&tau2(0), qp, X_node, X_dphi_deta);
                     n = tau1.cross(tau2);
                     n = n.unit();
-
-                    const SideIndex<NDIM>& i_s = intersection_indices_um[qp];
-                    const unsigned int axis = i_s.getAxis();
+					
+                    const SideIndex<NDIM>& i_s_um = intersection_indices_um[qp];
+                    const unsigned int axis = i_s_um.getAxis();
                     const SideIndex<NDIM>& i_s_up = intersection_indices_up[qp];
 
-                    if (side_boxes[axis].contains(i_s) && side_boxes[axis].contains(i_s_up))
+                    if (side_boxes[axis].contains(i_s_um) && side_boxes[axis].contains(i_s_up))
                     {
-                        TBOX_ASSERT(i_s.getAxis() == i_s_up.getAxis());
-                        const double x_cell_bdry =
-                            x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
+                        TBOX_ASSERT(i_s_um.getAxis() == i_s_up.getAxis());
+                        const double x_cell_bdry_um =
+                            x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
+                            
+                        const double x_cell_bdry_up =
+                            x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
 
-                        const double SDH = ((x(axis) - x_cell_bdry)); // Signed Distance h
+                        const double sdh_um = ((x(axis) - x_cell_bdry_um)); // Signed Distance h
 
-                        TBOX_ASSERT((SDH) < dx[axis] && SDH > 0);
+                        TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
+                        
+                                                
+                        const double sdh_up = ((x(axis) - x_cell_bdry_up)); // Signed Distance h
 
-                        double C_u;
+                        TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
+                        
+                        
+
+                        double C_u_um, C_u_up;
 
                         if (axis == 0)
                         {
-                            interpolate(&jn(0), qp, du_node, X_phi);
-                            C_u = SDH * jn(0);
-                        }
-                        else
-                        {
-                            interpolate(&jn(0), qp, dv_node, X_phi);
-                            C_u = SDH * jn(1);
-                        }
+							interpolate(&jn(0), qp, du_node, X_phi);
+						   C_u_up = sdh_up*jn(0);
+                           C_u_um = sdh_um*jn(0);
+					    }
+					   else
+					   {
+						    interpolate(&jn(0), qp, dv_node, X_phi);
+						   C_u_up = sdh_up*jn(1);
+                           C_u_um = sdh_um*jn(1);
+					   }
 
-                        if (n(axis) > 0.0)
-                        {
-                            (*mask_current)(i_s) = 0.0;
-                        }
-                        else
-                        {
-                            (*mask_current)(i_s) = 1.0;
-                        }
-
-                        (*f_data)(i_s_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u / (dx[axis] * dx[axis]));
+                        (*f_data)(i_s_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+                      
+                        (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
+                        
                     }
                 }
             }
 
-            // If there are no intersection points, then continue to the
-            // next side.
-
-            if (integrate_tangential_force && !intersection_ref_coords_up.empty() &&
-                (intersection_indices_um.size() == intersection_indices_up.size()))
-            {
-                // Evaluate the jump conditions and apply them to the Eulerian
-                // grid.
-                // This set of intersection points will take care of the jump in the pressure
-                // as well as the jump in the viscous term for the  following components
-                // 1) u_xx (in the x-momentum equation)
-                // 2) v_yy (in the y-momentum equation)
-                // 3) w_zz (in the z-momentum equation)
-
-                X_fe_base->reinit(elem, &intersection_ref_coords_up);
-                const size_t n_qp = intersection_ref_coords_up.size();
-
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    interpolate(&x(0), qp, X_node, X_phi);
-                    interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
-                    if (dim == 1)
-                        tau2 = VectorValue<double>(0.0, 0.0, 1.0);
-                    else
-                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
-                    n = tau1.cross(tau2);
-                    n = n.unit();
-
-                    const SideIndex<NDIM>& i_s = intersection_indices_up[qp];
-                    const unsigned int axis = i_s.getAxis();
-
-                    const SideIndex<NDIM>& i_s_um = intersection_indices_um[qp];
-
-                    if (side_boxes[axis].contains(i_s) && side_boxes[axis].contains(i_s_um))
-                    {
-                        TBOX_ASSERT(i_s.getAxis() == i_s_um.getAxis());
-
-                        const double x_cell_bdry =
-                            x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis]) * dx[axis];
-
-                        const double SDH = ((x(axis) - x_cell_bdry)); // Signed Distance h
-
-                        //~ TBOX_ASSERT(fabs(SDH) < dx[axis] && SDH < 0);
-
-                        double C_u;
-
-                        if (axis == 0)
-                        {
-                            interpolate(&jn(0), qp, du_node, X_phi);
-                            C_u = SDH * jn(0);
-                        }
-                        else
-                        {
-                            interpolate(&jn(0), qp, dv_node, X_phi);
-                            C_u = SDH * jn(1);
-                        }
-
-                        if (n(axis) > 0.0)
-                        {
-                            (*mask_current)(i_s) = 1.0;
-                        }
-                        else
-                        {
-                            (*mask_current)(i_s) = 0.0;
-                        }
-
-                        (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * C_u / (dx[axis] * dx[axis]);
-                    }
-                }
-            }
+ 
 
 #if (NDIM == 2)
             // Apply the jumps of the viscous term on the direction of cell sides
@@ -2486,18 +2446,23 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             // in the following components done in a direction by direction manner:
             // 1) u_yy, u_zz  (in the x-momentum equation)
             // 2) v_xx, v_zz  (in the y-momentum equation)
+           
 
-            if (integrate_tangential_force && !intersectionSide_ref_coords_up.empty() &&
-                (intersectionSide_indices_um.size() == intersectionSide_indices_up.size()))
-
+            if (integrate_tangential_force && !intersectionSide_ref_coords_u.empty())
             {
-                X_fe_base->reinit(elem, &intersectionSide_ref_coords_up);
+				 TBOX_ASSERT(intersectionSide_indices_um.size() == intersectionSide_indices_up.size());
+                X_fe_base->reinit(elem, &intersectionSide_ref_coords_u);
                 const size_t n_qp = intersectionSide_indices_up.size();
-                //~ TBOX_ASSERT(intersectionSide_indices_um.size() == intersectionSide_indices_up.size());
 
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    const SideIndex<NDIM>& i_s = intersectionSide_indices_up[qp];
+                    const SideIndex<NDIM>& i_side_up = intersectionSide_indices_up[qp];
+                    
+                    const unsigned int dd = i_side_up.getAxis();
+                    
+                    const unsigned int axis = (dd == 0 ? 1 : 0);
+                    
+                    const SideIndex<NDIM>& i_side_um = intersectionSide_indices_um[qp];
 
                     interpolate(&x(0), qp, X_node, X_phi);
                     interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
@@ -2507,111 +2472,56 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         interpolate(&tau2(0), qp, X_node, X_dphi_deta);
                     n = tau1.cross(tau2);
                     n = n.unit();
+					
+                    
 
-                    const unsigned int dd = i_s.getAxis();
-
-                    if (side_boxes[dd].contains(i_s))
+                    if (side_boxes[dd].contains(i_side_up) && side_boxes[dd].contains(i_side_um) )
                     {
-                        const SideIndex<NDIM>& i_s_side_um = intersectionSide_indices_um[qp];
 
-                        int axis = (dd == 0 ? 1 : 0);
+                       
 
                         // Impose the jump conditions.
-                        const double x_mid_side =
-                            x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis] + 0.5) * dx[axis];
+                        
+                        TBOX_ASSERT( i_side_up(axis) - i_side_um(axis) == 1);
+                        
+                        const double x_mid_side_up =
+                            x_lower[axis] + static_cast<double>(i_side_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
+                            
+                        const double x_mid_side_um =
+                            x_lower[axis] + static_cast<double>(i_side_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
 
-                        TBOX_ASSERT(x(axis) <= x_mid_side);
+                        TBOX_ASSERT(x(axis) <= x_mid_side_up);
+						TBOX_ASSERT(x(axis) > x_mid_side_um);
+						
+                        const double sdh_up = x(axis) - x_mid_side_up; // Signed Distance h
+                        const double sdh_um = x(axis) - x_mid_side_um;
 
-                        const double SDH = ((x(axis) - x_mid_side)); // Signed Distance h
-
-                        double C_u;
+                        double C_u_um, C_u_up;
 
                         if (dd == 0)
                         {
                             interpolate(&jn(0), qp, du_node, X_phi);
-                            C_u = SDH * jn(1);
+                            C_u_um = sdh_um * jn(1);
+                            C_u_up = sdh_up * jn(1);
                         }
                         else
                         {
                             interpolate(&jn(0), qp, dv_node, X_phi);
-                            C_u = SDH * jn(0);
+                            C_u_um = sdh_um * jn(0);
+                            C_u_up = sdh_up * jn(0);
+                            
                         }
+                       
+						 
+                       (*f_data)(i_side_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
+                       
+                       (*f_data)(i_side_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
 
-                        if (n(axis) > 0.0)
-                        {
-                            (*mask_current)(i_s) = 1.0;
-                        }
-                        else
-                        {
-                            (*mask_current)(i_s) = 0.0;
-                        }
 
-                        (*f_data)(i_s_side_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u / (dx[axis] * dx[axis]));
                     }
                 }
             }
 
-            if (integrate_tangential_force && !intersectionSide_ref_coords_um.empty() &&
-                (intersectionSide_indices_um.size() == intersectionSide_indices_up.size()))
-
-            {
-                X_fe_base->reinit(elem, &intersectionSide_ref_coords_um);
-                const size_t n_qp = intersectionSide_ref_coords_um.size();
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
-                {
-                    const SideIndex<NDIM>& i_s = intersectionSide_indices_um[qp];
-
-                    interpolate(&x(0), qp, X_node, X_phi);
-                    interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
-                    if (dim == 1)
-                        tau2 = VectorValue<double>(0.0, 0.0, 1.0);
-                    else
-                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
-                    n = tau1.cross(tau2);
-                    n = n.unit();
-
-                    const unsigned int dd = i_s.getAxis();
-
-                    if (side_boxes[dd].contains(i_s))
-                    {
-                        const SideIndex<NDIM>& i_s_side_up = intersectionSide_indices_up[qp];
-
-                        int axis = (dd == 0 ? 1 : 0);
-
-                        // Impose the jump conditions.
-                        const double x_mid_side =
-                            x_lower[axis] + static_cast<double>(i_s(axis) - patch_lower[axis] + 0.5) * dx[axis];
-
-                        TBOX_ASSERT(x(axis) > x_mid_side);
-
-                        const double SDH = ((x(axis) - x_mid_side));
-
-                        double C_u;
-
-                        if (dd == 0)
-                        {
-                            interpolate(&jn(0), qp, du_node, X_phi);
-                            C_u = SDH * jn(1);
-                        }
-                        else
-                        {
-                            interpolate(&jn(0), qp, dv_node, X_phi);
-                            C_u = SDH * jn(0);
-                        }
-
-                        if (n(axis) > 0.0)
-                        {
-                            (*mask_current)(i_s) = 0.0;
-                        }
-                        else
-                        {
-                            (*mask_current)(i_s) = 1.0;
-                        }
-
-                        (*f_data)(i_s_side_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u / (dx[axis] * dx[axis]));
-                    }
-                }
-            }
 #endif
         }
     }
