@@ -57,12 +57,6 @@ template <class TYPE>
 class Pointer;
 } // namespace tbox
 } // namespace SAMRAI
-/////////////////////////////// INCLUDES /////////////////////////////////////
-
-namespace IBAMR
-{
-class IBMethod;
-}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -70,7 +64,14 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBHydrodynamicForceEvaluator computes hydrodynamic force and
- * torque on immersed bodies.
+ * torque on immersed bodies. The class uses Reynolds transport theorem to integrate
+ * momentum over a Cartesian box region that moves with an arbitrary rigid body
+ * translation velocity. See thesis <A HREF="http://thesis.library.caltech.edu/3081/1/Noca_f_1997.pdf">On the evaluation
+ * of time-dependent fluid-dynamic forces on bluff bodies</A> by Flavio Noca.
+ *
+ * \note  The Cartesian box should enclose the body entirely.
+ * \note  Various IB methods need to provide linear and angular momentum of the
+ *  enclosed body to the class.
  */
 class IBHydrodynamicForceEvaluator : public SAMRAI::tbox::Serializable
 {
@@ -101,7 +102,6 @@ public:
         Eigen::Vector3d F_new, T_new, P_new, L_new;
 
         // Integration domain.
-        SAMRAI::hier::Box<NDIM> box_current, box_new;
         Eigen::Vector3d P_box_current, L_box_current;
         Eigen::Vector3d P_box_new, L_box_new;
         Eigen::Vector3d box_u_current, box_u_new;
@@ -167,25 +167,31 @@ public:
     /*!
      * \brief Get access to hydrodynamic data of the given structure id.
      */
-    const IBHydrodynamicForceObject& getHydrodynamicForceObject(int strct_id);
+    const IBHydrodynamicForceObject& getHydrodynamicForceObject(int strct_id, int strct_ln);
 
     /*!
      * \brief Compute hydrodynamic force.
+     *
+     * \param u_idx Patch index of velocity variable with appropriate ghost cell width.
+     *
+     * \param p_idx Patch index of pressure variable with appropriate ghost cell width.
+     *
+     * \param f_idx Patch index of body force variable with appropriate ghost cell width.
+     *
+     * \param wgt_sc_idx Patch index of volume weights associated with faces.
+     *
+     * \param wgt_cc_idx Patch index of volume weights associated with cells.
      */
     virtual void computeHydrodynamicForce(int u_idx,
                                           int p_idx,
                                           int f_idx,
                                           int wgt_sc_idx,
                                           int wgt_cc_idx,
-                                          const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
-                                          const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
-                                          const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                                           int coarsest_ln,
                                           int finest_ln,
                                           double current_time,
-                                          double new_time,
-                                          IBMethod* ib_method);
+                                          double new_time);
 
     /*!
      * \brief Postprocess data for the next timestep.

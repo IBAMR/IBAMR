@@ -9,9 +9,10 @@ MAX_LEVELS = 3        // maximum number of levels in locally refined grid
 REF_RATIO  = 4        // refinement ratio between levels
 REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
 
-N = 16                                   // coarsest grid spacing
+N = 64                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
-L = 16
+L = 32.0
+DX0 = L/N
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -245,10 +246,6 @@ ConstraintIBKinematics {
   }                 
 
 
-
-
-
-
 Main {
 // log file parameters
    log_file_name    = "IB2d_cylinder2d.log"
@@ -276,7 +273,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (63 , 32) ]
+   domain_boxes = [ (0,0) , (N , N/2) ]
    x_lo         = -8.0, -8.0         // lower end of computational domain.
    x_up         =  24.0, 8.0         // upper end of computational domain.
    periodic_dimension = 0, 0

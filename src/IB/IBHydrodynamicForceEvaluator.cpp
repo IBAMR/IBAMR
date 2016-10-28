@@ -153,12 +153,12 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 
 void
 IBHydrodynamicForceEvaluator::updateStructureDomain(int strct_id,
-                                                    int strct_ln,
+                                                    int /*strct_ln*/,
                                                     double current_time,
                                                     double new_time,
                                                     const Eigen::Vector3d& box_vel_new,
-                                                    const Eigen::Vector3d& P_new,
-                                                    const Eigen::Vector3d& L_new)
+                                                    const Eigen::Vector3d& P_strct_new,
+                                                    const Eigen::Vector3d& L_strct_new)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
@@ -167,17 +167,17 @@ IBHydrodynamicForceEvaluator::updateStructureDomain(int strct_id,
     IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& force_obj = d_hydro_objs[strct_id];
     const double dt = new_time - current_time;
     force_obj.box_u_new = box_vel_new;
-    force_obj.box_X_lower_new += box_vel_new * dt;
-    force_obj.box_X_upper_new += box_vel_new * dt;
-    force_obj.P_new = P_new;
-    force_obj.L_new = L_new;
+    force_obj.box_X_lower_new = force_obj.box_X_lower_current + box_vel_new * dt;
+    force_obj.box_X_upper_new = force_obj.box_X_upper_current + box_vel_new * dt;
+    force_obj.P_new = P_strct_new;
+    force_obj.L_new = L_strct_new;
 
     return;
 
 } // updateStructureDomain
 
 void
-IBHydrodynamicForceEvaluator::preprocessIntegrateData(double current_time, double new_time)
+IBHydrodynamicForceEvaluator::preprocessIntegrateData(double /*current_time*/, double /*new_time*/)
 {
     pout << "WARNING:: IBHydrodynamicForceEvaluator::preprocessIntegrateData() not implemented.\n";
 
@@ -185,7 +185,7 @@ IBHydrodynamicForceEvaluator::preprocessIntegrateData(double current_time, doubl
 } // preprocessIntegrateData
 
 const IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject&
-IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id)
+IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id, int /*strct_ln*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
@@ -199,18 +199,14 @@ IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id)
 void
 IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                                        int p_idx,
-                                                       int f_idx,
+                                                       int /*f_idx*/,
                                                        int vol_sc_idx,
-                                                       int vol_cc_idx,
-                                                       const std::vector<Pointer<LData> >& F_data,
-                                                       const std::vector<Pointer<LData> >& X_data,
-                                                       const std::vector<Pointer<IBTK::LData> >& U_data,
+                                                       int /*vol_cc_idx*/,
                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                                        int coarsest_ln,
                                                        int finest_ln,
                                                        double current_time,
-                                                       double new_time,
-                                                       IBMethod* ib_method)
+                                                       double new_time)
 {
     computeFaceWeight(patch_hierarchy);
     const double dt = new_time - current_time;
@@ -219,7 +215,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
     {
         IBHydrodynamicForceObject& fobj = it->second;
 
-        // Compute integral(rho * u * dv)
+        // Compute the momentum integral:= (rho * u * dv)
         fobj.P_box_new.setZero();
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
@@ -249,12 +245,12 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                         const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
                         const double& u_axis = (*u_data)(side_idx);
                         const double& vol = (*vol_sc_data)(side_idx);
-                        fobj.P_new(axis) += d_rho * vol * u_axis;
+                        fobj.P_box_new(axis) += d_rho * vol * u_axis;
                     }
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(fobj.P_new.data(), 3);
+        SAMRAI_MPI::sumReduction(fobj.P_box_new.data(), 3);
 
         // Compute surface integral term.
         Eigen::Vector3d trac;
@@ -392,7 +388,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 } // computeHydrodynamicForce
 
 void
-IBHydrodynamicForceEvaluator::postprocessIntegrateData(double current_time, double new_time)
+IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double /*new_time*/)
 {
     for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {

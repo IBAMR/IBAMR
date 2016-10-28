@@ -61,6 +61,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBEulerianSourceFunction.cpp \
 ../src/IB/IBExplicitHierarchyIntegrator.cpp \
 ../src/IB/IBHierarchyIntegrator.cpp \
+../src/IB/IBHydrodynamicForceEvaluator.cpp \
 ../src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
 ../src/IB/IBImplicitStrategy.cpp \
 ../src/IB/IBInstrumentPanel.cpp \
@@ -180,6 +181,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
 ../include/ibamr/IBHierarchyIntegrator.h \
+../include/ibamr/IBHydrodynamicForceEvaluator.h \
 ../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
 ../include/ibamr/IBImplicitStrategy.h \
 ../include/ibamr/IBInstrumentPanel.h \

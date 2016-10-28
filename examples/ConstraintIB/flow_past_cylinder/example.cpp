@@ -46,18 +46,23 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBHydrodynamicForceEvaluator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/LData.h>
 
 // Application
 #include "RigidBodyKinematics.h"
+
+ofstream drag_stream;
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -235,6 +240,24 @@ run_example(int argc, char* argv[])
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
+        // Create hydrodynamic force evaluator object.
+        double rho_fluid = input_db->getDouble("RHO");
+        double mu_fluid = input_db->getDouble("MU");
+        int strct_ln = input_db->getInteger("MAX_LEVELS") - 1;
+        double DX0 = input_db->getDouble("DX0");
+        Pointer<IBHydrodynamicForceEvaluator> hydro_force =
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+        Eigen::Vector3d box_X_lower, box_X_upper, box_init_vel;
+        box_X_lower << -8.0 + 11 * DX0, -8.0 + 11 * DX0, 0.0;
+        box_X_upper << -8.0 + 22 * DX0, -8.0 + 22 * DX0, 0.0;
+        box_init_vel.setZero();
+        hydro_force->registerStructure(0, strct_ln, box_init_vel, box_X_lower, box_X_upper);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream.open("DragLift.txt", std::ios_base::out | ios_base::trunc);
+            drag_stream.precision(10);
+        }
+
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -243,6 +266,23 @@ run_example(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
+
+        // Setup data to compute hydrodynamic traction.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const Pointer<VariableContext> u_scratch_ctx = navier_stokes_integrator->getScratchContext();
+        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, u_scratch_ctx);
+        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_scratch_idx);
+
+        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const Pointer<VariableContext> p_scratch_ctx = navier_stokes_integrator->getScratchContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
+        const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, p_scratch_ctx);
+        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_scratch_idx);
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -258,10 +298,11 @@ run_example(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
+        double current_time, new_time;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
-            loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time = time_integrator->getIntegratorTime();
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -271,12 +312,85 @@ run_example(int argc, char* argv[])
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+            new_time = loop_time;
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            // Fill ghost cells of pressure and velocity to compute hydrodynamic forces.
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            Pointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
+                if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
+            }
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.copyData(u_cloned_idx, u_idx, true);
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_cc_data_ops.copyData(p_cloned_idx, p_idx);
+
+            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+                InterpolationTransactionComponent;
+            std::vector<InterpolationTransactionComponent> transaction_comps(2);
+            const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bcs_integrator =
+                navier_stokes_integrator->getVelocityBoundaryConditions();
+            INSStaggeredPressureBcCoef* p_bc_integrator =
+                dynamic_cast<INSStaggeredPressureBcCoef*>(navier_stokes_integrator->getPressureBoundaryConditions());
+#if !defined(NDEBUG)
+            TBOX_ASSERT(p_bc_integrator);
+#endif
+            p_bc_integrator->setTargetVelocityPatchDataIndex(u_cloned_idx);
+            transaction_comps[0] = InterpolationTransactionComponent(u_cloned_idx,
+                                                                     u_idx,
+                                                                     /*DATA_REFINE_TYPE*/ "NONE",
+                                                                     /*USE_CF_INTERPOLATION*/ true,
+                                                                     /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                                     u_bcs_integrator,
+                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
+            transaction_comps[1] = InterpolationTransactionComponent(p_cloned_idx,
+                                                                     p_idx,
+                                                                     /*DATA_REFINE_TYPE*/ "NONE",
+                                                                     /*USE_CF_INTERPOLATION*/ true,
+                                                                     /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                                     p_bc_integrator,
+                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
+            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+            hier_bdry_fill->setHomogeneousBc(false);
+            hier_bdry_fill->fillData(new_time);
+
+            // Evaluate hydrodynamic force on cylinder.
+            hydro_force->updateStructureDomain(
+                0, strct_ln, current_time, new_time, box_init_vel, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
+            hydro_force->computeHydrodynamicForce(u_cloned_idx,
+                                                  p_cloned_idx,
+                                                  /*f_idx*/ -1,
+                                                  hier_math_ops->getSideWeightPatchDescriptorIndex(),
+                                                  hier_math_ops->getCellWeightPatchDescriptorIndex(),
+                                                  patch_hierarchy,
+                                                  coarsest_ln,
+                                                  finest_ln,
+                                                  current_time,
+                                                  new_time);
+
+            // Write the force data in a file.
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                const IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj =
+                    hydro_force->getHydrodynamicForceObject(0, strct_ln);
+                drag_stream << new_time << "\t" << fobj.F_new(0) << "\t" << fobj.F_new(1) << std::endl;
+            }
+            hydro_force->postprocessIntegrateData(current_time, new_time);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -309,6 +423,11 @@ run_example(int argc, char* argv[])
                             loop_time,
                             postproc_data_dump_dirname);
             }
+        }
+
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
