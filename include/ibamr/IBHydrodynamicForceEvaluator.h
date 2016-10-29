@@ -225,9 +225,14 @@ private:
     IBHydrodynamicForceEvaluator& operator=(const IBHydrodynamicForceEvaluator& that);
 
     /*!
-     * \brief Compute weight of the cell face.
+     * \brief Reset weight of the cell face to face area.
      */
-    void computeFaceWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void resetFaceAreaWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
+     * \brief Reset weight of the cell face to cell volume.
+     */
+    void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * \brief Object name.
@@ -242,7 +247,7 @@ private:
     /*!
      * \brief Patch data index for face weights.
      */
-    int d_face_wgt_sc_idx;
+    int d_face_wgt_sc_idx, d_vol_wgt_sc_idx;
 
     /*!
      * \brief Data structure encapsulating hydrodynamic force on an object.

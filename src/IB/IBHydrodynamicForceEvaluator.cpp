@@ -65,9 +65,11 @@ IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(const std::string& ob
     d_mu = mu;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, double> > face_wgt_var = new SideVariable<NDIM, double>(d_object_name + "::face_wgt", 1);
+    Pointer<SideVariable<NDIM, double> > wgt_var = new SideVariable<NDIM, double>(d_object_name + "::wgt_var", 1);
     Pointer<VariableContext> face_wgt_ctx = var_db->getContext(d_object_name + "::face_wgt_ctx");
-    d_face_wgt_sc_idx = var_db->registerVariableAndContext(face_wgt_var, face_wgt_ctx, /*ghost_width*/ 0);
+    Pointer<VariableContext> vol_wgt_ctx = var_db->getContext(d_object_name + "::vol_wgt_ctx");
+    d_face_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, face_wgt_ctx, /*ghost_width*/ 0);
+    d_vol_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, vol_wgt_ctx, /*ghost_width*/ 0);
 
     if (register_for_restart)
     {
@@ -200,7 +202,7 @@ void
 IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                                        int p_idx,
                                                        int /*f_idx*/,
-                                                       int vol_sc_idx,
+                                                       int /*vol_sc_idx*/,
                                                        int /*vol_cc_idx*/,
                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                                        int coarsest_ln,
@@ -208,7 +210,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                                        double current_time,
                                                        double new_time)
 {
-    computeFaceWeight(patch_hierarchy);
+    resetFaceAreaWeight(patch_hierarchy);
+    resetFaceVolWeight(patch_hierarchy);
     const double dt = new_time - current_time;
 
     for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
@@ -234,9 +237,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 // Part of the box on this patch.
                 Box<NDIM> trim_box = patch_box * integration_box;
 
-                // Loop over the box and compute momemtum.
+                // Loop over the box and compute momentum.
                 Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-                Pointer<SideData<NDIM, double> > vol_sc_data = patch->getPatchData(vol_sc_idx);
+                Pointer<SideData<NDIM, double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
                 for (Box<NDIM>::Iterator b(trim_box); b; b++)
                 {
                     const CellIndex<NDIM>& cell_idx = *b;
@@ -313,7 +316,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                             // Pressure force := (n. -p I) * dA
                             trac += -0.5 * n * ((*p_data)(cell_idx) + (*p_data)(cell_nbr_idx)) * dA;
 
-                            // Momentum force := (n. -rho*(u - u_b)u) * ds
+                            // Momentum force := (n. -rho*(u - u_b)u) * dA
                             Eigen::Vector3d u = Eigen::Vector3d::Zero();
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -323,15 +326,12 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                 }
                                 else
                                 {
-                                    CellIndex<NDIM> offset(0);
-                                    offset(d) = 1;
-
                                     u(d) =
                                         0.25 *
                                         ((*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_idx + offset, d, SideIndex<NDIM>::Lower)) +
+                                         (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)) +
                                          (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_nbr_idx + offset, d, SideIndex<NDIM>::Lower)));
+                                         (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Upper)));
                                 }
                             }
                             trac += -d_rho * n.dot(u - fobj.box_u_new) * u * dA;
@@ -344,8 +344,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                 {
                                     viscous_force(axis) =
                                         n(axis) * (2.0 * d_mu) / (2.0 * patch_dx[axis]) *
-                                        ((*u_data)(SideIndex<NDIM>(cell_nbr_idx, axis, SideIndex<NDIM>::Lower)) -
-                                         (*u_data)(SideIndex<NDIM>(cell_idx, axis, SideIndex<NDIM>::Lower)));
+                                        ((*u_data)(SideIndex<NDIM>(cell_nbr_idx, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)) -
+                                         (*u_data)(SideIndex<NDIM>(cell_idx, axis, upperlower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper)));
                                 }
                                 else
                                 {
@@ -355,9 +355,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                     viscous_force(d) =
                                         d_mu / (2.0 * patch_dx[d]) *
                                             ((*u_data)(
-                                                 SideIndex<NDIM>(cell_idx + offset, axis, SideIndex<NDIM>::Lower)) -
+                                                 SideIndex<NDIM>(cell_idx + offset, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)) -
                                              (*u_data)(
-                                                 SideIndex<NDIM>(cell_idx - offset, axis, SideIndex<NDIM>::Lower)))
+                                                 SideIndex<NDIM>(cell_idx - offset, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)))
 
                                         +
 
@@ -447,7 +447,7 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBHydrodynamicForceEvaluator::computeFaceWeight(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -536,7 +536,127 @@ IBHydrodynamicForceEvaluator::computeFaceWeight(Pointer<PatchHierarchy<NDIM> > p
     }
     return;
 
-} // computeFaceWeight
+} // resetFaceAreaWeight
+
+void
+IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_vol_wgt_sc_idx))
+        {
+            level->allocatePatchData(d_vol_wgt_sc_idx);
+        }
+    }
+    // Each cell's weight is set to its cell volume, unless the cell is refined
+    // on a finer level, in which case the weight is set to zero.  This insures
+    // that no part of the physical domain is counted twice when discrete norms
+    // and integrals are calculated on the entire hierarchy.
+    //
+    // Away from coarse-fine interfaces and boundaries of the computational
+    // domain, each cell face's weight is set to the cell volume associated with
+    // the level of the patch hierarchy.  Along coarse-fine interfaces or
+    // physical boundaries, the weights associated with the cell faces are
+    // modified so that the sum of the weights equals to volume of the
+    // computational domain.
+    ArrayDataBasicOps<NDIM, double> array_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        BoxArray<NDIM> refined_region_boxes;
+        if (ln < finest_ln)
+        {
+            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            refined_region_boxes = next_finer_level->getBoxes();
+            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+        }
+        const IntVector<NDIM> max_gcw(1);
+        const CoarseFineBoundary<NDIM> cf_bdry(*patch_hierarchy, ln, max_gcw);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double cell_vol = dx[0] * dx[1]
+#if (NDIM > 2)
+            * dx[2]
+#endif
+            ;
+            Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+            wgt_sc_data->fillAll(cell_vol);
+            // Rescale values along the edges of the patches.
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> side_lower_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                side_lower_box.upper()(axis) = side_lower_box.lower()(axis);
+                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_lower_box);
+            }
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                Box<NDIM> side_upper_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                side_upper_box.lower()(axis) = side_upper_box.upper()(axis);
+                array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_upper_box);
+            }
+            // Correct the values along coarse-fine interfaces.
+            if (ln > coarsest_ln)
+            {
+                const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+                const int bdry_type = 1;
+                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
+                {
+                    const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
+                    const unsigned int axis = cf_bdry_boxes[k].getLocationIndex() / 2;
+                    const int lower_upper = cf_bdry_boxes[k].getLocationIndex() % 2;
+                    if (!pgeom->getTouchesRegularBoundary(axis, lower_upper))
+                    {
+                        const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
+                        Box<NDIM> side_bdry_box = SideGeometry<NDIM>::toSideBox(bdry_box, axis);
+                        array_ops.addScalar(
+                                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
+                    }
+                }
+            }
+            // Zero-out weights within the refined region.
+            if (ln < finest_ln)
+            {
+                const IntVector<NDIM>& periodic_shift = level->getGridGeometry()->getPeriodicShift(level->getRatio());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        if (periodic_shift(axis) != 0)
+                        {
+                            for (int sgn = -1; sgn <= 1; sgn += 2)
+                            {
+                                IntVector<NDIM> periodic_offset = 0;
+                                periodic_offset(axis) = sgn * periodic_shift(axis);
+                                const Box<NDIM> refined_box =
+                                Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
+                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                                if (!intersection.empty())
+                                {
+                                    wgt_sc_data->fillAll(0.0, intersection);
+                                }
+                            }
+                        }
+                    }
+                    const Box<NDIM>& refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                    if (!intersection.empty())
+                    {
+                        wgt_sc_data->fillAll(0.0, intersection);
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // resetFaceVolWeight
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
