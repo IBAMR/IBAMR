@@ -233,7 +233,19 @@ private:
      * \brief Reset weight of the cell face to cell volume.
      */
     void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
-
+    
+    /*!
+     * \brief Check whether the physical location of an index is within the integration box.
+     */
+    
+    bool withinIntegrationBox(const SAMRAI::pdat::CellIndex<NDIM>& cc_idx,
+		              Eigen::Vector3d& X_lower,
+			      Eigen::Vector3d& X_upper,
+			      const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom,
+			      const double* const dx_coarsest,
+			      const double* const X_lower_left_coarsest);
+     
+    
     /*!
      * \brief Object name.
      */

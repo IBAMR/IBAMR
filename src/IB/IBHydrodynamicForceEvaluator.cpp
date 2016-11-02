@@ -214,6 +214,13 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
     resetFaceVolWeight(patch_hierarchy);
     const double dt = new_time - current_time;
 
+    // Get the grid spacing at the coarsest level 
+    // and lower left corner of the computational domain (required for computing AMR offset)
+    Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+    const double* const dx_coarsest           = coarsest_grid_geom->getDx();
+    const double* const X_lower_left_coarsest = coarsest_grid_geom->getXLower();
+    
     for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& fobj = it->second;
@@ -243,6 +250,11 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 for (Box<NDIM>::Iterator b(trim_box); b; b++)
                 {
                     const CellIndex<NDIM>& cell_idx = *b;
+		    
+		    // Check whether the lower side of the grid cell is within the integration box
+		    if (!withinIntegrationBox(cell_idx, fobj.box_X_lower_new, fobj.box_X_upper_new, patch_geom, dx_coarsest, X_lower_left_coarsest))
+			continue;
+
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
                         const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
@@ -309,6 +321,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                             const CellIndex<NDIM>& cell_idx = *b;
                             CellIndex<NDIM> cell_nbr_idx = cell_idx;
                             cell_nbr_idx(axis) += n(axis);
+
                             SideIndex<NDIM> bdry_idx(
                                 cell_idx, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower);
                             const double& dA = (*face_sc_data)(bdry_idx);
@@ -657,6 +670,59 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
     }
     return;
 } // resetFaceVolWeight
+
+bool
+IBHydrodynamicForceEvaluator::withinIntegrationBox(const CellIndex<NDIM>& cc_idx,
+						   Eigen::Vector3d& X_lower,
+						   Eigen::Vector3d& X_upper,
+						   const Pointer<CartesianPatchGeometry<NDIM> > patch_geom,
+						   const double* const dx_coarsest,
+						   const double* const X_lower_left_coarsest)
+{
+    // Returns true if the grid cell in question is within the integration box.
+    // This ensures that if the indices returned by getCellIndex correspond
+    // to physical locations outside of the integration box (defined by X_lower
+    // and X_upper), then they are not counted towards the drag computation
+  
+    // You only need to check whether the lower side of each box is within the 
+    // integration box boundary. Computation of the physical location is done
+    // by counting the number of grid cells away a side is from the left corner
+    // of the given patch
+    
+    // Get grid spacing and coordinate of bottom left corner of the patch
+    const double* const patch_dx           = patch_geom->getDx();
+    const double* const patch_X_lower_left = patch_geom->getXLower();
+    
+    // Get the number of grid cells to between lower left patch corner and 
+    // lower left corner of the computational domain
+    int N_coarsest[NDIM];
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+	N_coarsest[axis] = (patch_X_lower_left[axis] - X_lower_left_coarsest[axis])/dx_coarsest[axis];
+    }
+    
+    const int* const ratio_to_coarsest = patch_geom->getRatio();
+    
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+	const SideIndex<NDIM> lower_sc_idx(cc_idx, axis, SideIndex<NDIM>::Lower);
+	
+	// Get number of cells between lower left patch corner and sides of the grid cell
+	const int AMR_offset = N_coarsest[axis] > 1 ? N_coarsest[axis] * ratio_to_coarsest[axis] : 0;
+	const int N_lower = lower_sc_idx[axis] - AMR_offset;
+	
+	// Calculate physical location of the side indexes
+	double lower_phys_loc = patch_X_lower_left[axis] + patch_dx[axis] * N_lower;
+
+	// Only need to check the lower position of the box
+	if (lower_phys_loc < X_lower(axis) || lower_phys_loc > X_upper(axis))
+	{
+	    return false;
+	}
+    }
+    return true;
+} // checkInsideIntegrationBox
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
