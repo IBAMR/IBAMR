@@ -90,8 +90,9 @@ void
 IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
                                                 int strct_ln,
                                                 const Eigen::Vector3d& box_vel,
-                                                const Eigen::Vector3d& box_X_lower,
-                                                const Eigen::Vector3d& box_X_upper)
+                                                Eigen::Vector3d& box_X_lower,
+                                                Eigen::Vector3d& box_X_upper,
+						Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) == d_hydro_objs.end());
@@ -104,6 +105,51 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart)
     {
+        // Ensure that box is aligned to grid cell sides at coarsest level
+	const int coarsest_ln = 0;
+	Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+	const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+	const double* const dx_coarsest = coarsest_grid_geom->getDx();
+	const double* const grid_X_lower = coarsest_grid_geom->getXLower();
+	bool modified_box = false;
+	const Eigen::Vector3d box_X_lower_old = box_X_lower;
+	const Eigen::Vector3d box_X_upper_old = box_X_upper;
+	
+	for (int d = 0; d < NDIM; ++d)
+	{
+	    double num_cells_lower = (box_X_lower[d]-grid_X_lower[d])/dx_coarsest[d];
+	    double num_cells_upper = (box_X_upper[d]-grid_X_lower[d])/dx_coarsest[d];
+	    
+	    if (num_cells_lower != (int) num_cells_lower)
+	    {
+		TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
+			      << d << ". Modifying coordinate to nearest box side" << std::endl);
+		const int N = floor(num_cells_lower);
+		box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+		modified_box = true;
+	    }
+	    
+	    if (num_cells_upper != (int) num_cells_upper)
+	    {
+		TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
+			      << d << ". Modifying coordinate to nearest box side" << std::endl);
+		const int N = ceil(num_cells_upper);
+		box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+		modified_box = true;
+	    }
+	}
+	
+	if (modified_box)
+	{
+	    pout << "IBHydrodynamicForceEvaluator::registerStructure: integration box modified from\n"
+	         <<    "[" << box_X_lower_old[0] << ", " << box_X_lower_old[1] << ", " << box_X_lower_old[2] << "]"
+		 << " x [" << box_X_upper_old[0] << ", " << box_X_upper_old[1] << ", " << box_X_upper_old[2] << "]\n"
+		 << "to\n"
+		 <<    "[" << box_X_lower[0] << ", " << box_X_lower[1] << ", " << box_X_lower[2] << "]"
+		 << " x [" << box_X_upper[0] << ", " << box_X_upper[1] << ", " << box_X_upper[2] << "]"
+		 << std::endl;
+	}
+      
         force_obj.box_u_current = box_vel;
         force_obj.box_X_lower_current = box_X_lower;
         force_obj.box_X_upper_current = box_X_upper;
@@ -238,25 +284,38 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+		const Index<NDIM>& patch_lower_idx = patch_box.lower();
+		const double* patch_X_lower = patch_geom->getXLower();
+		const double* patch_dx = patch_geom->getDx();
                 const bool boxes_intersect = patch_box.intersects(integration_box);
                 if (!boxes_intersect) continue;
 
                 // Part of the box on this patch.
                 Box<NDIM> trim_box = patch_box * integration_box;
-
+		
                 // Loop over the box and compute momentum.
                 Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
                 Pointer<SideData<NDIM, double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
-                for (Box<NDIM>::Iterator b(trim_box); b; b++)
-                {
-                    const CellIndex<NDIM>& cell_idx = *b;
+		
+		for (int axis = 0; axis < NDIM; ++axis)
+		{
+		    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, axis)); b; b++)
+		    {
+			const CellIndex<NDIM>& cell_idx = *b;
 		    
-		    // Check whether the lower side of the grid cell is within the integration box
-		    if (!withinIntegrationBox(cell_idx, fobj.box_X_lower_new, fobj.box_X_upper_new, patch_geom, dx_coarsest, X_lower_left_coarsest))
-			continue;
-
-                    for (int axis = 0; axis < NDIM; ++axis)
-                    {
+// 			const bool inside_domain = insideBoxDomain(cell_idx, axis, 
+// 								   patch_lower_idx, patch_X_lower, patch_dx,
+// 								   fobj.box_X_lower_new, fobj.box_X_upper_new);
+			
+			// Check whether the lower sides of the grid cell is within the integration box
+// 			if (!withinIntegrationBox(cell_idx, fobj.box_X_lower_new, fobj.box_X_upper_new, patch_geom, dx_coarsest, X_lower_left_coarsest))
+// 			    continue;
+			
+			// If a cell is outside of the integration box domain, then the grid cells are not aligned
+			// Only need to check this once for each cell.
+// 			if (!inside_domain)
+// 			    TBOX_ERROR("Non aligned box with level " << ln << "\n");
+                        
                         const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
                         const double& u_axis = (*u_data)(side_idx);
                         const double& vol = (*vol_sc_data)(side_idx);
@@ -721,7 +780,54 @@ IBHydrodynamicForceEvaluator::withinIntegrationBox(const CellIndex<NDIM>& cc_idx
 	}
     }
     return true;
-} // checkInsideIntegrationBox
+} // withinIntegrationBox
+
+bool
+IBHydrodynamicForceEvaluator::insideBoxDomain(const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
+					      const int axis,
+					      const Index<NDIM>& patch_lower_idx,
+					      const double* patch_X_lower,
+					      const double* patch_dx,
+					      const Eigen::Vector3d& X_lower, 
+					      const Eigen::Vector3d& X_upper)
+{
+    Eigen::Vector3d X_loc = Eigen::Vector3d::Zero();
+    bool inside;
+    for (int d = 0; d < NDIM; ++d)
+    {
+	
+	if (d != axis)
+	{
+	    X_loc(d) = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(cell_idx(d) - patch_lower_idx(d)) + 0.5);
+	}
+	else
+	{
+	    X_loc(d) = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(cell_idx(d) - patch_lower_idx(d)));
+	}
+	
+	
+	if (X_loc[0] < X_lower[0] || X_loc[1] < X_lower[1] || X_loc[2] < X_lower[2])
+	{
+	    inside =  false;
+	}
+	else if (X_loc[0] > X_upper[0] || X_loc[1] > X_upper[1] || X_loc[2] > X_upper[2])
+	{
+	    inside =  false;
+	}
+	else
+	{
+	    inside =  true;
+#if !defined (NDEBUG)  // Maybe this too much...
+	    TBOX_ASSERT(X_loc[0] >= X_lower[0] && X_loc[0] <= X_upper[0] 
+		    &&  X_loc[1] >= X_lower[1] && X_loc[1] <= X_upper[1] 
+		    &&  X_loc[2] >= X_lower[2] && X_loc[2] <= X_upper[2]);
+	
+#endif
+	}
+  }
+
+	  return inside;
+} // insideBoxDomain
 
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

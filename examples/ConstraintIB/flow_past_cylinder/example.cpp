@@ -251,7 +251,8 @@ run_example(int argc, char* argv[])
         box_X_lower << -8.0 + 11 * DX0, -8.0 + 11 * DX0, 0.0;
         box_X_upper << -8.0 + 22 * DX0, -8.0 + 22 * DX0, 0.0;
         box_init_vel.setZero();
-        hydro_force->registerStructure(0, strct_ln, box_init_vel, box_X_lower, box_X_upper);
+        hydro_force->registerStructure(0, strct_ln, box_init_vel, box_X_lower, box_X_upper,
+				       patch_hierarchy);
         if (SAMRAI_MPI::getRank() == 0)
         {
             drag_stream.open("DragLift.txt", std::ios_base::out | ios_base::trunc);

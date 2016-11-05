@@ -130,8 +130,9 @@ public:
     void registerStructure(int strct_id,
                            int strct_ln,
                            const Eigen::Vector3d& box_vel,
-                           const Eigen::Vector3d& box_X_lower,
-                           const Eigen::Vector3d& box_X_upper);
+                           Eigen::Vector3d& box_X_lower,
+                           Eigen::Vector3d& box_X_upper,
+			   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * \brief Update the domain of integration as a result of structure motion.
@@ -244,6 +245,17 @@ private:
 			      const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom,
 			      const double* const dx_coarsest,
 			      const double* const X_lower_left_coarsest);
+    
+    /*!
+     * \brief Check whether grid cells are aligned with the integration box
+     */
+    bool insideBoxDomain(const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
+			 const int axis,
+			 const SAMRAI::hier::Index<NDIM>& patch_lower_idx,
+			 const double* patch_X_lower,
+			 const double* patch_dx,
+			 const Eigen::Vector3d& X_lower, 
+			 const Eigen::Vector3d& X_upper);
      
     
     /*!
