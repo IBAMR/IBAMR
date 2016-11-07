@@ -372,7 +372,8 @@ run_example(int argc, char* argv[])
 
             // Evaluate hydrodynamic force on cylinder.
             hydro_force->updateStructureDomain(
-                0, strct_ln, current_time, new_time, box_init_vel, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
+                0, strct_ln, current_time, new_time, box_init_vel, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(),
+		patch_hierarchy);
             hydro_force->computeHydrodynamicForce(u_cloned_idx,
                                                   p_cloned_idx,
                                                   /*f_idx*/ -1,

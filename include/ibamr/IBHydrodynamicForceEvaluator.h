@@ -107,6 +107,11 @@ public:
         Eigen::Vector3d box_u_current, box_u_new;
         Eigen::Vector3d box_X_lower_current, box_X_upper_current;
         Eigen::Vector3d box_X_lower_new, box_X_upper_new;
+	Eigen::Vector3d box_X_lower_unaligned_current, box_X_lower_unaligned_new;
+	Eigen::Vector3d box_X_upper_unaligned_current, box_X_upper_unaligned_new;
+	
+	// Box volume (area in 2D)
+	double box_vol_current, box_vol_new;
 
     }; // IBHydrodynamicForceObject
 
@@ -158,7 +163,8 @@ public:
                                double new_time,
                                const Eigen::Vector3d& box_vel_new,
                                const Eigen::Vector3d& P_strct_new,
-                               const Eigen::Vector3d& L_strct_new);
+                               const Eigen::Vector3d& L_strct_new,
+			       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * \brief Preprocess data for the current timestep.

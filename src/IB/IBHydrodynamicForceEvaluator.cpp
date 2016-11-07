@@ -120,7 +120,7 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 	    double num_cells_lower = (box_X_lower[d]-grid_X_lower[d])/dx_coarsest[d];
 	    double num_cells_upper = (box_X_upper[d]-grid_X_lower[d])/dx_coarsest[d];
 	    
-	    if (num_cells_lower != (int) num_cells_lower)
+	    if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
 	    {
 		TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
 			      << d << ". Modifying coordinate to nearest box side" << std::endl);
@@ -129,7 +129,7 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 		modified_box = true;
 	    }
 	    
-	    if (num_cells_upper != (int) num_cells_upper)
+	    if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
 	    {
 		TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
 			      << d << ". Modifying coordinate to nearest box side" << std::endl);
@@ -153,6 +153,14 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         force_obj.box_u_current = box_vel;
         force_obj.box_X_lower_current = box_X_lower;
         force_obj.box_X_upper_current = box_X_upper;
+	force_obj.box_X_lower_unaligned_current = box_X_lower;
+	force_obj.box_X_upper_unaligned_current = box_X_upper;
+	force_obj.box_vol_current = (box_X_upper[0] - box_X_lower[0]) * (box_X_upper[1] - box_X_lower[1])
+#if (NDIM == 3)
+				    * (box_X_upper[2] - box_X_lower[2])
+#endif
+				    ;
+	  
         force_obj.F_current.setZero();
         force_obj.T_current.setZero();
         force_obj.P_current.setZero();
@@ -206,17 +214,68 @@ IBHydrodynamicForceEvaluator::updateStructureDomain(int strct_id,
                                                     double new_time,
                                                     const Eigen::Vector3d& box_vel_new,
                                                     const Eigen::Vector3d& P_strct_new,
-                                                    const Eigen::Vector3d& L_strct_new)
+                                                    const Eigen::Vector3d& L_strct_new,
+						    Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
 #endif
 
+    // If the velocity supplied by the user causes the box to be misaligned with coarsest grid lines,
+    // shift the box and supply the proper velocity.
     IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& force_obj = d_hydro_objs[strct_id];
+    const int coarsest_ln = 0;
+    Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+    const double* const dx_coarsest = coarsest_grid_geom->getDx();
+    const double* const grid_X_lower = coarsest_grid_geom->getXLower();
+    bool modified_box = false;
+
+    // Compute the new box locations from the user supplied velocity
     const double dt = new_time - current_time;
-    force_obj.box_u_new = box_vel_new;
-    force_obj.box_X_lower_new = force_obj.box_X_lower_current + box_vel_new * dt;
-    force_obj.box_X_upper_new = force_obj.box_X_upper_current + box_vel_new * dt;
+    Eigen::Vector3d  box_X_lower_new = force_obj.box_X_lower_unaligned_current + box_vel_new * dt;
+    Eigen::Vector3d  box_X_upper_new = force_obj.box_X_upper_unaligned_current + box_vel_new * dt;
+    
+    // Keep track of the unaligned corners
+    force_obj.box_X_lower_unaligned_new = box_X_lower_new;
+    force_obj.box_X_upper_unaligned_new = box_X_upper_new;
+    
+    for (int d = 0; d < NDIM; ++d)
+    {
+	double num_cells_lower = (box_X_lower_new[d]-grid_X_lower[d])/dx_coarsest[d];
+	double num_cells_upper = (box_X_upper_new[d]-grid_X_lower[d])/dx_coarsest[d];
+	
+	if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
+	{   
+	    // Using round here ensures the box will retain its volume
+	    const int N = round(num_cells_lower);
+	    box_X_lower_new[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+	    modified_box = true;
+	}
+	
+	if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
+	{	    
+	    // Using round here ensures the box will retain its volume
+	    const int N = round(num_cells_upper);
+	    box_X_upper_new[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+	    modified_box = true;
+	}
+    }
+    
+    
+    force_obj.box_u_new = (box_X_upper_new - force_obj.box_X_upper_current)/dt;
+    force_obj.box_X_lower_new = box_X_lower_new;
+    force_obj.box_X_upper_new = box_X_upper_new;
+    
+    force_obj.box_vol_new = (box_X_upper_new[0] - box_X_lower_new[0]) * (box_X_upper_new[1] - box_X_lower_new[1])
+#if (NDIM == 3)
+		            * (box_X_upper_new[2] - box_X_lower_new[2])
+#endif
+		            ;
+			    
+    
+    TBOX_ASSERT(MathUtilities<double>::equalEps(force_obj.box_vol_current, force_obj.box_vol_new));
+    
     force_obj.P_new = P_strct_new;
     force_obj.L_new = L_strct_new;
 
@@ -469,6 +528,9 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
         force_obj.box_u_current = force_obj.box_u_new;
         force_obj.box_X_lower_current = force_obj.box_X_lower_new;
         force_obj.box_X_upper_current = force_obj.box_X_upper_new;
+	force_obj.box_X_lower_unaligned_current = force_obj.box_X_lower_unaligned_new;
+	force_obj.box_X_upper_unaligned_current = force_obj.box_X_upper_unaligned_new;
+	force_obj.box_vol_current = force_obj.box_vol_new;
         force_obj.F_current = force_obj.F_new;
         force_obj.T_current = force_obj.T_new;
         force_obj.P_current = force_obj.P_new;
