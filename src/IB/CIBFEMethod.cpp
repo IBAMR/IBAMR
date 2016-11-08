@@ -32,13 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "VisItDataWriter.h"
 #include "ibamr/CIBFEMethod.h"
+#include "VisItDataWriter.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/petsc_matrix.h"
@@ -66,7 +65,6 @@ CIBFEMethod::CIBFEMethod(const std::string& object_name,
     : IBFEMethod(object_name, input_db, mesh, max_level_number, register_for_restart), CIBStrategy(1)
 {
     commonConstructor(input_db);
-    return;
 } // CIBFEMethod
 
 CIBFEMethod::CIBFEMethod(const std::string& object_name,
@@ -78,15 +76,12 @@ CIBFEMethod::CIBFEMethod(const std::string& object_name,
       CIBStrategy(static_cast<unsigned>(meshes.size()))
 {
     commonConstructor(input_db);
-    return;
 } // CIBFEMethod
 
 CIBFEMethod::~CIBFEMethod()
 {
     // IBFEMethod class is responsible for unregistering
     // the object and deleting the equation systems.
-
-    return;
 } // ~CIBFEMethod
 
 void
@@ -98,9 +93,7 @@ CIBFEMethod::registerConstrainedVelocityFunction(ConstrainedNodalVelocityFcnPtr 
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
-
     registerConstrainedVelocityFunction(ConstrainedVelocityFcnsData(nodalvelfcn, comvelfcn, ctx), part);
-    return;
 } // registerConstrainedVelocityFunction
 
 void
@@ -110,7 +103,6 @@ CIBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcnsDa
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
     d_constrained_velocity_fcns_data[part] = data;
-    return;
 } // registerConstrainedVelocityFunction
 
 void
@@ -119,9 +111,7 @@ CIBFEMethod::registerExternalForceTorqueFunction(ExternalForceTorqueFcnPtr force
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
-
     registerExternalForceTorqueFunction(ExternalForceTorqueFcnData(forcetorquefcn, ctx), part);
-    return;
 } // registerExternalForceTorqueFunction
 
 void
@@ -130,10 +120,7 @@ CIBFEMethod::registerExternalForceTorqueFunction(const ExternalForceTorqueFcnDat
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
-
     d_ext_force_torque_fcn_data[part] = data;
-
-    return;
 } // registerExternalForceTorqueFunction
 
 void
@@ -150,8 +137,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     d_U_constrained_half_vecs.resize(d_num_rigid_parts);
 
     // PETSc wrappers.
-    d_vL_current.resize(d_num_rigid_parts, PETSC_NULL);
-    d_vL_new.resize(d_num_rigid_parts, PETSC_NULL);
+    d_vL_current.resize(d_num_rigid_parts, NULL);
+    d_vL_new.resize(d_num_rigid_parts, NULL);
 
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -174,8 +161,8 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     }
 
     // Create data structures for Lagrange multiplier
-    VecCreateMultiVec(PETSC_COMM_WORLD, d_num_rigid_parts, &d_vL_current[0], &d_mv_L_current);
-    VecCreateMultiVec(PETSC_COMM_WORLD, d_num_rigid_parts, &d_vL_new[0], &d_mv_L_new);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_current[0], &d_mv_L_current);
+    VecCreateNest(PETSC_COMM_WORLD, d_num_rigid_parts, NULL, &d_vL_new[0], &d_mv_L_new);
 
     // Get data for free and prescribed bodies.
     int free_dofs_counter = 0;
@@ -274,6 +261,7 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
             }
         }
     }
+
     // Create PETSc Vecs for free DOFs.
     const int n = free_dofs_counter;
     const int N = SAMRAI_MPI::sumReduction(free_dofs_counter);
@@ -287,11 +275,9 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
     }
 
     VecAssemblyBegin(d_U);
-    VecAssemblyEnd(d_U);
     VecAssemblyBegin(d_F);
+    VecAssemblyEnd(d_U);
     VecAssemblyEnd(d_F);
-
-    return;
 } // preprocessIntegrateData
 
 void
@@ -337,7 +323,6 @@ CIBFEMethod::postprocessIntegrateData(double current_time, double new_time, int 
 
     // Clean the temporary FE data vecs.
     IBFEMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
-
     return;
 } // postprocessIntegrateData
 
@@ -346,7 +331,6 @@ CIBFEMethod::setComputeVelL2Projection(const bool compute_L2_projection)
 {
     bool cached = d_compute_L2_projection;
     d_compute_L2_projection = compute_L2_projection;
-
     return cached;
 } // setVelocityL2Projection
 
@@ -377,7 +361,6 @@ CIBFEMethod::interpolateVelocity(const int u_data_idx,
         }
         d_lag_velvec_is_initialized = false;
     }
-    return;
 } // interpolateVelocity
 
 void
@@ -454,8 +437,6 @@ CIBFEMethod::eulerStep(const double current_time, const double new_time)
                 d_center_of_mass_current[struct_no][d] + 0.5 * dt * d_trans_vel_current[struct_no][d];
         }
     }
-
-    return;
 } // eulerStep
 
 void
@@ -536,8 +517,6 @@ CIBFEMethod::midpointStep(const double current_time, const double new_time)
     }
     d_center_of_mass_half = d_center_of_mass_new;
     d_quaternion_half = d_quaternion_new;
-
-    return;
 } // midpointStep
 
 void
@@ -546,15 +525,12 @@ CIBFEMethod::trapezoidalStep(const double /*current_time*/, const double /*new_t
     TBOX_ERROR("CIBFEMethod does not support trapezoidal time-stepping rule for position update."
                << " Only midpoint rule is supported for position update."
                << std::endl);
-
-    return;
 } // trapezoidalStep
 
 void
 CIBFEMethod::computeLagrangianForce(double /*data_time*/)
 {
-    // intentionally left blank
-    return;
+    // intentionally blank
 } // computeLagrangianForce
 
 void
@@ -569,8 +545,6 @@ CIBFEMethod::spreadForce(
         IBFEMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
         d_constraint_force_is_initialized = false;
     }
-    return;
-
 } // spreadForce
 
 void
@@ -579,17 +553,9 @@ CIBFEMethod::setConstraintForce(Vec L, const double data_time, const double scal
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-
     // Unpack the Lambda vector.
     Vec* vL;
-    VecMultiVecGetSubVecs(L, &vL);
-
-#if !defined(NDEBUG)
-    PetscInt size;
-    VecMultiVecGetNumberOfSubVecs(L, &size);
-    TBOX_ASSERT(size == static_cast<int>(d_num_rigid_parts));
-#endif
-
+    VecNestGetSubVecs(L, NULL, &vL);
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* F_vec = d_F_half_vecs[part];
@@ -597,8 +563,6 @@ CIBFEMethod::setConstraintForce(Vec L, const double data_time, const double scal
         VecScale(F_vec->vec(), scale);
     }
     d_constraint_force_is_initialized = true;
-
-    return;
 } // setConstraintForce
 
 void
@@ -617,10 +581,7 @@ CIBFEMethod::getConstraintForce(Vec* L, const double data_time)
         TBOX_ERROR("Warning CIBFEMethod::getConstraintForce() : constraint force "
                    << "enquired at some other time than current or new time."
                    << std::endl);
-        return;
     }
-
-    return;
 } // getConstraintForce
 
 void
@@ -630,11 +591,7 @@ CIBFEMethod::getFreeRigidVelocities(Vec* U, const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
 #endif
-
     CIBStrategy::getFreeRigidVelocities(U, data_time);
-
-    return;
-
 } // getFreeRigidVelocities
 
 void
@@ -644,11 +601,7 @@ CIBFEMethod::getNetExternalForceTorque(Vec* F, const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
                 MathUtilities<double>::equalEps(data_time, d_new_time));
 #endif
-
     CIBStrategy::getNetExternalForceTorque(F, data_time);
-
-    return;
-
 } // getNetExternalForceTorque
 
 void
@@ -656,14 +609,7 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecMultiVecGetSubVecs(L, &vL);
-
-#if !defined(NDEBUG)
-    PetscInt size;
-    VecMultiVecGetNumberOfSubVecs(L, &size);
-    TBOX_ASSERT(size == static_cast<int>(d_num_rigid_parts));
-#endif
-
+    VecNestGetSubVecs(L, NULL, &vL);
     double F[NDIM] = { 0.0 };
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -744,8 +690,6 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
             }
         }
     }
-
-    return;
 } // subtractMeanConstraintForce
 
 void
@@ -755,7 +699,6 @@ CIBFEMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
     d_lag_velvec_is_initialized = true;
-    return;
 } // setInterpolatedVelocityVector
 
 void
@@ -764,18 +707,15 @@ CIBFEMethod::getInterpolatedVelocity(Vec V, const double data_time, const double
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-
     // Unpack the velocity vector.
     Vec* vV;
-    VecMultiVecGetSubVecs(V, &vV);
+    VecNestGetSubVecs(V, NULL, &vV);
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         PetscVector<double>* U_vec = d_U_half_vecs[part];
         VecCopy(U_vec->vec(), vV[part]);
         VecScale(vV[part], scale);
     }
-    return;
-
 } // getInterpolatedVelocity
 
 void
@@ -784,9 +724,8 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
     if (!d_compute_L2_projection)
     {
         Vec *vL, *vD;
-        VecMultiVecGetSubVecs(L, &vL);
-        VecMultiVecGetSubVecs(D, &vD);
-
+        VecNestGetSubVecs(L, NULL, &vL);
+        VecNestGetSubVecs(D, NULL, &vD);
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
@@ -801,16 +740,12 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
         VecCopy(L, D);
         VecScale(D, scale);
     }
-
-    return;
-
 } // computeMobilityRegularization
 
 unsigned int
 CIBFEMethod::getNumberOfNodes(const unsigned int part) const
 {
     return d_num_nodes[part];
-
 } // getNumberOfNodes
 
 void
@@ -818,13 +753,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
 {
     // Unpack the Lambda vector.
     Vec* vL;
-    VecMultiVecGetSubVecs(L, &vL);
-
-#if !defined(NDEBUG)
-    PetscInt size;
-    VecMultiVecGetNumberOfSubVecs(L, &size);
-    TBOX_ASSERT(size == static_cast<int>(d_num_rigid_parts));
-#endif
+    VecNestGetSubVecs(L, NULL, &vL);
 
     // Get mesh.
     EquationSystems* equation_systems = d_equation_systems[part];
@@ -912,8 +841,6 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
         }
     }
     SAMRAI_MPI::sumReduction(&F[0], s_max_free_dofs);
-    return;
-
 } // computeNetRigidGeneralizedForce
 
 void
@@ -925,7 +852,7 @@ CIBFEMethod::copyVecToArray(Vec b,
 {
     if (struct_ids.empty()) return;
 
-    // Wrap the raw data in a PETSc Vec
+    // Wrap the raw data in a PETSc Vec.
     PetscInt total_nodes = 0;
     for (unsigned k = 0; k < struct_ids.size(); ++k)
     {
@@ -938,9 +865,9 @@ CIBFEMethod::copyVecToArray(Vec b,
     Vec array_vec;
     VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
 
-    // Get the components of PETScMultiVec.
+    // Get the components of the VecNest.
     Vec* vb;
-    VecMultiVecGetSubVecs(b, &vb);
+    VecNestGetSubVecs(b, NULL, &vb);
 
     // Scatter values
     PetscInt offset = 0;
@@ -972,8 +899,6 @@ CIBFEMethod::copyVecToArray(Vec b,
 
     // Destroy the wrapped Vec
     VecDestroy(&array_vec);
-
-    return;
 } // copyVecToArray
 
 void
@@ -985,7 +910,7 @@ CIBFEMethod::copyArrayToVec(Vec b,
 {
     if (struct_ids.empty()) return;
 
-    // Wrap the raw data in a PETSc Vec
+    // Wrap the raw data in a PETSc Vec.
     PetscInt total_nodes = 0;
     for (unsigned k = 0; k < struct_ids.size(); ++k)
     {
@@ -998,9 +923,9 @@ CIBFEMethod::copyArrayToVec(Vec b,
     Vec array_vec;
     VecCreateMPIWithArray(PETSC_COMM_WORLD, /*blocksize*/ 1, array_local_size, PETSC_DECIDE, array, &array_vec);
 
-    // Get the components of PETScMultiVec.
+    // Get the components of the VecNest.
     Vec* vb;
-    VecMultiVecGetSubVecs(b, &vb);
+    VecNestGetSubVecs(b, NULL, &vb);
 
     // Scatter values
     PetscInt offset = 0;
@@ -1032,8 +957,6 @@ CIBFEMethod::copyArrayToVec(Vec b,
 
     // Destroy the wrapped Vec
     VecDestroy(&array_vec);
-
-    return;
 } // copyArrayToVec
 
 void
@@ -1102,7 +1025,6 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
         W(1, 2) = -U[3];
         W(2, 1) = U[3];
 #endif
-
         Eigen::Vector3d R(Eigen::Vector3d::Zero());
         Eigen::Vector3d WxR(Eigen::Vector3d::Zero());
         for (unsigned int k = 0; k < total_local_nodes; ++k)
@@ -1118,14 +1040,13 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
                 U_k.set(nodal_U_indices[d][k], U[d] + WxR[d]);
             }
         }
-
         U_k.close();
     }
 
     // We filter the rigid body velocity using the basis function of the
     // deformational field, in the case when L2-projection is not performed.
     Vec* vV;
-    VecMultiVecGetSubVecs(V, &vV);
+    VecNestGetSubVecs(V, NULL, &vV);
     if (!d_compute_L2_projection)
     {
         std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
@@ -1137,8 +1058,6 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     {
         VecCopy(U_k.vec(), vV[part]);
     }
-
-    return;
 } // setRigidBodyVelocity
 
 void
@@ -1170,7 +1089,6 @@ CIBFEMethod::initializeFEData()
 
     d_initial_com_initialized = true;
     d_fe_data_initialized = true;
-    return;
 } // initializeFEData
 
 void
@@ -1178,18 +1096,14 @@ CIBFEMethod::registerEulerianVariables()
 {
     // Register a cc variable for plotting nodal Lambda.
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-
     d_eul_lambda_var = new CellVariable<NDIM, double>(d_object_name + "::eul_lambda", NDIM);
     registerVariable(d_eul_lambda_idx, d_eul_lambda_var, ib_ghosts, d_ib_solver->getCurrentContext());
-
-    return;
 } // registerEulerianVariables
 
 void
 CIBFEMethod::registerEulerianCommunicationAlgorithms()
 {
-    // intentionally left blank.
-    return;
+    // intentionally blank.
 } // registerEulerianCommunicationAlgorithms
 
 void
@@ -1255,7 +1169,6 @@ CIBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     d_is_initialized = true;
-    return;
 } // initializePatchHierarchy
 
 void
@@ -1263,8 +1176,6 @@ CIBFEMethod::registerPreProcessSolveFluidEquationsCallBackFcn(preprocessSolveFlu
 {
     d_prefluidsolve_callback_fcns.push_back(callback);
     d_prefluidsolve_callback_fcns_ctx.push_back(ctx);
-
-    return;
 } // registerPreProcessSolveFluidEquationsCallBackFcn
 
 void
@@ -1275,22 +1186,18 @@ CIBFEMethod::preprocessSolveFluidEquations(double current_time, double new_time,
     {
         d_prefluidsolve_callback_fcns[i](current_time, new_time, cycle_num, d_prefluidsolve_callback_fcns_ctx[i]);
     }
-
-    return;
 } // preprocessSolveFluidEquations
 
 void
 CIBFEMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
-    return;
 } // registerVisItDataWriter
 
 int
 CIBFEMethod::getStructuresLevelNumber()
 {
     return d_hierarchy->getFinestLevelNumber();
-
 } // getStructuresLevelNumber
 
 Pointer<PatchHierarchy<NDIM> >
@@ -1329,8 +1236,6 @@ CIBFEMethod::putToDatabase(Pointer<Database> db)
         db->putDoubleArray(C.str(), &d_center_of_mass_current[part][0], 3);
         db->putDoubleArray(Q.str(), &Q_coeffs[0], 4);
     }
-
-    return;
 } // putToDatabase
 
 //////////////////////////////////////////// PRIVATE ////////////////////////
@@ -1371,8 +1276,6 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
     d_constraint_force_is_initialized = false;
     d_lag_velvec_is_initialized = false;
     d_initial_com_initialized = false;
-
-    return;
 } // commonConstructor
 
 void
@@ -1381,8 +1284,6 @@ CIBFEMethod::getFromInput(Pointer<Database> input_db, bool /*is_from_restart*/)
     // Get some input values.
     d_compute_L2_projection = input_db->getBoolWithDefault("compute_L2_projection", d_compute_L2_projection);
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
-
-    return;
 } // getFromInput
 
 void
@@ -1427,8 +1328,6 @@ CIBFEMethod::getFromRestart()
         d_quaternion_current[part].z() = Q_coeffs[3];
         d_quaternion_current[part].normalized();
     }
-
-    return;
 } // getFromRestart
 
 void
@@ -1497,7 +1396,6 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     }
     VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_ghost_vec);
-
 } // computeCOMOfStructure
 
 //////////////////////////////////////////////////////////////////////////////

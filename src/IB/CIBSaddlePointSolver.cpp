@@ -49,7 +49,6 @@
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
@@ -483,8 +482,8 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
 
     // Get components of x and b.
     Vec *vx, *vb;
-    IBTK::VecMultiVecGetSubVecs(x, &vx);
-    IBTK::VecMultiVecGetSubVecs(b, &vb);
+    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(b, NULL, &vb);
 
     // Create RHS Vec to be used in KSP object
     VecDuplicate(b, &d_petsc_b);
@@ -935,7 +934,6 @@ CIBSaddlePointSolver::resetKSPPC()
         TBOX_ERROR("CIBSaddlePointSolver::resetKSPPC() This statement should not be reached!\n");
     }
     return;
-
 } // resetKSPPC
 
 PetscErrorCode
@@ -944,27 +942,12 @@ CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_A);
 #endif
-
     solver->d_A->apply(x, y);
-
-    // Report change in the state of y to PETSc
-    int comps;
-    Vec* vy;
-    IBTK::VecMultiVecGetSubVecs(y, &vy);
-    IBTK::VecMultiVecGetNumberOfSubVecs(y, &comps);
-    for (int k = 0; k < comps; ++k)
-    {
-        PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vy[k]));
-    }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
-
     PetscFunctionReturn(0);
-
 } // MatVecMult_SaddlePoint
 
 // Exact-Schur Complement PC
@@ -992,9 +975,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 
     int total_comps, free_comps = 0;
     Vec *vx, *vy;
-    IBTK::VecMultiVecGetSubVecs(x, &vx);
-    IBTK::VecMultiVecGetSubVecs(y, &vy);
-    IBTK::VecMultiVecGetNumberOfSubVecs(y, &total_comps);
+    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
     // Get the individual components.

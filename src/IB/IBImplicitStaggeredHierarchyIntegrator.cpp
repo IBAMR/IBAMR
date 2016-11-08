@@ -66,7 +66,6 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
@@ -519,7 +518,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     // should be used for Lagrangian-Eulerian coupling.
     d_ib_implicit_ops->updateFixedLEOperators();
 
-    // Setup multi-vec objects to store the composite solution and
+    // Setup VecNest objects to store the composite solution and
     // right-hand-side vectors.
     Vec eul_sol_petsc_vec = PETScSAMRAIVectorReal::createPETScVector(eul_sol_vec, PETSC_COMM_WORLD);
     Vec eul_rhs_petsc_vec = PETScSAMRAIVectorReal::createPETScVector(eul_rhs_vec, PETSC_COMM_WORLD);
@@ -528,9 +527,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     Vec rhs_petsc_vecs[] = { eul_rhs_petsc_vec, lag_rhs_petsc_vec };
 
     Vec composite_sol_petsc_vec, composite_rhs_petsc_vec, composite_res_petsc_vec;
-    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, sol_petsc_vecs, &composite_sol_petsc_vec);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, 2, NULL, sol_petsc_vecs, &composite_sol_petsc_vec);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, rhs_petsc_vecs, &composite_rhs_petsc_vec);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, 2, NULL, rhs_petsc_vecs, &composite_rhs_petsc_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecDuplicate(composite_rhs_petsc_vec, &composite_res_petsc_vec);
     IBTK_CHKERRQ(ierr);
@@ -919,10 +918,10 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     const double half_time = current_time + 0.5 * d_current_dt;
 
     Vec* component_sol_vecs;
-    Vec* component_rhs_vecs;
-    ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs);
+    ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
     IBTK_CHKERRQ(ierr);
-    ierr = VecMultiVecGetSubVecs(f, &component_rhs_vecs);
+    Vec* component_rhs_vecs;
+    ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
     IBTK_CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
@@ -974,8 +973,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     d_ib_implicit_ops->spreadForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
-    IBTK_CHKERRQ(ierr);
 
     // Evaluate the Lagrangian terms.
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -1000,12 +997,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
                                            velocity_time);
     d_ib_implicit_ops->computeResidual(R);
-
-    // Ensure that PETSc sees that the state of the RHS vector has changed.
-    // This is a nasty hack.
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
-    IBTK_CHKERRQ(ierr);
-
     return ierr;
 } // IBFunction_position
 
@@ -1100,8 +1091,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_ib_implicit_ops->spreadForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
-    IBTK_CHKERRQ(ierr);
     return ierr;
 } // IBFunction_velocity
 
@@ -1151,7 +1140,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, 
     IBTK_CHKERRQ(ierr);
 
     Vec* component_sol_vecs;
-    ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs);
+    ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
     IBTK_CHKERRQ(ierr);
     Vec X = component_sol_vecs[1];
     d_ib_implicit_ops->setLinearizedPosition(X, data_time);
@@ -1243,9 +1232,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
 
     Vec* component_sol_vecs;
     Vec* component_rhs_vecs;
-    ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs);
+    ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
     IBTK_CHKERRQ(ierr);
-    ierr = VecMultiVecGetSubVecs(f, &component_rhs_vecs);
+    ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
     IBTK_CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
@@ -1286,8 +1275,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
-    IBTK_CHKERRQ(ierr);
 
     // Evaluate the Lagrangian terms.
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -1312,18 +1299,12 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
                                                      velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, R);
-
-    // Ensure that PETSc sees that the state of the RHS vector has changed.
-    // This is a nasty hack.
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
-    IBTK_CHKERRQ(ierr);
     return ierr;
 } // IBJacobianApply_position
 
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
 {
-    PetscErrorCode ierr;
     const double current_time = d_integrator_time;
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
@@ -1387,9 +1368,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
-    IBTK_CHKERRQ(ierr);
-    return ierr;
+    return 0;
 } // IBJacobianApply_velocity
 
 PetscErrorCode
@@ -1422,9 +1401,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 
     Vec* component_x_vecs;
     Vec* component_y_vecs;
-    ierr = VecMultiVecGetSubVecs(x, &component_x_vecs);
+    ierr = VecNestGetSubVecs(x, NULL, &component_x_vecs);
     IBTK_CHKERRQ(ierr);
-    ierr = VecMultiVecGetSubVecs(y, &component_y_vecs);
+    ierr = VecNestGetSubVecs(y, NULL, &component_y_vecs);
     IBTK_CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > eul_x = PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0]);
@@ -1516,13 +1495,6 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
     eul_y->add(eul_y, d_u_scratch_vec);
-
-    // Ensure that PETSc sees that the state of the RHS vector has changed.
-    // This is a nasty hack.
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_y_vecs[0]));
-    IBTK_CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
-    IBTK_CHKERRQ(ierr);
     return ierr;
 } // IBPCApply_position
 

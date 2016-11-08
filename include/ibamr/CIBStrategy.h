@@ -274,7 +274,7 @@ public:
      * \brief Compute total force and torque on the structure.
      *
      * \param L The Lagrange multiplier vector.
-     * \param F PetscMultiVec storing the net generalized force.
+     * \param F Vec storing the net generalized force.
      *
      * \param only_free_dofs Boolean indicating if the net generalized
      * force and torque is to be computed only for free dofs of all bodies.

@@ -65,7 +65,6 @@
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/PETScMultiVec.h>
 
 // Various model parameters and functions.
 namespace ModelData
@@ -512,7 +511,7 @@ main(int argc, char* argv[])
         Vec L;
         Vec* vL;
         ib_method_ops->getConstraintForce(&L, 0.0);
-        VecMultiVecGetSubVecs(L, &vL);
+        VecNestGetSubVecs(L, NULL, &vL);
         PetscInt global_size;
         VecGetSize(vL[0], &global_size);
         const int total_nodes = mesh.n_nodes();
@@ -525,7 +524,7 @@ main(int argc, char* argv[])
         Vec V;
         Vec* vV;
         VecDuplicate(L, &V);
-        VecMultiVecGetSubVecs(V, &vV);
+        VecNestGetSubVecs(V, NULL, &vV);
 
         // Index information.
         System& V_sys = equation_systems->get_system<System>(CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);

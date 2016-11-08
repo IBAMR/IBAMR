@@ -43,8 +43,6 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
@@ -121,7 +119,6 @@ KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(const std::string& ob
             TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::initializeSolverState()");
         t_deallocate_solver_state =
             TimerManager::getManager()->getTimer("IBAMR::KrylovFreeBodyMobilitySolver::deallocateSolverState()"););
-    return;
 } // KrylovFreeBodyMobilitySolver
 
 KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
@@ -129,20 +126,16 @@ KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
     if (d_is_initialized) deallocateSolverState();
 
     // Delete allocated PETSc solver components.
-    int ierr;
     if (d_petsc_mat)
     {
-        ierr = MatDestroy(&d_petsc_mat);
-        IBTK_CHKERRQ(ierr);
+        MatDestroy(&d_petsc_mat);
         d_petsc_mat = NULL;
     }
     if (d_petsc_ksp)
     {
-        ierr = KSPDestroy(&d_petsc_ksp);
-        IBTK_CHKERRQ(ierr);
+        KSPDestroy(&d_petsc_ksp);
         d_petsc_ksp = NULL;
     }
-    return;
 } // ~KrylovFreeBodyMobilitySolver
 
 void
@@ -151,26 +144,19 @@ KrylovFreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobil
 #if !defined(NDEBUG)
     TBOX_ASSERT(mobility_solver);
 #endif
-
     d_mobility_solver = mobility_solver;
-
-    return;
 } // setMobilitySolver
 
 void
 KrylovFreeBodyMobilitySolver::setInterpScale(const double interp_scale)
 {
     d_interp_scale = interp_scale;
-
-    return;
 } // setInterpScale
 
 void
 KrylovFreeBodyMobilitySolver::setSpreadScale(const double spread_scale)
 {
     d_spread_scale = spread_scale;
-
-    return;
 } // setSpreadScale
 
 void
@@ -178,8 +164,6 @@ KrylovFreeBodyMobilitySolver::setStokesSpecifications(const StokesSpecifications
 {
     d_rho = stokes_spec.getRho();
     d_mu = stokes_spec.getMu();
-
-    return;
 } // setStokesSpecifications
 
 const KSP&
@@ -192,22 +176,18 @@ void
 KrylovFreeBodyMobilitySolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
-    return;
 } // setKSPType
 
 void
 KrylovFreeBodyMobilitySolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
-    return;
 } // setOptionsPrefix
 
 void
 KrylovFreeBodyMobilitySolver::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
-
-    return;
 } // setSolutionTime
 
 void
@@ -216,32 +196,25 @@ KrylovFreeBodyMobilitySolver::setTimeInterval(double current_time, double new_ti
     d_current_time = current_time;
     d_new_time = new_time;
     d_dt = new_time - current_time;
-
-    return;
 } // setTimeInterval
 
 bool
 KrylovFreeBodyMobilitySolver::solveSystem(Vec x, Vec b)
 {
     IBAMR_TIMER_START(t_solve_system);
-    int ierr;
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
     VecCopy(b, d_petsc_b);
-    ierr = KSPSolve(d_petsc_ksp, d_petsc_b, x);
-    IBTK_CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
-    IBTK_CHKERRQ(ierr);
-    ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
-    IBTK_CHKERRQ(ierr);
+    KSPSolve(d_petsc_ksp, d_petsc_b, x);
+    KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
+    KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
 
     // Determine the convergence reason.
     KSPConvergedReason reason;
-    ierr = KSPGetConvergedReason(d_petsc_ksp, &reason);
-    IBTK_CHKERRQ(ierr);
+    KSPGetConvergedReason(d_petsc_ksp, &reason);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
@@ -267,7 +240,7 @@ KrylovFreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
     // Generate RHS and temporary vectors for storing Lagrange multiplier
     // and rigid body velocity.
     Vec* vb;
-    IBTK::VecMultiVecGetSubVecs(b, &vb);
+    VecNestGetSubVecs(b, NULL, &vb);
     VecDuplicate(vb[2], &d_petsc_b);
     VecDuplicate(vb[1], &d_petsc_temp_f);
     VecDuplicate(vb[1], &d_petsc_temp_v);
@@ -280,7 +253,6 @@ KrylovFreeBodyMobilitySolver::initializeSolverState(Vec /*x*/, Vec b)
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
-    return;
 } // initializeSolverState
 
 void
@@ -305,8 +277,6 @@ KrylovFreeBodyMobilitySolver::deallocateSolverState()
     d_is_initialized = false;
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
-
-    return;
 } // deallocateSolverState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -363,16 +333,13 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
         os << d_object_name << ": unknown completion code " << static_cast<int>(reason) << " reported.\n";
         break;
     }
-    return;
 } // reportKSPConvergedReason
 
 void
 KrylovFreeBodyMobilitySolver::initializeKSP()
 {
     // Create the KSP solver.
-    int ierr;
-    ierr = KSPCreate(d_petsc_comm, &d_petsc_ksp);
-    IBTK_CHKERRQ(ierr);
+    KSPCreate(d_petsc_comm, &d_petsc_ksp);
     resetKSPOptions();
     resetKSPOperators();
     resetKSPPC();
@@ -380,98 +347,73 @@ KrylovFreeBodyMobilitySolver::initializeKSP()
     // Set the KSP options from the PETSc options database.
     if (d_options_prefix != "")
     {
-        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str());
-        IBTK_CHKERRQ(ierr);
+        KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str());
     }
-    ierr = KSPSetFromOptions(d_petsc_ksp);
-    IBTK_CHKERRQ(ierr);
+    KSPSetFromOptions(d_petsc_ksp);
 
     // Reset the member state variables to correspond to the values used by the
     // KSP object.  (Command-line options always take precedence.)
     KSPType ksp_type;
-    ierr = KSPGetType(d_petsc_ksp, (const char**)&ksp_type);
-    IBTK_CHKERRQ(ierr);
+    KSPGetType(d_petsc_ksp, (const char**)&ksp_type);
     d_ksp_type = ksp_type;
     PetscBool initial_guess_nonzero;
-    ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
-    IBTK_CHKERRQ(ierr);
+    KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
-    IBTK_CHKERRQ(ierr);
-
-    return;
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
 } // initializeKSP
 
 void
 KrylovFreeBodyMobilitySolver::destroyKSP()
 {
     if (!d_petsc_ksp) return;
-    int ierr = KSPDestroy(&d_petsc_ksp);
-    IBTK_CHKERRQ(ierr);
+    KSPDestroy(&d_petsc_ksp);
     d_petsc_ksp = NULL;
-
-    return;
 } // destroyKSP
 
 void
 KrylovFreeBodyMobilitySolver::resetKSPOptions()
 {
     if (!d_petsc_ksp) return;
-    int ierr;
     const KSPType ksp_type = d_ksp_type.c_str();
-    ierr = KSPSetType(d_petsc_ksp, ksp_type);
-    IBTK_CHKERRQ(ierr);
+    KSPSetType(d_petsc_ksp, ksp_type);
     std::string ksp_type_name(ksp_type);
     if (ksp_type_name.find("gmres") != std::string::npos)
     {
-        ierr = KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_IFNEEDED);
-        IBTK_CHKERRQ(ierr);
+        KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_IFNEEDED);
     }
     PetscBool initial_guess_nonzero = (d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
-    ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero);
-    IBTK_CHKERRQ(ierr);
-    ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
-    IBTK_CHKERRQ(ierr);
+    KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero);
+    KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
 
     // Set KSP monitor routine.
     if (d_enable_logging)
     {
-        ierr = KSPMonitorCancel(d_petsc_ksp);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPMonitorSet(d_petsc_ksp,
-                             reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
-                                 KrylovFreeBodyMobilitySolver::monitorKSP),
-                             NULL,
-                             NULL);
-        IBTK_CHKERRQ(ierr);
+        KSPMonitorCancel(d_petsc_ksp);
+        KSPMonitorSet(d_petsc_ksp,
+                      reinterpret_cast<PetscErrorCode (*)(KSP, PetscInt, PetscReal, void*)>(
+                          KrylovFreeBodyMobilitySolver::monitorKSP),
+                      NULL,
+                      NULL);
     }
-    return;
 } // resetKSPOptions
 
 void
 KrylovFreeBodyMobilitySolver::resetKSPOperators()
 {
-    int ierr;
-
     // Create and configure the MatShell object.
     if (d_petsc_mat)
     {
-        ierr = MatDestroy(&d_petsc_mat);
-        IBTK_CHKERRQ(ierr);
+        MatDestroy(&d_petsc_mat);
         d_petsc_mat = NULL;
     }
     if (!d_petsc_mat)
     {
         int n;
-        ierr = VecGetLocalSize(d_petsc_b, &n);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateShell(
-            d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
-        IBTK_CHKERRQ(ierr);
+        VecGetLocalSize(d_petsc_b, &n);
+        MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
     }
-    ierr = MatShellSetOperation(
+    MatShellSetOperation(
         d_petsc_mat, MATOP_MULT, reinterpret_cast<void (*)(void)>(KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver));
-    IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
@@ -479,21 +421,18 @@ KrylovFreeBodyMobilitySolver::resetKSPOperators()
         KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
         KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
     }
-    return;
 } // resetKSPOperators
 
 void
 KrylovFreeBodyMobilitySolver::resetKSPPC()
 {
     if (!d_petsc_ksp) return;
-    int ierr;
 
     // Determine the preconditioner type to use.
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    ierr = PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
-    IBTK_CHKERRQ(ierr);
+    PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -510,36 +449,28 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
     }
 
     PC petsc_pc;
-    ierr = KSPGetPC(d_petsc_ksp, &petsc_pc);
-    IBTK_CHKERRQ(ierr);
+    KSPGetPC(d_petsc_ksp, &petsc_pc);
     if (pc_type == "none")
     {
-        ierr = PCSetType(petsc_pc, PCNONE);
-        IBTK_CHKERRQ(ierr);
+        PCSetType(petsc_pc, PCNONE);
     }
     else if (pc_type == "shell")
     {
-        ierr = PCSetType(petsc_pc, PCSHELL);
-        IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetContext(petsc_pc, static_cast<void*>(this));
-        IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetApply(petsc_pc, KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver);
-        IBTK_CHKERRQ(ierr);
+        PCSetType(petsc_pc, PCSHELL);
+        PCShellSetContext(petsc_pc, static_cast<void*>(this));
+        PCShellSetApply(petsc_pc, KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver);
     }
     else
     {
         TBOX_ERROR("This statement should not be reached!\n");
     }
-    return;
 } // resetKSPPC
 
 PetscErrorCode
 KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
 {
-    int ierr;
     void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
+    MatShellGetContext(A, &p_ctx);
     KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
@@ -559,11 +490,7 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
                                                             y,
                                                             /*only_free_dofs*/ true,
                                                             /*only_imposed_dofs*/ false);
-
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
-    IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
-
 } // MatVecMult_KFBMSolver
 
 // Routine to apply FreeBodyMobility preconditioner
@@ -571,20 +498,16 @@ PetscErrorCode
 KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
 {
     // Here we are trying to the solve the problem of the type: Py = x for y.
-    int ierr;
     void* ctx;
-    ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    PCShellGetContext(pc, &ctx);
     KrylovFreeBodyMobilitySolver* solver = static_cast<KrylovFreeBodyMobilitySolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
-
     DirectMobilitySolver* direct_solver;
     solver->d_mobility_solver->getMobilitySolvers(NULL, &direct_solver, NULL);
     direct_solver->solveBodySystem(y, x);
     VecScale(y, 1.0 / (solver->d_interp_scale * solver->d_spread_scale));
-
     PetscFunctionReturn(0);
 } // PCApply_KFBMSolver
 
@@ -616,9 +539,7 @@ KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void*
                << " true resid norm " << (double)truenorm << " ||r(i)||/||b|| " << (double)(truenorm / bnorm)
                << std::endl;
     tbox::plog.precision(old_precision);
-
-    return (0);
-
+    PetscFunctionReturn(0);
 } // monitorKSP
 
 //////////////////////////////////////////////////////////////////////////////

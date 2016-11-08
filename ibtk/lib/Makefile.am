@@ -97,7 +97,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 ../src/solvers/impls/PETScLevelSolver.cpp \
 ../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
-../src/solvers/impls/PETScMultiVec.cpp \
 ../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 ../src/solvers/impls/PoissonFACPreconditioner.cpp \
 ../src/solvers/impls/PoissonFACPreconditionerStrategy.cpp \
@@ -261,7 +260,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/PETScMFFDJacobianOperator.h \
 ../include/ibtk/PETScMatLOWrapper.h \
 ../include/ibtk/PETScMatUtilities.h \
-../include/ibtk/PETScMultiVec.h \
 ../include/ibtk/PETScNewtonKrylovSolver.h \
 ../include/ibtk/PETScPCLSWrapper.h \
 ../include/ibtk/PETScSAMRAIVectorReal.h \

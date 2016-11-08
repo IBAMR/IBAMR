@@ -44,7 +44,6 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/TimerManager.h"
 
