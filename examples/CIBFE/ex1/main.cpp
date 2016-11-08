@@ -548,7 +548,7 @@ main(int argc, char* argv[])
         // PETSc dense mobility matrix.
         Mat MM;
         MatCreateDense(PETSC_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, global_size, global_size, NULL, &MM);
-        MatMPIDenseSetPreallocation(MM, PETSC_NULL);
+        MatMPIDenseSetPreallocation(MM, NULL);
 
         // Deallocate initialization objects.
         app_initializer.setNull();

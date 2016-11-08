@@ -973,6 +973,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     d_ib_implicit_ops->spreadForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
 
     // Evaluate the Lagrangian terms.
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -997,13 +998,14 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
                                            velocity_time);
     d_ib_implicit_ops->computeResidual(R);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBFunction_position
 
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x, Vec f)
 {
-    PetscErrorCode ierr;
+    PetscErrorCode ierr = 0;
     const double current_time = d_integrator_time;
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
@@ -1091,6 +1093,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_ib_implicit_ops->spreadForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBFunction_velocity
 
@@ -1275,6 +1278,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
 
     // Evaluate the Lagrangian terms.
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -1299,6 +1303,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
                                                      velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, R);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBJacobianApply_position
 
@@ -1368,6 +1373,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return 0;
 } // IBJacobianApply_velocity
 
@@ -1495,6 +1501,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
     eul_y->add(eul_y, d_u_scratch_vec);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_y_vecs[0]));
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     return ierr;
 } // IBPCApply_position
 
@@ -1509,6 +1517,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 #endif
     bool converged = p_stokes_solver->getStaggeredStokesFACPreconditioner()->solveSystem(*u_p, *f_g);
     PetscErrorCode ierr = !converged;
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     return ierr;
 } // IBPCApply_velocity
 

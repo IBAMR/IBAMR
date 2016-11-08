@@ -947,6 +947,16 @@ CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
     TBOX_ASSERT(solver->d_A);
 #endif
     solver->d_A->apply(x, y);
+
+    // Report change in the state of y to PETSc
+    int comps;
+    Vec* vy;
+    VecNestGetSubVecs(y, &comps, &vy);
+    for (int k = 0; k < comps; ++k)
+    {
+        PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vy[k]));
+    }
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     PetscFunctionReturn(0);
 } // MatVecMult_SaddlePoint
 
