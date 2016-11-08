@@ -79,7 +79,7 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
 void
 NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
-    NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
+    GeneralSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
     if (d_J) d_J->setHierarchyMathOps(d_hier_math_ops);
     if (d_krylov_solver) d_krylov_solver->setHierarchyMathOps(d_hier_math_ops);
