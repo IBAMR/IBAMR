@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_muParserCartGridFunction
-#define included_muParserCartGridFunction
+#ifndef included_IBTK_muParserCartGridFunction
+#define included_IBTK_muParserCartGridFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -173,4 +173,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_muParserCartGridFunction
+#endif //#ifndef included_IBTK_muParserCartGridFunction

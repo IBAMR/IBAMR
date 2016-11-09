@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LIndexSetDataFactory
-#define included_LIndexSetDataFactory
+#ifndef included_IBTK_LIndexSetDataFactory
+#define included_IBTK_LIndexSetDataFactory
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -153,4 +153,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LIndexSetDataFactory
+#endif //#ifndef included_IBTK_LIndexSetDataFactory

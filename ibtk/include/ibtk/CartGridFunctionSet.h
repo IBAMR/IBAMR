@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartGridFunctionSet
-#define included_CartGridFunctionSet
+#ifndef included_IBTK_CartGridFunctionSet
+#define included_IBTK_CartGridFunctionSet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -166,4 +166,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartGridFunctionSet
+#endif //#ifndef included_IBTK_CartGridFunctionSet

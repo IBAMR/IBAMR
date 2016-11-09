@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LSetDataIterator
-#define included_LSetDataIterator
+#ifndef included_IBTK_LSetDataIterator
+#define included_IBTK_LSetDataIterator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -150,4 +150,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LSetDataIterator
+#endif //#ifndef included_IBTK_LSetDataIterator

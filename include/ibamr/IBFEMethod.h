@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFEMethod
-#define included_IBFEMethod
+#ifndef included_IBAMR_IBFEMethod
+#define included_IBAMR_IBFEMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -727,4 +727,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFEMethod
+#endif //#ifndef included_IBAMR_IBFEMethod

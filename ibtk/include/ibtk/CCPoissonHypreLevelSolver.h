@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CCPoissonHypreLevelSolver
-#define included_CCPoissonHypreLevelSolver
+#ifndef included_IBTK_CCPoissonHypreLevelSolver
+#define included_IBTK_CCPoissonHypreLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -340,4 +340,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CCPoissonHypreLevelSolver
+#endif //#ifndef included_IBTK_CCPoissonHypreLevelSolver

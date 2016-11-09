@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_libmesh_utilities
-#define included_libmesh_utilities
+#ifndef included_IBTK_libmesh_utilities
+#define included_IBTK_libmesh_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -803,4 +803,4 @@ struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, con
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_libmesh_utilities
+#endif //#ifndef included_IBTK_libmesh_utilities

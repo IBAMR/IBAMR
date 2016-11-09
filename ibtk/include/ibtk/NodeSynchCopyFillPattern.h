@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_NodeSynchCopyFillPattern
-#define included_NodeSynchCopyFillPattern
+#ifndef included_IBTK_NodeSynchCopyFillPattern
+#define included_IBTK_NodeSynchCopyFillPattern
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -156,4 +156,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_NodeSynchCopyFillPattern
+#endif //#ifndef included_IBTK_NodeSynchCopyFillPattern

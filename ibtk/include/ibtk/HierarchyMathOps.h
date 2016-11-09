@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_HierarchyMathOps
-#define included_HierarchyMathOps
+#ifndef included_IBTK_HierarchyMathOps
+#define included_IBTK_HierarchyMathOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1260,4 +1260,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_HierarchyMathOps
+#endif //#ifndef included_IBTK_HierarchyMathOps

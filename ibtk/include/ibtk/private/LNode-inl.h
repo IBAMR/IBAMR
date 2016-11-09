@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNode_inl_h
-#define included_LNode_inl_h
+#ifndef included_IBTK_LNode_inl_h
+#define included_IBTK_LNode_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -270,4 +270,4 @@ LNode::setupNodeDataTypeArray()
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNode_inl_h
+#endif //#ifndef included_IBTK_LNode_inl_h

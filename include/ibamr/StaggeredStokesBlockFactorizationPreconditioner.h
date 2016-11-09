@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesBlockFactorizationPreconditioner
-#define included_StaggeredStokesBlockFactorizationPreconditioner
+#ifndef included_IBAMR_StaggeredStokesBlockFactorizationPreconditioner
+#define included_IBAMR_StaggeredStokesBlockFactorizationPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -227,4 +227,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesBlockFactorizationPreconditioner
+#endif //#ifndef included_IBAMR_StaggeredStokesBlockFactorizationPreconditioner

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_NewtonKrylovSolverManager
-#define included_NewtonKrylovSolverManager
+#ifndef included_IBTK_NewtonKrylovSolverManager
+#define included_IBTK_NewtonKrylovSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -153,4 +153,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_NewtonKrylovSolverManager
+#endif //#ifndef included_IBTK_NewtonKrylovSolverManager

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_KrylovLinearSolverManager
-#define included_KrylovLinearSolverManager
+#ifndef included_IBTK_KrylovLinearSolverManager
+#define included_IBTK_KrylovLinearSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -152,4 +152,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovLinearSolverManager
+#endif //#ifndef included_IBTK_KrylovLinearSolverManager

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMarkerSet
-#define included_LMarkerSet
+#ifndef included_IBTK_LMarkerSet
+#define included_IBTK_LMarkerSet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LSet<LMarker> LMarkerSet;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMarkerSet
+#endif //#ifndef included_IBTK_LMarkerSet

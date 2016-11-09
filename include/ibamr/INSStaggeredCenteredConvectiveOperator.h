@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredCenteredConvectiveOperator
-#define included_INSStaggeredCenteredConvectiveOperator
+#ifndef included_IBAMR_INSStaggeredCenteredConvectiveOperator
+#define included_IBAMR_INSStaggeredCenteredConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -204,4 +204,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredCenteredConvectiveOperator
+#endif //#ifndef included_IBAMR_INSStaggeredCenteredConvectiveOperator

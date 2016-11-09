@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBKirchhoffRodForceGen
-#define included_IBKirchhoffRodForceGen
+#ifndef included_IBAMR_IBKirchhoffRodForceGen
+#define included_IBAMR_IBKirchhoffRodForceGen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -157,4 +157,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBKirchhoffRodForceGen
+#endif //#ifndef included_IBAMR_IBKirchhoffRodForceGen

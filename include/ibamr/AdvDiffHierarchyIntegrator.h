@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffHierarchyIntegrator
-#define included_AdvDiffHierarchyIntegrator
+#ifndef included_IBAMR_AdvDiffHierarchyIntegrator
+#define included_IBAMR_AdvDiffHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -600,4 +600,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffHierarchyIntegrator
+#endif //#ifndef included_IBAMR_AdvDiffHierarchyIntegrator

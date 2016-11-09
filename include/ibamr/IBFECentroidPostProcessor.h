@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFECentroidPostProcessor
-#define included_IBFECentroidPostProcessor
+#ifndef included_IBAMR_IBFECentroidPostProcessor
+#define included_IBAMR_IBFECentroidPostProcessor
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFECentroidPostProcessor
+#endif //#ifndef included_IBAMR_IBFECentroidPostProcessor

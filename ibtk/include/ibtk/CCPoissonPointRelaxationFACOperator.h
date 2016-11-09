@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CCPoissonPointRelaxationFACOperator
-#define included_CCPoissonPointRelaxationFACOperator
+#ifndef included_IBTK_CCPoissonPointRelaxationFACOperator
+#define included_IBTK_CCPoissonPointRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -280,4 +280,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CCPoissonPointRelaxationFACOperator
+#endif //#ifndef included_IBTK_CCPoissonPointRelaxationFACOperator

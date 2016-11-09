@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBInstrumentPanel
-#define included_IBInstrumentPanel
+#ifndef included_IBAMR_IBInstrumentPanel
+#define included_IBAMR_IBInstrumentPanel
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -298,4 +298,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBInstrumentPanel
+#endif //#ifndef included_IBAMR_IBInstrumentPanel

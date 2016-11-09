@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ConstraintIBMethod
-#define included_ConstraintIBMethod
+#ifndef included_IBAMR_ConstraintIBMethod
+#define included_IBAMR_ConstraintIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -486,4 +486,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ConstraintIBMethod
+#endif //#ifndef included_IBAMR_ConstraintIBMethod

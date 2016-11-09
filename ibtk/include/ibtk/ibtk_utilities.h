@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ibtk_utilities
-#define included_ibtk_utilities
+#ifndef included_IBTK_ibtk_utilities
+#define included_IBTK_ibtk_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -194,4 +194,4 @@ typedef VectorNd Vector;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ibtk_utilities
+#endif //#ifndef included_IBTK_ibtk_utilities

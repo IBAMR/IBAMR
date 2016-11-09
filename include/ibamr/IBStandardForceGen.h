@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBStandardForceGen
-#define included_IBStandardForceGen
+#ifndef included_IBAMR_IBStandardForceGen
+#define included_IBAMR_IBStandardForceGen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -296,4 +296,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBStandardForceGen
+#endif //#ifndef included_IBAMR_IBStandardForceGen

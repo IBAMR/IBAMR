@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_MobilityFunctions
-#define included_MobilityFunctions
+#ifndef included_IBAMR_MobilityFunctions
+#define included_IBAMR_MobilityFunctions
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -120,4 +120,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // ifndef included_MobilityFunctions
+#endif // ifndef included_IBAMR_MobilityFunctions

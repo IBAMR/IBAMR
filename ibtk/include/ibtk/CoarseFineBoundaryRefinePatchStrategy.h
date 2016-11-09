@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CoarseFineBoundaryRefinePatchStrategy
-#define included_CoarseFineBoundaryRefinePatchStrategy
+#ifndef included_IBTK_CoarseFineBoundaryRefinePatchStrategy
+#define included_IBTK_CoarseFineBoundaryRefinePatchStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -233,4 +233,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CoarseFineBoundaryRefinePatchStrategy
+#endif //#ifndef included_IBTK_CoarseFineBoundaryRefinePatchStrategy

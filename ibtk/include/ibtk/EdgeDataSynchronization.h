@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_EdgeDataSynchronization
-#define included_EdgeDataSynchronization
+#ifndef included_IBTK_EdgeDataSynchronization
+#define included_IBTK_EdgeDataSynchronization
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -222,4 +222,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_EdgeDataSynchronization
+#endif //#ifndef included_IBTK_EdgeDataSynchronization

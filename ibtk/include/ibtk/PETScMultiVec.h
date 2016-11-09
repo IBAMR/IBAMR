@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScMultiVec
-#define included_PETScMultiVec
+#ifndef included_IBTK_PETScMultiVec
+#define included_IBTK_PETScMultiVec
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -86,4 +86,4 @@ PetscErrorCode VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv);
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScMultiVec
+#endif //#ifndef included_IBTK_PETScMultiVec

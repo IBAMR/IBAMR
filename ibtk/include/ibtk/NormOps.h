@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_NormOps
-#define included_NormOps
+#ifndef included_IBTK_NormOps
+#define included_IBTK_NormOps
 
 namespace SAMRAI
 {
@@ -112,4 +112,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_NormOps
+#endif //#ifndef included_IBTK_NormOps

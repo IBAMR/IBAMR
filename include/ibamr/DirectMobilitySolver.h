@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_DirectMobilitySolver
-#define included_DirectMobilitySolver
+#ifndef included_IBAMR_DirectMobilitySolver
+#define included_IBAMR_DirectMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <map>
@@ -299,4 +299,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_DirectMobilitySolver
+#endif // #ifndef included_IBAMR_DirectMobilitySolver

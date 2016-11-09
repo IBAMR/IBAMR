@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScMFFDJacobianOperator
-#define included_PETScMFFDJacobianOperator
+#ifndef included_IBTK_PETScMFFDJacobianOperator
+#define included_IBTK_PETScMFFDJacobianOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -224,4 +224,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScMFFDJacobianOperator
+#endif //#ifndef included_IBTK_PETScMFFDJacobianOperator

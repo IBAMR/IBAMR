@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScMatLOWrapper
-#define included_PETScMatLOWrapper
+#ifndef included_IBTK_PETScMatLOWrapper
+#define included_IBTK_PETScMatLOWrapper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -222,4 +222,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScMatLOWrapper
+#endif //#ifndef included_IBTK_PETScMatLOWrapper

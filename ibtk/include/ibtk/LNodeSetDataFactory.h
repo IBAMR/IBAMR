@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeSetDataFactory
-#define included_LNodeSetDataFactory
+#ifndef included_IBTK_LNodeSetDataFactory
+#define included_IBTK_LNodeSetDataFactory
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LIndexSetDataFactory<LNode> LNodeSetDataFactory;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeSetDataFactory
+#endif //#ifndef included_IBTK_LNodeSetDataFactory

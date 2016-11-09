@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesPETScMatUtilities
-#define included_StaggeredStokesPETScMatUtilities
+#ifndef included_IBAMR_StaggeredStokesPETScMatUtilities
+#define included_IBAMR_StaggeredStokesPETScMatUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -148,4 +148,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesPETScMatUtilities
+#endif //#ifndef included_IBAMR_StaggeredStokesPETScMatUtilities

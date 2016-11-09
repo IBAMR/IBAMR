@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScSAMRAIVectorReal_inl_h
-#define included_PETScSAMRAIVectorReal_inl_h
+#ifndef included_IBTK_PETScSAMRAIVectorReal_inl_h
+#define included_IBTK_PETScSAMRAIVectorReal_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -115,4 +115,4 @@ PETScSAMRAIVectorReal::replaceSAMRAIVector(
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScSAMRAIVectorReal_inl_h
+#endif //#ifndef included_IBTK_PETScSAMRAIVectorReal_inl_h

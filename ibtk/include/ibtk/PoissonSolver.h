@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PoissonSolver
-#define included_PoissonSolver
+#ifndef included_IBTK_PoissonSolver
+#define included_IBTK_PoissonSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -134,4 +134,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PoissonSolver
+#endif //#ifndef included_IBTK_PoissonSolver

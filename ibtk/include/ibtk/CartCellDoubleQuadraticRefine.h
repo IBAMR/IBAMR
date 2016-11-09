@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartCellDoubleQuadraticRefine
-#define included_CartCellDoubleQuadraticRefine
+#ifndef included_IBTK_CartCellDoubleQuadraticRefine
+#define included_IBTK_CartCellDoubleQuadraticRefine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartCellDoubleQuadraticRefine
+#endif //#ifndef included_IBTK_CartCellDoubleQuadraticRefine

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBBeamForceSpec
-#define included_IBBeamForceSpec
+#ifndef included_IBAMR_IBBeamForceSpec
+#define included_IBAMR_IBBeamForceSpec
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -289,4 +289,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBBeamForceSpec
+#endif //#ifndef included_IBAMR_IBBeamForceSpec

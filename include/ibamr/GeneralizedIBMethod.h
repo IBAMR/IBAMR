@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_GeneralizedIBMethod
-#define included_GeneralizedIBMethod
+#ifndef included_IBAMR_GeneralizedIBMethod
+#define included_IBAMR_GeneralizedIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -286,4 +286,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_GeneralizedIBMethod
+#endif //#ifndef included_IBAMR_GeneralizedIBMethod

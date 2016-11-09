@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ibamr_utilities
-#define included_ibamr_utilities
+#ifndef included_IBAMR_ibamr_utilities
+#define included_IBAMR_ibamr_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -114,4 +114,4 @@ struct less<SAMRAI::tbox::Pointer<T> >
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ibamr_utilities
+#endif //#ifndef included_IBAMR_ibamr_utilities

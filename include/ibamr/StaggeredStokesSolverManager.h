@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesSolverManager
-#define included_StaggeredStokesSolverManager
+#ifndef included_IBAMR_StaggeredStokesSolverManager
+#define included_IBAMR_StaggeredStokesSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -191,4 +191,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesSolverManager
+#endif //#ifndef included_IBAMR_StaggeredStokesSolverManager

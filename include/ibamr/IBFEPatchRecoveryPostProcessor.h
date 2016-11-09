@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFEPatchRecoveryPostProcessor
-#define included_IBFEPatchRecoveryPostProcessor
+#ifndef included_IBAMR_IBFEPatchRecoveryPostProcessor
+#define included_IBAMR_IBFEPatchRecoveryPostProcessor
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -192,4 +192,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFEPatchRecoveryPostProcessor
+#endif //#ifndef included_IBAMR_IBFEPatchRecoveryPostProcessor

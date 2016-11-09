@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScSAMRAIVectorReal
-#define included_PETScSAMRAIVectorReal
+#ifndef included_IBTK_PETScSAMRAIVectorReal
+#define included_IBTK_PETScSAMRAIVectorReal
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -189,4 +189,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScSAMRAIVectorReal
+#endif //#ifndef included_IBTK_PETScSAMRAIVectorReal

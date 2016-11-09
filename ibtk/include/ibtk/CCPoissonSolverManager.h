@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CCPoissonSolverManager
-#define included_CCPoissonSolverManager
+#ifndef included_IBTK_CCPoissonSolverManager
+#define included_IBTK_CCPoissonSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -183,4 +183,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CCPoissonSolverManager
+#endif //#ifndef included_IBTK_CCPoissonSolverManager

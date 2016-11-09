@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IMPMethod
-#define included_IMPMethod
+#ifndef included_IBAMR_IMPMethod
+#define included_IBAMR_IMPMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -454,4 +454,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IMPMethod
+#endif //#ifndef included_IBAMR_IMPMethod

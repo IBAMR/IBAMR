@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_HierarchyIntegrator
-#define included_HierarchyIntegrator
+#ifndef included_IBTK_HierarchyIntegrator
+#define included_IBTK_HierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1044,4 +1044,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_HierarchyIntegrator
+#endif //#ifndef included_IBTK_HierarchyIntegrator

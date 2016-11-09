@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_MaterialPointSpec
-#define included_MaterialPointSpec
+#ifndef included_IBAMR_MaterialPointSpec
+#define included_IBAMR_MaterialPointSpec
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -267,4 +267,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_MaterialPointSpec
+#endif //#ifndef included_IBAMR_MaterialPointSpec

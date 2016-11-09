@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredVelocityBcCoef
-#define included_INSStaggeredVelocityBcCoef
+#ifndef included_IBAMR_INSStaggeredVelocityBcCoef
+#define included_IBAMR_INSStaggeredVelocityBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -297,4 +297,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredVelocityBcCoef
+#endif //#ifndef included_IBAMR_INSStaggeredVelocityBcCoef
