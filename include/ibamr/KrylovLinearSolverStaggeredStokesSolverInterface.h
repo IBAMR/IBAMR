@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_KrylovLinearSolverStaggeredStokesSolverInterface
-#define included_KrylovLinearSolverStaggeredStokesSolverInterface
+#ifndef included_IBAMR_KrylovLinearSolverStaggeredStokesSolverInterface
+#define included_IBAMR_KrylovLinearSolverStaggeredStokesSolverInterface
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -144,4 +144,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovLinearSolverStaggeredStokesSolverInterface
+#endif //#ifndef included_IBAMR_KrylovLinearSolverStaggeredStokesSolverInterface

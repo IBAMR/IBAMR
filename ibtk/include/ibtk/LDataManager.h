@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LDataManager
-#define included_LDataManager
+#ifndef included_IBTK_LDataManager
+#define included_IBTK_LDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1223,4 +1223,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LDataManager
+#endif //#ifndef included_IBTK_LDataManager

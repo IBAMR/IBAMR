@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBLagrangianSourceStrategy
-#define included_IBLagrangianSourceStrategy
+#ifndef included_IBAMR_IBLagrangianSourceStrategy
+#define included_IBAMR_IBLagrangianSourceStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -172,4 +172,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBLagrangianSourceStrategy
+#endif //#ifndef included_IBAMR_IBLagrangianSourceStrategy

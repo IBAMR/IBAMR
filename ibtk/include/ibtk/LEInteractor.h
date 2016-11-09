@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LEInteractor
-#define included_LEInteractor
+#ifndef included_IBTK_LEInteractor
+#define included_IBTK_LEInteractor
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -1129,4 +1129,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LEInteractor
+#endif //#ifndef included_IBTK_LEInteractor

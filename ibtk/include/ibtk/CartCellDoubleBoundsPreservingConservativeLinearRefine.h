@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartCellDoubleBoundsPreservingConservativeLinearRefine
-#define included_CartCellDoubleBoundsPreservingConservativeLinearRefine
+#ifndef included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine
+#define included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -170,4 +170,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartCellDoubleBoundsPreservingConservativeLinearRefine
+#endif //#ifndef included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine

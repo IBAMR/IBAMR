@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_compiler_hints
-#define included_compiler_hints
+#ifndef included_IBTK_compiler_hints
+#define included_IBTK_compiler_hints
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -115,4 +115,4 @@ namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_compiler_hints
+#endif //#ifndef included_IBTK_compiler_hints

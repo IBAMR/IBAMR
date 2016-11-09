@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_SCLaplaceOperator
-#define included_SCLaplaceOperator
+#ifndef included_IBTK_SCLaplaceOperator
+#define included_IBTK_SCLaplaceOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -185,4 +185,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SCLaplaceOperator
+#endif //#ifndef included_IBTK_SCLaplaceOperator

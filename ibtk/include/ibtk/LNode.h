@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNode
-#define included_LNode
+#ifndef included_IBTK_LNode
+#define included_IBTK_LNode
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -228,4 +228,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNode
+#endif //#ifndef included_IBTK_LNode

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffCenteredConvectiveOperator
-#define included_AdvDiffCenteredConvectiveOperator
+#ifndef included_IBAMR_AdvDiffCenteredConvectiveOperator
+#define included_IBAMR_AdvDiffCenteredConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -217,4 +217,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffCenteredConvectiveOperator
+#endif //#ifndef included_IBAMR_AdvDiffCenteredConvectiveOperator

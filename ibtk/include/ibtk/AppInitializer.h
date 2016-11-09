@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AppInitializer
-#define included_AppInitializer
+#ifndef included_IBTK_AppInitializer
+#define included_IBTK_AppInitializer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -264,4 +264,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AppInitializer
+#endif //#ifndef included_IBTK_AppInitializer

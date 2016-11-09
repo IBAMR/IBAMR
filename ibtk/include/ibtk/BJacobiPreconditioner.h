@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_BJacobiPreconditioner
-#define included_BJacobiPreconditioner
+#ifndef included_IBTK_BJacobiPreconditioner
+#define included_IBTK_BJacobiPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -270,4 +270,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_BJacobiPreconditioner
+#endif //#ifndef included_IBTK_BJacobiPreconditioner

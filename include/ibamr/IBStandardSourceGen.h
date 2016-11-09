@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBStandardSourceGen
-#define included_IBStandardSourceGen
+#ifndef included_IBAMR_IBStandardSourceGen
+#define included_IBAMR_IBStandardSourceGen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -266,4 +266,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBStandardSourceGen
+#endif //#ifndef included_IBAMR_IBStandardSourceGen

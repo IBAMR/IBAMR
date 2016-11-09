@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeIndexTransaction
-#define included_LNodeIndexTransaction
+#ifndef included_IBTK_LNodeIndexTransaction
+#define included_IBTK_LNodeIndexTransaction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LTransaction<LNodeIndex> LNodeIndexTransaction;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeIndexTransaction
+#endif //#ifndef included_IBTK_LNodeIndexTransaction

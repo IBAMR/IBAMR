@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScSNESJacobianJOWrapper
-#define included_PETScSNESJacobianJOWrapper
+#ifndef included_IBTK_PETScSNESJacobianJOWrapper
+#define included_IBTK_PETScSNESJacobianJOWrapper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -258,4 +258,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScSNESJacobianJOWrapper
+#endif //#ifndef included_IBTK_PETScSNESJacobianJOWrapper

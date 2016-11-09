@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FEDataManager
-#define included_FEDataManager
+#ifndef included_IBTK_FEDataManager
+#define included_IBTK_FEDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -773,4 +773,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FEDataManager
+#endif //#ifndef included_IBTK_FEDataManager

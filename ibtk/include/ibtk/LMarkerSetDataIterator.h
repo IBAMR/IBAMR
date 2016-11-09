@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMarkerSetDataIterator
-#define included_LMarkerSetDataIterator
+#ifndef included_IBTK_LMarkerSetDataIterator
+#define included_IBTK_LMarkerSetDataIterator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LSetDataIterator<LMarker> LMarkerSetDataIterator;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMarkerSetDataIterator
+#endif //#ifndef included_IBTK_LMarkerSetDataIterator

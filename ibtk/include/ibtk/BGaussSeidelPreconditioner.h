@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_BGaussSeidelPreconditioner
-#define included_BGaussSeidelPreconditioner
+#ifndef included_IBTK_BGaussSeidelPreconditioner
+#define included_IBTK_BGaussSeidelPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -326,4 +326,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_BGaussSeidelPreconditioner
+#endif //#ifndef included_IBTK_BGaussSeidelPreconditioner

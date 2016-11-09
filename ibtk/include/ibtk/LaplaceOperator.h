@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LaplaceOperator
-#define included_LaplaceOperator
+#ifndef included_IBTK_LaplaceOperator
+#define included_IBTK_LaplaceOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -152,4 +152,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LaplaceOperator
+#endif //#ifndef included_IBTK_LaplaceOperator

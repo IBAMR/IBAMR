@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBSpringForceFunctions
-#define included_IBSpringForceFunctions
+#ifndef included_IBAMR_IBSpringForceFunctions
+#define included_IBAMR_IBSpringForceFunctions
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -134,4 +134,4 @@ default_spring_force_deriv(double /*R*/, const double* params, int /*lag_mastr_i
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBSpringForceFunctions
+#endif //#ifndef included_IBAMR_IBSpringForceFunctions

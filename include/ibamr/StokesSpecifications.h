@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StokesSpecifications
-#define included_StokesSpecifications
+#ifndef included_IBAMR_StokesSpecifications
+#define included_IBAMR_StokesSpecifications
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -162,4 +162,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StokesSpecifications
+#endif //#ifndef included_IBAMR_StokesSpecifications

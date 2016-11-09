@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMesh
-#define included_LMesh
+#ifndef included_IBTK_LMesh
+#define included_IBTK_LMesh
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -111,4 +111,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMesh
+#endif //#ifndef included_IBTK_LMesh

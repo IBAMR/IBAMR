@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CIBMethod
-#define included_CIBMethod
+#ifndef included_IBAMR_CIBMethod
+#define included_IBAMR_CIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -545,4 +545,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CIBMethod
+#endif //#ifndef included_IBAMR_CIBMethod

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CoarsenPatchStrategySet
-#define included_CoarsenPatchStrategySet
+#ifndef included_IBTK_CoarsenPatchStrategySet
+#define included_IBTK_CoarsenPatchStrategySet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -172,4 +172,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CoarsenPatchStrategySet
+#endif //#ifndef included_IBTK_CoarsenPatchStrategySet

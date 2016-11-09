@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FaceDataSynchronization
-#define included_FaceDataSynchronization
+#ifndef included_IBTK_FaceDataSynchronization
+#define included_IBTK_FaceDataSynchronization
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -221,4 +221,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FaceDataSynchronization
+#endif //#ifndef included_IBTK_FaceDataSynchronization

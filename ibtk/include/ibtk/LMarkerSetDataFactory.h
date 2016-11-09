@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMarkerSetDataFactory
-#define included_LMarkerSetDataFactory
+#ifndef included_IBTK_LMarkerSetDataFactory
+#define included_IBTK_LMarkerSetDataFactory
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LSetDataFactory<LMarker> LMarkerSetDataFactory;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMarkerSetDataFactory
+#endif //#ifndef included_IBTK_LMarkerSetDataFactory

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LDataManager_inl_h
-#define included_LDataManager_inl_h
+#ifndef included_IBTK_LDataManager_inl_h
+#define included_IBTK_LDataManager_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -258,4 +258,4 @@ LDataManager::getLagrangianStructureIsActivated(const int structure_id, const in
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LDataManager_inl_h
+#endif //#ifndef included_IBTK_LDataManager_inl_h
