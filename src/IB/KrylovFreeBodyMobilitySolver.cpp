@@ -42,10 +42,10 @@
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h"
 #include "petsc/private/petscimpl.h"
 #include "tbox/TimerManager.h"
 

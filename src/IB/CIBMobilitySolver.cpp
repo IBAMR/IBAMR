@@ -32,6 +32,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include <limits>
 
 #include "ibamr/CIBMobilitySolver.h"
@@ -41,10 +42,10 @@
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h"
 #include "tbox/TimerManager.h"
 
 namespace IBAMR
