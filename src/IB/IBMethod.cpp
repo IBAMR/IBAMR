@@ -505,12 +505,12 @@ IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    if (X_vec != PETSC_NULL)
+    if (X_vec != NULL)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
         IBTK_CHKERRQ(ierr);
     }
-    if (F_vec != PETSC_NULL)
+    if (F_vec != NULL)
     {
         ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
         IBTK_CHKERRQ(ierr);
@@ -523,12 +523,12 @@ IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    if (X_vec != PETSC_NULL)
+    if (X_vec != NULL)
     {
         ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
         IBTK_CHKERRQ(ierr);
     }
-    if (F_vec != PETSC_NULL)
+    if (F_vec != NULL)
     {
         ierr = VecSet(*F_vec, 0.0);
         IBTK_CHKERRQ(ierr);
