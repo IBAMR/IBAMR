@@ -129,10 +129,13 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     Vec *vx, *vy;
     VecNestGetSubVecs(x, NULL, &vx);
     VecNestGetSubVecs(y, NULL, &vy);
-    SAMRAIVectorReal<NDIM, double>& u_p = *PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
+    SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     Vec L = vx[1];
     Vec U = vx[2];
-    SAMRAIVectorReal<NDIM, double>& g_f = *PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    SAMRAIVectorReal<NDIM, double>& g_f = *vy0;
     Vec V = vy[1];
     Vec F = vy[2];
 
@@ -248,6 +251,9 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // Deallocate scratch data.
     d_x->deallocateVectorData();
 
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
+
     IBAMR_TIMER_STOP(t_apply);
 } // apply
 
@@ -321,7 +327,9 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
     // Get vectors corresponding to fluid and Lagrangian velocity.
     Vec* vy;
     VecNestGetSubVecs(y, NULL, &vy);
-    SAMRAIVectorReal<NDIM, double>& b = *PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vy0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
+    SAMRAIVectorReal<NDIM, double>& b = *vy0;
     Vec W = vy[1];
 
     // Modify RHS for fluid Bcs.
@@ -370,6 +378,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         x->freeVectorComponents();
         VecDestroy(&V);
     }
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
 } // modifyRhsForBcs
 
 void
@@ -377,8 +386,11 @@ CIBStaggeredStokesOperator::imposeSolBcs(Vec x)
 {
     Vec* vx;
     VecNestGetSubVecs(x, NULL, &vx);
-    SAMRAIVectorReal<NDIM, double>& u_p = *PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     imposeSolBcs(u_p);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
 } // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

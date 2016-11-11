@@ -459,13 +459,16 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     Vec *vx, *vb;
     VecNestGetSubVecs(x, NULL, &vx);
     VecNestGetSubVecs(b, NULL, &vb);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
 
     // Create the temporary storage for spreading and Stokes solve operation.
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
     for (int i = 0; i < 2; ++i)
     {
-        d_samrai_temp[i] = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
+        d_samrai_temp[i] = vx0->cloneVector("");
         d_samrai_temp[i]->allocateVectorData();
     }
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
 
     // Create the RHS Vec to be used in the KSP object.
     VecDuplicate(vb[1], &d_petsc_b);
@@ -474,14 +477,17 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     initializeKSP();
 
     // Initialize LInv (Stokes solver) required in the mobility matrix.
-    initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
-                           *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0], &vb0);
+    initializeStokesSolver(*vx0, *vb0);
 
     // Get hierarchy information.
-    d_hierarchy = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
-    const int u_data_idx = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getComponentDescriptorIndex(0);
-    const int coarsest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getCoarsestLevelNumber();
-    const int finest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getFinestLevelNumber();
+    d_hierarchy = vx0->getPatchHierarchy();
+    const int u_data_idx = vx0->getComponentDescriptorIndex(0);
+    const int coarsest_ln = vx0->getCoarsestLevelNumber();
+    const int finest_ln = vx0->getFinestLevelNumber();
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vb[0], &vb0);
 
     // Setup the interpolation transaction information.
     d_fill_pattern = NULL;

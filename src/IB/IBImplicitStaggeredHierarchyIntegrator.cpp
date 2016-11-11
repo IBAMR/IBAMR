@@ -924,8 +924,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0], &u);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
@@ -998,6 +999,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
                                            getGhostfillRefineSchedules(d_object_name + "::u"),
                                            velocity_time);
     d_ib_implicit_ops->computeResidual(R);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(component_sol_vecs[0], &u);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(component_rhs_vecs[0], &f_u);
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBFunction_position
@@ -1010,8 +1013,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(f);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(x, &u);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
@@ -1093,6 +1097,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_ib_implicit_ops->spreadForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(x, &u);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(f, &f_u);
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBFunction_velocity
@@ -1169,7 +1175,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     ierr = VecDuplicate(d_X_current, &X_new);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(x, &u);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
     Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
@@ -1199,6 +1206,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
                                                      velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(d_X_current, X_new);
     d_ib_implicit_ops->setLinearizedPosition(X_new, velocity_time);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(x, &u);
 
     ierr = VecDestroy(&X_new);
     IBTK_CHKERRQ(ierr);
@@ -1240,8 +1248,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0], &u);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
     Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_idx = u->getComponentDescriptorIndex(0);
@@ -1303,6 +1312,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
                                                      getGhostfillRefineSchedules(d_object_name + "::u"),
                                                      velocity_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, R);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(component_sol_vecs[0], &u);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(component_rhs_vecs[0], &f_u);
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     return ierr;
 } // IBJacobianApply_position
@@ -1314,8 +1325,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(f);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(x, &u);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
     const int u_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
@@ -1373,7 +1385,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_ib_implicit_ops->spreadLinearizedForce(
         d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), force_time);
     d_hier_velocity_data_ops->axpy(f_u_idx, -kappa, d_f_idx, f_u_idx);
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(x, &u);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(f, &f_u);
     return 0;
 } // IBJacobianApply_velocity
 
@@ -1412,8 +1425,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     ierr = VecNestGetSubVecs(y, NULL, &component_y_vecs);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_x = PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0]);
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_y = PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0]);
+    Pointer<SAMRAIVectorReal<NDIM, double> > eul_x, eul_y;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0], &eul_x);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0], &eul_y);
 
     Vec lag_x = component_x_vecs[1];
     Vec lag_y = component_y_vecs[1];
@@ -1509,14 +1523,17 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 {
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-    Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(y);
+    Pointer<SAMRAIVectorReal<NDIM, double> > f_g, u_p;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(x, &f_g);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(y, &u_p);
     Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_stokes_solver);
 #endif
     bool converged = p_stokes_solver->getStaggeredStokesFACPreconditioner()->solveSystem(*u_p, *f_g);
     PetscErrorCode ierr = !converged;
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(x, &f_g);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(y, &u_p);
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     return ierr;
 } // IBPCApply_velocity
