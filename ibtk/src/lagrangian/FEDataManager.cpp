@@ -886,7 +886,7 @@ FEDataManager::prolongData(const int f_data_idx,
                 for (SideIterator<NDIM> b(box, axis); b; b++)
                 {
                     const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s))
+                    if (num_intersections(i_s) == 0 && side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)

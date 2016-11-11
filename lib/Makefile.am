@@ -122,7 +122,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
-../src/navier_stokes/PETScAugmentedKrylovStaggeredStokesSolver.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 ../src/navier_stokes/SpongeLayerForceFunction.cpp \
 ../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -223,7 +222,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
-../include/ibamr/PETScAugmentedKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \

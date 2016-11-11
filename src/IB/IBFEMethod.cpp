@@ -2080,7 +2080,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& X_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS_SYSTEM_NAME);
+    DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
@@ -2177,7 +2177,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map_cache.dof_indices(side_elem.get(), side_dof_indices[d], d);
+                    X_dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
 
                 // Cache the nodal and physical coordinates of the side element,
@@ -2185,6 +2185,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // the side element, and set the nodal coordinates to correspond
                 // to the physical coordinates.
                 X_node_cache.resize(n_node_side);
+                x_node_cache.resize(n_node_side);
                 x_min = IBTK::Point::Constant(std::numeric_limits<double>::max());
                 x_max = IBTK::Point::Constant(-std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
