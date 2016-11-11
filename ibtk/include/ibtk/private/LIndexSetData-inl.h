@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LIndexSetData_inl_h
-#define included_LIndexSetData_inl_h
+#ifndef included_IBTK_LIndexSetData_inl_h
+#define included_IBTK_LIndexSetData_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -133,4 +133,4 @@ LIndexSetData<T>::getGhostPeriodicShifts() const
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LIndexSetData_inl_h
+#endif //#ifndef included_IBTK_LIndexSetData_inl_h

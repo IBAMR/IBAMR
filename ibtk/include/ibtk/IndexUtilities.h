@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IndexUtilities
-#define included_IndexUtilities
+#ifndef included_IBTK_IndexUtilities
+#define included_IBTK_IndexUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -237,4 +237,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IndexUtilities
+#endif //#ifndef included_IBTK_IndexUtilities

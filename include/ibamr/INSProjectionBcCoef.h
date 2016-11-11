@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSProjectionBcCoef
-#define included_INSProjectionBcCoef
+#ifndef included_IBAMR_INSProjectionBcCoef
+#define included_IBAMR_INSProjectionBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -254,4 +254,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSProjectionBcCoef
+#endif //#ifndef included_IBAMR_INSProjectionBcCoef

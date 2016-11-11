@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_WallForceEvaluator
-#define included_WallForceEvaluator
+#ifndef included_IBAMR_WallForceEvaluator
+#define included_IBAMR_WallForceEvaluator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -87,4 +87,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_WallForceEvaluator
+#endif // #ifndef included_IBAMR_WallForceEvaluator

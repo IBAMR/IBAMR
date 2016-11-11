@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredHierarchyIntegrator
-#define included_INSStaggeredHierarchyIntegrator
+#ifndef included_IBAMR_INSStaggeredHierarchyIntegrator
+#define included_IBAMR_INSStaggeredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -413,4 +413,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSStaggeredHierarchyIntegrator

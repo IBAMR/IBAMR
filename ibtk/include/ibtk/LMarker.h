@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMarker
-#define included_LMarker
+#ifndef included_IBTK_LMarker
+#define included_IBTK_LMarker
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -210,4 +210,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMarker
+#endif //#ifndef included_IBTK_LMarker

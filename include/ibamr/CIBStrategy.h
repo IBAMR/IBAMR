@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CIBStrategy
-#define included_CIBStrategy
+#ifndef included_IBAMR_CIBStrategy
+#define included_IBAMR_CIBStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -274,7 +274,7 @@ public:
      * \brief Compute total force and torque on the structure.
      *
      * \param L The Lagrange multiplier vector.
-     * \param F PetscMultiVec storing the net generalized force.
+     * \param F Vec storing the net generalized force.
      *
      * \param only_free_dofs Boolean indicating if the net generalized
      * force and torque is to be computed only for free dofs of all bodies.
@@ -638,4 +638,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // ifndef included_CIBStrategy
+#endif // ifndef included_IBAMR_CIBStrategy

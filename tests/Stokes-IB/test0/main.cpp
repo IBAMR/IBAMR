@@ -217,13 +217,13 @@ public:
             PetscBool nz_init_guess;
             KSPGetInitialGuessNonzero(d_petsc_ksp, &nz_init_guess);
             d_initial_guess_nonzero = (nz_init_guess == PETSC_TRUE);
-            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations);
+            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
 
             // Set the KSP operator.
             if (d_ksp_mat)
             {
                 MatDestroy(&d_ksp_mat);
-                d_ksp_mat = PETSC_NULL;
+                d_ksp_mat = NULL;
             }
             if (!d_ksp_mat)
             {
@@ -295,7 +295,7 @@ public:
         if (d_ksp_mat)
         {
             MatDestroy(&d_ksp_mat);
-            d_ksp_mat = PETSC_NULL;
+            d_ksp_mat = NULL;
         }
 
         return;
@@ -373,7 +373,7 @@ private:
         // Compute position residual X = dt*J*[u/2] = 0 - dt*J*[-u/2]
         Vec X, X0;
         solver->d_ib_ops->createSolverVecs(&X, &X0);
-        solver->d_ib_ops->setupSolverVecs(PETSC_NULL, &X0);
+        solver->d_ib_ops->setupSolverVecs(NULL, &X0);
 
         solver->d_hier_velocity_data_ops->scale(solver->d_u_idx, -0.5, u_idx);
         solver->d_ghost_fill_schd->fillData(half_time);
@@ -698,7 +698,7 @@ main(int argc, char* argv[])
         PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
 
         // Get the matrix/matrix-free representation of force Jacobian (A).
-        Mat A = PETSC_NULL, A_MFFD = PETSC_NULL;
+        Mat A = NULL, A_MFFD = NULL;
         ib_method_ops->constructLagrangianForceJacobian(A, MATAIJ);
         ib_method_ops->constructLagrangianForceJacobian(A_MFFD, MATSHELL);
 
@@ -713,7 +713,7 @@ main(int argc, char* argv[])
         //====================================================================
 
         // Get the matrix representation of J at the finest level
-        Mat J = PETSC_NULL;
+        Mat J = NULL;
         ib_method_ops->constructInterpOp(J,
                                          PETScMatUtilities::ib_4_interp_fcn,
                                          PETScMatUtilities::ib_4_interp_stencil,

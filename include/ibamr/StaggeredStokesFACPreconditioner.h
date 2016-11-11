@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesFACPreconditioner
-#define included_StaggeredStokesFACPreconditioner
+#ifndef included_IBAMR_StaggeredStokesFACPreconditioner
+#define included_IBAMR_StaggeredStokesFACPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -156,4 +156,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesFACPreconditioner
+#endif //#ifndef included_IBAMR_StaggeredStokesFACPreconditioner

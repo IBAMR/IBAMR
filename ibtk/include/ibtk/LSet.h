@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LSet
-#define included_LSet
+#ifndef included_IBTK_LSet
+#define included_IBTK_LSet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -288,4 +288,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LSet
+#endif //#ifndef included_IBTK_LSet

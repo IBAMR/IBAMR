@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_NonbondedForceEvaluator
-#define included_NonbondedForceEvaluator
+#ifndef included_IBAMR_NonbondedForceEvaluator
+#define included_IBAMR_NonbondedForceEvaluator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -113,4 +113,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_NonbondedForceEvaluator
+#endif // #ifndef included_IBAMR_NonbondedForceEvaluator

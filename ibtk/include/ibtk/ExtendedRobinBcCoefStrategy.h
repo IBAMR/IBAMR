@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ExtendedRobinBcCoefStrategy
-#define included_ExtendedRobinBcCoefStrategy
+#ifndef included_IBTK_ExtendedRobinBcCoefStrategy
+#define included_IBTK_ExtendedRobinBcCoefStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -120,4 +120,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ExtendedRobinBcCoefStrategy
+#endif //#ifndef included_IBTK_ExtendedRobinBcCoefStrategy

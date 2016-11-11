@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ParallelEdgeMap
-#define included_ParallelEdgeMap
+#ifndef included_IBTK_ParallelEdgeMap
+#define included_IBTK_ParallelEdgeMap
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -129,4 +129,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ParallelEdgeMap
+#endif //#ifndef included_IBTK_ParallelEdgeMap

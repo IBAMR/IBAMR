@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScMatUtilities
-#define included_PETScMatUtilities
+#ifndef included_IBTK_PETScMatUtilities
+#define included_IBTK_PETScMatUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -305,4 +305,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScMatUtilities
+#endif //#ifndef included_IBTK_PETScMatUtilities

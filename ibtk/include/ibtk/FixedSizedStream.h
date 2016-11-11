@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FixedSizedStream
-#define included_FixedSizedStream
+#ifndef included_IBTK_FixedSizedStream
+#define included_IBTK_FixedSizedStream
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -358,4 +358,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FixedSizedStream
+#endif //#ifndef included_IBTK_FixedSizedStream

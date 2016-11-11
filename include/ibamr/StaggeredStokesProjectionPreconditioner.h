@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesProjectionPreconditioner
-#define included_StaggeredStokesProjectionPreconditioner
+#ifndef included_IBAMR_StaggeredStokesProjectionPreconditioner
+#define included_IBAMR_StaggeredStokesProjectionPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -192,4 +192,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesProjectionPreconditioner
+#endif //#ifndef included_IBAMR_StaggeredStokesProjectionPreconditioner

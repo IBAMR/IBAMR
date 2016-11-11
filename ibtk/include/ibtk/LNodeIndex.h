@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeIndex
-#define included_LNodeIndex
+#ifndef included_IBTK_LNodeIndex
+#define included_IBTK_LNodeIndex
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -441,4 +441,4 @@ struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, 
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeIndex
+#endif //#ifndef included_IBTK_LNodeIndex

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_app_namespaces
-#define included_app_namespaces
+#ifndef included_IBAMR_app_namespaces
+#define included_IBAMR_app_namespaces
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -112,4 +112,4 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_app_namespaces
+#endif //#ifndef included_IBAMR_app_namespaces

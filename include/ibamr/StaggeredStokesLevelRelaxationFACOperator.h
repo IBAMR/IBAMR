@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesLevelRelaxationFACOperator
-#define included_StaggeredStokesLevelRelaxationFACOperator
+#ifndef included_IBAMR_StaggeredStokesLevelRelaxationFACOperator
+#define included_IBAMR_StaggeredStokesLevelRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -202,4 +202,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesLevelRelaxationFACOperator
+#endif //#ifndef included_IBAMR_StaggeredStokesLevelRelaxationFACOperator

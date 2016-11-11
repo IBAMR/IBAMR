@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FaceSynchCopyFillPattern
-#define included_FaceSynchCopyFillPattern
+#ifndef included_IBTK_FaceSynchCopyFillPattern
+#define included_IBTK_FaceSynchCopyFillPattern
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -142,4 +142,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FaceSynchCopyFillPattern
+#endif //#ifndef included_IBTK_FaceSynchCopyFillPattern

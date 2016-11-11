@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ConstraintIBKinematics
-#define included_ConstraintIBKinematics
+#ifndef included_IBAMR_ConstraintIBKinematics
+#define included_IBAMR_ConstraintIBKinematics
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
@@ -260,4 +260,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ConstraintIBKinematics
+#endif //#ifndef included_IBAMR_ConstraintIBKinematics

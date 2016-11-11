@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBSpringForceSpec_inl
-#define included_IBSpringForceSpec_inl
+#ifndef included_IBAMR_IBSpringForceSpec_inl
+#define included_IBAMR_IBSpringForceSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -207,4 +207,4 @@ IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBSpringForceSpec_inl
+#endif //#ifndef included_IBAMR_IBSpringForceSpec_inl

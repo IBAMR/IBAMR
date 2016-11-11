@@ -41,10 +41,9 @@
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/namespaces.h"
 #include "petsc/private/petscimpl.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
@@ -475,7 +474,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     {
         // Get grid-info
         Vec* vx;
-        IBTK::VecMultiVecGetSubVecs(x, &vx);
+        VecNestGetSubVecs(x, NULL, &vx);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
             IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();

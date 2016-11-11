@@ -126,7 +126,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PoissonUtilities
-#define included_PoissonUtilities
+#ifndef included_IBTK_PoissonUtilities
+#define included_IBTK_PoissonUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -207,4 +207,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PoissonUtilities
+#endif //#ifndef included_IBTK_PoissonUtilities

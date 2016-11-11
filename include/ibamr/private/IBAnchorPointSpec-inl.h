@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAnchorPointSpec_inl
-#define included_IBAnchorPointSpec_inl
+#ifndef included_IBAMR_IBAnchorPointSpec_inl
+#define included_IBAMR_IBAnchorPointSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -114,4 +114,4 @@ IBAnchorPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAnchorPointSpec_inl
+#endif //#ifndef included_IBAMR_IBAnchorPointSpec_inl

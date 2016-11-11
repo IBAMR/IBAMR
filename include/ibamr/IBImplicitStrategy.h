@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBImplicitStrategy
-#define included_IBImplicitStrategy
+#ifndef included_IBAMR_IBImplicitStrategy
+#define included_IBAMR_IBImplicitStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -182,4 +182,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitStrategy
+#endif //#ifndef included_IBAMR_IBImplicitStrategy

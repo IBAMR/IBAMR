@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CCLaplaceOperator
-#define included_CCLaplaceOperator
+#ifndef included_IBTK_CCLaplaceOperator
+#define included_IBTK_CCLaplaceOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -177,4 +177,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CCLaplaceOperator
+#endif //#ifndef included_IBTK_CCLaplaceOperator

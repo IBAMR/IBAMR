@@ -38,13 +38,8 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "tbox/Database.h"
-
-#if 0
-#include "ibamr/CIBFEMethod.h"
-#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -200,8 +195,8 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, dou
     vb[0] = g_h;
     vb[1] = V;
     vb[2] = F;
-    VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vx[0], &mv_x);
-    VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vb[0], &mv_b);
+    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vx[0], &mv_x);
+    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vb[0], &mv_b);
 
     // Initialize the saddle-point solver.
     d_sp_solver->initializeSolverState(mv_x, mv_b);
@@ -304,8 +299,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     vb[2] = F;
 
     Vec mv_x, mv_b;
-    VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vx[0], &mv_x);
-    VecCreateMultiVec(PETSC_COMM_WORLD, 3, &vb[0], &mv_b);
+    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vx[0], &mv_x);
+    VecCreateNest(PETSC_COMM_WORLD, 3, NULL, &vb[0], &mv_b);
 
     // Solve for velocity, pressure and Lagrange multipliers.
     // Notice that initial guess for U is provided by the implementation of the
@@ -345,7 +340,7 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
     Vec* vV;
-    VecMultiVecGetSubVecs(V, &vV);
+    VecNestGetSubVecs(V, NULL, &vV);
     VecView(vV[0], PETSC_VIEWER_STDOUT_WORLD);
 #endif
 

@@ -1,5 +1,5 @@
-#ifndef included_RNG
-#define included_RNG
+#ifndef included_IBAMR_RNG
+#define included_IBAMR_RNG
 
 namespace IBAMR
 {
@@ -26,4 +26,4 @@ private:
 };
 } // namespace IBAMR
 
-#endif //#ifndef included_RNG
+#endif //#ifndef included_IBAMR_RNG

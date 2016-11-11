@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartSideDoubleSpecializedConstantRefine
-#define included_CartSideDoubleSpecializedConstantRefine
+#ifndef included_IBTK_CartSideDoubleSpecializedConstantRefine
+#define included_IBTK_CartSideDoubleSpecializedConstantRefine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartSideDoubleSpecializedConstantRefine
+#endif //#ifndef included_IBTK_CartSideDoubleSpecializedConstantRefine

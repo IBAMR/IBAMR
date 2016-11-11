@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartSideRobinPhysBdryOp
-#define included_CartSideRobinPhysBdryOp
+#ifndef included_IBTK_CartSideRobinPhysBdryOp
+#define included_IBTK_CartSideRobinPhysBdryOp
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -260,4 +260,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartSideRobinPhysBdryOp
+#endif //#ifndef included_IBTK_CartSideRobinPhysBdryOp

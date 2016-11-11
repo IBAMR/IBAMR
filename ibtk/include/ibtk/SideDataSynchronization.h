@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_SideDataSynchronization
-#define included_SideDataSynchronization
+#ifndef included_IBTK_SideDataSynchronization
+#define included_IBTK_SideDataSynchronization
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -221,4 +221,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SideDataSynchronization
+#endif //#ifndef included_IBTK_SideDataSynchronization

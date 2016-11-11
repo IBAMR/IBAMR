@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTargetPointForceSpec
-#define included_IBTargetPointForceSpec
+#ifndef included_IBAMR_IBTargetPointForceSpec
+#define included_IBAMR_IBTargetPointForceSpec
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -267,4 +267,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTargetPointForceSpec
+#endif //#ifndef included_IBAMR_IBTargetPointForceSpec
