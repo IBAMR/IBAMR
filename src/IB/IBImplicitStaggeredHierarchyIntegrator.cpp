@@ -919,10 +919,10 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
 
     Vec* component_sol_vecs;
     ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     Vec* component_rhs_vecs;
     ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
@@ -1141,13 +1141,13 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_position(SNES /*snes*/, 
     }
 
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     Vec* component_sol_vecs;
     ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     Vec X = component_sol_vecs[1];
     d_ib_implicit_ops->setLinearizedPosition(X, data_time);
     return ierr;
@@ -1162,15 +1162,15 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     const double half_time = current_time + 0.5 * d_current_dt;
 
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it as
     // a base vector in matrix-free Lagrangian force Jacobian.
     Vec X_new;
     ierr = VecDuplicate(d_X_current, &X_new);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
@@ -1206,7 +1206,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &u);
 
     ierr = VecDestroy(&X_new);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     return ierr;
 } // IBJacobianSetup_velocity
 
@@ -1216,7 +1216,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_SAMRAI(Mat A, Vec x, Vec
     PetscErrorCode ierr = 1;
     void* ctx;
     ierr = MatShellGetContext(A, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     if (ib_integrator->d_solve_for_position)
     {
@@ -1241,9 +1241,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     Vec* component_sol_vecs;
     Vec* component_rhs_vecs;
     ierr = VecNestGetSubVecs(x, NULL, &component_sol_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = VecNestGetSubVecs(f, NULL, &component_rhs_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
@@ -1392,7 +1392,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
     PetscErrorCode ierr = 1;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     if (ib_integrator->d_solve_for_position)
     {
@@ -1402,7 +1402,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_SAMRAI(PC pc, Vec x, Vec y)
     {
         ierr = ib_integrator->IBPCApply_velocity(x, y);
     }
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     return ierr;
 } // IBPCApply_SAMRAI
 
@@ -1417,9 +1417,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     Vec* component_x_vecs;
     Vec* component_y_vecs;
     ierr = VecNestGetSubVecs(x, NULL, &component_x_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = VecNestGetSubVecs(y, NULL, &component_y_vecs);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > eul_x, eul_y;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_x_vecs[0], &eul_x);
@@ -1494,12 +1494,12 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 
     // Step 3: lag_y := inv(Sc)*lag_y
     ierr = KSPSolve(d_schur_solver, lag_y, lag_y);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
 
     // Step 4: eul_y := eul_y + inv(L)*S*A*lag_y/2
     d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
     ierr = VecScale(lag_y, 0.5);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
@@ -1539,7 +1539,7 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x
     PetscErrorCode ierr;
     void* ctx;
     ierr = MatShellGetContext(A, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     ierr = ib_integrator->lagrangianSchurApply(x, y);
     return ierr;

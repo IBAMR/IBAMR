@@ -835,7 +835,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScLevelSolver* solver = static_cast<PETScLevelSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
@@ -853,24 +853,24 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
     for (int i = 0; i < n_subdomains_max; ++i)
     {
         ierr = VecScatterBegin(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     for (int i = 0; i < n_subdomains_max; ++i)
     {
         ierr = VecScatterEnd(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         if (i < n_local_subdomains)
         {
             ierr = KSPSolve(sub_ksp[i], sub_x[i], sub_y[i]);
-            IBTK_CHKERRQ(ierr);
+            CHKERRQ(ierr);
         }
         ierr = VecScatterBegin(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     for (int i = 0; i < n_subdomains_max; ++i)
     {
         ierr = VecScatterEnd(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
 } // PCApply_Additive
@@ -881,13 +881,13 @@ PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScLevelSolver* solver = static_cast<PETScLevelSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
 #endif
     ierr = VecZeroEntries(y);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     Vec local_y = solver->d_local_y;
     const int n_local_subdomains = solver->d_n_local_subdomains;
     const int n_subdomains_max = solver->d_n_subdomains_max;
@@ -903,30 +903,30 @@ PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
     for (int i = 0; i < n_subdomains_max; ++i)
     {
         ierr = VecScatterBegin(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     for (int i = 0; i < n_subdomains_max; ++i)
     {
         ierr = VecScatterEnd(restriction[i], x, sub_x[i], INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         if (i < n_local_subdomains)
         {
             if (i > 0)
             {
                 ierr = VecGetLocalVectorRead(y, local_y);
-                IBTK_CHKERRQ(ierr);
+                CHKERRQ(ierr);
                 ierr = MatMultAdd(sub_bc_mat[i], local_y, sub_x[i], sub_x[i]);
-                IBTK_CHKERRQ(ierr);
+                CHKERRQ(ierr);
                 ierr = VecRestoreLocalVectorRead(y, local_y);
-                IBTK_CHKERRQ(ierr);
+                CHKERRQ(ierr);
             }
             ierr = KSPSolve(sub_ksp[i], sub_x[i], sub_y[i]);
-            IBTK_CHKERRQ(ierr);
+            CHKERRQ(ierr);
         }
         ierr = VecScatterBegin(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         ierr = VecScatterEnd(prolongation[i], sub_y[i], y, INSERT_VALUES, SCATTER_FORWARD_LOCAL);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
 } // PCApply_Multiplicative

@@ -823,7 +823,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     int ierr;
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
@@ -844,7 +844,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);

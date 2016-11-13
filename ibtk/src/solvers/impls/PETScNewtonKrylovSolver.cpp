@@ -707,15 +707,15 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/,
     {
         Vec u, f;
         ierr = SNESGetSolution(snes, &u);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         ierr = SNESGetFunction(snes, &f, NULL, NULL);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         ierr = MatMFFDSetBase(A, u, f);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
 }
@@ -726,7 +726,7 @@ PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     int ierr;
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
