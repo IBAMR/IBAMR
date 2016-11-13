@@ -422,7 +422,6 @@ KrylovMobilitySolver::solveSystem(Vec x, Vec b)
 
     d_petsc_x = x;
     VecCopy(b, d_petsc_b);
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
 
     // Solve the system using a PETSc KSP object.
     KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
@@ -461,17 +460,17 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     VecNestGetSubVecs(b, NULL, &vb);
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
 
+    // Create the RHS Vec to be used in the KSP object.
+    VecDuplicate(vb[1], &d_petsc_b);
+
     // Create the temporary storage for spreading and Stokes solve operation.
-    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     for (int i = 0; i < 2; ++i)
     {
         d_samrai_temp[i] = vx0->cloneVector("");
         d_samrai_temp[i]->allocateVectorData();
     }
-    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
-
-    // Create the RHS Vec to be used in the KSP object.
-    VecDuplicate(vb[1], &d_petsc_b);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
 
     // Initialize PETSc KSP
     initializeKSP();
@@ -985,8 +984,6 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
         VecAXPY(y, beta, D);
         VecDestroy(&D);
     }
-
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
 
     PetscFunctionReturn(0);
 } // MatVecMult_KMInv

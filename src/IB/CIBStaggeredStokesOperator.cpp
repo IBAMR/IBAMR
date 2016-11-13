@@ -130,7 +130,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     VecNestGetSubVecs(x, NULL, &vx);
     VecNestGetSubVecs(y, NULL, &vy);
     Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
-    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
     SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     Vec L = vx[1];
@@ -251,7 +251,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // Deallocate scratch data.
     d_x->deallocateVectorData();
 
-    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
 
     IBAMR_TIMER_STOP(t_apply);

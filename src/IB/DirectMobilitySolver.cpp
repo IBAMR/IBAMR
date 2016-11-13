@@ -392,7 +392,6 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
             delete[] rhs;
         }
     }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
     IBAMR_TIMER_STOP(t_solve_system);
 
@@ -449,7 +448,6 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
             delete[] rhs;
         }
     }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
 
     IBAMR_TIMER_STOP(t_solve_body_system);
 
@@ -476,10 +474,10 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
         Vec* vx;
         VecNestGetSubVecs(x, NULL, &vx);
         Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
-        IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+        IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = vx0->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
+        IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
         Pointer<PatchLevel<NDIM> > struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
         const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
