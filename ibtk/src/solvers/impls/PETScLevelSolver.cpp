@@ -136,8 +136,6 @@ PETScLevelSolver::PETScLevelSolver()
       d_petsc_ksp(NULL),
       d_petsc_mat(NULL),
       d_petsc_pc(NULL),
-      d_petsc_extern_mat(NULL),
-      d_petsc_add_mat(NULL),
       d_petsc_x(NULL),
       d_petsc_b(NULL)
 {
@@ -738,28 +736,6 @@ PETScLevelSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 } // deallocateSolverState
-
-void
-PETScLevelSolver::addLinearOperator(Mat& op)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_is_initialized);
-    TBOX_ASSERT(op);
-#endif
-    d_petsc_add_mat = op;
-    return;
-} // addLinearOperator
-
-void
-PETScLevelSolver::useLinearOperator(Mat& op)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_is_initialized);
-    TBOX_ASSERT(op);
-#endif
-    d_petsc_extern_mat = op;
-    return;
-} // addLinearOperator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

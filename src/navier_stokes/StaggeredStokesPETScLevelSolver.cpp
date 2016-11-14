@@ -196,14 +196,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-
-    if (d_petsc_extern_mat)
-    {
-        d_petsc_mat = d_petsc_extern_mat;
-        PetscObjectReference((PetscObject)d_petsc_extern_mat);
-    }
-    else
-    {
         StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
                                                                          d_U_problem_coefs,
                                                                          d_U_bc_coefs,
@@ -212,12 +204,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                          d_u_dof_index_idx,
                                                                          d_p_dof_index_idx,
                                                                          d_level);
-    }
-    if (d_petsc_add_mat)
-    {
-        ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_add_mat, DIFFERENT_NONZERO_PATTERN);
-        IBTK_CHKERRQ(ierr);
-    }
     d_petsc_pc = d_petsc_mat;
 
 

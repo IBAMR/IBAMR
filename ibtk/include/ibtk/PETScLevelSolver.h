@@ -230,26 +230,6 @@ public:
      */
     void deallocateSolverState();
 
-    /*!
-     * \brief Add an additional linear operator to the existing operator.
-     * \NOTE this function should be called prior to initializing the solver
-     * state.
-     *
-     * \param op PETSc Mat to add to the existing matrix.
-     *
-     */
-    void addLinearOperator(Mat& op);
-
-    /*!
-     * \brief Use externally provided linear operator.
-     * \NOTE this function should be called prior to initializing the solver
-     * state.
-     *
-     * \param op PETSc Mat to be used as linear operator.
-     *
-     */
-    void useLinearOperator(Mat& op);
-
     //\}
 
 protected:
@@ -327,7 +307,6 @@ protected:
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc;
-    Mat d_petsc_extern_mat, d_petsc_add_mat;
     MatNullSpace d_petsc_nullsp;
     Vec d_petsc_x, d_petsc_b;
     //\}
