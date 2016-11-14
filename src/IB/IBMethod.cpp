@@ -2153,7 +2153,7 @@ IBMethod::computeForce_SAMRAI(void* ctx, Vec X, Vec F)
     PetscErrorCode ierr;
     IBMethod* ib_method_ops = static_cast<IBMethod*>(ctx);
     ierr = ib_method_ops->computeForce(X, F);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     return ierr;
 } // computeForce_SAMRAI
 
@@ -2167,14 +2167,14 @@ IBMethod::computeForce(Vec X, Vec F)
     getPositionData(&X_data, &X_needs_ghost_fill, d_force_jac_data_time);
     const int level_num = d_hierarchy->getFinestLevelNumber();
     ierr = VecSwap(X, (*X_data)[level_num]->getVec());
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = VecSwap(F, (*F_data)[level_num]->getVec());
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     computeLagrangianForce(d_force_jac_data_time);
     ierr = VecSwap(X, (*X_data)[level_num]->getVec());
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     ierr = VecSwap(F, (*F_data)[level_num]->getVec());
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     return ierr;
 } // computeForce
 

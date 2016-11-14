@@ -823,15 +823,18 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     int ierr;
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
-    krylov_solver->d_A->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
-    IBTK_CHKERRQ(ierr);
+    Pointer<SAMRAIVectorReal<NDIM, double> > samrai_x, samrai_y;
+    PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
+    krylov_solver->d_A->apply(*samrai_x, *samrai_y);
+    PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::restoreSAMRAIVector(y, &samrai_y);
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI
 
@@ -841,7 +844,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
-    IBTK_CHKERRQ(ierr);
+    CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
@@ -853,10 +856,12 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     krylov_solver->d_pc_solver->setInitialGuessNonzero(false);
 
     // Apply the preconditioner.
-    krylov_solver->d_pc_solver->solveSystem(*PETScSAMRAIVectorReal::getSAMRAIVector(y),
-                                            *PETScSAMRAIVectorReal::getSAMRAIVector(x));
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
-    IBTK_CHKERRQ(ierr);
+    Pointer<SAMRAIVectorReal<NDIM, double> > samrai_x, samrai_y;
+    PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
+    krylov_solver->d_pc_solver->solveSystem(*samrai_y, *samrai_x);
+    PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::restoreSAMRAIVector(y, &samrai_y);
 
     // Reset the configuration of the preconditioner object.
     krylov_solver->d_pc_solver->setInitialGuessNonzero(pc_initial_guess_nonzero);

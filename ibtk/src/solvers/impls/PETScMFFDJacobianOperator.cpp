@@ -80,28 +80,24 @@ PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_n
       d_options_prefix(options_prefix)
 {
     // intentionally blank
-    return;
-} // PETScMFFDJacobianOperator()
+}
 
 PETScMFFDJacobianOperator::~PETScMFFDJacobianOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    return;
-} // ~PETScMFFDJacobianOperator()
+}
 
 void
 PETScMFFDJacobianOperator::setOperator(Pointer<GeneralOperator> F)
 {
     d_F = F;
-    return;
-} // setOperator
+}
 
 void
 PETScMFFDJacobianOperator::setNewtonKrylovSolver(Pointer<PETScNewtonKrylovSolver> nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
-    return;
-} // setNewtonKrylovSolver
+}
 
 void
 PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
@@ -126,8 +122,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     {
         d_op_u->allocateVectorData();
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u, false), false);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_u));
-        IBTK_CHKERRQ(ierr);
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
         ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, NULL);
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_petsc_jac, MAT_FINAL_ASSEMBLY);
@@ -136,8 +131,7 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         IBTK_CHKERRQ(ierr);
         d_op_u->deallocateVectorData();
     }
-    return;
-} // formJacobian
+}
 
 Pointer<SAMRAIVectorReal<NDIM, double> >
 PETScMFFDJacobianOperator::getBaseVector() const
@@ -148,14 +142,18 @@ PETScMFFDJacobianOperator::getBaseVector() const
         Vec u;
         int ierr = SNESGetSolution(snes, &u);
         IBTK_CHKERRQ(ierr);
-        return PETScSAMRAIVectorReal::getSAMRAIVector(u);
+        Pointer<SAMRAIVectorReal<NDIM, double> > samrai_u;
+        PETScSAMRAIVectorReal::getSAMRAIVector(u, &samrai_u);
+        Pointer<SAMRAIVectorReal<NDIM, double> > samrai_u_ptr = samrai_u;
+        PETScSAMRAIVectorReal::restoreSAMRAIVector(u, &samrai_u);
+        return samrai_u_ptr;
     }
     else
     {
         return d_op_u;
     }
     return Pointer<SAMRAIVectorReal<NDIM, double> >(NULL);
-} // getBaseVector
+}
 
 void
 PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
@@ -165,8 +163,7 @@ PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&y, false));
     int ierr = MatMult(d_petsc_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
-    return;
-} // apply
+}
 
 void
 PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
@@ -203,8 +200,7 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
 
     // Indicate that the operator is initialized.
     d_is_initialized = true;
-    return;
-} // initializeOperatorState
+}
 
 void
 PETScMFFDJacobianOperator::deallocateOperatorState()
@@ -233,8 +229,7 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     d_petsc_jac = NULL;
 
     d_is_initialized = false;
-    return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -247,23 +242,26 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
     TBOX_ASSERT(jac_op->d_F);
 #endif
     int ierr;
-    jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
+    Pointer<SAMRAIVectorReal<NDIM, double> > samrai_x, samrai_f;
+    PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::getSAMRAIVector(f, &samrai_f);
+    jac_op->d_F->apply(*samrai_x, *samrai_f);
+    PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
+    PETScSAMRAIVectorReal::restoreSAMRAIVector(f, &samrai_f);
     if (jac_op->d_nonlinear_solver)
     {
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();
         Vec rhs;
         ierr = SNESGetRhs(snes, &rhs);
-        IBTK_CHKERRQ(ierr);
+        CHKERRQ(ierr);
         if (rhs)
         {
-            VecAXPY(f, -1.0, rhs);
-            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(f, -1.0, rhs);
+            CHKERRQ(ierr);
         }
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
-    IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
-} // FormFunction_SAMRAI
+}
 
 //////////////////////////////////////////////////////////////////////////////
 
