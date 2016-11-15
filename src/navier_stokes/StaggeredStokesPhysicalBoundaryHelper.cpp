@@ -41,6 +41,7 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "CartesianPatchGeometry.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -156,7 +157,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL);
     return;
 } // enforceNormalVelocityBoundaryConditions
-#if 0
+
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const int u_data_idx,
@@ -175,7 +176,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
+                Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
                 enforceDivergenceFreeConditionAtBoundary(u_data, patch);
             }
         }
@@ -195,15 +196,16 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const double* const dx = pgeom->getDx();
     const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
+    const std::vector<Pointer<ArrayData<NDIM, bool> > >& dirichlet_bdry_locs =
+        d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box   = physical_codim1_boxes[n];
-        const unsigned int location_index   = bdry_box.getLocationIndex();
+        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
-        const bool is_lower                 = location_index % 2 == 0;
-        const Box<NDIM>& bc_coef_box        = dirichlet_bdry_locs[n]->getBox();
-        const ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+        const bool is_lower = location_index % 2 == 0;
+        const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
+        const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const Index<NDIM>& i = it();
@@ -223,27 +225,29 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
                 // Work out from the physical boundary to fill the ghost cell
                 // values so that the velocity field satisfies the discrete
                 // divergence-free condition.
-                for (int k = 0; k < u_data->getGhostCellWidth()(bdry_normal_axis); ++k, i_g(bdry_normal_axis) += (is_lower ? -1 : +1))
+                for (int k = 0; k < u_data->getGhostCellWidth()(bdry_normal_axis);
+                     ++k, i_g(bdry_normal_axis) += (is_lower ? -1 : +1))
                 {
                     // Determine the ghost cell value so that the divergence of
                     // the velocity field is zero in the ghost cell.
-                    SideIndex<NDIM> i_g_s(i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                    SideIndex<NDIM> i_g_s(
+                        i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
                     (*u_data)(i_g_s) = 0.0;
                     double div_u_g = 0.0;
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        const SideIndex<NDIM> i_g_s_upper(i_g,axis,SideIndex<NDIM>::Upper);
-                        const SideIndex<NDIM> i_g_s_lower(i_g,axis,SideIndex<NDIM>::Lower);
-                        div_u_g += ((*u_data)(i_g_s_upper)-(*u_data)(i_g_s_lower))*dx[bdry_normal_axis]/dx[axis];
+                        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
+                        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
+                        div_u_g += ((*u_data)(i_g_s_upper) - (*u_data)(i_g_s_lower)) * dx[bdry_normal_axis] / dx[axis];
                     }
-                    (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0)*div_u_g;
+                    (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0) * div_u_g;
                 }
             }
         }
     }
     return;
 }// enforceDivergenceFreeConditionAtBoundary
-#endif
+
 void
 StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                                           RobinBcCoefStrategy<NDIM>* p_bc_coef,

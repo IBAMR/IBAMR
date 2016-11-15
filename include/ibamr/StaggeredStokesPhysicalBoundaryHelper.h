@@ -88,28 +88,22 @@ public:
                                             bool homogeneous_bc,
                                             int coarsest_ln = -1,
                                             int finest_ln = -1) const;
-#if 0
-    /*!
-     * \brief At open boundaries, set normal velocity ghost cell values to
-     * enforce the discrete divergence-free condition in the ghost cell abutting
-     * the physical boundary.
-     */
-    void
-    enforceDivergenceFreeConditionAtBoundary(
-        int u_data_idx,
-        int coarsest_ln=-1,
-        int finest_ln=-1) const;
 
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting
      * the physical boundary.
      */
-    void
-    enforceDivergenceFreeConditionAtBoundary(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
-#endif
+    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx, int coarsest_ln = -1, int finest_ln = -1) const;
+
+    /*!
+     * \brief At open boundaries, set normal velocity ghost cell values to
+     * enforce the discrete divergence-free condition in the ghost cell abutting
+     * the physical boundary.
+     */
+    void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > u_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
     /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
