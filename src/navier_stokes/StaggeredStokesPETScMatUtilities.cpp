@@ -65,6 +65,7 @@
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
@@ -886,6 +887,50 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
 
     return;
 } // constructPatchLevelFields
+
+void
+StaggeredStokesPETScMatUtilities::constructProlongationOp(Mat& mat,
+                                                          const std::string& u_op_type,
+                                                          const std::string& p_op_type,
+                                                          int u_dof_index_idx,
+                                                          int p_dof_index_idx,
+                                                          const std::vector<int>& num_fine_dofs_per_proc,
+                                                          const std::vector<int>& num_coarse_dofs_per_proc,
+                                                          Pointer<PatchLevel<NDIM> > fine_patch_level,
+                                                          Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                          const AO& coarse_level_ao,
+                                                          const int u_coarse_ao_offset,
+                                                          const int p_coarse_ao_offset)
+{
+    int ierr;
+    Mat p_prolong_mat = NULL;
+    PETScMatUtilities::constructProlongationOp(mat,
+                                               u_op_type,
+                                               u_dof_index_idx,
+                                               num_fine_dofs_per_proc,
+                                               num_coarse_dofs_per_proc,
+                                               fine_patch_level,
+                                               coarse_patch_level,
+                                               coarse_level_ao,
+                                               u_coarse_ao_offset);
+
+    PETScMatUtilities::constructProlongationOp(p_prolong_mat,
+                                               p_op_type,
+                                               p_dof_index_idx,
+                                               num_fine_dofs_per_proc,
+                                               num_coarse_dofs_per_proc,
+                                               fine_patch_level,
+                                               coarse_patch_level,
+                                               coarse_level_ao,
+                                               p_coarse_ao_offset);
+
+    // P{u,p} = (P_u + P_p){u,p}
+    ierr = MatAXPY(mat, 1.0, p_prolong_mat, DIFFERENT_NONZERO_PATTERN);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&p_prolong_mat);
+    IBTK_CHKERRQ(ierr);
+
+} // constructPatchLevelProlongationOp
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

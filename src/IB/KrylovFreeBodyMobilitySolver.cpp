@@ -490,7 +490,6 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
                                                             y,
                                                             /*only_free_dofs*/ true,
                                                             /*only_imposed_dofs*/ false);
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     PetscFunctionReturn(0);
 } // MatVecMult_KFBMSolver
 

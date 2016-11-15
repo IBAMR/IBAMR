@@ -480,30 +480,35 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
         deallocateSolverState();
     }
 
+    // Create RHS Vec to be used in KSP object
+    VecDuplicate(b, &d_petsc_b);
+
     // Get components of x and b.
     Vec *vx, *vb;
     VecNestGetSubVecs(x, NULL, &vx);
     VecNestGetSubVecs(b, NULL, &vb);
 
-    // Create RHS Vec to be used in KSP object
-    VecDuplicate(b, &d_petsc_b);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vb[0], &vb0);
+    d_hierarchy = vx0->getPatchHierarchy();
+    const int u_data_idx = vx0->getComponentDescriptorIndex(0);
+    const int coarsest_ln = vx0->getCoarsestLevelNumber();
+    const int finest_ln = vx0->getFinestLevelNumber();
 
     // Initialize various operators and solvers.
-    d_A->initializeOperatorState(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
-                                 *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
-    initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
-                           *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+    d_A->initializeOperatorState(*vx0, *vb0);
+    initializeStokesSolver(*vx0, *vb0);
 
+    // Restore the SAMRAI vectors.
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vb[0], &vb0);
+
+    // Initialize the mobility solver.
     d_mob_solver->initializeSolverState(x, b);
 
-    // Initialize the KSP
+    // Initialize the KSP.
     initializeKSP();
-
-    // Get hierarchy information.
-    d_hierarchy = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
-    const int u_data_idx = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getComponentDescriptorIndex(0);
-    const int coarsest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getCoarsestLevelNumber();
-    const int finest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getFinestLevelNumber();
 
     // Setup the interpolation transaction information.
     d_fill_pattern = NULL;
@@ -947,16 +952,6 @@ CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
     TBOX_ASSERT(solver->d_A);
 #endif
     solver->d_A->apply(x, y);
-
-    // Report change in the state of y to PETSc
-    int comps;
-    Vec* vy;
-    VecNestGetSubVecs(y, &comps, &vy);
-    for (int k = 0; k < comps; ++k)
-    {
-        PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vy[k]));
-    }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     PetscFunctionReturn(0);
 } // MatVecMult_SaddlePoint
 
@@ -989,11 +984,15 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
+
     // Get the individual components.
-    Pointer<SAMRAIVectorReal<NDIM, double> > g_h = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
+    Pointer<SAMRAIVectorReal<NDIM, double> > g_h = vx0->cloneVector("");
     g_h->allocateVectorData();
-    g_h->copyVector(IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]));
-    Pointer<SAMRAIVectorReal<NDIM, double> > u_p = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    g_h->copyVector(vx0);
+    Pointer<SAMRAIVectorReal<NDIM, double> > u_p = vy0;
 
     Vec W, Lambda, F_tilde;
     W = vx[1];
@@ -1104,12 +1103,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
         VecDestroy(&F_tilde);
     }
 
-    // Report change in the state of y to PETSc
-    for (int k = 0; k < total_comps; ++k)
-    {
-        PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vy[k]));
-    }
-    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
 
     PetscFunctionReturn(0);
 
