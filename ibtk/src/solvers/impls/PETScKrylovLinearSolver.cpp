@@ -789,31 +789,40 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 {
     int ierr;
 
+    // Deallocate PETSc data structures.
     if (d_petsc_nullsp)
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_petsc_nullsp = NULL;
+        if (d_petsc_mat)
+        {
+            ierr = MatSetNullSpace(d_petsc_mat, NULL);
+            IBTK_CHKERRQ(ierr);
+        }
     }
-
     if (d_petsc_nullspace_constant_vec)
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
-        d_petsc_nullspace_constant_vec = NULL;
+    }
+    for (unsigned int k = 0; k < d_petsc_nullspace_basis_vecs.size(); ++k)
+    {
+        PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_basis_vecs[k]);
+    }
+    d_petsc_nullspace_constant_vec = NULL;
+    d_petsc_nullspace_basis_vecs.clear();
+
+    // Clear SAMRAI data structures.
+    if (d_nullspace_constant_vec)
+    {
         d_nullspace_constant_vec->resetLevels(
             0,
             std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
                      d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
-        d_nullspace_constant_vec.setNull();
     }
-
-    for (unsigned int k = 0; k < d_petsc_nullspace_basis_vecs.size(); ++k)
-    {
-        PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_basis_vecs[k]);
-    }
-    d_petsc_nullspace_basis_vecs.clear();
+    d_nullspace_constant_vec.setNull();
     return;
 } // deallocateNullspaceData
 
