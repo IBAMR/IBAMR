@@ -2,16 +2,16 @@
 set -e 
 set -o pipefail
 ./configure \
-  CFLAGS="-g -O1 -Wall" \
-  CXXFLAGS="-g -O1 -Wall" \
-  FCFLAGS="-g -O1 -Wall" \
+  CFLAGS="-Wall" \
+  CXXFLAGS="-Wall" \
+  FCFLAGS="-Wall" \
   CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
   CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
   FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
   CPPFLAGS="-DOMPI_SKIP_MPICXX" \
   LDFLAGS="-lgtest" \
   --with-hypre=$PETSC_DIR/$PETSC_ARCH \
-  --with-samrai=$HOME/samrai/2.4.4/linux-debug \
+  --with-samrai=$SAMRAI_DIR \
   --with-hdf5=$HOME/linux/hdf5/1.8.16 \
   --with-blitz=$HOME/linux/blitz/0.10 \
   --with-silo=$HOME/linux/silo/4.10 \
