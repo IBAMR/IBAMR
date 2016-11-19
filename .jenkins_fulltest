@@ -22,3 +22,5 @@ set -o pipefail
   --config-cache
 make -kj4 lib
 make -kj4 examples
+cd examples/IBFE/explicit
+make -k gtest

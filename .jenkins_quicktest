@@ -21,4 +21,3 @@ set -o pipefail
   --with-libmesh-method=dbg \
   --config-cache
 make -kj4 lib
-make -kj4 examples

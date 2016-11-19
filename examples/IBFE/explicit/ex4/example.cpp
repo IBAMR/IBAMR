@@ -42,15 +42,17 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
+#include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
-#include <libmesh/periodic_boundary.h>
+#include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -65,41 +67,49 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Problem parameters.
-static const double R = 0.25;
-static const double w = 0.0625;
-static const double gamma = 0.1;
-static const double mu = 1.0;
-
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
-    X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
-    X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
+    X(0) = s(0) + 0.6;
+    X(1) = s(1) + 0.5;
+#if (NDIM == 3)
+    X(2) = s(2) + 0.5;
+#endif
     return;
 } // coordinate_mapping_function
 
-// Stress tensor function.
-bool smooth_case = false;
+// Stress tensor functions.
+static double c1_s = 0.05;
+static double p0_s = 0.0;
+static double beta_s = 0.0;
 void
-PK1_stress_function(TensorValue<double>& PP,
-                    const TensorValue<double>& FF,
-                    const libMesh::Point& /*X*/,
-                    const libMesh::Point& /*s*/,
-                    Elem* const /*elem*/,
-                    const std::vector<NumericVector<double>*>& /*system_data*/,
-                    double /*time*/,
-                    void* /*ctx*/)
+PK1_dev_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
 {
-    PP = (mu / w) * FF;
-    if (smooth_case)
-    {
-        PP(0, 1) = 0.0;
-        PP(1, 1) = 0.0;
-    }
+    PP = 2.0 * c1_s * FF;
     return;
-} // PK1_stress_function
+} // PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
+{
+    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    return;
+} // PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -123,8 +133,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(int argc, char* argv[])
+
+bool run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -150,8 +160,6 @@ main(int argc, char* argv[])
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
-        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -164,32 +172,63 @@ main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Create a simple FE mesh with periodic boundary conditions in the "x"
-        // direction.
-        //
-        // Note that boundary condition data must be registered with each FE
-        // system before calling IBFEMethod::initializeFEData().
+        // Create a simple FE mesh.
         Mesh mesh(init.comm(), NDIM);
-        const double R = 0.25;
-        const double w = 0.0625;
-        const double dx0 = 1.0 / 64.0;
         const double dx = input_db->getDouble("DX");
-        const double MFAC = input_db->getDouble("MFAC");
-        const double ds = MFAC * dx;
+        const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        bool nested_meshes = input_db->getBoolWithDefault("CONVERGENCE_STUDY", false);
-        const int n_x = nested_meshes ? round(16.0 * round(2.0 * M_PI * R / dx0 / 16.0) / MFAC) * round(dx0 / dx) :
-                                        ceil(2.0 * M_PI * R / ds);
-        const int n_y = nested_meshes ? round(4.0 * round(w / dx0 / 4.0) / MFAC) * round(dx0 / dx) : ceil(w / ds);
-        MeshTools::Generation::build_square(
-            mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, Utility::string_to_enum<ElemType>(elem_type));
-        VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
-        PeriodicBoundary pbc(boundary_translation);
-        pbc.myboundary = 3;
-        pbc.pairedboundary = 1;
+        const double R = 0.2;
+        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        {
+#ifdef LIBMESH_HAVE_TRIANGLE
+            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
+            }
+            TriangleInterface triangle(mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+#endif
+        }
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0 * M_PI * R / ds;
+            const int r = log2(0.25 * num_circum_segments);
+            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
 
-        // Configure stress tensor options.
-        smooth_case = input_db->getBool("SMOOTH_CASE");
+        // Ensure nodes on the surface are on the analytic boundary.
+        MeshBase::element_iterator el_end = mesh.elements_end();
+        for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+        {
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = !elem->neighbor(side);
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    if (!elem->is_node_on_side(k, side)) continue;
+                    Node& n = *elem->get_node(k);
+                    n = R * n.unit();
+                }
+            }
+        }
+        mesh.prepare_for_use();
+
+        c1_s = input_db->getDouble("C1_S");
+        p0_s = input_db->getDouble("P0_S");
+        beta_s = input_db->getDouble("BETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -217,10 +256,7 @@ main(int argc, char* argv[])
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           /*register_for_restart*/ true,
-                           restart_read_dirname,
-                           restart_restore_num);
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -245,7 +281,53 @@ main(int argc, char* argv[])
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+        PK1_dev_stress_data.quad_order =
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
+        PK1_dil_stress_data.quad_order =
+            Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
+        ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+        ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+
+        // Set up post processor to recover computed stresses.
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+
+        ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dev",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  std::vector<unsigned int>(),
+                                                  &PK1_dev_stress_fcn_data);
+
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dil",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  std::vector<unsigned int>(),
+                                                  &PK1_dil_stress_fcn_data);
+
+        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
+                                                QGAUSS,
+                                                FIFTH,
+                                                /*use_adaptive_quadrature*/ false,
+                                                /*point_density*/ 2.0,
+                                                /*use_consistent_mass_matrix*/ true);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -307,13 +389,8 @@ main(int argc, char* argv[])
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
-        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-        {
-            System& system = equation_systems->get_system(k);
-            system.get_dof_map().add_periodic_boundary(pbc);
-        }
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -336,6 +413,7 @@ main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
@@ -386,6 +464,7 @@ main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
@@ -394,7 +473,6 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
@@ -403,7 +481,6 @@ main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting state data...\n\n";
                 output_data(patch_hierarchy,
                             navier_stokes_integrator,
                             mesh,
@@ -468,8 +545,8 @@ main(int argc, char* argv[])
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-    return 0;
-} // main
+    return true;
+} // run_example
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
