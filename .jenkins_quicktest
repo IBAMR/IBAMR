@@ -18,7 +18,8 @@ set -o pipefail
   --with-boost=$HOME/linux/boost/1.61.0 \
   --enable-libmesh \
   --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
-  --with-libmesh-method=dbg
+  --with-libmesh-method=dbg \
+  --config-cache
 
 make -kj4 lib
 make -kj4 examples
