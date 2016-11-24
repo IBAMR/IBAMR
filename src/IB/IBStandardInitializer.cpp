@@ -130,6 +130,7 @@ discard_comments(const std::string& input_string)
 IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
     : d_object_name(object_name),
       d_read_vertex_files(true),
+      d_data_processed(false),
       d_use_file_batons(true),
       d_max_levels(-1),
       d_level_is_initialized(),
@@ -207,6 +208,15 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
+    // If the simulation is from restart then we do not need to process
+    // user data.
+    RestartManager* restart_manager = RestartManager::getManager();
+    const bool is_from_restart = restart_manager->isFromRestart();
+    if (is_from_restart)
+    {
+        d_data_processed = true;
+    }
+
     return;
 } // IBStandardInitializer
 
@@ -234,6 +244,9 @@ IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wri
     // restart file.
     if (!is_from_restart)
     {
+        // Check if data has been processed.
+        init();
+
         for (int ln = 0; ln < d_max_levels; ++ln)
         {
             if (d_level_is_initialized[ln])
@@ -248,6 +261,7 @@ IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_wri
 bool
 IBStandardInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
+
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
@@ -258,6 +272,9 @@ IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHie
                                                           const bool /*can_be_refined*/,
                                                           const bool /*initial_time*/)
 {
+    // Check if data has been processed.
+    init();
+
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
@@ -268,6 +285,9 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHier
                                                          const bool /*can_be_refined*/,
                                                          const bool /*initial_time*/)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -291,12 +311,13 @@ IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHier
 void
 IBStandardInitializer::init()
 {
-    // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
-    const bool is_from_restart = restart_manager->isFromRestart();
 
-    // Process the input files only if we are not starting from a restart file.
-    if (!is_from_restart)
+    // Process the input files and/or user-defined position.
+    if (d_data_processed)
+    {
+        return;
+    }
+    else
     {
         // Process the vertex information.
         if (d_read_vertex_files)
@@ -335,6 +356,9 @@ IBStandardInitializer::init()
         readSourceFiles(".source");
     }
 
+    // Indicate that we have processed the data.
+    d_data_processed = true;
+
     return;
 
 } // init
@@ -361,6 +385,9 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
     {
@@ -384,6 +411,10 @@ IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                   const bool /*initial_time*/,
                                                   LDataManager* const /*l_data_manager*/)
 {
+
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
@@ -527,6 +558,10 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*globa
                                                       const bool /*initial_time*/,
                                                       LDataManager* const /*l_data_manager*/)
 {
+
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -587,6 +622,9 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
                                                           const bool /*initial_time*/,
                                                           LDataManager* const /*l_data_manager*/)
 {
+    // Check if data has been processed.
+    init();
+
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
@@ -629,6 +667,9 @@ IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy
                                                     const double /*error_data_time*/,
                                                     const int tag_index)
 {
+    // Check if data has been processed.
+    init();
+    
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();

@@ -764,6 +764,11 @@ private:
      */
     bool d_read_vertex_files;
 
+    /*!
+     * Checking if user defined data has been processed./
+     */
+    bool d_data_processed;
+
     /*
      * The boolean value determines whether file read batons are employed to
      * prevent multiple MPI processes from accessing the same input files

@@ -216,7 +216,6 @@ main(int argc, char* argv[])
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
-        ib_initializer->init();
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
        
