@@ -178,7 +178,24 @@ public:
     {
         return d_l_data_U_correction;
     }
-
+    
+    /*!
+     * \brief Get the total volume for all the Lagrangian structures
+     */
+    inline const std::vector<double>& getVolumeStructure()
+    {
+	return d_vol_structure;
+    }
+    
+    /*!
+     * \brief Get the total linear momentum for all the Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getLinearMomentumStructure()
+    {
+	return d_linear_mom_structure;
+    }
+    
+    
 private:
     /*!
      * \brief Default constructor.
@@ -333,6 +350,11 @@ private:
      * \brief Calculate Eulerian Momentum.
      */
     void calculateEulerianMomentum();
+    
+    /*!
+     * \brief Calculate total translational momentum of all Lagrangian structures
+     */
+    void calculateLinearMomentumStructure();
 
     /*!
      * No of immersed structures.
@@ -353,6 +375,16 @@ private:
      * Volume element associated with material points.
      */
     std::vector<double> d_vol_element;
+    
+    /*!
+     * Volume associated with each immersed structure
+     */
+    std::vector<double> d_vol_structure;
+    
+    /*!
+     * Linear momentum associated with each immersed structure
+     */
+    std::vector<std::vector<double> > d_linear_mom_structure;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
