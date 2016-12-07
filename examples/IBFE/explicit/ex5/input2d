@@ -1,5 +1,5 @@
 // physical parameters
-Re = 200.0
+Re = 100.0
 MU = 1.0/Re
 RHO = 1.0
 
@@ -21,6 +21,7 @@ IB_DELTA_FUNCTION          = "PIECEWISE_LINEAR"            // the type of smooth
 SPLIT_NORMAL_FORCES        = TRUE              // whether to split the normal force on the interface (true value will includes the jump in the pressure)
 SPLIT_TANGENTIAL_FORCES	   = TRUE				//  whether to split the tangential force on the interface(true vaule will include jump in the velocity derivative)
 USE_JUMP_CONDITIONS        = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
+VEL_INTERP_WIDTH 		   = 1.3
 MODIFY_VEL_INTERP_JUMPS	   = TRUE              // Whether to apply the jump in the velocity interpolation or not
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
@@ -33,7 +34,7 @@ CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discre
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.2               // maximum CFL number
-DT                         = 0.5*CFL_MAX*DX    // maximum timestep size
+DT                         = 0.1*CFL_MAX*DX    // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
@@ -101,7 +102,8 @@ IBFEMethod {
    split_normal_force          = SPLIT_NORMAL_FORCES
    split_tangential_force      = SPLIT_TANGENTIAL_FORCES
    use_jump_conditions         = USE_JUMP_CONDITIONS
-   modify_vel_interp_jumps     = MODIFY_VEL_INTERP_JUMPS
+   vel_interp_width			  = VEL_INTERP_WIDTH
+   modify_vel_interp_jumps    = MODIFY_VEL_INTERP_JUMPS
    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
    IB_point_density            = IB_POINT_DENSITY
 }
@@ -138,8 +140,8 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.5/DT)
-   viz_dump_dirname            = "viz_IB2d"
+   viz_dump_interval           = 100
+   viz_dump_dirname            = "viz_IIM_regular_interp"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

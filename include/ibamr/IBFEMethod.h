@@ -45,6 +45,7 @@
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "ibamr/StokesSpecifications.h"
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
@@ -512,6 +513,8 @@ protected:
     bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
     bool d_modify_vel_interp_jumps;
+    double d_vel_interp_width;
+    double d_mu;
     libMesh::FEFamily d_fe_family;
     libMesh::Order d_fe_order;
     libMesh::QuadratureType d_quad_type;

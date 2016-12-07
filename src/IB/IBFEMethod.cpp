@@ -471,41 +471,6 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
     return;
 } // postprocessIntegrateData
 
-//~ void
-//~ IBFEMethod::interpolateVelocity(const int u_data_idx,
-//~ const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-//~ const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-//~ const double data_time)
-//~ {
-//~ for (unsigned int part = 0; part < d_num_parts; ++part)
-//~ {
-//~ NumericVector<double>* X_vec = NULL;
-//~ NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-//~ NumericVector<double>* U_vec = NULL;
-//~ if (MathUtilities<double>::equalEps(data_time, d_current_time))
-//~ {
-//~ X_vec = d_X_current_vecs[part];
-//~ U_vec = d_U_current_vecs[part];
-//~ }
-//~ else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-//~ {
-//~ X_vec = d_X_half_vecs[part];
-//~ U_vec = d_U_half_vecs[part];
-//~ }
-//~ else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-//~ {
-//~ X_vec = d_X_new_vecs[part];
-//~ U_vec = d_U_new_vecs[part];
-//~ }
-//~ X_vec->localize(*X_ghost_vec);
-//~ d_fe_data_managers[part]->interp(
-//~ u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
-//~ }
-//~ return;
-//~ } // interpolateVelocity
-
-//  interpolate velocity by including the jump condition
-
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
@@ -576,6 +541,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         const std::vector<double>& JxW_U = U_fe->get_JxW();
         const std::vector<std::vector<double> >& phi_U = U_fe->get_phi();
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+        const std::vector<std::vector<double> >& X_dphi_dxi = X_fe->get_dphidxi();
+        const std::vector<std::vector<double> >& X_dphi_deta = X_fe->get_dphideta();
+
+        VectorValue<double> tau1, tau2, n;
 
         for (unsigned int k = 0; k < u_ghost_fill_scheds.size(); ++k)
         {
@@ -619,7 +588,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         DenseVector<double> U_rhs_e[n_vars];
         boost::multi_array<double, 2> X_node;
         boost::multi_array<double, 2> du_node, dv_node;
-        std::vector<double> U_qp, X_qp;
+        std::vector<double> U_qp, N_qp, X_qp_p, X_qp_m;
         std::vector<double> du_qp, dv_qp;
         du_ghost_vec->close();
         PetscVector<double>* du_petsc_vec = static_cast<PetscVector<double>*>(du_ghost_vec);
@@ -649,9 +618,18 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             if (!num_active_patch_elems) continue;
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
+            const double* const dx = patch_geom->getDx();
+            const double dx_min = *std::min_element(dx, dx + NDIM);
 
+            const Box<NDIM>& interp_box = patch->getBox();
+            Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(u_data_idx);
+            const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
+            const int u_depth = u_sc_data->getDepth();
+
+            const double* const x_lower = patch_geom->getXLower();
+            const double* const x_upper = patch_geom->getXUpper();
+
+            const double dh = d_vel_interp_width * sqrt(dx[0] * dx[0] + dx[1] * dx[1]);
             // Setup vectors to store the values of U and X at the quadrature
             // points.
             //
@@ -668,20 +646,24 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 FEDataManager::updateInterpQuadratureRule(
-                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, patch_dx_min);
+                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, dx_min);
                 n_qp_patch += qrule->n_points();
             }
 
             if (!n_qp_patch) continue;
             U_qp.resize(n_vars * n_qp_patch);
-            X_qp.resize(NDIM * n_qp_patch);
+            X_qp_m.resize(NDIM * n_qp_patch);
+            X_qp_p.resize(NDIM * n_qp_patch);
             du_qp.resize(NDIM * n_qp_patch);
             dv_qp.resize(NDIM * n_qp_patch);
+            N_qp.resize(NDIM * n_qp_patch);
             std::fill(U_qp.begin(), U_qp.end(), 0.0);
+            std::fill(N_qp.begin(), N_qp.end(), 0.0);
 
             // Loop over the elements and compute the positions of the quadrature points.
             qrule.reset();
             unsigned int qp_offset = 0;
+
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
@@ -695,7 +677,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                 get_values_for_interpolation(du_node, *du_petsc_vec, du_local_soln, du_dof_indices);
                 get_values_for_interpolation(dv_node, *dv_petsc_vec, dv_local_soln, dv_dof_indices);
                 const bool qrule_changed = FEDataManager::updateInterpQuadratureRule(
-                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, patch_dx_min);
+                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, dx_min);
                 if (qrule_changed)
                 {
                     // NOTE: Because we are only using the shape function values for
@@ -711,27 +693,48 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                 const unsigned int n_qp = qrule->n_points();
                 //~
                 // Zero out the values of X, du, and dv prior to accumulation.
-                double* X_begin = &X_qp[NDIM * qp_offset];
-                std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
+                double* X_begin_m = &X_qp_m[NDIM * qp_offset];
+                std::fill(X_begin_m, X_begin_m + NDIM * n_qp, 0.0);
+
+                double* X_begin_p = &X_qp_p[NDIM * qp_offset];
+                std::fill(X_begin_p, X_begin_p + NDIM * n_qp, 0.0);
+
                 double* du_begin = &du_qp[NDIM * qp_offset];
                 std::fill(du_begin, du_begin + NDIM * n_qp, 0.0);
                 double* dv_begin = &dv_qp[NDIM * qp_offset];
                 std::fill(dv_begin, dv_begin + NDIM * n_qp, 0.0);
-                //~
+
+                double* N_begin = &N_qp[NDIM * qp_offset];
+                std::fill(N_begin, N_begin + NDIM * n_qp, 0.0);
+
                 // Interpolate X, du, and dv at all of the quadrature points
                 // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
                 // each qp.
-                for (unsigned int k = 0; k < n_node; ++k)
+
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
+                    if (dim == 1)
+                        tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+                    else
+                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+                    n = tau1.cross(tau2);
+                    n = n.unit();
+
+                    for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        const double& p_X = phi_X[k][qp];
-                        for (unsigned int i = 0; i < NDIM; ++i)
+                        for (unsigned int k = 0; k < n_node; ++k)
                         {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            const double& p_X = phi_X[k][qp];
+
+                            X_qp_p[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            X_qp_m[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
                             du_qp[NDIM * (qp_offset + qp) + i] += du_node[k][i] * p_X;
                             dv_qp[NDIM * (qp_offset + qp) + i] += dv_node[k][i] * p_X;
                         }
+                        N_qp[NDIM * (qp_offset + qp) + i] = n(i);
+                        X_qp_p[NDIM * (qp_offset + qp) + i] += -n(i) * dh;
+                        X_qp_m[NDIM * (qp_offset + qp) + i] += n(i) * dh;
                     }
                 }
                 qp_offset += n_qp;
@@ -740,21 +743,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             // points.
             // Note: Values are interpolated only to those quadrature points that
             // are within the patch interior
-            //~
-            const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(u_data_idx);
-            Pointer<SideData<NDIM, double> > mask_sc_data = patch->getPatchData(mask_current_idx);
-
-            const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
-            //~ //const IntVector<NDIM>& mask_gcw = mask_sc_data->getGhostCellWidth();
-
-            const int u_depth = u_sc_data->getDepth();
-            //~ //const int mask_depth = mask_sc_data->getDepth();
-
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const x_lower = pgeom->getXLower();
-            const double* const x_upper = pgeom->getXUpper();
-            const double* const dx = pgeom->getDx();
+            //
 
             std::vector<int> local_indices;
             local_indices.clear();
@@ -764,9 +753,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             local_indices.reserve(upper_bound);
             for (unsigned int k = 0; k < n_qp_patch; ++k)
             {
-                const double* const XX = &X_qp[NDIM * k];
-                const Index<NDIM> i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
-                if (interp_box.contains(i)) local_indices.push_back(k);
+                const double* const XX_p = &X_qp_p[NDIM * k];
+                const double* const XX_m = &X_qp_m[NDIM * k];
+
+                const Index<NDIM> i_p = IndexUtilities::getCellIndex(XX_p, patch_geom, interp_box);
+                const Index<NDIM> i_m = IndexUtilities::getCellIndex(XX_m, patch_geom, interp_box);
+                if (interp_box.contains(i_p) && interp_box.contains(i_m)) local_indices.push_back(k);
             }
 
             std::vector<double> periodic_shifts(NDIM * local_indices.size());
@@ -777,12 +769,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
             if (!local_indices.empty())
             {
-                boost::array<int, 2> ic_trimmed_lower, ic_trimmed_upper, ic_lower, ic_upper, ic_center;
-                boost::array<double, 2> X_shifted, X_cell;
-                boost::array<double, 2> w0, w1;
+                boost::array<int, 2> ic_trimmed_lower_p, ic_trimmed_upper_p, ic_lower_p, ic_upper_p, ic_center_p;
+                boost::array<int, 2> ic_trimmed_lower_m, ic_trimmed_upper_m, ic_lower_m, ic_upper_m, ic_center_m;
+                boost::array<double, 2> X_shifted_p, X_cell_p;
+                boost::array<double, 2> X_shifted_m, X_cell_m;
+                boost::array<double, 2> w0_p, w1_p;
+                boost::array<double, 2> w0_m, w1_m;
                 boost::array<double, NDIM> x_lower_axis, x_upper_axis;
                 const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
-                std::vector<double> Q_data_axis(local_sz);
+                std::vector<double> Q_data_axis_p(local_sz), Q_data_axis_m(local_sz);
 
                 x_lower_axis[0] = x_lower_axis[1] = x_upper_axis[0] = x_upper_axis[1] = 0.0;
 
@@ -812,155 +807,142 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             ilower[1] - u_gcw[1], iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),
                         boost::fortran_storage_order());
 
-                //~ //    boost::const_multi_array_ref<double, ndim + 1> mask_sc_data_array(
-                //~ //        mask_sc_data->getPointer(axis),
-                 //~ //       (boost::extents[range(ilower[0] - mask_gcw[0], iupper[0] + mask_gcw[0] + 1)][range(
-                   //~ //         ilower[1] - mask_gcw[1], iupper[1] + mask_gcw[1] + 1)][range(0, mask_depth)]),
-                   //~ //     boost::fortran_storage_order());
-
-                   //~ // #endif
-
                     for (unsigned int k = 0; k < nindices; ++k)
                     {
                         const int s = local_indices[k];
 
                         for (int d = 0; d < ndim; ++d)
                         {
-                            X_shifted[d] = X_qp[d + s * ndim] + periodic_shifts[d + k * ndim];
+                            X_shifted_p[d] = X_qp_p[d + s * ndim] + periodic_shifts[d + k * ndim];
+                            X_shifted_m[d] = X_qp_m[d + s * ndim] + periodic_shifts[d + k * ndim];
                         }
 
                         for (unsigned int d = 0; d < ndim; ++d)
                         {
-                            ic_center[d] = ilower[d] + NINT((X_shifted[d] - x_lower_axis[d]) / dx[d] - 0.5);
-                            X_cell[d] = x_lower_axis[d] + (static_cast<double>(ic_center[d] - ilower[d]) + 0.5) * dx[d];
+                            ic_center_p[d] = ilower[d] + NINT((X_shifted_p[d] - x_lower_axis[d]) / dx[d] - 0.5);
+                            X_cell_p[d] =
+                                x_lower_axis[d] + (static_cast<double>(ic_center_p[d] - ilower[d]) + 0.5) * dx[d];
 
-                            if (X_shifted[d] <= X_cell[d])
+                            if (X_shifted_p[d] <= X_cell_p[d])
                             {
-                                ic_lower[d] = ic_center[d] - 1;
-                                ic_upper[d] = ic_center[d];
+                                ic_lower_p[d] = ic_center_p[d] - 1;
+                                ic_upper_p[d] = ic_center_p[d];
                             }
                             else
                             {
-                                ic_lower[d] = ic_center[d];
-                                ic_upper[d] = ic_center[d] + 1;
+                                ic_lower_p[d] = ic_center_p[d];
+                                ic_upper_p[d] = ic_center_p[d] + 1;
                             }
-                            ic_trimmed_lower[d] = std::max(ic_lower[d], ilower[d] - u_gcw[d]);
-                            ic_trimmed_upper[d] = std::min(ic_upper[d], iupper[d] + u_gcw[d]);
+                            ic_trimmed_lower_p[d] = std::max(ic_lower_p[d], ilower[d] - u_gcw[d]);
+                            ic_trimmed_upper_p[d] = std::min(ic_upper_p[d], iupper[d] + u_gcw[d]);
+
+                            ic_center_m[d] = ilower[d] + NINT((X_shifted_m[d] - x_lower_axis[d]) / dx[d] - 0.5);
+                            X_cell_m[d] =
+                                x_lower_axis[d] + (static_cast<double>(ic_center_m[d] - ilower[d]) + 0.5) * dx[d];
+
+                            if (X_shifted_m[d] <= X_cell_m[d])
+                            {
+                                ic_lower_m[d] = ic_center_m[d] - 1;
+                                ic_upper_m[d] = ic_center_m[d];
+                            }
+                            else
+                            {
+                                ic_lower_m[d] = ic_center_m[d];
+                                ic_upper_m[d] = ic_center_m[d] + 1;
+                            }
+                            ic_trimmed_lower_m[d] = std::max(ic_lower_m[d], ilower[d] - u_gcw[d]);
+                            ic_trimmed_upper_m[d] = std::min(ic_upper_m[d], iupper[d] + u_gcw[d]);
                         }
 
-                        if (X_shifted[0] <= X_cell[0])
+                        if (X_shifted_p[0] <= X_cell_p[0])
                         {
-                            w0[0] = (X_cell[0] - X_shifted[0]) / dx[0];
+                            w0_p[0] = (X_cell_p[0] - X_shifted_p[0]) / dx[0];
 
-                            w0[1] = 1.0 - w0[0];
+                            w0_p[1] = 1.0 - w0_p[0];
                         }
                         else
                         {
-                            w0[0] = 1.0 + (X_cell[0] - X_shifted[0]) / dx[0];
-                            w0[1] = 1.0 - w0[0];
+                            w0_p[0] = 1.0 + (X_cell_p[0] - X_shifted_p[0]) / dx[0];
+                            w0_p[1] = 1.0 - w0_p[0];
                         }
 
-                        if (X_shifted[1] <= X_cell[1])
+                        if (X_shifted_p[1] <= X_cell_p[1])
                         {
-                            w1[0] = (X_cell[1] - X_shifted[1]) / dx[1];
-                            w1[1] = 1.0 - w1[0];
+                            w1_p[0] = (X_cell_p[1] - X_shifted_p[1]) / dx[1];
+                            w1_p[1] = 1.0 - w1_p[0];
                         }
                         else
                         {
-                            w1[0] = 1.0 + (X_cell[1] - X_shifted[1]) / dx[1];
-                            w1[1] = 1.0 - w1[0];
+                            w1_p[0] = 1.0 + (X_cell_p[1] - X_shifted_p[1]) / dx[1];
+                            w1_p[1] = 1.0 - w1_p[0];
                         }
 
-                        boost::multi_array<double, 2> ujump(
-                            boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(
-                                ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
+                        if (X_shifted_m[0] <= X_cell_m[0])
+                        {
+                            w0_m[0] = (X_cell_m[0] - X_shifted_m[0]) / dx[0];
 
-                        boost::multi_array<double, 2> vjump(
-                            boost::extents[range(ic_trimmed_lower[0], ic_trimmed_upper[0] + 1)][range(
-                                ic_trimmed_lower[1], ic_trimmed_upper[1] + 1)]);
+                            w0_m[1] = 1.0 - w0_m[0];
+                        }
+                        else
+                        {
+                            w0_m[0] = 1.0 + (X_cell_m[0] - X_shifted_m[0]) / dx[0];
+                            w0_m[1] = 1.0 - w0_m[0];
+                        }
 
-                        //~ ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
-                            //~ dx[0] * w0[1] * w1[1] * (w0[0] * du_qp[s * ndim] + w1[0] * du_qp[1 + s * ndim]);
-                        //~ vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] =
-                            //~ dx[1] * w0[1] * w1[1] * (w0[0] * dv_qp[s * ndim] + w1[0] * dv_qp[1 + s * ndim]);
-
-                        //~ ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
-                            //~ -dx[0] * w0[0] * w1[1] * (w0[1] * du_qp[s * ndim] - w1[0] * du_qp[1 + s * ndim]);
-                        //~ ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
-                            //~ -dx[0] * w0[0] * w1[0] * (w0[1] * du_qp[s * ndim] + w1[1] * du_qp[1 + s * ndim]);
-                        //~ ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
-                            //~ dx[0] * w0[1] * w1[0] * (w0[0] * du_qp[s * ndim] - w1[1] * du_qp[1 + s * ndim]);
-
-                        //~ vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] =
-                            //~ -dx[1] * w0[0] * w1[1] * (w0[1] * dv_qp[s * ndim] - w1[0] * dv_qp[1 + s * ndim]);
-                        //~ vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] =
-                            //~ -dx[1] * w0[0] * w1[0] * (w0[1] * dv_qp[s * ndim] + w1[1] * dv_qp[1 + s * ndim]);
-                        //~ vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =
-                            //~ dx[1] * w0[1] * w1[0] * (w0[0] * dv_qp[s * ndim] - w1[1] * dv_qp[1 + s * ndim]);
-
-                         ujump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[0]*w0[0]*w1[0]*(w0[1]*du_qp[s * ndim] +
-                         w1[1]*du_qp[1 + s * ndim]);
-                         vjump[ic_trimmed_lower[0]][ic_trimmed_lower[1]] = dx[1]*w0[0]*w1[0]*(w0[1]*dv_qp[s * ndim] +
-                         w1[1]*dv_qp[1 + s * ndim]);
-                        
-                         ujump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[0]*w0[1]*w1[0]*(w0[0]*du_qp[s * ndim] -
-                         w1[1]*du_qp[1 + s * ndim]);
-                         vjump[ic_trimmed_upper[0]][ic_trimmed_lower[1]] = -dx[1]*w0[1]*w1[0]*(w0[0]*dv_qp[s * ndim] -
-                         w1[1]*dv_qp[1 + s * ndim]);
-                        
-
-                         ujump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] =  dx[0]*w0[0]*w1[1]*(w0[1]*du_qp[s * ndim] -
-                         w1[0]*du_qp[1 + s * ndim]);
-                         vjump[ic_trimmed_lower[0]][ic_trimmed_upper[1]] = dx[1]*w0[0]*w1[1]*(w0[1]*dv_qp[s * ndim] -
-                         w1[0]*dv_qp[1 + s * ndim]);
-                        
-                         ujump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[0]*w0[1]*w1[1]*(w0[0]*du_qp[s * ndim] +
-                         w1[0]*du_qp[1 + s * ndim]);
-                         vjump[ic_trimmed_upper[0]][ic_trimmed_upper[1]] = -dx[1]*w0[1]*w1[1]*(w0[0]*dv_qp[s * ndim] +
-                         w1[0]*dv_qp[1 + s * ndim]);
-
-                        double CC = 0.0;
+                        if (X_shifted_m[1] <= X_cell_m[1])
+                        {
+                            w1_m[0] = (X_cell_m[1] - X_shifted_m[1]) / dx[1];
+                            w1_m[1] = 1.0 - w1_m[0];
+                        }
+                        else
+                        {
+                            w1_m[0] = 1.0 + (X_cell_m[1] - X_shifted_m[1]) / dx[1];
+                            w1_m[1] = 1.0 - w1_m[0];
+                        }
 
                         for (int d = 0; d < u_depth; ++d)
                         {
-                            Q_data_axis[s] = 0.0;
-                            for (int ic1 = ic_trimmed_lower[1]; ic1 <= ic_trimmed_upper[1]; ++ic1)
-                            {
-                                for (int ic0 = ic_trimmed_lower[0]; ic0 <= ic_trimmed_upper[0]; ++ic0)
-                                {
-                                    if (d_modify_vel_interp_jumps)
-                                    {
-										const Index<NDIM> ii(ic0, ic1);
-										const SideIndex<NDIM> i_s(ii, axis, 0);
-										
-										
-                                        if (axis == 0 && fabs((*mask_sc_data)(i_s) - 1.0) < 0.1*dx[axis]*dx[axis])
-                                        {
-                                            CC = ujump[ic0][ic1];
-                                            
-                                        }
-                                        else if (axis == 1 && fabs((*mask_sc_data)(i_s) - 1.0) < 0.1*dx[axis]*dx[axis])
-                                        {
-                                            CC = vjump[ic0][ic1];
-                                          
-                                        }
-                                        else
-                                        {
-                                            CC = 0.0;
-                                        }
-                                    }
+                            Q_data_axis_p[s] = 0.0;
+                            Q_data_axis_m[s] = 0.0;
 
-                                    Q_data_axis[s] =
-                                        Q_data_axis[s] +
-                                        w0[ic0 - ic_lower[0]] * w1[ic1 - ic_lower[1]] * u_sc_data_array[ic0][ic1][d] +
-                                        CC;
+                            for (int ic1 = ic_trimmed_lower_p[1]; ic1 <= ic_trimmed_upper_p[1]; ++ic1)
+                            {
+                                for (int ic0 = ic_trimmed_lower_p[0]; ic0 <= ic_trimmed_upper_p[0]; ++ic0)
+                                {
+                                    Q_data_axis_p[s] += w0_p[ic0 - ic_lower_p[0]] * w1_p[ic1 - ic_lower_p[1]] *
+                                                        u_sc_data_array[ic0][ic1][d];
+                                }
+                            }
+
+                            for (int ic1 = ic_trimmed_lower_m[1]; ic1 <= ic_trimmed_upper_m[1]; ++ic1)
+                            {
+                                for (int ic0 = ic_trimmed_lower_m[0]; ic0 <= ic_trimmed_upper_m[0]; ++ic0)
+                                {
+                                    Q_data_axis_m[s] += w0_m[ic0 - ic_lower_m[0]] * w1_m[ic1 - ic_lower_m[1]] *
+                                                        u_sc_data_array[ic0][ic1][d];
                                 }
                             }
                         } // depth
                     }
+
+                    double CC = 0.0;
+
                     for (unsigned int k = 0; k < nindices; ++k)
                     {
-                        U_qp[n_vars * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
+                        if (d_modify_vel_interp_jumps)
+                        {
+                            if (axis == 0)
+                                CC = 0.5 * dh *
+                                     (du_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
+                                      du_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1]);
+                            else if (axis == 1)
+                                CC = 0.5 * dh *
+                                     (dv_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
+                                      dv_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1]);
+                        }
+
+                        U_qp[n_vars * local_indices[k] + axis] =
+                            0.5 * (Q_data_axis_p[local_indices[k]] + Q_data_axis_m[local_indices[k]]) + CC / d_mu;
                     }
                 }
             }
@@ -982,7 +964,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed = FEDataManager::updateInterpQuadratureRule(
-                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, patch_dx_min);
+                    qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, dx_min);
                 if (qrule_changed)
                 {
                     // NOTE: Because we are only using the shape function values for
@@ -1390,6 +1372,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         d_fe_data_managers[part]->reinitElementMappings();
     }
 
+    d_mu = getINSHierarchyIntegrator()->getStokesSpecifications()->getMu();
     d_is_initialized = true;
     return;
 } // initializePatchHierarchy
@@ -1507,6 +1490,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_split_normal_force", d_split_normal_force);
     db->putBool("d_split_tangential_force", d_split_tangential_force);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
+    db->putDouble("d_vel_interp_width", d_vel_interp_width);
     db->putBool("d_modify_vel_interp_jumps", d_modify_vel_interp_jumps);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
@@ -1792,22 +1776,20 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
     // Solve for F, [[p]] and [[dU/dn]].
     
         d_fe_data_managers[part]->computeL2Projection(F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-        
-		if (d_split_normal_force)
-        {
-			d_fe_data_managers[part]->computeL2Projection(dP_vec, *dP_rhs_vec, DP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-        }
-        
-        if (d_split_tangential_force)
-        {
-            d_fe_data_managers[part]->computeL2Projection(du_vec, *du_rhs_vec, DU_SYSTEM_NAME, d_use_consistent_mass_matrix);
-			d_fe_data_managers[part]->computeL2Projection(dv_vec, *dv_rhs_vec, DV_SYSTEM_NAME, d_use_consistent_mass_matrix);
-        }
-                
-           
 
+        //~ if (d_split_normal_force)
+        //~ {
+        d_fe_data_managers[part]->computeL2Projection(
+            dP_vec, *dP_rhs_vec, DP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        //~ }
 
-
+        //~ if (d_split_tangential_force)
+        //~ {
+        d_fe_data_managers[part]->computeL2Projection(
+            du_vec, *du_rhs_vec, DU_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        d_fe_data_managers[part]->computeL2Projection(
+            dv_vec, *dv_rhs_vec, DV_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        //~ }
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
@@ -2422,11 +2404,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 							interpolate(&jn(0), qp, du_node, X_phi);
 						   C_u_up = sdh_up*jn(0);
                            C_u_um = sdh_um*jn(0);
-					    }
-					   else
-					   {
-						    interpolate(&jn(0), qp, dv_node, X_phi);
-						   C_u_up = sdh_up*jn(1);
+                        }
+                        else
+                        {
+                            interpolate(&jn(0), qp, dv_node, X_phi);
+                            C_u_up = sdh_up * jn(1);
                            C_u_um = sdh_um*jn(1);
 					   }
 
@@ -2650,10 +2632,13 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_default_spread_spec =
         FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
+
     d_split_normal_force = false;
     d_split_tangential_force = false;
     d_use_jump_conditions = false;
     d_modify_vel_interp_jumps = false;
+    d_vel_interp_width = 0.0;
+    d_mu = 0.0;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
     d_quad_type = QGAUSS;
@@ -2807,6 +2792,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("split_forces"))
         d_split_tangential_force = db->getBool("split_forces");
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
+    if (db->isDouble("vel_interp_width")) d_vel_interp_width = db->getDouble("vel_interp_width");
     if (db->isBool("modify_vel_interp_jumps")) d_modify_vel_interp_jumps = db->getBool("modify_vel_interp_jumps");
     if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
@@ -2864,6 +2850,7 @@ IBFEMethod::getFromRestart()
     d_split_tangential_force = db->getBool("d_split_tangential_force");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_modify_vel_interp_jumps = db->getBool("d_modify_interp_jumps");
+    d_vel_interp_width = db->isDouble("vel_interp_width");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
