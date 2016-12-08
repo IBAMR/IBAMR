@@ -57,7 +57,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine stocstrain3d(
      &     E_diag,E_diag_gcw,
-     &     E_offDiag,E_offDiag_gcw,
+     &     E_off,E_off_gcw,
      &     u0,u1,u2,u_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
@@ -71,7 +71,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER E_diag_gcw,E_offDiag_gcw
+      INTEGER E_diag_gcw,E_off_gcw,u_gcw
 
       REAL u0(SIDE3d0(ilower,iupper,u_gcw))
       REAL u1(SIDE3d1(ilower,iupper,u_gcw))
@@ -82,7 +82,7 @@ c
 c     Input/Output.
 c
       REAL E_diag(CELL3d(ilower,iupper,E_diag_gcw),0:NDIM-1)
-      REAL E_offDiag(CELL2d(ilower,iupper,E_offDiag_gcw))
+      REAL E_off(CELL3d(ilower,iupper,E_off_gcw),0:NDIM-1)
 c
 c     Local variables.
 c
@@ -126,7 +126,7 @@ c
                du2_dx1 = fac21*(
      &              +u2(i0  ,i1+1,i2  )+u2(i0  ,i1+1,i2+1)
      &              -u2(i0  ,i1-1,i2  )-u2(i0  ,i1-1,i2+1) )
-               E_offDiag(i0,i1,i2,0) = 0.5d0*(du2_dx1+du1_dx2)
+               E_off(i0,i1,i2,0) = 0.5d0*(du2_dx1+du1_dx2)
             enddo
          enddo
       enddo
@@ -143,7 +143,7 @@ c
                du2_dx0 = fac20*(
      &              +u2(i0+1,i1  ,i2  )+u2(i0+1,i1  ,i2+1)
      &              -u2(i0-1,i1  ,i2  )-u2(i0-1,i1  ,i2+1) )
-               E_offDiag(i0,i1,i2,1) = 0.5d0*(du0_dx2+du2_dx0)
+               E_off(i0,i1,i2,1) = 0.5d0*(du0_dx2+du2_dx0)
             enddo
          enddo
       enddo
@@ -160,7 +160,7 @@ c
                du1_dx0 = fac10*(
      &              +u1(i0+1,i1  ,i2  )+u1(i0+1,i1+1,i2  )
      &              -u1(i0-1,i1  ,i2  )-u1(i0-1,i1+1,i2  ) )
-               E_offDiag(i0,i1,i2,2) = 0.5d0*(du1_dx0+du0_dx1)
+               E_off(i0,i1,i2,2) = 0.5d0*(du1_dx0+du0_dx1)
             enddo
          enddo
       enddo

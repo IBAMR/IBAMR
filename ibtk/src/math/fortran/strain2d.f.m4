@@ -55,7 +55,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine stocstrain2d(
      &     E_diag,E_diag_gcw,
-     &     E_offDiag,E_offDiag_gcw,
+     &     E_off,E_off_gcw,
      &     u0,u1,u_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
@@ -67,7 +67,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER E_diag_gcw,E_offDiag_gcw,u_gcw
+      INTEGER E_diag_gcw,E_off_gcw,u_gcw
 
       REAL u0(SIDE2d0(ilower,iupper,u_gcw))
       REAL u1(SIDE2d1(ilower,iupper,u_gcw))
@@ -76,8 +76,8 @@ c
 c
 c     Input/Output.
 c
-      REAL E_diag(CELL3d(ilower,iupper,E_diag_gcw),0:NDIM-1)
-      REAL E_offDiag(CELL2d(ilower,iupper,E_offDiag_gcw))
+      REAL E_diag(CELL2d(ilower,iupper,E_diag_gcw),0:NDIM-1)
+      REAL E_off(CELL2d(ilower,iupper,E_off_gcw))
 c
 c     Local variables.
 c
@@ -107,7 +107,7 @@ c
             E_diag(i0,i1,0) = du0_dx0
             E_diag(i0,i1,1) = du1_dx1
             
-            E_offDiag(i0,i1) = 0.5d0*(du1_dx0+du0_dx1)
+            E_off(i0,i1) = 0.5d0*(du1_dx0+du0_dx1)
          enddo
       enddo
 c
