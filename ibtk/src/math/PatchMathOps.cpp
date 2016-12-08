@@ -116,6 +116,8 @@
 #define C_TO_S_ROT_FC IBTK_FC_FUNC(ctosrot2d, CTOSROT2D)
 
 #define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
+
+#define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain2d, STOCSTRAIN2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
@@ -179,6 +181,8 @@
 #define S_TO_E_CURL_FC IBTK_FC_FUNC(stoecurl3d, STOECURL3D)
 
 #define E_TO_S_ROT_FC IBTK_FC_FUNC(etosrot3d, ETOSROT3D)
+
+#define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain3d, STOCSTRAIN3D)
 #endif // if (NDIM == 3)
 
 extern "C" {
@@ -1096,6 +1100,28 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
 #endif
                           const double* dx);
 #endif
+
+
+void S_TO_C_STRAIN_FC(double* E_diag,
+                      const int& E_diag_gcw,
+		      double* E_offDiag,
+		      const int& E_offDiag_gcw,
+                      const double* u0,
+                      const double* u1,
+#if (NDIM == 3)
+                      const double* u2,
+#endif
+                      const int& u_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+#if (NDIM == 3)
+                      const int& ilower2,
+                      const int& iupper2,
+#endif
+                      const double* dx);
+
 
 #if (NDIM == 2)
 void N_TO_S_ROT_FC(double* w0,
@@ -6929,6 +6955,137 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
                        );
     return;
 } // pointwiseMaxNorm
+
+void
+PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
+		     Pointer<CellData<NDIM, double> > dst2,
+                     const Pointer<SideData<NDIM, double> > src,
+                     const Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    double* const E_diag = dst1->getPointer();
+    const int E_diag_ghosts = (dst1->getGhostCellWidth()).max();
+    
+    double* const E_offDiag = dst2->getPointer();
+    const int E_offDiag_ghosts = (dst2->getGhostCellWidth()).max();
+
+    const double* const u0 = src->getPointer(0);
+    const double* const u1 = src->getPointer(1);
+#if (NDIM == 3)
+    const double* const u2 = src->getPointer(2);
+#endif
+    const int u_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (E_diag_ghosts != (dst1->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst1 does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+    
+    if (E_offDiag_ghosts != (dst2->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst2 does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (u_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (src == dst1)
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  src == dst1."
+                   << std::endl);
+    }
+    
+    if (src == dst2)
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  src == dst2."
+                   << std::endl);
+    }
+
+    const Box<NDIM>& U_box = src->getGhostBox();
+    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+
+    const int E_diag_depth = dst1->getDepth();
+    const int E_offDiag_depth = dst2->getDepth();
+
+    if (
+#if (NDIM == 2)
+        (E_offDiag_depth != 1)
+#endif
+#if (NDIM == 3)
+            (E_offDiag_depth != NDIM)
+#endif
+                )
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst2 has incorrect depth"
+                   << std::endl);
+    }
+
+    if (patch_box != dst1->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst1 and src must live on the same patch"
+                   << std::endl);
+    }
+    
+    if (patch_box != dst2->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst2 and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+#endif
+
+    S_TO_C_STRAIN_FC(E_diag,
+                     E_diag_ghosts,
+		     E_offDiag,
+                     E_offDiag_ghosts,
+                     u0,
+                     u1,
+#if (NDIM == 3)
+                     u2,
+#endif
+                     u_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1),
+#if (NDIM == 3)  
+                     patch_box.lower(2),
+                     patch_box.upper(2),
+#endif
+                     dx);
+    return;
+} // strain
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

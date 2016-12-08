@@ -3004,6 +3004,38 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
     return;
 } // pointwiseMaxNorm
 
+void
+HierarchyMathOps::strain(const int dst1_idx,
+                         const Pointer<CellVariable<NDIM, double> > /*dst1_var*/,
+			 const int dst2_idx,
+			 const Pointer<CellVariable<NDIM, double> > /*dst2_var*/,
+                         const int src_idx,
+                         const Pointer<SideVariable<NDIM, double> > /*src_var*/,
+                         const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete curl.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst1_data = patch->getPatchData(dst1_idx);
+	    Pointer<CellData<NDIM, double> > dst2_data = patch->getPatchData(dst2_idx);
+            Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.strain(dst1_data, dst2_data, src_data, patch);
+        }
+    }
+    return;
+} // strain
+
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
