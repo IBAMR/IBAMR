@@ -487,6 +487,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_output_Q = false;
     d_output_Omega = true;
     d_output_Div_U = true;
+    d_output_Strain = false;
     d_velocity_solver = NULL;
     d_pressure_solver = NULL;
 
@@ -579,6 +580,7 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putBool("d_output_Q", d_output_Q);
     db->putBool("d_output_Omega", d_output_Omega);
     db->putBool("d_output_Div_U", d_output_Div_U);
+    db->putBool("d_output_Strain", d_output_Strain);
     return;
 } // putToDatabaseSpecialized
 
@@ -698,6 +700,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("output_Q")) d_output_Q = db->getBool("output_Q");
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
+    if (db->keyExists("output_Strain")) d_output_Strain = db->getBool("output_Strain");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 
@@ -808,6 +811,7 @@ INSHierarchyIntegrator::getFromRestart()
     d_output_Q = db->getBool("d_output_Q");
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
+    d_output_Strain = db->getBool("d_output_Strain");
     return;
 } // getFromRestart
 
