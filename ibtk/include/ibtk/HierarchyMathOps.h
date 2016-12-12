@@ -1170,6 +1170,24 @@ public:
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
+    /*!
+     * \brief Compute the cell-centered strain rate of a side-centered vector field
+     * using centered differences.
+
+     * Sets dst = strain src.
+     *
+     * Compute the strain of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+     void strain(int dst_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                 int src_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
+                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                 double src_ghost_fill_time);
+
 private:
     /*!
      * \brief Default constructor.
