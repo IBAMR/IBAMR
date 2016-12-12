@@ -7096,6 +7096,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
     const double* const dx = pgeom->getDx();
 
     const int E_ghosts = (dst->getGhostCellWidth()).max();
+    const int E_depth = dst->getDepth();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
@@ -7137,8 +7138,6 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
                    << "  src has insufficient ghost cell width."
                    << std::endl);
     }
-
-    const int E_depth = dst->getDepth();
 
     if ((E_depth != NDIM*(NDIM+1) / 2) && (E_depth != NDIM*NDIM))
     {
