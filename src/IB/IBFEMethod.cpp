@@ -1031,12 +1031,13 @@ IBFEMethod::eulerStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(),
+        //d_X_current_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        //~ ierr = VecAXPBYPCZ(
+        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1050,12 +1051,12 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        //~ ierr = VecAXPBYPCZ(
+        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1069,15 +1070,15 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr =
-            VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        //~ ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ ierr =
+        //~ VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        //~ ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        //~ ierr = VecAXPBYPCZ(
+        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        //~ IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1701,11 +1702,13 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
            
 
             dA_da = sqrt(N * N) / sqrt(n * n);
-            
 
             N = N.unit();
             n = n.unit();
-          
+
+            double* nn;
+
+            nn = &n(0);
 
             if (d_lag_force_fcn_data[part].fcn)
             {
@@ -1713,8 +1716,16 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 // point and add the corresponding forces to the
                 // right-hand-side vector.
                 fe.setInterpolatedDataPointers(force_var_data, force_grad_var_data, force_fcn_system_idxs, elem, qp);
-                d_lag_force_fcn_data[part].fcn(
-                    F, FF, x, s, elem, force_var_data, force_grad_var_data, data_time, d_lag_force_fcn_data[part].ctx);
+                d_lag_force_fcn_data[part].fcn(F,
+                                               FF,
+                                               x,
+                                               s,
+                                               elem,
+                                               nn,
+                                               force_var_data,
+                                               force_grad_var_data,
+                                               data_time,
+                                               d_lag_force_fcn_data[part].ctx);
 
                 // extract the pressure jump
                 double dP = F * n * dA_da;
@@ -2234,6 +2245,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                 {
 									
 									intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                                                        pout << "i_s_up = " << i_s_up << "\n\n";
+                                                                        pout << "i_s_um = " << i_s_um << "\n\n";
                                     intersectionSide_indices_up.push_back(i_s_up);
                                     num_intersectionsSide_up(i_s_up) += 1;
                                     intersectionSide_indices_um.push_back(i_s_um);
