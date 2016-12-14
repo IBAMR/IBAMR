@@ -183,7 +183,7 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
                        << " not found in restart file.\n");
         }
 
-        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi;
+        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, X_unal_lo, X_unal_hi;
         F << "F_" << strct_id;
         T << "T_" << strct_id;
         P << "P_" << strct_id;
@@ -192,6 +192,9 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         L_box << "L_box_" << strct_id;
         X_lo << "X_lo_" << strct_id;
         X_hi << "X_hi_" << strct_id;
+	X_unal_lo << "X_unal_lo" << strct_id;
+	X_unal_hi << "X_unal_lo" << strct_id;
+	
         db->getDoubleArray(F.str(), force_obj.F_current.data(), 3);
         db->getDoubleArray(T.str(), force_obj.T_current.data(), 3);
         db->getDoubleArray(P.str(), force_obj.P_current.data(), 3);
@@ -200,6 +203,8 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         db->getDoubleArray(L_box.str(), force_obj.L_box_current.data(), 3);
         db->getDoubleArray(X_lo.str(), force_obj.box_X_lower_current.data(), 3);
         db->getDoubleArray(X_hi.str(), force_obj.box_X_upper_current.data(), 3);
+	db->getDoubleArray(X_unal_lo.str(), force_obj.box_X_lower_unaligned_current.data(), 3);
+        db->getDoubleArray(X_unal_hi.str(), force_obj.box_X_upper_unaligned_current.data(), 3);
     }
 
     d_hydro_objs[strct_id] = force_obj;
@@ -267,6 +272,7 @@ IBHydrodynamicForceEvaluator::updateStructureDomain(int strct_id,
     force_obj.box_X_lower_new = box_X_lower_new;
     force_obj.box_X_upper_new = box_X_upper_new;
     
+    // Assert that the volume of the box has not changed
     force_obj.box_vol_new = (box_X_upper_new[0] - box_X_lower_new[0]) * (box_X_upper_new[1] - box_X_lower_new[1])
 #if (NDIM == 3)
 		            * (box_X_upper_new[2] - box_X_lower_new[2])
@@ -338,6 +344,10 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
             Box<NDIM> integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
+
+	    // Shorten the integration box so it only includes the control volume
+	    integration_box.upper() -= 1;
+	    
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -394,6 +404,10 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
             Box<NDIM> integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
+	    
+	    // Shorten the integration box so it only includes the control volume
+	    integration_box.upper() -= 1;
+	    
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
