@@ -1032,7 +1032,7 @@ IBFEMethod::eulerStep(const double current_time, const double new_time)
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         //~ ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(),
-        //d_X_current_vecs[part]->vec());
+        // d_X_current_vecs[part]->vec());
         //~ IBTK_CHKERRQ(ierr);
         //~ ierr = VecAXPBYPCZ(
         //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -2027,6 +2027,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
+        const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
         //~ if (integrate_normal_force)
@@ -2043,10 +2044,10 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         SideData<NDIM, int> num_intersections_up(patch_box, 1, IntVector<NDIM>(0));
         num_intersections_up.fillAll(0);
 
-        SideData<NDIM, int> num_intersectionsSide_um(patch_box, 1, IntVector<NDIM>(0));
+        SideData<NDIM, int> num_intersectionsSide_um(patch_box, 1, IntVector<NDIM>(1));
         num_intersectionsSide_um.fillAll(0);
 
-        SideData<NDIM, int> num_intersectionsSide_up(patch_box, 1, IntVector<NDIM>(0));
+        SideData<NDIM, int> num_intersectionsSide_up(patch_box, 1, IntVector<NDIM>(1));
         num_intersectionsSide_up.fillAll(0);
         //~ }
 
@@ -2105,6 +2106,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                           IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
             box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
+
+            //~ Box<NDIM> side_boxes[NDIM];
+            //~ for (int d = 0; d < NDIM; ++d)
+            //~ {
+            //~ side_boxes[d] = SideGeometry<NDIM>::toSideBox(box, d);
+            //~ }
 
             // Loop over coordinate directions and look for intersections
             // with the background fluid grid.
@@ -2188,6 +2195,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         }
                     }
 
+                    //~ if (integrate_tangential_force && side_boxes[axis].contains(i_c))
                     if (integrate_tangential_force)
                     {
                         for (unsigned int k = 0; k < intersections.size(); ++k)
@@ -2227,8 +2235,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             libMesh::Point xu = rs + intersectionsSide[k].first * q;
                             int dd = (axis == 0 ? 1 : 0);
-
-                            if (fmod(xu(axis) - x_lower[axis], dx[axis]) >= 0.5 * dx[axis])
+                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
                             {
                                 SideIndex<NDIM> i_s_um(i_c, dd, 0);
                                 Index<NDIM> i_c_neighbor = i_c;
@@ -2243,10 +2250,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                               
                                 if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                                 {
-									
-									intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
-                                                                        pout << "i_s_up = " << i_s_up << "\n\n";
-                                                                        pout << "i_s_um = " << i_s_um << "\n\n";
+                                    intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
                                     intersectionSide_indices_up.push_back(i_s_up);
                                     num_intersectionsSide_up(i_s_up) += 1;
                                     intersectionSide_indices_um.push_back(i_s_um);
@@ -2254,7 +2258,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                  
                                 }
                             }
-                            else if (fmod(xu(axis) - x_lower[axis], dx[axis]) < 0.5 * dx[axis] && fmod(xu(axis) - x_lower[axis], dx[axis])>=0.0)
+                            else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
+                                     fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
                             {
 								
 								SideIndex<NDIM> i_s_up(i_c, dd, 0);
