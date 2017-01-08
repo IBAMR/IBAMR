@@ -1591,7 +1591,137 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                 "for "
                 "system: "
              << system_name << "\n";
+#if 1 // XXXX
+        // Extract the mesh.
+        const MeshBase& mesh = d_es->get_mesh();
+        const Parallel::Communicator& comm = mesh.comm();
+        const unsigned int dim = mesh.mesh_dimension();
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH); // XXXX
 
+        // Extract the FE system and DOF map, and setup the FE object.
+        System& system = d_es->get_system(system_name);
+        const int sys_num = system.number();
+        DofMap& dof_map = system.get_dof_map();
+        SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
+        dof_map.compute_sparsity(mesh);
+        std::vector<unsigned int> dof_indices;
+        FEType fe_type = dof_map.variable_type(0);
+        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<double>& JxW = fe->get_JxW();
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+        // Build solver components.
+        SparseMatrix<double>* M_mat = SparseMatrix<double>::build(comm).release();
+        M_mat->attach_dof_map(dof_map);
+        M_mat->init();
+
+        NumericVector<double>* M_vec = system.solution->zero_clone().release();
+
+        // Loop over the mesh to construct the system matrix.
+        DenseMatrix<double> M_e;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+            {
+                dof_map_cache.dof_indices(elem, dof_indices, var_num);
+                const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                M_e.resize(dof_indices_sz, dof_indices_sz);
+                const size_t n_basis = dof_indices.size();
+                const unsigned int n_qp = qrule->n_points();
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    for (unsigned int j = 0; j < n_basis; ++j)
+                    {
+                        for (unsigned int qp = 0; qp < n_qp; ++qp)
+                        {
+                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
+                        }
+                    }
+                }
+
+                double tr_M = 0.0;
+                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
+
+                double vol = 0.0;
+                for (unsigned int qp = 0; qp < n_qp; ++qp) vol += JxW[qp];
+
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    for (unsigned int j = 0; j < n_basis; ++j)
+                    {
+                        if (i == j)
+                            M_e(i, j) = (vol / tr_M) * M_e(i, j);
+                        else
+                            M_e(i, j) = 0.0;
+                    }
+                }
+
+                dof_map.constrain_element_matrix(M_e, dof_indices);
+                M_mat->add_matrix(M_e, dof_indices);
+            }
+        }
+
+        // Flush assemble the matrix.
+        M_mat->close();
+
+        // Reset values at Dirichlet boundaries.
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                if (elem->neighbor(side)) continue;
+                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
+                                                                    ZERO_DISPLACEMENT_Y_BDRY_ID,
+                                                                    ZERO_DISPLACEMENT_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids =
+                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
+                fe->reinit(elem);
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (elem->is_node_on_side(n, side))
+                    {
+                        Node* node = elem->get_node(n);
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+                        {
+                            dof_map_cache.dof_indices(elem, dof_indices, var_num);
+                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
+                            for (unsigned int comp = 0; comp < n_comp; ++comp)
+                            {
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
+                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
+                                     cit != dof_indices.end();
+                                     ++cit)
+                                {
+                                    const unsigned int k = *cit;
+                                    M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
+                                    M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Assemble the matrix.
+        M_mat->close();
+
+        // Extract the diagonal.
+        M_mat->get_diagonal(*M_vec);
+        M_vec->close();
+
+        // Delete the matrix representation.
+        delete M_mat;
+#else
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
@@ -1715,6 +1845,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 
         // Assemble the vector representation of the diagonal matrix.
         M_vec->close();
+#endif // XXXX
 
         // Store the diagonal mass matrix.
         d_L2_proj_matrix_diag[system_name] = M_vec;
