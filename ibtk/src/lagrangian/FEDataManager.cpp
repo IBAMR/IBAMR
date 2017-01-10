@@ -1612,14 +1612,11 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        SparseMatrix<double>* M_mat = SparseMatrix<double>::build(comm).release();
-        M_mat->attach_dof_map(dof_map);
-        M_mat->init();
-
         NumericVector<double>* M_vec = system.solution->zero_clone().release();
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
+        DenseVector<double> M_e_vec;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1631,6 +1628,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
                 const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
+                M_e_vec.resize(dof_indices_sz);
                 const size_t n_basis = dof_indices.size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
@@ -1644,30 +1642,21 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                     }
                 }
 
+                const double vol = elem->volume();
                 double tr_M = 0.0;
                 for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
-
-                double vol = 0.0;
-                for (unsigned int qp = 0; qp < n_qp; ++qp) vol += JxW[qp];
-
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int j = 0; j < n_basis; ++j)
-                    {
-                        if (i == j)
-                            M_e(i, j) = (vol / tr_M) * M_e(i, j);
-                        else
-                            M_e(i, j) = 0.0;
-                    }
+                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
                 }
 
-                dof_map.constrain_element_matrix(M_e, dof_indices);
-                M_mat->add_matrix(M_e, dof_indices);
+                dof_map.constrain_element_vector(M_e_vec, dof_indices);
+                M_vec->add_vector(M_e_vec, dof_indices);
             }
         }
 
         // Flush assemble the matrix.
-        M_mat->close();
+        M_vec->close();
 
         // Reset values at Dirichlet boundaries.
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1697,14 +1686,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
-                                     cit != dof_indices.end();
-                                     ++cit)
-                                {
-                                    const unsigned int k = *cit;
-                                    M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
-                                    M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
-                                }
+                                M_vec->set(node_dof_index, 1.0);
                             }
                         }
                     }
@@ -1712,15 +1694,8 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             }
         }
 
-        // Assemble the matrix.
-        M_mat->close();
-
-        // Extract the diagonal.
-        M_mat->get_diagonal(*M_vec);
+        // Assemble the vector.
         M_vec->close();
-
-        // Delete the matrix representation.
-        delete M_mat;
 #else
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
