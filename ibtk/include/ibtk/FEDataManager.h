@@ -478,9 +478,7 @@ public:
      * L2 projection operator.
      */
     std::pair<libMesh::LinearSolver<double>*, libMesh::SparseMatrix<double>*>
-    buildL2ProjectionSolver(const std::string& system_name,
-                            libMesh::QuadratureType quad_type = libMesh::QGAUSS,
-                            libMesh::Order quad_order = libMesh::FIFTH);
+    buildL2ProjectionSolver(const std::string& system_name);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
@@ -494,8 +492,6 @@ public:
                              libMesh::NumericVector<double>& F,
                              const std::string& system_name,
                              bool consistent_mass_matrix = true,
-                             libMesh::QuadratureType quad_type = libMesh::QGAUSS,
-                             libMesh::Order quad_order = libMesh::FIFTH,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);
 
@@ -820,8 +816,6 @@ private:
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
-    std::map<std::string, libMesh::QuadratureType> d_L2_proj_quad_type;
-    std::map<std::string, libMesh::Order> d_L2_proj_quad_order;
 };
 } // namespace IBTK
 
