@@ -605,10 +605,10 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
-    libMesh::FEFamily d_fe_family;
-    libMesh::Order d_fe_order;
-    libMesh::QuadratureType d_quad_type;
-    libMesh::Order d_quad_order;
+    std::vector<libMesh::FEFamily> d_fe_family;
+    std::vector<libMesh::Order> d_fe_order;
+    std::vector<libMesh::QuadratureType> d_default_quad_type;
+    std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix;
 
     /*

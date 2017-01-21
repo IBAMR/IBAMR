@@ -628,7 +628,7 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
         EquationSystems* equation_systems = d_equation_systems[part];
         MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+        AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& L_system = *d_F_systems[part];
@@ -759,7 +759,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     EquationSystems* equation_systems = d_equation_systems[part];
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& L_system = *d_F_systems[part];
@@ -1266,7 +1266,7 @@ CIBFEMethod::commonConstructor(Pointer<Database> input_db)
         {
             std::ostringstream os;
             os << "U_constraint_" << d;
-            U_constraint_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            U_constraint_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
         }
     }
 
@@ -1334,9 +1334,10 @@ void
 CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSystems* equation_systems)
 {
     // Get the structure mesh.
+    const int part = 0; // XXXX
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);

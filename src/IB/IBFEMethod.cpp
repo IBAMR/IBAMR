@@ -386,7 +386,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     System& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     Phi_system.attach_assemble_function(assemble_poisson);
-    Phi_system.add_variable("Phi", d_fe_order, d_fe_family);
+    Phi_system.add_variable("Phi", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerStressNormalizationPart
 
@@ -405,11 +405,11 @@ IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsign
     d_PK1_stress_fcn_data[part].push_back(data);
     if (data.quad_type == INVALID_Q_RULE)
     {
-        d_PK1_stress_fcn_data[part].back().quad_type = d_quad_type;
+        d_PK1_stress_fcn_data[part].back().quad_type = d_default_quad_type[part];
     }
     if (data.quad_order == INVALID_ORDER)
     {
-        d_PK1_stress_fcn_data[part].back().quad_order = d_quad_order;
+        d_PK1_stress_fcn_data[part].back().quad_order = d_default_quad_order[part];
     }
     return;
 } // registerPK1StressFunction
@@ -821,7 +821,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "X_" << d;
-                X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
@@ -829,7 +829,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dX_" << d;
-                dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
@@ -837,7 +837,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
@@ -845,7 +845,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
         }
     }
@@ -1108,10 +1108,6 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_split_normal_force", d_split_normal_force);
     db->putBool("d_split_tangential_force", d_split_tangential_force);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
-    db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
-    db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
-    db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
-    db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
 } // putToDatabase
@@ -1555,8 +1551,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-    AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
+    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    AutoPtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1830,7 +1826,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> default_qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
+    AutoPtr<QBase> default_qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     AutoPtr<QBase> qrule_face;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
@@ -2086,7 +2082,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim - 1, d_quad_order);
+    AutoPtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
@@ -2503,12 +2499,13 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_split_normal_force = false;
     d_split_tangential_force = false;
     d_use_jump_conditions = false;
-    d_fe_family = LAGRANGE;
-    d_fe_order = INVALID_ORDER;
-    d_quad_type = QGAUSS;
-    d_quad_order = INVALID_ORDER;
     d_use_consistent_mass_matrix = true;
     d_do_log = false;
+
+    d_fe_family.resize(d_num_parts, INVALID_FE);
+    d_fe_order.resize(d_num_parts, INVALID_ORDER);
+    d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
+    d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
     // Indicate that all of the parts do NOT use stress normalization by default
     // and set some default values.
@@ -2525,11 +2522,11 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
-    bool mesh_has_first_order_elems = false;
-    bool mesh_has_second_order_elems = false;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const MeshBase& mesh = *meshes[part];
+        bool mesh_has_first_order_elems = false;
+        bool mesh_has_second_order_elems = false;
         MeshBase::const_element_iterator el_it = mesh.elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
@@ -2538,26 +2535,35 @@ IBFEMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-    }
-    mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-    if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
-        (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
-    {
-        TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
-                                 << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
-    }
-    if (mesh_has_first_order_elems)
-    {
-        d_fe_order = FIRST;
-        d_quad_order = THIRD;
-    }
-    if (mesh_has_second_order_elems)
-    {
-        d_fe_order = SECOND;
-        d_quad_order = FIFTH;
+        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
+        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
+            (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
+        {
+            TBOX_ERROR(d_object_name
+                       << "::IBFEMethod():\n"
+                       << "  each FE mesh part must contain only FIRST order elements or only SECOND order elements"
+                       << std::endl);
+        }
+        d_fe_family[part] = LAGRANGE;
+        d_default_quad_type[part] = QGAUSS;
+        if (mesh_has_first_order_elems)
+        {
+            d_fe_order[part] = FIRST;
+            d_default_quad_order[part] = THIRD;
+        }
+        if (mesh_has_second_order_elems)
+        {
+            d_fe_order[part] = SECOND;
+            d_default_quad_order[part] = FIFTH;
+        }
+
+        // Report configuration.
+        pout << "\n";
+        pout << d_object_name << ": mesh part " << part << " is using "
+             << Utility::enum_to_string<Order>(d_fe_order[part]) << " order "
+             << Utility::enum_to_string<FEFamily>(d_fe_family[part]) << " finite elements.\n";
+        pout << "\n";
     }
 
     // Initialize object with data read from the input and restart databases.
@@ -2568,12 +2574,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
-
-    // Report configuration.
-    pout << "\n";
-    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order "
-         << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
-    pout << "\n";
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -2665,8 +2665,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("split_forces"))
         d_split_tangential_force = db->getBool("split_forces");
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-    if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
-    if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
@@ -2722,10 +2720,6 @@ IBFEMethod::getFromRestart()
     d_split_normal_force = db->getBool("d_split_normal_force");
     d_split_tangential_force = db->getBool("d_split_tangential_force");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
-    d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
-    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
-    d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
-    d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
