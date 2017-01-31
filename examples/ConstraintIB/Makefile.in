@@ -96,6 +96,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -241,6 +242,7 @@ FLIBS = @FLIBS@
 GREP = @GREP@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -284,6 +286,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -356,6 +360,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
@@ -810,15 +815,48 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 examples:
-	@(cd eel2d && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd eel3d && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd falling_sphere && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd flow_past_cylinder && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd knifefish && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd eel2d                        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd eel3d                        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd falling_sphere               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd flow_past_cylinder           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd knifefish                    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd impulsively_started_cylinder && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd moving_plate && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd oscillating_rigid_cylinder && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd stokes_first_problem && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd moving_plate                 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd oscillating_rigid_cylinder   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd stokes_first_problem         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+
+gtest:
+	@(cd eel2d                        && make gtest) || exit 1;
+	@(cd eel3d                        && make gtest) || exit 1;
+	@(cd falling_sphere               && make gtest) || exit 1;
+	@(cd flow_past_cylinder           && make gtest) || exit 1;
+	@(cd knifefish                    && make gtest) || exit 1;
+	@(cd impulsively_started_cylinder && make gtest) || exit 1;
+	@(cd moving_plate                 && make gtest) || exit 1;
+	@(cd oscillating_rigid_cylinder   && make gtest) || exit 1;
+	@(cd stokes_first_problem         && make gtest) || exit 1;
+
+gtest-long:
+	@(cd eel2d                        && make gtest) || exit 1;
+	@(cd eel3d                        && make gtest) || exit 1;
+	@(cd falling_sphere               && make gtest) || exit 1;
+	@(cd flow_past_cylinder           && make gtest) || exit 1;
+	@(cd knifefish                    && make gtest) || exit 1;
+	@(cd impulsively_started_cylinder && make gtest) || exit 1;
+	@(cd moving_plate                 && make gtest) || exit 1;
+	@(cd oscillating_rigid_cylinder   && make gtest-long) || exit 1;
+	@(cd stokes_first_problem         && make gtest) || exit 1;
+
+gtest-all:
+	@(cd eel2d                        && make gtest-long) || exit 1;
+	@(cd eel3d                        && make gtest-long) || exit 1;
+	@(cd falling_sphere               && make gtest-long) || exit 1;
+	@(cd flow_past_cylinder           && make gtest-long) || exit 1;
+	@(cd knifefish                    && make gtest-long) || exit 1;
+	@(cd impulsively_started_cylinder && make gtest-long) || exit 1;
+	@(cd moving_plate                 && make gtest-long) || exit 1;
+	@(cd oscillating_rigid_cylinder   && make gtest-long) || exit 1;
+	@(cd stokes_first_problem         && make gtest-long) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

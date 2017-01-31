@@ -1,25 +1,29 @@
 #!/bin/bash
-set -e 
+set -e
 set -o pipefail
-./configure \
-  CFLAGS="-Wall" \
-  CXXFLAGS="-Wall" \
-  FCFLAGS="-Wall" \
-  CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
-  CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
-  FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
-  CPPFLAGS="-DOMPI_SKIP_MPICXX" \
-  LDFLAGS="-lgtest" \
-  --with-hypre=$PETSC_DIR/$PETSC_ARCH \
-  --with-samrai=$SAMRAI_DIR \
-  --with-hdf5=$HOME/linux/hdf5/1.8.16 \
-  --with-blitz=$HOME/linux/blitz/0.10 \
-  --with-silo=$HOME/linux/silo/4.10 \
-  --with-boost=$HOME/linux/boost/1.61.0 \
-  --enable-libmesh \
-  --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
-  --with-libmesh-method=dbg \
-  --config-cache
-
+config() {
+    ./configure \
+        CFLAGS="-Wall" \
+        CXXFLAGS="-Wall" \
+        FCFLAGS="-Wall" \
+        CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
+        CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
+        FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
+        CPPFLAGS="-DOMPI_SKIP_MPICXX" \
+        --with-hypre=$PETSC_DIR/$PETSC_ARCH \
+        --with-samrai=$SAMRAI_DIR \
+        --with-hdf5=$HOME/linux/hdf5/1.8.16 \
+        --with-blitz=$HOME/linux/blitz/0.10 \
+        --with-silo=$HOME/linux/silo/4.10 \
+        --with-boost=$HOME/linux/boost/1.61.0 \
+        --enable-libmesh \
+        --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
+        --with-libmesh-method=dbg \
+        --enable-gsl \
+        --with-gsl=$HOME/linux/gsl/2.3 \
+        --enable-gtest \
+        --with-gtest=$HOME/linux/googletest
+}
+config
 make -kj4 lib
-make -kj4 examples
+make gtest

@@ -7,3 +7,14 @@ examples:
 	@(cd ex0 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex1 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd ex2 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+
+gtest:
+	echo "IB/implicit test currently disabled"
+	## @(cd ex0 && make gtest) || exit 1;
+	## @(cd ex1 && make gtest) || exit 1;
+	## @(cd ex2 && make gtest) || exit 1;
+gtest-long:	
+	echo "IB/implicit test currently disabled"
+	## @(cd ex0 && make gtest-long) || exit 1;
+	## @(cd ex1 && make gtest-long) || exit 1;
+	## @(cd ex2 && make gtest-long) || exit 1;
