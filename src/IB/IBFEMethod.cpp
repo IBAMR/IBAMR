@@ -165,6 +165,7 @@ const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping
 const std::string IBFEMethod::DP_SYSTEM_NAME = "IB pressure jump system";
 const std::string IBFEMethod::DU_SYSTEM_NAME = "IB velocity u jump system";
 const std::string IBFEMethod::DV_SYSTEM_NAME = "IB velocity v jump system";
+const std::string IBFEMethod::DW_SYSTEM_NAME = "IB velocity w jump system";
 const std::string IBFEMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 
@@ -314,6 +315,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
     d_dv_half_vecs.resize(d_num_parts);
     d_dv_IB_ghost_vecs.resize(d_num_parts);
 
+    d_dw_systems.resize(d_num_parts);
+    d_dw_half_vecs.resize(d_num_parts);
+    d_dw_IB_ghost_vecs.resize(d_num_parts);
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
@@ -350,6 +355,11 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_dv_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(DV_SYSTEM_NAME, /*localize_data*/ false));
 
+        d_dw_systems[part] = &d_equation_systems[part]->get_system(DW_SYSTEM_NAME);
+        d_dw_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_dw_systems[part]->current_local_solution.get());
+        d_dw_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(DW_SYSTEM_NAME, /*localize_data*/ false));
+
         d_dP_systems[part] = &d_equation_systems[part]->get_system(DP_SYSTEM_NAME);
         d_dP_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_dP_systems[part]->current_local_solution.get());
         d_dP_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
@@ -381,6 +391,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
 
         d_dv_systems[part]->solution->close();
         d_dv_systems[part]->solution->localize(*d_dv_half_vecs[part]);
+
+        d_dw_systems[part]->solution->close();
+        d_dw_systems[part]->solution->localize(*d_dw_half_vecs[part]);
     }
 
     // Update the mask data.
@@ -430,6 +443,11 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
         d_dv_systems[part]->solution->localize(*d_dv_systems[part]->current_local_solution);
         //~ delete d_dv_half_vecs[part];
 
+        d_dw_half_vecs[part]->close();
+        *d_dw_systems[part]->solution = *d_dw_half_vecs[part];
+        d_dw_systems[part]->solution->close();
+        d_dw_systems[part]->solution->localize(*d_dw_systems[part]->current_local_solution);
+
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
@@ -464,6 +482,10 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
     d_dv_half_vecs.clear();
     d_dv_IB_ghost_vecs.clear();
 
+    d_dw_systems.clear();
+    d_dw_half_vecs.clear();
+    d_dw_IB_ghost_vecs.clear();
+
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time = std::numeric_limits<double>::quiet_NaN();
@@ -477,12 +499,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    const int ndim = 2;
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* du_ghost_vec = d_du_IB_ghost_vecs[part];
         NumericVector<double>* dv_ghost_vec = d_dv_IB_ghost_vecs[part];
+        NumericVector<double>* dw_ghost_vec = d_dw_IB_ghost_vecs[part];
         NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         NumericVector<double>* U_vec = NULL;
@@ -571,6 +593,18 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
         std::vector<std::vector<unsigned int> > dv_dof_indices(NDIM);
 
+#if (NDIM == 3)
+        System& dw_system = equation_systems->get_system(DW_SYSTEM_NAME);
+        const DofMap& dw_dof_map = dw_system.get_dof_map();
+        FEDataManager::SystemDofMapCache& dw_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DW_SYSTEM_NAME);
+        FEType dw_fe_type = dw_dof_map.variable_type(0);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            TBOX_ASSERT(dw_dof_map.variable_type(d) == dw_fe_type);
+        }
+        std::vector<std::vector<unsigned int> > dw_dof_indices(NDIM);
+#endif
+
         const std::vector<std::vector<Elem*> >& active_patch_element_map =
             d_fe_data_managers[part]->getActivePatchElementMap();
         const int level_num = d_fe_data_managers[part]->getLevelNumber();
@@ -587,9 +621,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         (*U_rhs_vec).zero();
         DenseVector<double> U_rhs_e[n_vars];
         boost::multi_array<double, 2> X_node;
-        boost::multi_array<double, 2> du_node, dv_node;
+        boost::multi_array<double, 2> du_node, dv_node, dw_node;
         std::vector<double> U_qp, N_qp, X_qp_p, X_qp_m;
-        std::vector<double> du_qp, dv_qp;
+        std::vector<double> du_qp, dv_qp, dw_qp;
+
         du_ghost_vec->close();
         PetscVector<double>* du_petsc_vec = static_cast<PetscVector<double>*>(du_ghost_vec);
         Vec du_global_vec = du_petsc_vec->vec();
@@ -597,6 +632,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         VecGhostGetLocalForm(du_global_vec, &du_local_vec);
         double* du_local_soln;
         VecGetArray(du_local_vec, &du_local_soln);
+
         dv_ghost_vec->close();
         PetscVector<double>* dv_petsc_vec = static_cast<PetscVector<double>*>(dv_ghost_vec);
         Vec dv_global_vec = dv_petsc_vec->vec();
@@ -604,7 +640,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         VecGhostGetLocalForm(dv_global_vec, &dv_local_vec);
         double* dv_local_soln;
         VecGetArray(dv_local_vec, &dv_local_soln);
-        VectorValue<double> ju, jv;
+
+        dw_ghost_vec->close();
+        PetscVector<double>* dw_petsc_vec = static_cast<PetscVector<double>*>(dw_ghost_vec);
+        Vec dw_global_vec = dw_petsc_vec->vec();
+        Vec dw_local_vec;
+        VecGhostGetLocalForm(dw_global_vec, &dw_local_vec);
+        double* dw_local_soln;
+        VecGetArray(dw_local_vec, &dw_local_soln);
+
+        VectorValue<double> ju, jv, jw;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
         const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
@@ -625,11 +670,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(u_data_idx);
             const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
             const int u_depth = u_sc_data->getDepth();
-
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
 
-            const double dh = d_vel_interp_width * sqrt(dx[0] * dx[0] + dx[1] * dx[1]);
+            double diag_dis = 0.0;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                diag_dis += dx[d] * dx[d];
+            }
+            const double dh = d_vel_interp_width * sqrt(diag_dis);
+
             // Setup vectors to store the values of U and X at the quadrature
             // points.
             //
@@ -656,6 +706,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             X_qp_p.resize(NDIM * n_qp_patch);
             du_qp.resize(NDIM * n_qp_patch);
             dv_qp.resize(NDIM * n_qp_patch);
+            dw_qp.resize(NDIM * n_qp_patch);
             N_qp.resize(NDIM * n_qp_patch);
             std::fill(U_qp.begin(), U_qp.end(), 0.0);
             std::fill(N_qp.begin(), N_qp.end(), 0.0);
@@ -672,10 +723,17 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                     du_dof_map_cache.dof_indices(elem, du_dof_indices[d], d);
                     dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
+#if (NDIM == 3)
+                    dw_dof_map_cache.dof_indices(elem, dw_dof_indices[d], d);
+#endif
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 get_values_for_interpolation(du_node, *du_petsc_vec, du_local_soln, du_dof_indices);
                 get_values_for_interpolation(dv_node, *dv_petsc_vec, dv_local_soln, dv_dof_indices);
+#if (NDIM == 3)
+                get_values_for_interpolation(dw_node, *dw_petsc_vec, dw_local_soln, dw_dof_indices);
+#endif
+
                 const bool qrule_changed = FEDataManager::updateInterpQuadratureRule(
                     qrule, IBFEMethod::getDefaultInterpSpec(), elem, X_node, dx_min);
                 if (qrule_changed)
@@ -703,7 +761,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                 std::fill(du_begin, du_begin + NDIM * n_qp, 0.0);
                 double* dv_begin = &dv_qp[NDIM * qp_offset];
                 std::fill(dv_begin, dv_begin + NDIM * n_qp, 0.0);
-
+#if (NDIM == 3)
+                double* dw_begin = &dw_qp[NDIM * qp_offset];
+                std::fill(dw_begin, dw_begin + NDIM * n_qp, 0.0);
+#endif
                 double* N_begin = &N_qp[NDIM * qp_offset];
                 std::fill(N_begin, N_begin + NDIM * n_qp, 0.0);
 
@@ -731,6 +792,9 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             X_qp_m[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
                             du_qp[NDIM * (qp_offset + qp) + i] += du_node[k][i] * p_X;
                             dv_qp[NDIM * (qp_offset + qp) + i] += dv_node[k][i] * p_X;
+#if (NDIM == 3)
+                            dw_qp[NDIM * (qp_offset + qp) + i] += dw_node[k][i] * p_X;
+#endif
                         }
                         N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                         X_qp_p[NDIM * (qp_offset + qp) + i] += -n(i) * dh;
@@ -769,17 +833,23 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
             if (!local_indices.empty())
             {
-                boost::array<int, 2> ic_trimmed_lower_p, ic_trimmed_upper_p, ic_lower_p, ic_upper_p, ic_center_p;
-                boost::array<int, 2> ic_trimmed_lower_m, ic_trimmed_upper_m, ic_lower_m, ic_upper_m, ic_center_m;
-                boost::array<double, 2> X_shifted_p, X_cell_p;
-                boost::array<double, 2> X_shifted_m, X_cell_m;
+                boost::array<int, NDIM> ic_trimmed_lower_p, ic_trimmed_upper_p, ic_lower_p, ic_upper_p, ic_center_p;
+                boost::array<int, NDIM> ic_trimmed_lower_m, ic_trimmed_upper_m, ic_lower_m, ic_upper_m, ic_center_m;
+                boost::array<double, NDIM> X_shifted_p, X_cell_p;
+                boost::array<double, NDIM> X_shifted_m, X_cell_m;
                 boost::array<double, 2> w0_p, w1_p;
                 boost::array<double, 2> w0_m, w1_m;
+#if (NDIM == 3)
+                boost::array<double, 2> w2_m, w2_p;
+#endif
                 boost::array<double, NDIM> x_lower_axis, x_upper_axis;
                 const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
                 std::vector<double> Q_data_axis_p(local_sz), Q_data_axis_m(local_sz);
 
                 x_lower_axis[0] = x_lower_axis[1] = x_upper_axis[0] = x_upper_axis[1] = 0.0;
+#if (NDIM == 3)
+                x_lower_axis[2] = x_lower_axis[2] = 0.0;
+#endif
 
                 Box<NDIM> side_boxes[NDIM];
 
@@ -800,24 +870,28 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
                     const IntVector<NDIM>& ilower = side_boxes[axis].lower();
                     const IntVector<NDIM>& iupper = side_boxes[axis].upper();
-                //~ //    #if (NDIM == 2)
-                    boost::const_multi_array_ref<double, ndim + 1> u_sc_data_array(
+
+                    boost::const_multi_array_ref<double, NDIM + 1> u_sc_data_array(
                         u_sc_data->getPointer(axis),
                         (boost::extents[range(ilower[0] - u_gcw[0], iupper[0] + u_gcw[0] + 1)][range(
-                            ilower[1] - u_gcw[1], iupper[1] + u_gcw[1] + 1)][range(0, u_depth)]),
+                            ilower[1] - u_gcw[1], iupper[1] + u_gcw[1] + 1)]
+#if (NDIM == 3)
+                                       [range(ilower[2] - u_gcw[2], iupper[2] + u_gcw[2] + 1)]
+#endif
+                                       [range(0, u_depth)]),
                         boost::fortran_storage_order());
 
                     for (unsigned int k = 0; k < nindices; ++k)
                     {
                         const int s = local_indices[k];
 
-                        for (int d = 0; d < ndim; ++d)
+                        for (int d = 0; d < NDIM; ++d)
                         {
-                            X_shifted_p[d] = X_qp_p[d + s * ndim] + periodic_shifts[d + k * ndim];
-                            X_shifted_m[d] = X_qp_m[d + s * ndim] + periodic_shifts[d + k * ndim];
+                            X_shifted_p[d] = X_qp_p[d + s * NDIM] + periodic_shifts[d + k * NDIM];
+                            X_shifted_m[d] = X_qp_m[d + s * NDIM] + periodic_shifts[d + k * NDIM];
                         }
 
-                        for (unsigned int d = 0; d < ndim; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             ic_center_p[d] = ilower[d] + NINT((X_shifted_p[d] - x_lower_axis[d]) / dx[d] - 0.5);
                             X_cell_p[d] =
@@ -866,17 +940,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             w0_p[1] = 1.0 - w0_p[0];
                         }
 
-                        if (X_shifted_p[1] <= X_cell_p[1])
-                        {
-                            w1_p[0] = (X_cell_p[1] - X_shifted_p[1]) / dx[1];
-                            w1_p[1] = 1.0 - w1_p[0];
-                        }
-                        else
-                        {
-                            w1_p[0] = 1.0 + (X_cell_p[1] - X_shifted_p[1]) / dx[1];
-                            w1_p[1] = 1.0 - w1_p[0];
-                        }
-
                         if (X_shifted_m[0] <= X_cell_m[0])
                         {
                             w0_m[0] = (X_cell_m[0] - X_shifted_m[0]) / dx[0];
@@ -889,6 +952,17 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             w0_m[1] = 1.0 - w0_m[0];
                         }
 
+                        if (X_shifted_p[1] <= X_cell_p[1])
+                        {
+                            w1_p[0] = (X_cell_p[1] - X_shifted_p[1]) / dx[1];
+                            w1_p[1] = 1.0 - w1_p[0];
+                        }
+                        else
+                        {
+                            w1_p[0] = 1.0 + (X_cell_p[1] - X_shifted_p[1]) / dx[1];
+                            w1_p[1] = 1.0 - w1_p[0];
+                        }
+
                         if (X_shifted_m[1] <= X_cell_m[1])
                         {
                             w1_m[0] = (X_cell_m[1] - X_shifted_m[1]) / dx[1];
@@ -899,11 +973,38 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             w1_m[0] = 1.0 + (X_cell_m[1] - X_shifted_m[1]) / dx[1];
                             w1_m[1] = 1.0 - w1_m[0];
                         }
+#if (NDIM == 3)
+
+                        if (X_shifted_p[2] <= X_cell_p[2])
+                        {
+                            w2_p[0] = (X_cell_p[2] - X_shifted_p[2]) / dx[2];
+                            w2_p[1] = 1.0 - w2_p[0];
+                        }
+                        else
+                        {
+                            w2_p[0] = 1.0 + (X_cell_p[2] - X_shifted_p[2]) / dx[2];
+                            w2_p[1] = 1.0 - w2_p[0];
+                        }
+
+                        if (X_shifted_m[2] <= X_cell_m[2])
+                        {
+                            w2_m[0] = (X_cell_m[2] - X_shifted_m[2]) / dx[2];
+                            w2_m[1] = 1.0 - w2_m[0];
+                        }
+                        else
+                        {
+                            w2_m[0] = 1.0 + (X_cell_m[2] - X_shifted_m[2]) / dx[2];
+                            w2_m[1] = 1.0 - w2_m[0];
+                        }
+
+#endif
 
                         for (int d = 0; d < u_depth; ++d)
                         {
                             Q_data_axis_p[s] = 0.0;
                             Q_data_axis_m[s] = 0.0;
+
+#if (NDIM == 2)
 
                             for (int ic1 = ic_trimmed_lower_p[1]; ic1 <= ic_trimmed_upper_p[1]; ++ic1)
                             {
@@ -922,6 +1023,37 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                         u_sc_data_array[ic0][ic1][d];
                                 }
                             }
+#endif
+#if (NDIM == 3)
+
+                            for (int ic2 = ic_trimmed_lower_p[2]; ic2 <= ic_trimmed_upper_p[2]; ++ic2)
+                            {
+                                for (int ic1 = ic_trimmed_lower_p[1]; ic1 <= ic_trimmed_upper_p[1]; ++ic1)
+                                {
+                                    for (int ic0 = ic_trimmed_lower_p[0]; ic0 <= ic_trimmed_upper_p[0]; ++ic0)
+                                    {
+                                        Q_data_axis_p[s] += w0_p[ic0 - ic_lower_p[0]] * w1_p[ic1 - ic_lower_p[1]] *
+                                                            w2_p[ic2 - ic_lower_p[2]] *
+                                                            u_sc_data_array[ic0][ic1][ic2][d];
+                                    }
+                                }
+                            }
+
+                            for (int ic2 = ic_trimmed_lower_m[2]; ic2 <= ic_trimmed_upper_m[2]; ++ic2)
+                            {
+                                for (int ic1 = ic_trimmed_lower_m[1]; ic1 <= ic_trimmed_upper_m[1]; ++ic1)
+                                {
+                                    for (int ic0 = ic_trimmed_lower_m[0]; ic0 <= ic_trimmed_upper_m[0]; ++ic0)
+                                    {
+                                        Q_data_axis_m[s] += w0_m[ic0 - ic_lower_m[0]] * w1_m[ic1 - ic_lower_m[1]] *
+                                                            w2_m[ic2 - ic_lower_m[2]] *
+                                                            u_sc_data_array[ic0][ic1][ic2][d];
+                                    }
+                                }
+                            }
+
+#endif
+
                         } // depth
                     }
 
@@ -931,6 +1063,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                     {
                         if (d_modify_vel_interp_jumps)
                         {
+#if (NDIM == 2)
                             if (axis == 0)
                                 CC = 0.5 * dh *
                                      (du_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
@@ -939,6 +1072,24 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 CC = 0.5 * dh *
                                      (dv_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
                                       dv_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1]);
+#endif
+#if (NDIM == 3)
+                            if (axis == 0)
+                                CC = 0.5 * dh *
+                                     (du_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
+                                      du_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1] +
+                                      du_qp[n_vars * local_indices[k] + 2] * N_qp[n_vars * local_indices[k] + 2]);
+                            else if (axis == 1)
+                                CC = 0.5 * dh *
+                                     (dv_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
+                                      dv_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1] +
+                                      dv_qp[n_vars * local_indices[k] + 2] * N_qp[n_vars * local_indices[k] + 2]);
+                            if (axis == 2)
+                                CC = 0.5 * dh *
+                                     (dw_qp[n_vars * local_indices[k]] * N_qp[n_vars * local_indices[k]] +
+                                      dw_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1] +
+                                      dw_qp[n_vars * local_indices[k] + 2] * N_qp[n_vars * local_indices[k] + 2]);
+#endif
                         }
 
                         U_qp[n_vars * local_indices[k] + axis] =
@@ -958,7 +1109,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                     U_dof_map_cache.dof_indices(elem, U_dof_indices[i], i);
                     U_rhs_e[i].resize(static_cast<int>(U_dof_indices[i].size()));
                 }
-                for (unsigned int d = 0; d < ndim; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
@@ -1009,11 +1160,15 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         VecGhostRestoreLocalForm(du_global_vec, &du_local_vec);
         VecRestoreArray(dv_local_vec, &dv_local_soln);
         VecGhostRestoreLocalForm(dv_global_vec, &dv_local_vec);
+        VecRestoreArray(dw_local_vec, &dw_local_soln);
+        VecGhostRestoreLocalForm(dw_global_vec, &dw_local_vec);
+
         d_fe_data_managers[part]->computeL2Projection(
             *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, IBFEMethod::getDefaultInterpSpec().use_consistent_mass_matrix);
 
         d_du_IB_ghost_vecs[part]->close();
         d_dv_IB_ghost_vecs[part]->close();
+        d_dw_IB_ghost_vecs[part]->close();
         d_X_half_vecs[part]->close();
         d_X_current_vecs[part]->close();
         d_X_new_vecs[part]->close();
@@ -1031,13 +1186,11 @@ IBFEMethod::eulerStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        //~ ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(),
-        // d_X_current_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        //~ ierr = VecAXPBYPCZ(
-        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1051,12 +1204,11 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        //~ ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        //~ ierr = VecAXPBYPCZ(
-        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1070,15 +1222,14 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        //~ ierr =
-        //~ VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        //~ ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        //~ ierr = VecAXPBYPCZ(
-        //~ d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
-        //~ IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr =
+            VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -1096,6 +1247,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                                     *d_dP_half_vecs[part],
                                     *d_du_half_vecs[part],
                                     *d_dv_half_vecs[part],
+                                    *d_dw_half_vecs[part],
                                     data_time,
                                     part);
     }
@@ -1119,14 +1271,17 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* dP_ghost_vec = d_dP_IB_ghost_vecs[part];
         PetscVector<double>* du_ghost_vec = d_du_IB_ghost_vecs[part];
         PetscVector<double>* dv_ghost_vec = d_dv_IB_ghost_vecs[part];
+        PetscVector<double>* dw_ghost_vec = d_dw_IB_ghost_vecs[part];
         PetscVector<double>* du_vec = d_du_half_vecs[part];
         PetscVector<double>* dv_vec = d_dv_half_vecs[part];
+        PetscVector<double>* dw_vec = d_dw_half_vecs[part];
 
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
         dP_vec->localize(*dP_ghost_vec);
         du_vec->localize(*du_ghost_vec);
         dv_vec->localize(*dv_ghost_vec);
+        dw_vec->localize(*dw_ghost_vec);
 
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
@@ -1141,6 +1296,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
                                      *dP_ghost_vec,
                                      *du_ghost_vec,
                                      *dv_ghost_vec,
+                                     *dw_ghost_vec,
                                      data_time,
                                      part);
             }
@@ -1271,6 +1427,14 @@ IBFEMethod::initializeFEEquationSystems()
                 dv_system.add_variable(os.str(), d_fe_order, d_fe_family);
             }
 
+            System& dw_system = equation_systems->add_system<System>(DW_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                std::ostringstream os;
+                os << "dw_" << d;
+                dw_system.add_variable(os.str(), d_fe_order, d_fe_family);
+            }
+
             System& dP_system = equation_systems->add_system<System>(DP_SYSTEM_NAME);
             dP_system.add_variable("[[p]]", d_fe_order, d_fe_family);
         }
@@ -1308,6 +1472,7 @@ IBFEMethod::initializeFEData()
         System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
         System& du_system = equation_systems->get_system<System>(DU_SYSTEM_NAME);
         System& dv_system = equation_systems->get_system<System>(DV_SYSTEM_NAME);
+        System& dw_system = equation_systems->get_system<System>(DW_SYSTEM_NAME);
         System& dP_system = equation_systems->get_system<System>(DP_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
@@ -1330,6 +1495,9 @@ IBFEMethod::initializeFEData()
 
         dv_system.assemble_before_solve = false;
         dv_system.assemble();
+
+        dw_system.assemble_before_solve = false;
+        dw_system.assemble();
 
         dP_system.assemble_before_solve = false;
         dP_system.assemble();
@@ -1523,6 +1691,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                                         PetscVector<double>& dP_vec,
                                         PetscVector<double>& du_vec,
                                         PetscVector<double>& dv_vec,
+                                        PetscVector<double>& dw_vec,
                                         const double data_time,
                                         const unsigned int part)
 {
@@ -1544,6 +1713,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 
     AutoPtr<NumericVector<double> > dv_rhs_vec = dv_vec.zero_clone();
     DenseVector<double> dv_rhs_e[NDIM];
+
+    AutoPtr<NumericVector<double> > dw_rhs_vec = dw_vec.zero_clone();
+    DenseVector<double> dw_rhs_e[NDIM];
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
@@ -1575,6 +1747,16 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
         TBOX_ASSERT(dv_dof_map.variable_type(d) == dv_fe_type);
     }
     std::vector<std::vector<unsigned int> > dv_dof_indices(NDIM);
+
+    System& dw_system = equation_systems->get_system(DW_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& dw_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DW_SYSTEM_NAME);
+    const DofMap& dw_dof_map = dw_system.get_dof_map();
+    FEType dw_fe_type = dw_dof_map.variable_type(0);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(dw_dof_map.variable_type(d) == dw_fe_type);
+    }
+    std::vector<std::vector<unsigned int> > dw_dof_indices(NDIM);
 
     System& dP_system = equation_systems->get_system(DP_SYSTEM_NAME);
     const DofMap& dP_dof_map = dP_system.get_dof_map();
@@ -1648,7 +1830,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 
     // Loop over the elements to compute the right-hand side vector.
     TensorValue<double> FF;
-    VectorValue<double> F, F_qp, N, Tau1, Tau2, X, n, s, tau1, tau2, x, du, dv, du_qp, dv_qp;
+    VectorValue<double> F, F_qp, N, Tau1, Tau2, X, n, s, tau1, tau2, x, du, dv, dw, du_qp, dv_qp, dw_qp;
     double dA_da;
     boost::multi_array<double, 2> X_node, X0_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -1671,6 +1853,11 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 
             dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
             dv_rhs_e[d].resize(static_cast<int>(dv_dof_indices[d].size()));
+
+            //~ #if (NDIM == 3)
+            dw_dof_map_cache.dof_indices(elem, dw_dof_indices[d], d);
+            dw_rhs_e[d].resize(static_cast<int>(dw_dof_indices[d].size()));
+            //~ #endif
         }
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
@@ -1732,6 +1919,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                 du = dA_da * (F(0) - F * n * n(0)) * n; // [ux] , [uy]
                 
                 dv = dA_da * (F(1) - F * n * n(1)) * n; // [vy] , [vy]
+#if (NDIM == 3)
+                dw = dA_da * (F(2) - F * n * n(2)) * n; // [wy] , [wy]
+#endif
 
                 // Split off the normal and/or tangential parts of the force (if requested).
                 if (d_split_normal_force && !d_split_tangential_force)
@@ -1753,11 +1943,17 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                     F_qp = F * phi[k][qp] * JxW[qp];
                     du_qp = du * phi[k][qp] * JxW[qp];
                     dv_qp = dv * phi[k][qp] * JxW[qp];
+#if (NDIM == 3)
+                    dw_qp = dw * phi[k][qp] * JxW[qp];
+#endif
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         F_rhs_e[i](k) += F_qp(i);
                         du_rhs_e[i](k) += du(i) * phi[k][qp] * JxW[qp];
                         dv_rhs_e[i](k) += dv(i) * phi[k][qp] * JxW[qp];
+#if (NDIM == 3)
+                        dw_rhs_e[i](k) += dw(i) * phi[k][qp] * JxW[qp];
+#endif
                     }
                         
                     double dP_qp = dP * phi[k][qp] * JxW[qp];
@@ -1779,6 +1975,11 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
 
             dv_dof_map.constrain_element_vector(dv_rhs_e[i], dv_dof_indices[i]);
             dv_rhs_vec->add_vector(dv_rhs_e[i], dv_dof_indices[i]);
+
+#if (NDIM == 3)
+            dw_dof_map.constrain_element_vector(dw_rhs_e[i], dw_dof_indices[i]);
+            dw_rhs_vec->add_vector(dw_rhs_e[i], dw_dof_indices[i]);
+#endif
         }
         dP_dof_map.constrain_element_vector(dP_rhs_e, dP_dof_indices);
         dP_rhs_vec->add_vector(dP_rhs_e, dP_dof_indices);
@@ -1802,6 +2003,10 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
             dv_vec, *dv_rhs_vec, DV_SYSTEM_NAME, d_use_consistent_mass_matrix);
         //~ }
 
+#if (NDIM == 3)
+    d_fe_data_managers[part]->computeL2Projection(dw_vec, *dw_rhs_vec, DW_SYSTEM_NAME, d_use_consistent_mass_matrix);
+#endif
+
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     VecRestoreArray(X0_local_vec, &X0_local_soln);
@@ -1817,6 +2022,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                  PetscVector<double>& dP_ghost_vec,
                                  PetscVector<double>& du_ghost_vec,
                                  PetscVector<double>& dv_ghost_vec,
+                                 PetscVector<double>& dw_ghost_vec,
                                  const double data_time,
                                  const unsigned int part)
 
@@ -1918,6 +2124,17 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
     std::vector<std::vector<unsigned int> > dv_dof_indices(NDIM);
 
+    System& dw_system = equation_systems->get_system(DW_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& dw_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(DW_SYSTEM_NAME);
+    const DofMap& dw_dof_map = dw_system.get_dof_map();
+    FEType dw_fe_type = dw_dof_map.variable_type(0);
+
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(dw_dof_map.variable_type(d) == dw_fe_type);
+    }
+    std::vector<std::vector<unsigned int> > dw_dof_indices(NDIM);
+
     AutoPtr<FEBase> X_fe_base(FEBase::build(dim, X_fe_type));
     const std::vector<std::vector<double> >& X_phi = X_fe_base->get_phi();
     const std::vector<std::vector<double> >& X_dphi_dxi = X_fe_base->get_dphidxi();
@@ -1960,6 +2177,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     double* dv_local_soln;
     VecGetArray(dv_local_vec, &dv_local_soln);
 
+    PetscVector<double>* dw_petsc_vec = static_cast<PetscVector<double>*>(&dw_ghost_vec);
+    Vec dw_global_vec = dw_petsc_vec->vec();
+    Vec dw_local_vec;
+    VecGhostGetLocalForm(dw_global_vec, &dw_local_vec);
+    double* dw_local_soln;
+    VecGetArray(dw_local_vec, &dw_local_soln);
+
     const std::vector<std::vector<double> >& phi = fe.getPhi(F_fe_type);
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
@@ -1974,7 +2198,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     IBTK::Point x_min, x_max;
     //~ if (integrate_normal_force)
     boost::multi_array<double, 1> dP_node;
-    boost::multi_array<double, 2> du_node, dv_node;
+
+    boost::multi_array<double, 2> du_node, dv_node, dw_node;
 
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
 
@@ -1982,9 +2207,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     //~ {
     std::vector<libMesh::Point> intersection_ref_coords_p;
     std::vector<libMesh::Point> intersectionSide_ref_coords_u;
+    std::vector<libMesh::Point> intersectionSide2_ref_coords_u;
     std::vector<libMesh::Point> intersection_ref_coords_u;
-    
-    
+    std::vector<libMesh::Point> intersection_coords_u;
+    std::vector<libMesh::Point> intersection_coords_p;
+    std::vector<libMesh::Point> intersectionSide_coords_u;
+    std::vector<libMesh::Point> intersectionSide2_coords_u;
+
     std::vector<SideIndex<NDIM> > intersection_indices_p;
     //~ }
     //~ if (integrate_tangential_force)
@@ -1996,10 +2225,17 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<SideIndex<NDIM> > intersectionSide_indices_up;
 
     std::vector<SideIndex<NDIM> > intersectionSide_indices_um;
+
+    //~ #if(NDIM == 3)
+    std::vector<SideIndex<NDIM> > intersectionSide2_indices_up;
+
+    std::vector<SideIndex<NDIM> > intersectionSide2_indices_um;
+    //~ #endif
     //~ }
 
     std::vector<std::pair<double, libMesh::Point> > intersections;
     std::vector<std::pair<double, libMesh::Point> > intersectionsSide;
+    std::vector<std::pair<double, libMesh::Point> > intersectionsSide2;
 
     boost::multi_array<double, 2> X_node, X0_node;
 
@@ -2049,6 +2285,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
         SideData<NDIM, int> num_intersectionsSide_up(patch_box, 1, IntVector<NDIM>(1));
         num_intersectionsSide_up.fillAll(0);
+
+        SideData<NDIM, int> num_intersectionsSide2_um(patch_box, 1, IntVector<NDIM>(1));
+        num_intersectionsSide2_um.fillAll(0);
+
+        SideData<NDIM, int> num_intersectionsSide2_up(patch_box, 1, IntVector<NDIM>(1));
+        num_intersectionsSide2_up.fillAll(0);
         //~ }
 
         // Loop over the elements.
@@ -2064,6 +2306,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 X0_dof_map_cache.dof_indices(elem, X0_dof_indices[d], d);
                 du_dof_map_cache.dof_indices(elem, du_dof_indices[d], d);
                 dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
+                dw_dof_map_cache.dof_indices(elem, dw_dof_indices[d], d);
             }
             fe.reinit(elem);
             fe.collectDataForInterpolation(elem);
@@ -2079,8 +2322,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             }
 
             get_values_for_interpolation(du_node, *du_petsc_vec, du_local_soln, du_dof_indices);
-
             get_values_for_interpolation(dv_node, *dv_petsc_vec, dv_local_soln, dv_dof_indices);
+            get_values_for_interpolation(dw_node, *dw_petsc_vec, dw_local_soln, dw_dof_indices);
 
             // Cache the nodal and physical coordinates of the side element,
             // determine the bounding box of the current configuration of
@@ -2118,18 +2361,26 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             if (integrate_normal_force)
             {
                 intersection_ref_coords_p.clear();
+                intersection_coords_p.clear();
                 intersection_indices_p.clear();
             }
 
             if (integrate_tangential_force)
             {
                 intersection_ref_coords_u.clear();
+                intersection_coords_u.clear();
                 intersectionSide_ref_coords_u.clear();
-                
+                intersectionSide2_ref_coords_u.clear();
+                intersectionSide_coords_u.clear();
+                intersectionSide2_coords_u.clear();
+
                 intersection_indices_um.clear();
                 intersection_indices_up.clear();
                 intersectionSide_indices_um.clear();
                 intersectionSide_indices_up.clear();
+
+                intersectionSide2_indices_um.clear();
+                intersectionSide2_indices_up.clear();
             }
             VectorValue<double> DX;
             
@@ -2154,13 +2405,14 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const Index<NDIM>& i_c = b();
                     libMesh::Point r;
                     libMesh::Point rs;
+                    libMesh::Point rss;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r(d) = (d == axis ? 0.0 : x_lower[d] +
                                                       dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) +
                                                                0.5)); // In 2D this corresponds to applying jumps for
                                                                       // [p],[ux] and [vy]
-
+#if (NDIM == 2)
                         rs(d) = (d == axis ?
                                      0.0 :
                                      x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]))); // In 2D this
@@ -2168,20 +2420,55 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         // applying jumps
                         // for [uy] and
                         // [vx]
+#endif
                     }
+
+#if (NDIM == 3)
+                    if (axis == 0)
+                    {
+                        rs(0) = 0.0;
+                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+                        rss(0) = 0.0;
+                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+                    }
+                    else if (axis == 1)
+                    {
+                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+                        rs(1) = 0.0;
+                        rs(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]));
+                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+                        rss(1) = 0.0;
+                        rss(2) = x_lower[2] + dx[2] * (static_cast<double>(i_c(2) - patch_lower[2]) + 0.5);
+                    }
+                    else if (axis == 2)
+                    {
+                        rs(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]));
+                        rs(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]) + 0.5);
+                        rs(2) = 0.0;
+                        rss(0) = x_lower[0] + dx[0] * (static_cast<double>(i_c(0) - patch_lower[0]) + 0.5);
+                        rss(1) = x_lower[1] + dx[1] * (static_cast<double>(i_c(1) - patch_lower[1]));
+                        rss(2) = 0.0;
+                    }
+
+#endif
+
 #if (NDIM == 2)
                     intersect_line_with_edge(intersections, static_cast<Edge*>(elem), DX, r, q);
                     intersect_line_with_edge(intersectionsSide, static_cast<Edge*>(elem), DX, rs, q);
 #endif
 #if (NDIM == 3)
                     intersect_line_with_face(intersections, static_cast<Face*>(elem), r, q);
+                    intersect_line_with_face(intersectionsSide, static_cast<Face*>(elem), rs, q);
+                    intersect_line_with_face(intersectionsSide2, static_cast<Face*>(elem), rss, q);
 #endif
-
                     if (integrate_normal_force)
                     {
                         for (unsigned int k = 0; k < intersections.size(); ++k)
                         {
                             libMesh::Point x = r + intersections[k].first * q;
+
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = static_cast<int>(std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
                                         patch_lower[axis];
@@ -2189,6 +2476,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             if (side_boxes[axis].contains(i_s))
                             {
                                 intersection_ref_coords_p.push_back(intersections[k].second);
+                                intersection_coords_p.push_back(x);
                                 intersection_indices_p.push_back(i_s);
                                 num_intersections_p(i_s) += 1;
                             }
@@ -2208,14 +2496,25 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             SideIndex<NDIM> i_sss(i_c_neighbor, axis, 0);
                             i_sss(axis) = static_cast<int>(std::floor((xs(axis) - x_lower[axis]) / dx[axis] + 1.0)) +
                                           patch_lower[axis];
-                            
-                            
                             i_ss(axis) =
                                 static_cast<int>(std::floor((xs(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
+
+                            const double x_cell_bdry_um =
+                                x_lower[axis] + static_cast<double>(i_ss(axis) - patch_lower[axis]) * dx[axis];
+
+                            const double x_cell_bdry_up =
+                                x_lower[axis] + static_cast<double>(i_sss(axis) - patch_lower[axis]) * dx[axis];
+
+                            const double sdh_um = ((xs(axis) - x_cell_bdry_um)); // Signed Distance h
+
+                            const double sdh_up = ((xs(axis) - x_cell_bdry_up)); // Signed Distance h
+
+                            TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
 
                             if (side_boxes[axis].contains(i_ss) && side_boxes[axis].contains(i_sss))
                             {
                                 intersection_ref_coords_u.push_back(intersections[k].second);
+                                intersection_coords_u.push_back(xs);
                                 intersection_indices_um.push_back(i_ss);
                                 num_intersections_um(i_ss) += 1;
                                
@@ -2251,6 +2550,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                 if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                                 {
                                     intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                    intersectionSide_coords_u.push_back(xu);
                                     intersectionSide_indices_up.push_back(i_s_up);
                                     num_intersectionsSide_up(i_s_up) += 1;
                                     intersectionSide_indices_um.push_back(i_s_um);
@@ -2266,7 +2566,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 								Index<NDIM> i_c_neighbor = i_c;
 								i_c_neighbor(axis) -= 1;
                                 SideIndex<NDIM> i_s_um(i_c_neighbor, dd, 0);
-                                
                                 i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
                                              patch_lower[axis];
                                 i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
@@ -2280,6 +2579,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                     num_intersectionsSide_up(i_s_um) += 1;
                                     
                                     intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                    intersectionSide_coords_u.push_back(xu);
                                 }
                             }
                             else
@@ -2289,6 +2589,145 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         }
 
        
+
+#endif
+                        int SideDim[2];
+                        SideDim[0] = SideDim[1] = 0;
+                        if (axis == 0)
+                        {
+                            SideDim[0] = 1;
+                            SideDim[1] = 2;
+                        }
+                        else if (axis == 1)
+                        {
+                            SideDim[0] = 2;
+                            SideDim[1] = 0;
+                        }
+                        else if (axis == 2)
+                        {
+                            SideDim[0] = 0;
+                            SideDim[1] = 1;
+                        }
+
+#if (NDIM == 3)
+
+                        for (unsigned int k = 0; k < intersectionsSide.size(); ++k)
+                        {
+                            libMesh::Point xu = rs + intersectionsSide[k].first * q;
+                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
+                            {
+                                SideIndex<NDIM> i_s_um(i_c, SideDim[0], 0);
+                                Index<NDIM> i_c_neighbor = i_c;
+                                i_c_neighbor(axis) += 1;
+
+                                SideIndex<NDIM> i_s_up(i_c_neighbor, SideDim[0], 0);
+
+                                i_s_up(axis) =
+                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
+                                    patch_lower[axis];
+                                i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+                                               patch_lower[axis];
+
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                                {
+                                    TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
+                                    intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                    intersectionSide_coords_u.push_back(xu);
+                                    intersectionSide_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide_up(i_s_up) += 1;
+                                    intersectionSide_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide_um(i_s_um) += 1;
+                                }
+                            }
+                            else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
+                                     fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
+                            {
+                                SideIndex<NDIM> i_s_up(i_c, SideDim[0], 0);
+                                Index<NDIM> i_c_neighbor = i_c;
+                                i_c_neighbor(axis) -= 1;
+                                SideIndex<NDIM> i_s_um(i_c_neighbor, SideDim[0], 0);
+
+                                i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+                                               patch_lower[axis];
+                                i_s_um(axis) =
+                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
+                                    patch_lower[axis];
+
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                                {
+                                    intersectionSide_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide_up(i_s_up) += 1;
+                                    intersectionSide_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide_up(i_s_um) += 1;
+                                    intersectionSide_coords_u.push_back(xu);
+                                    intersectionSide_ref_coords_u.push_back(intersectionsSide[k].second);
+                                }
+                            }
+                            else
+                            {
+                                pout << "improper side index found!"
+                                     << "\n\n";
+                            }
+                        }
+
+                        for (unsigned int k = 0; k < intersectionsSide2.size(); ++k)
+                        {
+                            libMesh::Point xu = rss + intersectionsSide2[k].first * q;
+                            if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.5 * dx[axis])
+                            {
+                                SideIndex<NDIM> i_s_um(i_c, SideDim[1], 0);
+                                Index<NDIM> i_c_neighbor = i_c;
+                                i_c_neighbor(axis) += 1;
+
+                                SideIndex<NDIM> i_s_up(i_c_neighbor, SideDim[1], 0);
+
+                                i_s_up(axis) =
+                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
+                                    patch_lower[axis];
+                                i_s_um(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+                                               patch_lower[axis];
+
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                                {
+                                    intersectionSide2_ref_coords_u.push_back(intersectionsSide2[k].second);
+                                    intersectionSide2_coords_u.push_back(xu);
+                                    intersectionSide2_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide2_up(i_s_up) += 1;
+                                    intersectionSide2_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide2_um(i_s_um) += 1;
+                                }
+                            }
+                            else if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis] &&
+                                     fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) >= 0.0)
+                            {
+                                SideIndex<NDIM> i_s_up(i_c, SideDim[1], 0);
+                                Index<NDIM> i_c_neighbor = i_c;
+                                i_c_neighbor(axis) -= 1;
+                                SideIndex<NDIM> i_s_um(i_c_neighbor, SideDim[1], 0);
+
+                                i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
+                                               patch_lower[axis];
+                                i_s_um(axis) =
+                                    static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
+                                    patch_lower[axis];
+
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
+                                {
+                                    intersectionSide2_indices_up.push_back(i_s_up);
+                                    num_intersectionsSide2_up(i_s_up) += 1;
+                                    intersectionSide2_indices_um.push_back(i_s_um);
+                                    num_intersectionsSide2_up(i_s_um) += 1;
+
+                                    intersectionSide2_ref_coords_u.push_back(intersectionsSide2[k].second);
+                                    intersectionSide2_coords_u.push_back(xu);
+                                }
+                            }
+                            else
+                            {
+                                pout << "improper side index found!"
+                                     << "\n\n";
+                            }
+                        }
 
 #endif
                     }
@@ -2309,10 +2748,14 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             // Evaluate the jump conditions and apply them to the Eulerian grid.
             if (integrate_normal_force && !intersection_ref_coords_p.empty())
             {
+                X_fe_base->attach_quadrature_rule(qrule.get());
                 X_fe_base->reinit(elem, &intersection_ref_coords_p);
+                //~ static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                //~ fe_face->reinit(elem, side, TOL, &intersection_ref_coords);
                 const size_t n_qp = intersection_ref_coords_p.size();
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
+                    libMesh::Point xx = intersection_coords_p[qp];
                     interpolate(&x(0), qp, X_node, X_phi);
                     interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
                     if (dim == 1)
@@ -2335,13 +2778,13 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             const double x_upper_bound = x_lower[d] +
                                                          (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
                                                          sqrt(std::numeric_limits<double>::epsilon());
-                            TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
+                            TBOX_ASSERT(x_lower_bound <= xx(d) && xx(d) <= x_upper_bound);
                         }
                         else
                         {
                             const double x_intersection =
                                 x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
-                            const double x_interp = x(d);
+                            const double x_interp = xx(d);
                             const double rel_diff =
                                 std::abs(x_intersection - x_interp) /
                                 std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
@@ -2356,7 +2799,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     //                const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
                     //                x(axis);
                     const double C_p = interpolate(qp, dP_node, X_phi);
-                    
+
                     (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
                 }
             }
@@ -2377,12 +2820,18 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // 2) v_yy (in the y-momentum equation)
                 // 3) w_zz (in the z-momentum equation)
 				TBOX_ASSERT(intersection_indices_um.size() == intersection_indices_up.size());
+
+                                X_fe_base->attach_quadrature_rule(qrule.get());
                 X_fe_base->reinit(elem, &intersection_ref_coords_u);
+
                 const size_t n_qp = intersection_ref_coords_u.size();
 
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     interpolate(&x(0), qp, X_node, X_phi);
+
+                    libMesh::Point xx = intersection_coords_u[qp];
+
                     interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
                     if (dim == 1)
                         tau2 = VectorValue<double>(0.0, 0.0, 1.0);
@@ -2398,40 +2847,58 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     if (side_boxes[axis].contains(i_s_um) && side_boxes[axis].contains(i_s_up))
                     {
                         TBOX_ASSERT(i_s_um.getAxis() == i_s_up.getAxis());
+                        TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
                         const double x_cell_bdry_um =
                             x_lower[axis] + static_cast<double>(i_s_um(axis) - patch_lower[axis]) * dx[axis];
                             
                         const double x_cell_bdry_up =
                             x_lower[axis] + static_cast<double>(i_s_up(axis) - patch_lower[axis]) * dx[axis];
+                        const double sdh_um = ((xx(axis) - x_cell_bdry_um)); // Signed Distance h
 
-                        const double sdh_um = ((x(axis) - x_cell_bdry_um)); // Signed Distance h
+                        const double sdh_up = ((xx(axis) - x_cell_bdry_up)); // Signed Distance h
 
                         TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
-                        
-                                                
-                        const double sdh_up = ((x(axis) - x_cell_bdry_up)); // Signed Distance h
-
                         TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
-                        
-                        
 
-                        double C_u_um, C_u_up;
+                        double C_u_um = 0;
+                        double C_u_up = 0;
+#if (NDIM == 2)
 
                         if (axis == 0)
                         {
 							interpolate(&jn(0), qp, du_node, X_phi);
-						   C_u_up = sdh_up*jn(0);
-                           C_u_um = sdh_um*jn(0);
+                                                        C_u_up = sdh_up * jn(0);
+                                                        C_u_um = sdh_um * jn(0);
                         }
-                        else
+                        else if (axis == 1)
                         {
                             interpolate(&jn(0), qp, dv_node, X_phi);
                             C_u_up = sdh_up * jn(1);
-                           C_u_um = sdh_um*jn(1);
-					   }
+                            C_u_um = sdh_um * jn(1);
+                        }
+#endif
 
+#if (NDIM == 3)
+                        if (axis == 0)
+                        {
+                            interpolate(&jn(0), qp, du_node, X_phi);
+                            C_u_up = sdh_up * jn(0);
+                            C_u_um = sdh_um * jn(0);
+                        }
+                        else if (axis == 1)
+                        {
+                            interpolate(&jn(0), qp, dv_node, X_phi);
+                            C_u_up = sdh_up * jn(1);
+                            C_u_um = sdh_um * jn(1);
+                        }
+                        else if (axis == 2)
+                        {
+                            interpolate(&jn(0), qp, dw_node, X_phi);
+                            C_u_up = sdh_up * jn(2);
+                            C_u_um = sdh_um * jn(2);
+                        }
+#endif
                         (*f_data)(i_s_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
-                      
                         (*f_data)(i_s_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
                         
                     }
@@ -2461,9 +2928,10 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const unsigned int dd = i_side_up.getAxis();
                     
                     const unsigned int axis = (dd == 0 ? 1 : 0);
-                    
-                    const SideIndex<NDIM>& i_side_um = intersectionSide_indices_um[qp];
 
+                    libMesh::Point xx = intersectionSide_coords_u[qp];
+
+                    const SideIndex<NDIM>& i_side_um = intersectionSide_indices_um[qp];
                     interpolate(&x(0), qp, X_node, X_phi);
                     interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
                     if (dim == 1)
@@ -2472,14 +2940,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         interpolate(&tau2(0), qp, X_node, X_dphi_deta);
                     n = tau1.cross(tau2);
                     n = n.unit();
-					
-                    
 
                     if (side_boxes[dd].contains(i_side_up) && side_boxes[dd].contains(i_side_um) )
                     {
-
-                       
-
                         // Impose the jump conditions.
                         
                         TBOX_ASSERT( i_side_up(axis) - i_side_um(axis) == 1);
@@ -2490,13 +2953,14 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         const double x_mid_side_um =
                             x_lower[axis] + static_cast<double>(i_side_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
 
-                        TBOX_ASSERT(x(axis) <= x_mid_side_up);
-						TBOX_ASSERT(x(axis) > x_mid_side_um);
-						
-                        const double sdh_up = x(axis) - x_mid_side_up; // Signed Distance h
-                        const double sdh_um = x(axis) - x_mid_side_um;
+                        TBOX_ASSERT(xx(axis) <= x_mid_side_up);
+                        TBOX_ASSERT(xx(axis) > x_mid_side_um);
 
-                        double C_u_um, C_u_up;
+                        const double sdh_up = xx(axis) - x_mid_side_up; // Signed Distance h
+                        const double sdh_um = xx(axis) - x_mid_side_um;
+
+                        double C_u_um = 0;
+                        double C_u_up = 0;
 
                         if (dd == 0)
                         {
@@ -2511,13 +2975,194 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             C_u_up = sdh_up * jn(0);
                             
                         }
-                       
 						 
                        (*f_data)(i_side_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
                        
                        (*f_data)(i_side_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
 
 
+                    }
+                }
+            }
+
+#endif
+
+#if (NDIM == 3)
+
+            if (integrate_tangential_force && !intersectionSide_ref_coords_u.empty())
+            {
+                TBOX_ASSERT(intersectionSide_indices_um.size() == intersectionSide_indices_up.size());
+                X_fe_base->reinit(elem, &intersectionSide_ref_coords_u);
+                const size_t n_qp = intersectionSide_indices_up.size();
+
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                {
+                    libMesh::Point xx = intersectionSide_coords_u[qp];
+                    const SideIndex<NDIM>& i_side_up = intersectionSide_indices_up[qp];
+                    const SideIndex<NDIM>& i_side_um = intersectionSide_indices_um[qp];
+                    const unsigned int dd = i_side_up.getAxis();
+                    const unsigned int ddd = i_side_um.getAxis();
+                    TBOX_ASSERT(dd == ddd);
+
+                    interpolate(&x(0), qp, X_node, X_phi);
+                    interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
+                    if (dim == 1)
+                        tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+                    else
+                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+                    n = tau1.cross(tau2);
+                    n = n.unit();
+
+                    if (side_boxes[dd].contains(i_side_up) && side_boxes[dd].contains(i_side_um))
+                    {
+                        int axis;
+
+                        if (dd == 0)
+                        {
+                            axis = 2;
+                        }
+                        else if (dd == 1)
+                        {
+                            axis = 0;
+                        }
+                        else
+                        {
+                            axis = 1;
+                        }
+
+                        // Impose the jump conditions.
+                        // *********************************************************************************************************//
+
+                        TBOX_ASSERT(i_side_up(axis) - i_side_um(axis) == 1);
+
+                        double x_mid_side_up =
+                            x_lower[axis] + static_cast<double>(i_side_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+                        double x_mid_side_um =
+                            x_lower[axis] + static_cast<double>(i_side_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+                        TBOX_ASSERT(xx(axis) <= x_mid_side_up);
+                        TBOX_ASSERT(xx(axis) > x_mid_side_um);
+
+                        double sdh_up = xx(axis) - x_mid_side_up; // Signed Distance h
+                        double sdh_um = xx(axis) - x_mid_side_um;
+
+                        double C_u_um, C_u_up;
+
+                        if (dd == 0)
+                        {
+                            interpolate(&jn(0), qp, du_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+                        else if (dd == 1)
+                        {
+                            interpolate(&jn(0), qp, dv_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+                        else
+                        {
+                            interpolate(&jn(0), qp, dw_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+
+                        (*f_data)(i_side_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
+
+                        (*f_data)(i_side_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+                    }
+                }
+            }
+
+            if (integrate_tangential_force && !intersectionSide2_ref_coords_u.empty())
+            {
+                TBOX_ASSERT(intersectionSide2_indices_um.size() == intersectionSide2_indices_up.size());
+                X_fe_base->reinit(elem, &intersectionSide2_ref_coords_u);
+                const size_t n_qp = intersectionSide2_indices_up.size();
+
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                {
+                    const SideIndex<NDIM>& i_side_up = intersectionSide2_indices_up[qp];
+
+                    const SideIndex<NDIM>& i_side_um = intersectionSide2_indices_um[qp];
+
+                    const unsigned int dd = i_side_up.getAxis();
+                    const unsigned int ddd = i_side_um.getAxis();
+                    TBOX_ASSERT(dd == ddd);
+
+                    libMesh::Point xx = intersectionSide2_coords_u[qp];
+
+                    interpolate(&x(0), qp, X_node, X_phi);
+                    interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
+                    if (dim == 1)
+                        tau2 = VectorValue<double>(0.0, 0.0, 1.0);
+                    else
+                        interpolate(&tau2(0), qp, X_node, X_dphi_deta);
+                    n = tau1.cross(tau2);
+                    n = n.unit();
+
+                    if (side_boxes[dd].contains(i_side_up) && side_boxes[dd].contains(i_side_um))
+                    {
+                        int axis;
+
+                        if (dd == 0)
+                        {
+                            axis = 1;
+                        }
+                        else if (dd == 1)
+                        {
+                            axis = 2;
+                        }
+                        else
+                        {
+                            axis = 0;
+                        }
+
+                        // Impose the jump conditions.
+                        // *********************************************************************************************************//
+                        TBOX_ASSERT(i_side_up(axis) - i_side_um(axis) == 1);
+
+                        double x_mid_side_up =
+                            x_lower[axis] + static_cast<double>(i_side_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+                        double x_mid_side_um =
+                            x_lower[axis] + static_cast<double>(i_side_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
+
+                        TBOX_ASSERT(xx(axis) <= x_mid_side_up);
+                        TBOX_ASSERT(xx(axis) > x_mid_side_um);
+
+                        double sdh_up = xx(axis) - x_mid_side_up; // Signed Distance h
+                        double sdh_um = xx(axis) - x_mid_side_um;
+
+                        double C_u_um, C_u_up;
+
+                        if (dd == 0)
+                        {
+                            interpolate(&jn(0), qp, du_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+                        else if (dd == 1)
+                        {
+                            interpolate(&jn(0), qp, dv_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+                        else
+                        {
+                            interpolate(&jn(0), qp, dw_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                        }
+
+                        (*f_data)(i_side_um) += (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
+
+                        (*f_data)(i_side_up) += (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
+
+                        // **********************************************************************************************************//
+
+                        // **********************************************************************************************************//
                     }
                 }
             }
@@ -2541,6 +3186,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     VecRestoreArray(dv_local_vec, &dv_local_soln);
     VecGhostRestoreLocalForm(dv_global_vec, &dv_local_vec);
 
+    VecRestoreArray(dw_local_vec, &dw_local_soln);
+    VecGhostRestoreLocalForm(dw_global_vec, &dw_local_vec);
     return;
 } // imposeJumpConditions
 

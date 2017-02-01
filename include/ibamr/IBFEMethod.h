@@ -111,6 +111,7 @@ public:
     static const std::string DP_SYSTEM_NAME;
     static const std::string DU_SYSTEM_NAME;
     static const std::string DV_SYSTEM_NAME;
+    static const std::string DW_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
@@ -241,24 +242,13 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
+
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time);
 
-
-
-
-
-    //~ void interpolateVelocityWithJump(
-		//~ int u_data_idx,
-        //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        //~ libMesh::PetscVector<double>& du_ghost_vec,
-        //~ libMesh::PetscVector<double>& dv_ghost_vec,
-       // const IBTK::FEDataManager::InterpSpec& interp_spec,
-        //~ double data_time);
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
@@ -433,6 +423,7 @@ protected:
                                      libMesh::PetscVector<double>& dP_vec,
                                      libMesh::PetscVector<double>& du_vec,
                                      libMesh::PetscVector<double>& dv_vec,
+                                     libMesh::PetscVector<double>& dw_vec,
                                      double data_time,
                                      unsigned int part);
 
@@ -448,6 +439,7 @@ protected:
                               libMesh::PetscVector<double>& dP_ghost_vec,
                               libMesh::PetscVector<double>& du_ghost_vec,
                               libMesh::PetscVector<double>& dv_ghost_vec,
+                              libMesh::PetscVector<double>& dw_ghost_vec,
                               double data_time,
                               unsigned int part);
 
@@ -491,8 +483,8 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_du_systems, d_dv_systems, d_F_systems,
-        d_dP_systems;
+    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_du_systems, d_dv_systems, d_dw_systems,
+        d_F_systems, d_dP_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
@@ -500,6 +492,7 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_dP_half_vecs, d_dP_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_du_half_vecs, d_du_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_dv_half_vecs, d_dv_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_dw_half_vecs, d_dw_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
