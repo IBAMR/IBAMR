@@ -2429,7 +2429,7 @@ ConstraintIBMethod::calculateTorque()
     {
         SAMRAI_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
         SAMRAI_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
-        for (int d = 0; d < NDIM; ++d)
+        for (int d = 0; d < 3; ++d)
         {
             inertia_torque[struct_no][d] *= (d_rho_fluid / dt) * d_vol_element[struct_no];
             constraint_torque[struct_no][d] *= (d_rho_fluid / dt);
