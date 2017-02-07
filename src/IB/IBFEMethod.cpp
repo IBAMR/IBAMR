@@ -2079,16 +2079,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
 
-    System& X0_system = equation_systems->get_system(COORDS0_SYSTEM_NAME);
-    FEDataManager::SystemDofMapCache& X0_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(COORDS0_SYSTEM_NAME);
-    const DofMap& X0_dof_map = X0_system.get_dof_map();
-    FEType X0_fe_type = X0_dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(X0_dof_map.variable_type(d) == X0_fe_type);
-    }
-    TBOX_ASSERT(X0_fe_type == X_fe_type);
-    std::vector<std::vector<unsigned int> > X0_dof_indices(NDIM);
 
     // Setup global and elemental right-hand-side vectors.
 
@@ -2147,12 +2137,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
 
-    PetscVector<double>* X0_petsc_vec = static_cast<PetscVector<double>*>(d_X0_vecs[part]);
-    Vec X0_global_vec = X0_petsc_vec->vec();
-    Vec X0_local_vec;
-    VecGhostGetLocalForm(X0_global_vec, &X0_local_vec);
-    double* X0_local_soln;
-    VecGetArray(X0_local_vec, &X0_local_soln);
 
     //~ if (integrate_normal_force)
     //~ {
@@ -2237,7 +2221,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<std::pair<double, libMesh::Point> > intersectionsSide;
     std::vector<std::pair<double, libMesh::Point> > intersectionsSide2;
 
-    boost::multi_array<double, 2> X_node, X0_node;
+    boost::multi_array<double, 2> X_node;
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const IntVector<NDIM>& ratio = level->getRatio();
@@ -2303,7 +2287,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             {
                 F_dof_map_cache.dof_indices(elem, F_dof_indices[d], d);
                 X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                X0_dof_map_cache.dof_indices(elem, X0_dof_indices[d], d);
                 du_dof_map_cache.dof_indices(elem, du_dof_indices[d], d);
                 dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
                 dw_dof_map_cache.dof_indices(elem, dw_dof_indices[d], d);
@@ -2313,7 +2296,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
             fe.interpolate(elem);
 
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            get_values_for_interpolation(X0_node, *X0_petsc_vec, X0_local_soln, X0_dof_indices);
 
             if (integrate_normal_force)
             {
@@ -3173,9 +3155,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-
-    VecRestoreArray(X0_local_vec, &X0_local_soln);
-    VecGhostRestoreLocalForm(X0_global_vec, &X0_local_vec);
 
     VecRestoreArray(dP_local_vec, &dP_local_soln);
     VecGhostRestoreLocalForm(dP_global_vec, &dP_local_vec);
