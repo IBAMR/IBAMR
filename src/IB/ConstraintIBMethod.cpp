@@ -777,7 +777,7 @@ ConstraintIBMethod::getFromRestart()
 
         std::ostringstream volstructureidentifier;
         volstructureidentifier << "VOL_STRUCT_" << struct_no;
-        db->putDoubleArray(volstructureidentifier.str(), &d_vol_structure[0], d_no_structures);
+        db->getDoubleArray(volstructureidentifier.str(), &d_vol_structure[0], d_no_structures);
 
         std::ostringstream rigvelidentifier, rigomegaidentifier;
         rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
