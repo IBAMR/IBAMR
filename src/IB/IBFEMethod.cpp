@@ -2291,9 +2291,6 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 dv_dof_map_cache.dof_indices(elem, dv_dof_indices[d], d);
                 dw_dof_map_cache.dof_indices(elem, dw_dof_indices[d], d);
             }
-            fe.reinit(elem);
-            fe.collectDataForInterpolation(elem);
-            fe.interpolate(elem);
 
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
