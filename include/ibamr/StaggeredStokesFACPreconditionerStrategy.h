@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesFACPreconditionerStrategy
-#define included_StaggeredStokesFACPreconditionerStrategy
+#ifndef included_IBAMR_StaggeredStokesFACPreconditionerStrategy
+#define included_IBAMR_StaggeredStokesFACPreconditionerStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -246,6 +246,11 @@ public:
      * \name Partial implementation of FACPreconditionerStrategy interface.
      */
     //\{
+
+    /*!
+     * \brief Zero the supplied vector.
+     */
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -577,4 +582,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesFACPreconditionerStrategy
+#endif //#ifndef included_IBAMR_StaggeredStokesFACPreconditionerStrategy

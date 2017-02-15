@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_HierarchyGhostCellInterpolation
-#define included_HierarchyGhostCellInterpolation
+#ifndef included_IBTK_HierarchyGhostCellInterpolation
+#define included_IBTK_HierarchyGhostCellInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -393,4 +393,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_HierarchyGhostCellInterpolation
+#endif //#ifndef included_IBTK_HierarchyGhostCellInterpolation

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_GeneralOperator
-#define included_GeneralOperator
+#ifndef included_IBTK_GeneralOperator
+#define included_IBTK_GeneralOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -347,4 +347,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_GeneralOperator
+#endif //#ifndef included_IBTK_GeneralOperator

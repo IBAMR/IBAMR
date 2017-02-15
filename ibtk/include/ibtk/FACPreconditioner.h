@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FACPreconditioner
-#define included_FACPreconditioner
+#ifndef included_IBTK_FACPreconditioner
+#define included_IBTK_FACPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -279,17 +279,19 @@ protected:
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
-    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
+    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                 int level_num,
+                 int mu);
 
-    void FACWCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
+    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                int level_num);
 
-    void FACFCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                   int level_num);
+    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                  int level_num,
+                  int mu);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -298,7 +300,6 @@ protected:
     MGCycleType d_cycle_type;
     int d_num_pre_sweeps, d_num_post_sweeps;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f, d_r;
-    bool d_recompute_residual;
 
 private:
     /*!
@@ -334,4 +335,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FACPreconditioner
+#endif //#ifndef included_IBTK_FACPreconditioner

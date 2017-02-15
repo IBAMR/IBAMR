@@ -665,6 +665,8 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     Index<NDIM> num_cells = 1;
     num_cells += domain_upper - domain_lower;
 
@@ -696,7 +698,8 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                 TBOX_ASSERT(dof_idx >= i_lower && dof_idx < i_upper);
 #endif
                 petsc_idxs[counter] = dof_idx;
-                samrai_idxs[counter] = IndexUtilities::mapIndexToInteger(i, domain_lower, num_cells, d, ao_offset);
+                samrai_idxs[counter] =
+                    IndexUtilities::mapIndexToInteger(i, domain_lower, num_cells, d, ao_offset, periodic_shift);
             }
         }
     }
@@ -728,11 +731,13 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     boost::array<Index<NDIM>, NDIM> num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
         Index<NDIM> offset = 1;
-        offset(d) = 2;
+        offset(d) = periodic_shift(d) ? 1 : 2;
         num_cells[d] = domain_upper - domain_lower + offset;
     }
 
@@ -768,10 +773,11 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
                 for (int d = 0; d < depth; ++d)
                 {
                     const int dof_idx = (*dof_index_data)(is, d);
+
                     if (dof_idx < i_lower || dof_idx >= i_upper) continue;
                     petsc_idxs[dof_idx - i_lower] = dof_idx;
                     samrai_idxs[dof_idx - i_lower] = IndexUtilities::mapIndexToInteger(
-                        i, domain_lower, num_cells[component_axis], d, data_offset + ao_offset);
+                        i, domain_lower, num_cells[component_axis], d, data_offset + ao_offset, periodic_shift);
                 }
             }
         }

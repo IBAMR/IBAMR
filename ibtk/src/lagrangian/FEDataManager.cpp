@@ -886,7 +886,7 @@ FEDataManager::prolongData(const int f_data_idx,
                 for (SideIterator<NDIM> b(box, axis); b; b++)
                 {
                     const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s))
+                    if (num_intersections(i_s) == 0 && side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1447,14 +1447,11 @@ FEDataManager::restrictData(const int f_data_idx,
 } // restrictData
 
 std::pair<LinearSolver<double>*, SparseMatrix<double>*>
-FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
-                                       const QuadratureType quad_type,
-                                       const Order quad_order)
+FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_l2_projection_solver);
 
-    if (!d_L2_proj_solver.count(system_name) || !d_L2_proj_matrix.count(system_name) ||
-        (d_L2_proj_quad_type[system_name] != quad_type) || (d_L2_proj_quad_order[system_name] != quad_order))
+    if (!d_L2_proj_solver.count(system_name) || !d_L2_proj_matrix.count(system_name))
     {
         plog << "FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for "
                 "system: "
@@ -1464,7 +1461,6 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         const MeshBase& mesh = d_es->get_mesh();
         const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
@@ -1474,6 +1470,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map.variable_type(0);
+        AutoPtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -1572,8 +1569,6 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         // Store the solver, mass matrix, and configuration options.
         d_L2_proj_solver[system_name] = solver;
         d_L2_proj_matrix[system_name] = M_mat;
-        d_L2_proj_quad_type[system_name] = quad_type;
-        d_L2_proj_quad_order[system_name] = quad_order;
     }
 
     IBTK_TIMER_STOP(t_build_l2_projection_solver);
@@ -1594,67 +1589,41 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
+        const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule_trap = QBase::build(QTRAP, dim, FIRST);
-        AutoPtr<QBase> qrule_simpson = QBase::build(QSIMPSON, dim, THIRD);
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
-        const DofMap& dof_map = system.get_dof_map();
+        DofMap& dof_map = system.get_dof_map();
         SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-        FEType fe_type = dof_map.variable_type(0);
-        for (unsigned i = 0; i < system.n_vars(); ++i) TBOX_ASSERT(dof_map.variable_type(i) == fe_type);
+        dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
-        AutoPtr<FEBase> fe_trap(FEBase::build(dim, fe_type));
-        AutoPtr<FEBase> fe_simpson(FEBase::build(dim, fe_type));
-        fe_trap->attach_quadrature_rule(qrule_trap.get());
-        fe_simpson->attach_quadrature_rule(qrule_simpson.get());
+        FEType fe_type = dof_map.variable_type(0);
+        AutoPtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<double>& JxW = fe->get_JxW();
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
         NumericVector<double>* M_vec = system.solution->zero_clone().release();
 
-        // Loop over the mesh to construct the (diagonal) system matrix.
-        //
-        // We construct diagonal elemental mass matrices by using low-order
-        // nodal quadrature rules.
-        DenseVector<double> M_diag_e;
+        // Loop over the mesh to construct the system matrix.
+        DenseMatrix<double> M_e;
+        DenseVector<double> M_e_vec;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-            QBase* qrule = NULL;
-            FEBase* fe = NULL;
-            if (elem->default_order() == FIRST)
-            {
-                qrule = qrule_trap.get();
-                fe = fe_trap.get();
-            }
-            else
-            {
-                ElemType elem_type = elem->type();
-                if (elem_type == EDGE3 || elem_type == TRI6 || elem_type == QUAD9 || elem_type == TET10 ||
-                    elem_type == PRISM18 || elem_type == HEX27)
-                {
-                    qrule = qrule_simpson.get();
-                    fe = fe_simpson.get();
-                }
-                else
-                {
-                    TBOX_ERROR("FEDataManager::buildDiagonalL2MassMatrix():\n"
-                               << "  unsupported element type: "
-                               << Utility::enum_to_string<ElemType>(elem_type)
-                               << "\n");
-                }
-            }
-            const std::vector<double>& JxW = fe->get_JxW();
-            const std::vector<std::vector<double> >& phi = fe->get_phi();
             fe->reinit(elem);
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map_cache.dof_indices(elem, dof_indices, var_num);
-                M_diag_e.resize(static_cast<int>(dof_indices.size()));
+                const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                M_e.resize(dof_indices_sz, dof_indices_sz);
+                M_e_vec.resize(dof_indices_sz);
                 const size_t n_basis = dof_indices.size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
@@ -1663,20 +1632,25 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                     {
                         for (unsigned int qp = 0; qp < n_qp; ++qp)
                         {
-                            const double integrand = (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                            if (i == j)
-                                M_diag_e(i) += integrand;
-                            else
-                                TBOX_ASSERT(std::abs(integrand) < std::numeric_limits<double>::epsilon());
+                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
                         }
                     }
                 }
-                dof_map.constrain_element_vector(M_diag_e, dof_indices);
-                M_vec->add_vector(M_diag_e, dof_indices);
+
+                const double vol = elem->volume();
+                double tr_M = 0.0;
+                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
+                }
+
+                dof_map.constrain_element_vector(M_e_vec, dof_indices);
+                M_vec->add_vector(M_e_vec, dof_indices);
             }
         }
 
-        // Flush assemble the vector representation of the diagonal matrix.
+        // Flush assemble the matrix.
         M_vec->close();
 
         // Reset values at Dirichlet boundaries.
@@ -1692,6 +1666,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                 const short int dirichlet_bdry_ids =
                     get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
+                fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (elem->is_node_on_side(n, side))
@@ -1699,6 +1674,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
                         Node* node = elem->get_node(n);
                         for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
                         {
+                            dof_map_cache.dof_indices(elem, dof_indices, var_num);
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
@@ -1713,7 +1689,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
             }
         }
 
-        // Assemble the vector representation of the diagonal matrix.
+        // Assemble the vector.
         M_vec->close();
 
         // Store the diagonal mass matrix.
@@ -1729,8 +1705,6 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                    NumericVector<double>& F_vec,
                                    const std::string& system_name,
                                    const bool consistent_mass_matrix,
-                                   const QuadratureType quad_type,
-                                   const Order quad_order,
                                    const double tol,
                                    const unsigned int max_its)
 {
@@ -1745,24 +1719,16 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     if (consistent_mass_matrix)
     {
         std::pair<libMesh::LinearSolver<double>*, SparseMatrix<double>*> proj_solver_components =
-            buildL2ProjectionSolver(system_name, quad_type, quad_order);
+            buildL2ProjectionSolver(system_name);
         PetscLinearSolver<double>* solver = static_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
         PetscMatrix<double>* M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
         PetscBool rtol_set;
         double runtime_rtol;
-#if (!PETSC_VERSION_RELEASE)
         ierr = PetscOptionsGetReal(NULL, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
-#else
-        ierr = PetscOptionsGetReal("", "-ksp_rtol", &runtime_rtol, &rtol_set);
-#endif
         IBTK_CHKERRQ(ierr);
         PetscBool max_it_set;
         int runtime_max_it;
-#if (!PETSC_VERSION_RELEASE)
         ierr = PetscOptionsGetInt(NULL, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
-#else
-        ierr = PetscOptionsGetInt("", "-ksp_max_it", &runtime_max_it, &max_it_set);
-#endif
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
@@ -2109,9 +2075,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
       d_active_patch_ghost_dofs(),
       d_L2_proj_solver(),
       d_L2_proj_matrix(),
-      d_L2_proj_matrix_diag(),
-      d_L2_proj_quad_type(),
-      d_L2_proj_quad_order()
+      d_L2_proj_matrix_diag()
 {
     TBOX_ASSERT(!object_name.empty());
 

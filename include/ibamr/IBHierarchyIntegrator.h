@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBHierarchyIntegrator
-#define included_IBHierarchyIntegrator
+#ifndef included_IBAMR_IBHierarchyIntegrator
+#define included_IBAMR_IBHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -257,6 +257,12 @@ protected:
      * Enum indicating the time integration employed for the IB equations.
      */
     TimeSteppingType d_time_stepping_type;
+
+    /*!
+     * Flag indicating whether to use an explicit predictor for the structure
+     * configuration in the time stepping scheme.
+     */
+    bool d_use_structure_predictor;
 
     /*!
      * Flags to determine whether warnings or error messages should be emitted
@@ -533,4 +539,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBHierarchyIntegrator
+#endif //#ifndef included_IBAMR_IBHierarchyIntegrator

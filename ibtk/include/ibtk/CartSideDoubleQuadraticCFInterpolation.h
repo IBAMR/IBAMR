@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartSideDoubleQuadraticCFInterpolation
-#define included_CartSideDoubleQuadraticCFInterpolation
+#ifndef included_IBTK_CartSideDoubleQuadraticCFInterpolation
+#define included_IBTK_CartSideDoubleQuadraticCFInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -260,4 +260,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartSideDoubleQuadraticCFInterpolation
+#endif //#ifndef included_IBTK_CartSideDoubleQuadraticCFInterpolation

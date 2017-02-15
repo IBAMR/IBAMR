@@ -93,12 +93,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 ../src/solvers/impls/LaplaceOperator.cpp \
 ../src/solvers/impls/NewtonKrylovSolverManager.cpp \
-../src/solvers/impls/PETScAugmentedKrylovLinearSolver.cpp \
 ../src/solvers/impls/PETScKrylovLinearSolver.cpp \
 ../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 ../src/solvers/impls/PETScLevelSolver.cpp \
 ../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
-../src/solvers/impls/PETScMultiVec.cpp \
 ../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 ../src/solvers/impls/PoissonFACPreconditioner.cpp \
 ../src/solvers/impls/PoissonFACPreconditionerStrategy.cpp \
@@ -257,14 +255,12 @@ pkg_include_HEADERS += \
 ../include/ibtk/NodeDataSynchronization.h \
 ../include/ibtk/NodeSynchCopyFillPattern.h \
 ../include/ibtk/NormOps.h \
-../include/ibtk/PETScAugmentedKrylovLinearSolver.h \
 ../include/ibtk/PETScKrylovLinearSolver.h \
 ../include/ibtk/PETScKrylovPoissonSolver.h \
 ../include/ibtk/PETScLevelSolver.h \
 ../include/ibtk/PETScMFFDJacobianOperator.h \
 ../include/ibtk/PETScMatLOWrapper.h \
 ../include/ibtk/PETScMatUtilities.h \
-../include/ibtk/PETScMultiVec.h \
 ../include/ibtk/PETScNewtonKrylovSolver.h \
 ../include/ibtk/PETScPCLSWrapper.h \
 ../include/ibtk/PETScSAMRAIVectorReal.h \

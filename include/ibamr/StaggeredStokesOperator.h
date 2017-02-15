@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesOperator
-#define included_StaggeredStokesOperator
+#ifndef included_IBAMR_StaggeredStokesOperator
+#define included_IBAMR_StaggeredStokesOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -261,4 +261,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesOperator
+#endif //#ifndef included_IBAMR_StaggeredStokesOperator

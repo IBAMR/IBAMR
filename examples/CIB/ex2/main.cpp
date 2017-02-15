@@ -65,7 +65,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -75,7 +75,7 @@ ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d&
 } // ConstrainedCOMOuterVel
 
 void
-NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext)
+NetExternalForceTorque(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << 0.0, 0.0, 0.0;
     T_ext << 0.0, 0.0, 0.0;
@@ -112,7 +112,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -123,14 +123,14 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
-            std::string PetscOptionsFile = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, PetscOptionsFile.c_str(), PETSC_TRUE);
+            std::string petsc_options_file = input_db->getString("petsc_options_file");
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -287,6 +287,7 @@ main(int argc, char* argv[])
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_LU, LAPACK_LU), 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
         }
+        navier_stokes_integrator->setStokesSolverNeedsInit();
 
         // Deallocate initialization objects.
         app_initializer.setNull();
@@ -347,6 +348,9 @@ main(int argc, char* argv[])
             }
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            pout << "\n\nNet rigid force and torque on plate is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

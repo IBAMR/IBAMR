@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PenaltyIBMethod
-#define included_PenaltyIBMethod
+#ifndef included_IBAMR_PenaltyIBMethod
+#define included_IBAMR_PenaltyIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -109,7 +109,7 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void eulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
@@ -209,4 +209,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PenaltyIBMethod
+#endif //#ifndef included_IBAMR_PenaltyIBMethod

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesPETScLevelSolver
-#define included_StaggeredStokesPETScLevelSolver
+#ifndef included_IBAMR_StaggeredStokesPETScLevelSolver
+#define included_IBAMR_StaggeredStokesPETScLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -101,6 +101,16 @@ public:
     } // allocate_solver
 
 protected:
+    /*!
+     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     */
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is);
+
+    /*!
+     * \brief Generate IS/subdomains for fieldsplit type preconditioners.
+     */
+    void generateFieldSplitSubdomains(std::vector<std::string>& field_names, std::vector<std::set<int> >& field_is);
+
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
@@ -182,4 +192,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesPETScLevelSolver
+#endif //#ifndef included_IBAMR_StaggeredStokesPETScLevelSolver

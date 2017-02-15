@@ -63,7 +63,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com)
+ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -91,7 +91,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -102,7 +102,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -262,6 +262,7 @@ main(int argc, char* argv[])
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), /*rank*/ 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name, struct_ids);
         }
+        navier_stokes_integrator->setStokesSolverNeedsInit();
 
         // Deallocate initialization objects.
         app_initializer.setNull();

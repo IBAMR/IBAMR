@@ -11,11 +11,11 @@ child_env = os.environ.copy()
 # when run from within an app (e.g. SourceTree), subprocess will throw an exception because
 # of the error from git clang-format. we'll ignore that to carry on
 import subprocess
-p = subprocess.Popen(["git", "clang-format", "--diff"], stdout=subprocess.PIPE, env=child_env)
+p = subprocess.Popen(["git", "clang-format", "--diff", "--extensions=C,c,cpp,h"], stdout=subprocess.PIPE, env=child_env)
 output, err = p.communicate()
 
 if output not in ['no modified files to format\n', 'clang-format did not modify any files\n']:
-    print "Run git clang-format, then commit.\n"        
+    print "Run git \"clang-format --extensions=C,c,cpp,h\", then commit.\n"        
     exit(1)
 else:
     exit(0)

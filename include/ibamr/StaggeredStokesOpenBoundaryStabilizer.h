@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesOpenBoundaryStabilizer
-#define included_StaggeredStokesOpenBoundaryStabilizer
+#ifndef included_IBAMR_StaggeredStokesOpenBoundaryStabilizer
+#define included_IBAMR_StaggeredStokesOpenBoundaryStabilizer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -149,4 +149,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesOpenBoundaryStabilizer
+#endif //#ifndef included_IBAMR_StaggeredStokesOpenBoundaryStabilizer

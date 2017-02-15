@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartSideDoubleCubicCoarsen
-#define included_CartSideDoubleCubicCoarsen
+#ifndef included_IBTK_CartSideDoubleCubicCoarsen
+#define included_IBTK_CartSideDoubleCubicCoarsen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -169,4 +169,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartSideDoubleCubicCoarsen
+#endif //#ifndef included_IBTK_CartSideDoubleCubicCoarsen

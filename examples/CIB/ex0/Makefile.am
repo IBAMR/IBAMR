@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp
-EXTRA_DIST  = input2d cylinder2d.vertex PetscOptions.dat
+EXTRA_DIST  = input2d cylinder2d.vertex petsc_options.dat
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -18,7 +18,7 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
-	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
+	  cp -f $(srcdir)/petsc_options.dat $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -26,5 +26,5 @@ clean-local:
 	  if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
-	  rm -f $(builddir)/PetscOptions.dat ; \
+	  rm -f $(builddir)/petsc_options.dat ; \
 	fi ;

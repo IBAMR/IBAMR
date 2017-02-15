@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFEMethod
-#define included_IBFEMethod
+#ifndef included_IBAMR_IBFEMethod
+#define included_IBAMR_IBFEMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -242,7 +242,6 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
@@ -253,7 +252,7 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void eulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
@@ -508,10 +507,10 @@ protected:
     bool d_modify_vel_interp_jumps;
     double d_vel_interp_width;
     double d_mu;
-    libMesh::FEFamily d_fe_family;
-    libMesh::Order d_fe_order;
-    libMesh::QuadratureType d_quad_type;
-    libMesh::Order d_quad_order;
+    std::vector<libMesh::FEFamily> d_fe_family;
+    std::vector<libMesh::Order> d_fe_order;
+    std::vector<libMesh::QuadratureType> d_default_quad_type;
+    std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix;
 
     /*
@@ -607,4 +606,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFEMethod
+#endif //#ifndef included_IBAMR_IBFEMethod

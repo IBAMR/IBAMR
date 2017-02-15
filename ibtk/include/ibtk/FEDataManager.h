@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FEDataManager
-#define included_FEDataManager
+#ifndef included_IBTK_FEDataManager
+#define included_IBTK_FEDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -67,11 +67,6 @@ namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
-namespace libMesh
-{
-template <typename Tp>
-class AutoPtr;
-} // namespace libMesh
 
 namespace SAMRAI
 {
@@ -344,16 +339,6 @@ public:
     const SpreadSpec& getDefaultSpreadSpec() const;
 
     /*!
-     * \return Variable that tracks the inside and outside of the body.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getMaskingVariable() const;
-
-    /*!
-     * \return Variable patch data index that tracks the inside and outside of the body.
-     */
-    int getMaskingVariablePatchDataIndex() const;
-
-    /*!
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
@@ -493,9 +478,7 @@ public:
      * L2 projection operator.
      */
     std::pair<libMesh::LinearSolver<double>*, libMesh::SparseMatrix<double>*>
-    buildL2ProjectionSolver(const std::string& system_name,
-                            libMesh::QuadratureType quad_type = libMesh::QGAUSS,
-                            libMesh::Order quad_order = libMesh::FIFTH);
+    buildL2ProjectionSolver(const std::string& system_name);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
@@ -509,8 +492,6 @@ public:
                              libMesh::NumericVector<double>& F,
                              const std::string& system_name,
                              bool consistent_mass_matrix = true,
-                             libMesh::QuadratureType quad_type = libMesh::QGAUSS,
-                             libMesh::Order quad_order = libMesh::FIFTH,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);
 
@@ -835,11 +816,9 @@ private:
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
-    std::map<std::string, libMesh::QuadratureType> d_L2_proj_quad_type;
-    std::map<std::string, libMesh::Order> d_L2_proj_quad_order;
 };
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FEDataManager
+#endif //#ifndef included_IBTK_FEDataManager

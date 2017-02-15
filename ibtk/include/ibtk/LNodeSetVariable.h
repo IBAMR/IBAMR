@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeSetVariable
-#define included_LNodeSetVariable
+#ifndef included_IBTK_LNodeSetVariable
+#define included_IBTK_LNodeSetVariable
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LIndexSetVariable<LNode> LNodeSetVariable;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeSetVariable
+#endif //#ifndef included_IBTK_LNodeSetVariable

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeIndexSetDataIterator
-#define included_LNodeIndexSetDataIterator
+#ifndef included_IBTK_LNodeIndexSetDataIterator
+#define included_IBTK_LNodeIndexSetDataIterator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LSetDataIterator<LNodeIndex> LNodeIndexSetDataIterator;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeIndexSetDataIterator
+#endif //#ifndef included_IBTK_LNodeIndexSetDataIterator

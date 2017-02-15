@@ -486,7 +486,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.cpp
-EXTRA_DIST = input2d cylinder2d.vertex PetscOptions.dat
+EXTRA_DIST = input2d cylinder2d.vertex petsc_options.dat
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(SOURCES)
@@ -793,7 +793,7 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
-	  cp -f $(srcdir)/PetscOptions.dat $(PWD) ; \
+	  cp -f $(srcdir)/petsc_options.dat $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -801,7 +801,7 @@ clean-local:
 	  if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
-	  rm -f $(builddir)/PetscOptions.dat ; \
+	  rm -f $(builddir)/petsc_options.dat ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

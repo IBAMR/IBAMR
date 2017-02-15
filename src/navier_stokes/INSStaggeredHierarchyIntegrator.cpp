@@ -545,6 +545,11 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     }
     if (!d_stokes_sub_precond_db) d_stokes_sub_precond_db = new MemoryDatabase("stokes_sub_precond_db");
 
+    // Flag to determine whether we explicitly remove any null space components.
+    d_explicitly_remove_nullspace = false;
+    if (input_db->keyExists("explicitly_remove_nullspace"))
+        d_explicitly_remove_nullspace = input_db->getBool("explicitly_remove_nullspace");
+
     // Setup physical boundary conditions objects.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_U_bc_coefs.resize(NDIM);
@@ -1320,6 +1325,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         plog << d_object_name
              << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()
              << "\n";
+    if (d_explicitly_remove_nullspace) removeNullSpace(d_sol_vec);
 
     // Reset the solution and right-hand-side vectors.
     resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
@@ -1539,6 +1545,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_problem_coefs.getRho();
+    const double mu = d_problem_coefs.getMu();
 
     if (rhs_vec->getComponentDescriptorIndex(0) != d_U_rhs_vec->getComponentDescriptorIndex(0))
     {
@@ -1621,13 +1628,34 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
         d_Q_bdry_bc_fill_op->fillData(half_time);
+
+        // Account for momentum loss at sources/sinks.
         if (!d_creeping_flow)
         {
             d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
+            d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
         }
-        d_hier_sc_data_ops->axpy(
-            rhs_vec->getComponentDescriptorIndex(0), rho, d_F_div_idx, rhs_vec->getComponentDescriptorIndex(0));
+        else
+        {
+            d_hier_sc_data_ops->setToScalar(d_F_div_idx, 0.0);
+        }
+
+        // Add a pressure correction so that p is the mechanical pressure.
+        d_hier_math_ops->grad(d_F_div_idx,
+                              d_F_div_var,
+                              /*synch_cf_bdry*/ true,
+                              -mu,
+                              d_Q_scratch_idx,
+                              d_Q_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              +1.0,
+                              d_F_div_idx,
+                              d_F_div_var);
+
+        d_hier_sc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
@@ -1705,6 +1733,19 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
     }
     return;
 } // resetSolverVectors
+
+void
+INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
+{
+    if (d_nul_vecs.empty()) return;
+    for (size_t k = 0; k < d_nul_vecs.size(); ++k)
+    {
+        const double sol_dot_nul = sol_vec->dot(d_nul_vecs[k]);
+        const double nul_L2_norm = sqrt(d_nul_vecs[k]->dot(d_nul_vecs[k]));
+        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
+    }
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_Wall
-#define included_Wall
+#ifndef included_IBAMR_Wall
+#define included_IBAMR_Wall
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -102,4 +102,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_Wall
+#endif //#ifndef included_IBAMR_Wall

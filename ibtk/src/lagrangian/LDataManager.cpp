@@ -186,6 +186,7 @@ LDataManager*
 LDataManager::getManager(const std::string& name,
                          const std::string& default_interp_kernel_fcn,
                          const std::string& default_spread_kernel_fcn,
+                         bool error_if_points_leave_domain,
                          const IntVector<NDIM>& min_ghost_width,
                          bool register_for_restart)
 {
@@ -195,8 +196,12 @@ LDataManager::getManager(const std::string& name,
             min_ghost_width,
             IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
                                      LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
-        s_data_manager_instances[name] = new LDataManager(
-            name, default_interp_kernel_fcn, default_spread_kernel_fcn, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new LDataManager(name,
+                                                          default_interp_kernel_fcn,
+                                                          default_spread_kernel_fcn,
+                                                          error_if_points_leave_domain,
+                                                          ghost_width,
+                                                          register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -1427,8 +1432,18 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
                     while (X[d] >= domain_x_upper[d]) X[d] -= domain_length;
                     TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
                 }
-                X[d] = std::max(X[d], domain_x_lower[d]);
-                X[d] = std::min(X[d], domain_x_upper[d] - (domain_x_upper[d] - domain_x_lower[d]) * TOL);
+                else if (d_error_if_points_leave_domain)
+                {
+                    if (X[d] < domain_x_lower[d] || X[d] > domain_x_upper[d])
+                    {
+                        TBOX_ERROR("IB point has escaped from the computational domain!\n");
+                    }
+                }
+                else
+                {
+                    X[d] = std::max(X[d], domain_x_lower[d]);
+                    X[d] = std::min(X[d], domain_x_upper[d] - (domain_x_upper[d] - domain_x_lower[d]) * TOL);
+                }
             }
             Vector periodic_displacement = X_real - X;
             IntVector<NDIM> periodic_offset;
@@ -2633,6 +2648,7 @@ LDataManager::putToDatabase(Pointer<Database> db)
 LDataManager::LDataManager(const std::string& object_name,
                            const std::string& default_interp_kernel_fcn,
                            const std::string& default_spread_kernel_fcn,
+                           bool error_if_points_leave_domain,
                            const IntVector<NDIM>& ghost_width,
                            bool register_for_restart)
     : d_object_name(object_name),
@@ -2658,6 +2674,7 @@ LDataManager::LDataManager(const std::string& object_name,
       d_output_node_count(false),
       d_default_interp_kernel_fcn(default_interp_kernel_fcn),
       d_default_spread_kernel_fcn(default_spread_kernel_fcn),
+      d_error_if_points_leave_domain(error_if_points_leave_domain),
       d_ghost_width(ghost_width),
       d_lag_node_index_bdry_fill_alg(NULL),
       d_lag_node_index_bdry_fill_scheds(),

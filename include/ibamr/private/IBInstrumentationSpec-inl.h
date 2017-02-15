@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBInstrumentationSpec_inl
-#define included_IBInstrumentationSpec_inl
+#ifndef included_IBAMR_IBInstrumentationSpec_inl
+#define included_IBAMR_IBInstrumentationSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -152,4 +152,4 @@ IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBInstrumentationSpec_inl
+#endif //#ifndef included_IBAMR_IBInstrumentationSpec_inl

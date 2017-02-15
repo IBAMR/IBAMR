@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StokesBcCoefStrategy
-#define included_StokesBcCoefStrategy
+#ifndef included_IBAMR_StokesBcCoefStrategy
+#define included_IBAMR_StokesBcCoefStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -153,4 +153,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StokesBcCoefStrategy
+#endif //#ifndef included_IBAMR_StokesBcCoefStrategy

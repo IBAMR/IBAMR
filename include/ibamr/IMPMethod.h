@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IMPMethod
-#define included_IMPMethod
+#ifndef included_IBAMR_IMPMethod
+#define included_IBAMR_IMPMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -190,7 +190,7 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void eulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
@@ -364,6 +364,7 @@ protected:
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
+    bool d_error_if_points_leave_domain;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
@@ -453,4 +454,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IMPMethod
+#endif //#ifndef included_IBAMR_IMPMethod

@@ -14,6 +14,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "tbox/PIO.h"
+#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -177,13 +178,11 @@ InvNormDist(double p)
     static const double hi = 0.97575;
 
     double x;
-#if 0
     if (p <= 0 || p >= 1)
     {
-        printf("InvNormDist(): p MUST be in (0,1)");
-        exit(-1);
+        TBOX_ERROR("InvNormDist(): p MUST be in (0,1)");
     }
-#endif
+
     /*
     ** Coefficients in rational approximations.
     */

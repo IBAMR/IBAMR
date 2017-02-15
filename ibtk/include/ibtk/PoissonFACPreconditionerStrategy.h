@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PoissonFACPreconditionerStrategy
-#define included_PoissonFACPreconditionerStrategy
+#ifndef included_IBTK_PoissonFACPreconditionerStrategy
+#define included_IBTK_PoissonFACPreconditionerStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -244,6 +244,11 @@ public:
     //\{
 
     /*!
+     * \brief Zero the supplied vector.
+     */
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num);
+
+    /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *
@@ -360,7 +365,7 @@ protected:
     /*
      * Ghost cell width.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_gcw;
+    SAMRAI::hier::IntVector<NDIM> d_gcw;
 
     /*!
      * \name Hierarchy-dependent objects.
@@ -540,4 +545,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PoissonFACPreconditionerStrategy
+#endif //#ifndef included_IBTK_PoissonFACPreconditionerStrategy

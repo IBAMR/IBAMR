@@ -140,6 +140,90 @@ namespace
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
+inline short int
+get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
+{
+    short int dirichlet_bdry_ids = 0;
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        const short int bdry_id = *cit;
+        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
+        {
+            dirichlet_bdry_ids |= bdry_id;
+        }
+    }
+    return dirichlet_bdry_ids;
+}
+
+inline bool
+is_physical_bdry(const Elem* elem,
+                 const unsigned short int side,
+                 const BoundaryInfo& boundary_info,
+                 const DofMap& dof_map)
+{
+    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
+    bool at_physical_bdry = !elem->neighbor(side);
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        if (dof_map.is_periodic_boundary(*cit)) at_physical_bdry = false;
+    }
+    return at_physical_bdry;
+}
+
+inline bool
+is_dirichlet_bdry(const Elem* elem,
+                  const unsigned short int side,
+                  const BoundaryInfo& boundary_info,
+                  const DofMap& dof_map)
+{
+    if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
+    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
+    return get_dirichlet_bdry_ids(bdry_ids) != 0;
+}
+
+inline bool
+has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
+{
+    bool has_physical_bdry = false;
+    for (unsigned short int side = 0; side < elem->n_sides() && !has_physical_bdry; ++side)
+    {
+        has_physical_bdry = has_physical_bdry || is_physical_bdry(elem, side, boundary_info, dof_map);
+    }
+    return has_physical_bdry;
+}
+
+inline void
+get_x_and_FF(libMesh::VectorValue<double>& x,
+             libMesh::TensorValue<double>& FF,
+             const std::vector<double>& x_data,
+             const std::vector<VectorValue<double> >& grad_x_data,
+             const unsigned int dim = NDIM)
+{
+    x.zero();
+    FF.zero();
+    for (unsigned int i = 0; i < dim; ++i)
+    {
+        x(i) = x_data[i];
+        for (unsigned int j = 0; j < dim; ++j)
+        {
+            FF(i, j) = grad_x_data[i](j);
+        }
+    }
+    for (unsigned int i = dim; i < LIBMESH_DIM; ++i)
+    {
+        FF(i, i) = 1.0;
+    }
+    return;
+}
+
+static const Real PENALTY = 1.e10;
+
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
                           unsigned int time_step_number,
@@ -1180,7 +1264,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocityWithJump
 
 void
-IBFEMethod::eulerStep(const double current_time, const double new_time)
+IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
     int ierr;
@@ -1376,7 +1460,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "X_" << d;
-                X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                X_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& X0_system = equation_systems->add_system<System>(COORDS0_SYSTEM_NAME);
@@ -1384,7 +1468,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "X0_" << d;
-                X0_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                X0_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
@@ -1392,7 +1476,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dX_" << d;
-                dX_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                dX_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
@@ -1400,7 +1484,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "U_" << d;
-                U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                U_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
@@ -1408,7 +1492,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "F_" << d;
-                F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                F_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& du_system = equation_systems->add_system<System>(DU_SYSTEM_NAME);
@@ -1416,7 +1500,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "du_" << d;
-                du_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                du_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& dv_system = equation_systems->add_system<System>(DV_SYSTEM_NAME);
@@ -1424,7 +1508,7 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dv_" << d;
-                dv_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                dv_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& dw_system = equation_systems->add_system<System>(DW_SYSTEM_NAME);
@@ -1432,11 +1516,11 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 std::ostringstream os;
                 os << "dw_" << d;
-                dw_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                dw_system.add_variable(os.str(), d_fe_order[part], d_fe_family[part]);
             }
 
             System& dP_system = equation_systems->add_system<System>(DP_SYSTEM_NAME);
-            dP_system.add_variable("[[p]]", d_fe_order, d_fe_family);
+            dP_system.add_variable("[[p]]", d_fe_order[part], d_fe_family[part]);
         }
     }
     d_fe_equation_systems_initialized = true;
@@ -1501,6 +1585,58 @@ IBFEMethod::initializeFEData()
 
         dP_system.assemble_before_solve = false;
         dP_system.assemble();
+
+  // Set up boundary conditions.  Specifically, add appropriate boundary
+        // IDs to the BoundaryInfo object associated with the mesh, and add DOF
+        // constraints for the nodal forces and velocities.
+        const MeshBase& mesh = equation_systems->get_mesh();
+        DofMap& F_dof_map = F_system.get_dof_map();
+        DofMap& U_dof_map = U_system.get_dof_map();
+        const unsigned int F_sys_num = F_system.number();
+        const unsigned int U_sys_num = U_system.number();
+        MeshBase::const_element_iterator el_it = mesh.elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        for (; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = !elem->neighbor(side);
+                if (!at_mesh_bdry) continue;
+
+                static const short int dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
+                                                                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
+                                                                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids =
+                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (!elem->is_node_on_side(n, side)) continue;
+
+                    Node* node = elem->get_node(n);
+                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
+                        if (node->n_dofs(F_sys_num))
+                        {
+                            const int F_dof_index = node->dof_number(F_sys_num, d, 0);
+                            DofConstraintRow F_constraint_row;
+                            F_constraint_row[F_dof_index] = 1.0;
+                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
+                        }
+                        if (node->n_dofs(U_sys_num))
+                        {
+                            const int U_dof_index = node->dof_number(U_sys_num, d, 0);
+                            DofConstraintRow U_constraint_row;
+                            U_constraint_row[U_dof_index] = 1.0;
+                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, 0.0, false);
+                        }
+                    }
+                }
+            }
+        }
     }
     d_fe_data_initialized = true;
     return;
@@ -1661,10 +1797,10 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putDouble("d_vel_interp_width", d_vel_interp_width);
     db->putBool("d_modify_vel_interp_jumps", d_modify_vel_interp_jumps);
-    db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
-    db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
-    db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
-    db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
+    //db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
+    //db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
+    //db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
+    //db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
 } // putToDatabase
@@ -1791,7 +1927,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
@@ -2056,7 +2192,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
@@ -3273,31 +3409,30 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_default_spread_spec =
         FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
-
     d_split_normal_force = false;
     d_split_tangential_force = false;
     d_use_jump_conditions = false;
     d_modify_vel_interp_jumps = false;
     d_vel_interp_width = 0.0;
     d_mu = 0.0;
-    d_fe_family = LAGRANGE;
-    d_fe_order = INVALID_ORDER;
-    d_quad_type = QGAUSS;
-    d_quad_order = INVALID_ORDER;
     d_use_consistent_mass_matrix = true;
     d_do_log = false;
 
+    d_fe_family.resize(d_num_parts, INVALID_FE);
+    d_fe_order.resize(d_num_parts, INVALID_ORDER);
+    d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
+    d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_lag_force_fcn_data.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
-    bool mesh_has_first_order_elems = false;
-    bool mesh_has_second_order_elems = false;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const MeshBase& mesh = *meshes[part];
+        bool mesh_has_first_order_elems = false;
+        bool mesh_has_second_order_elems = false;
         MeshBase::const_element_iterator el_it = mesh.elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
@@ -3306,26 +3441,35 @@ IBFEMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-    }
-    mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-    if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
-        (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
-    {
-        TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
-                                 << "  all parts of FE mesh must contain only FIRST order elements "
-                                    "or only SECOND order elements"
-                                 << std::endl);
-    }
-    if (mesh_has_first_order_elems)
-    {
-        d_fe_order = FIRST;
-        d_quad_order = THIRD;
-    }
-    if (mesh_has_second_order_elems)
-    {
-        d_fe_order = SECOND;
-        d_quad_order = FIFTH;
+        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
+        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
+            (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
+        {
+            TBOX_ERROR(d_object_name
+                       << "::IBFEMethod():\n"
+                       << "  each FE mesh part must contain only FIRST order elements or only SECOND order elements"
+                       << std::endl);
+        }
+        d_fe_family[part] = LAGRANGE;
+        d_default_quad_type[part] = QGAUSS;
+        if (mesh_has_first_order_elems)
+        {
+            d_fe_order[part] = FIRST;
+            d_default_quad_order[part] = THIRD;
+        }
+        if (mesh_has_second_order_elems)
+        {
+            d_fe_order[part] = SECOND;
+            d_default_quad_order[part] = FIFTH;
+        }
+
+        // Report configuration.
+        pout << "\n";
+        pout << d_object_name << ": mesh part " << part << " is using "
+             << Utility::enum_to_string<Order>(d_fe_order[part]) << " order "
+             << Utility::enum_to_string<FEFamily>(d_fe_family[part]) << " finite elements.\n";
+        pout << "\n";
     }
 
     // Initialize object with data read from the input and restart databases.
@@ -3336,12 +3480,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
-
-    // Report configuration.
-    pout << "\n";
-    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order "
-         << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
-    pout << "\n";
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -3435,8 +3573,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
     if (db->isDouble("vel_interp_width")) d_vel_interp_width = db->getDouble("vel_interp_width");
     if (db->isBool("modify_vel_interp_jumps")) d_modify_vel_interp_jumps = db->getBool("modify_vel_interp_jumps");
-    if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
-    if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
@@ -3463,6 +3599,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
+
     return;
 } // getFromInput
 
@@ -3492,10 +3629,6 @@ IBFEMethod::getFromRestart()
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_modify_vel_interp_jumps = db->getBool("d_modify_interp_jumps");
     d_vel_interp_width = db->isDouble("vel_interp_width");
-    d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
-    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
-    d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
-    d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart

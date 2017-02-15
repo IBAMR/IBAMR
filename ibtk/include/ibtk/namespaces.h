@@ -30,10 +30,20 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_namespaces
-#define included_namespaces
+#ifndef included_IBTK_namespaces
+#define included_IBTK_namespaces
 
 //////////////////////////////////////////////////////////////////////////////
+
+/*!
+ * Defines "using" declarations for all IBTK namespaces.  This header file may
+ * be included in application codes, but it MUST NOT be included in any other
+ * header (.h) or inline (-inl.h) file in the library.
+ */
+namespace IBTK
+{
+}
+using namespace IBTK;
 
 /*!
  * Defines "using" declarations for all SAMRAI namespaces.  This header file may
@@ -97,4 +107,4 @@ using namespace libMesh;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_namespaces
+#endif //#ifndef included_IBTK_namespaces

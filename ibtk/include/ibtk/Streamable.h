@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_Streamable
-#define included_Streamable
+#ifndef included_IBTK_Streamable
+#define included_IBTK_Streamable
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -137,4 +137,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_Streamable
+#endif //#ifndef included_IBTK_Streamable

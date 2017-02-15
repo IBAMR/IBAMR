@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTargetPointForceSpec_inl
-#define included_IBTargetPointForceSpec_inl
+#ifndef included_IBAMR_IBTargetPointForceSpec_inl
+#define included_IBAMR_IBTargetPointForceSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -158,4 +158,4 @@ IBTargetPointForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTargetPointForceSpec_inl
+#endif //#ifndef included_IBAMR_IBTargetPointForceSpec_inl

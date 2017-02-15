@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FixedSizedStream_inl_h
-#define included_FixedSizedStream_inl_h
+#ifndef included_IBTK_FixedSizedStream_inl_h
+#define included_IBTK_FixedSizedStream_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -368,4 +368,4 @@ FixedSizedStream::__unpack(T* const m_data, unsigned int m_bytes)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FixedSizedStream_inl_h
+#endif //#ifndef included_IBTK_FixedSizedStream_inl_h

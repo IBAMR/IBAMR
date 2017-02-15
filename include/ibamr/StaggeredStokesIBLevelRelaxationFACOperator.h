@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesIBLevelRelaxationFACOperator
-#define included_StaggeredStokesIBLevelRelaxationFACOperator
+#ifndef included_IBAMR_StaggeredStokesIBLevelRelaxationFACOperator
+#define included_IBAMR_StaggeredStokesIBLevelRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -53,14 +53,15 @@
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
 #include "petscao.h"
 #include "petscmat.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 namespace boost
 {
@@ -158,6 +159,11 @@ public:
      * \name Functions for configuring the solver.
      */
     //\{
+
+    /*!
+     * \brief Set the IB time stepping type.
+     */
+    void setIBTimeSteppingType(TimeSteppingType time_stepping_type);
 
     /*!
      * \brief Set the IB-force Jacobian at the finest patch level (where the
@@ -285,6 +291,13 @@ private:
     StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that);
 
     /*
+     * Whether we re-discretize the Stokes operator on coarser level or are
+     * using Galerkin projection.
+     */
+    bool d_rediscretize_stokes;
+    bool d_res_rediscretized_stokes;
+
+    /*
      * Level solvers and solver parameters.
      */
     std::string d_level_solver_type, d_level_solver_default_options_prefix;
@@ -294,9 +307,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
-     * Application ordering of u from MAC DOFs on various patch levels.
+     * Velocity and pressure prolongation type.
      */
-    std::vector<AO> d_u_app_ordering;
+    std::string d_u_petsc_prolongation_method, d_p_petsc_prolongation_method;
+
+    /*
+     * Application ordering of u and p from MAC DOFs on various patch levels.
+     */
+    std::vector<AO> d_u_p_app_ordering;
 
     /*
      * Eulerian data for storing u and p DOFs indexing.
@@ -305,6 +323,11 @@ private:
     int d_u_dof_index_idx, d_p_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+
+    /*
+     * The time stepping type.
+     */
+    TimeSteppingType d_time_stepping_type;
 
     /*
      * Jacobian of the elasticity force at the finest patch level.
@@ -317,12 +340,12 @@ private:
     Mat d_J_mat;
 
     /*
-     * Data structures for elasticity and prolongation operator respresentation
+     * Data structures for elasticity and prolongation operator representation
      * on various patch levels.
      */
-    double d_SAJ_fill;
-    std::vector<Mat> d_SAJ_mat, d_prolongation_mat;
-    std::vector<Vec> d_scale_restriction_mat;
+    double d_SAJ_fill, d_RStokesIBP_fill;
+    std::vector<Mat> d_SAJ_mat, d_SAJ_prolongation_mat, d_stokesib_prolongation_mat, d_galerkin_stokesib_mat;
+    std::vector<Vec> d_scale_SAJ_restriction_mat, d_scale_stokesib_restriction_mat;
 
     /*
      * Mappings from patch indices to patch operators.
@@ -334,4 +357,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesIBLevelRelaxationFACOperator
+#endif //#ifndef included_IBAMR_StaggeredStokesIBLevelRelaxationFACOperator

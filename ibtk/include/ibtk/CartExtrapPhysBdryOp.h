@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartExtrapPhysBdryOp
-#define included_CartExtrapPhysBdryOp
+#ifndef included_IBTK_CartExtrapPhysBdryOp
+#define included_IBTK_CartExtrapPhysBdryOp
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -297,4 +297,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartExtrapPhysBdryOp
+#endif //#ifndef included_IBTK_CartExtrapPhysBdryOp

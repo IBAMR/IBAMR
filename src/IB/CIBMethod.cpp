@@ -224,9 +224,12 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
             Eigen::Vector3d trans_vel_current, trans_vel_half, trans_vel_new, rot_vel_current, rot_vel_half,
                 rot_vel_new;
 
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time, trans_vel_current, rot_vel_current);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_half_time, trans_vel_half, rot_vel_half);
-            d_constrained_velocity_fcns_data[part].comvelfcn(d_new_time, trans_vel_new, rot_vel_new);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_current_time, trans_vel_current, rot_vel_current, d_constrained_velocity_fcns_data[part].ctx);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_half_time, trans_vel_half, rot_vel_half, d_constrained_velocity_fcns_data[part].ctx);
+            d_constrained_velocity_fcns_data[part].comvelfcn(
+                d_new_time, trans_vel_new, rot_vel_new, d_constrained_velocity_fcns_data[part].ctx);
 
             // Update only prescribed velocities in the internal data structure.
             for (int d = 0; d < NDIM; ++d)
@@ -273,7 +276,8 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
                 Eigen::Vector3d F_ext, T_ext;
                 if (d_ext_force_torque_fcn_data[part].forcetorquefcn)
                 {
-                    d_ext_force_torque_fcn_data[part].forcetorquefcn(d_new_time, F_ext, T_ext);
+                    d_ext_force_torque_fcn_data[part].forcetorquefcn(
+                        d_new_time, F_ext, T_ext, d_ext_force_torque_fcn_data[part].ctx);
                 }
                 else
                 {
@@ -627,7 +631,7 @@ CIBMethod::spreadForce(
 } // spreadForce
 
 void
-CIBMethod::eulerStep(const double current_time, const double new_time)
+CIBMethod::forwardEulerStep(double current_time, double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -734,10 +738,20 @@ CIBMethod::eulerStep(const double current_time, const double new_time)
     }
 
     return;
-} // eulerStep
+} // forwardEulerStep
 
 void
-CIBMethod::midpointStep(const double current_time, const double new_time)
+CIBMethod::backwardEulerStep(double current_time, double new_time)
+{
+    TBOX_ERROR(
+        "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "
+        "CIBMethod::forwardEulerStep() as predictor. \n");
+    return;
+
+} // backwardEulerStep
+
+void
+CIBMethod::midpointStep(double current_time, double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
@@ -862,7 +876,7 @@ CIBMethod::midpointStep(const double current_time, const double new_time)
 } // midpointStep
 
 void
-CIBMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
+CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
                << " Only mid-point rule is supported."

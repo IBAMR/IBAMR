@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBImplicitStrategy
-#define included_IBImplicitStrategy
+#ifndef included_IBAMR_IBImplicitStrategy
+#define included_IBAMR_IBImplicitStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -101,7 +101,7 @@ public:
      * Set the value of the intermediate position vector used in evaluating the
      * linearized problem.
      */
-    virtual void setLinearizedPosition(Vec& X_vec) = 0;
+    virtual void setLinearizedPosition(Vec& X_vec, double data_time) = 0;
 
     /*!
      * Compute the nonlinear residual.
@@ -134,7 +134,7 @@ public:
     /*!
      * Construct the linearized Lagrangian force Jacobian.
      */
-    virtual void constructLagrangianForceJacobian(Mat& A, MatType mat_type) = 0;
+    virtual void constructLagrangianForceJacobian(Mat& A, MatType mat_type, double data_time) = 0;
 
     /*!
      * Spread the Lagrangian force of the linearized problem to the Cartesian
@@ -151,9 +151,10 @@ public:
      */
     virtual void constructInterpOp(Mat& J,
                                    void (*spread_fnc)(const double, double*),
-                                   const int stencil_width,
+                                   int stencil_width,
                                    const std::vector<int>& num_dofs_per_proc,
-                                   const int dof_index_idx) = 0;
+                                   int dof_index_idx,
+                                   double data_time) = 0;
 
 protected:
 private:
@@ -181,4 +182,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitStrategy
+#endif //#ifndef included_IBAMR_IBImplicitStrategy

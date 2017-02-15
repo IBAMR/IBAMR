@@ -37,7 +37,6 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
@@ -84,41 +83,35 @@ CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(const std::string& object
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
                       "IBAMR::CIBStaggeredStokesOperator::initializeOperatorState()"););
-    return;
 } // CIBStaggeredStokesOperator
 
 void
 CIBStaggeredStokesOperator::setInterpScaleFactor(const double beta)
 {
     d_scale_interp = beta;
-    return;
 } // setInterpScaleFactor
 
 void
 CIBStaggeredStokesOperator::setSpreadScaleFactor(const double gamma)
 {
     d_scale_spread = gamma;
-    return;
 } // setSpreadScaleFactor
 
 void
 CIBStaggeredStokesOperator::setRegularizeMobilityFactor(const double delta)
 {
     d_reg_mob_factor = delta;
-    return;
 } // setRegularizeMobilityFactor
 
 void
 CIBStaggeredStokesOperator::setNormalizeSpreadForce(const bool normalize_force)
 {
     d_normalize_spread_force = normalize_force;
-    return;
 } // setNormalizeSpreadForce
 
 CIBStaggeredStokesOperator::~CIBStaggeredStokesOperator()
 {
     deallocateOperatorState();
-    return;
 } // ~CIBStaggeredStokesOperator
 
 void
@@ -134,12 +127,15 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // Get some vectors and unpack them.
     Vec *vx, *vy;
-    VecMultiVecGetSubVecs(x, &vx);
-    VecMultiVecGetSubVecs(y, &vy);
-    SAMRAIVectorReal<NDIM, double>& u_p = *PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]);
+    VecNestGetSubVecs(x, NULL, &vx);
+    VecNestGetSubVecs(y, NULL, &vy);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
+    SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     Vec L = vx[1];
     Vec U = vx[2];
-    SAMRAIVectorReal<NDIM, double>& g_f = *PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    SAMRAIVectorReal<NDIM, double>& g_f = *vy0;
     Vec V = vy[1];
     Vec F = vy[2];
 
@@ -255,8 +251,10 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // Deallocate scratch data.
     d_x->deallocateVectorData();
 
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
+
     IBAMR_TIMER_STOP(t_apply);
-    return;
 } // apply
 
 void
@@ -318,7 +316,6 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
-    return;
 } // initializeOperatorState
 
 void
@@ -329,8 +326,10 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
 
     // Get vectors corresponding to fluid and Lagrangian velocity.
     Vec* vy;
-    VecMultiVecGetSubVecs(y, &vy);
-    SAMRAIVectorReal<NDIM, double>& b = *PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    VecNestGetSubVecs(y, NULL, &vy);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vy0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
+    SAMRAIVectorReal<NDIM, double>& b = *vy0;
     Vec W = vy[1];
 
     // Modify RHS for fluid Bcs.
@@ -379,19 +378,19 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         x->freeVectorComponents();
         VecDestroy(&V);
     }
-
-    return;
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
 } // modifyRhsForBcs
 
 void
 CIBStaggeredStokesOperator::imposeSolBcs(Vec x)
 {
     Vec* vx;
-    VecMultiVecGetSubVecs(x, &vx);
-    SAMRAIVectorReal<NDIM, double>& u_p = *PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]);
+    VecNestGetSubVecs(x, NULL, &vx);
+    Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+    IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0], &vx0);
+    SAMRAIVectorReal<NDIM, double>& u_p = *vx0;
     imposeSolBcs(u_p);
-
-    return;
+    IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vx[0], &vx0);
 } // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

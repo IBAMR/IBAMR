@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBMethodPostProcessStrategy
-#define included_IBMethodPostProcessStrategy
+#ifndef included_IBAMR_IBMethodPostProcessStrategy
+#define included_IBAMR_IBMethodPostProcessStrategy
 
 #include <vector>
 
@@ -122,4 +122,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBMethodPostProcessStrategy
+#endif //#ifndef included_IBAMR_IBMethodPostProcessStrategy

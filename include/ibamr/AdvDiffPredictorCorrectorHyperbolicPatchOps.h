@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffPredictorCorrectorHyperbolicPatchOps
-#define included_AdvDiffPredictorCorrectorHyperbolicPatchOps
+#ifndef included_IBAMR_AdvDiffPredictorCorrectorHyperbolicPatchOps
+#define included_IBAMR_AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -181,4 +181,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffPredictorCorrectorHyperbolicPatchOps
+#endif //#ifndef included_IBAMR_AdvDiffPredictorCorrectorHyperbolicPatchOps

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScVecUtilities
-#define included_PETScVecUtilities
+#ifndef included_IBTK_PETScVecUtilities
+#define included_IBTK_PETScVecUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -242,4 +242,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScVecUtilities
+#endif //#ifndef included_IBTK_PETScVecUtilities

@@ -74,6 +74,8 @@
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideDoubleRT0Coarsen.h"
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
@@ -416,6 +418,19 @@ StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::strin
     d_P_restriction_method = P_restriction_method;
     return;
 } // setRestrictionMethods
+
+void
+StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+{
+    const int U_data_idx = vec.getComponentDescriptorIndex(0);
+    const int P_data_idx = vec.getComponentDescriptorIndex(1);
+    static const bool interior_only = false;
+    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, level_num, level_num);
+    level_sc_data_ops.setToScalar(U_data_idx, 0.0, interior_only);
+    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, level_num, level_num);
+    level_cc_data_ops.setToScalar(P_data_idx, 0.0, interior_only);
+    return;
+} // setToZero
 
 void
 StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
@@ -775,7 +790,9 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
-                  geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen()););
+                  geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
+                  geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
+                  geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine()));
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;
 

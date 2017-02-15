@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffStochasticForcing
-#define included_AdvDiffStochasticForcing
+#ifndef included_IBAMR_AdvDiffStochasticForcing
+#define included_IBAMR_AdvDiffStochasticForcing
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -209,4 +209,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffStochasticForcing
+#endif //#ifndef included_IBAMR_AdvDiffStochasticForcing

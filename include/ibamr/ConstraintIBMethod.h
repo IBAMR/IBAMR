@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ConstraintIBMethod
-#define included_ConstraintIBMethod
+#ifndef included_IBAMR_ConstraintIBMethod
+#define included_IBAMR_ConstraintIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -140,9 +140,9 @@ public:
     virtual void postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
 
     /*!
-     * \brief Override the eulerStep method of the base IBMethod class.
+     * \brief Override the forwardEulerStep method of the base IBMethod class.
      */
-    virtual void eulerStep(double current_time, double new_time);
+    virtual void forwardEulerStep(double current_time, double new_time);
 
     /*!
      * \brief Override the midpointStep method of the base IBMethod class.
@@ -486,4 +486,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ConstraintIBMethod
+#endif //#ifndef included_IBAMR_ConstraintIBMethod

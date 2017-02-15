@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ibamr_enums
-#define included_ibamr_enums
+#ifndef included_IBAMR_ibamr_enums
+#define included_IBAMR_ibamr_enums
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -365,4 +365,4 @@ enum_to_string<MobilityMatrixInverseType>(MobilityMatrixInverseType val)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ibamr_enums
+#endif //#ifndef included_IBAMR_ibamr_enums

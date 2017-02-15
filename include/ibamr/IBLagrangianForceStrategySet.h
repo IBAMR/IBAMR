@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBLagrangianForceStrategySet
-#define included_IBLagrangianForceStrategySet
+#ifndef included_IBAMR_IBLagrangianForceStrategySet
+#define included_IBAMR_IBLagrangianForceStrategySet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -191,4 +191,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBLagrangianForceStrategySet
+#endif //#ifndef included_IBAMR_IBLagrangianForceStrategySet

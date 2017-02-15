@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_FACPreconditionerStrategy
-#define included_FACPreconditionerStrategy
+#ifndef included_IBTK_FACPreconditionerStrategy
+#define included_IBTK_FACPreconditionerStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -136,6 +136,12 @@ public:
      * \brief Get the current time step size.
      */
     virtual double getDt() const;
+
+    /*!
+     * \brief Zero-out the provided vector on the specified level of the patch
+     * hierarchy.
+     */
+    virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
 
     /*!
      * \brief Restrict the residual from the source vector to the destination
@@ -290,4 +296,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_FACPreconditionerStrategy
+#endif //#ifndef included_IBTK_FACPreconditionerStrategy

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScNewtonKrylovSolver
-#define included_PETScNewtonKrylovSolver
+#ifndef included_IBTK_PETScNewtonKrylovSolver
+#define included_IBTK_PETScNewtonKrylovSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -391,4 +391,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScNewtonKrylovSolver
+#endif //#ifndef included_IBTK_PETScNewtonKrylovSolver

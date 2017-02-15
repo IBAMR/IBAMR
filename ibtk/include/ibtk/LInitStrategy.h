@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LInitStrategy
-#define included_LInitStrategy
+#ifndef included_IBTK_LInitStrategy
+#define included_IBTK_LInitStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -226,4 +226,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LInitStrategy
+#endif //#ifndef included_IBTK_LInitStrategy

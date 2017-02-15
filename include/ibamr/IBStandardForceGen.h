@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBStandardForceGen
-#define included_IBStandardForceGen
+#ifndef included_IBAMR_IBStandardForceGen
+#define included_IBAMR_IBStandardForceGen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -86,7 +86,8 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBStandardForceGen();
+    IBStandardForceGen(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>());
 
     /*!
      * \brief Destructor.
@@ -285,9 +286,14 @@ private:
      */
     std::map<int, SpringForceFcnPtr> d_spring_force_fcn_map;
     std::map<int, SpringForceDerivFcnPtr> d_spring_force_deriv_fcn_map;
+
+    /*!
+     * \brief Logging settings.
+     */
+    bool d_log_target_point_displacements;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBStandardForceGen
+#endif //#ifndef included_IBAMR_IBStandardForceGen

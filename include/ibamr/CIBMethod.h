@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CIBMethod
-#define included_CIBMethod
+#ifndef included_IBAMR_CIBMethod
+#define included_IBAMR_CIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -95,13 +95,16 @@ public:
                                                    double data_time,
                                                    void* ctx);
 
-    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com);
+    typedef void (*ConstrainedCOMVelocityFcnPtr)(double data_time,
+                                                 Eigen::Vector3d& U_com,
+                                                 Eigen::Vector3d& W_com,
+                                                 void* ctx);
 
     /*!
      * \brief Typedef specifying interface for specifying net external force
      * and torque on structures.
      */
-    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T);
+    typedef void (*ExternalForceTorqueFcnPtr)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*!
      * \brief Callbacks before INS is integrated.
@@ -261,7 +264,13 @@ public:
      * \brief Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void eulerStep(double current_time, double new_time);
+    void forwardEulerStep(double current_time, double new_time);
+
+    /*!
+     * \brief Advance the positions of the Lagrangian structure using the backward Euler
+     * method.
+     */
+    void backwardEulerStep(double current_time, double new_time);
 
     /*!
      * \brief Advance the positions of the Lagrangian structure using the (explicit)
@@ -536,4 +545,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CIBMethod
+#endif //#ifndef included_IBAMR_CIBMethod

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBImplicitStaggeredHierarchyIntegrator
-#define included_IBImplicitStaggeredHierarchyIntegrator
+#ifndef included_IBAMR_IBImplicitStaggeredHierarchyIntegrator
+#define included_IBAMR_IBImplicitStaggeredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -42,7 +42,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesSolver.h"
@@ -381,4 +380,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBAMR_IBImplicitStaggeredHierarchyIntegrator

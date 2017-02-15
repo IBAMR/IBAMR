@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScSNESFunctionGOWrapper
-#define included_PETScSNESFunctionGOWrapper
+#ifndef included_IBTK_PETScSNESFunctionGOWrapper
+#define included_IBTK_PETScSNESFunctionGOWrapper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -210,4 +210,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScSNESFunctionGOWrapper
+#endif //#ifndef included_IBTK_PETScSNESFunctionGOWrapper

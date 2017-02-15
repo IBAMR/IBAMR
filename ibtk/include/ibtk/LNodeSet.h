@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LNodeSet
-#define included_LNodeSet
+#ifndef included_IBTK_LNodeSet
+#define included_IBTK_LNodeSet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,4 +47,4 @@ typedef LSet<LNode> LNodeSet;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LNodeSet
+#endif //#ifndef included_IBTK_LNodeSet

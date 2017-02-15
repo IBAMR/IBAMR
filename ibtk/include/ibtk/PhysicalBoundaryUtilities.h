@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PhysicalBoundaryUtilities
-#define included_PhysicalBoundaryUtilities
+#ifndef included_IBTK_PhysicalBoundaryUtilities
+#define included_IBTK_PhysicalBoundaryUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -153,4 +153,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PhysicalBoundaryUtilities
+#endif //#ifndef included_IBTK_PhysicalBoundaryUtilities

@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBStrategy
-#define included_IBStrategy
+#ifndef included_IBAMR_IBStrategy
+#define included_IBAMR_IBStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -217,7 +217,16 @@ public:
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    virtual void eulerStep(double current_time, double new_time) = 0;
+    virtual void forwardEulerStep(double current_time, double new_time) = 0;
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * backward Euler method.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void backwardEulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
@@ -563,4 +572,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBStrategy
+#endif //#ifndef included_IBAMR_IBStrategy

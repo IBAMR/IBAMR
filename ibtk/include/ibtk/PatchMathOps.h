@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PatchMathOps
-#define included_PatchMathOps
+#ifndef included_IBTK_PatchMathOps
+#define included_IBTK_PatchMathOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -668,4 +668,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PatchMathOps
+#endif //#ifndef included_IBTK_PatchMathOps
