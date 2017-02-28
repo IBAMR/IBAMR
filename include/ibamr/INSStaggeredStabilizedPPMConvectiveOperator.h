@@ -191,6 +191,7 @@ private:
     INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that);
 
     // Operator configuration.
+    std::string d_stabilization_type;
     boost::array<bool, 2 * NDIM> d_open_bdry;
     boost::array<double, 2 * NDIM> d_width;
 

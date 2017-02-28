@@ -486,6 +486,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
+      d_stabilization_type("UPWIND"),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
       d_bc_coefs(bc_coefs),
@@ -509,6 +510,14 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
 
     if (input_db)
     {
+        if (input_db->keyExists("stabilization_type")) d_stabilization_type = input_db->getString("stabilization_type");
+        if (d_stabilization_type != "UPWIND" && d_stabilization_type != "VISCOUS_ONLY")
+        {
+            TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
+                       << d_stabilization_type
+                       << "\n"
+                       << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+        }
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
         {
@@ -1186,6 +1195,22 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
 
             // Blend together the low-order and high-order discretizations at
             // physical boundaries.
+            bool use_upwind_differencing_at_bdry = false;
+            if (d_stabilization_type == "UPWIND")
+            {
+                use_upwind_differencing_at_bdry = true;
+            }
+            else if (d_stabilization_type == "VISCOUS_ONLY")
+            {
+                use_upwind_differencing_at_bdry = false;
+            }
+            else
+            {
+                TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
+                           << d_stabilization_type
+                           << "\n"
+                           << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+            }
             if (patch_geom->getTouchesRegularBoundary())
             {
                 Pointer<SideData<NDIM, double> > N_PPM_data =
@@ -1219,7 +1244,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                                     x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
                                 const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                                 const double fac = smooth_kernel((x - x_bdry) / width);
-                                (*N_data)(i_s) = fac * (*N_upwind_data)(i_s) + (1.0 - fac) * (*N_PPM_data)(i_s);
+                                (*N_data)(i_s) = fac * (use_upwind_differencing_at_bdry ? (*N_upwind_data)(i_s) : 0.0) +
+                                                 (1.0 - fac) * (*N_PPM_data)(i_s);
                             }
                         }
                     }
