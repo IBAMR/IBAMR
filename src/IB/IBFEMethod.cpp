@@ -2082,6 +2082,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putDouble("d_vel_interp_width", d_vel_interp_width);
     db->putBool("d_modify_vel_interp_jumps", d_modify_vel_interp_jumps);
+	db->putBool("d_use_higher_order_jump", d_use_higher_order_jump);
     //db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     //db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
     //db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
@@ -2437,11 +2438,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
             interpolate(&kk(0), qp, X_node,  X_d2phi_dxi2);
 
             HK = - (n(0)*kk(0) + n(1)*kk(1))/(tau1(0)*tau1(0) + tau1(1)*tau1(1));
-            
-
-            double* nn;
-
-            nn = &n(0);
 
             if (d_lag_force_fcn_data[part].fcn)
             {
@@ -2454,7 +2450,6 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& F_vec,
                                                x,
                                                s,
                                                elem,
-                                               nn,
                                                force_var_data,
                                                force_grad_var_data,
                                                data_time,
@@ -3713,7 +3708,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                             dx[axis];
 											const double h = x_cell_bdry + (x(axis) > x_cell_bdry ? +0.5 : -0.5) * dx[axis] -
 											x(axis);
-                    const double C_p = interpolate(qp, P_j_node, X_phi) - h* jn(axis);
+                    double C_p = interpolate(qp, P_j_node, X_phi);
+
+					if (d_use_higher_order_jump) C_p -= h* jn(axis);
 
                     (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0) * (C_p / dx[axis]);
                 }
@@ -3783,15 +3780,25 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
 							interpolate(&jn(0), qp, du_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2u_j_node, X_phi);
-                            C_u_up = sdh_up * jn(0) + 0.5 * sdh_up * sdh_up * jnn(0);
-                            C_u_um = sdh_um * jn(0) + 0.5 * sdh_um * sdh_um * jnn(0);
+                            C_u_up = sdh_up * jn(0);
+                            C_u_um = sdh_um * jn(0);
+                            if (d_use_higher_order_jump)
+                            {
+								C_u_up += 0.5 * sdh_up * sdh_up * jnn(0);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(0);
+							}
                         }
                         else if (axis == 1)
                         {
                             interpolate(&jn(0), qp, dv_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2v_j_node, X_phi);
-                            C_u_up = sdh_up * jn(1) + 0.5 * sdh_up * sdh_up * jnn(1);
-                            C_u_um = sdh_um * jn(1)  + 0.5 * sdh_um * sdh_um * jnn(1);
+                            C_u_up = sdh_up * jn(1);
+                            C_u_um = sdh_um * jn(1);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(1);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(1);
+							}
                         }
 #endif
 
@@ -3800,22 +3807,37 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             interpolate(&jn(0), qp, du_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2u_j_node, X_phi);
-                            C_u_up = sdh_up * jn(0) + 0.5 * sdh_up * sdh_up * jnn(0);
-                            C_u_um = sdh_um * jn(0) + 0.5 * sdh_um * sdh_um * jnn(0);
+                            C_u_up = sdh_up * jn(0);
+                            C_u_um = sdh_um * jn(0);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(0);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(0);
+							}
                         }
                         else if (axis == 1)
                         {
                             interpolate(&jn(0), qp, dv_j_node, X_phi);
-			    interpolate(&jnn(0), qp, d2v_j_node, X_phi);
-                            C_u_up = sdh_up * jn(1) + 0.5 * sdh_up * sdh_up * jnn(1);
-                            C_u_um = sdh_um * jn(1) + 0.5 * sdh_um * sdh_um * jnn(1);
+							interpolate(&jnn(0), qp, d2v_j_node, X_phi);
+                            C_u_up = sdh_up * jn(1) ;
+                            C_u_um = sdh_um * jn(1) ;
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(1);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(1);
+							}
                         }
                         else if (axis == 2)
                         {
                             interpolate(&jn(0), qp, dw_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2w_j_node, X_phi);
-                            C_u_up = sdh_up * jn(2) + 0.5 * sdh_up * sdh_up * jnn(2);
-                            C_u_um = sdh_um * jn(2) + 0.5 * sdh_um * sdh_um * jnn(2);
+                            C_u_up = sdh_up * jn(2);
+                            C_u_um = sdh_um * jn(2);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(2);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(2);
+							}
                         }
 #endif
                         (*f_data)(i_s_up) += - (n(axis) > 0.0 ? 1.0 : -1.0) * (C_u_um / (dx[axis] * dx[axis]));
@@ -3886,15 +3908,25 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             interpolate(&jn(0), qp, du_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2u_j_node, X_phi);
-                            C_u_um = sdh_um * jn(1) + 0.5 * sdh_um * sdh_um * jnn(1) ;
-                            C_u_up = sdh_up * jn(1) + 0.5 * sdh_up * sdh_up * jnn(1) ;
+                            C_u_um = sdh_um * jn(1) ;
+                            C_u_up = sdh_up * jn(1) ;
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(1);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(1);
+							}
                         }
                         else
                         {
                             interpolate(&jn(0), qp, dv_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2v_j_node, X_phi);
-                            C_u_um = sdh_um * jn(0) + 0.5 * sdh_um * sdh_um * jnn(0);
-                            C_u_up = sdh_up * jn(0) + 0.5 * sdh_up * sdh_up * jnn(0);
+                            C_u_um = sdh_um * jn(0);
+                            C_u_up = sdh_up * jn(0);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(0);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(0);
+							}
                             
                         }
 						 
@@ -3975,22 +4007,37 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             interpolate(&jn(0), qp, du_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2u_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+                            C_u_um = sdh_um * jn(axis) ;
+                            C_u_up = sdh_up * jn(axis) ;
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up += 0.5 * sdh_up * sdh_up * jnn(axis);
+								C_u_um += 0.5 * sdh_um * sdh_um * jnn(axis);
+							}
                         }
                         else if (dd == 1)
                         {
                             interpolate(&jn(0), qp, dv_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2v_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_up +=  0.5 * sdh_up * sdh_up * jnn(axis);
+								C_u_um +=  0.5 * sdh_um * sdh_um * jnn(axis);
+							}
                         }
                         else
                         {
                             interpolate(&jn(0), qp, dw_j_node, X_phi);
-			    interpolate(&jn(0), qp, d2w_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+							interpolate(&jn(0), qp, d2w_j_node, X_phi);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_um +=  0.5 * sdh_um * sdh_um * jnn(axis);
+								C_u_up +=  0.5 * sdh_up * sdh_up * jnn(axis);
+							}
                         }
 
                         (*f_data)(i_side_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
@@ -4066,22 +4113,37 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             interpolate(&jn(0), qp, du_j_node, X_phi);
 							interpolate(&jnn(0), qp, du_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+                            C_u_um = sdh_um * jn(axis); 
+                            C_u_up = sdh_up * jn(axis); 
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_um +=  0.5 * sdh_um * sdh_um * jnn(axis);
+								C_u_up +=  0.5 * sdh_up * sdh_up * jnn(axis);
+							}
                         }
                         else if (dd == 1)
                         {
                             interpolate(&jn(0), qp, dv_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2v_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+                            C_u_um = sdh_um * jn(axis) ;
+                            C_u_up = sdh_up * jn(axis) ;
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_um +=  0.5 * sdh_um * sdh_um * jnn(axis);
+								C_u_up +=  0.5 * sdh_up * sdh_up * jnn(axis);
+							}
                         }
                         else
                         {
                             interpolate(&jn(0), qp, dw_j_node, X_phi);
 							interpolate(&jnn(0), qp, d2w_j_node, X_phi);
-                            C_u_um = sdh_um * jn(axis) + 0.5 * sdh_um * sdh_um * jnn(axis);
-                            C_u_up = sdh_up * jn(axis) + 0.5 * sdh_up * sdh_up * jnn(axis);
+                            C_u_um = sdh_um * jn(axis);
+                            C_u_up = sdh_up * jn(axis);
+                            if (d_use_higher_order_jump)
+                            {
+							    C_u_um +=  0.5 * sdh_um * sdh_um * jnn(axis);
+								C_u_up +=  0.5 * sdh_up * sdh_up * jnn(axis);
+							}
                         }
 
                         (*f_data)(i_side_um) += - (n(axis) > 0.0 ? -1.0 : 1.0) * (C_u_up / (dx[axis] * dx[axis]));
@@ -4244,6 +4306,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_split_tangential_force = false;
     d_use_jump_conditions = false;
     d_modify_vel_interp_jumps = false;
+    d_use_higher_order_jump = false;
     d_vel_interp_width = 0.0;
     d_mu = 0.0;
     d_use_consistent_mass_matrix = true;
@@ -4404,6 +4467,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
     if (db->isDouble("vel_interp_width")) d_vel_interp_width = db->getDouble("vel_interp_width");
     if (db->isBool("modify_vel_interp_jumps")) d_modify_vel_interp_jumps = db->getBool("modify_vel_interp_jumps");
+    if (db->isBool("use_higher_order_jump")) d_use_higher_order_jump = db->getBool("use_higher_order_jump");
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
@@ -4459,6 +4523,7 @@ IBFEMethod::getFromRestart()
     d_split_tangential_force = db->getBool("d_split_tangential_force");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_modify_vel_interp_jumps = db->getBool("d_modify_interp_jumps");
+    d_use_higher_order_jump = db->getBool("d_use_higher_order_jump");
     d_vel_interp_width = db->isDouble("vel_interp_width");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;

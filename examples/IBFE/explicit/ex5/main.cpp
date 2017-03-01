@@ -188,10 +188,10 @@ main(int argc, char* argv[])
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
         const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
-        {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
+        //~ if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
+        //~ {
+            //~ Utilities::recursiveMkdir(postproc_data_dump_dirname);
+        //~ }
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -410,11 +410,11 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            U_L1_norm_stream.open("U_L1_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            U_L2_norm_stream.open("U_L2_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            U_max_norm_stream.open("U_max_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
 
             drag_stream.precision(10);
             lift_stream.precision(10);
@@ -477,15 +477,15 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                postprocess_data(patch_hierarchy,
+             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
+             {
+                 postprocess_data(patch_hierarchy,
                                  navier_stokes_integrator,
-                                 mesh,
+                                  mesh,
                                  equation_systems,
-                                 iteration_num,
+                                  iteration_num,
                                  loop_time,
-                                 postproc_data_dump_dirname);
+                                  postproc_data_dump_dirname);
             }
         }
 

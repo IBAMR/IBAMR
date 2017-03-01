@@ -532,6 +532,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force, d_split_tangential_force;
     bool d_use_jump_conditions;
+    bool d_use_higher_order_jump;
     bool d_modify_vel_interp_jumps;
     double d_vel_interp_width;
     double d_mu;
