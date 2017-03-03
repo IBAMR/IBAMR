@@ -410,11 +410,11 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream.open("C_D_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
-            lift_stream.open("C_L_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            drag_stream.open("C_D_2D_IIM_MFAC_2.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L_2D_IIM_MFAC_2.curve", ios_base::out | ios_base::trunc);
+            //~ U_L1_norm_stream.open("U_L1_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            //~ U_L2_norm_stream.open("U_L2_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
+            //~ U_max_norm_stream.open("U_max_2D_MFAC_2_IIM_256.curve", ios_base::out | ios_base::trunc);
 
             drag_stream.precision(10);
             lift_stream.precision(10);
