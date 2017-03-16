@@ -121,6 +121,8 @@ public:
     static const std::string FORCE_T_SYSTEM_NAME;
     static const std::string FORCE_B_SYSTEM_NAME;
     static const std::string FORCE_N_SYSTEM_NAME;
+   static const std::string WSS_I_SYSTEM_NAME;
+    static const std::string WSS_O_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
@@ -447,12 +449,12 @@ protected:
      * transmission force densities along the physical boundary of the
      * Lagrangian structure.
      */
-    void imposeJumpConditions(int f_data_idx,
+    void imposeJumpConditionsWeak(int f_data_idx,
                               int mask_current_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               libMesh::PetscVector<double>& P_j_ghost_vec,
-			      libMesh::PetscVector<double>& dP_j_ghost_vec,
+							 libMesh::PetscVector<double>& dP_j_ghost_vec,
                               libMesh::PetscVector<double>& du_j_ghost_vec,
                               libMesh::PetscVector<double>& dv_j_ghost_vec,
                               libMesh::PetscVector<double>& dw_j_ghost_vec,
@@ -461,6 +463,22 @@ protected:
                               libMesh::PetscVector<double>& d2w_j_ghost_vec,
                               double data_time,
                               unsigned int part);
+                              
+    void imposeJumpConditionsPointWise(int f_data_idx,
+                              int mask_current_idx,
+                              libMesh::PetscVector<double>& F_ghost_vec,
+                              libMesh::PetscVector<double>& X_ghost_vec,
+                              libMesh::PetscVector<double>& P_j_ghost_vec,
+							 libMesh::PetscVector<double>& dP_j_ghost_vec,
+                              libMesh::PetscVector<double>& du_j_ghost_vec,
+                              libMesh::PetscVector<double>& dv_j_ghost_vec,
+                              libMesh::PetscVector<double>& dw_j_ghost_vec,
+                              libMesh::PetscVector<double>& d2u_j_ghost_vec,
+                              libMesh::PetscVector<double>& d2v_j_ghost_vec,
+                              libMesh::PetscVector<double>& d2w_j_ghost_vec,
+                              double data_time,
+                              unsigned int part);
+
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -502,8 +520,8 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_du_j_systems, d_dv_j_systems, d_dw_j_systems,
-        d_F_systems, d_P_j_systems, d_dP_j_systems, d_F_n_systems, d_F_t_systems, d_F_b_systems, d_H_systems ;
+   	std::vector<libMesh::System *> d_X_systems, d_X0_systems, d_U_systems, d_WSS_i_systems, d_WSS_o_systems,
+	d_du_j_systems, d_dv_j_systems, d_dw_j_systems, d_F_systems, d_P_j_systems, d_dP_j_systems, d_F_n_systems, d_F_t_systems, d_F_b_systems, d_H_systems;
     std::vector<libMesh::System *> d_d2u_j_systems, d_d2v_j_systems, d_d2w_j_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
@@ -521,6 +539,8 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_d2u_j_half_vecs, d_d2u_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_d2v_j_half_vecs, d_d2v_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_d2w_j_half_vecs, d_d2w_j_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_WSS_i_half_vecs, d_WSS_i_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_WSS_o_half_vecs, d_WSS_o_IB_ghost_vecs;
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
     /*
