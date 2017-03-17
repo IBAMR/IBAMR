@@ -2172,7 +2172,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                         U_qp[n_vars * local_indices[k] + axis] =
                             0.5 * (Q_data_axis_p[local_indices[k]] + Q_data_axis_m[local_indices[k]]) - CC / d_mu;
                         
-                        WSS_i_qp[n_vars * local_indices[k] + axis] = (1.0/dh)*(-1.5 * U_qp[local_indices[k]] + 2.0 * Q_data_axis_m[local_indices[k]] - 0.5 * Q_data_axis_mm[n_vars * local_indices[k] + axis]);
+                        WSS_i_qp[n_vars * local_indices[k] + axis] = (1.0/dh)*(-1.5 * U_qp[local_indices[k]] + 2.0 * Q_data_axis_m[local_indices[k]] - 0.5 * Q_data_axis_mm[local_indices[k]]);
 						WSS_o_qp[n_vars * local_indices[k] + axis] = (1.0/dh)*(-1.5 * U_qp[n_vars * local_indices[k] + axis] + 2.0 * Q_data_axis_p[local_indices[k]] - 0.5 * Q_data_axis_pp[local_indices[k]]);
 							    
                         //~ WSS_i_qp[n_vars * local_indices[k] + axis] = (U_qp[n_vars * local_indices[k] + axis] - Q_data_axis_m[local_indices[k]])/dh;
