@@ -1347,11 +1347,6 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
 //~ } // interpolateVelocityWithJump
 
 
-
-
-
-
-
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
@@ -1511,7 +1506,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         std::vector<DenseVector<double> > U_rhs_e(n_vars);
         boost::multi_array<double, 2> X_node;
         boost::multi_array<double, 2> du_j_node, dv_j_node, dw_j_node;
-        std::vector<double> WSS_i_qp, WSS_o_qp, U_qp, N_qp, X_qp_p, X_qp_m;
+        std::vector<double> WSS_i_qp, WSS_o_qp, U_qp, N_qp, X_qp_p, X_qp_m, X_qp_pp, X_qp_mm;
         std::vector<double> du_j_qp, dv_j_qp, dw_j_qp;
 
         du_j_ghost_vec->close();
@@ -1595,6 +1590,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             U_qp.resize(n_vars * n_qp_patch);
             X_qp_m.resize(NDIM * n_qp_patch);
             X_qp_p.resize(NDIM * n_qp_patch);
+            X_qp_mm.resize(NDIM * n_qp_patch);
+            X_qp_pp.resize(NDIM * n_qp_patch);
             du_j_qp.resize(NDIM * n_qp_patch);
             dv_j_qp.resize(NDIM * n_qp_patch);
             dw_j_qp.resize(NDIM * n_qp_patch);
@@ -1649,6 +1646,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
                 double* X_begin_p = &X_qp_p[NDIM * qp_offset];
                 std::fill(X_begin_p, X_begin_p + NDIM * n_qp, 0.0);
+                
+                double* X_begin_mm = &X_qp_mm[NDIM * qp_offset];
+                std::fill(X_begin_mm, X_begin_mm + NDIM * n_qp, 0.0);
+
+                double* X_begin_pp = &X_qp_pp[NDIM * qp_offset];
+                std::fill(X_begin_pp, X_begin_pp + NDIM * n_qp, 0.0);
 
                 double* du_j_begin = &du_j_qp[NDIM * qp_offset];
                 std::fill(du_j_begin, du_j_begin + NDIM * n_qp, 0.0);
@@ -1683,6 +1686,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
                             X_qp_p[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
                             X_qp_m[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            X_qp_pp[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
+                            X_qp_mm[NDIM * (qp_offset + qp) + i] += X_node[k][i] * p_X;
                             du_j_qp[NDIM * (qp_offset + qp) + i] += du_j_node[k][i] * p_X;
                             dv_j_qp[NDIM * (qp_offset + qp) + i] += dv_j_node[k][i] * p_X;
 #if (NDIM == 3)
@@ -1690,8 +1695,10 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                         N_qp[NDIM * (qp_offset + qp) + i] = n(i);
-                        X_qp_p[NDIM * (qp_offset + qp) + i] += -n(i) * dh;
-                        X_qp_m[NDIM * (qp_offset + qp) + i] += n(i) * dh;
+                        X_qp_p[NDIM * (qp_offset + qp) + i] += n(i) * dh;
+                        X_qp_m[NDIM * (qp_offset + qp) + i] += -n(i) * dh;
+                        X_qp_pp[NDIM * (qp_offset + qp) + i] += 2.0 * n(i) * dh;
+                        X_qp_mm[NDIM * (qp_offset + qp) + i] += -2.0 * n(i) * dh;
                     }
                 }
                 qp_offset += n_qp;
@@ -1712,9 +1719,13 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             {
                 const double* const XX_p = &X_qp_p[NDIM * k];
                 const double* const XX_m = &X_qp_m[NDIM * k];
+                const double* const XX_pp = &X_qp_pp[NDIM * k];
+                const double* const XX_mm = &X_qp_mm[NDIM * k];
 
                 const Index<NDIM> i_p = IndexUtilities::getCellIndex(XX_p, patch_geom, interp_box);
                 const Index<NDIM> i_m = IndexUtilities::getCellIndex(XX_m, patch_geom, interp_box);
+                const Index<NDIM> i_pp = IndexUtilities::getCellIndex(XX_pp, patch_geom, interp_box);
+                const Index<NDIM> i_mm = IndexUtilities::getCellIndex(XX_mm, patch_geom, interp_box);
                 if (interp_box.contains(i_p) && interp_box.contains(i_m)) local_indices.push_back(k);
             }
 
@@ -1728,16 +1739,26 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             {
                 boost::array<int, NDIM> ic_trimmed_lower_p, ic_trimmed_upper_p, ic_lower_p, ic_upper_p, ic_center_p;
                 boost::array<int, NDIM> ic_trimmed_lower_m, ic_trimmed_upper_m, ic_lower_m, ic_upper_m, ic_center_m;
+                boost::array<int, NDIM> ic_trimmed_lower_pp, ic_trimmed_upper_pp, ic_lower_pp, ic_upper_pp, ic_center_pp;
+                boost::array<int, NDIM> ic_trimmed_lower_mm, ic_trimmed_upper_mm, ic_lower_mm, ic_upper_mm, ic_center_mm;
                 boost::array<double, NDIM> X_shifted_p, X_cell_p;
                 boost::array<double, NDIM> X_shifted_m, X_cell_m;
+                boost::array<double, NDIM> X_shifted_pp, X_cell_pp;
+                boost::array<double, NDIM> X_shifted_mm, X_cell_mm;
                 boost::array<double, 2> w0_p, w1_p;
                 boost::array<double, 2> w0_m, w1_m;
 #if (NDIM == 3)
                 boost::array<double, 2> w2_m, w2_p;
 #endif
+                boost::array<double, 2> w0_pp, w1_pp;
+                boost::array<double, 2> w0_mm, w1_mm;
+#if (NDIM == 3)
+                boost::array<double, 2> w2_mm, w2_pp;
+#endif
                 boost::array<double, NDIM> x_lower_axis, x_upper_axis;
                 const int local_sz = (*std::max_element(local_indices.begin(), local_indices.end())) + 1;
                 std::vector<double> Q_data_axis_p(local_sz), Q_data_axis_m(local_sz);
+                std::vector<double> Q_data_axis_pp(local_sz), Q_data_axis_mm(local_sz);
 
                 x_lower_axis[0] = x_lower_axis[1] = x_upper_axis[0] = x_upper_axis[1] = 0.0;
 #if (NDIM == 3)
@@ -1782,6 +1803,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                         {
                             X_shifted_p[d] = X_qp_p[d + s * NDIM] + periodic_shifts[d + k * NDIM];
                             X_shifted_m[d] = X_qp_m[d + s * NDIM] + periodic_shifts[d + k * NDIM];
+                            X_shifted_pp[d] = X_qp_pp[d + s * NDIM] + periodic_shifts[d + k * NDIM];
+                            X_shifted_mm[d] = X_qp_mm[d + s * NDIM] + periodic_shifts[d + k * NDIM];
                         }
 
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -1819,6 +1842,44 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                             }
                             ic_trimmed_lower_m[d] = std::max(ic_lower_m[d], ilower[d] - u_gcw[d]);
                             ic_trimmed_upper_m[d] = std::min(ic_upper_m[d], iupper[d] + u_gcw[d]);
+                            
+                            
+                            
+                            ic_center_pp[d] = ilower[d] + NINT((X_shifted_pp[d] - x_lower_axis[d]) / dx[d] - 0.5);
+                            X_cell_pp[d] =
+                                x_lower_axis[d] + (static_cast<double>(ic_center_pp[d] - ilower[d]) + 0.5) * dx[d];
+
+                            if (X_shifted_pp[d] <= X_cell_pp[d])
+                            {
+                                ic_lower_pp[d] = ic_center_pp[d] - 1;
+                                ic_upper_pp[d] = ic_center_pp[d];
+                            }
+                            else
+                            {
+                                ic_lower_pp[d] = ic_center_pp[d];
+                                ic_upper_pp[d] = ic_center_pp[d] + 1;
+                            }
+                            ic_trimmed_lower_pp[d] = std::max(ic_lower_pp[d], ilower[d] - u_gcw[d]);
+                            ic_trimmed_upper_pp[d] = std::min(ic_upper_pp[d], iupper[d] + u_gcw[d]);
+
+                            ic_center_mm[d] = ilower[d] + NINT((X_shifted_mm[d] - x_lower_axis[d]) / dx[d] - 0.5);
+                            X_cell_mm[d] =
+                                x_lower_axis[d] + (static_cast<double>(ic_center_mm[d] - ilower[d]) + 0.5) * dx[d];
+
+                            if (X_shifted_mm[d] <= X_cell_mm[d])
+                            {
+                                ic_lower_mm[d] = ic_center_mm[d] - 1;
+                                ic_upper_mm[d] = ic_center_mm[d];
+                            }
+                            else
+                            {
+                                ic_lower_mm[d] = ic_center_mm[d];
+                                ic_upper_mm[d] = ic_center_mm[d] + 1;
+                            }
+                            ic_trimmed_lower_mm[d] = std::max(ic_lower_mm[d], ilower[d] - u_gcw[d]);
+                            ic_trimmed_upper_mm[d] = std::min(ic_upper_mm[d], iupper[d] + u_gcw[d]);
+                              
+                            
                         }
 
                         if (X_shifted_p[0] <= X_cell_p[0])
@@ -1892,10 +1953,84 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
 #endif
 
+						if (X_shifted_pp[0] <= X_cell_pp[0])
+                        {
+                            w0_pp[0] = (X_cell_pp[0] - X_shifted_pp[0]) / dx[0];
+
+                            w0_pp[1] = 1.0 - w0_pp[0];
+                        }
+                        else
+                        {
+                            w0_pp[0] = 1.0 + (X_cell_pp[0] - X_shifted_pp[0]) / dx[0];
+                            w0_pp[1] = 1.0 - w0_pp[0];
+                        }
+
+                        if (X_shifted_mm[0] <= X_cell_mm[0])
+                        {
+                            w0_mm[0] = (X_cell_mm[0] - X_shifted_mm[0]) / dx[0];
+
+                            w0_mm[1] = 1.0 - w0_mm[0];
+                        }
+                        else
+                        {
+                            w0_mm[0] = 1.0 + (X_cell_mm[0] - X_shifted_mm[0]) / dx[0];
+                            w0_mm[1] = 1.0 - w0_mm[0];
+                        }
+
+                        if (X_shifted_pp[1] <= X_cell_pp[1])
+                        {
+                            w1_pp[0] = (X_cell_pp[1] - X_shifted_pp[1]) / dx[1];
+                            w1_pp[1] = 1.0 - w1_pp[0];
+                        }
+                        else
+                        {
+                            w1_pp[0] = 1.0 + (X_cell_pp[1] - X_shifted_pp[1]) / dx[1];
+                            w1_pp[1] = 1.0 - w1_pp[0];
+                        }
+
+                        if (X_shifted_mm[1] <= X_cell_mm[1])
+                        {
+                            w1_mm[0] = (X_cell_mm[1] - X_shifted_mm[1]) / dx[1];
+                            w1_mm[1] = 1.0 - w1_mm[0];
+                        }
+                        else
+                        {
+                            w1_mm[0] = 1.0 + (X_cell_mm[1] - X_shifted_mm[1]) / dx[1];
+                            w1_mm[1] = 1.0 - w1_mm[0];
+                        }
+#if (NDIM == 3)
+
+                        if (X_shifted_pp[2] <= X_cell_pp[2])
+                        {
+                            w2_pp[0] = (X_cell_pp[2] - X_shifted_pp[2]) / dx[2];
+                            w2_pp[1] = 1.0 - w2_pp[0];
+                        }
+                        else
+                        {
+                            w2_pp[0] = 1.0 + (X_cell_pp[2] - X_shifted_pp[2]) / dx[2];
+                            w2_pp[1] = 1.0 - w2_pp[0];
+                        }
+
+                        if (X_shifted_mm[2] <= X_cell_mm[2])
+                        {
+                            w2_mm[0] = (X_cell_mm[2] - X_shifted_mm[2]) / dx[2];
+                            w2_mm[1] = 1.0 - w2_mm[0];
+                        }
+                        else
+                        {
+                            w2_mm[0] = 1.0 + (X_cell_mm[2] - X_shifted_mm[2]) / dx[2];
+                            w2_mm[1] = 1.0 - w2_mm[0];
+                        }
+
+#endif
+
                         for (int d = 0; d < u_depth; ++d)
                         {
                             Q_data_axis_p[s] = 0.0;
                             Q_data_axis_m[s] = 0.0;
+                            Q_data_axis_pp[s] = 0.0;
+                            Q_data_axis_mm[s] = 0.0;
+
 
 #if (NDIM == 2)
 
@@ -1947,6 +2082,55 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
 #endif
 
+#if (NDIM == 2)
+                            for (int ic1 = ic_trimmed_lower_pp[1]; ic1 <= ic_trimmed_upper_pp[1]; ++ic1)
+                            {
+                                for (int ic0 = ic_trimmed_lower_pp[0]; ic0 <= ic_trimmed_upper_pp[0]; ++ic0)
+                                {
+                                    Q_data_axis_pp[s] += w0_pp[ic0 - ic_lower_pp[0]] * w1_pp[ic1 - ic_lower_pp[1]] *
+                                                        u_sc_data_array[ic0][ic1][d];
+                                }
+                            }
+
+                            for (int ic1 = ic_trimmed_lower_mm[1]; ic1 <= ic_trimmed_upper_mm[1]; ++ic1)
+                            {
+                                for (int ic0 = ic_trimmed_lower_mm[0]; ic0 <= ic_trimmed_upper_mm[0]; ++ic0)
+                                {
+                                    Q_data_axis_mm[s] += w0_mm[ic0 - ic_lower_mm[0]] * w1_mm[ic1 - ic_lower_mm[1]] *
+                                                        u_sc_data_array[ic0][ic1][d];
+                                }
+                            }
+#endif
+#if (NDIM == 3)
+
+                            for (int ic2 = ic_trimmed_lower_pp[2]; ic2 <= ic_trimmed_upper_pp[2]; ++ic2)
+                            {
+                                for (int ic1 = ic_trimmed_lower_pp[1]; ic1 <= ic_trimmed_upper_pp[1]; ++ic1)
+                                {
+                                    for (int ic0 = ic_trimmed_lower_pp[0]; ic0 <= ic_trimmed_upper_pp[0]; ++ic0)
+                                    {
+                                        Q_data_axis_pp[s] += w0_pp[ic0 - ic_lower_pp[0]] * w1_pp[ic1 - ic_lower_pp[1]] *
+                                                            w2_pp[ic2 - ic_lower_pp[2]] *
+                                                            u_sc_data_array[ic0][ic1][ic2][d];
+                                    }
+                                }
+                            }
+
+                            for (int ic2 = ic_trimmed_lower_mm[2]; ic2 <= ic_trimmed_upper_mm[2]; ++ic2)
+                            {
+                                for (int ic1 = ic_trimmed_lower_mm[1]; ic1 <= ic_trimmed_upper_mm[1]; ++ic1)
+                                {
+                                    for (int ic0 = ic_trimmed_lower_mm[0]; ic0 <= ic_trimmed_upper_mm[0]; ++ic0)
+                                    {
+                                        Q_data_axis_mm[s] += w0_mm[ic0 - ic_lower_mm[0]] * w1_mm[ic1 - ic_lower_mm[1]] *
+                                                            w2_mm[ic2 - ic_lower_mm[2]] *
+                                                            u_sc_data_array[ic0][ic1][ic2][d];
+                                    }
+                                }
+                            }
+
+#endif
+
                         } // depth
                     }
 
@@ -1983,21 +2167,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                       dw_j_qp[n_vars * local_indices[k] + 1] * N_qp[n_vars * local_indices[k] + 1] +
                                       dw_j_qp[n_vars * local_indices[k] + 2] * N_qp[n_vars * local_indices[k] + 2]);
 #endif
-							U_qp[n_vars * local_indices[k] + axis] =
-								0.5 * (Q_data_axis_p[local_indices[k]] + Q_data_axis_m[local_indices[k]]) - CC / d_mu;
-							WSS_i_qp[n_vars * local_indices[k] + axis] = (U_qp[n_vars * local_indices[k] + axis] - Q_data_axis_m[local_indices[k]])/dh;
-							WSS_o_qp[n_vars * local_indices[k] + axis] = (Q_data_axis_p[local_indices[k]] - U_qp[n_vars * local_indices[k] + axis])/dh;
-
                         }
-                        else
-                        {
-							U_qp[n_vars * local_indices[k] + axis] = 0.5 * (Q_data_axis_p[local_indices[k]] + Q_data_axis_m[local_indices[k]]);
-							WSS_i_qp[n_vars * local_indices[k] + axis] = 0.0;
-							WSS_o_qp[n_vars * local_indices[k] + axis] = 0.0;
-							
-						}
 
-
+                        U_qp[n_vars * local_indices[k] + axis] =
+                            0.5 * (Q_data_axis_p[local_indices[k]] + Q_data_axis_m[local_indices[k]]) - CC / d_mu;
+                        
+                        WSS_i_qp[n_vars * local_indices[k] + axis] = (1.0/dh)*(-1.5 * U_qp[local_indices[k]] + 2.0 * Q_data_axis_m[local_indices[k]] - 0.5 * Q_data_axis_mm[n_vars * local_indices[k] + axis]);
+						WSS_o_qp[n_vars * local_indices[k] + axis] = (1.0/dh)*(-1.5 * U_qp[n_vars * local_indices[k] + axis] + 2.0 * Q_data_axis_p[local_indices[k]] - 0.5 * Q_data_axis_pp[local_indices[k]]);
+							    
+                        //~ WSS_i_qp[n_vars * local_indices[k] + axis] = (U_qp[n_vars * local_indices[k] + axis] - Q_data_axis_m[local_indices[k]])/dh;
+					  	//~ WSS_o_qp[n_vars * local_indices[k] + axis] = (Q_data_axis_p[local_indices[k]] - U_qp[n_vars * local_indices[k] + axis])/dh;
                     }
                 }
             }
@@ -2104,9 +2283,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     //~
 } // interpolateVelocityWithJump
  
-
-
-
 
 
 
