@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ArrayDataBasicOps.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -41,11 +42,11 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "boost/array.hpp"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/IndexUtilities.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -82,13 +83,13 @@ IBHydrodynamicForceEvaluator::~IBHydrodynamicForceEvaluator()
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_face_wgt_sc_idx);
+    var_db->removePatchDataIndex(d_vol_wgt_sc_idx);
 
     return;
 } // ~IBHydrodynamicForceEvaluator
 
 void
 IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
-                                                int strct_ln,
                                                 const Eigen::Vector3d& box_vel,
                                                 Eigen::Vector3d& box_X_lower,
                                                 Eigen::Vector3d& box_X_upper,
@@ -100,7 +101,6 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 
     IBHydrodynamicForceObject force_obj;
     force_obj.strct_id = strct_id;
-    force_obj.strct_ln = strct_ln;
 
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart)
@@ -141,20 +141,19 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 	
 	if (modified_box)
 	{
-	    pout << "IBHydrodynamicForceEvaluator::registerStructure: integration box modified from\n"
-	         <<    "[" << box_X_lower_old[0] << ", " << box_X_lower_old[1] << ", " << box_X_lower_old[2] << "]"
-		 << " x [" << box_X_upper_old[0] << ", " << box_X_upper_old[1] << ", " << box_X_upper_old[2] << "]\n"
-		 << "to\n"
-		 <<    "[" << box_X_lower[0] << ", " << box_X_lower[1] << ", " << box_X_lower[2] << "]"
-		 << " x [" << box_X_upper[0] << ", " << box_X_upper[1] << ", " << box_X_upper[2] << "]"
-		 << std::endl;
-	}
+            pout << "IBHydrodynamicForceEvaluator::registerStructure: integration box modified from\n"
+                 << "[" << box_X_lower_old[0] << ", " << box_X_upper_old[0] << "]"
+                 << " x [" << box_X_lower_old[1] << ", " << box_X_upper_old[1] << "]"
+                 << " x [" << box_X_lower_old[2] << ", " << box_X_upper_old[2] << "]\n"
+                 << "to\n"
+                 << "[" << box_X_lower[0] << ", " << box_X_upper[0] << "]"
+                 << " x [" << box_X_lower[1] << ", " << box_X_upper[1] << "]"
+                 << " x [" << box_X_lower[2] << ", " << box_X_upper[2] << "]" << std::endl;
+        }
       
         force_obj.box_u_current = box_vel;
         force_obj.box_X_lower_current = box_X_lower;
         force_obj.box_X_upper_current = box_X_upper;
-	force_obj.box_X_lower_unaligned_current = box_X_lower;
-	force_obj.box_X_upper_unaligned_current = box_X_upper;
 	force_obj.box_vol_current = (box_X_upper[0] - box_X_lower[0]) * (box_X_upper[1] - box_X_lower[1])
 #if (NDIM == 3)
 				    * (box_X_upper[2] - box_X_lower[2])
@@ -167,6 +166,7 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         force_obj.L_current.setZero();
         force_obj.P_box_current.setZero();
         force_obj.L_box_current.setZero();
+        force_obj.r0.setZero();
     }
     else
     {
@@ -183,7 +183,7 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
                        << " not found in restart file.\n");
         }
 
-        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, X_unal_lo, X_unal_hi;
+        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
         F << "F_" << strct_id;
         T << "T_" << strct_id;
         P << "P_" << strct_id;
@@ -192,9 +192,9 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         L_box << "L_box_" << strct_id;
         X_lo << "X_lo_" << strct_id;
         X_hi << "X_hi_" << strct_id;
-	X_unal_lo << "X_unal_lo" << strct_id;
-	X_unal_hi << "X_unal_lo" << strct_id;
-	
+        r_or << "r_or_" << strct_id;
+        vol_curr << "vol_curr_" << strct_id;
+
         db->getDoubleArray(F.str(), force_obj.F_current.data(), 3);
         db->getDoubleArray(T.str(), force_obj.T_current.data(), 3);
         db->getDoubleArray(P.str(), force_obj.P_current.data(), 3);
@@ -203,8 +203,30 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
         db->getDoubleArray(L_box.str(), force_obj.L_box_current.data(), 3);
         db->getDoubleArray(X_lo.str(), force_obj.box_X_lower_current.data(), 3);
         db->getDoubleArray(X_hi.str(), force_obj.box_X_upper_current.data(), 3);
-	db->getDoubleArray(X_unal_lo.str(), force_obj.box_X_lower_unaligned_current.data(), 3);
-        db->getDoubleArray(X_unal_hi.str(), force_obj.box_X_upper_unaligned_current.data(), 3);
+        db->getDoubleArray(r_or.str(), force_obj.r0.data(), 3);
+        force_obj.box_vol_current = db->getDouble(vol_curr.str());
+    }
+
+    // Set up the streams for printing drag and torque
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+        std::ostringstream drag, torque;
+        drag << "Drag_CV_strct_id_" << strct_id;
+        torque << "Torque_CV_strct_id_" << strct_id;
+        if (from_restart)
+        {
+            force_obj.drag_CV_stream = new std::ofstream(drag.str().c_str(), std::fstream::app);
+            force_obj.torque_CV_stream = new std::ofstream(torque.str().c_str(), std::fstream::app);
+            (force_obj.drag_CV_stream)->precision(10);
+            (force_obj.torque_CV_stream)->precision(10);
+        }
+        else
+        {
+            force_obj.drag_CV_stream = new std::ofstream(drag.str().c_str(), std::fstream::out);
+            force_obj.torque_CV_stream = new std::ofstream(torque.str().c_str(), std::fstream::out);
+            (force_obj.drag_CV_stream)->precision(10);
+            (force_obj.torque_CV_stream)->precision(10);
+        }
     }
 
     d_hydro_objs[strct_id] = force_obj;
@@ -214,80 +236,44 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 
 void
 IBHydrodynamicForceEvaluator::updateStructureDomain(int strct_id,
-                                                    int /*strct_ln*/,
-                                                    double current_time,
-                                                    double new_time,
+                                                    double dt,
                                                     const Eigen::Vector3d& box_vel_new,
-                                                    const Eigen::Vector3d& P_strct_new,
-                                                    const Eigen::Vector3d& L_strct_new,
-						    Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
 #endif
 
-    // If the velocity supplied by the user causes the box to be misaligned with coarsest grid lines,
-    // shift the box and supply the proper velocity.
-    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& force_obj = d_hydro_objs[strct_id];
-    const int coarsest_ln = 0;
-    Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-    const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
-    const double* const dx_coarsest = coarsest_grid_geom->getDx();
-    const double* const grid_X_lower = coarsest_grid_geom->getXLower();
-    bool modified_box = false;
+    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj = d_hydro_objs[strct_id];
+    fobj.box_u_new = box_vel_new;
+    fobj.box_X_lower_new = fobj.box_X_lower_current + box_vel_new * dt;
+    fobj.box_X_upper_new = fobj.box_X_upper_current + box_vel_new * dt;
 
-    // Compute the new box locations from the user supplied velocity
-    const double dt = new_time - current_time;
-    Eigen::Vector3d  box_X_lower_new = force_obj.box_X_lower_unaligned_current + box_vel_new * dt;
-    Eigen::Vector3d  box_X_upper_new = force_obj.box_X_upper_unaligned_current + box_vel_new * dt;
-    
-    // Keep track of the unaligned corners
-    force_obj.box_X_lower_unaligned_new = box_X_lower_new;
-    force_obj.box_X_upper_unaligned_new = box_X_upper_new;
-    
-    for (int d = 0; d < NDIM; ++d)
-    {
-	double num_cells_lower = (box_X_lower_new[d]-grid_X_lower[d])/dx_coarsest[d];
-	double num_cells_upper = (box_X_upper_new[d]-grid_X_lower[d])/dx_coarsest[d];
-	
-	if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
-	{   
-	    // Using round here ensures the box will retain its volume
-	    const int N = round(num_cells_lower);
-	    box_X_lower_new[d] = grid_X_lower[d] + dx_coarsest[d] * N;
-	    modified_box = true;
-	}
-	
-	if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
-	{	    
-	    // Using round here ensures the box will retain its volume
-	    const int N = round(num_cells_upper);
-	    box_X_upper_new[d] = grid_X_lower[d] + dx_coarsest[d] * N;
-	    modified_box = true;
-	}
-    }
-    
-    
-    force_obj.box_u_new = (box_X_upper_new - force_obj.box_X_upper_current)/dt;
-    force_obj.box_X_lower_new = box_X_lower_new;
-    force_obj.box_X_upper_new = box_X_upper_new;
-    
     // Assert that the volume of the box has not changed
-    force_obj.box_vol_new = (box_X_upper_new[0] - box_X_lower_new[0]) * (box_X_upper_new[1] - box_X_lower_new[1])
+    fobj.box_vol_new = (fobj.box_X_upper_new[0] - fobj.box_X_lower_new[0]) *
+                       (fobj.box_X_upper_new[1] - fobj.box_X_lower_new[1])
 #if (NDIM == 3)
-		            * (box_X_upper_new[2] - box_X_lower_new[2])
+                       * (fobj.box_X_upper_new[2] - fobj.box_X_lower_new[2])
 #endif
-		            ;
-			    
-    
-    TBOX_ASSERT(MathUtilities<double>::equalEps(force_obj.box_vol_current, force_obj.box_vol_new));
-    
-    force_obj.P_new = P_strct_new;
-    force_obj.L_new = L_strct_new;
+        ;
+
+    TBOX_ASSERT(MathUtilities<double>::equalEps(fobj.box_vol_current, fobj.box_vol_new));
 
     return;
 
 } // updateStructureDomain
+
+void
+IBHydrodynamicForceEvaluator::setTorqueOrigin(int strct_id, const Eigen::Vector3d& X0)
+{
+// Set the origin of the position vector about which torques are computed
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
+#endif
+
+    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj = d_hydro_objs[strct_id];
+    fobj.r0 = X0;
+}
 
 void
 IBHydrodynamicForceEvaluator::preprocessIntegrateData(double /*current_time*/, double /*new_time*/)
@@ -298,7 +284,7 @@ IBHydrodynamicForceEvaluator::preprocessIntegrateData(double /*current_time*/, d
 } // preprocessIntegrateData
 
 const IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject&
-IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id, int /*strct_ln*/)
+IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
@@ -310,34 +296,32 @@ IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id, int /*str
 } // getHydrodynamicForceObject
 
 void
-IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
-                                                       int p_idx,
-                                                       int /*f_idx*/,
-                                                       int /*vol_sc_idx*/,
-                                                       int /*vol_cc_idx*/,
-                                                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                                       int coarsest_ln,
-                                                       int finest_ln,
-                                                       double current_time,
-                                                       double new_time)
+IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
+                                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                            int coarsest_ln,
+                                                            int finest_ln)
 {
     resetFaceAreaWeight(patch_hierarchy);
     resetFaceVolWeight(patch_hierarchy);
-    const double dt = new_time - current_time;
 
-    // Get the grid spacing at the coarsest level 
-    // and lower left corner of the computational domain (required for computing AMR offset)
-    Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-    const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
-    const double* const dx_coarsest           = coarsest_grid_geom->getDx();
-    const double* const X_lower_left_coarsest = coarsest_grid_geom->getXLower();
-    
+    // Whether or not the simulation has adaptive mesh refinement
+    const bool amr_case = (coarsest_ln != finest_ln);
+
     for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& fobj = it->second;
 
-        // Compute the momentum integral:= (rho * u * dv)
-        fobj.P_box_new.setZero();
+        // Compute the momentum integral:= (rho * u * dv) for the previous time step (integral is over new control
+        // volume)
+        fobj.P_box_current.setZero();
+
+        // Compute the rotational momentum integral:= (rho * r x u * dv) for the previous time step (integral is over
+        // new control volume)
+        fobj.L_box_current.setZero();
+
+        // Coordinate of the side index and r vector needed for cross product
+        Eigen::Vector3d side_coord, r_vec;
+
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -345,17 +329,176 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
 
-	    // Shorten the integration box so it only includes the control volume
+            // Shorten the integration box so it only includes the control volume
+            integration_box.upper() -= 1;
+
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const bool boxes_intersect = patch_box.intersects(integration_box);
+                if (!boxes_intersect) continue;
+
+                // Part of the box on this patch.
+                Box<NDIM> trim_box = patch_box * integration_box;
+
+                // Loop over the box and compute momentum.
+                Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_old_idx);
+                Pointer<SideData<NDIM, double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, axis)); b; b++)
+                    {
+                        const CellIndex<NDIM>& cell_idx = *b;
+                        const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
+                        const double& u_axis = (*u_data)(side_idx);
+                        const double& vol = (*vol_sc_data)(side_idx);
+                        double dV;
+
+                        // Check if cell is a CV boundary
+                        const bool lower_bdry_vel = (cell_idx(axis) == (integration_box.lower())(axis));
+                        const bool upper_bdry_vel = (cell_idx(axis) == (integration_box.upper())(axis) + 1);
+
+                        // Check if CV boundary intersects a patch boundary
+                        const bool lower_patch_bdry_eq_box_bdry =
+                            ((patch_box.lower())(axis) == (integration_box.lower())(axis));
+                        const bool upper_patch_bdry_eq_box_bdry =
+                            ((patch_box.upper())(axis) + 1 == (integration_box.upper())(axis) + 1);
+
+                        if (!amr_case)
+                        {
+                            /* Uniform mesh scaling correction
+                             * If the velocity is on the CV boundary, scale the volume element by 1/2
+                             * If the patch boundary equals the CV boundary, then volume element is correct (dx * dy)/2
+                             */
+
+                            const bool scale_dV = (lower_bdry_vel && !lower_patch_bdry_eq_box_bdry) ||
+                                                  (upper_bdry_vel && !upper_patch_bdry_eq_box_bdry);
+
+                            dV = scale_dV ? 0.5 * vol : vol;
+                        }
+                        else
+                        {
+                            /* Adaptive mesh scaling correction
+                             * If on a CV boundary, set dV to (dx * dy)/2, using the patch grid spacing
+                             * If vol == 0, don't change anything
+                             */
+
+                            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                            const double* const patch_dx = patch_geom->getDx();
+                            const double box_edge_dV = 0.5 * patch_dx[0] * patch_dx[1]
+#if (NDIM == 3)
+                                                       * patch_dx[2]
+#endif
+                                ;
+
+                            const bool modify_dV = (lower_bdry_vel || upper_bdry_vel) && vol > 0;
+                            dV = modify_dV ? box_edge_dV : vol;
+                        }
+
+                        fobj.P_box_current(axis) += d_rho * u_axis * dV;
+
+                        // Compute angular momentum by looping over all the sides in one axis direction
+
+                        if (axis == 0)
+                        {
+                            // Get the coordinate of the side index and r vector
+                            side_coord.setZero();
+                            getPhysicalCoordinateFromSideIndex(side_coord, level, patch, side_idx, axis);
+                            r_vec = side_coord - fobj.r0;
+                            Eigen::Vector3d u_vec = Eigen::Vector3d::Zero();
+                            u_vec(axis) = u_axis;
+
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                if (d == axis) continue;
+
+                                CellIndex<NDIM> cell_left_idx = cell_idx;
+                                cell_left_idx(axis) -= 1;
+                                u_vec(d) =
+                                    0.25 * ((*u_data)(SideIndex<NDIM>(cell_left_idx, d, SideIndex<NDIM>::Lower)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_left_idx, d, SideIndex<NDIM>::Upper)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)));
+                            }
+
+                            fobj.L_box_current += d_rho * r_vec.cross(u_vec) * dV;
+                        }
+                    }
+                }
+            }
+        }
+
+        SAMRAI_MPI::sumReduction(fobj.P_box_current.data(), 3);
+        SAMRAI_MPI::sumReduction(fobj.L_box_current.data(), 3);
+    }
+
+    return;
+
+} // computeLaggedMomentumIntegral
+
+void
+IBHydrodynamicForceEvaluator::updateStructureMomentum(int strct_id,
+                                                      const Eigen::Vector3d& P_strct_new,
+                                                      const Eigen::Vector3d& L_strct_new)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
+#endif
+
+    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& force_obj = d_hydro_objs[strct_id];
+
+    force_obj.P_new = P_strct_new;
+    force_obj.L_new = L_strct_new;
+
+    return;
+
+} // updateStructureMomentum
+
+void
+IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
+                                                       int p_idx,
+                                                       int /*f_idx*/,
+                                                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                       int coarsest_ln,
+                                                       int finest_ln,
+                                                       double dt)
+{
+    resetFaceAreaWeight(patch_hierarchy);
+    resetFaceVolWeight(patch_hierarchy);
+
+    // Whether or not the simulation has adaptive mesh refinement
+    const bool amr_case = (coarsest_ln != finest_ln);
+
+    for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
+    {
+        IBHydrodynamicForceObject& fobj = it->second;
+
+        // Compute the momentum integral:= (rho * u * dv)
+        fobj.P_box_new.setZero();
+
+        // Compute the rotational momentum integral:= (rho * r x u * dv) for the new time step (integral is over new
+        // control volume)
+        fobj.L_box_new.setZero();
+
+        // Coordinate of the side index and r vector needed for cross product
+        Eigen::Vector3d side_coord, r_vec;
+
+        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Box<NDIM> integration_box(
+                IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
+                IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
+
+            // Shorten the integration box so it only includes the control volume
 	    integration_box.upper() -= 1;
 	    
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-		const Index<NDIM>& patch_lower_idx = patch_box.lower();
-		const double* patch_X_lower = patch_geom->getXLower();
-		const double* patch_dx = patch_geom->getDx();
                 const bool boxes_intersect = patch_box.intersects(integration_box);
                 if (!boxes_intersect) continue;
 
@@ -370,34 +513,93 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 		{
 		    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, axis)); b; b++)
 		    {
-			const CellIndex<NDIM>& cell_idx = *b;
-		    
-// 			const bool inside_domain = insideBoxDomain(cell_idx, axis, 
-// 								   patch_lower_idx, patch_X_lower, patch_dx,
-// 								   fobj.box_X_lower_new, fobj.box_X_upper_new);
-			
-			// Check whether the lower sides of the grid cell is within the integration box
-// 			if (!withinIntegrationBox(cell_idx, fobj.box_X_lower_new, fobj.box_X_upper_new, patch_geom, dx_coarsest, X_lower_left_coarsest))
-// 			    continue;
-			
-			// If a cell is outside of the integration box domain, then the grid cells are not aligned
-			// Only need to check this once for each cell.
-// 			if (!inside_domain)
-// 			    TBOX_ERROR("Non aligned box with level " << ln << "\n");
-                        
+                        const CellIndex<NDIM>& cell_idx = *b;
                         const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
                         const double& u_axis = (*u_data)(side_idx);
                         const double& vol = (*vol_sc_data)(side_idx);
-                        fobj.P_box_new(axis) += d_rho * vol * u_axis;
+                        double dV;
+
+                        // Check if cell is a CV boundary
+                        const bool lower_bdry_vel = (cell_idx(axis) == (integration_box.lower())(axis));
+                        const bool upper_bdry_vel = (cell_idx(axis) == (integration_box.upper())(axis) + 1);
+
+                        // Check if CV boundary intersects a patch boundary
+                        const bool lower_patch_bdry_eq_box_bdry =
+                            ((patch_box.lower())(axis) == (integration_box.lower())(axis));
+                        const bool upper_patch_bdry_eq_box_bdry =
+                            ((patch_box.upper())(axis) + 1 == (integration_box.upper())(axis) + 1);
+
+                        if (!amr_case)
+                        {
+                            /* Uniform mesh scaling correction
+                             * If the velocity is on the CV boundary, scale the volume element by 1/2
+                             * If the patch boundary equals the CV boundary, then volume element is correct (dx * dy)/2
+                             */
+                            const bool scale_dV = (lower_bdry_vel && !lower_patch_bdry_eq_box_bdry) ||
+                                                  (upper_bdry_vel && !upper_patch_bdry_eq_box_bdry);
+
+                            dV = scale_dV ? 0.5 * vol : vol;
+                        }
+                        else
+                        {
+                            /* Adaptive mesh scaling correction
+                             * If on a CV boundary, set dV to (dx * dy)/2, using the patch grid spacing
+                             * If vol == 0, don't change anything
+                             */
+
+                            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                            const double* const patch_dx = patch_geom->getDx();
+                            const double box_edge_dV = 0.5 * patch_dx[0] * patch_dx[1]
+#if (NDIM == 3)
+                                                       * patch_dx[2]
+#endif
+                                ;
+
+                            const bool modify_dV = (lower_bdry_vel || upper_bdry_vel) && vol > 0;
+                            dV = modify_dV ? box_edge_dV : vol;
+                        }
+
+                        fobj.P_box_new(axis) += d_rho * u_axis * dV;
+
+                        // Compute angular momentum by looping over all the sides in one axis direction
+
+                        if (axis == 0)
+                        {
+                            // Get the coordinate of the side index and r vector
+                            side_coord.setZero();
+                            getPhysicalCoordinateFromSideIndex(side_coord, level, patch, side_idx, axis);
+                            r_vec = side_coord - fobj.r0;
+                            Eigen::Vector3d u_vec = Eigen::Vector3d::Zero();
+                            u_vec(axis) = u_axis;
+
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                if (d == axis) continue;
+
+                                CellIndex<NDIM> cell_left_idx = cell_idx;
+                                cell_left_idx(axis) -= 1;
+                                u_vec(d) =
+                                    0.25 * ((*u_data)(SideIndex<NDIM>(cell_left_idx, d, SideIndex<NDIM>::Lower)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_left_idx, d, SideIndex<NDIM>::Upper)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) +
+                                            (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)));
+                            }
+
+                            fobj.L_box_new += d_rho * r_vec.cross(u_vec) * dV;
+                        }
                     }
                 }
             }
         }
+
         SAMRAI_MPI::sumReduction(fobj.P_box_new.data(), 3);
+        SAMRAI_MPI::sumReduction(fobj.L_box_new.data(), 3);
 
         // Compute surface integral term.
-        Eigen::Vector3d trac;
+        Eigen::Vector3d trac, torque_trac;
         trac.setZero();
+        torque_trac.setZero();
+
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -458,10 +660,20 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                 cell_idx, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower);
                             const double& dA = (*face_sc_data)(bdry_idx);
 
-                            // Pressure force := (n. -p I) * dA
-                            trac += -0.5 * n * ((*p_data)(cell_idx) + (*p_data)(cell_nbr_idx)) * dA;
+                            // Get the coordinate of the side index and r vector
+                            side_coord.setZero();
+                            getPhysicalCoordinateFromSideIndex(side_coord, level, patch, bdry_idx, axis);
+                            r_vec = side_coord - fobj.r0;
 
-                            // Momentum force := (n. -rho*(u - u_b)u) * dA
+                            Eigen::Vector3d pn = 0.5 * n * ((*p_data)(cell_idx) + (*p_data)(cell_nbr_idx));
+
+                            // Pressure force := (n. -p I) * dA
+                            trac += -pn * dA;
+
+                            // Pressure torque := r x (-p n I) * dA
+                            torque_trac += r_vec.cross(-pn) * dA;
+
+                            // Momentum force := (n. -rho*(u)u) * dA
                             Eigen::Vector3d u = Eigen::Vector3d::Zero();
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -479,9 +691,12 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                          (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Upper)));
                                 }
                             }
-                            trac += -d_rho * n.dot(u - fobj.box_u_new) * u * dA;
+                            trac += -d_rho * n.dot(u) * u * dA;
 
-                            // Viscous traction force := n . mu(grad u + grad u ^ T) * ds
+                            // Momentum torque := -(n. u) * rho * (r x u) * dA
+                            torque_trac += -n.dot(u) * d_rho * r_vec.cross(u) * dA;
+
+                            // Viscous traction force := n . mu(grad u + grad u ^ T) * dA
                             Eigen::Vector3d viscous_force = Eigen::Vector3d::Zero();
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -516,16 +731,26 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                                  );
                                 }
                             }
-                            trac += n(axis) * viscous_force * dA;
+                            Eigen::Vector3d n_dot_T = n(axis) * viscous_force;
+
+                            trac += n_dot_T * dA;
+
+                            // Viscous traction torque r x ( n . mu(grad u + grad u ^ T) * dA
+                            torque_trac += r_vec.cross(n_dot_T) * dA;
                         }
                     }
                 }
             }
         }
         SAMRAI_MPI::sumReduction(trac.data(), 3);
+        SAMRAI_MPI::sumReduction(torque_trac.data(), 3);
 
-        // Compute hydrodynamic force on the body : -d/dt(rho u)_box + d/dt(rho u)_body + trac
-        fobj.F_new = (fobj.P_box_current - fobj.P_box_new + fobj.P_new - fobj.P_current) / dt + trac;
+        // Compute hydrodynamic force on the body : -integral_{box_new} (rho du/dt) + d/dt(rho u)_body + trac
+        fobj.F_new = -(fobj.P_box_new - fobj.P_box_current) / dt + (fobj.P_new - fobj.P_current) / dt + trac;
+
+        // Compute hydrodynamic torque on the body : -integral_{box_new} (rho d (r x u)/dt) + d/dt(rho r x u)_body +
+        // torque_trac
+        fobj.T_new = -(fobj.L_box_new - fobj.L_box_current) / dt + (fobj.L_new - fobj.L_current) / dt + torque_trac;
     }
 
     return;
@@ -533,17 +758,23 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 } // computeHydrodynamicForce
 
 void
-IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double /*new_time*/)
+IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, double new_time)
 {
     for (std::map<int, IBHydrodynamicForceObject>::iterator it = d_hydro_objs.begin(); it != d_hydro_objs.end(); ++it)
     {
         IBHydrodynamicForceObject& force_obj = it->second;
 
+        // Output drag and torque to stream
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            *force_obj.drag_CV_stream << new_time << "\t" << force_obj.F_new(0) << "\t" << force_obj.F_new(1) << "\t"
+                                      << force_obj.F_new(2) << std::endl;
+            *force_obj.torque_CV_stream << new_time << "\t" << force_obj.T_new(0) << "\t" << force_obj.T_new(1) << "\t"
+                                        << force_obj.T_new(2) << std::endl;
+        }
         force_obj.box_u_current = force_obj.box_u_new;
         force_obj.box_X_lower_current = force_obj.box_X_lower_new;
         force_obj.box_X_upper_current = force_obj.box_X_upper_new;
-	force_obj.box_X_lower_unaligned_current = force_obj.box_X_lower_unaligned_new;
-	force_obj.box_X_upper_unaligned_current = force_obj.box_X_upper_unaligned_new;
 	force_obj.box_vol_current = force_obj.box_vol_new;
         force_obj.F_current = force_obj.F_new;
         force_obj.T_current = force_obj.T_new;
@@ -566,7 +797,7 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
         int strct_id = it->first;
         const IBHydrodynamicForceObject& force_obj = it->second;
 
-        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi;
+        std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
         F << "F_" << strct_id;
         T << "T_" << strct_id;
         P << "P_" << strct_id;
@@ -575,6 +806,8 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
         L_box << "L_box_" << strct_id;
         X_lo << "X_lo_" << strct_id;
         X_hi << "X_hi_" << strct_id;
+        r_or << "r_or_" << strct_id;
+        vol_curr << "vol_curr_" << strct_id;
 
         db->putDoubleArray(F.str(), force_obj.F_current.data(), 3);
         db->putDoubleArray(T.str(), force_obj.T_current.data(), 3);
@@ -584,11 +817,143 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
         db->putDoubleArray(L_box.str(), force_obj.L_box_current.data(), 3);
         db->putDoubleArray(X_lo.str(), force_obj.box_X_lower_current.data(), 3);
         db->putDoubleArray(X_hi.str(), force_obj.box_X_upper_current.data(), 3);
+        db->putDoubleArray(r_or.str(), force_obj.r0.data(), 3);
+        db->putDouble(vol_curr.str(), force_obj.box_vol_current);
     }
 
     return;
 
 } // putToDatabase
+
+void
+IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(int strct_id,
+                                                               Pointer<VisItDataWriter<NDIM> > visit_data_writer,
+                                                               Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
+#endif
+
+    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj = d_hydro_objs[strct_id];
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Create a variable that is strct_id + 1 within control volume and 0 outside
+    std::stringstream strct_id_stream;
+    strct_id_stream << strct_id;
+    std::string struct_no = strct_id_stream.str();
+    Pointer<CellVariable<NDIM, double> > inside_strct_var = new CellVariable<NDIM, double>("box" + struct_no, 1);
+    Pointer<VariableContext> ctx = var_db->getContext("box" + struct_no);
+    fobj.inside_strct_idx = var_db->registerVariableAndContext(inside_strct_var, ctx, (IntVector<NDIM>)0);
+
+    int coarsest_ln = 0;
+    int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(fobj.inside_strct_idx)) level->allocatePatchData(fobj.inside_strct_idx);
+    }
+
+    // Register the indicator variable with the VisitDataWriter
+    visit_data_writer->registerPlotQuantity("box" + struct_no, "SCALAR", fobj.inside_strct_idx);
+
+    // Set the plot data for the initial box
+    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
+        hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
+    hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
+
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Box<NDIM> integration_box(
+            IndexUtilities::getCellIndex(fobj.box_X_lower_current.data(), level->getGridGeometry(), level->getRatio()),
+            IndexUtilities::getCellIndex(fobj.box_X_upper_current.data(), level->getGridGeometry(), level->getRatio()));
+
+        // Shorten the integration box so it only includes the control volume
+        integration_box.upper() -= 1;
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const bool boxes_intersect = patch_box.intersects(integration_box);
+            if (!boxes_intersect) continue;
+
+            // Part of the box on this patch.
+            Box<NDIM> trim_box = patch_box * integration_box;
+
+            // Set plot variable to strct_id + 1
+            Pointer<CellData<NDIM, double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            inside_strct_data->fillAll((double)strct_id + 1, trim_box);
+        }
+    }
+
+    return;
+
+} // registerStructurePlotData
+
+void
+IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(int strct_id,
+                                                             Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
+#endif
+
+    IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj = d_hydro_objs[strct_id];
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Get the plot variable
+    std::stringstream strct_id_stream;
+    strct_id_stream << strct_id;
+    std::string struct_no = strct_id_stream.str();
+    Pointer<CellVariable<NDIM, double> > inside_strct_var = var_db->getVariable("box" + struct_no);
+
+    int coarsest_ln = 0;
+    int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(fobj.inside_strct_idx)) level->allocatePatchData(fobj.inside_strct_idx);
+    }
+
+    // Set the plot data for the new box to 0
+    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
+        hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
+    hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
+
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Box<NDIM> integration_box(
+            IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
+            IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
+
+        // Shorten the integration box so it only includes the control volume
+        integration_box.upper() -= 1;
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const bool boxes_intersect = patch_box.intersects(integration_box);
+            if (!boxes_intersect) continue;
+
+            // Part of the box on this patch.
+            Box<NDIM> trim_box = patch_box * integration_box;
+
+            // Set plot variable to strct_id + 1
+            Pointer<CellData<NDIM, double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            inside_strct_data->fillAll((double)strct_id + 1, trim_box);
+        }
+    }
+
+    return;
+
+} // updateStructurePlotData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -607,7 +972,7 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM> >
     }
 
     // Each cell's face weight is set to its face area, unless the cell is refined
-    // on a finer level, in which case the weight is set to zero.  This insures
+    // on a finer level, in which case the weight is set to zero.  This ensures
     // that no part of the physical domain is counted twice when discrete norms
     // and surface integrals are calculated on the entire hierarchy.
     //
@@ -700,7 +1065,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
         }
     }
     // Each cell's weight is set to its cell volume, unless the cell is refined
-    // on a finer level, in which case the weight is set to zero.  This insures
+    // on a finer level, in which case the weight is set to zero.  This ensures
     // that no part of the physical domain is counted twice when discrete norms
     // and integrals are calculated on the entire hierarchy.
     //
@@ -806,105 +1171,33 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
     return;
 } // resetFaceVolWeight
 
-bool
-IBHydrodynamicForceEvaluator::withinIntegrationBox(const CellIndex<NDIM>& cc_idx,
-						   Eigen::Vector3d& X_lower,
-						   Eigen::Vector3d& X_upper,
-						   const Pointer<CartesianPatchGeometry<NDIM> > patch_geom,
-						   const double* const dx_coarsest,
-						   const double* const X_lower_left_coarsest)
+void
+IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(Eigen::Vector3d& side_coord,
+                                                                 Pointer<PatchLevel<NDIM> > patch_level,
+                                                                 Pointer<Patch<NDIM> > patch,
+                                                                 const SideIndex<NDIM> side_idx,
+                                                                 const int axis)
 {
-    // Returns true if the grid cell in question is within the integration box.
-    // This ensures that if the indices returned by getCellIndex correspond
-    // to physical locations outside of the integration box (defined by X_lower
-    // and X_upper), then they are not counted towards the drag computation
-  
-    // You only need to check whether the lower side of each box is within the 
-    // integration box boundary. Computation of the physical location is done
-    // by counting the number of grid cells away a side is from the left corner
-    // of the given patch
-    
-    // Get grid spacing and coordinate of bottom left corner of the patch
-    const double* const patch_dx           = patch_geom->getDx();
-    const double* const patch_X_lower_left = patch_geom->getXLower();
-    
-    // Get the number of grid cells to between lower left patch corner and 
-    // lower left corner of the computational domain
-    int N_coarsest[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-	N_coarsest[axis] = (patch_X_lower_left[axis] - X_lower_left_coarsest[axis])/dx_coarsest[axis];
-    }
-    
-    const int* const ratio_to_coarsest = patch_geom->getRatio();
-    
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-	const SideIndex<NDIM> lower_sc_idx(cc_idx, axis, SideIndex<NDIM>::Lower);
-	
-	// Get number of cells between lower left patch corner and sides of the grid cell
-	const int AMR_offset = N_coarsest[axis] > 1 ? N_coarsest[axis] * ratio_to_coarsest[axis] : 0;
-	const int N_lower = lower_sc_idx[axis] - AMR_offset;
-	
-	// Calculate physical location of the side indexes
-	double lower_phys_loc = patch_X_lower_left[axis] + patch_dx[axis] * N_lower;
+    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* patch_X_lower = patch_geom->getXLower();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Index<NDIM>& patch_lower_idx = patch_box.lower();
+    const double* const patch_dx = patch_geom->getDx();
 
-	// Only need to check the lower position of the box
-	if (lower_phys_loc < X_lower(axis) || lower_phys_loc > X_upper(axis))
-	{
-	    return false;
-	}
-    }
-    return true;
-} // withinIntegrationBox
-
-bool
-IBHydrodynamicForceEvaluator::insideBoxDomain(const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
-					      const int axis,
-					      const Index<NDIM>& patch_lower_idx,
-					      const double* patch_X_lower,
-					      const double* patch_dx,
-					      const Eigen::Vector3d& X_lower, 
-					      const Eigen::Vector3d& X_upper)
-{
-    Eigen::Vector3d X_loc = Eigen::Vector3d::Zero();
-    bool inside;
     for (int d = 0; d < NDIM; ++d)
     {
-	
-	if (d != axis)
-	{
-	    X_loc(d) = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(cell_idx(d) - patch_lower_idx(d)) + 0.5);
-	}
+        if (d == axis)
+        {
+            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
+        }
 	else
 	{
-	    X_loc(d) = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(cell_idx(d) - patch_lower_idx(d)));
-	}
-	
-	
-	if (X_loc[0] < X_lower[0] || X_loc[1] < X_lower[1] || X_loc[2] < X_lower[2])
-	{
-	    inside =  false;
-	}
-	else if (X_loc[0] > X_upper[0] || X_loc[1] > X_upper[1] || X_loc[2] > X_upper[2])
-	{
-	    inside =  false;
-	}
-	else
-	{
-	    inside =  true;
-#if !defined (NDEBUG)  // Maybe this too much...
-	    TBOX_ASSERT(X_loc[0] >= X_lower[0] && X_loc[0] <= X_upper[0] 
-		    &&  X_loc[1] >= X_lower[1] && X_loc[1] <= X_upper[1] 
-		    &&  X_loc[2] >= X_lower[2] && X_loc[2] <= X_upper[2]);
-	
-#endif
-	}
-  }
-
-	  return inside;
-} // insideBoxDomain
-
+            side_coord[d] =
+                patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
+        }
+    }
+    return;
+} // getPhysicalCoordinateFromSideIndex
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

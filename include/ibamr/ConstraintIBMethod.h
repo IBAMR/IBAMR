@@ -192,10 +192,35 @@ public:
      */
     inline const std::vector<std::vector<double> >& getLinearMomentumStructure()
     {
-	return d_linear_mom_structure;
+        if (!d_compute_linear_mom)
+        {
+            TBOX_ERROR("ConstraintIBMethod::getLinearMomentumStructure() called with compute_linear_mom = FALSE");
+        }
+        return d_linear_mom_structure;
     }
-    
-    
+
+    /*!
+     * \brief Get the total rotational momentum for all the Lagrangian structures with respect to their COM
+     */
+    inline const std::vector<std::vector<double> >& getRotationalMomentumStructure()
+    {
+        if (!d_compute_rotational_mom)
+        {
+            TBOX_ERROR(
+                "ConstraintIBMethod::getRotationalMomentumStructure() called with compute_rotational_mom = FALSE");
+        }
+        return d_rotational_mom_structure;
+    }
+
+    /*!
+     * \brief Get the center of mass for all Lagrangian structures
+     */
+
+    inline const std::vector<std::vector<double> >& getCOMStructure()
+    {
+        return d_center_of_mass_current;
+    }
+
 private:
     /*!
      * \brief Default constructor.
@@ -357,6 +382,11 @@ private:
     void calculateLinearMomentumStructure();
 
     /*!
+     * \brief Calculate the total rotational momentum of all Lagrangian structures with respect to their COM
+     */
+    void calculateRotationalMomentumStructure();
+
+    /*!
      * No of immersed structures.
      */
     const int d_no_structures;
@@ -385,6 +415,11 @@ private:
      * Linear momentum associated with each immersed structure
      */
     std::vector<std::vector<double> > d_linear_mom_structure;
+
+    /*!
+     * Rotational momentum associated with each immersed structure with respect to their COM
+     */
+    std::vector<std::vector<double> > d_rotational_mom_structure;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
@@ -440,6 +475,11 @@ private:
      * Density and viscosity of the fluid.
      */
     double d_rho_fluid, d_mu_fluid;
+
+    /*!
+     * Bools for computing linear and rotational momentums of the body
+     */
+    bool d_compute_linear_mom, d_compute_rotational_mom;
 
     /*!
      * Iteration_counter for printing stuff.

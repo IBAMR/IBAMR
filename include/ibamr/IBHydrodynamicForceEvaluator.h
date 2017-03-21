@@ -38,7 +38,10 @@
 
 #include "Box.h"
 #include "Eigen/Core"
+#include "Eigen/Geometry"
 #include "tbox/Serializable.h"
+#include <ibtk/LData.h>
+#include <ibtk/LDataManager.h>
 
 namespace IBTK
 {
@@ -66,8 +69,14 @@ namespace IBAMR
  * \brief Class IBHydrodynamicForceEvaluator computes hydrodynamic force and
  * torque on immersed bodies. The class uses Reynolds transport theorem to integrate
  * momentum over a Cartesian box region that moves with an arbitrary rigid body
- * translation velocity. See thesis <A HREF="http://thesis.library.caltech.edu/3081/1/Noca_f_1997.pdf">On the evaluation
- * of time-dependent fluid-dynamic forces on bluff bodies</A> by Flavio Noca.
+ * translation velocity.
+ *
+ * References
+ * Flavio Noca, <A HREF="http://thesis.library.caltech.edu/3081/1/Noca_f_1997.pdf">On the evaluation
+ * of time-dependent fluid-dynamic forces on bluff bodies.</A>
+ *
+ * Nangia et al. A moving control volume approach to computing hydrodynamic forces and
+ * torques on immersed bodies.
  *
  * \note  The Cartesian box should enclose the body entirely.
  * \note  Various IB methods need to provide linear and angular momentum of the
@@ -95,23 +104,34 @@ public:
     struct IBHydrodynamicForceObject
     {
         // Structure details.
-        int strct_id, strct_ln;
+        int strct_id;
 
         // Force, torque, and momentum of the body.
         Eigen::Vector3d F_current, T_current, P_current, L_current;
         Eigen::Vector3d F_new, T_new, P_new, L_new;
 
-        // Integration domain.
+        // Origin of the r vector from which torque is calculated
+        Eigen::Vector3d r0;
+
+        // Momentum of the box
         Eigen::Vector3d P_box_current, L_box_current;
         Eigen::Vector3d P_box_new, L_box_new;
+
+        // Velocity of the box
         Eigen::Vector3d box_u_current, box_u_new;
+
+        // Integration domain.
         Eigen::Vector3d box_X_lower_current, box_X_upper_current;
         Eigen::Vector3d box_X_lower_new, box_X_upper_new;
-	Eigen::Vector3d box_X_lower_unaligned_current, box_X_lower_unaligned_new;
-	Eigen::Vector3d box_X_upper_unaligned_current, box_X_upper_unaligned_new;
 	
 	// Box volume (area in 2D)
 	double box_vol_current, box_vol_new;
+
+        // Indicator variable index of the control volume for plotting
+        int inside_strct_idx;
+
+        // File streams associated for the output.
+        std::ofstream *drag_CV_stream, *torque_CV_stream;
 
     }; // IBHydrodynamicForceObject
 
@@ -120,8 +140,6 @@ public:
      * with the class.
      *
      * \param strct_id A unique integer id to associate with an integration domain.
-     *
-     * \param strct_ln Integer representing the level number on which the structure resides.
      *
      * \param box_vel Initial (typically at time = 0) velocity of the integration
      *  domain in three Cartesian directions.
@@ -133,7 +151,6 @@ public:
      * corner of the integration domain.
      */
     void registerStructure(int strct_id,
-                           int strct_ln,
                            const Eigen::Vector3d& box_vel,
                            Eigen::Vector3d& box_X_lower,
                            Eigen::Vector3d& box_X_upper,
@@ -141,30 +158,31 @@ public:
 
     /*!
      * \brief Update the domain of integration as a result of structure motion.
+     * This should be called before computeLaggedMomentumIntegral to insure that the correct box is being used.
      *
      * \param strct_id A unique integer id to associate with an integration domain.
      *
-     * \param strct_ln Integer representing the level number on which the structure resides.
-     *
-     * \param current_time Current time of integration.
-     *
-     * \param new_time Time after integration.
+     * \param dt Time step from the integrator. Pass IBHierarchyIntegrator::getMaximumTimeStepSize() instead of
+     * new_time - old_time to avoid floating point errors from subtraction
      *
      * \param box_vel_new Velocity of the integration domain in three Cartesian directions
      * during the time step.
      *
-     * \param P_strct_new Linear momentum of the structure after the integration.
-     *
-     * \param L_strct_new Angular momentum of the structure after the integration.
      */
     void updateStructureDomain(int strct_id,
-                               int strct_ln,
-                               double current_time,
-                               double new_time,
+                               double dt,
                                const Eigen::Vector3d& box_vel_new,
-                               const Eigen::Vector3d& P_strct_new,
-                               const Eigen::Vector3d& L_strct_new,
-			       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
+     * \brief Set the origin of the position vector used to compute torques
+     *
+     * \param strct_id A unique integer id to associate with an integration domain.
+     *
+     * \param X0 A 3D vector corresponding to the origin of the position vector used to compute torques
+     *
+     */
+    void setTorqueOrigin(int strct_id, const Eigen::Vector3d& X0);
 
     /*!
      * \brief Preprocess data for the current timestep.
@@ -174,31 +192,58 @@ public:
     /*!
      * \brief Get access to hydrodynamic data of the given structure id.
      */
-    const IBHydrodynamicForceObject& getHydrodynamicForceObject(int strct_id, int strct_ln);
+    const IBHydrodynamicForceObject& getHydrodynamicForceObject(int strct_id);
+
+    /*!
+     * \brief Compute the momentum integral for the velocity variable at the previous time step over the new control
+     * volume.
+     * This should be called before advancing the hierarchy but after updateStructureDomain
+     *
+     * \param u_old_idx Patch index of velocity variable (before advancing the hierarchy) with appropriate ghost cell
+     * width.
+     *
+     * \param wgt_sc_idx Patch index of volume weights associated with faces.
+     *
+     */
+
+    void computeLaggedMomentumIntegral(int u_old_idx,
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                       int coarsest_ln,
+                                       int finest_ln);
+
+    /*!
+     * \brief Update the new momenta of the bodies within the structure.
+     * This should be called after advancing the hierarchy.
+     *
+     * \param strct_id A unique integer id to associate with an integration domain.
+     *
+     * \param P_strct_new Linear momentum of the structure after the integration.
+     *
+     * \param L_strct_new Angular momentum of the structure after the integration.
+     */
+
+    void updateStructureMomentum(int strct_id, const Eigen::Vector3d& P_strct_new, const Eigen::Vector3d& L_strct_new);
 
     /*!
      * \brief Compute hydrodynamic force.
+     * This should be called after advancing the hierarchy.
      *
-     * \param u_idx Patch index of velocity variable with appropriate ghost cell width.
+     * \param u_idx Patch index of velocity variable (after advancing the hierarchy) with appropriate ghost cell width.
      *
      * \param p_idx Patch index of pressure variable with appropriate ghost cell width.
      *
      * \param f_idx Patch index of body force variable with appropriate ghost cell width.
      *
-     * \param wgt_sc_idx Patch index of volume weights associated with faces.
-     *
-     * \param wgt_cc_idx Patch index of volume weights associated with cells.
+     * \param dt Time step from the integrator. Pass IBHierarchyIntegrator::getMaximumTimeStepSize() instead of
+     * new_time - old_time to avoid floating point errors from subtraction
      */
     virtual void computeHydrodynamicForce(int u_idx,
                                           int p_idx,
                                           int f_idx,
-                                          int wgt_sc_idx,
-                                          int wgt_cc_idx,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                                           int coarsest_ln,
                                           int finest_ln,
-                                          double current_time,
-                                          double new_time);
+                                          double dt);
 
     /*!
      * \brief Postprocess data for the next timestep.
@@ -209,6 +254,23 @@ public:
      * \brief Override the putToDatabase method of the base Serializable class.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * \brief Create the control volume plot data and register it with the VisIt data writer
+     *
+     * \param strct_id A unique integer id to associate with an integration domain.
+     */
+    void registerStructurePlotData(int strct_id,
+                                   SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
+     * \brief Update the plot variable for the new location of the control volume box
+     *
+     * \param strct_id A unique integer id to associate with an integration domain
+     */
+    void updateStructurePlotData(int strct_id,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
 private:
     /*!
@@ -240,30 +302,16 @@ private:
      * \brief Reset weight of the cell face to cell volume.
      */
     void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
-    
+
     /*!
-     * \brief Check whether the physical location of an index is within the integration box.
+     * \brief Compute the physical coordinate of a given side index
      */
-    
-    bool withinIntegrationBox(const SAMRAI::pdat::CellIndex<NDIM>& cc_idx,
-		              Eigen::Vector3d& X_lower,
-			      Eigen::Vector3d& X_upper,
-			      const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom,
-			      const double* const dx_coarsest,
-			      const double* const X_lower_left_coarsest);
-    
-    /*!
-     * \brief Check whether grid cells are aligned with the integration box
-     */
-    bool insideBoxDomain(const SAMRAI::pdat::CellIndex<NDIM>& cell_idx,
-			 const int axis,
-			 const SAMRAI::hier::Index<NDIM>& patch_lower_idx,
-			 const double* patch_X_lower,
-			 const double* patch_dx,
-			 const Eigen::Vector3d& X_lower, 
-			 const Eigen::Vector3d& X_upper);
-     
-    
+    void getPhysicalCoordinateFromSideIndex(Eigen::Vector3d& side_coord,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                            const SAMRAI::pdat::SideIndex<NDIM> side_idx,
+                                            const int axis);
+
     /*!
      * \brief Object name.
      */

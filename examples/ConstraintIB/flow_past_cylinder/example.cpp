@@ -62,8 +62,6 @@
 // Application
 #include "RigidBodyKinematics.h"
 
-ofstream drag_stream;
-
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -243,21 +241,20 @@ run_example(int argc, char* argv[])
         // Create hydrodynamic force evaluator object.
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
-        int strct_ln = input_db->getInteger("MAX_LEVELS") - 1;
-        double DX0 = input_db->getDouble("DX0");
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
             new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
         Eigen::Vector3d box_X_lower, box_X_upper, box_init_vel;
-        box_X_lower << -8.0 + 11 * DX0, -8.0 + 11 * DX0, 0.0;
-        box_X_upper << -8.0 + 22 * DX0, -8.0 + 22 * DX0, 0.0;
+        box_X_lower << -0.65, -0.65, 0.0;
+        box_X_upper << 0.65, 0.65, 0.0;
         box_init_vel.setZero();
-        hydro_force->registerStructure(0, strct_ln, box_init_vel, box_X_lower, box_X_upper,
-				       patch_hierarchy);
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            drag_stream.open("DragLift.txt", std::ios_base::out | ios_base::trunc);
-            drag_stream.precision(10);
-        }
+        hydro_force->registerStructure(0, box_init_vel, box_X_lower, box_X_upper, patch_hierarchy);
+
+        // Register plotting data for the control volume
+        hydro_force->registerStructurePlotData(0, visit_data_writer, patch_hierarchy);
+
+        // Get the center of mass of the cylinder
+        Eigen::Vector3d Cylinder_COM;
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCOMStructure();
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -311,9 +308,55 @@ run_example(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
             loop_time += dt;
             new_time = loop_time;
+
+            // Regrid the hierarchy if necessary
+            if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
+
+            // Update the location of the box for time n + 1 (box is stationary in this case)
+            hydro_force->updateStructureDomain(0, dt, Eigen::Vector3d::Zero(), patch_hierarchy);
+
+            // Get the current velocity on the newest hierarchy
+            int coarsest_ln = 0;
+            int finest_ln = patch_hierarchy->getFinestLevelNumber();
+
+            // Get the current velocity at the newest hierarchy
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
+            }
+
+            Pointer<HierarchyMathOps> hier_math_ops_current = time_integrator->getHierarchyMathOps();
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops_current(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops_current.copyData(u_cloned_idx, u_idx, true);
+            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+                InterpolationTransactionComponent;
+            std::vector<InterpolationTransactionComponent> transaction_comps_current(1);
+            const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bcs_integrator_current =
+                navier_stokes_integrator->getVelocityBoundaryConditions();
+            transaction_comps_current[0] =
+                InterpolationTransactionComponent(u_cloned_idx,
+                                                  u_idx,
+                                                  /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                  /*USE_CF_INTERPOLATION*/ true,
+                                                  /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                  u_bcs_integrator_current,
+                                                  Pointer<VariableFillPattern<NDIM> >(NULL));
+
+            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill_current = new HierarchyGhostCellInterpolation();
+            hier_bdry_fill_current->initializeOperatorState(transaction_comps_current, patch_hierarchy);
+            hier_bdry_fill_current->setHomogeneousBc(false);
+            hier_bdry_fill_current->fillData(current_time);
+
+            // Compute the momentum of u^n in box n+1 on the newest hierarchy
+            hydro_force->computeLaggedMomentumIntegral(u_cloned_idx, patch_hierarchy, coarsest_ln, finest_ln);
+
+            // Advance the hierarchy
+            time_integrator->advanceHierarchy(dt);
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
@@ -322,8 +365,8 @@ run_example(int argc, char* argv[])
             pout << "\n";
 
             // Fill ghost cells of pressure and velocity to compute hydrodynamic forces.
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            coarsest_ln = 0;
+            finest_ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -349,7 +392,7 @@ run_example(int argc, char* argv[])
             p_bc_integrator->setTargetVelocityPatchDataIndex(u_cloned_idx);
             transaction_comps[0] = InterpolationTransactionComponent(u_cloned_idx,
                                                                      u_idx,
-                                                                     /*DATA_REFINE_TYPE*/ "NONE",
+                                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
                                                                      /*USE_CF_INTERPOLATION*/ true,
                                                                      /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
                                                                      /*BDRY_EXTRAP_TYPE*/ "LINEAR",
@@ -358,7 +401,7 @@ run_example(int argc, char* argv[])
                                                                      Pointer<VariableFillPattern<NDIM> >(NULL));
             transaction_comps[1] = InterpolationTransactionComponent(p_cloned_idx,
                                                                      p_idx,
-                                                                     /*DATA_REFINE_TYPE*/ "NONE",
+                                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
                                                                      /*USE_CF_INTERPOLATION*/ true,
                                                                      /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
                                                                      /*BDRY_EXTRAP_TYPE*/ "LINEAR",
@@ -370,29 +413,42 @@ run_example(int argc, char* argv[])
             hier_bdry_fill->setHomogeneousBc(false);
             hier_bdry_fill->fillData(new_time);
 
+            // Get the linear and rotational momentum of the cylinder
+            Eigen::Vector3d Cylinder_mom, Cylinder_ang_mom;
+            Cylinder_mom.setZero();
+            Cylinder_ang_mom.setZero();
+
+            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getLinearMomentumStructure();
+            for (int d = 0; d < 3; ++d) Cylinder_mom[d] = structure_linear_momentum[0][d];
+
+            std::vector<std::vector<double> > structure_rotational_momentum =
+                ib_method_ops->getRotationalMomentumStructure();
+            for (int d = 0; d < 3; ++d) Cylinder_ang_mom[d] = structure_rotational_momentum[0][d];
+
+            // Store the new momentum of the plate
+            hydro_force->updateStructureMomentum(0, Cylinder_mom, Cylinder_ang_mom);
+
             // Evaluate hydrodynamic force on cylinder.
-            hydro_force->updateStructureDomain(
-                0, strct_ln, current_time, new_time, box_init_vel, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(),
-		patch_hierarchy);
             hydro_force->computeHydrodynamicForce(u_cloned_idx,
                                                   p_cloned_idx,
                                                   /*f_idx*/ -1,
-                                                  hier_math_ops->getSideWeightPatchDescriptorIndex(),
-                                                  hier_math_ops->getCellWeightPatchDescriptorIndex(),
                                                   patch_hierarchy,
                                                   coarsest_ln,
                                                   finest_ln,
-                                                  current_time,
-                                                  new_time);
+                                                  dt);
 
-            // Write the force data in a file.
-            if (SAMRAI_MPI::getRank() == 0)
-            {
-                const IBHydrodynamicForceEvaluator::IBHydrodynamicForceObject& fobj =
-                    hydro_force->getHydrodynamicForceObject(0, strct_ln);
-                drag_stream << new_time << "\t" << fobj.F_new(0) << "\t" << fobj.F_new(1) << std::endl;
-            }
+            // Write the force data in a file in postprocessing.
             hydro_force->postprocessIntegrateData(current_time, new_time);
+
+            // Update plot data
+            hydro_force->updateStructurePlotData(0, patch_hierarchy);
+
+            // Set the torque origin for the next time step
+            structure_COM = ib_method_ops->getCOMStructure();
+            for (int d = 0; d < 3; ++d) Cylinder_COM[d] = structure_COM[0][d];
+
+            // Set the torque evaluation axis to point from newest COM
+            hydro_force->setTorqueOrigin(0, Cylinder_COM);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -425,11 +481,6 @@ run_example(int argc, char* argv[])
                             loop_time,
                             postproc_data_dump_dirname);
             }
-        }
-
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            drag_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

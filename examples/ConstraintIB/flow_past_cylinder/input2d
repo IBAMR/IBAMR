@@ -5,14 +5,13 @@ MU = 2.0*R/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3        // maximum number of levels in locally refined grid
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 4        // refinement ratio between levels
 REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
 
-N = 64                                   // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 32.0
-DX0 = L/N
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -101,11 +100,14 @@ ConstraintIBMethod {
    needs_divfree_projection = FALSE
    rho_fluid                = RHO
    mu_fluid                 = MU
+   compute_linear_mom       = TRUE            // default false
+   compute_rotational_mom   = TRUE            // default false
    
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
    output_drag           = TRUE               //default false
+   output_torque         = TRUE               //default false
    output_power          = FALSE              //default false
    output_rig_transvel   = TRUE               //default false
    output_rig_rotvel     = TRUE               //default false
