@@ -122,18 +122,20 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
 	    
 	    if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
 	    {
-		TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
-			      << d << ". Modifying coordinate to nearest box side" << std::endl);
-		const int N = floor(num_cells_lower);
+                TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
+                             << d
+                             << ". Modifying coordinate to nearest box side\n");
+                const int N = floor(num_cells_lower);
 		box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * N;
 		modified_box = true;
 	    }
 	    
 	    if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
 	    {
-		TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
-			      << d << ". Modifying coordinate to nearest box side" << std::endl);
-		const int N = ceil(num_cells_upper);
+                TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
+                             << d
+                             << ". Modifying coordinate to nearest box side\n");
+                const int N = ceil(num_cells_upper);
 		box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * N;
 		modified_box = true;
 	    }
@@ -148,9 +150,9 @@ IBHydrodynamicForceEvaluator::registerStructure(int strct_id,
                  << "to\n"
                  << "[" << box_X_lower[0] << ", " << box_X_upper[0] << "]"
                  << " x [" << box_X_lower[1] << ", " << box_X_upper[1] << "]"
-                 << " x [" << box_X_lower[2] << ", " << box_X_upper[2] << "]" << std::endl;
+                 << " x [" << box_X_lower[2] << ", " << box_X_upper[2] << "]\n";
         }
-      
+
         force_obj.box_u_current = box_vel;
         force_obj.box_X_lower_current = box_X_lower;
         force_obj.box_X_upper_current = box_X_upper;
@@ -493,7 +495,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
 
             // Shorten the integration box so it only includes the control volume
-	    integration_box.upper() -= 1;
+            integration_box.upper() -= 1;
 	    
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -768,9 +770,9 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
         if (SAMRAI_MPI::getRank() == 0)
         {
             *force_obj.drag_CV_stream << new_time << "\t" << force_obj.F_new(0) << "\t" << force_obj.F_new(1) << "\t"
-                                      << force_obj.F_new(2) << std::endl;
+                                      << force_obj.F_new(2) << "\n";
             *force_obj.torque_CV_stream << new_time << "\t" << force_obj.T_new(0) << "\t" << force_obj.T_new(1) << "\t"
-                                        << force_obj.T_new(2) << std::endl;
+                                        << force_obj.T_new(2) << "\n";
         }
         force_obj.box_u_current = force_obj.box_u_new;
         force_obj.box_X_lower_current = force_obj.box_X_lower_new;
@@ -1190,7 +1192,7 @@ IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(Eigen::Vector3d
         {
             side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
         }
-	else
+        else
 	{
             side_coord[d] =
                 patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
