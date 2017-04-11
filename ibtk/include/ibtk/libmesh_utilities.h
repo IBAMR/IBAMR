@@ -479,7 +479,6 @@ outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<do
 inline void
 intersect_line_with_edge(std::vector<std::pair<double, libMesh::Point> >& t_vals,
                          libMesh::Edge* elem,
-                         libMesh::VectorValue<double> dx,
                          libMesh::Point r,
                          libMesh::VectorValue<double> q)
 {
