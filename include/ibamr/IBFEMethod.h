@@ -121,7 +121,7 @@ public:
     static const std::string FORCE_T_SYSTEM_NAME;
     static const std::string FORCE_B_SYSTEM_NAME;
     static const std::string FORCE_N_SYSTEM_NAME;
-   static const std::string WSS_I_SYSTEM_NAME;
+    static const std::string WSS_I_SYSTEM_NAME;
     static const std::string WSS_O_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
@@ -430,17 +430,23 @@ protected:
     void computeInteriorForceDensity(libMesh::PetscVector<double>& F_vec,
 									 libMesh::PetscVector<double>& F_n_vec,
 									 libMesh::PetscVector<double>& F_t_vec,
+#if (NDIM == 3)
 									 libMesh::PetscVector<double>& F_b_vec,
+#endif
 									 libMesh::PetscVector<double>& H_vec,
                                      libMesh::PetscVector<double>& X_vec,
                                      libMesh::PetscVector<double>& P_j_vec,
                                      libMesh::PetscVector<double>& dP_j_vec,
                                      libMesh::PetscVector<double>& du_j_vec,
                                      libMesh::PetscVector<double>& dv_j_vec,
+#if (NDIM == 3)
                                      libMesh::PetscVector<double>& dw_j_vec,
+#endif
                                      libMesh::PetscVector<double>& d2u_j_vec,
                                      libMesh::PetscVector<double>& d2v_j_vec,
+#if (NDIM == 3)
                                      libMesh::PetscVector<double>& d2w_j_vec,
+#endif
                                      double data_time,
                                      unsigned int part);
 
@@ -450,32 +456,38 @@ protected:
      * Lagrangian structure.
      */
     void imposeJumpConditionsWeak(int f_data_idx,
-                              int mask_current_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               libMesh::PetscVector<double>& P_j_ghost_vec,
 							 libMesh::PetscVector<double>& dP_j_ghost_vec,
                               libMesh::PetscVector<double>& du_j_ghost_vec,
                               libMesh::PetscVector<double>& dv_j_ghost_vec,
+#if (NDIM == 3)
                               libMesh::PetscVector<double>& dw_j_ghost_vec,
+#endif
                               libMesh::PetscVector<double>& d2u_j_ghost_vec,
                               libMesh::PetscVector<double>& d2v_j_ghost_vec,
+#if (NDIM == 3)
                               libMesh::PetscVector<double>& d2w_j_ghost_vec,
+#endif
                               double data_time,
                               unsigned int part);
                               
     void imposeJumpConditionsPointWise(int f_data_idx,
-                              int mask_current_idx,
                               libMesh::PetscVector<double>& F_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               libMesh::PetscVector<double>& P_j_ghost_vec,
 							 libMesh::PetscVector<double>& dP_j_ghost_vec,
                               libMesh::PetscVector<double>& du_j_ghost_vec,
                               libMesh::PetscVector<double>& dv_j_ghost_vec,
+#if (NDIM == 3)
                               libMesh::PetscVector<double>& dw_j_ghost_vec,
+#endif
                               libMesh::PetscVector<double>& d2u_j_ghost_vec,
                               libMesh::PetscVector<double>& d2v_j_ghost_vec,
+#if (NDIM == 3)
                               libMesh::PetscVector<double>& d2w_j_ghost_vec,
+#endif
                               double data_time,
                               unsigned int part);
 
