@@ -5,7 +5,7 @@ all : $(IBAMR_ARCH)/conf/configure.log $(IBAMR_ARCH)/gmakefile
 	@echo "Build complete in $(IBAMR_ARCH).  Use make test to test."
 
 $(IBAMR_ARCH)/conf/configure.log:
-	./configure.new --IBAMR_ARCH=$(IBAMR_ARCH) --download-muparser --download-eigen --download-silo --download-hdf5 --download-samrai --with-mpi-dir=$(PETSC_DIR)/$(PETSC_ARCH)
+	./configure.new --IBAMR_ARCH=$(IBAMR_ARCH) --download-muparser --download-silo --download-samrai --with-mpi-dir=$(PETSC_DIR)/$(PETSC_ARCH) --with-hdf5-dir=$(PETSC_DIR)/$(PETSC_ARCH) --with-eigen-dir=$(PETSC_DIR)/$(PETSC_ARCH)
 
 $(IBAMR_ARCH)/gmakefile: ./config/gmakegen.py
 	$(MAKE) -C $(IBAMR_ARCH) -f bootstrap.mk gmakefile

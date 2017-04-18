@@ -1,7 +1,25 @@
 import config.base
+import script
 
 import os
 import re
+
+
+class PETScConfigReader(script.Script):
+  def __init__(self):
+    import RDict
+    import os
+
+    argDB = RDict.RDict(None, None, 0, 0)
+    argDB.saveFilename = os.path.join(os.environ['PETSC_DIR'], os.environ['PETSC_ARCH'], 'lib','petsc','conf', 'RDict.db')
+    argDB.load()
+    script.Script.__init__(self, argDB = argDB)
+    return
+
+  def setup(self):
+    script.Script.setup(self)
+    self.framework = self.loadConfigure()
+    return
 
 class Configure(config.base.Configure):
   def __init__(self, framework):
@@ -320,7 +338,14 @@ include lib/petsc/conf/ibamrvariables
 ''')
     return
 
+  def loadPETScConfigure(self):
+    pconf = PETScConfigReader().setup()
+    self.eigen = pconf.framework.require('config.packages.eigen', None)
+    return
+
   def configure(self):
+    # This will not work until I make configure objects more composable, and we require the PETSc configure objects to be loadable
+    #self.loadPETScConfigure()
     #if not os.path.samefile(self.projectdir.dir, os.getcwd()):
     #  raise RuntimeError('Wrong PETSC_DIR option specified: '+str(self.projectdir.dir) + '\n  Configure invoked in: '+os.path.realpath(os.getcwd()))
     #if self.framework.argDB['prefix'] and os.path.isdir(self.framework.argDB['prefix']) and os.path.samefile(self.framework.argDB['prefix'], self.projectdir.dir):
@@ -331,14 +356,14 @@ include lib/petsc/conf/ibamrvariables
     self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.project+'rules'
     if not self.muparser.found:
       raise RuntimeError('MuParser not found, but is required by IBAMR')
-    if not self.eigen.found:
-      raise RuntimeError('Eigen not found, but is required by IBAMR')
-    if not self.silo.found:
-      raise RuntimeError('Silo not found, but is required by IBAMR')
-    if not self.hdf5.found:
-      raise RuntimeError('HDF5 not found, but is required by IBAMR')
     if not self.samrai.found:
       raise RuntimeError('SAMRAI not found, but is required by IBAMR')
+    if not self.silo.found:
+      raise RuntimeError('Silo not found, but is required by IBAMR')
+    if not self.eigen.found:
+      raise RuntimeError('Eigen not found. Reconfigure PETSc using --download-eigen')
+    if not self.hdf5.found:
+      raise RuntimeError('HDF5 not found.. Reconfigure PETSc using --download-hdf5')
     self.executeTest(self.configureScript)
     
     self.Dump()
