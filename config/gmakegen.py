@@ -11,7 +11,7 @@ class ConfigReader(script.Script):
     import RDict
     import os
 
-    self.archDir = os.path.join(os.environ['IBAMR_DIR'], os.environ['IBAMR_ARCH'])
+    self.archDir = os.path.join(os.environ['IBAMR_DIR'], os.environ.get('IBAMR_ARCH', 'build'))
     argDB = RDict.RDict(None, None, 0, 0)
     argDB.saveFilename = os.path.join(self.archDir, 'conf', 'RDict.db')
     argDB.load()
