@@ -271,7 +271,6 @@ KnifeFishKinematics::getFromRestart()
                                  << " not found in restart file."
                                  << std::endl);
     }
-
     d_current_time = db->getDouble("d_current_time");
 
     return;
