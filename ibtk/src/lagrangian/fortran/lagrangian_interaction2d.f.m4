@@ -1655,6 +1655,315 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Interpolate u onto V at the positions specified by X using the
+c     5-point IB delta with three continuous derivatives
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_ib_5_interp2d(
+     &     dx,x_lower,x_upper,depth,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Functions.
+c
+      EXTERNAL lagrangian_floor
+      INTEGER lagrangian_floor
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      REAL r
+      REAL phi
+      REAL K
+      INTEGER ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s
+
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
+
+      PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Use a 5-point IB delta function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic_center(0) =
+     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        + ilower0
+         ic_center(1) =
+     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        + ilower1
+
+         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
+         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+c
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell.
+c
+         do d = 0,NDIM-1
+            ic_lower(d) = ic_center(d)-2
+            ic_upper(d) = ic_center(d)+2
+         enddo
+
+         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
+
+         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+c
+c     Compute the interpolation weights.
+c
+         ic0 = ic_center(0)
+         X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
+         r = (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0)
+         phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+     &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+     &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+     &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+     &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
+
+         ic1 = ic_center(1)
+         X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
+         r = (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1)
+         phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+     &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+     &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+     &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+     &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
+
+c
+c     Interpolate u onto V.
+c
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do ic1 = ic_lower(1),ic_upper(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = V(d,s)
+     &                 +w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+         enddo
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the
+c     5-point IB delta with three continuous derivatives
+c     using standard (double) precision
+c     accumulation on the Cartesian grid.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_ib_5_spread2d(
+     &     dx,x_lower,x_upper,depth,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u)
+c
+      implicit none
+c
+c     Functions.
+c
+      EXTERNAL lagrangian_floor
+      INTEGER lagrangian_floor
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      REAL r
+      REAL phi
+      REAL K
+      INTEGER ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s
+
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
+
+      PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Use a 5-point IB delta function to spread V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic_center(0) =
+     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        + ilower0
+         ic_center(1) =
+     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        + ilower1
+
+         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
+         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+c
+c     Determine the spreading stencil corresponding to the position of
+c     X(s) within the cell.
+c
+         do d = 0,NDIM-1
+            ic_lower(d) = ic_center(d)-2
+            ic_upper(d) = ic_center(d)+2
+         enddo
+
+         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
+
+         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+c
+c     Compute the spreading weights.
+c
+
+         ic0 = ic_center(0)
+         X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
+         r = (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0)
+         phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+     &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+     &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+     &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+     &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
+
+         ic1 = ic_center(1)
+         X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
+         r = (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1)
+         phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+     &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+     &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+     &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+     &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
+
+c
+c     Spread V onto u.
+c
+         do d = 0,depth-1
+            do ic1 = ic_lower(1),ic_upper(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
+     &                 w0(ic0-ic_lower(0))*
+     &                 w1(ic1-ic_lower(1))*
+     &                 V(d,s)/(dx(0)*dx(1)))
+               enddo
+            enddo
+         enddo
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Interpolate u onto V at the positions specified by X using the IB
 c     6-point delta function.
 c
@@ -2979,3 +3288,4 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+

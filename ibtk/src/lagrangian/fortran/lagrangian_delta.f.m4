@@ -459,6 +459,69 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Returns the interpolation weight phi(r) for the 5-point IB delta
+c     with three continuous derivatives
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_ib_5_delta(t)
+c
+      implicit none
+      double precision lagrangian_ib_5_delta,r,x,t,K,phi
+c
+      x = dabs(t)
+      K = (38.0d0 - sqrt(69.0d0))/60.0d0
+c
+      if (x .le. 0.5d0) then
+c
+          r = x
+c
+          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+c
+         lagrangian_ib_5_delta = phi
+c
+      elseif (x .le. 1.5d0) then
+c
+          r = x - 1.0d0
+c
+          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+c
+         lagrangian_ib_5_delta = (4.0d0 - 4.0d0*phi - K
+     &          - 4.0d0*r + 3.0d0*K*r - r**2 + r**3)/6.0d0
+c
+      elseif (x .le. 2.5d0) then
+c
+          r = x - 2.0d0
+c
+          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
+     &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
+     &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
+     &          - 12600.0d0*(K**2)*(r**2) + 8080.0d0*(r**4)
+     &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
+     &          /280.0d0
+c
+         lagrangian_ib_5_delta = (-2.0d0 + 2.0d0*phi + 2*K +
+     &          r - 3.0d0*K*r + 2.0d0*r**2 - r**3)/12.0d0
+c
+      else
+         lagrangian_ib_5_delta = 0.d0
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Returns the interpolation weight phi(r) for the IB 6-point delta
 c     function.
 c
@@ -569,3 +632,4 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
