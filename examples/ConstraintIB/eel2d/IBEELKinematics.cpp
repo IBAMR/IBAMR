@@ -181,8 +181,16 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     setImmersedBodyLayout(patch_hierarchy);
 
     bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-    
+    if (from_restart)
+    {
+        getFromRestart();
+
+        // At restart current and new states point to the same state.
+        d_new_time = d_current_time;
+        setEelSpecificVelocity(
+            d_current_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
+        setShape(d_current_time, d_incremented_angle_from_reference_axis);
+    }
     return;
 
 } // IBEELKinematics

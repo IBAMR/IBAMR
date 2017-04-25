@@ -162,7 +162,10 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
     }
 
     bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
+    if (from_restart)
+    {
+        getFromRestart();
+    }
 
     // get the name of file which has coordinates of the sphere.
     std::fstream coord_file_stream;
@@ -245,6 +248,9 @@ KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
     } // end of k for loop
     coord_file_stream.close();
 
+    // set current velocity using current time for initial and restarted runs.
+    setKnifefishSpecificVelocity(d_current_time);
+
     return;
 
 } // KnifeFishKinematics
@@ -271,6 +277,7 @@ KnifeFishKinematics::getFromRestart()
                                  << " not found in restart file."
                                  << std::endl);
     }
+
     d_current_time = db->getDouble("d_current_time");
 
     return;
