@@ -400,9 +400,14 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Generate user-defined subdomains.
         std::vector<std::set<int> > overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
-        generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
 
-        int num_subdomains = static_cast<int>(overlap_is.size());
+        // Generate PETSc IS in cases where they have not been generated directly.
+        if (!d_overlap_is.size())
+        {
+            generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+        }
+
+        int num_subdomains = static_cast<int>(d_overlap_is.size());
         if (num_subdomains == 0)
         {
             IS is;
@@ -462,9 +467,14 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Generate user-defined subdomains.
         std::vector<std::set<int> > overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
-        d_n_local_subdomains = static_cast<int>(overlap_is.size());
+        d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
         d_n_subdomains_max = SAMRAI_MPI::maxReduction(d_n_local_subdomains);
-        generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+
+        // Generate PETSc IS in cases where they have not been generated directly.
+        if (!d_overlap_is.size())
+        {
+            generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+        }
 
         // Get the local submatrices.
         ierr = MatGetSubMatrices(
