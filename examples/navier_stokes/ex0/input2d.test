@@ -6,7 +6,7 @@ L   = 1.0
 // grid spacing parameters
 MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
-N = 32                                    // actual    number of grid cells on coarsest grid level
+N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
 // solver parameters
@@ -14,14 +14,14 @@ SOLVER_TYPE        = "STAGGERED"          // the fluid solver to use (STAGGERED 
 CFL_MAX            = 0.3                  // maximum CFL number
 DT_MAX             = 0.0625/NFINEST       // maximum timestep size
 START_TIME         = 0.0e0                // initial simulation time
-END_TIME           = 10*DT_MAX                  // final simulation time
+END_TIME           = 3*DT_MAX           // final simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
 NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
 CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
-VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING  = FALSE                // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL    = 10000000             // effectively disable regridding
 OUTPUT_U           = TRUE
@@ -36,19 +36,21 @@ PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 // exact solution function expressions
-U = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
-V = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
-W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
-P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
+U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
+
+// normal tractions
+T_n_X_0 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)+8*nu*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)"
+T_n_X_1 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-8*nu*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)"
+
+// tangential tractions
+T_t = "0.0"
 
 VelocityInitialConditions {
    nu = MU/RHO
-   A = 1.0
-   B = 1.0
-   C = 1.0
    function_0 = U
    function_1 = V
-   function_2 = W
 }
 
 VelocityBcCoefs_0 {
@@ -58,22 +60,16 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = U
    gcoef_function_1 = U
    gcoef_function_2 = U
    gcoef_function_3 = U
-   gcoef_function_4 = U
-   gcoef_function_5 = U
 }
 
 VelocityBcCoefs_1 {
@@ -83,54 +79,20 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = V
    gcoef_function_1 = V
    gcoef_function_2 = V
    gcoef_function_3 = V
-   gcoef_function_4 = V
-   gcoef_function_5 = V
-}
-
-VelocityBcCoefs_2 {
-   nu = MU/RHO
-
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
-
-   gcoef_function_0 = W
-   gcoef_function_1 = W
-   gcoef_function_2 = W
-   gcoef_function_3 = W
-   gcoef_function_4 = W
-   gcoef_function_5 = W
 }
 
 PressureInitialConditions {
    nu = MU/RHO
-   A = 1.0
-   B = 1.0
-   C = 1.0
    function = P
 }
 
@@ -329,42 +291,42 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "INS3d.log"
+   log_file_name               = "INS2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = NFINEST/8
-   viz_dump_dirname            = "viz_INS3d"
+   viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_INS3d"
+   restart_dump_dirname        = "restart_INS2d"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
-   x_lo = 0,0,0
-   x_up = L,L,L
-   periodic_dimension = 1,1,1
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   4,  4,  4  // all finer levels will use same values as level_0
+      level_0 =   4,  4  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
@@ -373,9 +335,9 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
-      level_1 = [((REF_RATIO^1)*N/4 + 1,(REF_RATIO^1)*N/4 + 1,(REF_RATIO^1)*N/4 + 1),(3*(REF_RATIO^1)*N/4 - 2,3*(REF_RATIO^1)*N/4 - 2,3*(REF_RATIO^1)*N/4 - 2)]
-      level_2 = [((REF_RATIO^2)*N/4 + 2,(REF_RATIO^2)*N/4 + 2,(REF_RATIO^2)*N/4 + 2),(3*(REF_RATIO^2)*N/4 - 3,3*(REF_RATIO^2)*N/4 - 3,3*(REF_RATIO^2)*N/4 - 3)]
+//    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
+//    level_0 = [(0,0),(N/2 - 1,N/2 - 1)]
+      level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
    }
 }
 

@@ -23,3 +23,5 @@ set -o pipefail
 
 make -kj4 lib
 make -kj4 examples
+cd examples/navier_stokes/
+make gtest

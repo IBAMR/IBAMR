@@ -69,8 +69,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(int argc, char* argv[])
+bool
+run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -143,12 +143,12 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
-            "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
-        time_integrator->registerPressureInitialConditions(p_init);
+        if (input_db->keyExists("VelocityInitialConditions"))
+        {
+            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            time_integrator->registerVelocityInitialConditions(u_init);
+        }
 
         // Create boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -263,78 +263,6 @@ main(int argc, char* argv[])
             }
         }
 
-        // Determine the accuracy of the computed solution.
-        pout << "\n"
-             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-             << "Computing error norms.\n\n";
-
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
-
-        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
-
-        const Pointer<Variable<NDIM> > p_var = time_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
-
-        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx, loop_time);
-        }
-
-        u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
-
-        HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
-        hier_math_ops.setPatchHierarchy(patch_hierarchy);
-        hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-        const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-        const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-
-        Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
-        if (u_cc_var)
-        {
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-            pout << "Error in u at time " << loop_time << ":\n"
-                 << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx, wgt_cc_idx) << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx, wgt_cc_idx) << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
-        }
-
-        Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
-        if (u_sc_var)
-        {
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-            pout << "Error in u at time " << loop_time << ":\n"
-                 << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
-                 << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
-                 << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n";
-        }
-
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
-        pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
-             << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
-             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx) << "\n"
-             << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx) << "\n"
-             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
-        if (dump_viz_data && uses_visit)
-        {
-            time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
-        }
-
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
@@ -342,8 +270,8 @@ main(int argc, char* argv[])
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return 0;
-} // main
+    return true;
+} // run_example
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
