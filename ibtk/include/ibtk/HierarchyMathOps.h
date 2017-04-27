@@ -1148,7 +1148,7 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
                           int src_idx,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
-    
+
     /*!
      * \brief Compute the cell-centered strain rate of a side-centered vector field
      * using centered differences.
@@ -1163,8 +1163,8 @@ public:
      */
     void strain(int dst1_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst1_var,
-	        int dst2_idx,
-	        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst2_var,
+                int dst2_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst2_var,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -1181,12 +1181,12 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-     void strain(int dst_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-                 int src_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
-                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                 double src_ghost_fill_time);
+    void strain(int dst_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                int src_idx,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
+                SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                double src_ghost_fill_time);
 
 private:
     /*!

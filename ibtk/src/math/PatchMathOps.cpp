@@ -1101,11 +1101,10 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
                           const double* dx);
 #endif
 
-
 void S_TO_C_STRAIN_FC(double* E_diag,
                       const int& E_diag_gcw,
-		      double* E_offDiag,
-		      const int& E_offDiag_gcw,
+                      double* E_offDiag,
+                      const int& E_offDiag_gcw,
                       const double* u0,
                       const double* u1,
 #if (NDIM == 3)
@@ -1121,7 +1120,6 @@ void S_TO_C_STRAIN_FC(double* E_diag,
                       const int& iupper2,
 #endif
                       const double* dx);
-
 
 #if (NDIM == 2)
 void N_TO_S_ROT_FC(double* w0,
@@ -6958,7 +6956,7 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
 
 void
 PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
-		     Pointer<CellData<NDIM, double> > dst2,
+                     Pointer<CellData<NDIM, double> > dst2,
                      const Pointer<SideData<NDIM, double> > src,
                      const Pointer<Patch<NDIM> > patch) const
 {
@@ -6967,7 +6965,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 
     double* const E_diag = dst1->getPointer();
     const int E_diag_ghosts = (dst1->getGhostCellWidth()).max();
-    
+
     double* const E_offDiag = dst2->getPointer();
     const int E_offDiag_ghosts = (dst2->getGhostCellWidth()).max();
 
@@ -6987,7 +6985,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
                    << "  dst1 does not have uniform ghost cell widths"
                    << std::endl);
     }
-    
+
     if (E_offDiag_ghosts != (dst2->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::strain():\n"
@@ -7008,7 +7006,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
                    << "  src == dst1."
                    << std::endl);
     }
-    
+
     if (src == dst2)
     {
         TBOX_ERROR("PatchMathOps::strain():\n"
@@ -7049,7 +7047,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
                    << "  dst1 and src must live on the same patch"
                    << std::endl);
     }
-    
+
     if (patch_box != dst2->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain():\n"
@@ -7067,7 +7065,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 
     S_TO_C_STRAIN_FC(E_diag,
                      E_diag_ghosts,
-		     E_offDiag,
+                     E_offDiag,
                      E_offDiag_ghosts,
                      u0,
                      u1,
@@ -7079,7 +7077,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
                      patch_box.upper(0),
                      patch_box.lower(1),
                      patch_box.upper(1),
-#if (NDIM == 3)  
+#if (NDIM == 3)
                      patch_box.lower(2),
                      patch_box.upper(2),
 #endif
@@ -7139,7 +7137,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    if ((E_depth != NDIM*(NDIM+1) / 2) && (E_depth != NDIM*NDIM))
+    if ((E_depth != NDIM * (NDIM + 1) / 2) && (E_depth != NDIM * NDIM))
     {
         TBOX_ERROR("PatchMathOps::strain():\n"
                    << "  dst has incorrect depth"
@@ -7160,7 +7158,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
                    << std::endl);
     }
 #endif
-    if (E_depth == NDIM*(NDIM+1) / 2)
+    if (E_depth == NDIM * (NDIM + 1) / 2)
     {
         double* const E_diag = dst->getPointer(0);
         double* const E_offDiag = dst->getPointer(NDIM);
@@ -7184,11 +7182,12 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
 #endif
                          dx);
     }
-    else if(E_depth == NDIM*NDIM)
+    else if (E_depth == NDIM * NDIM)
     {
-        
-        Pointer<CellData<NDIM, double> > E_diag = new CellData<NDIM, double>(patch_box, NDIM, IntVector<NDIM>(E_ghosts));
-        Pointer<CellData<NDIM, double> > E_offDiag = new CellData<NDIM, double>(patch_box, NDIM == 2 ? 1 : 3, IntVector<NDIM>(E_ghosts));
+        Pointer<CellData<NDIM, double> > E_diag =
+            new CellData<NDIM, double>(patch_box, NDIM, IntVector<NDIM>(E_ghosts));
+        Pointer<CellData<NDIM, double> > E_offDiag =
+            new CellData<NDIM, double>(patch_box, NDIM == 2 ? 1 : 3, IntVector<NDIM>(E_ghosts));
 
         S_TO_C_STRAIN_FC(E_diag->getPointer(),
                          E_ghosts,
@@ -7210,21 +7209,21 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
 #endif
                          dx);
 #if (NDIM == 2)
-        dst->copyDepth(0,*E_diag,0);
-        dst->copyDepth(1,*E_offDiag,0);
-        dst->copyDepth(2,*E_offDiag,0);
-        dst->copyDepth(3,*E_diag,1);
+        dst->copyDepth(0, *E_diag, 0);
+        dst->copyDepth(1, *E_offDiag, 0);
+        dst->copyDepth(2, *E_offDiag, 0);
+        dst->copyDepth(3, *E_diag, 1);
 #endif
 #if (NDIM == 3)
-        dst->copyDepth(0,*E_diag,0);
-        dst->copyDepth(1,*E_offDiag,2);
-        dst->copyDepth(2,*E_offDiag,1);
-        dst->copyDepth(3,*E_offDiag,2);
-        dst->copyDepth(4,*E_diag,1);
-        dst->copyDepth(5,*E_offDiag,0);
-        dst->copyDepth(6,*E_offDiag,1);
-        dst->copyDepth(7,*E_offDiag,0);
-        dst->copyDepth(8,*E_diag,2);
+        dst->copyDepth(0, *E_diag, 0);
+        dst->copyDepth(1, *E_offDiag, 2);
+        dst->copyDepth(2, *E_offDiag, 1);
+        dst->copyDepth(3, *E_offDiag, 2);
+        dst->copyDepth(4, *E_diag, 1);
+        dst->copyDepth(5, *E_offDiag, 0);
+        dst->copyDepth(6, *E_offDiag, 1);
+        dst->copyDepth(7, *E_offDiag, 0);
+        dst->copyDepth(8, *E_diag, 2);
 #endif
     }
     return;
