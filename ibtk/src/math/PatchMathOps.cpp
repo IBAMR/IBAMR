@@ -6955,10 +6955,10 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
-                     Pointer<CellData<NDIM, double> > dst2,
-                     const Pointer<SideData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
+                          Pointer<CellData<NDIM, double> > dst2,
+                          const Pointer<SideData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -6981,35 +6981,35 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 #if !defined(NDEBUG)
     if (E_diag_ghosts != (dst1->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst1 does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (E_offDiag_ghosts != (dst2->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst2 does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (src == dst1)
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src == dst1."
                    << std::endl);
     }
 
     if (src == dst2)
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src == dst2."
                    << std::endl);
     }
@@ -7019,7 +7019,7 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src has insufficient ghost cell width"
                    << std::endl);
     }
@@ -7036,28 +7036,28 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 #endif
                 )
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst2 has incorrect depth"
                    << std::endl);
     }
 
     if (patch_box != dst1->getBox())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst1 and src must live on the same patch"
                    << std::endl);
     }
 
     if (patch_box != dst2->getBox())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst2 and src must live on the same patch"
                    << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst and src must live on the same patch"
                    << std::endl);
     }
@@ -7086,9 +7086,9 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst1,
 } // strain
 
 void
-PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
-                     const Pointer<SideData<NDIM, double> > src,
-                     const Pointer<Patch<NDIM> > patch) const
+PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
+                          const Pointer<SideData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -7108,21 +7108,21 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
 #if !defined(NDEBUG)
     if (E_ghosts != (dst->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (u_ghosts != (src->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (src == dst)
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src == dst."
                    << std::endl);
     }
@@ -7132,28 +7132,28 @@ PatchMathOps::strain(Pointer<CellData<NDIM, double> > dst,
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  src has insufficient ghost cell width."
                    << std::endl);
     }
 
     if ((E_depth != NDIM * (NDIM + 1) / 2) && (E_depth != NDIM * NDIM))
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst has incorrect depth"
                    << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst and src must live on same patch."
                    << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
-        TBOX_ERROR("PatchMathOps::strain():\n"
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
                    << "  dst and src must live on same patch."
                    << std::endl);
     }
