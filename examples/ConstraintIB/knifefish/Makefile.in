@@ -87,8 +87,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_1)
+EXTRA_PROGRAMS = $(am__EXEEXT_5)
 @SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_2 = test3d
+@SAMRAI3D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
 subdir = examples/ConstraintIB/knifefish
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -98,6 +100,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -118,9 +121,14 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 = main3d$(EXEEXT)
-am__objects_1 = main3d-main.$(OBJEXT) \
-	main3d-KnifeFishKinematics.$(OBJEXT)
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 =  \
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	test3d$(EXEEXT)
+am__EXEEXT_2 = $(am__EXEEXT_1)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_3 = main3d$(EXEEXT)
+am__EXEEXT_4 = $(am__EXEEXT_3)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_2) $(am__EXEEXT_4)
+am__objects_1 = main3d-KnifeFishKinematics.$(OBJEXT) \
+	main3d-ex_main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_1)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
@@ -130,6 +138,14 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_2 = test3d-KnifeFishKinematics.$(OBJEXT) \
+	test3d-test_main.$(OBJEXT)
+am_test3d_OBJECTS = $(am__objects_2)
+test3d_OBJECTS = $(am_test3d_OBJECTS)
+test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -165,7 +181,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-DIST_SOURCES = $(main3d_SOURCES)
+SOURCES = $(main3d_SOURCES) $(test3d_SOURCES)
+DIST_SOURCES = $(main3d_SOURCES) $(test3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -235,6 +252,7 @@ FLIBS = @FLIBS@
 GREP = @GREP@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -278,6 +296,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -350,6 +370,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
@@ -485,11 +506,17 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.cpp KnifeFishKinematics.cpp
-EXTRA_DIST = input3d KnifeFish.vertex RadiusAmp.dat
+EXAMPLE_DRIVER = KnifeFishKinematics.cpp ex_main.cpp
+GTEST_DRIVER = KnifeFishKinematics.cpp test_main.cpp
+EXTRA_DIST = input3d input3d.test KnifeFish.vertex RadiusAmp.dat
+GTESTS = $(am__append_2)
+EXAMPLES = $(am__append_1)
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = $(SOURCES)
+main3d_SOURCES = $(EXAMPLE_DRIVER)
+test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -529,6 +556,10 @@ main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDE
 	@rm -f main3d$(EXEEXT)
 	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
+test3d$(EXEEXT): $(test3d_OBJECTS) $(test3d_DEPENDENCIES) $(EXTRA_test3d_DEPENDENCIES) 
+	@rm -f test3d$(EXEEXT)
+	$(AM_V_CXXLD)$(test3d_LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -536,7 +567,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-KnifeFishKinematics.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-KnifeFishKinematics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -562,20 +595,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-main3d-main.o: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-
-main3d-main.obj: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.obj -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-
 main3d-KnifeFishKinematics.o: KnifeFishKinematics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-KnifeFishKinematics.o -MD -MP -MF $(DEPDIR)/main3d-KnifeFishKinematics.Tpo -c -o main3d-KnifeFishKinematics.o `test -f 'KnifeFishKinematics.cpp' || echo '$(srcdir)/'`KnifeFishKinematics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-KnifeFishKinematics.Tpo $(DEPDIR)/main3d-KnifeFishKinematics.Po
@@ -589,6 +608,48 @@ main3d-KnifeFishKinematics.obj: KnifeFishKinematics.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='KnifeFishKinematics.cpp' object='main3d-KnifeFishKinematics.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-KnifeFishKinematics.obj `if test -f 'KnifeFishKinematics.cpp'; then $(CYGPATH_W) 'KnifeFishKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/KnifeFishKinematics.cpp'; fi`
+
+main3d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.o -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+
+main3d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+
+test3d-KnifeFishKinematics.o: KnifeFishKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-KnifeFishKinematics.o -MD -MP -MF $(DEPDIR)/test3d-KnifeFishKinematics.Tpo -c -o test3d-KnifeFishKinematics.o `test -f 'KnifeFishKinematics.cpp' || echo '$(srcdir)/'`KnifeFishKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-KnifeFishKinematics.Tpo $(DEPDIR)/test3d-KnifeFishKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='KnifeFishKinematics.cpp' object='test3d-KnifeFishKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-KnifeFishKinematics.o `test -f 'KnifeFishKinematics.cpp' || echo '$(srcdir)/'`KnifeFishKinematics.cpp
+
+test3d-KnifeFishKinematics.obj: KnifeFishKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-KnifeFishKinematics.obj -MD -MP -MF $(DEPDIR)/test3d-KnifeFishKinematics.Tpo -c -o test3d-KnifeFishKinematics.obj `if test -f 'KnifeFishKinematics.cpp'; then $(CYGPATH_W) 'KnifeFishKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/KnifeFishKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-KnifeFishKinematics.Tpo $(DEPDIR)/test3d-KnifeFishKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='KnifeFishKinematics.cpp' object='test3d-KnifeFishKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-KnifeFishKinematics.obj `if test -f 'KnifeFishKinematics.cpp'; then $(CYGPATH_W) 'KnifeFishKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/KnifeFishKinematics.cpp'; fi`
+
+test3d-test_main.o: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.o -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+
+test3d-test_main.obj: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.obj -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -804,12 +865,31 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXTRA_PROGRAMS)
+examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/KnifeFish.vertex $(PWD) ; \
 	  cp -f $(srcdir)/RadiusAmp.dat $(PWD) ; \
 	fi ;
+
+@GTEST_ENABLED_TRUE@gtest: $(GTESTS)
+@GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input3d.test $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/KnifeFish.vertex $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/RadiusAmp.dat $(PWD) ; \
+@GTEST_ENABLED_TRUE@	fi ;
+
+@GTEST_ENABLED_TRUE@gtest-long:
+@GTEST_ENABLED_TRUE@	make gtest
+
+@GTEST_ENABLED_FALSE@gtest:
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "
+@GTEST_ENABLED_FALSE@	@echo " Configure IBAMR with additional options:                            "
+@GTEST_ENABLED_FALSE@	@echo "                      --enable-gtest --with-gtest=path               "
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@gtest-long:
+@GTEST_ENABLED_FALSE@	make gtest
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)

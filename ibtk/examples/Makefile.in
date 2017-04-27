@@ -97,6 +97,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_doxygen.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -248,6 +249,7 @@ HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -291,6 +293,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -363,6 +367,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
@@ -829,6 +834,30 @@ examples:
 	@(cd SCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd SCPoisson   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd VCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+
+gtest:
+	@(cd CCLaplace   && make gtest) || exit 1;
+	@(cd CCPoisson   && make gtest) || exit 1;
+	@(cd PETScOps    && make gtest) || exit 1;
+	@(cd SCLaplace   && make gtest) || exit 1;
+	@(cd SCPoisson   && make gtest) || exit 1;
+	@(cd VCLaplace   && make gtest) || exit 1;
+
+gtest-long:
+	@(cd CCLaplace   && make gtest) || exit 1;
+	@(cd CCPoisson   && make gtest) || exit 1;
+	@(cd PETScOps    && make gtest) || exit 1;
+	@(cd SCLaplace   && make gtest-long) || exit 1;
+	@(cd SCPoisson   && make gtest-long) || exit 1;
+	@(cd VCLaplace   && make gtest-long) || exit 1;
+
+gtest-all:
+	@(cd CCLaplace   && make gtest-long) || exit 1;
+	@(cd CCPoisson   && make gtest-long) || exit 1;
+	@(cd PETScOps    && make gtest-long) || exit 1;
+	@(cd SCLaplace   && make gtest-long) || exit 1;
+	@(cd SCPoisson   && make gtest-long) || exit 1;
+	@(cd VCLaplace   && make gtest-long) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

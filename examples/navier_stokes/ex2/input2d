@@ -13,17 +13,17 @@ DX_FINEST = L/NFINEST                         // grid spacing on finest grid lev
 
 // solver parameters
 SOLVER_TYPE        = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
+U_MAX              = 1.0                      // maximum flow speed
+CFL_MAX            = 0.3                      // maximum CFL number
+DT_MAX             = CFL_MAX*DX_FINEST/U_MAX  // maximum timestep size corresponding to specified CFL number
 START_TIME         = 0.0e0                    // initial simulation time
-END_TIME           = 500.0                    // final simulation time
+END_TIME           = 100*DT_MAX               // final simulation time
 GROW_DT            = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES         = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"        // convective time stepping type
 CONVECTIVE_OP_TYPE = "PPM"                    // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"              // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                     // whether to explicitly force the pressure to have mean zero
-U_MAX              = 1.0                      // maximum flow speed
-CFL_MAX            = 0.3                      // maximum CFL number
-DT_MAX             = CFL_MAX*DX_FINEST/U_MAX  // maximum timestep size corresponding to specified CFL number
 VORTICITY_TAGGING  = TRUE                     // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                        // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL    = int(1/CFL_MAX)           // how frequently to regrid the patch hierarchy

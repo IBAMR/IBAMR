@@ -105,6 +105,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_doxygen.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -868,6 +869,7 @@ HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -911,6 +913,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -983,6 +987,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
