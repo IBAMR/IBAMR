@@ -565,6 +565,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     d_U_src_var = new SideVariable<NDIM, double>(d_object_name + "::U_src");
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
+    d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
     return;
 } // INSStaggeredHierarchyIntegrator
 
@@ -970,6 +971,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         if (d_output_Div_U)
         {
             d_visit_writer->registerPlotQuantity("Div U", "SCALAR", d_Div_U_idx, 0, d_Div_U_scale);
+        }
+
+        if (d_output_EE)
+        {
+            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getCurrentContext());
+            d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
         }
     }
 
@@ -2083,6 +2090,27 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     {
         d_hier_math_ops->div(
             d_Div_U_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
+    }
+
+    // Compute EE = 0.5*(grad u + grad u^T).
+    if (d_output_EE)
+    {
+        const int EE_idx = var_db->mapVariableAndContextToIndex(d_EE_var, ctx);
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
+        }
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        d_U_bdry_bc_fill_op->fillData(d_integrator_time);
+        d_hier_math_ops->strain_rate(EE_idx, d_EE_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
     }
     return;
 } // setupPlotDataSpecialized

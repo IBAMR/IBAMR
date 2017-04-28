@@ -641,6 +641,25 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
+    /*!
+     * \brief Computes dst1 = strain src (diagonal), and dst2 = strain src (off diagonal).
+     *
+     * Uses centered differences.
+     */
+    void strain_rate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst1,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst2,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = strain src.
+     *
+     * Uses centered differences.
+     */
+    void strain_rate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
     //\}
 
 private:
