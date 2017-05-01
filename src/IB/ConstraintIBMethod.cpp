@@ -169,6 +169,8 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_FuRMoRP_current_time(0.0),
       d_FuRMoRP_new_time(0.0),
       d_vol_element(d_no_structures, 0.0),
+      d_vol_structure(d_no_structures, 0.0),
+      d_linear_mom_structure(d_no_structures, std::vector<double>(3, 0.0)),
       d_needs_div_free_projection(false),
       d_rigid_trans_vel_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_rigid_trans_vel_new(d_no_structures, std::vector<double>(3, 0.0)),
@@ -451,6 +453,7 @@ ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double n
     if (d_output_torque) calculateTorque();
     if (d_output_eul_mom) calculateEulerianMomentum();
     if (d_output_power) calculatePower();
+    calculateLinearMomentumStructure();
 
     IBTK_TIMER_STOP(t_postprocessSolveFluidEquation);
 
@@ -619,6 +622,10 @@ ConstraintIBMethod::putToDatabase(Pointer<Database> db)
         volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
         db->putDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
 
+        std::ostringstream volstructureidentifier;
+        volstructureidentifier << "VOL_STRUCT_" << struct_no;
+        db->putDoubleArray(volstructureidentifier.str(), &d_vol_structure[0], d_no_structures);
+
         std::ostringstream rigvelidentifier, rigomegaidentifier;
         rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
         rigomegaidentifier << "OMEGA_COM_RIG_STRUCT_" << struct_no;
@@ -774,6 +781,10 @@ ConstraintIBMethod::getFromRestart()
         std::ostringstream volelementidentifier;
         volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
         db->getDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
+
+        std::ostringstream volstructureidentifier;
+        volstructureidentifier << "VOL_STRUCT_" << struct_no;
+        db->getDoubleArray(volstructureidentifier.str(), &d_vol_structure[0], d_no_structures);
 
         std::ostringstream rigvelidentifier, rigomegaidentifier;
         rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
@@ -1340,7 +1351,7 @@ ConstraintIBMethod::calculateVolumeElement()
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
     SAMRAI_MPI::sumReduction(&d_vol_element[0], d_no_structures);
-    std::vector<double> vol_structures = d_vol_element;
+    d_vol_structure = d_vol_element;
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1351,14 +1362,16 @@ ConstraintIBMethod::calculateVolumeElement()
         tbox::plog << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
-                   << " VOLUME OF THE STRUCTURE                  = " << vol_structures[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << std::endl;
+                   << " VOLUME OF THE STRUCTURE                  = " << d_vol_structure[struct_no] << "\n"
+                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << std::endl;
 
         tbox::pout << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
-                   << " VOLUME OF THE STRUCTURE                  = " << vol_structures[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << std::endl;
+                   << " VOLUME OF THE STRUCTURE                  = " << d_vol_structure[struct_no] << "\n"
+                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << std::endl;
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2416,7 +2429,7 @@ ConstraintIBMethod::calculateTorque()
                     R_cross_U_constraint[2] = (x * (U_correction[1]) - y * (U_correction[0]));
 #endif
 
-                    for (int d = 0; d < NDIM; ++d)
+                    for (int d = 0; d < 3; ++d)
                     {
                         inertia_torque[location_struct_handle][d] += R_cross_U_inertia[d];
                         constraint_torque[location_struct_handle][d] += R_cross_U_constraint[d];
@@ -2428,12 +2441,11 @@ ConstraintIBMethod::calculateTorque()
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
     }
-
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         SAMRAI_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
         SAMRAI_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
-        for (int d = 0; d < NDIM; ++d)
+        for (int d = 0; d < 3; ++d)
         {
             inertia_torque[struct_no][d] *= (d_rho_fluid / dt) * d_vol_element[struct_no];
             constraint_torque[struct_no][d] *= (d_rho_fluid / dt);
@@ -2536,5 +2548,63 @@ ConstraintIBMethod::calculatePower()
 
     return;
 } // calculatePower
+
+void
+ConstraintIBMethod::calculateLinearMomentumStructure()
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
+        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+
+        // Get structures on this level.
+        const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
+        const size_t structs_on_this_ln = structIDs.size();
+
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        {
+            std::pair<int, int> lag_idx_range =
+                d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
+            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            const int location_struct_handle =
+                find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
+
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            {
+                const LNode* const node_idx = *cit;
+                const int lag_idx = node_idx->getLagrangianIndex();
+                if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
+                {
+                    const int local_idx = node_idx->getLocalPETScIndex();
+                    const double* const U_new = &U_new_data[local_idx][0];
+
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        d_linear_mom_structure[location_struct_handle][d] += U_new[d];
+                    }
+                }
+            }
+        } // all structs
+        d_l_data_U_new[ln]->restoreArrays();
+    }
+
+    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+    {
+        SAMRAI_MPI::sumReduction(&d_linear_mom_structure[struct_no][0], 3);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            d_linear_mom_structure[struct_no][d] *= d_rho_fluid * d_vol_element[struct_no];
+        }
+    }
+
+    return;
+} // calculateLinearMomentumStructure
 
 } // IBAMR
