@@ -70,7 +70,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 void
-COMTransVelocity(const double time, Eigen::Vector3d& trans_vel)
+COMTransVelocity(const double time, IBTK::Vector3d& trans_vel)
 {
     trans_vel.setZero();
     trans_vel[0] = 1.0;
@@ -252,16 +252,29 @@ run_example(int argc, char* argv[])
         double mu_fluid = input_db->getDouble("MU");
         Pointer<IBHydrodynamicForceEvaluator> hydro_force =
             new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
-        Eigen::Vector3d box_X_lower, box_X_upper, box_init_vel;
-        box_X_lower << -2.0, -1.0, 0.0;
-        box_X_upper << 2.0, 1.0, 0.0;
-        box_init_vel.setZero();
-        hydro_force->registerStructure(0, box_init_vel, box_X_lower, box_X_upper, patch_hierarchy);
-        hydro_force->registerStructurePlotData(0, visit_data_writer, patch_hierarchy);
+
+        // Get the initial box position and velocity from input
+        const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
+        SAMRAI::tbox::Array<double> box_X_lower_array, box_X_upper_array, box_init_vel_array;
+        IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
+
+        box_X_lower_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner");
+        box_X_upper_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner");
+        box_init_vel_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity");
+        for (int d = 0; d < 3; ++d)
+        {
+            box_X_lower[d] = box_X_lower_array[d];
+            box_X_upper[d] = box_X_upper_array[d];
+            box_init_vel[d] = box_init_vel_array[d];
+        }
+        hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Get the center of mass of the plate
-        Eigen::Vector3d Plate_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCOMStructure();
+        IBTK::Vector3d Plate_COM;
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+
+        // Register optional plot data
+        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -277,17 +290,11 @@ run_example(int argc, char* argv[])
 
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
-        const Pointer<VariableContext> u_scratch_ctx = navier_stokes_integrator->getScratchContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, u_scratch_ctx);
-        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_scratch_idx);
 
         const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
-        const Pointer<VariableContext> p_scratch_ctx = navier_stokes_integrator->getScratchContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-        const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, p_scratch_ctx);
-        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_scratch_idx);
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -324,12 +331,11 @@ run_example(int argc, char* argv[])
             if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
 
             // Set the box velocity to nonzero only if the plate has moved sufficiently far
-            Eigen::Vector3d box_vel;
+            IBTK::Vector3d box_vel;
             box_vel.setZero();
             COMTransVelocity(current_time, box_vel);
 
-            int coarsest_ln = 0;
-            int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            const int coarsest_ln = 0;
             Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
             const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
@@ -347,45 +353,11 @@ run_example(int argc, char* argv[])
             }
 
             // Update the location of the box for time n + 1
-            hydro_force->updateStructureDomain(0, dt, box_vel, patch_hierarchy);
-
-            // Get the current velocity at the newest hierarchy
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
-            }
-
-            // Get the current velocity variable.
-            Pointer<HierarchyMathOps> hier_math_ops_current = time_integrator->getHierarchyMathOps();
-
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops_current(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_sc_data_ops_current.copyData(u_cloned_idx, u_idx, true);
-
-            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-                InterpolationTransactionComponent;
-            std::vector<InterpolationTransactionComponent> transaction_comps_current(1);
-            const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bcs_integrator_current =
-                navier_stokes_integrator->getVelocityBoundaryConditions();
-
-            transaction_comps_current[0] =
-                InterpolationTransactionComponent(u_cloned_idx,
-                                                  u_idx,
-                                                  /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                  /*USE_CF_INTERPOLATION*/ true,
-                                                  /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                  /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                  /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                  u_bcs_integrator_current,
-                                                  Pointer<VariableFillPattern<NDIM> >(NULL));
-
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill_current = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill_current->initializeOperatorState(transaction_comps_current, patch_hierarchy);
-            hier_bdry_fill_current->setHomogeneousBc(false);
-            hier_bdry_fill_current->fillData(current_time);
+            hydro_force->updateStructureDomain(box_vel, dt, patch_hierarchy, 0);
 
             // Compute the momentum of u^n in box n+1 on the newest hierarchy
-            hydro_force->computeLaggedMomentumIntegral(u_cloned_idx, patch_hierarchy, coarsest_ln, finest_ln);
+            hydro_force->computeLaggedMomentumIntegral(
+                u_idx, patch_hierarchy, navier_stokes_integrator->getVelocityBoundaryConditions());
 
             // Advance the hierarchy
             time_integrator->advanceHierarchy(dt);
@@ -396,90 +368,42 @@ run_example(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-	    // Fill ghost cells of pressure and velocity to compute hydrodynamic forces.
-            coarsest_ln = 0;
-            finest_ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
-                if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
-            }
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_sc_data_ops.copyData(u_cloned_idx, u_idx, true);
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.copyData(p_cloned_idx, p_idx);
-
-            typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-                InterpolationTransactionComponent;
-            std::vector<InterpolationTransactionComponent> transaction_comps(2);
-            const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bcs_integrator =
-                navier_stokes_integrator->getVelocityBoundaryConditions();
-            INSStaggeredPressureBcCoef* p_bc_integrator =
-                dynamic_cast<INSStaggeredPressureBcCoef*>(navier_stokes_integrator->getPressureBoundaryConditions());
-#if !defined(NDEBUG)
-            TBOX_ASSERT(p_bc_integrator);
-#endif
-            p_bc_integrator->setTargetVelocityPatchDataIndex(u_cloned_idx);
-            transaction_comps[0] = InterpolationTransactionComponent(u_cloned_idx,
-                                                                     u_idx,
-                                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                     /*USE_CF_INTERPOLATION*/ true,
-                                                                     /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                     u_bcs_integrator,
-                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
-            transaction_comps[1] = InterpolationTransactionComponent(p_cloned_idx,
-                                                                     p_idx,
-                                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                     /*USE_CF_INTERPOLATION*/ true,
-                                                                     /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                     p_bc_integrator,
-                                                                     Pointer<VariableFillPattern<NDIM> >(NULL));
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
-            hier_bdry_fill->setHomogeneousBc(false);
-            hier_bdry_fill->fillData(new_time);
-
             // Get the momentum of the plate
-            Eigen::Vector3d Plate_mom, Plate_ang_mom;
+            IBTK::Vector3d Plate_mom, Plate_ang_mom;
             Plate_mom.setZero();
             Plate_ang_mom.setZero();
 
-            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getLinearMomentumStructure();
+            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getStructureMomentum();
             for (int d = 0; d < 3; ++d) Plate_mom[d] = structure_linear_momentum[0][d];
 
             std::vector<std::vector<double> > structure_rotational_momentum =
-                ib_method_ops->getRotationalMomentumStructure();
+                ib_method_ops->getStructureRotationalMomentum();
             for (int d = 0; d < 3; ++d) Plate_ang_mom[d] = structure_rotational_momentum[0][d];
 
             // Store the new momenta of the plate
-            hydro_force->updateStructureMomentum(0, Plate_mom, Plate_ang_mom);
+            hydro_force->updateStructureMomentum(Plate_mom, Plate_ang_mom, 0);
 
-            hydro_force->computeHydrodynamicForce(u_cloned_idx,
-                                                  p_cloned_idx,
+            // Evaluate hydrodynamic force on the eel.
+            hydro_force->computeHydrodynamicForce(u_idx,
+                                                  p_idx,
                                                   /*f_idx*/ -1,
                                                   patch_hierarchy,
-                                                  coarsest_ln,
-                                                  finest_ln,
-                                                  dt);
+                                                  dt,
+                                                  navier_stokes_integrator->getVelocityBoundaryConditions(),
+                                                  navier_stokes_integrator->getPressureBoundaryConditions());
 
             // Write the force data in a file.
             hydro_force->postprocessIntegrateData(current_time, new_time);
 
             // Update the plotting data for the CV
-            hydro_force->updateStructurePlotData(0, patch_hierarchy);
+            hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getCOMStructure();
+            structure_COM = ib_method_ops->getStructureCOM();
             for (int d = 0; d < 3; ++d) Plate_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM
-            hydro_force->setTorqueOrigin(0, Plate_COM);
+            hydro_force->setTorqueOrigin(Plate_COM, 0);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post

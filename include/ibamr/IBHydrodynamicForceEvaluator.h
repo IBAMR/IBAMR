@@ -39,9 +39,11 @@
 #include "Box.h"
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+#include "RobinBcCoefStrategy.h"
 #include "tbox/Serializable.h"
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/ibtk_utilities.h>
 
 namespace IBTK
 {
@@ -59,6 +61,11 @@ namespace tbox
 template <class TYPE>
 class Pointer;
 } // namespace tbox
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -75,7 +82,8 @@ namespace IBAMR
  * Flavio Noca, <A HREF="http://thesis.library.caltech.edu/3081/1/Noca_f_1997.pdf">On the evaluation
  * of time-dependent fluid-dynamic forces on bluff bodies.</A>
  *
- * Nangia et al. A moving control volume approach to computing hydrodynamic forces and
+ * Nangia et al., <A HREF="https://arxiv.org/pdf/1704.00239.pdf">A moving control volume approach to computing
+ * hydrodynamic forces and
  * torques on immersed bodies.
  *
  * \note  The Cartesian box should enclose the body entirely.
@@ -90,10 +98,12 @@ public:
      *
      * \param rho Fluid/structure density.
      * \param mu Fluid Viscosity.
+     * \param current_time Current integration time.
      */
     IBHydrodynamicForceEvaluator(const std::string& object_name,
                                  double rho,
                                  double mu,
+                                 double current_time,
                                  bool register_for_restart = true);
 
     /*!
@@ -107,24 +117,24 @@ public:
         int strct_id;
 
         // Force, torque, and momentum of the body.
-        Eigen::Vector3d F_current, T_current, P_current, L_current;
-        Eigen::Vector3d F_new, T_new, P_new, L_new;
+        IBTK::Vector3d F_current, T_current, P_current, L_current;
+        IBTK::Vector3d F_new, T_new, P_new, L_new;
 
         // Origin of the r vector from which torque is calculated
-        Eigen::Vector3d r0;
+        IBTK::Vector3d r0;
 
         // Momentum of the box
-        Eigen::Vector3d P_box_current, L_box_current;
-        Eigen::Vector3d P_box_new, L_box_new;
+        IBTK::Vector3d P_box_current, L_box_current;
+        IBTK::Vector3d P_box_new, L_box_new;
 
         // Velocity of the box
-        Eigen::Vector3d box_u_current, box_u_new;
+        IBTK::Vector3d box_u_current, box_u_new;
 
         // Integration domain.
-        Eigen::Vector3d box_X_lower_current, box_X_upper_current;
-        Eigen::Vector3d box_X_lower_new, box_X_upper_new;
-	
-	// Box volume (area in 2D)
+        IBTK::Vector3d box_X_lower_current, box_X_upper_current;
+        IBTK::Vector3d box_X_lower_new, box_X_upper_new;
+
+        // Box volume (area in 2D)
 	double box_vol_current, box_vol_new;
 
         // Indicator variable index of the control volume for plotting
@@ -139,50 +149,49 @@ public:
      * \brief Register structure ID, level number, and integration domain
      * with the class.
      *
-     * \param strct_id A unique integer id to associate with an integration domain.
-     *
-     * \param box_vel Initial (typically at time = 0) velocity of the integration
-     *  domain in three Cartesian directions.
-     *
      * \param box_X_lower Initial (typically at time = 0) position of lower left
      * corner of the integration domain.
      *
      * \param box_X_upper Initial (typically at time = 0) position of upper right
      * corner of the integration domain.
+     *
+     * \param box_vel Initial (typically at time = 0) velocity of the integration
+     *  domain in three Cartesian directions.
+     *
+     * \param strct_id A unique integer id to associate with an integration domain.
      */
-    void registerStructure(int strct_id,
-                           const Eigen::Vector3d& box_vel,
-                           Eigen::Vector3d& box_X_lower,
-                           Eigen::Vector3d& box_X_upper,
-			   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void registerStructure(IBTK::Vector3d& box_X_lower,
+                           IBTK::Vector3d& box_X_upper,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                           const IBTK::Vector3d& box_vel = IBTK::Vector3d::Zero(),
+                           int strct_id = 0);
 
     /*!
      * \brief Update the domain of integration as a result of structure motion.
      * This should be called before computeLaggedMomentumIntegral to insure that the correct box is being used.
      *
-     * \param strct_id A unique integer id to associate with an integration domain.
+     * \param box_vel_new Velocity of the integration domain in three Cartesian directions
+     * during the time step.
      *
      * \param dt Time step from the integrator. Pass IBHierarchyIntegrator::getMaximumTimeStepSize() instead of
      * new_time - old_time to avoid floating point errors from subtraction
      *
-     * \param box_vel_new Velocity of the integration domain in three Cartesian directions
-     * during the time step.
+     * \param strct_id A unique integer id to associate with an integration domain.
      *
      */
-    void updateStructureDomain(int strct_id,
+    void updateStructureDomain(const IBTK::Vector3d& box_vel_new,
                                double dt,
-                               const Eigen::Vector3d& box_vel_new,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                               int strct_id = 0);
 
     /*!
      * \brief Set the origin of the position vector used to compute torques
      *
-     * \param strct_id A unique integer id to associate with an integration domain.
-     *
      * \param X0 A 3D vector corresponding to the origin of the position vector used to compute torques
      *
+     * \param strct_id A unique integer id to associate with an integration domain.
      */
-    void setTorqueOrigin(int strct_id, const Eigen::Vector3d& X0);
+    void setTorqueOrigin(const IBTK::Vector3d& X0, int strct_id = 0);
 
     /*!
      * \brief Preprocess data for the current timestep.
@@ -204,25 +213,30 @@ public:
      *
      * \param wgt_sc_idx Patch index of volume weights associated with faces.
      *
+     * \param u_src_bc_coef Velocity boundary condition object maintained by the integrator.
+     *
+     * \param p_src_bc_coef Pressure boundary condition object maintained by the integrator.
+     *
      */
 
     void computeLaggedMomentumIntegral(int u_old_idx,
                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                       int coarsest_ln,
-                                       int finest_ln);
+                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
+                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
 
     /*!
      * \brief Update the new momenta of the bodies within the structure.
      * This should be called after advancing the hierarchy.
      *
-     * \param strct_id A unique integer id to associate with an integration domain.
-     *
      * \param P_strct_new Linear momentum of the structure after the integration.
      *
      * \param L_strct_new Angular momentum of the structure after the integration.
+     *
+     * \param strct_id A unique integer id to associate with an integration domain.
      */
 
-    void updateStructureMomentum(int strct_id, const Eigen::Vector3d& P_strct_new, const Eigen::Vector3d& L_strct_new);
+    void
+    updateStructureMomentum(const IBTK::Vector3d& P_strct_new, const IBTK::Vector3d& L_strct_new, int strct_id = 0);
 
     /*!
      * \brief Compute hydrodynamic force.
@@ -236,14 +250,20 @@ public:
      *
      * \param dt Time step from the integrator. Pass IBHierarchyIntegrator::getMaximumTimeStepSize() instead of
      * new_time - old_time to avoid floating point errors from subtraction
+     *
+     * \param u_src_bc_coef Velocity boundary condition object maintained by the integrator.
+     *
+     * \param p_src_bc_coef Pressure boundary condition object maintained by the integrator.
+     *
      */
     virtual void computeHydrodynamicForce(int u_idx,
                                           int p_idx,
                                           int f_idx,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                          int coarsest_ln,
-                                          int finest_ln,
-                                          double dt);
+                                          double dt,
+                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
+                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
+                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = NULL);
 
     /*!
      * \brief Postprocess data for the next timestep.
@@ -260,17 +280,17 @@ public:
      *
      * \param strct_id A unique integer id to associate with an integration domain.
      */
-    void registerStructurePlotData(int strct_id,
-                                   SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void registerStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                   int strct_id = 0);
 
     /*!
      * \brief Update the plot variable for the new location of the control volume box
      *
      * \param strct_id A unique integer id to associate with an integration domain
      */
-    void updateStructurePlotData(int strct_id,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void updateStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                 int strct_id = 0);
 
 private:
     /*!
@@ -304,9 +324,19 @@ private:
     void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
+     * \brief Allocate and fill velocity and pressure patch data.
+     */
+    void fillPatchData(const int u_src_idx,
+                       const int p_src_idx,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef,
+                       const double fill_time);
+
+    /*!
      * \brief Compute the physical coordinate of a given side index
      */
-    void getPhysicalCoordinateFromSideIndex(Eigen::Vector3d& side_coord,
+    void getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                             const SAMRAI::pdat::SideIndex<NDIM> side_idx,
@@ -321,6 +351,18 @@ private:
      * \brief Fluid density and viscosity.
      */
     double d_rho, d_mu;
+
+    /*!
+     * \brief Current integrator time.
+     */
+    double d_current_time;
+
+    /*!
+     * \brief Fluid velocity and pressure with appropriate ghost width.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_var;
+    int d_u_idx, d_p_idx;
 
     /*!
      * \brief Patch data index for face weights.

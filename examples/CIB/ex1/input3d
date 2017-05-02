@@ -49,6 +49,19 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = FALSE
 ENABLE_LOGGING      = FALSE
 
+// Initial control volume parameters
+InitHydroForceBox_0 {
+   lower_left_corner  = 6.0, 6.0, 6.0
+   upper_right_corner = 26.0, 26.0, 26.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
+
+InitHydroForceBox_1 {
+   lower_left_corner  = 13.0, 13.0, 13.0
+   upper_right_corner = 19.0, 19.0, 19.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
+
 
 // AMR parameters
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid

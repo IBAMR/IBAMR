@@ -13,6 +13,13 @@ N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 32.0
 
+// Initial control volume parameters
+InitHydroForceBox_0 {
+   lower_left_corner  = -0.65, -0.65, 0.0
+   upper_right_corner = 0.65, 0.65, 0.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
+
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
@@ -100,8 +107,10 @@ ConstraintIBMethod {
    needs_divfree_projection = FALSE
    rho_fluid                = RHO
    mu_fluid                 = MU
-   compute_linear_mom       = TRUE            // default false
-   compute_rotational_mom   = TRUE            // default false
+   
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
    
    PrintOutput {
    print_output          = TRUE               //default false
