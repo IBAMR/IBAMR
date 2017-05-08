@@ -96,6 +96,9 @@
 #define LAGRANGIAN_IB_4_W8_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_interp2d, LAGRANGIAN_IB_4_W8_INTERP2D)
 #define LAGRANGIAN_IB_4_W8_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_spread2d, LAGRANGIAN_IB_4_W8_SPREAD2D)
 
+#define LAGRANGIAN_IB_5_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_5_interp2d, LAGRANGIAN_ib_5_INTERP2D)
+#define LAGRANGIAN_IB_5_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_5_spread2d, LAGRANGIAN_ib_5_SPREAD2D)
+
 #define LAGRANGIAN_IB_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_6_interp2d, LAGRANGIAN_IB_6_INTERP2D)
 #define LAGRANGIAN_IB_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_6_spread2d, LAGRANGIAN_IB_6_SPREAD2D)
 
@@ -141,6 +144,9 @@
 
 #define LAGRANGIAN_IB_4_W8_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_interp3d, LAGRANGIAN_IB_4_W8_INTERP3D)
 #define LAGRANGIAN_IB_4_W8_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_spread3d, LAGRANGIAN_IB_4_W8_SPREAD3D)
+
+#define LAGRANGIAN_IB_5_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_5_interp3d, LAGRANGIAN_ib_5_INTERP3D)
+#define LAGRANGIAN_IB_5_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_5_spread3d, LAGRANGIAN_ib_5_SPREAD3D)
 
 #define LAGRANGIAN_IB_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_6_interp3d, LAGRANGIAN_IB_6_INTERP3D)
 #define LAGRANGIAN_IB_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_6_spread3d, LAGRANGIAN_IB_6_SPREAD3D)
@@ -581,6 +587,66 @@ void LAGRANGIAN_IB_4_W8_SPREAD_FC(const double*,
 #endif
                                   double*);
 
+void LAGRANGIAN_IB_5_INTERP_FC(const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+#if (NDIM == 2)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+#endif
+#if (NDIM == 3)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+#endif
+                               const double*,
+                               const int*,
+                               const double*,
+                               const int&,
+                               const double*,
+                               double*);
+
+void LAGRANGIAN_IB_5_SPREAD_FC(const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+                               const int*,
+                               const double*,
+                               const int&,
+                               const double*,
+                               const double*,
+#if (NDIM == 2)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+#endif
+#if (NDIM == 3)
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+#endif
+                               double*);
+
 void LAGRANGIAN_IB_6_INTERP_FC(const double*,
                                const double*,
                                const double*,
@@ -880,6 +946,7 @@ void LAGRANGIAN_BSPLINE_6_SPREAD_FC(const double*,
                                     const int&,
 #endif
                                     double*);
+
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -941,6 +1008,7 @@ LEInteractor::getStencilSize(const std::string& kernel_fcn)
     if (kernel_fcn == "IB_3") return 4;
     if (kernel_fcn == "IB_4") return 4;
     if (kernel_fcn == "IB_4_W8") return 8;
+    if (kernel_fcn == "IB_5") return 6;
     if (kernel_fcn == "IB_6") return 6;
     if (kernel_fcn == "BSPLINE_3") return 4;
     if (kernel_fcn == "BSPLINE_4") return 4;
@@ -2968,6 +3036,38 @@ LEInteractor::interpolate(double* const Q_data,
                                      X_data,
                                      Q_data);
     }
+    else if (interp_fcn == "IB_5")
+    {
+        LAGRANGIAN_IB_5_INTERP_FC(dx,
+                                  x_lower,
+                                  x_upper,
+                                  q_depth,
+#if (NDIM == 2)
+                                  ilower(0),
+                                  iupper(0),
+                                  ilower(1),
+                                  iupper(1),
+                                  q_gcw(0),
+                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                  ilower(0),
+                                  iupper(0),
+                                  ilower(1),
+                                  iupper(1),
+                                  ilower(2),
+                                  iupper(2),
+                                  q_gcw(0),
+                                  q_gcw(1),
+                                  q_gcw(2),
+#endif
+                                  q_data,
+                                  &local_indices[0],
+                                  &periodic_shifts[0],
+                                  local_indices_size,
+                                  X_data,
+                                  Q_data);
+    }
     else if (interp_fcn == "IB_6")
     {
         LAGRANGIAN_IB_6_INTERP_FC(dx,
@@ -3425,6 +3525,38 @@ LEInteractor::spread(double* const q_data,
                                      q_gcw(2),
 #endif
                                      q_data);
+    }
+    else if (spread_fcn == "IB_5")
+    {
+        LAGRANGIAN_IB_5_SPREAD_FC(dx,
+                                  x_lower,
+                                  x_upper,
+                                  q_depth,
+                                  &local_indices[0],
+                                  &periodic_shifts[0],
+                                  local_indices_size,
+                                  X_data,
+                                  Q_data,
+#if (NDIM == 2)
+                                  ilower(0),
+                                  iupper(0),
+                                  ilower(1),
+                                  iupper(1),
+                                  q_gcw(0),
+                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                  ilower(0),
+                                  iupper(0),
+                                  ilower(1),
+                                  iupper(1),
+                                  ilower(2),
+                                  iupper(2),
+                                  q_gcw(0),
+                                  q_gcw(1),
+                                  q_gcw(2),
+#endif
+                                  q_data);
     }
     else if (spread_fcn == "IB_6")
     {
