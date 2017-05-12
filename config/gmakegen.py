@@ -32,6 +32,8 @@ class GMakefileGenerator(ConfigReader):
     ConfigReader.run(self)
     with file(os.path.join(self.archDir, 'gmakefile'), 'w') as f:
       self.framework.outputMakeMacro(f, 'PYTHON', sys.executable)
+      prog = self.framework.require('config.programs', None)
+      self.framework.outputMakeMacro(f, 'M4', prog.M4)
 
       self.framework.outputMakeMacro(f, 'PETSC_DIR',  os.environ['PETSC_DIR'])
       self.framework.outputMakeMacro(f, 'PETSC_ARCH', os.environ['PETSC_ARCH'])
