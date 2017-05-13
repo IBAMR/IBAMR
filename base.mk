@@ -99,9 +99,10 @@ srcs-ConstraintIB_eel2d.cpp :=
 #  IBFE_explicit_0 IBFE_explicit_1 IBFE_explicit_2 IBFE_explicit_3 IBFE_explicit_4 IBFE_explicit_5 IBFE_explicit_6 IBFE_explicit_7 IBFE_explicit_8
 #  IMP_explicit_0
 #  ConstraintIB_eel2d
+#  advect (no main())
 examples := IB_explicit_0 IB_explicit_1 IB_explicit_2 IB_explicit_3 IB_explicit_4 IB_explicit_5 IB_explicit_6 IB_implicit_0 IB_implicit_1 IB_implicit_2 \
-  adv_diff_0 adv_diff_1 adv_diff_2 advect \
-  navier_stokes_0 advect navier_stokes_1 advect navier_stokes_2 advect navier_stokes_3 advect navier_stokes_4 advect navier_stokes_5 navier_stokes_6 \
+  adv_diff_0 adv_diff_1 adv_diff_2 \
+  navier_stokes_0 navier_stokes_1 navier_stokes_2 navier_stokes_3 navier_stokes_4 navier_stokes_5 navier_stokes_6 \
 
 ##### Top level Rule #####
 all : $(libibamr) $(examples)
