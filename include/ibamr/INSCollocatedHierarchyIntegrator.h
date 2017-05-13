@@ -91,7 +91,7 @@ namespace IBAMR
  * projection method-based solver for the incompressible Navier-Stokes equations
  * on an AMR grid hierarchy.
  */
-class INSCollocatedHierarchyIntegrator : public INSHierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC INSCollocatedHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
     /*!

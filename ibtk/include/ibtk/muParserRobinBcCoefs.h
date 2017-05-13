@@ -39,6 +39,8 @@
 #include <string>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
@@ -82,7 +84,7 @@ namespace IBTK
  * linear solvers in IBTK are presently designed to support spatially and
  * temporally varying \em inhomogeneous boundary coefficients.
  */
-class muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!

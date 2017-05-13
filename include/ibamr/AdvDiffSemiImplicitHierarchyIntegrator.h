@@ -99,7 +99,7 @@ namespace IBAMR
  * \see SAMRAI::algs::TimeRefinementIntegrator
  * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
-class AdvDiffSemiImplicitHierarchyIntegrator : public AdvDiffHierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC AdvDiffSemiImplicitHierarchyIntegrator : public AdvDiffHierarchyIntegrator
 {
 public:
     /*!

@@ -422,7 +422,7 @@ namespace IBAMR
  ...
  \endverbatim
 */
-class IBStandardInitializer : public IBTK::LInitStrategy
+class PETSC_VISIBILITY_PUBLIC IBStandardInitializer : public IBTK::LInitStrategy
 {
 public:
     /*!

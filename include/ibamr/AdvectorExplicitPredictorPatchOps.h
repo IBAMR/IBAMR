@@ -37,6 +37,8 @@
 
 #include <string>
 
+#include <petscsys.h>
+
 #include "ibamr/ibamr_enums.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -100,7 +102,7 @@ namespace IBAMR
  *
  * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
+class PETSC_VISIBILITY_PUBLIC AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
