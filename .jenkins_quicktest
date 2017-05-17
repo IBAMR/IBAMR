@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+set -o pipefail
+export PETSC_DIR=$HOME/petsc/petsc-master
+export PETSC_ARCH=linux-debug
+export IBAMR_DIR=$PWD
+export IBAMR_ARCH=build
+
+build_petsc() {
+    cd $PETSC_DIR
+    git pull
+    ./$PETSC_ARCH/lib/petsc/conf/reconfigure-linux-debug.py
+    make
+    cd $IBAMR_DIR
+}
+
+config_ibamr(){
+    ./configure.new \
+    --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH/ \
+    --download-fblaslapack \
+    --download-muparser \
+    --download-samrai \
+    --download-hdf5 \
+    --download-silo \
+    --download-eigen
+}
+
+build_petsc
+config_ibamr
+make all

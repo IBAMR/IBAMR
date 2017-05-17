@@ -49,6 +49,7 @@
 #include "ibtk/HierarchyIntegrator.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+#include "petscsys.h"
 
 namespace IBTK
 {
