@@ -8,7 +8,7 @@ export IBAMR_ARCH=build
 
 build_petsc() {
     cd $PETSC_DIR
-    git pull
+    git pull -f
     ./$PETSC_ARCH/lib/petsc/conf/reconfigure-linux-debug.py
     make
     cd $IBAMR_DIR
