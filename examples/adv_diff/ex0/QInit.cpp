@@ -110,7 +110,7 @@ QInit::setDataOnPatch(
     TBOX_ASSERT(Q_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
+    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
@@ -126,7 +126,7 @@ QInit::setDataOnPatch(
     {
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const SAMRAI::hier::Index<NDIM>& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
             boost::array<int,NDIM> offset;
@@ -156,7 +156,7 @@ QInit::setDataOnPatch(
     {
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const SAMRAI::hier::Index<NDIM>& i = ic();
             r_squared = 0.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {

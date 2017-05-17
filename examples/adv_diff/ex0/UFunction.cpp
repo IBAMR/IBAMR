@@ -102,7 +102,7 @@ UFunction::setDataOnPatch(
     else if (d_init_type == "VORTEX")
     {
         const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_lower = patch_box.lower();
+        const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
@@ -115,7 +115,7 @@ UFunction::setDataOnPatch(
             for (FaceIterator<NDIM> it(patch_box,axis); it; it++)
             {
                 const FaceIndex<NDIM>& i = it();
-                const Index<NDIM>& cell_idx = i.toCell(1);
+                const SAMRAI::hier::Index<NDIM>& cell_idx = i.toCell(1);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {

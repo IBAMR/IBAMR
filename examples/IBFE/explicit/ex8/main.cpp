@@ -286,7 +286,8 @@ compute_inflow_flux(
                     side_box.upper(axis) = patch_box.lower(axis);
                     for (Box<NDIM>::Iterator b(side_box); b; b++)
                     {
-                        const Index<NDIM>& i = b();
+                        // both eigen and samrai define Index so we must be specific
+                        const SAMRAI::hier::Index<NDIM>& i = b();
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] = x_lower[d] + dx[d]*(double(i(d)-patch_box.lower(d))+(d == axis ? 0.0 : 0.5));
@@ -615,14 +616,14 @@ main(
 
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             const int U_current_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
-            const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
+            const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptoIndex();
             const double Q_in_current   = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
             const double A_disp_current = compute_displaced_area( centerline_node_set, beam_equation_systems);
             const double l_def_current  = compute_deformed_length(centerline_node_set, beam_equation_systems);
 
             J_dil_min = +1.0e8;
             J_dil_max = -1.0e8;
-            
+
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -631,7 +632,7 @@ main(
 
             pout << "J_min = " << J_dil_min << "\n"
                  << "J_max = " << J_dil_max << "\n";
-            
+
             const double Q_in_new    = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
             const double Q_in_half   = (Q_in_new+Q_in_current)/2.0;
             const double A_in_new    = A_in_current + dt*Q_in_half;
