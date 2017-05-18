@@ -5,3 +5,5 @@ configure.log
 configure.log.bkp
 arch-*
 build
+*.pyc
+base_module.mod
