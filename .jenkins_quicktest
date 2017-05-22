@@ -24,6 +24,7 @@ config_ibamr(){
     --download-silo \
     --download-eigen \
     --download-boost \
+    --boost-headers-only \
     --download-libmesh
 }
 
