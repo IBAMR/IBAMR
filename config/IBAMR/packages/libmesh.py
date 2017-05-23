@@ -15,9 +15,11 @@ class Configure(config.package.GNUPackage):
   def setupDependencies(self, framework):
     config.package.GNUPackage.setupDependencies(self, framework)
     self.compilerFlags   = framework.require('config.compilerFlags', self)
-    self.mpi             = framework.require('config.packages.MPI',self)
+    self.mpi             = framework.require('config.packages.MPI',  self)
     self.boost           = framework.require('config.packages.boost',self)
-    self.deps            = [self.mpi, self.boost]
+    self.hdf5            = framework.require('config.packages.hdf5', self)
+    self.netcdf          = framework.require('config.packages.netcdf', self)
+    self.deps            = [self.mpi, self.boost, self.hdf5, self.netcdf]
     return
 
   def formGNUConfigureArgs(self):
@@ -35,5 +37,7 @@ class Configure(config.package.GNUPackage):
     args.append('PETSC_DIR='+self.petscdir.dir)
     args.append('PETSC_ARCH='+os.environ['PETSC_ARCH'])
     args.append('--with-boost='+os.path.join(self.boost.directory,self.boost.includedir))
+    args.append('--with-hdf5='+self.hdf5.directory)
+    args.append('--with-netcdf='+self.netcdf.directory)
     args.append('--with-boost-libdir='+os.path.join(self.boost.directory,self.boost.libdir))
     return args
