@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import os, sys
 import subprocess
+from timeit import time
 
 ibamr_config_options = ''
 petsc_config_options = ''
+SKIP_PETSC = False
 
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
@@ -90,38 +92,34 @@ for item in sys.argv:
     if 'FC' in item:
         petsc_config_options += ' ' + item + ' '
         sys.argv.remove(item)
+    if 'skip-petsc' in item:
+        SKIP_PETSC = True
 
 additional_options =' '.join(sys.argv[1:])
 petsc_config_options += additional_options
 
 print '****************************************************************************'
 if '--CC=' not in petsc_config_options:
-    pestc_config_options +='--CC=' +raw_input("Please enter name of C compiler        >  ")
+    petsc_config_options +=' --CC=' +raw_input("Please enter name of C compiler        >  ") + ' '
     print ' In the future, avoid this prompt by passing --CC=$NAME_OF_C_COMPILER to easy_build.py'
 if '--CXX=' not in petsc_config_options:
-    pestc_config_options +='--CXX=' +raw_input("Please enter name of C++ compiler        >  ")
+    petsc_config_options +=' --CXX=' +raw_input("Please enter name of C++ compiler        >  ") + ' '
     print ' In the future, avoid this prompt by passing --CXX=$NAME_OF_CXX_COMPILER to easy_build.py'
 if '--FC=' not in petsc_config_options:
-    pestc_config_options +='--FC=' +raw_input("Please enter name of Fortran compiler        >  ")
+    petsc_config_options +=' --FC='+raw_input("Please enter name of Fortran compiler        >  ") + ' '
     print ' In the future, avoid this prompt by passing --FC=$NAME_OF_FORTRAN_COMPILER to easy_build.py'
 print '****************************************************************************'
-
-os.environ['PETSC_DIR'] = os.path.join(os.path.join(IBAMR_DIR, IBAMR_ARCH), 'PETSC')
-os.environ['PETSC_ARCH'] = IBAMR_ARCH
 
 def execute(command):
     '''https://stackoverflow.com/questions/4417546/constantly-print-subprocess-output-while-process-is-running'''
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output  = ''
 
-    # Poll process for new output until finished
-    while True:
-        nextline = process.stdout.readline()
-        if not nextline:
-            break
-        sys.stdout.write(nextline)
-        sys.stdout.flush()
+    for line in iter(process.stdout.readline, ""):
+        print line
+        output += line
 
-    output = process.communicate()[0]
+    process.wait()
     exitCode = process.returncode
 
     if (exitCode == 0):
@@ -142,12 +140,21 @@ configure_ibamr += ' --download-samrai --download-fblaslapack --with-mpi-dir=$PE
 configure_ibamr += '--with-hdf5-dir=$PETSC_DIR/$PETSC_ARCH --with-eigen-dir=$PETSC_DIR/$PETSC_ARCH ' + ibamr_config_options
 make_ibamr      = 'make all'
 
-if os.path.exists(os.environ['PETSC_DIR']) and os.path.exists(os.path.join(os.environ['PETSC_DIR'], 'include/petsc.h')):
-    execute(fetch_petsc)
-else:
-    execute(get_petsc)
+if not SKIP_PETSC:
+    os.environ['PETSC_DIR'] = os.path.join(os.path.join(IBAMR_DIR, IBAMR_ARCH), 'PETSC')
+    os.environ['PETSC_ARCH'] = IBAMR_ARCH
+    if os.path.exists(os.environ['PETSC_DIR']) and os.path.exists(os.path.join(os.environ['PETSC_DIR'], 'include/petsc.h')):
+        execute(fetch_petsc)
+    else:
+        execute(get_petsc)
 
-execute(configure_petsc)
-execute(make_petsc)
+    execute(configure_petsc)
+    execute(make_petsc)
+
+if ('PETSC_DIR' not in os.environ):
+    os.environ['PETSC_DIR'] = raw_input("PETSC_DIR not defined, please provide path to petsc: ")
+if ('PETSC_ARCH' not in os.environ):
+    os.environ['PETSC_ARCH'] = raw_input("PETSC_ARCH not defined, please provide name of PETSC_ARCH: ")
+
 execute(configure_ibamr)
 execute(make_ibamr)
