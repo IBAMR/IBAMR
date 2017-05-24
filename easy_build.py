@@ -21,7 +21,6 @@ if 'IBAMR_DIR' not in os.environ:
     print '****************************************************************************'
     print '*               $IBAMR_DIR must be defined.                                *'
     print '*    Navigate to root directory of IBAMR and set IBAMR_DIR = $PWD          *'
-    print '*    Then run `make`                                                       *'
     print '****************************************************************************'
     sys.exit(4)
 
