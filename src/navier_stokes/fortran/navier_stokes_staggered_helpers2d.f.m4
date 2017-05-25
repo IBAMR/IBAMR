@@ -396,21 +396,21 @@ c
     
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0+1
-	    dof_idx = u_dof_sc0(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
-     &   	(dof_idx .lt. last_local)) then
-	       arr(dof_idx) = u_sc0(i0,i1)
-	    end if	  
+           dof_idx = u_dof_sc0(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
+     &      (dof_idx .lt. last_local)) then
+             arr(dof_idx) = u_sc0(i0,i1)
+           end if     
          enddo
       enddo
 
       do i1 = ifirst1,ilast1+1
          do i0 = ifirst0,ilast0
-	    dof_idx = u_dof_sc1(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
+           dof_idx = u_dof_sc1(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
      &      (dof_idx .lt. last_local)) then
-     	       arr(dof_idx) = u_sc1(i0,i1)
-	    end if	    
+               arr(dof_idx) = u_sc1(i0,i1)
+           end if      
          enddo
       enddo
 c
@@ -421,11 +421,11 @@ c
       
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0
-	    dof_idx = p_dof_cc(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
+           dof_idx = p_dof_cc(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
      &      (dof_idx .lt. last_local)) then
-	       arr(dof_idx) = p_cc(i0,i1)
-	    end if	  
+             arr(dof_idx) = p_cc(i0,i1)
+           end if    
          enddo
       enddo     
  
@@ -481,21 +481,21 @@ c
     
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0+1
-	    dof_idx = u_dof_sc0(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
+           dof_idx = u_dof_sc0(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
      &      (dof_idx .lt. last_local)) then
-	       u_sc0(i0,i1) = arr(dof_idx)
-	    end if	  
+             u_sc0(i0,i1) = arr(dof_idx)
+           end if    
          enddo
       enddo
 
       do i1 = ifirst1,ilast1+1
          do i0 = ifirst0,ilast0
-	    dof_idx = u_dof_sc1(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
+           dof_idx = u_dof_sc1(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
      &      (dof_idx .lt. last_local)) then
-	       u_sc1(i0,i1) =  arr(dof_idx)
-	    end if	    
+             u_sc1(i0,i1) =  arr(dof_idx)
+           end if      
          enddo
       enddo
 c
@@ -506,11 +506,11 @@ c
       
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0
-	    dof_idx = p_dof_cc(i0,i1)
-	    if ((dof_idx .ge. first_local) .and.
+           dof_idx = p_dof_cc(i0,i1)
+           if ((dof_idx .ge. first_local) .and.
      &      (dof_idx .lt. last_local)) then
-	       p_cc(i0,i1) = arr(dof_idx)
-	    end if	  
+             p_cc(i0,i1) = arr(dof_idx)
+           end if    
          enddo
       enddo     
  
