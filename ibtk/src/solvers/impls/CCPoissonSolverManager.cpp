@@ -39,7 +39,9 @@
 #include <utility>
 
 #include "ibtk/CCLaplaceOperator.h"
+#ifdef PETSC_HAVE_HYPRE
 #include "ibtk/CCPoissonHypreLevelSolver.h"
+#endif
 #include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonLevelRelaxationFACOperator.h"
@@ -181,7 +183,9 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
+#ifdef PETSC_HAVE_HYPRE
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
+#endif
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);
     return;
 } // CCPoissonSolverManager

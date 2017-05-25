@@ -71,7 +71,7 @@ namespace IBAMR
  * \brief Class IBExplicitHierarchyIntegrator is an implementation of a formally
  * second-order accurate, semi-implicit version of the immersed boundary method.
  */
-class IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!

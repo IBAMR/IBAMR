@@ -1,29 +1,33 @@
 #!/bin/bash
 set -e
 set -o pipefail
-config() {
-    ./configure \
-        CFLAGS="-Wall" \
-        CXXFLAGS="-Wall" \
-        FCFLAGS="-Wall" \
-        CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
-        CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
-        FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
-        CPPFLAGS="-DOMPI_SKIP_MPICXX" \
-        --with-hypre=$PETSC_DIR/$PETSC_ARCH \
-        --with-samrai=$SAMRAI_DIR \
-        --with-hdf5=$HOME/linux/hdf5/1.8.16 \
-        --with-blitz=$HOME/linux/blitz/0.10 \
-        --with-silo=$HOME/linux/silo/4.10 \
-        --with-boost=$HOME/linux/boost/1.61.0 \
-        --enable-libmesh \
-        --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
-        --with-libmesh-method=dbg \
-        --enable-gsl \
-        --with-gsl=$HOME/linux/gsl/2.3 \
-        --enable-gtest \
-        --with-gtest=$HOME/linux/googletest
+export PETSC_DIR=$HOME/petsc/petsc-master
+export PETSC_ARCH=linux-debug
+export IBAMR_DIR=$PWD
+export IBAMR_ARCH=build
+
+build_petsc() {
+    cd $PETSC_DIR
+    git pull -f origin knepley/ibamr
+    ./$PETSC_ARCH/lib/petsc/conf/reconfigure-linux-debug.py
+    make
 }
-config
-make -kj4 lib
-make gtest
+
+config_ibamr(){
+    cd $IBAMR_DIR
+    ./configure.new \
+    --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH/ \
+    --download-fblaslapack \
+    --download-muparser \
+    --download-samrai \
+    --download-hdf5 \
+    --download-silo \
+    --download-eigen \
+    --download-boost \
+    --boost-headers-only \
+    --download-libmesh
+}
+
+build_petsc
+config_ibamr
+make all

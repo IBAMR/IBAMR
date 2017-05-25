@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBAMR_config.h"
-#include "Eigen/Dense"
+#include "eigen3/Eigen/Dense"
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "SAMRAI_config.h"
 #include "boost/multi_array.hpp"

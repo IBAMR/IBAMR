@@ -40,7 +40,7 @@
 #include "EdgeData.h" // IWYU pragma: keep
 #include "FaceData.h"
 #include "FaceGeometry.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "IntVector.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
@@ -52,6 +52,7 @@
 #include "boost/array.hpp"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 

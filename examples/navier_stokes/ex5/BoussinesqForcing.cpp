@@ -34,7 +34,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
+#include <ibamrconf.h>
 #include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES

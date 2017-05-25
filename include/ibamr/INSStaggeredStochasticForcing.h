@@ -79,7 +79,7 @@ namespace IBAMR
  * specifying a stochastic forcing term for a staggered-grid incompressible
  * Navier-Stokes solver.
  */
-class INSStaggeredStochasticForcing : public IBTK::CartGridFunction
+class PETSC_VISIBILITY_PUBLIC INSStaggeredStochasticForcing : public IBTK::CartGridFunction
 {
 public:
     /*!

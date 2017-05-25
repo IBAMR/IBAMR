@@ -93,7 +93,8 @@ namespace IBTK
  * integrator for a system of equations defined on an AMR grid hierarchy, along
  * with basic data management for variables defined on that hierarchy.
  */
-class HierarchyIntegrator : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
+class PETSC_VISIBILITY_PUBLIC HierarchyIntegrator : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
+                                                    public SAMRAI::tbox::Serializable
 {
 public:
     /*!

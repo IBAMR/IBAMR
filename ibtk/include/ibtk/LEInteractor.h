@@ -40,6 +40,8 @@
 #include <string>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "Box.h"
 #include "IntVector.h"
 #include "tbox/Pointer.h"
@@ -90,7 +92,7 @@ namespace IBTK
  * spread values (\em not densities) from Lagrangian meshes to Eulerian grid
  * patches.
  */
-class LEInteractor
+class PETSC_VISIBILITY_PUBLIC LEInteractor
 {
 public:
     /*!

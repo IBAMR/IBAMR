@@ -72,7 +72,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesOpenBoundaryStabilizer provides forcing at
  * physical boundaries that attempts to stabilize flows at open boundaries.
  */
-class StaggeredStokesOpenBoundaryStabilizer : public IBTK::CartGridFunction
+class PETSC_VISIBILITY_PUBLIC StaggeredStokesOpenBoundaryStabilizer : public IBTK::CartGridFunction
 {
 public:
     /*!

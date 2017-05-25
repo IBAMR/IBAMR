@@ -40,6 +40,8 @@
 #include <string>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
 #include "boost/array.hpp"
@@ -73,7 +75,7 @@ namespace IBTK
  * (possibly spatially- and temporally-varying) functions which are used to set
  * double precision values on standard SAMRAI SAMRAI::hier::PatchData objects.
  */
-class muParserCartGridFunction : public CartGridFunction
+class PETSC_VISIBILITY_PUBLIC muParserCartGridFunction : public CartGridFunction
 {
 public:
     /*!

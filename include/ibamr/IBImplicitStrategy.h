@@ -69,7 +69,7 @@ namespace IBAMR
  * \brief Class IBImplicitStrategy provides a generic interface for specifying
  * the implementation details of a particular implicit version of the IB method.
  */
-class IBImplicitStrategy : public IBStrategy
+class PETSC_VISIBILITY_PUBLIC IBImplicitStrategy : public IBStrategy
 {
 public:
     /*!

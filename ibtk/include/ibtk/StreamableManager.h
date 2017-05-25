@@ -39,6 +39,8 @@
 #include <map>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
@@ -71,7 +73,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableFactory
  */
-class StreamableManager
+class PETSC_VISIBILITY_PUBLIC StreamableManager
 {
 public:
     /*!

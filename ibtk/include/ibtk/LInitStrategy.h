@@ -39,6 +39,8 @@
 #include <string>
 #include <utility>
 
+#include <petscsys.h>
+
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -70,7 +72,7 @@ namespace IBTK
  * \brief Class LInitStrategy provides a mechanism for specifying the
  * initial configuration of the curvilinear mesh.
  */
-class LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

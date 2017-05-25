@@ -44,7 +44,9 @@
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/SCLaplaceOperator.h"
+#ifdef PETSC_HAVE_HYPRE
 #include "ibtk/SCPoissonHypreLevelSolver.h"
+#endif
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
@@ -67,7 +69,9 @@ const std::string SCPoissonSolverManager::PETSC_KRYLOV_SOLVER = "PETSC_KRYLOV_SO
 const std::string SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
 const std::string SCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER = "POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
+#ifdef PETSC_HAVE_HYPRE
 const std::string SCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
+#endif
 const std::string SCPoissonSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
 SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = NULL;
@@ -173,7 +177,9 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   SCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
+#ifdef PETSC_HAVE_HYPRE
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
+#endif
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, SCPoissonPETScLevelSolver::allocate_solver);
     return;
 } // SCPoissonSolverManager

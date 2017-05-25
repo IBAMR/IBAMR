@@ -39,13 +39,14 @@
 #include "CartesianCellDoubleWeightedAverage.h"
 #include "CellData.h"
 #include "CellVariable.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 

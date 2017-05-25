@@ -38,6 +38,8 @@
 #include <stddef.h>
 #include <string>
 
+#include <petscsys.h>
+
 #include "PatchLevel.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -63,7 +65,7 @@ namespace IBTK
  * \brief Class CartGridFunction provides an abstract interface for objects for
  * evaluating functions to set values in SAMRAI::hier::PatchData objects.
  */
-class CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
