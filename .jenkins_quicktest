@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e
 set -o pipefail
-export PETSC_DIR=$HOME/petsc/petsc-master
-export PETSC_ARCH=linux-debug
 export IBAMR_DIR=$PWD
 export IBAMR_ARCH=build
+export PETSC_DIR=$IBAMR_DIR/$IBAMR_ARCH/PETSC
+export PETSC_ARCH=linux-debug
 
 build_petsc() {
+    mkdir -p $PETSC_DIR && git clone -b knepley/ibamr https://bitbucket.org/deleeke/petsc $PETSC_DIR
     cd $PETSC_DIR
-    git pull -f origin knepley/ibamr
-    ./$PETSC_ARCH/lib/petsc/conf/reconfigure-linux-debug.py
+    ./configure --download-openmpi --download-fblaslapack \
+        --CC=$C_COMPILER --CXX=$CXX_COMPILER --FC=$FORTRAN_COMPILER \
+        --with-clanguage=c++ --with-debugging=$DEBUG_OPTION
     make
 }
 
@@ -26,9 +28,11 @@ config_ibamr(){
     --download-boost=$BOOST_TARBALL \
     --boost-headers-only \
     --download-libmesh \
-    --with-clanguage=c++
+    --with-clanguage=c++ \
+    --with-debugging=$DEBUG_OPTION
 }
 
+rm -rf $IBAMR_ARCH
 build_petsc
 config_ibamr
 make all
