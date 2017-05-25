@@ -72,7 +72,7 @@ namespace IBTK
  *
  * \see FACPreconditioner
  */
-class FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

@@ -37,6 +37,8 @@
 
 #include <string>
 
+#include <petscsys.h>
+
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"
 #include "CoarsenOperator.h"
@@ -63,7 +65,7 @@ namespace IBTK
  * SAMRAI::xfer::CoarsenOperator for restricting side-centered double precision
  * patch data via the adjoint of RT0 interpolation.
  */
-class CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class PETSC_VISIBILITY_PUBLIC CartSideDoubleRT0Coarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!

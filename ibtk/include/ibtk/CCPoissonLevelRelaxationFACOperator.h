@@ -39,6 +39,8 @@
 #include <string>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonFACPreconditioner.h"
@@ -118,7 +120,7 @@ namespace IBTK
  }
  \endverbatim
 */
-class CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class PETSC_VISIBILITY_PUBLIC CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!
