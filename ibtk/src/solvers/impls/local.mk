@@ -2,6 +2,8 @@ srcs-ibtk.cpp += $(call thisdir, \
 	BGaussSeidelPreconditioner.cpp \
 	BJacobiPreconditioner.cpp \
 	CCLaplaceOperator.cpp \
+    CCPoissonBoxRelaxationFACOperator.cpp \
+    CCPoissonLevelRelaxationFACOperator.cpp \
 	CCPoissonPETScLevelSolver.cpp \
 	CCPoissonPointRelaxationFACOperator.cpp \
 	CCPoissonSolverManager.cpp \
@@ -14,7 +16,6 @@ srcs-ibtk.cpp += $(call thisdir, \
 	PETScKrylovPoissonSolver.cpp \
 	PETScLevelSolver.cpp \
 	PETScMFFDJacobianOperator.cpp \
-	PETScMultiVec.cpp \
 	PETScNewtonKrylovSolver.cpp \
 	PoissonFACPreconditioner.cpp \
 	PoissonFACPreconditionerStrategy.cpp \

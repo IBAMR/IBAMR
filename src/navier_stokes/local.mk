@@ -24,6 +24,7 @@ srcs-core.cpp += $(call thisdir, \
 	StaggeredStokesBoxRelaxationFACOperator.cpp \
 	StaggeredStokesFACPreconditioner.cpp \
 	StaggeredStokesFACPreconditionerStrategy.cpp \
+    StaggeredStokesLevelRelaxationFACOperator.cpp \
 	StaggeredStokesOpenBoundaryStabilizer.cpp \
 	StaggeredStokesOperator.cpp \
 	StaggeredStokesPETScLevelSolver.cpp \

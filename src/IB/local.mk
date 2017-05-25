@@ -33,4 +33,5 @@ srcs-core.cpp += $(call thisdir, \
 	IBTargetPointForceSpec.cpp \
 	IBTargetPointForceSpecFactory.cpp \
 	PenaltyIBMethod.cpp \
+    StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	)

@@ -9,6 +9,7 @@ srcs-core.F += $(call thisdir, \
     laplace2d.F \
     miscmath2d.F \
     rot2d.F \
+    strain2d.F \
     vclaplace2d.F \
 	)
 else
@@ -22,5 +23,6 @@ srcs-core.F += $(call thisdir, \
     laplace3d.F \
     miscmath3d.F \
     rot3d.F \
+    strain3d.F \
 	)
 endif
