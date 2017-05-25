@@ -1,6 +1,5 @@
 srcs-IBFE_explicit_4.cpp += $(call thisdir, \
 	ex_main.cpp \
-	example.cpp \
 	)
 
 srcs-IBFE_explicit_4_conv.cpp += $(call thisdir, \

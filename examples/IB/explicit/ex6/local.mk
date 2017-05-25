@@ -1,6 +1,5 @@
 srcs-IB_explicit_6.cpp += $(call thisdir, \
 	ex_main.cpp \
-	example.cpp \
 	IBSimpleHierarchyIntegrator.cpp \
 	)
 

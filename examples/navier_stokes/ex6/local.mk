@@ -1,6 +1,5 @@
 srcs-navier_stokes_6.cpp += $(call thisdir, \
 	ex_main.cpp \
-	example.cpp \
 	BoussinesqForcing.cpp \
 	)
 
