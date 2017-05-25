@@ -5,7 +5,8 @@ from timeit import time
 
 ibamr_config_options = ''
 petsc_config_options = ''
-SKIP_PETSC = False
+SKIP_PETSC           = False
+QUIET                = False
 
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
@@ -67,6 +68,22 @@ for item in sys.argv:
         petsc_config_options += ' --with-debugging=0 '
         ibamr_config_options += ' --with-debugging=0 '
         sys.argv.remove(item)
+    if 'CC' in item:
+        petsc_config_options += ' ' + item + ' '
+        sys.argv.remove(item)
+    if 'CXX' in item:
+        petsc_config_options += ' ' + item + ' '
+        sys.argv.remove(item)
+    if 'FC' in item:
+        petsc_config_options += ' ' + item + ' '
+        sys.argv.remove(item)
+    if 'skip-petsc' in item:
+        SKIP_PETSC = True
+    if '--quiet' in item:
+        QUIET = True
+
+additional_options =' '.join(sys.argv[1:])
+petsc_config_options += additional_options
 
 if 'debug' not in petsc_config_options:
     print '****************************************************************************'
@@ -82,22 +99,6 @@ if 'debug' not in petsc_config_options:
         ibamr_config_options += ' --with-debugging=1 '
     print '****************************************************************************'
 
-for item in sys.argv:
-    if 'CC' in item:
-        petsc_config_options += ' ' + item + ' '
-        sys.argv.remove(item)
-    if 'CXX' in item:
-        petsc_config_options += ' ' + item + ' '
-        sys.argv.remove(item)
-    if 'FC' in item:
-        petsc_config_options += ' ' + item + ' '
-        sys.argv.remove(item)
-    if 'skip-petsc' in item:
-        SKIP_PETSC = True
-
-additional_options =' '.join(sys.argv[1:])
-petsc_config_options += additional_options
-
 print '****************************************************************************'
 if '--CC=' not in petsc_config_options:
     petsc_config_options +=' --CC=' +raw_input("Please enter name of C compiler        >  ") + ' '
@@ -110,34 +111,30 @@ if '--FC=' not in petsc_config_options:
     print ' In the future, avoid this prompt by passing --FC=$NAME_OF_FORTRAN_COMPILER to easy_build.py'
 print '****************************************************************************'
 
-def execute(command):
+def execute(command, quiet=QUIET):
     '''https://stackoverflow.com/questions/4417546/constantly-print-subprocess-output-while-process-is-running'''
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output  = ''
-
-    for line in iter(process.stdout.readline, ""):
-        print line
-        output += line
-
-    process.wait()
-    exitCode = process.returncode
-
-    if (exitCode == 0):
-        return output
+    if quiet:
+        return subprocess.check_output(command, shell=True)
     else:
-        raise Exception(command, exitCode, output)
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output  = ''
+        for line in iter(process.stdout.readline, ''):
+            print line
+            output += line
+
+        process.wait()
+        exitCode = process.returncode
+        return output
 
 get_petsc       = 'mkdir -p $PETSC_DIR && git clone -b knepley/ibamr https://bitbucket.org/deleeke/petsc $PETSC_DIR'
 fetch_petsc     = 'mkdir -p $PETSC_DIR && cd $PETSC_DIR && git fetch origin && git pull origin knepley/ibamr'
-configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-eigen --download-fblaslapack ' + petsc_config_options
+configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-fblaslapack ' + petsc_config_options
 make_petsc      = 'cd $PETSC_DIR && make'
+# NOTE: libmesh breaks when HDF5 is built by PETSc, but works when built by IBAMR.
 configure_ibamr = './configure.new --IBAMR_ARCH=$IBAMR_ARCH --download-muparser --download-silo '
-#TODO fix libmesh problem below
-#libmesh breaks when HDF5 is build by PETSc at the moment because of netcdf see http://hdf-forum.184993.n3.nabble.com/Re-undefined-reference-to-H5Pset-fapl-mpiposix-td4027216.html
-#configure_ibamr += ' --download-libmesh '
-configure_ibamr += ' --download-hdf5 --download-netcdf --download-boost --boost-headers-only'
+configure_ibamr += ' --download-hdf5 --download-libmesh --download-boost --boost-headers-only '
 configure_ibamr += ' --download-samrai --download-fblaslapack --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH '
-configure_ibamr += '--with-hdf5-dir=$PETSC_DIR/$PETSC_ARCH --with-eigen-dir=$PETSC_DIR/$PETSC_ARCH ' + ibamr_config_options
+configure_ibamr += ' --download-eigen ' + ibamr_config_options
 make_ibamr      = 'make all'
 
 if not SKIP_PETSC:
