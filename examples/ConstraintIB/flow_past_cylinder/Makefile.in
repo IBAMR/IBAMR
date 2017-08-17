@@ -87,8 +87,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
+EXTRA_PROGRAMS = $(am__EXEEXT_5)
+@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = test2d
+@SAMRAI2D_ENABLED_TRUE@am__append_2 = main2d
+@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
 subdir = examples/ConstraintIB/flow_past_cylinder
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -98,6 +100,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -118,9 +121,14 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
+@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
+@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	test2d$(EXEEXT)
+am__EXEEXT_2 = $(am__EXEEXT_1)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 = main2d$(EXEEXT)
+am__EXEEXT_4 = $(am__EXEEXT_3)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_2) $(am__EXEEXT_4)
 am__objects_1 = main2d-RigidBodyKinematics.$(OBJEXT) \
-	main2d-main.$(OBJEXT)
+	main2d-ex_main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -130,6 +138,14 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_2 = test2d-RigidBodyKinematics.$(OBJEXT) \
+	test2d-test_main.$(OBJEXT)
+am_test2d_OBJECTS = $(am__objects_2)
+test2d_OBJECTS = $(am_test2d_OBJECTS)
+test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -165,7 +181,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-DIST_SOURCES = $(main2d_SOURCES)
+SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -235,6 +252,7 @@ FLIBS = @FLIBS@
 GREP = @GREP@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -278,6 +296,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -350,6 +370,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
@@ -485,11 +506,17 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = RigidBodyKinematics.cpp main.cpp
-EXTRA_DIST = input2d Cylinder2d.m
+EXAMPLE_DRIVER = RigidBodyKinematics.cpp ex_main.cpp
+GTEST_DRIVER = RigidBodyKinematics.cpp test_main.cpp
+EXTRA_DIST = input2d input2d.test Cylinder2d.m
+GTESTS = $(am__append_1)
+EXAMPLES = $(am__append_2)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = $(SOURCES)
+main2d_SOURCES = $(EXAMPLE_DRIVER)
+test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+test2d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -529,6 +556,10 @@ main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDE
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
 
+test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDENCIES) 
+	@rm -f test2d$(EXEEXT)
+	$(AM_V_CXXLD)$(test2d_LINK) $(test2d_OBJECTS) $(test2d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -536,7 +567,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-RigidBodyKinematics.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-RigidBodyKinematics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -576,19 +609,47 @@ main2d-RigidBodyKinematics.obj: RigidBodyKinematics.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
 
-main2d-main.o: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main2d-main.o' libtool=no @AMDEPBACKSLASH@
+main2d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.o -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
 
-main2d-main.obj: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.obj -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
+main2d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.obj -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+
+test2d-RigidBodyKinematics.o: RigidBodyKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-RigidBodyKinematics.o -MD -MP -MF $(DEPDIR)/test2d-RigidBodyKinematics.Tpo -c -o test2d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-RigidBodyKinematics.Tpo $(DEPDIR)/test2d-RigidBodyKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test2d-RigidBodyKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
+
+test2d-RigidBodyKinematics.obj: RigidBodyKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-RigidBodyKinematics.obj -MD -MP -MF $(DEPDIR)/test2d-RigidBodyKinematics.Tpo -c -o test2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-RigidBodyKinematics.Tpo $(DEPDIR)/test2d-RigidBodyKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test2d-RigidBodyKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
+
+test2d-test_main.o: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test2d-test_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+
+test2d-test_main.obj: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.obj -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test2d-test_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -804,11 +865,30 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXTRA_PROGRAMS)
+examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	fi ;
+
+@GTEST_ENABLED_TRUE@gtest: $(GTESTS)
+@GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input2d.test $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
+@GTEST_ENABLED_TRUE@	fi ;
+@GTEST_ENABLED_TRUE@	./test2d input2d.test
+
+@GTEST_ENABLED_TRUE@gtest-long:
+@GTEST_ENABLED_TRUE@	make gtest
+
+@GTEST_ENABLED_FALSE@gtest:
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "
+@GTEST_ENABLED_FALSE@	@echo " Configure IBAMR with additional options:                            "
+@GTEST_ENABLED_FALSE@	@echo "                      --enable-gtest --with-gtest=path               "
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@gtest-long:
+@GTEST_ENABLED_FALSE@	make gtest
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)

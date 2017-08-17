@@ -1,0 +1,243 @@
+// random-number generator parameters
+SEED = 0                                        // RNG seed (0 for clock)
+
+// physical parameters
+MU    = 1.0e-3                                  // fluid viscosity
+RHO   = 1.0                                     // fluid density
+KAPPA = 5.0e-5                                  // temperature diffusion coefficient
+GAMMA = 1.0                                     // strength of temperature forcing (F = -GAMMA*j*T)
+W     = 1.0                                     // width  of the physical domain
+H     = 0.5                                     // height of the physical domain
+
+// fluctuation parameters
+kT    = 1.0
+DZ    = 1.0                                     // physical thickness of 2d domain
+STD_U = 1.0e-6                                  // scaling of velocity    fluctuations
+STD_T = 1.0e-6                                  // scaling of temperature fluctuations
+
+// grid spacing parameters
+NX = 256                                        // number of grid cells in the x direction
+NY = 128                                        // number of grid cells in the y direction
+
+// solver parameters
+INS_NUM_CYCLES              = 1                 // number of cycles of fixed-point iteration
+INS_CONVECTIVE_TS_TYPE      = "ADAMS_BASHFORTH" // convective time stepping type
+INS_CONVECTIVE_OP_TYPE      = "CENTERED"        // convective differencing discretization type
+INS_CONVECTIVE_FORM         = "CONSERVATIVE"    // how to compute the convective terms
+ADV_DIFF_NUM_CYCLES         = 2                 // number of cycles of fixed-point iteration
+ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"   // convective time stepping type
+ADV_DIFF_CONVECTIVE_OP_TYPE = "CENTERED"        // convective differencing discretization type
+ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"    // how to compute the convective terms
+NORMALIZE_PRESSURE          = TRUE              // whether to explicitly force the pressure to have mean zero
+CFL_MAX                     = 0.2               // maximum CFL number
+DT_MAX                      = 0.1               // maximum timestep size
+START_TIME                  = 0.0e0             // initial simulation time
+END_TIME                    = 3*DT_MAX         // final simulation time
+GROW_DT                     = 2.0e0             // growth factor for timesteps
+VORTICITY_TAGGING           = TRUE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                  = 1                 // sized of tag buffer used by grid generation algorithm
+REGRID_INTERVAL             = int(0.9/CFL_MAX)
+OUTPUT_U                    = TRUE
+OUTPUT_P                    = TRUE
+OUTPUT_F                    = TRUE
+OUTPUT_OMEGA                = TRUE
+OUTPUT_DIV_U                = FALSE
+ENABLE_LOGGING              = FALSE
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityStochasticForcing {
+   stress_tensor_type  = "SYMMETRIC"
+   velocity_bc_scaling = sqrt(2.0)
+   traction_bc_scaling = 0.0
+   std                 = STD_U * sqrt(kT / DZ)
+   num_rand_vals       = 1
+   weights_0           = 1.0
+   weights_1           = 1.0
+}
+
+TemperatureInitialConditions {
+   H = H
+   function = "0.5*(tanh(250.0*(X_1-0.5*H))+1)"
+}
+
+TemperatureBcCoefs {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "1.0"
+}
+
+TemperatureStochasticForcing {
+   dirichlet_bc_scaling = sqrt(2.0)
+   neumann_bc_scaling   = 0.0
+   std                  = STD_T * sqrt(kT / DZ)
+   num_rand_vals        = 1
+   weights_0            = 1.0
+   weights_1            = 1.0
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = INS_NUM_CYCLES
+   convective_time_stepping_type = INS_CONVECTIVE_TS_TYPE
+   convective_op_type            = INS_CONVECTIVE_OP_TYPE
+   convective_difference_form    = INS_CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   vorticity_rel_thresh          = 0.25,0.125
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   enable_logging                = ENABLE_LOGGING
+
+   // Stokes solver configuration
+   stokes_solver_type      = "PETSC_KRYLOV_SOLVER"
+   stokes_precond_type     = "PROJECTION_PRECONDITIONER"
+
+   // velocity (momentum) subdomain solver configuration
+   velocity_solver_type    = "HYPRE_LEVEL_SOLVER"
+   velocity_solver_db {
+      solver_type          = "Split"
+      split_solver_type    = "PFMG"
+      max_iterations       = 1
+   }
+
+   // pressure subdomain solver configuration
+   pressure_solver_type    = "HYPRE_LEVEL_SOLVER"
+   pressure_solver_db {
+      solver_type          = "PFMG"
+      num_pre_relax_steps  = 0
+      num_post_relax_steps = 1
+      max_iterations       = 1
+   }
+}
+
+AdvDiffSemiImplicitHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   enable_logging                = ENABLE_LOGGING
+
+   helmholtz_solver_type   = "PETSC_KRYLOV_SOLVER"
+   helmholtz_precond_type  = "HYPRE_LEVEL_SOLVER"
+   helmholtz_precond_db {
+      solver_type          = "PFMG"
+      num_pre_relax_steps  = 0
+      num_post_relax_steps = 1
+      max_iterations       = 1
+   }
+}
+
+Main {
+// log file parameters
+   log_file_name               = "INS2d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = int(END_TIME/(3*DT_MAX))
+   viz_dump_dirname            = "viz_INS2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(NX - 1,NY - 1) ]
+   x_lo = 0,0
+   x_up = W,H
+   periodic_dimension = 1,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}

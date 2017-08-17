@@ -96,6 +96,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
+	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -184,8 +185,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/install-sh $(top_srcdir)/config/ltmain.sh \
 	$(top_srcdir)/config/make.inc.in $(top_srcdir)/config/missing \
 	config/compile config/config.guess config/config.rpath \
-	config/config.sub config/depcomp config/install-sh \
-	config/ltmain.sh config/missing
+	config/config.sub config/install-sh config/ltmain.sh \
+	config/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -270,6 +271,7 @@ FLIBS = @FLIBS@
 GREP = @GREP@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
+HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
@@ -313,6 +315,8 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
+LIBGTEST = @LIBGTEST@
+LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
@@ -385,6 +389,7 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
+LTLIBGTEST = @LTLIBGTEST@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
@@ -1019,6 +1024,7 @@ uninstall-am:
 lib: all
 examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+
 install-exec-local:
 	@echo "===================================================================="
 	@echo "===================================================================="
@@ -1030,6 +1036,26 @@ install-exec-local:
 refresh_tags:
 	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
+
+@GTEST_ENABLED_TRUE@gtest:
+@GTEST_ENABLED_TRUE@	@(cd examples && make gtest) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd ibtk     && make gtest) || exit 1;
+
+@GTEST_ENABLED_TRUE@gtest-long:
+@GTEST_ENABLED_TRUE@	@(cd examples && make gtest-long) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd ibtk     && make gtest-long) || exit 1;
+
+@GTEST_ENABLED_TRUE@gtest-all:
+@GTEST_ENABLED_TRUE@	@(cd examples && make gtest-all) || exit 1;
+@GTEST_ENABLED_TRUE@	@(cd ibtk     && make gtest-all) || exit 1;
+@GTEST_ENABLED_FALSE@gtest:
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "
+@GTEST_ENABLED_FALSE@	@echo " Configure IBAMR with additional options:                            "
+@GTEST_ENABLED_FALSE@	@echo "                      --enable-gtest --with-gtest=path               "
+@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+@GTEST_ENABLED_FALSE@gtest-long:
+@GTEST_ENABLED_FALSE@	make gtest
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
