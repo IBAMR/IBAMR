@@ -44,7 +44,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ConstraintIBMethod.h"
+#include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
@@ -56,10 +56,10 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/LData.h>
-#include "HydroForceEval.h"
 
 // Application
 #include "RigidBodyKinematics.h"
+#include "HydroForceEval.h"
 
 using namespace SAMRAI::geom;
 using namespace SAMRAI::hier;
@@ -111,8 +111,8 @@ spring_force_deriv(double /*R*/, const double* /*params*/, int /*lag_mastr_idx*/
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(int argc, char* argv[])
+bool
+run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
@@ -413,8 +413,8 @@ main(int argc, char* argv[])
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return 0;
-} // main
+    return true;
+} // run_example
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

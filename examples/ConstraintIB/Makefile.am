@@ -8,6 +8,7 @@ examples:
 	@(cd eel3d                        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd falling_sphere               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd flow_past_cylinder           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd flow_past_cylinder_HF           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd knifefish                    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd impulsively_started_cylinder && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd moving_plate                 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
@@ -20,6 +21,7 @@ gtest:
 	@(cd eel3d                        && make gtest) || exit 1;
 	@(cd falling_sphere               && make gtest) || exit 1;
 	@(cd flow_past_cylinder           && make gtest) || exit 1;
+	@(cd flow_past_cylinder_HF           && make gtest) || exit 1;
 	@(cd knifefish                    && make gtest) || exit 1;
 	@(cd impulsively_started_cylinder && make gtest) || exit 1;
 	@(cd moving_plate                 && make gtest) || exit 1;
@@ -31,6 +33,7 @@ gtest-long:
 	@(cd eel3d                        && make gtest) || exit 1;
 	@(cd falling_sphere               && make gtest) || exit 1;
 	@(cd flow_past_cylinder           && make gtest) || exit 1;
+	@(cd flow_past_cylinder_HF           && make gtest) || exit 1;
 	@(cd knifefish                    && make gtest) || exit 1;
 	@(cd impulsively_started_cylinder && make gtest) || exit 1;
 	@(cd moving_plate                 && make gtest) || exit 1;
@@ -42,6 +45,7 @@ gtest-all:
 	@(cd eel3d                        && make gtest-long) || exit 1;
 	@(cd falling_sphere               && make gtest-long) || exit 1;
 	@(cd flow_past_cylinder           && make gtest-long) || exit 1;
+	@(cd flow_past_cylinder_HF           && make gtest-long) || exit 1;
 	@(cd knifefish                    && make gtest-long) || exit 1;
 	@(cd impulsively_started_cylinder && make gtest-long) || exit 1;
 	@(cd moving_plate                 && make gtest-long) || exit 1;

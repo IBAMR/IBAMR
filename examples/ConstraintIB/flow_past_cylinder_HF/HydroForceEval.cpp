@@ -1,4 +1,4 @@
-// Filename: IBHydrodynamicSurfaceForceEvaluator.cpp
+// Filename: HydroForceEval.cpp
 // Created on 22 Oct 2016 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -50,6 +50,15 @@
 
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
+namespace patch
+{
+    template < typename T > std::string to_string( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
+}
 
 using namespace SAMRAI::geom;
 using namespace SAMRAI::hier;
@@ -115,7 +124,7 @@ HydroForceEval::HydroForceEval(const std::string& object_name,
         
         const int nodes = SAMRAI_MPI::getNodes();
         for (int n = 0; n < nodes; ++n)
-            Utilities::recursiveMkdir(d_dir_name + "/node" + std::to_string(n));
+            Utilities::recursiveMkdir(d_dir_name + "/node" + patch::to_string(n));
 	}
 	
 	if (!SAMRAI_MPI::getRank())
@@ -680,7 +689,7 @@ void HydroForceEval::getGridData(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 	return; 
 } // getGridData
     
-    void HydroForceEval::printData(const std::vector<std::set<Elem, elem_cmp> > elem_set,
+void HydroForceEval::printData(const std::vector<std::set<Elem, elem_cmp> > elem_set,
                                    const double time, const int iteration_num)
 {
     const int rank = SAMRAI_MPI::getRank();
@@ -689,8 +698,8 @@ void HydroForceEval::getGridData(Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
     for (int struct_no = 0; struct_no < d_num_structs; ++struct_no)
     {
 		if (!elem_set[struct_no].size()) continue; 
-		hf_stream.open(d_dir_name + "/node" + std::to_string(rank) + "/" + d_struct_names[struct_no] + 
-			"_" + std::to_string(iteration_num), std::fstream::out);
+		hf_stream.open( (d_dir_name + "/node" + patch::to_string(rank) + "/" + d_struct_names[struct_no] + 
+			"_" + patch::to_string(iteration_num) ).c_str(), std::fstream::out);
 		hf_stream << time << '\n';
 		hf_stream << elem_set[struct_no].size() << '\n';
         for (std::set<Elem, elem_cmp>::const_iterator it = elem_set[struct_no].begin(); it != elem_set[struct_no].end(); ++it)
