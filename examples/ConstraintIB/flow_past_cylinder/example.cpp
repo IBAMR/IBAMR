@@ -246,18 +246,13 @@ run_example(int argc, char* argv[])
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
-        SAMRAI::tbox::Array<double> box_X_lower_array, box_X_upper_array, box_init_vel_array;
         IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
 
-        box_X_lower_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner");
-        box_X_upper_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner");
-        box_init_vel_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity");
-        for (int d = 0; d < 3; ++d)
-        {
-            box_X_lower[d] = box_X_lower_array[d];
-            box_X_upper[d] = box_X_upper_array[d];
-            box_init_vel[d] = box_init_vel_array[d];
-        }
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
+
+	// Register control volume
         hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Register plotting data for the control volume

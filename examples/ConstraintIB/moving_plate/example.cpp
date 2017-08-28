@@ -255,18 +255,13 @@ run_example(int argc, char* argv[])
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
-        SAMRAI::tbox::Array<double> box_X_lower_array, box_X_upper_array, box_init_vel_array;
         IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
 
-        box_X_lower_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner");
-        box_X_upper_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner");
-        box_init_vel_array = input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity");
-        for (int d = 0; d < 3; ++d)
-        {
-            box_X_lower[d] = box_X_lower_array[d];
-            box_X_upper[d] = box_X_upper_array[d];
-            box_init_vel[d] = box_init_vel_array[d];
-        }
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
+
+	// Register control volume
         hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
 
         // Get the center of mass of the plate
@@ -327,10 +322,10 @@ run_example(int argc, char* argv[])
             loop_time += dt;
 	    new_time = loop_time;
 
-            // Regrid the hierarchy if necessary
+            // Regrid the hierarchy if necessary.
             if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
 
-            // Set the box velocity to nonzero only if the plate has moved sufficiently far
+            // Set the box velocity to nonzero only if the plate has moved sufficiently far.
             IBTK::Vector3d box_vel;
             box_vel.setZero();
             COMTransVelocity(current_time, box_vel);
@@ -339,6 +334,11 @@ run_example(int argc, char* argv[])
             Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
             const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
             const double* const DX = coarsest_grid_geom->getDx();
+	    
+	    // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
+	    // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that 
+	    // the CV will translate by 1 coarse mesh width in the direction of translation (positive x-direction). 
+	    // Otherwise, keep the CV in place by setting its velocity to zero.
             box_disp += box_vel[0] * dt;
             if (box_disp >= 0.9 * DX[0])
             {

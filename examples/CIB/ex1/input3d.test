@@ -54,12 +54,14 @@ InitHydroForceBox_0 {
    lower_left_corner  = 6.0, 6.0, 6.0
    upper_right_corner = 26.0, 26.0, 26.0
    init_velocity      = 0.0, 0.0, 0.0
+   torque_origin      = 16.0, 16.0, 16.0
 }
 
 InitHydroForceBox_1 {
    lower_left_corner  = 13.0, 13.0, 13.0
    upper_right_corner = 19.0, 19.0, 19.0
    init_velocity      = 0.0, 0.0, 0.0
+   torque_origin      = 16.0, 16.0, 16.0
 }
 
 
