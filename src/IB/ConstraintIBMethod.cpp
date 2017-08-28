@@ -612,7 +612,7 @@ ConstraintIBMethod::putToDatabase(Pointer<Database> db)
     // Put the following quantities to restart database.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-		std::ostringstream posidentifier;
+	std::ostringstream posidentifier;
         posidentifier << "POSN_COM_STRUCT_" << struct_no;
         db->putDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
 		
@@ -776,7 +776,7 @@ ConstraintIBMethod::getFromRestart()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-		std::ostringstream posidentifier;
+	std::ostringstream posidentifier;
         posidentifier << "POSN_COM_STRUCT_" << struct_no;
         db->getDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
 		
@@ -2047,7 +2047,7 @@ ConstraintIBMethod::forwardEulerStep(double current_time, double new_time)
 {
     IBMethod::forwardEulerStep(current_time, new_time);
 
-	setFuRMoRPTime(current_time, new_time);
+    setFuRMoRPTime(current_time, new_time);
 	
     IBTK_TIMER_START(t_eulerStep);
     updateStructurePositionEulerStep();
