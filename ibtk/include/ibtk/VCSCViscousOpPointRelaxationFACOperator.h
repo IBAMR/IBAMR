@@ -1,7 +1,7 @@
-// Filename: SCPoissonPointRelaxationFACOperator.h
-// Created on 13 Nov 2008 by Boyce Griffith
+// Filename: VCSCViscousOpPointRelaxationFACOperator.h
+// Created on 21 Aug 2017 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,71 +30,36 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTK_SCPoissonPointRelaxationFACOperator
-#define included_IBTK_SCPoissonPointRelaxationFACOperator
+#ifndef included_IBTK_VCSCViscousOpPointRelaxationFACOperator
+#define included_IBTK_VCSCViscousOpPointRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
-#include <string>
-#include <vector>
-
-#include "ibtk/PoissonFACPreconditioner.h"
-#include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-
-namespace boost
-{
-template <class T, std::size_t N>
-class array;
-} // namespace boost
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Box;
-template <int DIM>
-class BoxList;
-} // namespace hier
-namespace solv
-{
-template <int DIM, class TYPE>
-class SAMRAIVectorReal;
-} // namespace solv
-} // namespace SAMRAI
+#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class SCPoissonPointRelaxationFACOperator is a concrete
- * PoissonFACPreconditionerStrategy for solving elliptic equations of the form
- * \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot D \nabla) u$} = f \f$ using a
- * globally second-order accurate side-centered finite-difference
+ * \brief Class VCSCViscousOpPointRelaxationFACOperator is a specialization of
+ * SCPoissonPointRelaxationFACOperator for solving vector elliptic equation of the form
+ * \f$ \mbox{$L u$} = C u + \nabla \cdot \mu (\nabla u + (\nabla u)^T) = f \f$
+ * using a globally second-order accurate side-centered finite-difference
  * discretization, with support for Robin and periodic boundary conditions.
  *
  * This class provides operators that are used by class FACPreconditioner to
- * solve scalar Poisson-type equations of the form \f[ (C I + \nabla \cdot D
- * \nabla) u = f \f] using a side-centered, globally second-order accurate
- * finite-difference discretization, where
+ * solve the vector elliptic equation of the form
+ * \f[ C u + \nabla \cdot \mu (\nabla u + (\nabla u)^T) = f \f] using a side-centered,
+ * globally second-order accurate finite-difference discretization, where
  *
- * - \f$ C \f$, \f$ D \f$ and \f$ f \f$ are independent of \f$ u \f$,
- * - \f$ C \f$ is a constant damping factor,
- * - \f$ D \f$ is a constant diffusion coefficient, and
- * - \f$ f \f$ is a side-centered scalar function.
+ * - \f$ C \f$, \f$ \mu \f$ and \f$ f \f$ are independent of \f$ u \f$,
+ * - \f$ C \f$ is a spatially varying damping factor,
+ * - \f$ \mu \f$ is a spatially varying diffusion coefficient, and
+ * - \f$ f \f$ is a side-centered vector function.
  *
  * Robin boundary conditions may be specified at physical boundaries; see class
  * SAMRAI::solv::RobinBcCoefStrategy.
- *
- * By default, the class is configured to solve the Poisson problem \f$
- * -\nabla^2 u = f \f$, subject to homogeneous Dirichlet boundary conditions.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -110,55 +75,34 @@ namespace IBTK
  level solver
  \endverbatim
 */
-class SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class VCSCViscousOpPointRelaxationFACOperator : public SCPoissonPointRelaxationFACOperator
 {
 public:
     /*!
      * \brief Constructor.
      */
-    SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                        const std::string& default_options_prefix);
+    VCSCViscousOpPointRelaxationFACOperator(const std::string& object_name,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
-    ~SCPoissonPointRelaxationFACOperator();
+    ~VCSCViscousOpPointRelaxationFACOperator();
 
     /*!
      * \brief Static function to construct a PoissonFACPreconditioner with a
-     * SCPoissonPointRelaxationFACOperator FAC strategy.
+     * VCSCViscousOpPointRelaxationFACOperator FAC strategy.
      */
     static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
-            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
+            new VCSCViscousOpPointRelaxationFACOperator(
+                object_name + "::VCSCViscousOpPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
-
-    /*!
-     * \name Functions for configuring the solver.
-     */
-    //\{
-
-    /*!
-     * \brief Specify the smoother type.
-     *
-     * Select from:
-     * - \c "PATCH_GAUSS_SEIDEL"
-     * - \c "PROCESSOR_GAUSS_SEIDEL"
-     * - \c "RED_BLACK_GAUSS_SEIDEL"
-     */
-    void setSmootherType(const std::string& smoother_type);
-
-    /*!
-     * \brief Specify the coarse level solver.
-     */
-    void setCoarseSolverType(const std::string& coarse_solver_type);
-
-    //\}
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.
@@ -187,18 +131,6 @@ public:
                      bool performing_post_sweeps);
 
     /*!
-     * \brief Solve the residual equation Ae=r on the coarsest level of the
-     * patch hierarchy.
-     *
-     * \param error error vector
-     * \param residual residual vector
-     * \param coarsest_ln coarsest level number
-     */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                            int coarsest_ln);
-
-    /*!
      * \brief Compute composite grid residual on the specified range of levels.
      *
      * \param residual residual vector
@@ -224,36 +156,13 @@ protected:
                                             int coarsest_reset_ln,
                                             int finest_reset_ln);
 
-    /*!
-     * \brief Remove implementation-specific hierarchy-dependent data.
-     */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
-
-    /*
-     * Coarse level solvers and solver parameters.
-     */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Patch overlap data.
-     */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
-
-    /*
-     * Dirichlet boundary condition utilities.
-     */
-    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
-    int d_mask_idx;
-
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCPoissonPointRelaxationFACOperator();
+    VCSCViscousOpPointRelaxationFACOperator();
 
     /*!
      * \brief Copy constructor.
@@ -262,7 +171,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonPointRelaxationFACOperator(const SCPoissonPointRelaxationFACOperator& from);
+    VCSCViscousOpPointRelaxationFACOperator(const VCSCViscousOpPointRelaxationFACOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -273,11 +182,10 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that);
-
+    VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that);
 };
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_SCPoissonPointRelaxationFACOperator
+#endif //#ifndef included_IBTK_VCSCViscousOpPointRelaxationFACOperator

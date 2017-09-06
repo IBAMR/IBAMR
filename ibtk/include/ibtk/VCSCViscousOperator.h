@@ -1,7 +1,7 @@
-// Filename: SCLaplaceOperator.h
-// Created on 11 Apr 2008 by Boyce Griffith
+// Filename: VCSCViscousOperator.h
+// Created on 17 Aug 2017 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,42 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBTK_SCLaplaceOperator
-#define included_IBTK_SCLaplaceOperator
+#ifndef included_IBTK_VCSCViscousOperator
+#define included_IBTK_VCSCViscousOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "VariableFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/LaplaceOperator.h"
-#include "tbox/Pointer.h"
-
-namespace IBTK
-{
-class StaggeredPhysicalBoundaryHelper;
-} // namespace IBTK
+#include "ibtk/SCLaplaceOperator.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class SCLaplaceOperator is a concrete LaplaceOperator which implements
- * a globally second-order accurate side-centered finite difference
- * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
- * \cdot D \nabla\f$.
+ * \brief Class VCSCViscousOperator is a subclass of SCLaplaceOperator
+ * which implements a globally second-order accurate side-centered finite
+ * difference discretization of a vector elliptic operator of the form
+ * \f$ L = \beta C I + \alpha \nabla \cdot \mu \nabla ( (\nabla u) + (\nabla u)^T ) \f$.
+ *
+ * Here \f$ u \f$ and \f$ C \f$ are vector valued side-centered fields and
+ * \f$ \mu \f$ is a node-centered scalar field.
+ *
+ * The scaling factors of \f$ C \f$ and \f$ \mu \f$ variables are passed separately
+ * and are denoted by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
  */
-class SCLaplaceOperator : public LaplaceOperator
+class VCSCViscousOperator : public SCLaplaceOperator
 {
 public:
     /*!
-     * \brief Constructor for class SCLaplaceOperator initializes the operator
+     * \brief Constructor for class VCSCViscousOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
+    VCSCViscousOperator(const std::string& object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
      */
-    ~SCLaplaceOperator();
+    ~VCSCViscousOperator();
 
     /*!
      * \name Linear operator functionality.
@@ -135,32 +127,13 @@ public:
 
     //\}
 
-protected:
-    // Operator parameters.
-    int d_ncomp;
-
-    // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
-    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
-
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
-
-    // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
-
-    // Dirichlet boundary condition utilities.
-    std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
-
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    SCLaplaceOperator();
+    VCSCViscousOperator();
 
     /*!
      * \brief Copy constructor.
@@ -169,7 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCLaplaceOperator(const SCLaplaceOperator& from);
+    VCSCViscousOperator(const VCSCViscousOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -180,11 +153,10 @@ private:
      *
      * \return A reference to this object.
      */
-    SCLaplaceOperator& operator=(const SCLaplaceOperator& that);
-
+    VCSCViscousOperator& operator=(const VCSCViscousOperator& that);
 };
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_SCLaplaceOperator
+#endif //#ifndef included_IBTK_VCSCViscousOperator

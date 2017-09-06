@@ -82,6 +82,15 @@ PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& 
 } // setPoissonSpecifications
 
 void
+PoissonFACPreconditioner::setCoefScales(double C_scale, double D_scale)
+{
+    PoissonSolver::setCoefScales(C_scale, D_scale);
+    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (p_fac_strategy) p_fac_strategy->setCoefScales(C_scale, D_scale);
+    return;
+} // setCoefScales
+
+void
 PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);

@@ -1077,6 +1077,12 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
                           const double& beta,
                           const double* mu,
                           const int& mu_gcw,
+                          const double* rho0,
+                          const double* rho1,
+#if (NDIM == 3)
+                          const double* rho2,
+#endif
+                          const int& rho_gcw,
                           const double* u0,
                           const double* u1,
 #if (NDIM == 3)
@@ -1098,7 +1104,8 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
                           const int& ilower2,
                           const int& iupper2,
 #endif
-                          const double* dx);
+                          const double* dx,
+                          const int& rho_varying);
 #endif
 
 void S_TO_C_STRAIN_FC(double* E_diag,
@@ -4839,7 +4846,8 @@ void
 PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          const double alpha,
                          const double beta,
-                         const Pointer<NodeData<NDIM, double> > coef,
+                         const Pointer<NodeData<NDIM, double> > coef1,
+                         const Pointer<SideData<NDIM, double> > coef2,
                          const Pointer<SideData<NDIM, double> > src1,
                          const double gamma_in,
                          const Pointer<SideData<NDIM, double> > src2_in,
@@ -4859,8 +4867,24 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
 #endif
     const int f_ghosts = (dst->getGhostCellWidth()).max();
 
-    const double* const mu = coef->getPointer();
-    const int mu_ghosts = (coef->getGhostCellWidth()).max();
+    const double* const mu = coef1->getPointer();
+    const int mu_ghosts = (coef1->getGhostCellWidth()).max();
+
+    const int rho_varying = !(coef2.isNull());
+    const double* rho0 = NULL;
+    const double* rho1 = NULL;
+#if (NDIM == 3)
+    const double* rho2 = NULL;
+#endif
+    const int rho_ghosts = rho_varying ? (coef2->getGhostCellWidth()).max() : 0;
+    if (rho_varying)
+    {
+        rho0 = coef2->getPointer(0, m);
+        rho1 = coef2->getPointer(1, m);
+#if (NDIM == 3)
+        rho2 = coef2->getPointer(2, m);
+#endif
+    }
 
     const double* const u0 = src1->getPointer(0, m);
     const double* const u1 = src1->getPointer(1, m);
@@ -4888,10 +4912,17 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    if (mu_ghosts != (coef->getGhostCellWidth()).min())
+    if (mu_ghosts != (coef1->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  coef does not have uniform ghost cell widths"
+                   << "  coef1 does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (rho_varying && (rho_ghosts != (coef1->getGhostCellWidth()).min()))
+    {
+        TBOX_ERROR("PatchMathOps::vc_laplace():\n"
+                   << "  coef2 does not have uniform ghost cell widths"
                    << std::endl);
     }
 
@@ -4923,7 +4954,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    const Box<NDIM>& mu_box = coef->getGhostBox();
+    const Box<NDIM>& mu_box = coef1->getGhostBox();
     const Box<NDIM> mu_box_shrunk = Box<NDIM>::grow(mu_box, -1);
 
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
@@ -4950,7 +4981,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    if (patch_box != coef->getBox())
+    if (patch_box != coef1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  dst, coef, src1, and src2 must all live on the same patch"
@@ -4982,6 +5013,12 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          beta,
                          mu,
                          mu_ghosts,
+                         rho0,
+                         rho1,
+#if (NDIM == 3)
+                         rho2,
+#endif
+                         rho_ghosts,
                          u0,
                          u1,
 #if (NDIM == 3)
@@ -5003,7 +5040,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          patch_box.lower(2),
                          patch_box.upper(2),
 #endif
-                         dx);
+                         dx,
+                         rho_varying);
 #endif
 #if (NDIM == 3)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
@@ -5012,7 +5050,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     NULL_USE(dst);
     NULL_USE(alpha);
     NULL_USE(beta);
-    NULL_USE(coef);
+    NULL_USE(coef1);
+    NULL_USE(coef2);
     NULL_USE(src1);
     NULL_USE(gamma_in);
     NULL_USE(src2_in);

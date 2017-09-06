@@ -143,6 +143,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();
     d_poisson_spec.setDConstant(-1.0);
+    d_C_scale = 1.0;
+    d_D_scale = 1.0;
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
@@ -221,6 +223,14 @@ PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpecific
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
+
+void
+PoissonFACPreconditionerStrategy::setCoefScales(double C_scale, double D_scale)
+{
+    d_C_scale = C_scale;
+    d_D_scale = D_scale;
+    return;
+} // setCoefScales
 
 void
 PoissonFACPreconditionerStrategy::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)

@@ -822,7 +822,7 @@ public:
                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
 
     /*!
-     * \brief Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta
+     * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.
      *
@@ -833,12 +833,14 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
                     double alpha,
                     double beta,
-                    int coef_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef_var,
+                    int coef1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef1_var,
                     int src1_idx,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
+                    int coef2_idx = -1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,
                     int src2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);

@@ -404,13 +404,14 @@ public:
                  int n = 0) const;
 
     /*!
-     * \brief Computes dst_l = alpha div coef ((grad src1_m) + (grad src1_m)^T)
-     * + beta src1_m + gamma src2_n.
+     * \brief Computes dst_l = alpha div coef1 ((grad src1_m) + (grad src1_m)^T)
+     * + beta coef2 src1_m + gamma src2_n.
      */
     void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
                     double alpha,
                     double beta,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > coef,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > coef1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > coef2,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
                     double gamma,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,

@@ -106,6 +106,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/solvers/impls/SCPoissonPETScLevelSolver.cpp \
 ../src/solvers/impls/SCPoissonPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/SCPoissonSolverManager.cpp \
+../src/solvers/impls/VCSCViscousOpPointRelaxationFACOperator.cpp \
+../src/solvers/impls/VCSCViscousOperator.cpp \
+../src/solvers/impls/VCSCViscousPETScLevelSolver.cpp \
 ../src/solvers/interfaces/FACPreconditionerStrategy.cpp \
 ../src/solvers/interfaces/GeneralOperator.cpp \
 ../src/solvers/interfaces/GeneralSolver.cpp \
@@ -290,6 +293,9 @@ pkg_include_HEADERS += \
 ../include/ibtk/Streamable.h \
 ../include/ibtk/StreamableFactory.h \
 ../include/ibtk/StreamableManager.h \
+../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
+../include/ibtk/VCSCViscousOperator.h \
+../include/ibtk/VCSCViscousPETScLevelSolver.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
 ../include/ibtk/private/FixedSizedStream-inl.h \

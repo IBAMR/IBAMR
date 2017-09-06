@@ -118,6 +118,25 @@ public:
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered viscous operator of a side-centered velocity variable
+     * restricted to a single SAMRAI::hier::PatchLevel.
+     *
+     * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
+     * the PoissonSpecification object are passed separately and are denoted
+     * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
+     */
+    static void constructPatchLevelVCSCViscousOp(Mat& mat,
+                                                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                                 double alpha,
+                                                 double beta,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 double data_time,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered IB interpolation operator for the provided kernel function.
      *
      * \warning This routine does not properly handle delta functions for which

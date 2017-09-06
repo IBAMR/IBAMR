@@ -4,6 +4,7 @@ c     generalized Laplace operators.
 c
 c     Created on 27 May 2010 by Thomas Fai
 c     Modified on 12 Feb 2016 by Nishant Nangia
+c     Modified on 23 Aug 2017 by Amneet Bhalla
 c
 c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
@@ -60,12 +61,14 @@ c
      &     f0,f1,f_gcw,
      &     alpha,beta,
      &     mu,mu_gcw,
+     &     rho0,rho1,rho_gcw,
      &     u0,u1,u_gcw,
      &     gamma,
      &     v0,v1,v_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
-     &     dx)
+     &     dx,
+     &     var_rho)
 c
       implicit none
 c
@@ -73,12 +76,15 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER f_gcw,mu_gcw,u_gcw,v_gcw
+      INTEGER f_gcw,mu_gcw,rho_gcw,u_gcw,v_gcw,var_rho
 
       REAL alpha,beta,gamma
 
       REAL mu(NODE2d(ilower,iupper,mu_gcw))
 
+      REAL rho0(SIDE2d0(ilower,iupper,rho_gcw))
+      REAL rho1(SIDE2d1(ilower,iupper,rho_gcw))
+      
       REAL u0(SIDE2d0(ilower,iupper,u_gcw))
       REAL u1(SIDE2d1(ilower,iupper,u_gcw))
 
@@ -95,7 +101,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-      REAL    fac0,fac1
+      REAL    fac0,fac1,rho
 c
 c     Compute the discrete divergence of mu (grad (u0,u1) + grad (u0,u1)^T).
 c
@@ -104,6 +110,12 @@ c
 
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
+
+            rho = beta
+            if (var_rho .eq. 1) then
+               rho = rho0(i0,i1)*beta
+            endif
+
             f0(i0,i1) = alpha*(
      &           0.5d0*fac0**2.d0*(
      &           (mu(i0,i1)+mu(i0+1,i1)+mu(i0,i1+1)+mu(i0+1,i1+1))*
@@ -114,12 +126,18 @@ c
      &           mu(i0,i1)*(u0(i0,i1)-u0(i0,i1-1)))+
      &           fac0*fac1*(mu(i0,i1+1)*(u1(i0,i1+1)-u1(i0-1,i1+1))-
      &           mu(i0,i1)*(u1(i0,i1)-u1(i0-1,i1)))) +
-     &           beta*u0(i0,i1) + gamma*v0(i0,i1)
+     &           rho*u0(i0,i1) + gamma*v0(i0,i1)
          enddo
       enddo
 
       do i1 = ilower1,iupper1+1
          do i0 = ilower0,iupper0
+
+            rho = beta
+            if (var_rho .eq. 1) then
+               rho = rho1(i0,i1)*beta
+            endif
+
             f1(i0,i1) = alpha*(
      &           0.5d0*fac1**2.d0*(
      &           (mu(i0,i1)+mu(i0+1,i1)+mu(i0,i1+1)+mu(i0+1,i1+1))*
@@ -130,7 +148,7 @@ c
      &           mu(i0,i1)*(u1(i0,i1)-u1(i0-1,i1)))+
      &           fac0*fac1*(mu(i0+1,i1)*(u0(i0+1,i1)-u0(i0+1,i1-1))-
      &           mu(i0,i1)*(u0(i0,i1)-u0(i0,i1-1)))) +
-     &           beta*u1(i0,i1) + gamma*v1(i0,i1)
+     &           rho*u1(i0,i1) + gamma*v1(i0,i1)
          enddo
       enddo
 c

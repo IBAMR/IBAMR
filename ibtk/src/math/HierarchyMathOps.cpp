@@ -2281,12 +2281,14 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                              const Pointer<SideVariable<NDIM, double> > dst_var,
                              const double alpha,
                              const double beta,
-                             const int coef_idx,
+                             const int coef1_idx,
                              const Pointer<NodeVariable<NDIM, double> > /*coef_var*/,
                              const int src1_idx,
                              const Pointer<SideVariable<NDIM, double> > src1_var,
                              const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
+                             int coef2_idx,
+                             Pointer<SideVariable<NDIM, double> > /*coef2_var*/,
                              const double gamma,
                              const int src2_idx,
                              const Pointer<SideVariable<NDIM, double> > src2_var)
@@ -2312,7 +2314,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         }
     }
 
-    // Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta src1 +
+    // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
     // gamma src2 independently on each level.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2322,12 +2324,15 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
-            Pointer<NodeData<NDIM, double> > coef_data = patch->getPatchData(coef_idx);
+            Pointer<NodeData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<SideData<NDIM, double> > coef2_data =
+                (coef2_idx >= 0) ? patch->getPatchData(coef2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<SideData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.vc_laplace(dst_data, alpha, beta, coef_data, src1_data, gamma, src2_data, patch);
+            d_patch_math_ops.vc_laplace(
+                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch);
         }
     }
 

@@ -57,6 +57,8 @@ namespace IBTK
 LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc),
       d_poisson_spec(d_object_name + "::poisson_spec"),
+      d_C_scale(1.0),
+      d_D_scale(1.0),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef)
@@ -90,6 +92,14 @@ LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_s
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
+
+void
+LaplaceOperator::setCoefScales(double C_scale, double D_scale)
+{
+    d_C_scale = C_scale;
+    d_D_scale = D_scale;
+    return;
+} // setCoefScales
 
 const PoissonSpecifications&
 LaplaceOperator::getPoissonSpecifications() const
