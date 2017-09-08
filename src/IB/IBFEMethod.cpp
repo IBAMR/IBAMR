@@ -233,10 +233,10 @@ assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
     const DofMap& dof_map = system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
 
-    AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
     QGauss qrule(dim, FIFTH);
     fe->attach_quadrature_rule(&qrule);
-    AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
+    UniquePtr<FEBase> fe_face(FEBase::build(dim, fe_type));
     QGauss qface(dim - 1, FIFTH);
     fe_face->attach_quadrature_rule(&qface);
 
@@ -649,6 +649,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
+    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -667,6 +668,7 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
+    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -685,6 +687,7 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
 void
 IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
+    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1155,7 +1158,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
+    UniquePtr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -1229,6 +1232,13 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             const size_t n_basis = phi_face.size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
+                // X:     reference coordinate
+                // x:     current coordinate
+                // FF:    deformation gradient associated with x = chi(X,t) (FF = dchi/dX)
+                // J:     Jacobian determinant (J = det(FF))
+                // N:     unit normal in the reference configuration
+                // n:     unit normal in the current configuration
+                // dA_da: reference surface area per current surface area (from Nanson's relation)
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                 const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
@@ -1236,9 +1246,11 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 const double J = std::abs(FF.det());
                 FF_trans = FF.transpose();
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                n = (FF_inv_trans * normal_face[qp]).unit();
+                const libMesh::VectorValue<double>& N = normal_face[qp];
+                n = (FF_inv_trans * N).unit();
                 const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
 
+                // Here we build up the boundary value for Phi.
                 double Phi = 0.0;
                 for (unsigned int k = 0; k < num_PK1_fcns; ++k)
                 {
@@ -1343,7 +1355,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
+    UniquePtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[NDIM];
 
     // First handle the stress contributions.  These are handled separately because
@@ -1369,9 +1381,9 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
         FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-        AutoPtr<QBase> qrule =
+        UniquePtr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
-        AutoPtr<QBase> qrule_face =
+        UniquePtr<QBase> qrule_face =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim - 1, d_PK1_stress_fcn_data[part][k].quad_order);
         fe.attachQuadratureRule(qrule.get());
         fe.attachQuadratureRuleFace(qrule_face.get());
@@ -1551,8 +1563,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
-    AutoPtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1826,8 +1838,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> default_qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
-    AutoPtr<QBase> qrule_face;
+    UniquePtr<QBase> default_qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule_face;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -1909,7 +1921,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
                 // Construct a side element.
-                AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
+                UniquePtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
                 const bool qrule_changed = d_fe_data_managers[part]->updateSpreadQuadratureRule(
                     qrule_face, d_spread_spec[part], side_elem.get(), X_node, patch_dx_min);
                 if (qrule_changed)
@@ -2082,7 +2094,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    AutoPtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
@@ -2169,7 +2181,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
                 // Construct a side element.
-                AutoPtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
+                UniquePtr<Elem> side_elem = elem->build_side(side, /*proxy*/ false);
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
