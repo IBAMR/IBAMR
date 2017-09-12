@@ -904,7 +904,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            for (int comp = 0; comp < NDIM; ++comp)
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
             {
                 if (comp == axis) continue;
 
@@ -1629,7 +1629,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            for (int comp = 0; comp < NDIM; ++comp)
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
             {
                 if (comp == axis) continue;
 
@@ -2029,7 +2029,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            for (int comp = 0; comp < NDIM; ++comp)
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
             {
                 if (comp == axis) continue;
 

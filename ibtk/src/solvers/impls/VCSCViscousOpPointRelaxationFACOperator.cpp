@@ -342,6 +342,13 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
     const std::string& default_options_prefix)
     : SCPoissonPointRelaxationFACOperator(object_name, input_db, default_options_prefix)
 {
+    // Setup Timers.
+    IBTK_DO_ONCE(t_smooth_error =
+                     TimerManager::getManager()->getTimer("IBTK::SCPoissonPointRelaxationFACOperator::smoothError()");
+                 t_solve_coarsest_level = TimerManager::getManager()->getTimer(
+                     "IBTK::SCPoissonPointRelaxationFACOperator::solveCoarsestLevel()");
+                 t_compute_residual = TimerManager::getManager()->getTimer(
+                     "IBTK::SCPoissonPointRelaxationFACOperator::computeResidual()"););
     return;
 } // VCSCViscousOpPointRelaxationFACOperator
 
