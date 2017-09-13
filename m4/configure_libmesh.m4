@@ -59,32 +59,14 @@ if test "$LIBMESH_ENABLED" = yes; then
 #if !defined LIBMESH_SUBMINOR_VERSION
 #define LIBMESH_SUBMINOR_VERSION LIBMESH_MICRO_VERSION
 #endif
-#if ((LIBMESH_MAJOR_VERSION >= 1) || ((LIBMESH_MINOR_VERSION >= 0) && (LIBMESH_SUBMINOR_VERSION >= 0)))
+#if ((LIBMESH_MAJOR_VERSION >= 1) || ((LIBMESH_MINOR_VERSION >= 1) && (LIBMESH_SUBMINOR_VERSION >= 0)))
 #else
 asdf
 #endif
   ]])],[LIBMESH_VERSION_VALID=yes],[LIBMESH_VERSION_VALID=no])
   AC_MSG_RESULT([${LIBMESH_VERSION_VALID}])
   if test "$LIBMESH_VERSION_VALID" = no; then
-    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.0.0 or newer])
-  fi
-  AC_MSG_CHECKING([if libMesh is configured with UniquePtr ***disabled***])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <libmesh/auto_ptr.h>
-
-#if defined(UniquePtr)
-#if (UniquePtr == AutoPtr)
-// intentionally blank
-#else
-asdf
-#endif
-#else
-asdf
-#endif
-  ]])],[LIBMESH_HAS_UNIQUEPTR=no],[LIBMESH_HAS_UNIQUEPTR=yes])
-  AC_MSG_RESULT([${LIBMESH_VERSION_VALID}])
-  if test "$LIBMESH_HAS_UNIQUEPTR" = yes; then
-    AC_MSG_ERROR([please rerun libMesh configure with UniquePtr disabled (--disable-unique-ptr)])
+    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.1.0 or newer])
   fi
   AC_MSG_NOTICE([obtaining libMesh configuration information from libmesh_common.h])
   AC_RUN_IFELSE([AC_LANG_SOURCE([
