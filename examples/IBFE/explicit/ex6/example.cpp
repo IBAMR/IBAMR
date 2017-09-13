@@ -412,8 +412,8 @@ run_example(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        AutoPtr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : NULL);
-        AutoPtr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -568,8 +568,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
         std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
-        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
+        libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
@@ -612,7 +612,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     NumericVector<double>* X_vec = X_system.solution.get();
-    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    libMesh::UniquePtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();

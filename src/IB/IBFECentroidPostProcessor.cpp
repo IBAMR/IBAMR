@@ -172,7 +172,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
+    UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
     // Set up all system data required to evaluate the mesh functions.
     FEDataInterpolation fe(dim, d_fe_data_manager);

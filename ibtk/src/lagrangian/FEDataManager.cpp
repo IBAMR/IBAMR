@@ -464,7 +464,7 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name, const 
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
-        AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
+        UniquePtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(
             sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
@@ -540,7 +540,7 @@ FEDataManager::spread(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule;
+    UniquePtr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
@@ -556,10 +556,10 @@ FEDataManager::spread(const int f_data_idx,
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
@@ -776,10 +776,10 @@ FEDataManager::prolongData(const int f_data_idx,
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
@@ -990,7 +990,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule;
+    UniquePtr<QBase> qrule;
 
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& F_system = d_es->get_system(system_name);
@@ -1006,10 +1006,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
@@ -1218,7 +1218,7 @@ FEDataManager::interp(const int f_data_idx,
     IBTK_TIMER_START(t_interp);
 
     // Interpolate quantity at quadrature points and filter it to nodal points.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    UniquePtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
     interpWeighted(f_data_idx, *F_rhs_vec, X_vec, system_name, interp_spec, f_refine_scheds, fill_data_time);
 
     // Solve for the nodal values.
@@ -1269,10 +1269,10 @@ FEDataManager::restrictData(const int f_data_idx,
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
     FEType X_fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
     if (F_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* F_fe = F_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
@@ -1291,7 +1291,7 @@ FEDataManager::restrictData(const int f_data_idx,
 
     // Loop over the patches to assemble the right-hand-side vector used to
     // solve for F.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    UniquePtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
     TensorValue<double> dX_ds;
     boost::multi_array<double, 2> X_node;
@@ -1470,8 +1470,8 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
         dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map.variable_type(0);
-        AutoPtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -1600,8 +1600,8 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         FEType fe_type = dof_map.variable_type(0);
-        AutoPtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -1757,7 +1757,7 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 } // computeL2Projection
 
 bool
-FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
+FEDataManager::updateQuadratureRule(UniquePtr<QBase>& qrule,
                                     QuadratureType type,
                                     Order order,
                                     bool use_adaptive_quadrature,
@@ -1792,7 +1792,7 @@ FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
     if (!qrule || qrule->type() != type || qrule->get_dim() != elem_dim || qrule->get_order() != order ||
         qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
     {
-        qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
+        qrule = (type == QGRID ? UniquePtr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
         // qrule->allow_rules_with_negative_weights = false;
         qrule->init(elem_type, elem_p_level);
         qrule_updated = true;
@@ -1801,7 +1801,7 @@ FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
 }
 
 bool
-FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
+FEDataManager::updateInterpQuadratureRule(UniquePtr<QBase>& qrule,
                                           const FEDataManager::InterpSpec& spec,
                                           Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -1812,7 +1812,7 @@ FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
 }
 
 bool
-FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
+FEDataManager::updateSpreadQuadratureRule(UniquePtr<QBase>& qrule,
                                           const FEDataManager::SpreadSpec& spec,
                                           Elem* const elem,
                                           const boost::multi_array<double, 2>& X_node,
@@ -1925,7 +1925,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         const MeshBase& mesh = d_es->get_mesh();
         const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule;
+        UniquePtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -1934,12 +1934,12 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Setup and extract the underlying solution data.
         NumericVector<double>* X_vec = getCoordsVector();
-        AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+        UniquePtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
         PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
@@ -2174,7 +2174,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule;
+        UniquePtr<QBase> qrule;
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2183,7 +2183,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+        UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Extract the underlying solution data.
@@ -2334,17 +2334,17 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     const MeshBase& mesh = d_es->get_mesh();
     const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule;
+    UniquePtr<QBase> qrule;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-    AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
-    AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
+    UniquePtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
