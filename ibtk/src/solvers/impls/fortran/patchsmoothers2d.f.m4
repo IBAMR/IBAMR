@@ -476,7 +476,7 @@ c
       INTEGER i0,i1
       REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
 c
-c     Perform a single"red" or "black"  Gauss-Seidel sweep.
+c     Perform a single "red" or "black"  Gauss-Seidel sweep.
 c
       red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
   
@@ -740,7 +740,7 @@ c
       INTEGER i0,i1
       REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
 c
-c     Perform a single"red" or "black"  Gauss-Seidel sweep.
+c     Perform a single "red" or "black"  Gauss-Seidel sweep.
 c
       red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
   

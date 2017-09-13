@@ -126,7 +126,14 @@ void VC_GS_SMOOTH_FC(double* U0,
                      const double* C2,
 #endif
                      const int& C_gcw,
+#if (NDIM == 2)
                      const double* mu,
+#endif
+#if (NDIM == 3)
+                     const double* mu0,
+                     const double* mu1,
+                     const double* mu2,
+#endif
                      const int& mu_gcw,
                      const double& alpha,
                      const double& beta,
@@ -165,7 +172,14 @@ void VC_GS_SMOOTH_MASK_FC(double* U0,
                           const double* C2,
 #endif
                           const int& C_gcw,
+#if (NDIM == 2)
                           const double* mu,
+#endif
+#if (NDIM == 3)
+                          const double* mu0,
+                          const double* mu1,
+                          const double* mu2,
+#endif                          
                           const int& mu_gcw,
                           const double& alpha,
                           const double& beta,
@@ -198,7 +212,14 @@ void VC_RB_GS_SMOOTH_FC(double* U0,
                         const double* C2,
 #endif
                         const int& C_gcw,
+#if (NDIM == 2)
                         const double* mu,
+#endif
+#if (NDIM == 3)
+                        const double* mu0,
+                        const double* mu1,
+                        const double* mu2,
+#endif
                         const int& mu_gcw,
                         const double& alpha,
                         const double& beta,
@@ -238,7 +259,14 @@ void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
                              const double* C2,
 #endif
                              const int& C_gcw,
+#if (NDIM == 2)
                              const double* mu,
+#endif
+#if (NDIM == 3)
+                             const double* mu0,
+                             const double* mu1,
+                             const double* mu2,
+#endif
                              const int& mu_gcw,
                              const double& alpha,
                              const double& beta,
@@ -465,7 +493,12 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM, double> > residual_data = residual.getComponentPatchData(0, *patch);
+#if (NDIM == 2)
             Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+#endif
+#if (NDIM == 3)
+            Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+#endif
 #if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
@@ -551,7 +584,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #endif
                 const int mask_ghosts = (mask_data->getGhostCellWidth()).max();
 
+#if (NDIM == 2)
                 const double* const mu = mu_data->getPointer(depth);
+#endif
+#if (NDIM == 3)
+                const double* const mu0 = mu_data->getPointer(0, depth);
+                const double* const mu1 = mu_data->getPointer(1, depth);
+                const double* const mu2 = mu_data->getPointer(2, depth);
+#endif
                 const int mu_ghosts = (mu_data->getGhostCellWidth()).max();
 
                 const double* C0 = NULL;
@@ -599,7 +639,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                                 C2,
 #endif
                                                 C_ghosts,
+#if (NDIM == 2)
                                                 mu,
+#endif
+#if (NDIM == 3)
+                                                mu0,
+                                                mu1,
+                                                mu2,
+#endif
                                                 mu_ghosts,
                                                 alpha,
                                                 beta,
@@ -641,7 +688,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                              C2,
 #endif
                                              C_ghosts,
+#if (NDIM == 2)
                                              mu,
+#endif
+#if (NDIM == 3)
+                                             mu0,
+                                             mu1,
+                                             mu2,
+#endif
                                              mu_ghosts,
                                              alpha,
                                              beta,
@@ -680,7 +734,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                            C2,
 #endif
                                            C_ghosts,
+#if (NDIM == 2)
                                            mu,
+#endif
+#if (NDIM == 3)
+                                           mu0,
+                                           mu1,
+                                           mu2,
+#endif
                                            mu_ghosts,
                                            alpha,
                                            beta,
@@ -716,7 +777,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                         C2,
 #endif
                                         C_ghosts,
+#if (NDIM == 2)
                                         mu,
+#endif
+#if (NDIM == 3)
+                                        mu0,
+                                        mu1,
+                                        mu2,
+#endif
                                         mu_ghosts,
                                         alpha,
                                         beta,
@@ -813,7 +881,12 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    alpha,
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
+#if (NDIM == 2)
                                                    Pointer<NodeVariable<NDIM, double> >(NULL),
+#endif
+#if (NDIM == 3)
+                                                   Pointer<EdgeVariable<NDIM, double> >(NULL),
+#endif
                                                    sol_idx,
                                                    sol_var,
                                                    Pointer<HierarchyGhostCellInterpolation>(NULL),

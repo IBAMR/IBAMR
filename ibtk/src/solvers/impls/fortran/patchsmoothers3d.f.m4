@@ -337,3 +337,925 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+c              Variable coefficient patch smoothers
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single Gauss-Seidel sweep for 
+c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2).
+c
+c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0, f1, f2)
+c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcgssmooth3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu0,mu1,mu2,mu_gcw,
+     &     alpha,beta,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     var_c)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw
+      INTEGER var_c
+
+      REAL alpha,beta
+
+      REAL mu0(EDGE3d0(ilower,iupper,mu_gcw))
+      REAL mu1(EDGE3d1(ilower,iupper,mu_gcw))
+      REAL mu2(EDGE3d2(ilower,iupper,mu_gcw))
+      
+      REAL f0(SIDE3d0(ilower,iupper,f_gcw))
+      REAL f1(SIDE3d1(ilower,iupper,f_gcw))
+      REAL f2(SIDE3d2(ilower,iupper,f_gcw))
+
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
+c
+c     Perform a single Gauss-Seidel sweep.
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+      fac2 = 1.d0/(dx(2))
+
+      fac = 2.d0*fac0**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+
+               c = beta
+               if (var_c .eq. 1) then
+                  c = c0(i0,i1,i2)*beta
+               endif       
+         
+               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
+     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                    mu2(i0+1,i1+1,i2)
+               mu_upper = mu_upper/12.d0
+
+               mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
+     &                    mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
+     &                    mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
+     &                    mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
+     &                    mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
+     &                    mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
+               mu_upper = mu_lower/12.d0
+         
+               dnr =  alpha*(fac*(mu_upper + mu_lower) + 
+     &             fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &             fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+
+               nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+     &           mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
+     &           fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &             mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
+     &           fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &            u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
+     &           u1(i0-1,i1,i2)))+
+     &           fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+ 
+     &             mu1(i0,i1,i2)*u0(i0,i1,i2-1))+   
+     &           fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &             u2(i0-1,i1,i2+1))-mu2(i0,i1,i2)*(u2(i0,i1,i2)-
+     &           u2(i0-1,i1,i2))))              
+
+               u0(i0,i1,i2) = nmr/dnr
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac1**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+  
+               c = beta
+               if (var_c .eq. 1) then
+                  c = c1(i0,i1,i2)*beta
+               endif
+
+               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
+     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                    mu2(i0+1,i1+1,i2)
+               mu_upper = mu_upper/12.d0
+
+               mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
+     &                    mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
+     &                    mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
+     &                    mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
+     &                    mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
+     &                    mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
+               mu_lower = mu_lower/12.d0
+        
+               dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &            fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &            fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+
+               nmr = -f1(i0,i1,i2) + alpha*(fac*(
+     &          mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
+     &          fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) + 
+     &             mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
+     &          fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &             u0(i0+1,i1-1,i2))-
+     &             mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
+     &          fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+ 
+     &             mu0(i0,i1,i2)*u1(i0,i1,i2-1))+   
+     &           fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &             u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
+     &           u2(i0,i1-1,i2))))    
+
+               u1(i0,i1,i2) = nmr/dnr
+
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac2**2.d0
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+
+               c = beta
+               if (var_c .eq. 1) then
+                  c = c2(i0,i1,i2)*beta
+               endif
+
+               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
+     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                    mu2(i0+1,i1+1,i2)
+               mu_upper = mu_upper/12.d0
+
+               mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
+     &                    mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu1(i0,i1,i2-1)+
+     &                    mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
+     &                    mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
+     &                    mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
+     &                    mu2(i0+1,i1+1,i2-1)
+               mu_lower = mu_lower/12.d0
+          
+               dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &          fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &          fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+
+               nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+     &         mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
+     &         fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &           mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
+     &         fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &          u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
+     &         u1(i0,i1,i2-1)))+
+     &         fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+ 
+     &           mu1(i0,i1,i2)*u2(i0-1,i1,i2))+   
+     &         fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &           u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
+     &         u0(i0,i1,i2-1))))      
+
+               u2(i0,i1,i2) = nmr/dnr
+
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single "red" or "black" Gauss-Seidel sweep for 
+c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2).
+c
+c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0, f1, f2)
+c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcrbgssmooth3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu0,mu1,mu2,mu_gcw,
+     &     alpha,beta,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     var_c,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw
+      INTEGER var_c
+      INTEGER red_or_black
+
+      REAL alpha,beta
+
+      REAL mu0(EDGE3d0(ilower,iupper,mu_gcw))
+      REAL mu1(EDGE3d1(ilower,iupper,mu_gcw))
+      REAL mu2(EDGE3d2(ilower,iupper,mu_gcw))
+      
+      REAL f0(SIDE3d0(ilower,iupper,f_gcw))
+      REAL f1(SIDE3d1(ilower,iupper,f_gcw))
+      REAL f2(SIDE3d2(ilower,iupper,f_gcw))
+
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
+c
+c     Perform a single "red" or "black"  Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+  
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+      fac2 = 1.d0/(dx(2))
+
+      fac = 2.d0*fac0**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c0(i0,i1,i2)*beta
+                  endif       
+         
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
+     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
+     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
+     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
+     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
+     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
+                  mu_upper = mu_lower/12.d0
+         
+                  dnr =  alpha*(fac*(mu_upper + mu_lower) + 
+     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+
+                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+     &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
+     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
+     &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
+     &              u1(i0-1,i1,i2)))+
+     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+ 
+     &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+   
+     &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0-1,i1,i2+1))-mu2(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0-1,i1,i2))))              
+
+                  u0(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac1**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
+  
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c1(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
+     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
+     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
+     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
+     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
+     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
+                  mu_lower = mu_lower/12.d0
+        
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f1(i0,i1,i2) + alpha*(fac*(
+     &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
+     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) + 
+     &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
+     &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &                u0(i0+1,i1-1,i2))-
+     &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
+     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+ 
+     &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+   
+     &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0,i1-1,i2))))    
+
+                  u1(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac2**2.d0
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c2(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
+     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu1(i0,i1,i2-1)+
+     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
+     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
+     &                       mu2(i0+1,i1+1,i2-1)
+                  mu_lower = mu_lower/12.d0
+          
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+     &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
+     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
+     &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
+     &            u1(i0,i1,i2-1)))+
+     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+ 
+     &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+   
+     &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
+     &            u0(i0,i1,i2-1))))      
+
+                  u2(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end
+c
+
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single Gauss-Seidel sweep for 
+c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2),
+c  with masking of certain degrees of freedom.
+c
+c     NOTE: The solution (u0,u1,u2) is unmodified at masked degrees of freedom.
+c
+c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0, f1, f2)
+c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcgssmoothmask3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     mask0,mask1,mask2,mask_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu0,mu1,mu2,mu_gcw,
+     &     alpha,beta,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     var_c)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,mask_gcw
+      INTEGER var_c
+
+      REAL alpha,beta
+
+      REAL mu0(EDGE3d0(ilower,iupper,mu_gcw))
+      REAL mu1(EDGE3d1(ilower,iupper,mu_gcw))
+      REAL mu2(EDGE3d2(ilower,iupper,mu_gcw))
+      
+      REAL f0(SIDE3d0(ilower,iupper,f_gcw))
+      REAL f1(SIDE3d1(ilower,iupper,f_gcw))
+      REAL f2(SIDE3d2(ilower,iupper,f_gcw))
+
+      INTEGER mask0(SIDE3d0(ilower,iupper,mask_gcw))
+      INTEGER mask1(SIDE3d1(ilower,iupper,mask_gcw))
+      INTEGER mask2(SIDE3d2(ilower,iupper,mask_gcw))
+      
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
+c
+c     Perform a single Gauss-Seidel sweep.
+c
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+      fac2 = 1.d0/(dx(2))
+
+      fac = 2.d0*fac0**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               if (mask0(i0,i1,i2) .eq. 0) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c0(i0,i1,i2)*beta
+                  endif       
+         
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
+     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
+     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
+     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
+     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
+     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
+                  mu_upper = mu_lower/12.d0
+         
+                  dnr =  alpha*(fac*(mu_upper + mu_lower) + 
+     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+
+                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+     &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
+     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
+     &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
+     &              u1(i0-1,i1,i2)))+
+     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+ 
+     &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+   
+     &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0-1,i1,i2+1))-mu2(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0-1,i1,i2))))              
+
+                  u0(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac1**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               if (mask1(i0,i1,i2) .eq. 0) then
+  
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c1(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
+     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
+     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
+     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
+     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
+     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
+                  mu_lower = mu_lower/12.d0
+        
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f1(i0,i1,i2) + alpha*(fac*(
+     &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
+     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) + 
+     &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
+     &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &                u0(i0+1,i1-1,i2))-
+     &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
+     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+ 
+     &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+   
+     &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0,i1-1,i2))))    
+
+                  u1(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac2**2.d0
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if (mask2(i0,i1,i2) .eq. 0) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c2(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
+     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu1(i0,i1,i2-1)+
+     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
+     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
+     &                       mu2(i0+1,i1+1,i2-1)
+                  mu_lower = mu_lower/12.d0
+          
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+     &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
+     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
+     &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
+     &            u1(i0,i1,i2-1)))+
+     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+ 
+     &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+   
+     &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
+     &            u0(i0,i1,i2-1))))      
+
+                  u2(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c  Perform a single "red" or "black" Gauss-Seidel sweep for 
+c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0,u1,u2)^T) + beta c (u0,u1,u2),
+c  with masking of certain degrees of freedom.
+c
+c     NOTE: The solution (u0,u1,u2) is unmodified at masked degrees of freedom.
+c
+c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0, f1, f2)
+c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vcrbgssmoothmask3d(
+     &     u0,u1,u2,u_gcw,
+     &     f0,f1,f2,f_gcw,
+     &     mask0,mask1,mask2,mask_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     mu0,mu1,mu2,mu_gcw,
+     &     alpha,beta,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     var_c,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,mask_gcw
+      INTEGER var_c
+      INTEGER red_or_black
+
+      REAL alpha,beta
+
+      REAL mu0(EDGE3d0(ilower,iupper,mu_gcw))
+      REAL mu1(EDGE3d1(ilower,iupper,mu_gcw))
+      REAL mu2(EDGE3d2(ilower,iupper,mu_gcw))
+      
+      REAL f0(SIDE3d0(ilower,iupper,f_gcw))
+      REAL f1(SIDE3d1(ilower,iupper,f_gcw))
+      REAL f2(SIDE3d2(ilower,iupper,f_gcw))
+
+      INTEGER mask0(SIDE3d0(ilower,iupper,mask_gcw))
+      INTEGER mask1(SIDE3d1(ilower,iupper,mask_gcw))
+      INTEGER mask2(SIDE3d2(ilower,iupper,mask_gcw))
+      
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
+c
+c     Perform a single"red" or "black"  Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+  
+      fac0 = 1.d0/(dx(0))
+      fac1 = 1.d0/(dx(1))
+      fac2 = 1.d0/(dx(2))
+
+      fac = 2.d0*fac0**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               if ( (mod(i0+i1+i2,2) .eq. red_or_black) .and.
+     &              (mask0(i0,i1,i2) .eq. 0) ) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c0(i0,i1,i2)*beta
+                  endif       
+         
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
+     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
+     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
+     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
+     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
+     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
+                  mu_upper = mu_lower/12.d0
+         
+                  dnr =  alpha*(fac*(mu_upper + mu_lower) + 
+     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+
+                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+     &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
+     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
+     &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
+     &              u1(i0-1,i1,i2)))+
+     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+ 
+     &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+   
+     &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0-1,i1,i2+1))-mu2(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0-1,i1,i2))))              
+
+                  u0(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac1**2.d0
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               if ( (mod(i0+i1+i2,2) .eq. red_or_black) .and.
+     &              (mask1(i0,i1,i2) .eq. 0) ) then
+  
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c1(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
+     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
+     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
+     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
+     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
+     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
+                  mu_lower = mu_lower/12.d0
+        
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f1(i0,i1,i2) + alpha*(fac*(
+     &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
+     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) + 
+     &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
+     &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &                u0(i0+1,i1-1,i2))-
+     &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
+     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+ 
+     &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+   
+     &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
+     &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
+     &              u2(i0,i1-1,i2))))    
+
+                  u1(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+      fac = 2.d0*fac2**2.d0
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if ( (mod(i0+i1+i2,2) .eq. red_or_black) .and.
+     &              (mask2(i0,i1,i2) .eq. 0) ) then
+
+                  c = beta
+                  if (var_c .eq. 1) then
+                     c = c2(i0,i1,i2)*beta
+                  endif
+
+                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu0(i0,i1,i2+1)+             
+     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
+     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
+     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
+     &                       mu2(i0+1,i1+1,i2)
+                  mu_upper = mu_upper/12.d0
+
+                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
+     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
+     &                       mu1(i0,i1,i2-1)+
+     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
+     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
+     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
+     &                       mu2(i0+1,i1+1,i2-1)
+                  mu_lower = mu_lower/12.d0
+          
+                  dnr = alpha*(fac*(mu_upper + mu_lower)+
+     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+
+                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+     &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
+     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
+     &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
+     &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
+     &            u1(i0,i1,i2-1)))+
+     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+ 
+     &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+   
+     &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
+     &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
+     &            u0(i0,i1,i2-1))))      
+
+                  u2(i0,i1,i2) = nmr/dnr
+               endif
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end
+c
+
+c
