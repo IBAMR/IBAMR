@@ -649,7 +649,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
-    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -668,7 +667,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
-    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -687,7 +685,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
 void
 IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
-    return; // XXXX
     const double dt = new_time - current_time;
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
