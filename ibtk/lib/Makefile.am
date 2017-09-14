@@ -360,6 +360,7 @@ $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/rot3d.f \
 $(top_builddir)/src/math/fortran/strain3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/math/fortran/vclaplace3d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f

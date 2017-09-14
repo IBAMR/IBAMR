@@ -198,7 +198,11 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     alpha,
                                     beta,
                                     d_poisson_spec.getDPatchDataId(),
+#if (NDIM == 2)
                                     Pointer<NodeVariable<NDIM, double> >(NULL),
+#elif (NDIM == 3)
+                                    Pointer<EdgeVariable<NDIM, double> >(NULL),
+#endif
                                     x_scratch_idx,
                                     x_sc_var,
                                     Pointer<HierarchyGhostCellInterpolation>(NULL),

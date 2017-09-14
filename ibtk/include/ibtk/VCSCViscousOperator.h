@@ -48,7 +48,7 @@ namespace IBTK
  * \f$ L = \beta C I + \alpha \nabla \cdot \mu \nabla ( (\nabla u) + (\nabla u)^T ) \f$.
  *
  * Here \f$ u \f$ and \f$ C \f$ are vector valued side-centered fields and
- * \f$ \mu \f$ is a node-centered scalar field.
+ * \f$ \mu \f$ is a node-(2D) or edge-(3D) centered scalar field.
  *
  * The scaling factors of \f$ C \f$ and \f$ \mu \f$ variables are passed separately
  * and are denoted by \f$ \beta \f$ and \f$ \alpha \f$, respectively.

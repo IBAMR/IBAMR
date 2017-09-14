@@ -588,6 +588,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/math/fortran/rot3d.f \
 	$(top_builddir)/src/math/fortran/strain3d.f \
 	$(top_builddir)/src/math/fortran/miscmath3d.f \
+	$(top_builddir)/src/math/fortran/vclaplace3d.f \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
@@ -730,6 +731,7 @@ am_libIBTK3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/math/fortran/rot3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/strain3d.$(OBJEXT) \
 	$(top_builddir)/src/math/fortran/miscmath3d.$(OBJEXT) \
+	$(top_builddir)/src/math/fortran/vclaplace3d.$(OBJEXT) \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.$(OBJEXT) \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.$(OBJEXT) \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.$(OBJEXT)
@@ -1446,6 +1448,7 @@ $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/rot3d.f \
 $(top_builddir)/src/math/fortran/strain3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/math/fortran/vclaplace3d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
@@ -2462,6 +2465,9 @@ $(top_builddir)/src/math/fortran/strain3d.$(OBJEXT):  \
 	$(top_builddir)/src/math/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/math/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/math/fortran/miscmath3d.$(OBJEXT):  \
+	$(top_builddir)/src/math/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/math/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/math/fortran/vclaplace3d.$(OBJEXT):  \
 	$(top_builddir)/src/math/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/math/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.$(OBJEXT):  \

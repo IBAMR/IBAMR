@@ -421,6 +421,23 @@ public:
                     int n = 0) const;
 
     /*!
+     * \brief Computes dst_l = alpha div coef1 ((grad src1_m) + (grad src1_m)^T)
+     * + beta coef2 src1_m + gamma src2_n.
+     */
+    void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+                    double alpha,
+                    double beta,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > coef1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > coef2,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                    double gamma,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    int l = 0,
+                    int m = 0,
+                    int n = 0) const;
+
+    /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
     void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
