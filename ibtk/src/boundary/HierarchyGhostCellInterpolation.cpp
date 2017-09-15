@@ -44,6 +44,7 @@
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
+#include "EdgeVariable.h"
 #include "IntVector.h"
 #include "NodeVariable.h"
 #include "Patch.h"
@@ -257,6 +258,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         Pointer<CellVariable<NDIM, double> > cc_var = var;
         Pointer<NodeVariable<NDIM, double> > nc_var = var;
         Pointer<SideVariable<NDIM, double> > sc_var = var;
+        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         d_cf_bdry_ops[comp_idx] = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
@@ -303,10 +305,21 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                 refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
             }
         }
+        else if (ec_var)
+        {
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
+            if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
+            {
+                TBOX_ERROR("not supported yet.\n");
+            }
+        }
         else
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::initializeOperatorState():\n"
-                       << "  only double-precision cell-, node-, or side-centered data is "
+                       << "  only double-precision cell-, node-, side-, or edge-centered data is "
                           "presently supported."
                        << std::endl);
         }
@@ -443,6 +456,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         Pointer<CellVariable<NDIM, double> > cc_var = var;
         Pointer<NodeVariable<NDIM, double> > nc_var = var;
         Pointer<SideVariable<NDIM, double> > sc_var = var;
+        Pointer<EdgeVariable<NDIM, double> > ec_var = var;
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
@@ -467,10 +481,17 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                 refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
             }
         }
+        else if (ec_var)
+        {
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
+        }
         else
         {
             TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
-                       << "  only double-precision cell-, node-, or side-centered data is "
+                       << "  only double-precision cell-, node-, side-, or edge-centered data is "
                           "presently supported."
                        << std::endl);
         }

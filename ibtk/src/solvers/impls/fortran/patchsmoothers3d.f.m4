@@ -430,7 +430,7 @@ c
      &                    mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
      &                    mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
      &                    mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-               mu_upper = mu_lower/12.d0
+               mu_lower = mu_lower/12.d0
          
                dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &             fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -652,7 +652,7 @@ c
      &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
      &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
      &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_upper = mu_lower/12.d0
+                  mu_lower = mu_lower/12.d0
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -886,7 +886,7 @@ c
      &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
      &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
      &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_upper = mu_lower/12.d0
+                  mu_lower = mu_lower/12.d0
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -1123,7 +1123,7 @@ c
      &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
      &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
      &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_upper = mu_lower/12.d0
+                  mu_lower = mu_lower/12.d0
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+

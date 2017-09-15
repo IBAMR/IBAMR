@@ -185,7 +185,7 @@ run_example(int argc, char* argv[])
         // Create an object to communicate ghost cell data.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent u_transaction(
-            u_side_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
+            u_side_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false);
         InterpolationTransactionComponent mu_transaction(
             mu_node_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false);
         vector<InterpolationTransactionComponent> transactions(2);

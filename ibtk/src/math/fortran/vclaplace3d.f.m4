@@ -137,7 +137,7 @@ c
      &                    mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
      &                    mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
      &                    mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-               mu_upper = mu_lower/12.d0
+               mu_lower = mu_lower/12.d0
 
                f0(i0,i1,i2) = alpha*(
      &              2.d0*fac0**2.d0*(
@@ -246,7 +246,7 @@ c
      &              mu1(i0,i1,i2)*(u2(i0,i1,i2)-u2(i0-1,i1,i2)))+
      &              fac0*fac2*(
      &              mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-u0(i0+1,i1,i2-1))-
-     &              mu1(i0,i1,i2)*(u0(i0,i1,i2)-u2(i0,i1,i2-1))))+
+     &              mu1(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1,i2-1))))+
      &              rho*u2(i0,i1,i2) + gamma*v2(i0,i1,i2)
             enddo
          enddo
