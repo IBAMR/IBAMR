@@ -2074,6 +2074,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             }
         }
 
+        DBFreeOptlist(optlist);
         DBClose(dbfile);
 
         // Create or update the dumps file on the root MPI process.
