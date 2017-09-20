@@ -606,6 +606,12 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     ierr = MatSetBlockSize(mat, NDIM);
     IBTK_CHKERRQ(ierr);
 
+    typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+    std::vector< StencilMapType > stencil_map_vec;
+    static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    static const Index<NDIM> ORIGIN(0);
+
+#if (NDIM == 2)
     // Create stencil dictionary.
     enum DIRECTIONS
     {
@@ -618,45 +624,85 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         NORTHWEST = 6,
         SOUTHEAST = 7,
         SOUTHWEST = 8,
-        TOP = 9,
-        BOTTOM = 10,
-        TOPEAST = 11,
-        TOPWEST = 12,
-        BOTTOMEAST = 13,
-        BOTTOMWEST = 14,
+        X = 0,
+        Y = 1,
+    };
+    IBTK_DO_ONCE(static StencilMapType sm;
+                 sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST;
+                 sm[get_shift(X, -1)] = WEST;
+                 sm[get_shift(Y, 1)] = NORTH;
+                 sm[get_shift(Y, -1)] = SOUTH;
+                 sm[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
+                 sm[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
+                 sm[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
+                 sm[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
+                 stencil_map_vec.push_back(sm););
+    
+#elif (NDIM == 3)
+    // In 3D, the shifted directions depend on the axis under consideration
+    enum COMMONDIRECTIONS
+    {
+        CENTER = 0,
+        EAST = 1,
+        WEST = 2,
+        NORTH = 3,
+        SOUTH = 4,
+        TOP = 5,
+        BOTTOM = 6,
         X = 0,
         Y = 1,
         Z = 2
     };
-    typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
-    static StencilMapType stencil_map;
-    static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
-    static const Index<NDIM> ORIGIN(0);
+    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis)
+                 {
+                     static StencilMapType sm;
+                     // Common to all axes
+                     sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST;
+                     sm[get_shift(X, -1)] = WEST;
+                     sm[get_shift(Y, 1)] = NORTH;
+                     sm[get_shift(Y, -1)] = SOUTH;
+                     sm[get_shift(Z, 1)] = TOP;
+                     sm[get_shift(Z, -1)] = BOTTOM;
 
-#if (NDIM == 2)
-    IBTK_DO_ONCE(stencil_map[ORIGIN] = CENTER; stencil_map[get_shift(X, 1)] = EAST;
-                 stencil_map[get_shift(X, -1)] = WEST;
-                 stencil_map[get_shift(Y, 1)] = NORTH;
-                 stencil_map[get_shift(Y, -1)] = SOUTH;
-                 stencil_map[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
-                 stencil_map[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
-                 stencil_map[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
-                 stencil_map[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;);
-#elif (NDIM == 3)
-    IBTK_DO_ONCE(stencil_map[ORIGIN] = CENTER; stencil_map[get_shift(X, 1)] = EAST;
-                 stencil_map[get_shift(X, -1)] = WEST;
-                 stencil_map[get_shift(Y, 1)] = NORTH;
-                 stencil_map[get_shift(Y, -1)] = SOUTH;
-                 stencil_map[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
-                 stencil_map[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
-                 stencil_map[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
-                 stencil_map[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
-                 stencil_map[get_shift(Z, 1)] = TOP;
-                 stencil_map[get_shift(Z, -1)] = BOTTOM;
-                 stencil_map[get_shift(Z, 1) + get_shift(X, 1)] = TOPEAST;
-                 stencil_map[get_shift(Z, 1) + get_shift(X, -1)] = TOPWEST;
-                 stencil_map[get_shift(Z, -1) + get_shift(X, 1)] = BOTTOMEAST;
-                 stencil_map[get_shift(Z, -1) + get_shift(X, -1)] = BOTTOMWEST;);
+                     // Specific to certain axes
+                     if (axis == 0)
+                     {
+                         sm[get_shift(Y, 1) + get_shift(X, 1)] = 7;
+                         sm[get_shift(Y, 1) + get_shift(X, -1)] = 8;
+                         sm[get_shift(Y, -1) + get_shift(X, 1)] = 9;
+                         sm[get_shift(Y, -1) + get_shift(X, -1)] = 10;
+                         sm[get_shift(Z, 1) + get_shift(X, 1)] = 11;
+                         sm[get_shift(Z, 1) + get_shift(X, -1)] = 12;
+                         sm[get_shift(Z, -1) + get_shift(X, 1)] = 13;
+                         sm[get_shift(Z, -1) + get_shift(X, -1)] = 14;
+                     }
+                     else if (axis == 1)
+                     {
+                         sm[get_shift(Y, 1) + get_shift(X, 1)] = 7;
+                         sm[get_shift(Y, 1) + get_shift(X, -1)] = 8;
+                         sm[get_shift(Y, -1) + get_shift(X, 1)] = 9;
+                         sm[get_shift(Y, -1) + get_shift(X, -1)] = 10;
+                         sm[get_shift(Z, 1) + get_shift(Y, 1)] = 11;
+                         sm[get_shift(Z, 1) + get_shift(Y, -1)] = 12;
+                         sm[get_shift(Z, -1) + get_shift(Y, 1)] = 13;
+                         sm[get_shift(Z, -1) + get_shift(Y, -1)] = 14;
+                     }
+                     else if (axis == 2)
+                     {
+                         sm[get_shift(Z, 1) + get_shift(X, 1)] = 7;
+                         sm[get_shift(Z, 1) + get_shift(X, -1)] = 8;
+                         sm[get_shift(Z, -1) + get_shift(X, 1)] = 9;
+                         sm[get_shift(Z, -1) + get_shift(X, -1)] = 10;
+                         sm[get_shift(Z, 1) + get_shift(Y, 1)] = 11;
+                         sm[get_shift(Z, 1) + get_shift(Y, -1)] = 12;
+                         sm[get_shift(Z, -1) + get_shift(Y, 1)] = 13;
+                         sm[get_shift(Z, -1) + get_shift(Y, -1)] = 14;
+                     }
+                     else
+                         TBOX_ERROR("Looped over invalid axis");
+
+                     stencil_map_vec.push_back(sm);
+                });
 #endif
 
     // Set the matrix coefficients to correspond to the standard finite
@@ -670,14 +716,21 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
         PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
-            matrix_coefs, patch, stencil_map, poisson_spec, alpha, beta, bc_coefs, data_time);
+            matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
+
+#if (NDIM == 2)
+        StencilMapType stencil_map = stencil_map_vec[0];
+#endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+#if (NDIM == 3)
+            StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
                 const Index<NDIM>& cc = b();

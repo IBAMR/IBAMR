@@ -679,7 +679,7 @@ void
 PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-    std::map<Index<NDIM>, int, IndexFortranOrder>& stencil_map,
+    const std::vector<std::map<Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
     const SAMRAI::solv::PoissonSpecifications& poisson_spec,
     double alpha,
     double beta,
@@ -740,9 +740,16 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // Compute all matrix coefficients, including those on the physical
     // boundary; however, do not yet take physical boundary conditions into
     // account.  Boundary conditions are handled subsequently.
+typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+#if (NDIM == 2)
+    StencilMapType stencil_map = stencil_map_vec[0];
+#endif
     static const Index<NDIM> ORIGIN(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
         for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
         {
             const Index<NDIM>& cc = b();
@@ -783,13 +790,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 #if (NDIM == 2)
                     const double mu_upper = mu_array_data(cc + shift_d_plus, 0);
                     const double mu_lower = mu_array_data(cc, 0);
-#elif (NDIM == 3)
-                    // const Index<NDIM> shift_z = get_shift(/*z*/ 2, 1);
-                        // 0.5 * (mu_array_data(cc + shift_d_plus, 0) + mu_array_data(cc + shift_d_plus + shift_z, 0));
-                    // const double mu_lower = 0.5 * (mu_array_data(cc, 0) + mu_array_data(cc + shift_z, 0));
-                    
+#elif (NDIM == 3)   
                     // Get edge data aligned with perp dir. (perpendicular to d and axis) and shifted in the d dir.
-                    // Check these
                     const int perp = 2*(d + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
                     const double mu_upper = get_mu_edge(cc + shift_d_plus, perp, mu_data);
                     const double mu_lower = get_mu_edge(cc, perp, mu_data);
@@ -822,6 +824,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // boundary conditions, we set those values last.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -933,6 +938,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // aligned with the data axis.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -1068,6 +1076,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // boundary conditions, we set those values last.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -1649,12 +1660,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
                 const double mu_lower = mu_array_data(i_intr, 0);
 #elif (NDIM == 3)
-                // const Index<NDIM> shift_z = get_shift(2, 1);
-                // const double mu_upper = 0.5 * (mu_array_data(i_intr + shift_bdry_normal, 0) +
-                //                                mu_array_data(i_intr + shift_bdry_normal + shift_z, 0));
-                // const double mu_lower = 0.5 * (mu_array_data(i_intr, 0) + mu_array_data(i_intr + shift_z, 0));
-                // Get edge data aligned with perp dir. (perpendicular to d and axis)
-                // Check these
                 const int perp = 2*(bdry_normal_axis + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
                 const double mu_upper = get_mu_edge(i_intr + shift_bdry_normal, perp, mu_data);
                 const double mu_lower = get_mu_edge(i_intr, perp, mu_data);
@@ -1767,11 +1772,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                     const double mu_upper = mu_array_data(i + shift_d, 0);
                     const double mu_lower = mu_array_data(i, 0);
 #elif (NDIM == 3)
-                    // const Index<NDIM> shift_z = get_shift(/*z*/ 2, 1);
-                    // const double mu_upper =
-                    //     0.5 * (mu_array_data(i + shift_d, 0) + mu_array_data(i + shift_d + shift_z, 0));
-                    // const double mu_lower = 0.5 * (mu_array_data(i, 0) + mu_array_data(i + shift_z, 0));
-                    // Check these
                     const int perp = 2*(comp + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
                     const double mu_upper = get_mu_edge(i + shift_d, perp, mu_data);
                     const double mu_lower = get_mu_edge(i, perp, mu_data);
@@ -2066,11 +2066,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
                 const double mu_lower = mu_array_data(i_intr, 0);
 #elif (NDIM == 3)
-                // const Index<NDIM> shift_z = get_shift(2, 1);
-                // const double mu_upper = 0.5 * (mu_array_data(i_intr + shift_bdry_normal, 0) +
-                //                                mu_array_data(i_intr + shift_bdry_normal + shift_z, 0));
-                // const double mu_lower = 0.5 * (mu_array_data(i_intr, 0) + mu_array_data(i_intr + shift_z, 0));
-                // Check these
                 const int perp = 2*(bdry_normal_axis + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
                 const double mu_upper = get_mu_edge(i_intr + shift_bdry_normal, perp, mu_data);
                 const double mu_lower = get_mu_edge(i_intr, perp, mu_data);
@@ -2117,11 +2112,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                     const double mu_upper = mu_array_data(i + shift_d, 0);
                     const double mu_lower = mu_array_data(i, 0);
 #elif (NDIM == 3)
-                    // const Index<NDIM> shift_z = get_shift(/*z*/ 2, 1);
-                    // const double mu_upper =
-                    //     0.5 * (mu_array_data(i + shift_d, 0) + mu_array_data(i + shift_d + shift_z, 0));
-                    // const double mu_lower = 0.5 * (mu_array_data(i, 0) + mu_array_data(i + shift_z, 0));
-                    // Check these
                     const int perp = 2*(comp + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
                     const double mu_upper = get_mu_edge(i + shift_d, perp, mu_data);
                     const double mu_lower = get_mu_edge(i, perp, mu_data);

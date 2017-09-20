@@ -121,7 +121,7 @@ public:
     static void
     computeVCSCViscousOpMatrixCoefficients(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                           std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder>& stencil_map,
+                                           const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                            double alpha,
                                            double beta,
