@@ -649,6 +649,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         SOUTH = 4,
         TOP = 5,
         BOTTOM = 6,
+
         X = 0,
         Y = 1,
         Z = 2
@@ -663,44 +664,21 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                      sm[get_shift(Y, -1)] = SOUTH;
                      sm[get_shift(Z, 1)] = TOP;
                      sm[get_shift(Z, -1)] = BOTTOM;
-
+                     
                      // Specific to certain axes
-                     if (axis == 0)
+                     int idx = BOTTOM;
+                     for (int d = 0; d < NDIM; ++d)
                      {
-                         sm[get_shift(Y, 1) + get_shift(X, 1)] = 7;
-                         sm[get_shift(Y, 1) + get_shift(X, -1)] = 8;
-                         sm[get_shift(Y, -1) + get_shift(X, 1)] = 9;
-                         sm[get_shift(Y, -1) + get_shift(X, -1)] = 10;
-                         sm[get_shift(Z, 1) + get_shift(X, 1)] = 11;
-                         sm[get_shift(Z, 1) + get_shift(X, -1)] = 12;
-                         sm[get_shift(Z, -1) + get_shift(X, 1)] = 13;
-                         sm[get_shift(Z, -1) + get_shift(X, -1)] = 14;
+                         if (d == axis) continue;
+                         idx += 1;
+                         sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
                      }
-                     else if (axis == 1)
-                     {
-                         sm[get_shift(Y, 1) + get_shift(X, 1)] = 7;
-                         sm[get_shift(Y, 1) + get_shift(X, -1)] = 8;
-                         sm[get_shift(Y, -1) + get_shift(X, 1)] = 9;
-                         sm[get_shift(Y, -1) + get_shift(X, -1)] = 10;
-                         sm[get_shift(Z, 1) + get_shift(Y, 1)] = 11;
-                         sm[get_shift(Z, 1) + get_shift(Y, -1)] = 12;
-                         sm[get_shift(Z, -1) + get_shift(Y, 1)] = 13;
-                         sm[get_shift(Z, -1) + get_shift(Y, -1)] = 14;
-                     }
-                     else if (axis == 2)
-                     {
-                         sm[get_shift(Z, 1) + get_shift(X, 1)] = 7;
-                         sm[get_shift(Z, 1) + get_shift(X, -1)] = 8;
-                         sm[get_shift(Z, -1) + get_shift(X, 1)] = 9;
-                         sm[get_shift(Z, -1) + get_shift(X, -1)] = 10;
-                         sm[get_shift(Z, 1) + get_shift(Y, 1)] = 11;
-                         sm[get_shift(Z, 1) + get_shift(Y, -1)] = 12;
-                         sm[get_shift(Z, -1) + get_shift(Y, 1)] = 13;
-                         sm[get_shift(Z, -1) + get_shift(Y, -1)] = 14;
-                     }
-                     else
-                         TBOX_ERROR("Looped over invalid axis");
-
                      stencil_map_vec.push_back(sm);
                 });
 #endif
