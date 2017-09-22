@@ -1,0 +1,213 @@
+// Scalar parameters
+C = 0.0
+
+u {
+   function_0 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"     // x-component
+   function_1 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"     // y-component
+   function_2 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2)"     // z-component
+}
+
+mu {
+   function = "1.0 + sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+}
+
+f  {
+   
+   function_0 = "1/2*PI^2*(cos(2*PI*X_1)^2*(-2 + 10*cos(4*PI*X_0) - 7*cos(4*PI*(X_0 - X_2)) + 6*cos(4*PI*X_2) - 7*cos(4*PI*(X_0 + X_2))) - 4*cos(2*PI*X_2)^2 *sin(2*PI*X_0)^2*sin(4*PI*X_1) - 8*(4*cos(2*PI*X_1)*sin(2*PI*X_0) + (cos(2*PI*X_0) - sin(2*PI*X_0))*sin(2*PI*X_1))*sin(2*PI*X_2) + 4*(-sin(4*PI*X_0)*sin(4*PI*X_1) + sin(2*PI*X_0)^2*(2*sin(2*PI*X_1)^2 + sin(4*PI*X_1)))*sin(2*PI*X_2)^2)"
+
+   function_1 = "PI^2*(-4*cos(2*PI*X_1)*(cos(2*PI*X_0) + 4*sin(2*PI*X_0))*sin(2*PI*X_2) - 4*sin(2*PI*X_1)*sin(2*PI*X_2)*(cos(2*PI*X_0) + 2*cos(2*PI*(X_0 + X_1))*sin(2*PI*X_0)*sin(2*PI*X_2)) + cos(2*PI*X_1)^2*(-2 + 4*cos(4*PI*X_0) - 3*cos(4*PI*(X_0 - X_2)) + 4*cos(4*PI*X_2) - 3*cos(4*PI*(X_0 + X_2)) + sin(4*PI*(X_0 - X_2)) + sin(4*PI*(X_0 + X_2))))"
+
+   function_2 = "4*PI^2*cos(2*PI*X_2)*(cos(2*PI*(X_0 + X_1)) + 2*sin(2*PI*(X_0 - X_1)) - 2*sin(2*PI*(X_0 + X_1)))*(1 + 2*cos(2*PI*X_1)*sin(2*PI*X_0)*sin(2*PI*X_2))"
+}
+
+
+// u velocity
+VelocityBcCoefs_0 {
+
+   u_fcn = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+      
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = u_fcn
+   gcoef_function_1 = u_fcn
+   gcoef_function_2 = u_fcn
+   gcoef_function_3 = u_fcn
+   gcoef_function_4 = u_fcn
+   gcoef_function_5 = u_fcn
+   
+}
+
+// v velocity
+VelocityBcCoefs_1 {
+
+   v_fcn = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+   
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = v_fcn
+   gcoef_function_1 = v_fcn
+   gcoef_function_2 = v_fcn
+   gcoef_function_3 = v_fcn
+   gcoef_function_4 = v_fcn
+   gcoef_function_5 = v_fcn
+
+}
+
+// w velocity
+VelocityBcCoefs_2 {
+
+   w_fcn = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2)"
+   
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = w_fcn
+   gcoef_function_1 = w_fcn
+   gcoef_function_2 = w_fcn
+   gcoef_function_3 = w_fcn
+   gcoef_function_4 = w_fcn
+   gcoef_function_5 = w_fcn
+
+}
+
+
+
+solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+solver_db {
+   ksp_type          = "fgmres"
+   pc_type           = "shell"
+   rel_residual_tol  = 1.0e-12
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = TRUE
+}
+
+
+precond_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"  //"VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   ksp_type          = "gmres"
+   pc_type           = "bjacobi"
+   rel_residual_tol  = 1.0e-14
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = FALSE
+}
+
+precond1_db {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 5
+   prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   coarse_solver_type  = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      ksp_type       = "richardson"
+      pc_type        = "gamg"
+      rel_residual_tol  = 1.0e-14
+      abs_residual_tol  = 1.0e-15
+   }
+}
+
+Main {
+// log file parameters
+   log_file_name = "VCSCViscousOpSolverTester3d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0      // lower end of computational domain.
+   x_up               = 1, 1, 1      // upper end of computational domain.
+   periodic_dimension = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1                    // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512          // largest patch allowed in hierarchy
+                                       // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4, 4, 4         // smallest patch allowed in hierarchy
+                                    // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//    level_0 = [( N/4 , 0, 0 ),( 3*N/4 - 1 , N - 1 , N - 1 )]
+//    level_0 = [( 0 , N/4, N/4 ),( N - 1 , 3*N/4 - 1, 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4, N/4 ),( 3*N/4 - 1 , 3*N/4 - 1, 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4, N/4 ),( 3*N/4 - 1 , N/2 - 1 , N/2 - 1 )] , [( N/4 , N/2 , N/2 ),( N/2 - 1 , 3*N/4 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4, N/4 ),( N/2 - 1 , 3*N/4 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 , N/2 - 1 )]
+      level_0 = [( N/4 , N/4, N/4 ),( N/2 - 1 , N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 , N/2 - 1 )] , [( N/4 , N/2 , N/2 ),( N/2 - 1 , 3*N/4 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}

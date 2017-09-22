@@ -607,7 +607,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     IBTK_CHKERRQ(ierr);
 
     typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
-    std::vector< StencilMapType > stencil_map_vec;
+    static std::vector< StencilMapType > stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
     static const Index<NDIM> ORIGIN(0);
 
@@ -649,7 +649,6 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         SOUTH = 4,
         TOP = 5,
         BOTTOM = 6,
-
         X = 0,
         Y = 1,
         Z = 2
@@ -702,12 +701,12 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         std::vector<int> mat_cols(stencil_sz);
 
 #if (NDIM == 2)
-        StencilMapType stencil_map = stencil_map_vec[0];
+        StencilMapType& stencil_map = stencil_map_vec[0];
 #endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
 #if (NDIM == 3)
-            StencilMapType stencil_map = stencil_map_vec[axis];
+            StencilMapType& stencil_map = stencil_map_vec[axis];
 #endif
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {

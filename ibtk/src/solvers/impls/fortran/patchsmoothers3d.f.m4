@@ -436,7 +436,7 @@ c
      &             fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
      &             fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
-               nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+               nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &           mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
      &           fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &             mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
@@ -533,7 +533,7 @@ c
      &          fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
      &          fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
-               nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+               nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &         mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
      &         fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &           mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
@@ -658,7 +658,7 @@ c
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
      &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
-                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+                  nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
      &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
@@ -761,7 +761,7 @@ c
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
      &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
-                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+                  nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
      &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
@@ -892,7 +892,7 @@ c
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
      &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
-                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+                  nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
      &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
@@ -995,7 +995,7 @@ c
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
      &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
-                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+                  nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
      &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   
@@ -1129,7 +1129,7 @@ c
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
      &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
-                  nmr = -f0(i0,i1,i2) + alpha*(2.d0*fac0*(
+                  nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+  
      &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+   
@@ -1234,7 +1234,7 @@ c
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
      &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
-                  nmr = -f2(i0,i1,i2) + alpha*(2.d0*fac2*(
+                  nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+  
      &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+   

@@ -115,13 +115,20 @@ run_example(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double> > f_sc_var = new SideVariable<NDIM, double>("f_sc");
         Pointer<SideVariable<NDIM, double> > e_sc_var = new SideVariable<NDIM, double>("e_sc");
         Pointer<SideVariable<NDIM, double> > r_sc_var = new SideVariable<NDIM, double>("r_sc");
-        Pointer<NodeVariable<NDIM, double> > mu_nc_var = new NodeVariable<NDIM, double>("mu_nc");
+#if (NDIM == 2)
+        Pointer<NodeVariable<NDIM, double> > mu_nc_var = new NodeVariable<NDIM, double>("mu_node");
+        const int mu_nc_idx = var_db->registerVariableAndContext(mu_nc_var, ctx, IntVector<NDIM>(1));
+#elif (NDIM == 3)
+        Pointer<EdgeVariable<NDIM, double> > mu_ec_var = new EdgeVariable<NDIM, double>("mu_edge");
+        const int mu_ec_idx = var_db->registerVariableAndContext(mu_ec_var, ctx, IntVector<NDIM>(1));
+        Pointer<CellVariable<NDIM, double> > mu_cc_var = new CellVariable<NDIM, double>("mu_cc");
+        const int mu_cc_idx = var_db->registerVariableAndContext(mu_cc_var, ctx, IntVector<NDIM>(0));
+#endif
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
         const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
         const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVector<NDIM>(1));
-        const int mu_nc_idx = var_db->registerVariableAndContext(mu_nc_var, ctx, IntVector<NDIM>(1));
 
         Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
@@ -169,7 +176,11 @@ run_example(int argc, char* argv[])
             visit_data_writer->registerPlotQuantity(r_cc_var->getName() + stream.str(), "SCALAR", r_cc_idx, d);
         }
 
+#if (NDIM == 2)
         visit_data_writer->registerPlotQuantity(mu_nc_var->getName(), "SCALAR", mu_nc_idx);
+#elif (NDIM == 3)
+        visit_data_writer->registerPlotQuantity(mu_cc_var->getName(), "SCALAR", mu_cc_idx);
+#endif
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -191,7 +202,12 @@ run_example(int argc, char* argv[])
             level->allocatePatchData(f_sc_idx, 0.0);
             level->allocatePatchData(e_sc_idx, 0.0);
             level->allocatePatchData(r_sc_idx, 0.0);
+#if (NDIM == 2)
             level->allocatePatchData(mu_nc_idx, 0.0);
+#elif (NDIM == 3)
+            level->allocatePatchData(mu_ec_idx, 0.0);
+            level->allocatePatchData(mu_cc_idx, 0.0);
+#endif
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -224,19 +240,33 @@ run_example(int argc, char* argv[])
 
         u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
+#if (NDIM == 2)
         mu_fcn.setDataOnPatchHierarchy(mu_nc_idx, mu_nc_var, patch_hierarchy, 0.0);
-
+#elif (NDIM == 3)
+        mu_fcn.setDataOnPatchHierarchy(mu_ec_idx, mu_ec_var, patch_hierarchy, 0.0);
+#endif
         // Fill ghost cells of viscosity.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
+#if (NDIM == 2)
         transaction_comp[0] = InterpolationTransactionComponent(mu_nc_idx,
                                                                 /*DATA_REFINE_TYPE*/ "LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSTANT_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "QUADRATIC",
+                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ NULL,
                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
+#elif (NDIM == 3)
+        transaction_comp[0] = InterpolationTransactionComponent(mu_ec_idx,
+                                                                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                                /*USE_CF_INTERPOLATION*/ false,
+                                                                /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",
+                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                                /*mu_bc_coef*/ NULL,
+                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+#endif
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
@@ -292,8 +322,12 @@ run_example(int argc, char* argv[])
 
         // Setup the implicit viscous solver.
         PoissonSpecifications vc_vel_spec("vc_vel_spec");
-        vc_vel_spec.setCConstant(0.0);
+        vc_vel_spec.setCConstant(input_db->getDouble("C"));
+#if (NDIM == 2)
         vc_vel_spec.setDPatchDataId(mu_nc_idx);
+#elif (NDIM == 3)
+        vc_vel_spec.setDPatchDataId(mu_ec_idx);
+#endif
         VCSCViscousOperator viscous_op("viscous_op");
         viscous_op.setPoissonSpecifications(vc_vel_spec);
         viscous_op.setPhysicalBcCoefs(u_bc_coefs);
@@ -361,7 +395,7 @@ run_example(int argc, char* argv[])
             }
         }
 
-        // Solve -L*u = f.
+        // Solve L*u = f.
         u_vec.setToScalar(0.0);
         poisson_solver->initializeSolverState(u_vec, f_vec);
         poisson_solver->solveSystem(u_vec, f_vec);
@@ -413,6 +447,35 @@ run_example(int argc, char* argv[])
         hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
         hier_math_ops.interp(r_cc_idx, r_cc_var, r_sc_idx, r_sc_var, NULL, 0.0, synch_cf_interface);
 
+#if (NDIM == 3)
+        // Interpolate the edge-centered data to cell centers for output.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& box = patch->getBox();
+                Pointer<EdgeData<NDIM, double> > mu_ec_data = patch->getPatchData(mu_ec_idx);
+                Pointer<CellData<NDIM, double> > mu_cc_data = patch->getPatchData(mu_cc_idx);
+                for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(box)); it; it++)
+                {
+                    CellIndex<NDIM> ci(it());
+                    Box<NDIM> edge_box(ci, ci);
+                    double avg_mu = 0.0;
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        {
+                            EdgeIndex<NDIM> ei(e());
+                            avg_mu += (*mu_ec_data)(ei);
+                        }
+                    }
+                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                }
+            }
+        }
+#endif
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)

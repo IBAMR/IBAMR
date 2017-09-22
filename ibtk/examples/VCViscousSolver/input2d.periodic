@@ -1,3 +1,5 @@
+// Scalar parameters
+C = 0.0
 
 u {
    function_0 = "sin(2*PI*X_0)*cos(2*PI*X_1)"     // x-component
@@ -81,7 +83,7 @@ precond_db {
 
 precond1_db {
    num_pre_sweeps  = 0
-   num_post_sweeps = 0
+   num_post_sweeps = 5
    prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
    restriction_method  = "CONSERVATIVE_COARSEN"
    coarse_solver_type  = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
@@ -89,8 +91,8 @@ precond1_db {
    coarse_solver_abs_residual_tol = 1.0e-50
    coarse_solver_max_iterations = 1
    coarse_solver_db {
-      ksp_type       = "gmres"
-      pc_type        = "lu"
+      ksp_type       = "richardson"
+      pc_type        = "gamg"
       rel_residual_tol  = 1.0e-14
       abs_residual_tol  = 1.0e-15
    }
