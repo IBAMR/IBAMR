@@ -67,8 +67,6 @@ struct IndexOrder : std::binary_function<T, T, bool>
     }
 };
 
-template struct IndexOrder<SAMRAI::hier::Index<NDIM> >;
-template struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> >;
 typedef struct IndexOrder<SAMRAI::hier::Index<NDIM> > IndexFortranOrder;
 typedef struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> > CellIndexFortranOrder;
 
