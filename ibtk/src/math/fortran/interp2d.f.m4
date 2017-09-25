@@ -412,3 +412,94 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the cell centered field U from the node centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ntocinterp2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(NODE2d(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the cell centered field U from the node centered
+c     field v0.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            U(i0,i1) = 0.25d0*(V(i0,i1)+V(i0+1,i1)+
+     &                         V(i0,i1+1)+V(i0+1,i1+1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the node centered field U from the cell centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoninterp2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+
+c
+c     Output.
+c
+      REAL U(NODE2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the node centered scalar field U from the cell centered
+c     scalar field V.
+c
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            U(i0,i1) = 0.25d0*(V(i0,i1)+V(i0-1,i1)
+     &            +V(i0,i1-1)+V(i0-1,i1-1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

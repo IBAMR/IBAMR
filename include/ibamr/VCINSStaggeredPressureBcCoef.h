@@ -1,5 +1,5 @@
-// Filename: INSStaggeredVelocityBcCoef.h
-// Created on 22 Jul 2008 by Boyce Griffith
+// Filename: VCINSStaggeredPressureBcCoef.h
+// Created on 25 Sep 2017 by Nishant Nangia
 //
 // Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_INSStaggeredVelocityBcCoef
-#define included_IBAMR_INSStaggeredVelocityBcCoef
+#ifndef included_IBAMR_VCINSStaggeredPressureBcCoef
+#define included_IBAMR_VCINSStaggeredPressureBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -44,7 +44,7 @@
 
 namespace IBAMR
 {
-class INSStaggeredHierarchyIntegrator;
+class VCINSStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
 namespace SAMRAI
@@ -75,35 +75,31 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
- * that is used to specify velocity boundary conditions for the staggered grid
- * incompressible Navier-Stokes solver with variable coefficents.
+ * \brief Class VCINSStaggeredPressureBcCoef is a concrete StokesBcCoefStrategy
+ * that is used to specify pressure boundary conditions for the staggered grid
+ * incompressible Navier-Stokes solver with variable coefficients.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
  * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.  These are translated into Dirichlet and generalized Neumann
- * boundary conditions, respectively, for the velocity.
- *
- * Dirichlet, true traction, and pseudo-traction boundary conditions are
- * all supported.
+ * conditions.  These are translated into Neumann and generalized Dirichlet
+ * boundary conditions, respectively, for the pressure.
  */
-class INSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
+class VCINSStaggeredPressureBcCoef : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    INSStaggeredVelocityBcCoef(unsigned int comp_idx,
-                               const INSStaggeredHierarchyIntegrator* fluid_solver,
-                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                               TractionBcType traction_bc_type,
-                               bool homogeneous_bc = false);
+    VCINSStaggeredPressureBcCoef(const VCINSStaggeredHierarchyIntegrator* fluid_solver,
+                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                 TractionBcType traction_bc_type,
+                                 bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredVelocityBcCoef();
+    ~VCINSStaggeredPressureBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -255,7 +251,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredVelocityBcCoef();
+    VCINSStaggeredPressureBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -264,7 +260,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredVelocityBcCoef(const INSStaggeredVelocityBcCoef& from);
+    VCINSStaggeredPressureBcCoef(const VCINSStaggeredPressureBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -275,18 +271,12 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredVelocityBcCoef& operator=(const INSStaggeredVelocityBcCoef& that);
-
-    /*
-     * Component of the velocity which this boundary condition specification is
-     * to operate on.
-     */
-    const unsigned int d_comp_idx;
+    VCINSStaggeredPressureBcCoef& operator=(const VCINSStaggeredPressureBcCoef& that);
 
     /*
      * The fluid solver.
      */
-    const INSStaggeredHierarchyIntegrator* d_fluid_solver;
+    const VCINSStaggeredHierarchyIntegrator* d_fluid_solver;
 
     /*
      * The boundary condition specification objects for the velocity.
@@ -297,4 +287,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredVelocityBcCoef
+#endif //#ifndef included_IBAMR_VCINSStaggeredPressureBcCoef

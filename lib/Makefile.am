@@ -139,6 +139,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolver.cpp \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
+../src/navier_stokes/VCINSStaggeredHierarchyIntegrator.cpp \
+../src/navier_stokes/VCINSStaggeredPressureBcCoef.cpp \
+../src/navier_stokes/VCINSStaggeredVelocityBcCoef.cpp \
+../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
@@ -242,6 +246,10 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/VCINSStaggeredHierarchyIntegrator.h \
+../include/ibamr/VCINSStaggeredPressureBcCoef.h \
+../include/ibamr/VCINSStaggeredVelocityBcCoef.h \
+../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h
 

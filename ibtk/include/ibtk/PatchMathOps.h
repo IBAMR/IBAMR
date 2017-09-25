@@ -338,6 +338,38 @@ public:
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
+     * \brief Computes the cell-centered vector field dst from the node-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the cell-centered vector field dst from the edge-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the node-centered vector field dst from the cell-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the edge-centered vector field dst from the cell-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).

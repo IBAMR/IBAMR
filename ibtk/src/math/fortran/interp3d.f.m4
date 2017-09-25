@@ -512,3 +512,130 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the cell centered field U from the edge centered
+c     field (v0,v1,v2) using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine etocinterp3d(
+     &     U,U_gcw,
+     &     v0,v1,v2,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,v_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL v0(EDGE3d0(ilower,iupper,v_gcw))
+      REAL v1(EDGE3d1(ilower,iupper,v_gcw))
+      REAL v2(EDGE3d2(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL avg0,avg1,avg2
+c
+c     Compute the cell centered field U from the edge centered
+c     field (v0,v1,v2).
+c
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+              avg0 = v0(i0,i1,i2)+v0(i0,i1+1,i2)+
+     &               v0(i0,i1,i2+1)+v0(i0,i1+1,i2+1)
+              avg1 = v1(i0,i1,i2)+v1(i0+1,i1,i2)+
+     &               v1(i0,i1,i2+1)+v1(i0+1,i1,i2+1)
+              avg2 = v2(i0,i1,i2)+v2(i0+1,i1,i2)+
+     &               v2(i0,i1+1,i2)+v2(i0+1,i1+1,i2)
+              U(i0,i1,i2) = (avg0+avg1+avg2)/12.d0
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the edge centered vector field (u0,u1,u2) from the cell centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoeinterp3d(
+     &     u0,u1,u2,u_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+     
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+c
+c     Output.
+c
+      REAL u0(EDGE3d0(ilower,iupper,u_gcw))
+      REAL u1(EDGE3d1(ilower,iupper,u_gcw))
+      REAL u2(EDGE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+c     Compute the edge centered interpolation of V
+      
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               u0(i0,i1,i2) = 0.25d0*(V(i0,i1-1,i2) + V(i0,i1,i2-1)  
+     &                      + V(i0,i1,i2) + V(i0,i1-1,i2-1))
+     
+            enddo
+         enddo
+      enddo 
+  
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               u1(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1,i2-1)  
+     &                      + V(i0-1,i1,i2) + V(i0-1,i1,i2-1))
+
+            enddo
+         enddo
+      enddo
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               u2(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1-1,i2)  
+     &                      + V(i0-1,i1,i2) + V(i0-1,i1-1,i2))
+
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end

@@ -118,6 +118,9 @@
 #define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
 
 #define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain2d, STOCSTRAIN2D)
+
+#define N_TO_C_INTERP_FC IBTK_FC_FUNC(ntocinterp2d, NTOCINTERP2D)
+#define C_TO_N_INTERP_FC IBTK_FC_FUNC(ctoninterp2d, CTONINTERP2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
@@ -185,6 +188,9 @@
 #define E_TO_S_ROT_FC IBTK_FC_FUNC(etosrot3d, ETOSROT3D)
 
 #define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain3d, STOCSTRAIN3D)
+
+#define E_TO_C_INTERP_FC IBTK_FC_FUNC(etocinterp3d, ETOCINTERP3D)
+#define C_TO_E_INTERP_FC IBTK_FC_FUNC(ctoeinterp3d, CTOEINTERP3D)
 #endif // if (NDIM == 3)
 
 extern "C" {
@@ -1168,6 +1174,25 @@ void S_TO_N_CURL_FC(double* w0,
                     const int& ilower1,
                     const int& iupper1,
                     const double* dx);
+
+void N_TO_C_INTERP_FC(double* U,
+                      const int& U_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1);
+
+void C_TO_N_INTERP_FC(double* U,
+                      const int& U_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1);
+
 #endif
 
 #if (NDIM == 3)
@@ -1202,6 +1227,33 @@ void S_TO_E_CURL_FC(double* w0,
                     const int& ilower2,
                     const int& iupper2,
                     const double* dx);
+
+void E_TO_C_INTERP_FC(double* U,
+                      const int& U_gcw,
+                      const double* v0,
+                      const double* v1,
+                      const double* v2,
+                      const int& v_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+                      const int& ilower2,
+                      const int& iupper2);
+
+void C_TO_E_INTERP_FC(const double* u0,
+                      const double* u1,
+                      const double* u2,
+                      const int& u_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+                      const int& ilower2,
+                      const int& iupper2);
+
 #endif
 }
 
@@ -4000,6 +4052,331 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
 } // interp
 
 void
+PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
+                     const Pointer<NodeData<NDIM, double> > src,
+                     const Pointer<Patch<NDIM> > patch) const
+{
+#if (NDIM == 3)
+    TBOX_ERROR("Node to cell PatchMathOps::interp():\n"
+               << "  not implemented for NDIM = 3." << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+#if (NDIM == 2)
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
+    }
+
+    if (U_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (V_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    const Box<NDIM>& V_box = src->getGhostBox();
+    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+#endif
+    // Interpolate.
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        double* const U = dst->getPointer(depth);
+        const double* const V = src->getPointer(depth);
+
+        N_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1));
+    }
+
+    
+#endif
+
+    return;    
+} // interp
+
+void
+PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
+                     const Pointer<EdgeData<NDIM, double> > src,
+                     const Pointer<Patch<NDIM> > patch) const
+{
+#if (NDIM == 2)
+    TBOX_ERROR("Edge to cell PatchMathOps::interp():\n"
+               << "  not implemented for NDIM = 2." << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+#if (NDIM == 3)
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
+    const int v_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
+    }
+
+    if (U_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (v_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    const Box<NDIM>& v_box = src->getGhostBox();
+    const Box<NDIM> v_box_shrunk = Box<NDIM>::grow(v_box, -1);
+
+    if ((!v_box_shrunk.contains(patch_box.lower())) || (!v_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+#endif
+    // Interpolate.
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        double* const U = dst->getPointer(depth);
+        const double* const v0 = src->getPointer(0, depth);
+        const double* const v1 = src->getPointer(1, depth);
+        const double* const v2 = src->getPointer(2, depth);
+
+        E_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         v0,
+                         v1,
+                         v2,
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
+                         patch_box.lower(2),
+                         patch_box.upper(2));
+    }
+#endif
+
+    return;    
+} // interp
+
+void PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
+                          const Pointer<CellData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
+{
+#if (NDIM == 3)
+    TBOX_ERROR("Cell to node PatchMathOps::interp():\n"
+               << "  not implemented for NDIM = 3." << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+
+#if (NDIM == 2)
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src and dst have incompatible depths" << std::endl);
+    }
+
+    if (U_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (V_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src does not have uniform ghost cell widths" << std::endl);
+    }
+
+    const Box<NDIM>& V_box = src->getGhostBox();
+    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src has insufficient ghost cell width" << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch" << std::endl);
+    }
+#endif
+
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        // Interpolate.
+        double* const U = dst->getPointer(depth);
+        const double* const V = src->getPointer(depth);
+
+        C_TO_N_INTERP_FC(U,
+                         U_ghosts, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                         patch_box.upper(1));
+    }
+#endif
+
+    return;
+} // interp
+
+void PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
+                          const Pointer<CellData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
+{
+#if (NDIM == 2)
+    TBOX_ERROR("Cell to edge PatchMathOps::interp():\n"
+               << "  not implemented for NDIM = 2." << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+#if (NDIM == 3)
+    const int u_ghosts = (dst->getGhostCellWidth()).max();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src and dst have incompatible depths" << std::endl);
+    }
+
+    if (u_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (V_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src does not have uniform ghost cell widths" << std::endl);
+    }
+
+    const Box<NDIM>& V_box = src->getGhostBox();
+    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  src has insufficient ghost cell width" << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::interp():\n"
+                   << "  dst and src must live on the same patch" << std::endl);
+    }
+#endif
+
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        // Interpolate.
+        double* const u0 = dst->getPointer(0, depth);
+        double* const u1 = dst->getPointer(1, depth);
+        double* const u2 = dst->getPointer(2, depth);
+        const double* const V = src->getPointer(depth);
+
+        C_TO_E_INTERP_FC(u0, u1, u2,
+                         u_ghosts, V, V_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                         patch_box.upper(1), patch_box.lower(2), patch_box.upper(2));
+    }
+#endif
+
+    return;
+} // interp
+
+void
 PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
                       const double alpha,
                       const double beta,
@@ -4953,7 +5330,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  coef has insufficient ghost cell width"
+                   << "  coef1 has insufficient ghost cell width"
                    << std::endl);
     }
 
@@ -5148,7 +5525,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  coef has insufficient ghost cell width"
+                   << "  coef1 has insufficient ghost cell width"
                    << std::endl);
     }
 
