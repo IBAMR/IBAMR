@@ -55,6 +55,8 @@
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
+#include "EdgeData.h"
+#include "EdgeVariable.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
@@ -68,6 +70,8 @@
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
+#include "NodeData.h"
+#include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -354,6 +358,8 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
+static const int NODEG = 1;
+static const int EDGEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -452,6 +458,21 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
         d_regrid_projection_solver_type = input_db->getString("regrid_projection_solver_type");
     if (input_db->keyExists("regrid_projection_precond_type"))
         d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
+
+    // Check if density and/or viscosity is constant
+    d_rho_is_const = false;
+    if (input_db->keyExists("rho_is_const")) d_rho_is_const = input_db->getDouble("rho_is_const");
+    d_mu_is_const = false;
+    if (input_db->keyExists("mu_is_const")) d_mu_is_const = input_db->getDouble("mu_is_const");
+
+    if (d_rho_is_const && d_mu_is_const)
+    {
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << " for constant coefficient problems,\n"
+                                 << " variable coefficient integrator is less\n"
+                                 << " efficient than constant coefficient version.\n"
+                                 << " Use INSStaggeredHierarchyIntegrator instead.");
+    }
 
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
@@ -566,6 +587,18 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
+
+    d_pressure_D_var = new SideVariable<NDIM, double>(d_object_name + "::pressure_D");
+    d_pressure_rhs_D_var = new SideVariable<NDIM, double>(d_object_name + "::pressure_rhs_D");
+    d_velocity_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_C");
+    d_velocity_rhs_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_rhs_C");
+#if (NDIM == 2)
+    d_velocity_D_var = new NodeVariable<NDIM, double>(d_object_name + "::velocity_D");
+    d_velocity_rhs_D_var = new NodeVariable<NDIM, double>(d_object_name + "::velocity_rhs_D");
+#elif (NDIM == 3)
+    d_velocity_D_var = new EdgeVariable<NDIM, double>(d_object_name + "::velocity_D");
+    d_velocity_rhs_D_var = new EdgeVariable<NDIM, double>(d_object_name + "::velocity_rhs_D");
+#endif
     return;
 } // VCINSStaggeredHierarchyIntegrator
 
@@ -708,7 +741,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
     {
-        d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
+        d_stokes_precond_type = StaggeredStokesSolverManager::VC_PROJECTION_PRECONDITIONER;
         d_stokes_precond_db->putInteger("max_iterations", 1);
     }
 
@@ -725,11 +758,11 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
-            d_velocity_precond_type = SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+            d_velocity_precond_type = SCPoissonSolverManager::VC_VISCOUS_PETSC_LEVEL_SOLVER;
         }
         else
         {
-            d_velocity_precond_type = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+            d_velocity_precond_type = SCPoissonSolverManager::VC_VISCOUS_POINT_RELAXATION_FAC_PRECONDITIONER;
         }
         d_velocity_precond_db->putInteger("max_iterations", 1);
     }
@@ -751,7 +784,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         }
         else
         {
-            d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+            d_pressure_precond_type = CCPoissonSolverManager::BOX_RELAXATION_FAC_PRECONDITIONER;
         }
         d_pressure_precond_db->putInteger("max_iterations", 1);
     }
@@ -783,6 +816,10 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM, double>("fc_var"), hierarchy, true);
     d_hier_sc_data_ops =
         hier_ops_manager->getOperationsDouble(new SideVariable<NDIM, double>("sc_var"), hierarchy, true);
+    d_hier_nc_data_ops = 
+        hier_ops_manager->getOperationsDouble(new NodeVariable<NDIM, double>("nc_var"), hierarchy, true);
+    d_hier_ec_data_ops =
+        hier_ops_manager->getOperationsDouble(new EdgeVariable<NDIM, double>("ec_var"), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -793,6 +830,8 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
+    const IntVector<NDIM> node_ghosts = NODEG;
+    const IntVector<NDIM> edge_ghosts = EDGEG;
     const IntVector<NDIM> no_ghosts = 0;
 
     registerVariable(d_U_current_idx,
@@ -881,6 +920,37 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_rho_scratch_idx = -1;
     }
 
+    d_mu_var = INSHierarchyIntegrator::d_mu_var;
+    if (INSHierarchyIntegrator::d_mu_var && !d_rho_var)
+    {
+        TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                   << " viscosity variable must be node-centered for NDIM = 2 or\n"
+                   << " edge-centered for NDIM = 3");
+    }
+    if (d_mu_var)
+    {
+        registerVariable(d_mu_current_idx,
+                         d_mu_new_idx,
+                         d_mu_scratch_idx,
+                         d_mu_var,
+#if (NDIM == 2)
+                         node_ghosts,
+                         "CONSTANT_COARSEN",
+                         "LINEAR_REFINE",
+#elif (NDIM == 3)
+                         edge_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE",
+#endif
+                         d_mu_fcn);
+    }
+    else
+    {
+        d_mu_current_idx = -1;
+        d_mu_new_idx = -1;
+        d_mu_scratch_idx = -1;
+    }
+
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
@@ -916,6 +986,13 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         d_F_div_idx = -1;
     }
+    registerVariable(d_velocity_C_idx, d_velocity_C_var, no_ghosts);
+    registerVariable(d_velocity_rhs_C_idx, d_velocity_rhs_C_var, no_ghosts);
+    registerVariable(d_velocity_D_idx, d_velocity_D_var, NDIM == 2 ? node_ghosts : edge_ghosts);
+    registerVariable(d_velocity_rhs_D_idx, d_velocity_rhs_D_var, NDIM == 2 ? node_ghosts : edge_ghosts);
+    registerVariable(d_pressure_D_idx, d_pressure_D_var, side_ghosts);
+    registerVariable(d_pressure_rhs_D_idx, d_pressure_rhs_D_var, side_ghosts);
+    registerVariable(d_temp_sc_idx, d_temp_sc_var, no_ghosts);
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -1088,6 +1165,39 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_new_data, new_time);
     }
 
+    // Compute variable mass density.
+    if (d_rho_var)
+    {
+        if (d_rho_fcn)
+        {
+            d_rho_fcn->setDataOnPatchHierarchy(d_rho_current_idx, d_rho_var, d_hierarchy, current_time);
+            d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx, d_rho_var, d_hierarchy, new_time);
+        }
+        else
+        {
+            d_hier_sc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
+        }
+        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
+    }
+
+    // Compute variable viscosity.
+    if (d_mu_var)
+    {
+        if (d_mu_fcn)
+        {
+            d_mu_fcn->setDataOnPatchHierarchy(d_mu_current_idx, d_mu_var, d_hierarchy, current_time);
+            d_mu_fcn->setDataOnPatchHierarchy(d_mu_new_idx, d_rho_var, d_hierarchy, new_time);
+        }
+        else
+        {
+            if (NDIM == 2) d_hier_nc_data_ops->copyData(d_mu_new_idx, d_mu_current_idx);
+            if (NDIM == 3) d_hier_ec_data_ops->copyData(d_mu_new_idx, d_mu_current_idx);
+        }
+        if (NDIM == 2) d_hier_nc_data_ops->linearSum(d_mu_scratch_idx, 0.5, d_mu_current_idx, 0.5, d_mu_new_idx);
+        if (NDIM == 3) d_hier_ec_data_ops->linearSum(d_mu_scratch_idx, 0.5, d_mu_current_idx, 0.5, d_mu_new_idx);
+    }
+
+
     // Setup the operators and solvers.
     reinitializeOperatorsAndSolvers(current_time, new_time);
 
@@ -1126,9 +1236,36 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     default:
         TBOX_ERROR("this statment should not be reached");
     }
+
     PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
-    U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
-    U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
+    
+    // rhs_C_sc = (rho / dt) + K * lambda
+    if (d_rho_is_const)
+    {
+        U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
+    }
+    else
+    {
+        d_hier_sc_data_ops->scale(d_velocity_rhs_C_idx, 1.0/dt, d_rho_current_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->addScalar(d_velocity_C_idx, d_velocity_rhs_C_idx, K_rhs * lambda, /*interior_only*/ true);
+        U_rhs_problem_coefs.setCPatchDataId(d_velocity_rhs_C_idx);
+    }
+
+    // rhs_D_{ec,nc} = K * mu
+    if (d_mu_is_const)
+    {
+        U_rhs_problem_coefs.setDConstant(+K_rhs * mu);    
+    }
+    else
+    {
+#if (NDIM == 2)
+        d_hier_nc_data_ops->scale(d_velocity_rhs_D_idx, -K_rhs, d_mu_current_idx, /*interior_only*/ true);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->scale(d_velocity_rhs_D_idx, -K_rhs, d_mu_current_idx, /*interior_only*/ true);
+#endif
+        U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);        
+    }
+    
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1219,33 +1356,50 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
         if (convective_time_stepping_type == FORWARD_EULER)
         {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
-                                     -1.0 * rho,
-                                     N_idx,
-                                     d_rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
+                                         -1.0 * rho,
+                                         N_idx,
+                                         d_rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0, d_rho_current_idx, /*interior_only*/ true);
+                d_hier_math_ops->pointwiseMultiply(d_rhs_vec->getComponentDescriptorIndex(0),
+                                                   d_rhs_vec->getComponentVariable(0),
+                                                   d_temp_sc_idx,
+                                                   d_temp_sc_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   d_rhs_vec->getComponentDescriptorIndex(0),
+                                                   d_rhs_vec->getComponentVariable(0));
+            }
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
-                                     -0.5 * rho,
-                                     N_idx,
-                                     d_rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
+                                         -0.5 * rho,
+                                         N_idx,
+                                         d_rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_sc_data_ops->scale(d_temp_sc_idx, -0.5, d_rho_current_idx, /*interior_only*/ true);
+                d_hier_math_ops->pointwiseMultiply(d_rhs_vec->getComponentDescriptorIndex(0),
+                                                   d_rhs_vec->getComponentVariable(0),
+                                                   d_temp_sc_idx,
+                                                   d_temp_sc_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   d_rhs_vec->getComponentDescriptorIndex(0),
+                                                   d_rhs_vec->getComponentVariable(0));
+            }
         }
-    }
-
-    // Compute variable mass density.
-    if (d_rho_var)
-    {
-        if (d_rho_fcn)
-        {
-            d_rho_fcn->setDataOnPatchHierarchy(d_rho_current_idx, d_rho_var, d_hierarchy, current_time);
-            d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx, d_rho_var, d_hierarchy, new_time);
-        }
-        else
-        {
-            d_hier_sc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
-        }
-        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
     }
 
     // Execute any registered callbacks.
@@ -1569,13 +1723,45 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_sc_data_ops->axpy(
-                rhs_vec->getComponentDescriptorIndex(0), -1.0 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(
+                    rhs_vec->getComponentDescriptorIndex(0), -1.0 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0, d_rho_current_idx, /*interior_only*/ true);
+                d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0),
+                                                   d_temp_sc_idx,
+                                                   d_temp_sc_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0));
+            }
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_sc_data_ops->axpy(
-                rhs_vec->getComponentDescriptorIndex(0), -0.5 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(
+                    rhs_vec->getComponentDescriptorIndex(0), -0.5 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_sc_data_ops->scale(d_temp_sc_idx, -0.5, d_rho_current_idx, /*interior_only*/ true);
+                d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0),
+                                                   d_temp_sc_idx,
+                                                   d_temp_sc_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0));
+            }
         }
     }
 
@@ -1600,7 +1786,14 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         {
             d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
-            d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
+            }
+            else
+            {
+                d_hier_sc_data_ops->multiply(d_F_div_idx, d_rho_current_idx, d_F_div_idx);
+            }
         }
         else
         {
@@ -1675,13 +1868,45 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_sc_data_ops->axpy(
-                rhs_vec->getComponentDescriptorIndex(0), +1.0 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(
+                    rhs_vec->getComponentDescriptorIndex(0), +1.0 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0),
+                                                   d_rho_current_idx,
+                                                   d_rho_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0));
+            }
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_sc_data_ops->axpy(
-                rhs_vec->getComponentDescriptorIndex(0), +0.5 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            if (d_rho_is_const)
+            {
+                d_hier_sc_data_ops->axpy(
+                    rhs_vec->getComponentDescriptorIndex(0), +0.5 * rho, N_idx, rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else
+            {
+                d_hier_sc_data_ops->scale(d_temp_sc_idx, +0.5, d_rho_current_idx, /*interior_only*/ true);
+                d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0),
+                                                   d_temp_sc_idx,
+                                                   d_temp_sc_var,
+                                                   N_idx,
+                                                   d_N_vec->getComponentVariable(0),
+                                                   1.0,
+                                                   rhs_vec->getComponentDescriptorIndex(0),
+                                                   rhs_vec->getComponentVariable(0));
+            }
+            
         }
     }
     if (d_F_fcn)
@@ -1692,8 +1917,24 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
     }
     if (d_Q_fcn)
     {
-        d_hier_sc_data_ops->axpy(
-            rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx, rhs_vec->getComponentDescriptorIndex(0));
+        if (d_rho_is_const)
+        {
+            d_hier_sc_data_ops->axpy(
+                rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx, rhs_vec->getComponentDescriptorIndex(0));
+        }
+        else
+        {
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0, d_rho_current_idx, /*interior_only*/ true);
+            d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                               rhs_vec->getComponentVariable(0),
+                                               d_temp_sc_idx,
+                                               d_temp_sc_var,
+                                               d_F_div_idx,
+                                               d_F_div_var,
+                                               1.0,
+                                               d_rhs_vec->getComponentDescriptorIndex(0),
+                                               d_rhs_vec->getComponentVariable(0));
+        }
         d_hier_cc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
@@ -2302,11 +2543,47 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
         TBOX_ERROR("this statment should not be reached");
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
-    U_problem_coefs.setCConstant((rho / dt) + K * lambda);
-    U_problem_coefs.setDConstant(-K * mu);
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
+    
+    // C_sc = (rho / dt) + K * lambda
+    if (d_rho_is_const)
+    {
+        U_problem_coefs.setCConstant(rho/dt + K * lambda);
+    }
+    else
+    {
+        d_hier_sc_data_ops->scale(d_velocity_C_idx, 1.0/dt, d_rho_current_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->addScalar(d_velocity_C_idx, d_velocity_C_idx, K * lambda, /*interior_only*/ true);
+        U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
+    }
+    
+    // D_{ec,nc} = -K * mu
+    if (d_mu_is_const)
+    {
+        U_problem_coefs.setDConstant(-K * mu);
+    }
+    else
+    {
+#if (NDIM == 2)
+        d_hier_nc_data_ops->scale(d_velocity_D_idx, -K, d_mu_current_idx, /*interior_only*/ true);
+#elif (NDIM == 3)
+        d_hier_ec_data_ops->scale(d_velocity_D_idx, -K, d_mu_current_idx, /*interior_only*/ true);
+#endif
+        U_problem_coefs.setDPatchDataId(d_velocity_D_idx);        
+    }
+
+    // D_sc = -1/rho if nonzero, otherwise -1.0
     P_problem_coefs.setCZero();
-    P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / rho);
+    if (d_rho_is_const)
+    {
+        P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / rho);
+    }
+    else
+    {
+        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_current_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ true);
+        P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+    }
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
@@ -2318,7 +2595,8 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
     }
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && 
+                                        (d_rho_is_const && MathUtilities<double>::equalEps(rho, 0.0));
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {

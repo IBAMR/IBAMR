@@ -39,11 +39,13 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "EdgeVariable.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "NodeVariable.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
 #include "ibamr/INSHierarchyIntegrator.h"
@@ -88,7 +90,8 @@ namespace IBAMR
 {
 /*!
  * \brief Class VCINSStaggeredHierarchyIntegrator provides a staggered-grid solver
- * for the incompressible Navier-Stokes equations on an AMR grid hierarchy.
+ * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
+ * coefficients.
  */
 class VCINSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
@@ -328,6 +331,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyNodeDataOpsReal<NDIM, double> > d_hier_nc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyEdgeDataOpsReal<NDIM, double> > d_hier_ec_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -377,10 +382,31 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_div_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
+#if (NDIM == 2)
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_mu_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_velocity_D_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_velocity_rhs_D_var;
+#elif (NDIM == 3)
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_D_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_rhs_D_var;
+#endif
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
+    /*!
+     * Temporary storage variables
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_temp_sc_var;
+    int d_temp_sc_idx;
+
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -394,6 +420,7 @@ private:
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
     int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
+    int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
@@ -401,7 +428,10 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_rho_cc_idx, d_EE_idx;
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx, d_rho_cc_idx;
+#if (NDIM == 3)
+    int d_mu_cc_idx;
+#endif
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -410,6 +440,13 @@ private:
      * Scratch variables have only one context: scratch.
      */
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
+    int d_velocity_C_idx, d_velocity_D_idx, d_pressure_D_idx;
+    int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
+
+    /*
+     * Variable to indicate if either rho or mu is constant
+     */
+    bool d_rho_is_const, d_mu_is_const;
 };
 } // namespace IBAMR
 

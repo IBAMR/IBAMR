@@ -71,6 +71,7 @@ public:
     static const std::string DEFAULT_BLOCK_PRECONDITIONER;
     static const std::string BLOCK_FACTORIZATION_PRECONDITIONER;
     static const std::string PROJECTION_PRECONDITIONER;
+    static const std::string VC_PROJECTION_PRECONDITIONER;
 
     /*!
      * Default FAC preconditioner types automatically provided by the manager

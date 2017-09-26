@@ -70,6 +70,7 @@ public:
      */
     static const std::string DEFAULT_FAC_PRECONDITIONER;
     static const std::string POINT_RELAXATION_FAC_PRECONDITIONER;
+    static const std::string VC_VISCOUS_POINT_RELAXATION_FAC_PRECONDITIONER;
 
     /*!
      * Default level solver types automatically provided by the manager class.
@@ -77,6 +78,7 @@ public:
     static const std::string DEFAULT_LEVEL_SOLVER;
     static const std::string HYPRE_LEVEL_SOLVER;
     static const std::string PETSC_LEVEL_SOLVER;
+    static const std::string VC_VISCOUS_PETSC_LEVEL_SOLVER;
 
     /*!
      * Return a pointer to the instance of the solver manager.  Access to

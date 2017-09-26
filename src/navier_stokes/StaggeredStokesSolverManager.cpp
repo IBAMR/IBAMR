@@ -48,6 +48,7 @@
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/KrylovLinearSolver.h"
@@ -72,6 +73,7 @@ const std::string StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER = "
 const std::string StaggeredStokesSolverManager::BLOCK_FACTORIZATION_PRECONDITIONER =
     "BLOCK_FACTORIZATION_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::PROJECTION_PRECONDITIONER = "PROJECTION_PRECONDITIONER";
+const std::string StaggeredStokesSolverManager::VC_PROJECTION_PRECONDITIONER = "VC_PROJECTION_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::BOX_RELAXATION_FAC_PRECONDITIONER = "BOX_RELAXATION_FAC_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::LEVEL_RELAXATION_FAC_PRECONDITIONER =
@@ -181,6 +183,8 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     registerSolverFactoryFunction(BLOCK_FACTORIZATION_PRECONDITIONER,
                                   StaggeredStokesBlockFactorizationPreconditioner::allocate_solver);
     registerSolverFactoryFunction(PROJECTION_PRECONDITIONER, StaggeredStokesProjectionPreconditioner::allocate_solver);
+    registerSolverFactoryFunction(VC_PROJECTION_PRECONDITIONER,
+                                  VCStaggeredStokesProjectionPreconditioner::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
                                   StaggeredStokesLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(LEVEL_RELAXATION_FAC_PRECONDITIONER,
