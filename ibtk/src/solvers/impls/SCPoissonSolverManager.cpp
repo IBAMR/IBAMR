@@ -48,8 +48,6 @@
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousPETScLevelSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -68,11 +66,9 @@ const std::string SCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER = "DEFAULT_KRYLO
 const std::string SCPoissonSolverManager::PETSC_KRYLOV_SOLVER = "PETSC_KRYLOV_SOLVER";
 const std::string SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
 const std::string SCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER = "POINT_RELAXATION_FAC_PRECONDITIONER";
-const std::string SCPoissonSolverManager::VC_VISCOUS_POINT_RELAXATION_FAC_PRECONDITIONER = "VC_VISCOUS_POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string SCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
 const std::string SCPoissonSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
-const std::string SCPoissonSolverManager::VC_VISCOUS_PETSC_LEVEL_SOLVER = "VC_VISCOUS_PETSC_LEVEL_SOLVER";
 
 SCPoissonSolverManager* SCPoissonSolverManager::s_solver_manager_instance = NULL;
 bool SCPoissonSolverManager::s_registered_callback = false;
@@ -176,12 +172,9 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, SCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   SCPoissonPointRelaxationFACOperator::allocate_solver);
-    registerSolverFactoryFunction(VC_VISCOUS_POINT_RELAXATION_FAC_PRECONDITIONER,
-                                  VCSCViscousOpPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, SCPoissonPETScLevelSolver::allocate_solver);
-    registerSolverFactoryFunction(VC_VISCOUS_PETSC_LEVEL_SOLVER, VCSCViscousPETScLevelSolver::allocate_solver);
     return;
 } // SCPoissonSolverManager
 

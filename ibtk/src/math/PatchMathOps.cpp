@@ -5289,7 +5289,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    if (rho_varying && (rho_ghosts != (coef1->getGhostCellWidth()).min()))
+    if (rho_varying && (rho_ghosts != (coef2->getGhostCellWidth()).min()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  coef2 does not have uniform ghost cell widths"
@@ -5484,7 +5484,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                    << std::endl);
     }
 
-    if (rho_varying && (rho_ghosts != (coef1->getGhostCellWidth()).min()))
+    if (rho_varying && (rho_ghosts != (coef2->getGhostCellWidth()).min()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  coef2 does not have uniform ghost cell widths"
