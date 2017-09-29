@@ -170,6 +170,8 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_oe_var(new OuteredgeVariable<NDIM, double>(d_object_name + "::scratch_oe")),
       d_fc_idx(-1),
       d_sc_idx(-1),
+      d_nc_idx(-1),
+      d_ec_idx(-1),
       d_of_idx(-1),
       d_os_idx(-1),
       d_on_idx(-1),
@@ -3431,6 +3433,8 @@ HierarchyMathOps::resetCoarsenOperators()
 #endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
+    d_on_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_on_var, "CONSTANT_COARSEN");
+    d_oe_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_oe_var, "NO_COARSEN");
 
     d_of_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_of_coarsen_alg->registerCoarsen(d_fc_idx, // destination
@@ -3441,6 +3445,16 @@ HierarchyMathOps::resetCoarsenOperators()
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, // destination
                                       d_os_idx, // source
                                       d_os_coarsen_op);
+
+    d_on_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_on_coarsen_alg->registerCoarsen(d_nc_idx, // destination
+                                      d_on_idx, // source
+                                      d_on_coarsen_op);
+
+    d_oe_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_oe_coarsen_alg->registerCoarsen(d_ec_idx, // destination
+                                      d_oe_idx, // source
+                                      d_oe_coarsen_op);
     return;
 } // resetCoarsenOperators
 

@@ -77,7 +77,7 @@ namespace IBAMR
 /*!
  * \brief Class INSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
  * that is used to specify velocity boundary conditions for the staggered grid
- * incompressible Navier-Stokes solver with variable coefficents.
+ * incompressible Navier-Stokes solver.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary

@@ -372,11 +372,11 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
 {
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
-                     TimerManager::getManager()->getTimer("IBTK::SCPoissonPointRelaxationFACOperator::smoothError()");
+                     TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::smoothError()");
                  t_solve_coarsest_level = TimerManager::getManager()->getTimer(
-                     "IBTK::SCPoissonPointRelaxationFACOperator::solveCoarsestLevel()");
+                     "IBTK::VCSCViscousOpPointRelaxationFACOperator::solveCoarsestLevel()");
                  t_compute_residual = TimerManager::getManager()->getTimer(
-                     "IBTK::SCPoissonPointRelaxationFACOperator::computeResidual()"););
+                     "IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual()"););
     return;
 } // VCSCViscousOpPointRelaxationFACOperator
 

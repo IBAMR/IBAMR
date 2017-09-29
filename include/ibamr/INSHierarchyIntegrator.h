@@ -517,7 +517,7 @@ protected:
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
-     * fluid source/sink distributions.
+     * fluid source/sink distributions, density, or viscosity.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
@@ -526,7 +526,7 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM> *d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn, d_mu_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
-        d_Q_bdry_bc_fill_op, d_no_fill_op;
+        d_Q_bdry_bc_fill_op, d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op, d_no_fill_op;
 
     /*!
      * Hierarchy operators and solvers and related configuration data.
