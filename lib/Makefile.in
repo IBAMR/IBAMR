@@ -245,6 +245,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LSInitStrategy.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -368,6 +370,8 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
+	../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.$(OBJEXT) \
+	../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -477,6 +481,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LSInitStrategy.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -600,6 +606,8 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
+	../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.$(OBJEXT) \
+	../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -759,6 +767,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -802,6 +811,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
+	../include/ibamr/LSInitStrategy.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1183,6 +1193,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1226,6 +1237,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
+	../include/ibamr/LSInitStrategy.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1306,6 +1318,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LSInitStrategy.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -1621,6 +1635,18 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT):  \
 	../src/advect/$(am__dirstamp) \
 	../src/advect/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/$(am__dirstamp):
+	@$(MKDIR_P) ../src/level_set
+	@: > ../src/level_set/$(am__dirstamp)
+../src/level_set/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/level_set/$(DEPDIR)
+	@: > ../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -1931,6 +1957,12 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT):  \
 	../src/advect/$(am__dirstamp) \
 	../src/advect/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -2105,6 +2137,7 @@ mostlyclean-compile:
 	-rm -f ../src/IB/*.$(OBJEXT)
 	-rm -f ../src/adv_diff/*.$(OBJEXT)
 	-rm -f ../src/advect/*.$(OBJEXT)
+	-rm -f ../src/level_set/*.$(OBJEXT)
 	-rm -f ../src/navier_stokes/*.$(OBJEXT)
 	-rm -f ../src/utilities/*.$(OBJEXT)
 
@@ -2249,6 +2282,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@
@@ -3201,6 +3238,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp' object='../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj `if test -f '../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; then $(CYGPATH_W) '../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; fi`
+
+../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.o: ../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Tpo -c -o ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.o `test -f '../src/level_set/FastSweepingLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.o `test -f '../src/level_set/FastSweepingLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/FastSweepingLSMethod.cpp
+
+../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj: ../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Tpo -c -o ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+
+../src/level_set/libIBAMR2d_a-LSInitStrategy.o: ../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-LSInitStrategy.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR2d_a-LSInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
+
+../src/level_set/libIBAMR2d_a-LSInitStrategy.obj: ../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-LSInitStrategy.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR2d_a-LSInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o: ../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o `test -f '../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
@@ -4672,6 +4737,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj `if test -f '../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; then $(CYGPATH_W) '../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; fi`
 
+../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.o: ../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Tpo -c -o ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.o `test -f '../src/level_set/FastSweepingLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.o `test -f '../src/level_set/FastSweepingLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/FastSweepingLSMethod.cpp
+
+../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj: ../src/level_set/FastSweepingLSMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Tpo -c -o ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+
+../src/level_set/libIBAMR3d_a-LSInitStrategy.o: ../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-LSInitStrategy.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR3d_a-LSInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
+
+../src/level_set/libIBAMR3d_a-LSInitStrategy.obj: ../src/level_set/LSInitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-LSInitStrategy.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR3d_a-LSInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
+
 ../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o: ../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o `test -f '../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po
@@ -5445,6 +5538,8 @@ distclean-generic:
 	-rm -f ../src/adv_diff/$(am__dirstamp)
 	-rm -f ../src/advect/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/advect/$(am__dirstamp)
+	-rm -f ../src/level_set/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/level_set/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(am__dirstamp)
 	-rm -f ../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -5466,7 +5561,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool clean-local \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ../src/IB/$(DEPDIR) ../src/adv_diff/$(DEPDIR) ../src/advect/$(DEPDIR) ../src/navier_stokes/$(DEPDIR) ../src/utilities/$(DEPDIR)
+	-rm -rf ../src/IB/$(DEPDIR) ../src/adv_diff/$(DEPDIR) ../src/advect/$(DEPDIR) ../src/level_set/$(DEPDIR) ../src/navier_stokes/$(DEPDIR) ../src/utilities/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -5512,7 +5607,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ../src/IB/$(DEPDIR) ../src/adv_diff/$(DEPDIR) ../src/advect/$(DEPDIR) ../src/navier_stokes/$(DEPDIR) ../src/utilities/$(DEPDIR)
+	-rm -rf ../src/IB/$(DEPDIR) ../src/adv_diff/$(DEPDIR) ../src/advect/$(DEPDIR) ../src/level_set/$(DEPDIR) ../src/navier_stokes/$(DEPDIR) ../src/utilities/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

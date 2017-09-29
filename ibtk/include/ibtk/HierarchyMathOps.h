@@ -204,6 +204,11 @@ public:
 
     //\}
 
+    /*!
+     * \brief Get the patch hierarchy object associated with the class.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+
     //\{ \name Mathematical operations.
 
     /*!

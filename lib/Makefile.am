@@ -104,6 +104,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+../src/level_set/FastSweepingLSMethod.cpp \
+../src/level_set/LSInitStrategy.cpp \
 ../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 ../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 ../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -176,6 +178,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -220,6 +223,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \

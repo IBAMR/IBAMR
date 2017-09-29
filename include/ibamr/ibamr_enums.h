@@ -152,6 +152,59 @@ enum_to_string<LimiterType>(LimiterType val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for different level set methods
+ */
+enum LevelSetType
+{
+    FAST_SWEEPING = 1,
+    UNKNOWN_LEVEL_SET_TYPE = -1
+};
+
+template <>
+inline LevelSetType
+string_to_enum<LevelSetType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "FAST_SWEEPING") == 0) return FAST_SWEEPING;
+    return UNKNOWN_LEVEL_SET_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<LevelSetType>(LevelSetType val)
+{
+    if (val == FAST_SWEEPING) return "FAST_SWEEPING";
+    return "UNKNOWN_LEVEL_SET_TYPE";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for different level set order
+ */
+enum LevelSetOrder
+{
+    FIRST_ORDER_LS = 1,
+    SECOND_ORDER_LS = 2,
+    UNKNOWN_LEVEL_SET_ORDER = -1
+};
+
+template <>
+inline LevelSetOrder
+string_to_enum<LevelSetOrder>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "FIRST_ORDER") == 0) return FIRST_ORDER_LS;
+    if (strcasecmp(val.c_str(), "SECOND_ORDER") == 0) return SECOND_ORDER_LS;
+    return UNKNOWN_LEVEL_SET_ORDER;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<LevelSetOrder>(LevelSetOrder val)
+{
+    if (val == FIRST_ORDER_LS) return "FIRST_ORDER";
+    if (val == SECOND_ORDER_LS) return "SECOND_ORDER";
+    return "UNKNOWN_LEVEL_SET_ORDER";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
 enum TimeSteppingType
