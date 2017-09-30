@@ -60,6 +60,7 @@ c
      &     consider_bdry_wall)
 c
       implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -84,21 +85,22 @@ c
       REAL    hx,hy
       REAL    Q,R,S
       REAL    dbar
-      REAL    u_wall_coef
+      REAL    U_wall_coef
       REAL    h_wall_coef
 
       if (consider_bdry_wall .eq. 1) then
-        u_wall_coef   = 0.d0
-        h_wall_coef   = 0.5d0
+        U_wall_coef   = zero
+        h_wall_coef   = half
       else
-        u_wall_coef   = 1.d0
-        h_wall_coef   = 1.0d0
+        U_wall_coef   = one
+        h_wall_coef   = one
       endif
      
       
 c     Do the four sweeping directions.
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
+
             hx = dx(0)
             hy = dx(1)
             a  = dmin1(U(i0-1,i1),U(i0+1,i1))
@@ -107,16 +109,16 @@ c     Do the four sweeping directions.
 c           Take care of physical boundaries.
             if (patch_touches_bdry .eq. 1) then
               if (i0 .eq. dlower0) then 
-                a  = U(i0+1,i1)*u_wall_coef   
+                a  = U(i0+1,i1)*U_wall_coef   
                 hx = hx*h_wall_coef                
               elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*u_wall_coef
+                a  = U(i0-1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i1 .eq. dlower1) then 
-                b  = U(i0,i1+1)*u_wall_coef   
+                b  = U(i0,i1+1)*U_wall_coef   
                 hy = hy*h_wall_coef                
               elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*u_wall_coef
+                b  = U(i0,i1-1)*U_wall_coef
                 hy = hy*h_wall_coef
               endif
             endif
@@ -139,6 +141,7 @@ c           Take care of physical boundaries.
       
       do i1 = ilower1,iupper1
          do i0 = iupper0,ilower0,-1
+
             hx = dx(0)
             hy = dx(1)
             a  = dmin1(U(i0-1,i1),U(i0+1,i1))
@@ -147,16 +150,16 @@ c           Take care of physical boundaries.
 c           Take care of physical boundaries.
             if (patch_touches_bdry .eq. 1) then
               if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*u_wall_coef
+                a  = U(i0+1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*u_wall_coef
+                a  = U(i0-1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*u_wall_coef
+                b  = U(i0,i1+1)*U_wall_coef
                 hy = hy*h_wall_coef
               elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*u_wall_coef
+                b  = U(i0,i1-1)*U_wall_coef
                 hy = hy*h_wall_coef
               endif
             endif
@@ -179,6 +182,7 @@ c           Take care of physical boundaries.
       
       do i1 = iupper1,ilower1,-1
          do i0 = iupper0,ilower0,-1
+
             hx = dx(0)
             hy = dx(1)
             a  = dmin1(U(i0-1,i1),U(i0+1,i1))
@@ -187,16 +191,16 @@ c           Take care of physical boundaries.
 c           Take care of physical boundaries.
             if (patch_touches_bdry .eq. 1) then
               if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*u_wall_coef
+                a  = U(i0+1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*u_wall_coef
+                a  = U(i0-1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*u_wall_coef
+                b  = U(i0,i1+1)*U_wall_coef
                 hy = hy*h_wall_coef
               elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*u_wall_coef
+                b  = U(i0,i1-1)*U_wall_coef
                 hy = hy*h_wall_coef
               endif
             endif 
@@ -219,6 +223,7 @@ c           Take care of physical boundaries.
       
       do i1 = iupper1,ilower1,-1
          do i0 = ilower0,iupper0
+
             hx = dx(0)
             hy = dx(1)
             a  = dmin1(U(i0-1,i1),U(i0+1,i1))
@@ -227,19 +232,352 @@ c           Take care of physical boundaries.
 c           Take care of physical boundaries.
             if (patch_touches_bdry .eq. 1) then
               if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*u_wall_coef
+                a  = U(i0+1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*u_wall_coef
+                a  = U(i0-1,i1)*U_wall_coef
                 hx = hx*h_wall_coef
               elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*u_wall_coef
+                b  = U(i0,i1+1)*U_wall_coef
                 hy = hy*h_wall_coef
               elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*u_wall_coef
+                b  = U(i0,i1-1)*U_wall_coef
                 hy = hy*h_wall_coef
               endif
             endif
+           
+            if (b-a .gt. hx) then
+              dbar = a + hx
+            elseif (a-b .gt. hy) then
+              dbar = b + hy
+            else
+              Q = hx*hx + hy*hy
+              R = -2.d0*(hy*hy*a + hx*hx*b)
+              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+            endif
+            
+            U(i0,i1) = dmin1(U(i0,i1),dbar)
+
+         enddo
+      enddo
+
+      return
+      end
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out second-order accurate fast sweeping algorithm
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine fastsweep2ndorder2d(
+     &     U,U_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dlower0,dupper0
+     &     dlower1,dupper1,
+     &     dx,
+     &     patch_touches_bdry,
+     &     consider_bdry_wall)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER dlower0,dupper0
+      INTEGER dlower1,dupper1
+      INTEGER U_gcw
+      INTEGER patch_touches_bdry
+      INTEGER consider_bdry_wall
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    a,b
+      REAL    aplus,bplus
+      REAL    aminus,bminus
+      REAL    hx,hy
+      REAL    Q,R,S
+      REAL    dbar
+      REAL    U_wall_coef
+      REAL    h_wall_coef
+
+
+      if (consider_bdry_wall .eq. 1) then
+        U_wall_coef   = zero
+        h_wall_coef   = threefourth
+      else
+        U_wall_coef   = one
+        h_wall_coef   = one
+      endif
+     
+      
+c     Do the four sweeping directions.
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+            hx = twothird*dx(0)
+            hy = twothird*dx(1)
+            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
+            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
+            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
+            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
+            
+            if (U(i0-1,i1) .le. U(i0+1,i1)) then
+              a  = aminus
+            else
+              a  = aplus
+            endif
+
+            if (U(i0,i1-1) .le. U(i0,i1+1)) then
+              b  = bminus
+            else
+              b  = bplus
+            endif
+       
+c           Take care of physical boundaries.
+            if (patch_touches_bdry .eq. 1) then
+              if (i0 .eq. dlower0) then 
+                a  = aplus*U_wall_coef   
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dlower0+1) then
+                a  = aplus
+                hx = hx                
+              elseif (i0 .eq. dupper0) then
+                a  = aminus*U_wall_coef
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dupper0-1) then
+                a  = aminus
+                hx = hx
+              elseif (i1 .eq. dlower1) then 
+                b  = bplus*U_wall_coef   
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dlower1+1) then 
+                b  = bplus
+                hy = hy                 
+              elseif (i1 .eq. dupper1) then
+                b  = bminus*U_wall_coef
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dupper1-1) then
+                b  = bminus
+                hy = hy
+              endif
+            endif
+
+            if (b-a .gt. hx) then
+              dbar = a + hx
+            elseif (a-b .gt. hy) then
+              dbar = b + hy
+            else
+              Q = hx*hx + hy*hy
+              R = -2.d0*(hy*hy*a + hx*hx*b)
+              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+            endif
+                        
+            U(i0,i1) = dmin1(U(i0,i1),dbar)
+
+            enddo
+      enddo
+      
+      do i1 = ilower1,iupper1
+         do i0 = iupper0,ilower0,-1
+
+            hx = twothird*dx(0)
+            hy = twothird*dx(1)
+            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
+            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
+            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
+            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
+            
+            if (U(i0-1,i1) .le. U(i0+1,i1)) then
+              a  = aminus
+            else
+              a  = aplus
+            endif
+
+            if (U(i0,i1-1) .le. U(i0,i1+1)) then
+              b  = bminus
+            else
+              b  = bplus
+            endif
+       
+c           Take care of physical boundaries.
+            if (patch_touches_bdry .eq. 1) then
+              if (i0 .eq. dlower0) then 
+                a  = aplus*U_wall_coef   
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dlower0+1) then
+                a  = aplus
+                hx = hx                
+              elseif (i0 .eq. dupper0) then
+                a  = aminus*U_wall_coef
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dupper0-1) then
+                a  = aminus
+                hx = hx
+              elseif (i1 .eq. dlower1) then 
+                b  = bplus*U_wall_coef   
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dlower1+1) then 
+                b  = bplus
+                hy = hy                 
+              elseif (i1 .eq. dupper1) then
+                b  = bminus*U_wall_coef
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dupper1-1) then
+                b  = bminus
+                hy = hy
+              endif
+            endif
+
+            
+            if (b-a .gt. hx) then
+              dbar = a + hx
+            elseif (a-b .gt. hy) then
+              dbar = b + hy
+            else
+              Q = hx*hx + hy*hy
+              R = -2.d0*(hy*hy*a + hx*hx*b)
+              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+            endif
+            
+            U(i0,i1) = dmin1(U(i0,i1),dbar)
+
+         enddo
+      enddo
+      
+      do i1 = iupper1,ilower1,-1
+         do i0 = iupper0,ilower0,-1
+
+            hx = twothird*dx(0)
+            hy = twothird*dx(1)
+            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
+            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
+            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
+            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
+            
+            if (U(i0-1,i1) .le. U(i0+1,i1)) then
+              a  = aminus
+            else
+              a  = aplus
+            endif
+
+            if (U(i0,i1-1) .le. U(i0,i1+1)) then
+              b  = bminus
+            else
+              b  = bplus
+            endif
+       
+c           Take care of physical boundaries.
+            if (patch_touches_bdry .eq. 1) then
+              if (i0 .eq. dlower0) then 
+                a  = aplus*U_wall_coef   
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dlower0+1) then
+                a  = aplus
+                hx = hx                
+              elseif (i0 .eq. dupper0) then
+                a  = aminus*U_wall_coef
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dupper0-1) then
+                a  = aminus
+                hx = hx
+              elseif (i1 .eq. dlower1) then 
+                b  = bplus*U_wall_coef   
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dlower1+1) then 
+                b  = bplus
+                hy = hy                 
+              elseif (i1 .eq. dupper1) then
+                b  = bminus*U_wall_coef
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dupper1-1) then
+                b  = bminus
+                hy = hy
+              endif
+            endif
+
+            
+            if (b-a .gt. hx) then
+              dbar = a + hx
+            elseif (a-b .gt. hy) then
+              dbar = b + hy
+            else
+              Q = hx*hx + hy*hy
+              R = -2.d0*(hy*hy*a + hx*hx*b)
+              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+            endif
+            
+            U(i0,i1) = dmin1(U(i0,i1),dbar)
+
+         enddo
+      enddo
+      
+      do i1 = iupper1,ilower1,-1
+         do i0 = ilower0,iupper0
+
+            hx = twothird*dx(0)
+            hy = twothird*dx(1)
+            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
+            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
+            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
+            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
+            
+            if (U(i0-1,i1) .le. U(i0+1,i1)) then
+              a  = aminus
+            else
+              a  = aplus
+            endif
+
+            if (U(i0,i1-1) .le. U(i0,i1+1)) then
+              b  = bminus
+            else
+              b  = bplus
+            endif
+       
+c           Take care of physical boundaries.
+            if (patch_touches_bdry .eq. 1) then
+              if (i0 .eq. dlower0) then 
+                a  = aplus*U_wall_coef   
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dlower0+1) then
+                a  = aplus
+                hx = hx                
+              elseif (i0 .eq. dupper0) then
+                a  = aminus*U_wall_coef
+                hx = hx*h_wall_coef
+              elseif (i0 .eq. dupper0-1) then
+                a  = aminus
+                hx = hx
+              elseif (i1 .eq. dlower1) then 
+                b  = bplus*U_wall_coef   
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dlower1+1) then 
+                b  = bplus
+                hy = hy                 
+              elseif (i1 .eq. dupper1) then
+                b  = bminus*U_wall_coef
+                hy = hy*h_wall_coef
+              elseif (i1 .eq. dupper1-1) then
+                b  = bminus
+                hy = hy
+              endif
+            endif
+
            
             if (b-a .gt. hx) then
               dbar = a + hx

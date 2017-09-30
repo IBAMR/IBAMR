@@ -1,5 +1,5 @@
       REAL zero,eighth,sixth,fourth,third,half,twothird,
-     &  rt75,one,onept5,two,three,pi,four,seven,smallr
+     &  fourthird,rt75,one,onept5,two,three,pi,four,seven,smallr
       parameter (zero=0.d0)
       parameter (eighth=0.125d0)
       parameter (sixth=0.16666666666667d0)
@@ -7,6 +7,7 @@
       parameter (third=0.333333333333333d0)
       parameter (half=0.5d0)
       parameter (twothird=0.66666666666667d0)
+      parameter (fourthird=1.33333333333337d0)
       parameter (rt75=0.8660254037844d0)
       parameter (one=1.d0)
       parameter (onept5=1.5d0)
