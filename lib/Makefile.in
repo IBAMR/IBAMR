@@ -295,6 +295,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/advect/fortran/advect_diff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_stable2d.f \
 	$(top_builddir)/src/advect/fortran/advect_predictors2d.f \
+	$(top_builddir)/src/level_set/fortran/levelsetops2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
@@ -416,6 +417,7 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 	$(top_builddir)/src/advect/fortran/advect_diff2d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_stable2d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_predictors2d.$(OBJEXT) \
+	$(top_builddir)/src/level_set/fortran/levelsetops2d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.$(OBJEXT) \
@@ -531,6 +533,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	$(top_builddir)/src/advect/fortran/advect_diff3d.f \
 	$(top_builddir)/src/advect/fortran/advect_stable3d.f \
 	$(top_builddir)/src/advect/fortran/advect_predictors3d.f \
+	$(top_builddir)/src/level_set/fortran/levelsetops3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
@@ -652,6 +655,7 @@ am_libIBAMR3d_a_OBJECTS = $(am__objects_5) \
 	$(top_builddir)/src/advect/fortran/advect_diff3d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_stable3d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_predictors3d.$(OBJEXT) \
+	$(top_builddir)/src/level_set/fortran/levelsetops3d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.$(OBJEXT) \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.$(OBJEXT) \
@@ -1365,6 +1369,7 @@ $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors2d.f \
+$(top_builddir)/src/level_set/fortran/levelsetops2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
@@ -1381,6 +1386,7 @@ $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors3d.f \
+$(top_builddir)/src/level_set/fortran/levelsetops3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
@@ -1795,6 +1801,15 @@ $(top_builddir)/src/advect/fortran/advect_stable2d.$(OBJEXT):  \
 $(top_builddir)/src/advect/fortran/advect_predictors2d.$(OBJEXT):  \
 	$(top_builddir)/src/advect/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/level_set/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/level_set/fortran
+	@: > $(top_builddir)/src/level_set/fortran/$(am__dirstamp)
+$(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/level_set/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/level_set/fortran/levelsetops2d.$(OBJEXT):  \
+	$(top_builddir)/src/level_set/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/navier_stokes/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/navier_stokes/fortran
 	@: > $(top_builddir)/src/navier_stokes/fortran/$(am__dirstamp)
@@ -2105,6 +2120,9 @@ $(top_builddir)/src/advect/fortran/advect_stable3d.$(OBJEXT):  \
 $(top_builddir)/src/advect/fortran/advect_predictors3d.$(OBJEXT):  \
 	$(top_builddir)/src/advect/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/level_set/fortran/levelsetops3d.$(OBJEXT):  \
+	$(top_builddir)/src/level_set/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.$(OBJEXT):  \
 	$(top_builddir)/src/navier_stokes/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/navier_stokes/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2133,6 +2151,7 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f $(top_builddir)/src/adv_diff/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/advect/fortran/*.$(OBJEXT)
+	-rm -f $(top_builddir)/src/level_set/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/navier_stokes/fortran/*.$(OBJEXT)
 	-rm -f ../src/IB/*.$(OBJEXT)
 	-rm -f ../src/adv_diff/*.$(OBJEXT)
@@ -5548,6 +5567,8 @@ distclean-generic:
 	-test -z "$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/advect/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/advect/fortran/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/level_set/fortran/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/level_set/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/level_set/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/navier_stokes/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/navier_stokes/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/navier_stokes/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/navier_stokes/fortran/$(am__dirstamp)
 

@@ -85,7 +85,7 @@ public:
     /*!
      * \brief Typedef specifying distance function near an interface.
      */
-    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int dst_idx,
+    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
                                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                       double time,
                                                       bool initial_time,
@@ -99,7 +99,7 @@ public:
     /*!
      * \brief Initialize level set data using the fast-sweeping method.
      */
-    void initializeLSData(int dst_idx,
+    void initializeLSData(int D_idx,
                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           double time,
                           bool initial_time);

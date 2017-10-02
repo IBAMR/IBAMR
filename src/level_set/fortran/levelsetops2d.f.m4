@@ -53,7 +53,7 @@ c
      &     U,U_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
-     &     dlower0,dupper0
+     &     dlower0,dupper0,
      &     dlower1,dupper1,
      &     dx,
      &     patch_touches_bdry,
@@ -276,7 +276,7 @@ c
      &     U,U_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
-     &     dlower0,dupper0
+     &     dlower0,dupper0,
      &     dlower1,dupper1,
      &     dx,
      &     patch_touches_bdry,

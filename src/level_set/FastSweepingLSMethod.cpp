@@ -177,7 +177,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     // away from the interface and actual distance value near the interface.
     for (unsigned k = 0; k < d_locate_interface_fcns.size(); ++k)
     {
-        (*d_locate_interface_fcns[k])(D_idx, hierarchy, time, initial_time, d_locate_interface_fcns_ctx[k]);
+        (*d_locate_interface_fcns[k])(D_idx, hier_math_ops, time, initial_time, d_locate_interface_fcns_ctx[k]);
     }
 
     // Set hierarchy objects.
@@ -340,6 +340,10 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
 void
 FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
 {
+    std::string ls_order = "FIRST_ORDER";
+    ls_order = input_db->getStringWithDefault("order", ls_order);
+    d_ls_order = string_to_enum<LevelSetOrder>(ls_order);
+
     d_max_its = input_db->getIntegerWithDefault("max_iterations", d_max_its);
     d_max_its = input_db->getIntegerWithDefault("max_its", d_max_its);
 
@@ -351,6 +355,13 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
 
     return;
 } // getFromInput
+
+void
+FastSweepingLSMethod::getFromRestart()
+{
+    // intentionally left-blank.
+    return;
+} // getFromRestart
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
