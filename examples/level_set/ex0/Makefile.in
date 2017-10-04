@@ -87,11 +87,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_3) $(am__EXEEXT_6)
+EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_3 = test2d
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_4 = $(GTESTS)
+@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
+@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(EXAMPLES) $(GTESTS)
+@SAMRAI3D_ENABLED_TRUE@am__append_4 = main3d
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_5 = test3d
+@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(EXAMPLES) $(GTESTS)
 subdir = examples/level_set/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -123,13 +125,15 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
-am__EXEEXT_2 = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
+am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 =  \
 @GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	test2d$(EXEEXT)
-am__EXEEXT_5 = $(am__EXEEXT_4)
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_6 =  \
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_5)
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 =  \
+@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	test3d$(EXEEXT)
+am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 = $(am__EXEEXT_3) $(am__EXEEXT_6)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6)
 am__objects_1 = main2d-ex_main.$(OBJEXT) \
 	main2d-LSLocateInterface.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
@@ -142,13 +146,29 @@ am__v_lt_1 =
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = test2d-test_main.$(OBJEXT) \
+am__objects_2 = main3d-ex_main.$(OBJEXT) \
+	main3d-LSLocateInterface.$(OBJEXT)
+am_main3d_OBJECTS = $(am__objects_2)
+main3d_OBJECTS = $(am_main3d_OBJECTS)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_3 = test2d-test_main.$(OBJEXT) \
 	test2d-LSLocateInterface.$(OBJEXT)
-am_test2d_OBJECTS = $(am__objects_2)
+am_test2d_OBJECTS = $(am__objects_3)
 test2d_OBJECTS = $(am_test2d_OBJECTS)
 test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_4 = test3d-test_main.$(OBJEXT) \
+	test3d-LSLocateInterface.$(OBJEXT)
+am_test3d_OBJECTS = $(am__objects_4)
+test3d_OBJECTS = $(am_test3d_OBJECTS)
+test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -202,8 +222,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
+SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
+	$(test3d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
+	$(test3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -229,7 +251,8 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp
+	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp \
+	README
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -529,15 +552,21 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp LSLocateInterface.cpp LSLocateInterface.h 
 GTEST_DRIVER = test_main.cpp LSLocateInterface.cpp LSLocateInterface.h 
-EXTRA_DIST = input2d input2d.test 
-EXAMPLES = $(am__append_1)
-GTESTS = $(am__append_3)
+EXTRA_DIST = README input2d input2d.test input3d input3d.test
+EXAMPLES = $(am__append_1) $(am__append_4)
+GTESTS = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
+main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_SOURCES = $(EXAMPLE_DRIVER)
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
+test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -577,9 +606,17 @@ main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDE
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
 
+main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
+	@rm -f main3d$(EXEEXT)
+	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
+
 test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDENCIES) 
 	@rm -f test2d$(EXEEXT)
 	$(AM_V_CXXLD)$(test2d_LINK) $(test2d_OBJECTS) $(test2d_LDADD) $(LIBS)
+
+test3d$(EXEEXT): $(test3d_OBJECTS) $(test3d_DEPENDENCIES) $(EXTRA_test3d_DEPENDENCIES) 
+	@rm -f test3d$(EXEEXT)
+	$(AM_V_CXXLD)$(test3d_LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -589,8 +626,12 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateInterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-LSLocateInterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -644,6 +685,34 @@ main2d-LSLocateInterface.obj: LSLocateInterface.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
 
+main3d-ex_main.o: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.o -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+
+main3d-ex_main.obj: ex_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+
+main3d-LSLocateInterface.o: LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LSLocateInterface.o -MD -MP -MF $(DEPDIR)/main3d-LSLocateInterface.Tpo -c -o main3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LSLocateInterface.Tpo $(DEPDIR)/main3d-LSLocateInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='main3d-LSLocateInterface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
+
+main3d-LSLocateInterface.obj: LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LSLocateInterface.obj -MD -MP -MF $(DEPDIR)/main3d-LSLocateInterface.Tpo -c -o main3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LSLocateInterface.Tpo $(DEPDIR)/main3d-LSLocateInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='main3d-LSLocateInterface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
+
 test2d-test_main.o: test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
@@ -671,6 +740,34 @@ test2d-LSLocateInterface.obj: LSLocateInterface.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='test2d-LSLocateInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
+
+test3d-test_main.o: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.o -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
+
+test3d-test_main.obj: test_main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.obj -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
+
+test3d-LSLocateInterface.o: LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateInterface.o -MD -MP -MF $(DEPDIR)/test3d-LSLocateInterface.Tpo -c -o test3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateInterface.Tpo $(DEPDIR)/test3d-LSLocateInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='test3d-LSLocateInterface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
+
+test3d-LSLocateInterface.obj: LSLocateInterface.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateInterface.obj -MD -MP -MF $(DEPDIR)/test3d-LSLocateInterface.Tpo -c -o test3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateInterface.Tpo $(DEPDIR)/test3d-LSLocateInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='test3d-LSLocateInterface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -888,18 +985,18 @@ uninstall-am:
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[2]d $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[23]d} $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
+@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/{README,input[23]d*} $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
 @GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest
-@GTEST_ENABLED_TRUE@	./test2d input2d.test
+@GTEST_ENABLED_TRUE@	./test3d input3d.test
 
 @GTEST_ENABLED_FALSE@gtest:
 @GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -913,7 +1010,7 @@ examples: $(EXAMPLES)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[2]d* ; \
+	  rm -f $(builddir)/{README,input[23]d*} ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

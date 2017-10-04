@@ -211,6 +211,9 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         circle.R = 0.2;
         circle.X0(0) = 0.5;
         circle.X0(1) = 0.5;
+#if (NDIM == 3)
+        circle.X0(2) = 0.5;
+#endif
         input_db->getDoubleWithDefault("R", circle.R);
         if (input_db->keyExists("X0"))
         {

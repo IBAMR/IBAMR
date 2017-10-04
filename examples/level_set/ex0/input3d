@@ -4,7 +4,7 @@ L = 1.0
 // grid spacing parameters
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
-N = 256                                    // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 AdvectorExplicitPredictorPatchOps {
@@ -28,6 +28,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps {
 AdvectionVelocityFunction {
     function_0 = "1.0"
     function_1 = "0.0"
+    function_2 = "0.0"
 }
 
 LevelSet {
@@ -43,6 +44,8 @@ LocationIndexRobinBcCoefs {
    boundary_1 = "value","0.0"
    boundary_2 = "value","0.0"
    boundary_3 = "value","0.0"
+   boundary_4 = "value","0.0"
+   boundary_5 = "value","0.0"
 }
 
 HyperbolicLevelIntegrator {
@@ -61,18 +64,18 @@ TimeRefinementIntegrator {
 
 Main {
 // log file parameters
-   log_file_name               = "advect2d.log"
+   log_file_name               = "advect3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 2
-   viz_dump_dirname            = "viz_advect2d"
+   viz_dump_dirname            = "viz_advect3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval      = 0
-   restart_dump_dirname       = "restart_advect2d"
+   restart_dump_dirname       = "restart_advect3d"
 
 // application parameters
    timestepping               = "REFINED"
@@ -81,24 +84,24 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = 0,0
-   x_up = L,L
-   periodic_dimension = 1,1
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0,0,0
+   x_up = L,L,L
+   periodic_dimension = 1,1,1
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   4,  4  // all finer levels will use same values as level_0
+      level_0 =   4,  4, 4  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box

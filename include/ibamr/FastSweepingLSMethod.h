@@ -65,7 +65,15 @@ namespace IBAMR
 {
 /*!
  * \brief Class FastSweepingLSMethod provides a fast-sweeping algorithm implementation
- * of the level set method.
+ * of the level set method. Specifically, this class produces a solution to the Eikonal
+ * equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an 
+ * interface.
+ *
+ * References
+ * Zhao, H., <A HREF="https://graphics.stanford.edu/courses/cs468-03-fall/Papers/zhao_fastsweep1.pdf">
+ * A Fast Sweeping Method For Eikonal Equations</A>
+ * Luddens et al, <A HREF="https://hal.inria.fr/hal-01097185/document">Enablers for high order level set
+ * methods in fluid mechanics</A>
  */
 class FastSweepingLSMethod : public IBAMR::LSInitStrategy
 {

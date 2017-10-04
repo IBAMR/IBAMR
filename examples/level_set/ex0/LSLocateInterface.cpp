@@ -8,7 +8,8 @@
 #include <ibtk/HierarchyMathOps.h>
 
 static const double init_positive = 1e8;
-static const double init_negative = 0.0;
+static const double init_negative = -1e8;
+static const double init_interface = 0.0;
 
 // Initialize the neighborhood of a circular interface.
 void
@@ -50,14 +51,22 @@ circular_interface_neighborhood(int D_idx,
                 }
 
                 const double distance =
-                    std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0));
-                if (distance < R)
+                    std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
+#if (NDIM == 3)
+                + std::pow((coord[2] - X0(2)), 2.0)
+#endif
+                );
+                if (distance < R - 3.0 * patch_dx[0])
                 {
                     (*D_data)(ci) = init_negative;
                 }
-                else
+                else if (distance > R + 3.0 * patch_dx[0])
                 {
                     (*D_data)(ci) = init_positive;
+                }
+                else
+                {
+                    (*D_data)(ci) = init_interface;
                 }
             }
         }

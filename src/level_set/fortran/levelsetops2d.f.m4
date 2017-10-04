@@ -47,7 +47,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out first-order accurate fast sweeping algorithm
 c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine fastsweep1storder2d(
      &     U,U_gcw,
@@ -81,10 +81,6 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-      REAL    a,b
-      REAL    hx,hy
-      REAL    Q,R,S
-      REAL    dbar
       REAL    U_wall_coef
       REAL    h_wall_coef
 
@@ -100,170 +96,167 @@ c
 c     Do the four sweeping directions.
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
-
-            hx = dx(0)
-            hy = dx(1)
-            a  = dmin1(U(i0-1,i1),U(i0+1,i1))
-            b  = dmin1(U(i0,i1-1),U(i0,i1+1))
- 
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then 
-                a  = U(i0+1,i1)*U_wall_coef   
-                hx = hx*h_wall_coef                
-              elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i1 .eq. dlower1) then 
-                b  = U(i0,i1+1)*U_wall_coef   
-                hy = hy*h_wall_coef                
-              elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*U_wall_coef
-                hy = hy*h_wall_coef
-              endif
-            endif
-
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-                        
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
-            enddo
+            call singlesweep1storder2d(U,U_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,
+     &                                 dlower0,dupper0,
+     &                                 dlower1,dupper1,
+     &                                 dx,
+     &                                 patch_touches_bdry,
+     &                                 U_wall_coef,h_wall_coef)
+         enddo
       enddo
       
       do i1 = ilower1,iupper1
          do i0 = iupper0,ilower0,-1
-
-            hx = dx(0)
-            hy = dx(1)
-            a  = dmin1(U(i0-1,i1),U(i0+1,i1))
-            b  = dmin1(U(i0,i1-1),U(i0,i1+1))
-            
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*U_wall_coef
-                hy = hy*h_wall_coef
-              endif
-            endif
-            
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
+            call singlesweep1storder2d(U,U_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,
+     &                                 dlower0,dupper0,
+     &                                 dlower1,dupper1,
+     &                                 dx,
+     &                                 patch_touches_bdry,
+     &                                 U_wall_coef,h_wall_coef)
          enddo
       enddo
       
       do i1 = iupper1,ilower1,-1
          do i0 = iupper0,ilower0,-1
-
-            hx = dx(0)
-            hy = dx(1)
-            a  = dmin1(U(i0-1,i1),U(i0+1,i1))
-            b  = dmin1(U(i0,i1-1),U(i0,i1+1))
-            
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*U_wall_coef
-                hy = hy*h_wall_coef
-              endif
-            endif 
-            
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
+            call singlesweep1storder2d(U,U_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,
+     &                                 dlower0,dupper0,
+     &                                 dlower1,dupper1,
+     &                                 dx,
+     &                                 patch_touches_bdry,
+     &                                 U_wall_coef,h_wall_coef)
          enddo
       enddo
       
       do i1 = iupper1,ilower1,-1
          do i0 = ilower0,iupper0
-
-            hx = dx(0)
-            hy = dx(1)
-            a  = dmin1(U(i0-1,i1),U(i0+1,i1))
-            b  = dmin1(U(i0,i1-1),U(i0,i1+1))
-
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then
-                a  = U(i0+1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0) then
-                a  = U(i0-1,i1)*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i1 .eq. dlower1) then
-                b  = U(i0,i1+1)*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1) then
-                b  = U(i0,i1-1)*U_wall_coef
-                hy = hy*h_wall_coef
-              endif
-            endif
-           
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
+            call singlesweep1storder2d(U,U_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,
+     &                                 dlower0,dupper0,
+     &                                 dlower1,dupper1,
+     &                                 dx,
+     &                                 patch_touches_bdry,
+     &                                 U_wall_coef,h_wall_coef)
          enddo
       enddo
 
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out single first order sweep
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine singlesweep1storder2d(
+     &     U,U_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     i0,i1,
+     &     dlower0,dupper0,
+     &     dlower1,dupper1,
+     &     dx,
+     &     patch_touches_bdry,
+     &     U_wall_coef,h_wall_coef)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER dlower0,dupper0
+      INTEGER dlower1,dupper1
+      INTEGER U_gcw
+      INTEGER patch_touches_bdry
+      REAL    U_wall_coef,h_wall_coef
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    a,b,sgn
+      REAL    hx,hy
+      REAL    Q,R,S
+      REAL    dbar
+      
+c     Carry out a single sweep
+      if (U(i0,i1) .eq. 0.d0) then
+        sgn = 0.d0
+      else
+        sgn = sign(1.d0,U(i0,i1))
+      endif
+      
+      hx = dx(0)
+      hy = dx(1)
+      a  = sgn*dmin1(sgn*U(i0-1,i1),sgn*U(i0+1,i1))
+      b  = sgn*dmin1(sgn*U(i0,i1-1),sgn*U(i0,i1+1))
+ 
+c     Take care of physical boundaries.
+      if (patch_touches_bdry .eq. 1) then
+         if (i0 .eq. dlower0) then 
+            a  = U(i0+1,i1)*U_wall_coef   
+            hx = hx*h_wall_coef                
+         elseif (i0 .eq. dupper0) then
+            a  = U(i0-1,i1)*U_wall_coef
+            hx = hx*h_wall_coef
+         elseif (i1 .eq. dlower1) then 
+            b  = U(i0,i1+1)*U_wall_coef   
+            hy = hy*h_wall_coef                
+         elseif (i1 .eq. dupper1) then
+            b  = U(i0,i1-1)*U_wall_coef
+            hy = hy*h_wall_coef
+         endif
+      endif
+
+      if (sgn .gt. 0.d0) then 
+        if (b-a .gt. hx) then
+           dbar = a + hx
+        elseif (a-b .gt. hy) then
+           dbar = b + hy
+        else
+           Q = hx*hx + hy*hy
+           R = -2.d0*(hy*hy*a + hx*hx*b)
+           S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+           dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+        endif
+      elseif (sgn .lt. 0.d0) then 
+        if (b-a .lt. -hx) then
+           dbar = a - hx
+        elseif (a-b .lt. -hy) then
+           dbar = b - hy
+        else
+           Q = hx*hx + hy*hy
+           R = -2.d0*(hy*hy*a + hx*hx*b)
+           S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+           dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
+        endif
+      else
+        dbar = 0.d0
+      endif
+                        
+      U(i0,i1) = sgn*dmin1(sgn*U(i0,i1),sgn*dbar)
+
+      return
+      end
+
+
 c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -599,4 +592,3 @@ c           Take care of physical boundaries.
       end
 c
 c
-
