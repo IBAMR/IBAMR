@@ -409,12 +409,6 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     // Initialize Eulerian data.
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
-    // Begin Lagrangian data movement.
-    d_ib_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
-
-    // Finish Lagrangian data movement.
-    d_ib_method_ops->endDataRedistribution(hierarchy, gridding_alg);
-
     // Initialize Lagrangian data on the patch hierarchy.
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -438,6 +432,13 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
                                               d_integrator_step,
                                               d_integrator_time,
                                               initial_time);
+
+    // Begin Lagrangian data movement.
+    d_ib_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
+
+    // Finish Lagrangian data movement.
+    d_ib_method_ops->endDataRedistribution(hierarchy, gridding_alg);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
