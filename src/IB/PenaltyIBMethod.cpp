@@ -403,7 +403,7 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
                                        init_data_time,
                                        initial_time);
 
-    // Initialize Velocity and Position data objects for massive points.
+    // Initialize velocity and position data objects for massive points.
     if (initial_time)
     {
         const int coarsest_ln = 0;
