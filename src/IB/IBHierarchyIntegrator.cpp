@@ -438,7 +438,6 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
                                               d_integrator_step,
                                               d_integrator_time,
                                               initial_time);
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
