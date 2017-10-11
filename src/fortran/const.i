@@ -9,7 +9,7 @@
       parameter (half=0.5d0)
       parameter (twothird=0.66666666666667d0)
       parameter (threefourth=0.75d0)
-      parameter (fourthird=1.33333333333337d0)
+      parameter (fourthird=1.3333333333333d0)
       parameter (rt75=0.8660254037844d0)
       parameter (one=1.d0)
       parameter (onept5=1.5d0)

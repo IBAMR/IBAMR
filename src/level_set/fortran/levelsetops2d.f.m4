@@ -43,6 +43,33 @@ define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the Godunov Hamiltonian.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function HG(a,b,c,d,sgn)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL a,b,c,d,sgn
+      REAL am,ap,bm,bp,cm,cp,dm,dp
+      if (sgn .ge. zero) then
+        am = dmin1(a,zero)
+        bp = dmax1(b,zero)
+        cm = dmin1(c,zero)
+        dp = dmax1(d,zero)
+        HG = sqrt(dmax1(am**two,bp**two) + dmax1(cm**two,dp**two))
+      else
+        ap = dmax1(a,zero)
+        bm = dmin1(b,zero)
+        cp = dmax1(c,zero)
+        dm = dmin1(d,zero)
+        HG = sqrt(dmax1(ap**two,bm**two) + dmax1(cp**two,dm**two))
+      endif
+      return
+      end
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out first-order accurate fast sweeping algorithm
@@ -96,57 +123,57 @@ c
 c     Do the four sweeping directions.
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
-            call singlesweep1storder2d(U,U_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,
-     &                                 dlower0,dupper0,
-     &                                 dlower1,dupper1,
-     &                                 dx,
-     &                                 patch_touches_bdry,
-     &                                 U_wall_coef,h_wall_coef)
+            call evalsweep1storder2d(U,U_gcw,
+     &                               ilower0,iupper0,
+     &                               ilower1,iupper1,
+     &                               i0,i1,
+     &                               dlower0,dupper0,
+     &                               dlower1,dupper1,
+     &                               dx,
+     &                               patch_touches_bdry,
+     &                               U_wall_coef,h_wall_coef)
          enddo
       enddo
       
       do i1 = ilower1,iupper1
          do i0 = iupper0,ilower0,-1
-            call singlesweep1storder2d(U,U_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,
-     &                                 dlower0,dupper0,
-     &                                 dlower1,dupper1,
-     &                                 dx,
-     &                                 patch_touches_bdry,
-     &                                 U_wall_coef,h_wall_coef)
+            call evalsweep1storder2d(U,U_gcw,
+     &                               ilower0,iupper0,
+     &                               ilower1,iupper1,
+     &                               i0,i1,
+     &                               dlower0,dupper0,
+     &                               dlower1,dupper1,
+     &                               dx,
+     &                               patch_touches_bdry,
+     &                               U_wall_coef,h_wall_coef)
          enddo
       enddo
       
       do i1 = iupper1,ilower1,-1
          do i0 = iupper0,ilower0,-1
-            call singlesweep1storder2d(U,U_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,
-     &                                 dlower0,dupper0,
-     &                                 dlower1,dupper1,
-     &                                 dx,
-     &                                 patch_touches_bdry,
-     &                                 U_wall_coef,h_wall_coef)
+            call evalsweep1storder2d(U,U_gcw,
+     &                               ilower0,iupper0,
+     &                               ilower1,iupper1,
+     &                               i0,i1,
+     &                               dlower0,dupper0,
+     &                               dlower1,dupper1,
+     &                               dx,
+     &                               patch_touches_bdry,
+     &                               U_wall_coef,h_wall_coef)
          enddo
       enddo
       
       do i1 = iupper1,ilower1,-1
          do i0 = ilower0,iupper0
-            call singlesweep1storder2d(U,U_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,
-     &                                 dlower0,dupper0,
-     &                                 dlower1,dupper1,
-     &                                 dx,
-     &                                 patch_touches_bdry,
-     &                                 U_wall_coef,h_wall_coef)
+            call evalsweep1storder2d(U,U_gcw,
+     &                               ilower0,iupper0,
+     &                               ilower1,iupper1,
+     &                               i0,i1,
+     &                               dlower0,dupper0,
+     &                               dlower1,dupper1,
+     &                               dx,
+     &                               patch_touches_bdry,
+     &                               U_wall_coef,h_wall_coef)
          enddo
       enddo
 
@@ -155,11 +182,11 @@ c     Do the four sweeping directions.
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Carry out single first order sweep
+c     Compute fast sweep solution at a given grid cell
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine singlesweep1storder2d(
+      subroutine evalsweep1storder2d(
      &     U,U_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
@@ -171,6 +198,7 @@ c
      &     U_wall_coef,h_wall_coef)
 c
       implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -197,12 +225,12 @@ c
       REAL    dbar
       
 c     Carry out a single sweep
-      if (U(i0,i1) .eq. 0.d0) then
-        sgn = 0.d0
+      if (U(i0,i1) .eq. zero) then
+        sgn = zero
       else
-        sgn = sign(1.d0,U(i0,i1))
+        sgn = sign(one,U(i0,i1))
       endif
-      
+
       hx = dx(0)
       hy = dx(1)
       a  = sgn*dmin1(sgn*U(i0-1,i1),sgn*U(i0+1,i1))
@@ -225,370 +253,381 @@ c     Take care of physical boundaries.
          endif
       endif
 
-      if (sgn .gt. 0.d0) then 
-        if (b-a .gt. hx) then
-           dbar = a + hx
-        elseif (a-b .gt. hy) then
-           dbar = b + hy
-        else
-           Q = hx*hx + hy*hy
-           R = -2.d0*(hy*hy*a + hx*hx*b)
-           S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-           dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-        endif
-      elseif (sgn .lt. 0.d0) then 
-        if (b-a .lt. -hx) then
-           dbar = a - hx
-        elseif (a-b .lt. -hy) then
-           dbar = b - hy
-        else
-           Q = hx*hx + hy*hy
-           R = -2.d0*(hy*hy*a + hx*hx*b)
-           S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-           dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-        endif
+      if (sgn*(b-a) .gt. hx) then
+        dbar = a + sgn*hx
+      elseif (sgn*(a-b) .gt. hy) then
+        dbar = b + sgn*hy
       else
-        dbar = 0.d0
+        Q = hx*hx + hy*hy
+        R = -2.d0*(hy*hy*a + hx*hx*b)
+        S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
+        dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
       endif
                         
       U(i0,i1) = sgn*dmin1(sgn*U(i0,i1),sgn*dbar)
 
       return
       end
-
-
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Carry out first order relaxation scheme using Gauss Seidel updates
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Carry out second-order accurate fast sweeping algorithm
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine fastsweep2ndorder2d(
+      subroutine relaxation1storder2d(
      &     U,U_gcw,
+     &     V,V_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
-     &     dlower0,dupper0,
-     &     dlower1,dupper1,
      &     dx,
-     &     patch_touches_bdry,
-     &     consider_bdry_wall)
+     &     dir)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
+
 c
 c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER dlower0,dupper0
-      INTEGER dlower1,dupper1
-      INTEGER U_gcw
-      INTEGER patch_touches_bdry
-      INTEGER consider_bdry_wall
+      INTEGER U_gcw,V_gcw
+      INTEGER dir
 
 c
 c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
 c
       INTEGER i0,i1
-      REAL    a,b
-      REAL    aplus,bplus
-      REAL    aminus,bminus
-      REAL    hx,hy
-      REAL    Q,R,S
-      REAL    dbar
-      REAL    U_wall_coef
-      REAL    h_wall_coef
 
-
-      if (consider_bdry_wall .eq. 1) then
-        U_wall_coef   = zero
-        h_wall_coef   = threefourth
-      else
-        U_wall_coef   = one
-        h_wall_coef   = one
+      if (dir .eq. 0) then
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 1) then
+        do i1 = ilower1,iupper1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 2) then
+        do i1 = iupper1,ilower1,-1
+          do i0 = ilower0,iupper0
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 3 )then
+        do i1 = iupper1,ilower1,-1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
       endif
-     
-      
-c     Do the four sweeping directions.
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-
-            hx = twothird*dx(0)
-            hy = twothird*dx(1)
-            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
-            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
-            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
-            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
-            
-            if (U(i0-1,i1) .le. U(i0+1,i1)) then
-              a  = aminus
-            else
-              a  = aplus
-            endif
-
-            if (U(i0,i1-1) .le. U(i0,i1+1)) then
-              b  = bminus
-            else
-              b  = bplus
-            endif
-       
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then 
-                a  = aplus*U_wall_coef   
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dlower0+1) then
-                a  = aplus
-                hx = hx                
-              elseif (i0 .eq. dupper0) then
-                a  = aminus*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0-1) then
-                a  = aminus
-                hx = hx
-              elseif (i1 .eq. dlower1) then 
-                b  = bplus*U_wall_coef   
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dlower1+1) then 
-                b  = bplus
-                hy = hy                 
-              elseif (i1 .eq. dupper1) then
-                b  = bminus*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1-1) then
-                b  = bminus
-                hy = hy
-              endif
-            endif
-
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-                        
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
-            enddo
-      enddo
-      
-      do i1 = ilower1,iupper1
-         do i0 = iupper0,ilower0,-1
-
-            hx = twothird*dx(0)
-            hy = twothird*dx(1)
-            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
-            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
-            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
-            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
-            
-            if (U(i0-1,i1) .le. U(i0+1,i1)) then
-              a  = aminus
-            else
-              a  = aplus
-            endif
-
-            if (U(i0,i1-1) .le. U(i0,i1+1)) then
-              b  = bminus
-            else
-              b  = bplus
-            endif
-       
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then 
-                a  = aplus*U_wall_coef   
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dlower0+1) then
-                a  = aplus
-                hx = hx                
-              elseif (i0 .eq. dupper0) then
-                a  = aminus*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0-1) then
-                a  = aminus
-                hx = hx
-              elseif (i1 .eq. dlower1) then 
-                b  = bplus*U_wall_coef   
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dlower1+1) then 
-                b  = bplus
-                hy = hy                 
-              elseif (i1 .eq. dupper1) then
-                b  = bminus*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1-1) then
-                b  = bminus
-                hy = hy
-              endif
-            endif
-
-            
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
-         enddo
-      enddo
-      
-      do i1 = iupper1,ilower1,-1
-         do i0 = iupper0,ilower0,-1
-
-            hx = twothird*dx(0)
-            hy = twothird*dx(1)
-            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
-            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
-            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
-            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
-            
-            if (U(i0-1,i1) .le. U(i0+1,i1)) then
-              a  = aminus
-            else
-              a  = aplus
-            endif
-
-            if (U(i0,i1-1) .le. U(i0,i1+1)) then
-              b  = bminus
-            else
-              b  = bplus
-            endif
-       
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then 
-                a  = aplus*U_wall_coef   
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dlower0+1) then
-                a  = aplus
-                hx = hx                
-              elseif (i0 .eq. dupper0) then
-                a  = aminus*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0-1) then
-                a  = aminus
-                hx = hx
-              elseif (i1 .eq. dlower1) then 
-                b  = bplus*U_wall_coef   
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dlower1+1) then 
-                b  = bplus
-                hy = hy                 
-              elseif (i1 .eq. dupper1) then
-                b  = bminus*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1-1) then
-                b  = bminus
-                hy = hy
-              endif
-            endif
-
-            
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
-         enddo
-      enddo
-      
-      do i1 = iupper1,ilower1,-1
-         do i0 = ilower0,iupper0
-
-            hx = twothird*dx(0)
-            hy = twothird*dx(1)
-            aminus = fourthird*U(i0-1,i1) - third*U(i0-2,i1)
-            aplus  = fourthird*U(i0+1,i1) - third*U(i0+2,i1)
-            bminus = fourthird*U(i0,i1-1) - third*U(i0,i1-2)
-            bplus  = fourthird*U(i0,i1+1) - third*U(i0,i1+2)
-            
-            if (U(i0-1,i1) .le. U(i0+1,i1)) then
-              a  = aminus
-            else
-              a  = aplus
-            endif
-
-            if (U(i0,i1-1) .le. U(i0,i1+1)) then
-              b  = bminus
-            else
-              b  = bplus
-            endif
-       
-c           Take care of physical boundaries.
-            if (patch_touches_bdry .eq. 1) then
-              if (i0 .eq. dlower0) then 
-                a  = aplus*U_wall_coef   
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dlower0+1) then
-                a  = aplus
-                hx = hx                
-              elseif (i0 .eq. dupper0) then
-                a  = aminus*U_wall_coef
-                hx = hx*h_wall_coef
-              elseif (i0 .eq. dupper0-1) then
-                a  = aminus
-                hx = hx
-              elseif (i1 .eq. dlower1) then 
-                b  = bplus*U_wall_coef   
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dlower1+1) then 
-                b  = bplus
-                hy = hy                 
-              elseif (i1 .eq. dupper1) then
-                b  = bminus*U_wall_coef
-                hy = hy*h_wall_coef
-              elseif (i1 .eq. dupper1-1) then
-                b  = bminus
-                hy = hy
-              endif
-            endif
-
-           
-            if (b-a .gt. hx) then
-              dbar = a + hx
-            elseif (a-b .gt. hy) then
-              dbar = b + hy
-            else
-              Q = hx*hx + hy*hy
-              R = -2.d0*(hy*hy*a + hx*hx*b)
-              S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
-              dbar = (-R + sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
-            endif
-            
-            U(i0,i1) = dmin1(U(i0,i1),dbar)
-
-         enddo
-      enddo
 
       return
       end
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute relaxation solution at a given grid cell
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine evalrelax1storder2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     i0,i1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL HG
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hy
+      REAL    sgn
+      REAL    dt
+      REAL    G
+      REAL    Dxp,Dxm
+      REAL    Dyp,Dym
+
+      hx = dx(0)
+      hy = dx(1)
+      dt = half*dmin1(hx,hy)
+      if (V(i0,i1) .eq. zero) then
+         sgn = zero
+      else
+         sgn = sign(one,V(i0,i1))
+      endif
+
+      Dxm = one/hx*(U(i0,i1)-U(i0-1,i1))
+      Dxp = one/hx*(U(i0+1,i1)-U(i0,i1))
+      Dym = one/hy*(U(i0,i1)-U(i0,i1-1))
+      Dyp = one/hy*(U(i0,i1+1)-U(i0,i1))
+      G = HG(Dxp,Dxm,Dyp,Dym,sgn)
+
+      U(i0,i1) = U(i0,i1) - dt*sgn*(G-one)
+
+      return
+      end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out third order relaxation scheme using Gauss Seidel updates
+c     NOTE: this scheme between third and fourth s
+c     order near the interface and second order everywhere else
+c
+c     Uses second order WENO for spatial discretization with a subcell
+c     fix near the interface
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine relaxation3rdorder2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     dir)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+      INTEGER dir
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+
+      if (dir .eq. 0) then
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 1) then
+        do i1 = ilower1,iupper1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 2) then
+        do i1 = iupper1,ilower1,-1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 3 )then
+        do i1 = iupper1,ilower1,-1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      endif
+
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out single third order sweep
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine evalrelax3rdorder2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     i0,i1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL minmod, HG
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hxp,hxm
+      REAL    hy,hyp,hym
+      REAL    Dxm,Dxp,Dym,Dyp
+      REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
+      REAL    Dxx0,Dyy0
+      REAL    H,dt,sgn,cfl,eps,D,diff
+
+      hx = dx(0)
+      hy = dx(1)
+      cfl = 0.45d0
+      eps = 1.d-10
+
+      if (V(i0,i1) .eq. zero) then
+         sgn = zero
+      else
+         sgn = sign(one,V(i0,i1))
+      endif
+
+c     Compute all the required finite differences
+      Dxx  = (U(i0-1,i1) - two*U(i0,i1) + U(i0+1,i1))/(hx**two)
+      Dxxp = (U(i0,i1) - two*U(i0+1,i1) + U(i0+2,i1))/(hx**two)
+      Dxxm = (U(i0-2,i1) - two*U(i0-1,i1) + U(i0,i1))/(hx**two)
+      Dyy  = (U(i0,i1-1) - two*U(i0,i1) + U(i0,i1+1))/(hy**two)
+      Dyyp = (U(i0,i1) - two*U(i0,i1+1) + U(i0,i1+2))/(hy**two)
+      Dyym = (U(i0,i1-2) - two*U(i0,i1-1) + U(i0,i1))/(hy**two)
+
+c     Set dummy values for hxp,hxm,hyp,hym
+      hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
+
+c     Compute ENO differences with subcell fix
+      if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
+        Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
+     &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
+        diff = V(i0,i1)-V(i0+1,i1)
+        if (abs(Dxx0) .gt. eps) then
+          D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
+     &        -four*V(i0,i1)*V(i0+1,i1)
+          hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
+        else
+          hxp = hx*V(i0,i1)/diff
+        endif
+        Dxp = (zero-U(i0,i1))/hxp - hxp/two*minmod(Dxx,Dxxp)
+      else
+        Dxp = (U(i0+1,i1)-U(i0,i1))/hx - hx/two*minmod(Dxx,Dxxp)
+      endif
+
+      if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
+        Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
+     &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
+        diff = V(i0,i1)-V(i0-1,i1)
+        if (abs(Dxx0) .gt. eps) then
+          D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
+     &        -four*V(i0,i1)*V(i0-1,i1)
+          hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
+        else
+          hxm = hx*V(i0,i1)/diff
+        endif
+        Dxm = (U(i0,i1)-zero)/hxm + hxm/two*minmod(Dxx,Dxxm)
+      else
+        Dxm = (U(i0,i1)-U(i0-1,i1))/hx + hx/two*minmod(Dxx,Dxxm)
+      endif
+
+      if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
+        Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
+     &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
+        diff = V(i0,i1)-V(i0,i1+1)
+        if (abs(Dyy0) .gt. eps) then
+          D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
+     &        -four*V(i0,i1)*V(i0,i1+1)
+          hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
+        else
+          hyp = hy*V(i0,i1)/diff
+        endif
+        Dyp = (zero-U(i0,i1))/hyp - hyp/two*minmod(Dyy,Dyyp)
+      else
+        Dyp = (U(i0,i1+1)-U(i0,i1))/hy - hy/two*minmod(Dyy,Dyyp)
+      endif
+
+      if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
+        Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
+     &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
+        diff = V(i0,i1)-V(i0,i1-1)
+        if (abs(Dyy0) .gt. eps) then
+          D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
+     &        -four*V(i0,i1)*V(i0,i1-1)
+          hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
+        else
+          hym = hy*V(i0,i1)/diff
+        endif
+        Dym = (U(i0,i1)-zero)/hym + hym/two*minmod(Dyy,Dyym)
+      else
+        Dym = (U(i0,i1)-U(i0,i1-1))/hy + hy/two*minmod(Dyy,Dyym)
+      endif
+
+      H = HG(Dxp,Dxm,Dyp,Dym,sgn)
+      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
+
+      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+
+      return
+      end

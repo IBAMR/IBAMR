@@ -1,5 +1,5 @@
-// Filename: FastSweepingLSMethod.cpp
-// Created on 27 Sep 2017 by Nishant Nangia and Amneet Bhalla
+// Filename: RelaxationLSMethod.cpp
+// Created on 10 Oct 2017 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FastSweepingLSMethod.h"
+#include "ibamr/RelaxationLSMethod.h"
 #include "CellVariable.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
@@ -44,16 +44,20 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define FAST_SWEEP_1ST_ORDER_FC IBAMR_FC_FUNC(fastsweep1storder2d, FASTSWEEP1STORDER2D)
+#define RELAXATION_1ST_ORDER_FC IBAMR_FC_FUNC(relaxation1storder2d, RELAXATION1STORDER2D)
+#define RELAXATION_3RD_ORDER_FC IBAMR_FC_FUNC(relaxation3rdorder2d, RELAXATION3RDORDER2D)
 #endif
 
 #if (NDIM == 3)
-#define FAST_SWEEP_1ST_ORDER_FC IBAMR_FC_FUNC(fastsweep1storder3d, FASTSWEEP1STORDER3D)
+#define RELAXATION_1ST_ORDER_FC IBAMR_FC_FUNC(relaxation1storder3d, RELAXATION1STORDER3D)
+#define RELAXATION_3RD_ORDER_FC IBAMR_FC_FUNC(relaxation3rdorder3d, RELAXATION3RDORDER3D)
 #endif
 
 extern "C" {
-void FAST_SWEEP_1ST_ORDER_FC(double* U,
+void RELAXATION_1ST_ORDER_FC(double* U,
                              const int& U_gcw,
+                             const double* V,
+                             const int& V_gcw,
                              const int& ilower0,
                              const int& iupper0,
                              const int& ilower1,
@@ -62,18 +66,23 @@ void FAST_SWEEP_1ST_ORDER_FC(double* U,
                              const int& ilower2,
                              const int& iupper2,
 #endif
-                             const int& dlower0,
-                             const int& dupper0,
-                             const int& dlower1,
-                             const int& dupper1,
-#if (NDIM == 3)
+                             const double* dx,
+                             const int& dir);
 
-                             const int& dlower2,
-                             const int& dupper2,
+void RELAXATION_3RD_ORDER_FC(double* U,
+                             const int& U_gcw,
+                             const double* V,
+                             const int& V_gcw,
+                             const int& ilower0,
+                             const int& iupper0,
+                             const int& ilower1,
+                             const int& iupper1,
+#if (NDIM == 3)
+                             const int& ilower2,
+                             const int& iupper2,
 #endif
                              const double* dx,
-                             const int& patch_touches_bdry,
-                             const int& consider_bdry_wall);
+                             const int& dir);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -84,9 +93,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
-                                           Pointer<Database> db,
-                                           bool register_for_restart)
+RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<Database> db, bool register_for_restart)
     : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER)
 {
     // Some default values.
@@ -100,9 +107,9 @@ FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
     if (!db.isNull()) getFromInput(db);
 
     return;
-} // FastSweepingLSMethod
+} // RelaxationLSMethod
 
-FastSweepingLSMethod::~FastSweepingLSMethod()
+RelaxationLSMethod::~RelaxationLSMethod()
 {
     if (d_registered_for_restart)
     {
@@ -110,11 +117,10 @@ FastSweepingLSMethod::~FastSweepingLSMethod()
     }
     d_registered_for_restart = false;
 
-} // ~FastSweepingLSMethod
+} // ~RelaxationLSMethod
 
 void
-FastSweepingLSMethod::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback_fcn,
-                                                               void* ctx)
+RelaxationLSMethod::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback_fcn, void* ctx)
 {
     d_locate_interface_fcns.push_back(callback_fcn);
     d_locate_interface_fcns_ctx.push_back(ctx);
@@ -123,10 +129,7 @@ FastSweepingLSMethod::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNe
 } // registerInterfaceNeighborhoodLocatingFcn
 
 void
-FastSweepingLSMethod::initializeLSData(int D_idx,
-                                       Pointer<HierarchyMathOps> hier_math_ops,
-                                       double time,
-                                       bool initial_time)
+RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_math_ops, double time, bool initial_time)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -142,9 +145,11 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
     // Create a temporary variable to hold previous iteration values.
     const int D_iter_idx = var_db->registerClonedPatchDataIndex(D_var, D_idx);
+    const int D_init_idx = var_db->registerClonedPatchDataIndex(D_var, D_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_iter_idx, time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(D_init_idx, time);
     }
 
     // First, fill cells with some large positive/negative values
@@ -156,23 +161,31 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
     // Set hierarchy objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent D_transaction(D_idx, "NONE", true, "NONE", "QUADRATIC", false, d_bc_coef);
+    InterpolationTransactionComponent D_transaction(
+        D_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
+    InterpolationTransactionComponent D_init_transaction(
+        D_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
-    // Carry out iterations
+    // Carry out relaxation
     double diff_L2_norm = 1.0e12;
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
+    // Copy initial condition
+    hier_cc_data_ops.copyData(D_init_idx, D_idx);
+    fill_op->initializeOperatorState(D_init_transaction, hierarchy);
+    fill_op->fillData(time);
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         hier_cc_data_ops.copyData(D_iter_idx, D_idx);
 
         fill_op->initializeOperatorState(D_transaction, hierarchy);
         fill_op->fillData(time);
-        fastSweep(hier_math_ops, D_idx);
+        relaxation(hier_math_ops, D_idx, D_init_idx, outer_iter);
 
+        // Compute error
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_idx);
         diff_L2_norm = hier_cc_data_ops.L2Norm(D_iter_idx, cc_wgt_idx);
 
@@ -187,8 +200,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
         if (diff_L2_norm <= d_abs_tol && d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): Fast sweeping algorithm converged for entire domain"
-                 << std::endl;
+            pout << d_object_name << "::initializeLSData(): Relaxation converged for entire domain" << std::endl;
         }
     }
 
@@ -208,7 +220,10 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
+RelaxationLSMethod::relaxation(Pointer<HierarchyMathOps> hier_math_ops,
+                               int dist_idx,
+                               int dist_init_idx,
+                               const int iter) const
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -217,46 +232,58 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        const BoxArray<NDIM>& domain_boxes = level->getPhysicalDomain();
-#if !defined(NDEBUG)
-        TBOX_ASSERT(domain_boxes.size() == 1);
-#endif
-
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const bool patch_touches_bdry =
-                level->patchTouchesRegularBoundary(p()) || level->patchTouchesPeriodicBoundary(p());
-            fastSweep(dist_data, patch, domain_boxes[0], patch_touches_bdry);
+            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            relaxation(dist_data, dist_init_data, patch, iter);
         }
     }
     return;
 
-} // fastSweep
+} // relax
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
-                                const Pointer<Patch<NDIM> > patch,
-                                const Box<NDIM>& domain_box,
-                                bool patch_touches_bdry) const
+RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
+                               const Pointer<CellData<NDIM, double> > dist_init_data,
+                               const Pointer<Patch<NDIM> > patch,
+                               const int iter) const
 {
     double* const D = dist_data->getPointer(0);
+    const double* const P = dist_init_data->getPointer(0);
     const int D_ghosts = (dist_data->getGhostCellWidth()).max();
+    const int P_ghosts = (dist_init_data->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(dist_data->getDepth() == 1);
-    if (d_ls_order == FIRST_ORDER) TBOX_ASSERT(D_ghosts >= 1);
+    TBOX_ASSERT(dist_init_data->getDepth() == 1);
+    if (d_ls_order == FIRST_ORDER)
+    {
+        TBOX_ASSERT(D_ghosts >= 1);
+        TBOX_ASSERT(P_ghosts >= 1);
+    }
+    if (d_ls_order == THIRD_ORDER)
+    {
+        TBOX_ASSERT(D_ghosts >= 2);
+        TBOX_ASSERT(P_ghosts >= 2);
+    }
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
+    // Get the direction of sweeping (alternates according to iteration number)
+    const int num_dirs = (NDIM < 3) ? 4 : 8;
+    const int dir = iter % num_dirs;
+
     if (d_ls_order == FIRST_ORDER)
     {
-        FAST_SWEEP_1ST_ORDER_FC(D,
+        RELAXATION_1ST_ORDER_FC(D,
                                 D_ghosts,
+                                P,
+                                P_ghosts,
                                 patch_box.lower(0),
                                 patch_box.upper(0),
                                 patch_box.lower(1),
@@ -265,28 +292,36 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
                                 patch_box.lower(2),
                                 patch_box.upper(2),
 #endif
-                                domain_box.lower(0),
-                                domain_box.upper(0),
-                                domain_box.lower(1),
-                                domain_box.upper(1),
+                                dx,
+                                dir);
+    }
+    else if (d_ls_order == THIRD_ORDER)
+    {
+        RELAXATION_3RD_ORDER_FC(D,
+                                D_ghosts,
+                                P,
+                                P_ghosts,
+                                patch_box.lower(0),
+                                patch_box.upper(0),
+                                patch_box.lower(1),
+                                patch_box.upper(1),
 #if (NDIM == 3)
-                                domain_box.lower(2),
-                                domain_box.upper(2),
+                                patch_box.lower(2),
+                                patch_box.upper(2),
 #endif
                                 dx,
-                                patch_touches_bdry,
-                                d_consider_phys_bdry_wall);
+                                dir);
     }
     else
     {
-        TBOX_ERROR("FastSweepingLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
+        TBOX_ERROR("RelaxationLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
     }
 
     return;
-} // fastSweep
+} // relax
 
 void
-FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
+RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
 {
     std::string ls_order = "FIRST_ORDER";
     ls_order = input_db->getStringWithDefault("order", ls_order);
@@ -304,7 +339,7 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
 } // getFromInput
 
 void
-FastSweepingLSMethod::getFromRestart()
+RelaxationLSMethod::getFromRestart()
 {
     // intentionally left-blank.
     return;

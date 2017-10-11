@@ -157,6 +157,7 @@ enum_to_string<LimiterType>(LimiterType val)
 enum LevelSetType
 {
     FAST_SWEEPING = 1,
+    RELAXATION = 2,
     UNKNOWN_LEVEL_SET_TYPE = -1
 };
 
@@ -165,6 +166,7 @@ inline LevelSetType
 string_to_enum<LevelSetType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "FAST_SWEEPING") == 0) return FAST_SWEEPING;
+    if (strcasecmp(val.c_str(), "RELAXATION") == 0) return RELAXATION;
     return UNKNOWN_LEVEL_SET_TYPE;
 } // string_to_enum
 
@@ -173,6 +175,7 @@ inline std::string
 enum_to_string<LevelSetType>(LevelSetType val)
 {
     if (val == FAST_SWEEPING) return "FAST_SWEEPING";
+    if (val == RELAXATION) return "RELAXATION";
     return "UNKNOWN_LEVEL_SET_TYPE";
 } // enum_to_string
 
@@ -181,8 +184,8 @@ enum_to_string<LevelSetType>(LevelSetType val)
  */
 enum LevelSetOrder
 {
-    FIRST_ORDER_LS = 1,
-    SECOND_ORDER_LS = 2,
+    FIRST_ORDER = 1,
+    THIRD_ORDER = 3,
     UNKNOWN_LEVEL_SET_ORDER = -1
 };
 
@@ -190,8 +193,8 @@ template <>
 inline LevelSetOrder
 string_to_enum<LevelSetOrder>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "FIRST_ORDER") == 0) return FIRST_ORDER_LS;
-    if (strcasecmp(val.c_str(), "SECOND_ORDER") == 0) return SECOND_ORDER_LS;
+    if (strcasecmp(val.c_str(), "FIRST_ORDER") == 0) return FIRST_ORDER;
+    if (strcasecmp(val.c_str(), "THIRD_ORDER") == 0) return THIRD_ORDER;
     return UNKNOWN_LEVEL_SET_ORDER;
 } // string_to_enum
 
@@ -199,8 +202,8 @@ template <>
 inline std::string
 enum_to_string<LevelSetOrder>(LevelSetOrder val)
 {
-    if (val == FIRST_ORDER_LS) return "FIRST_ORDER";
-    if (val == SECOND_ORDER_LS) return "SECOND_ORDER";
+    if (val == FIRST_ORDER) return "FIRST_ORDER";
+    if (val == THIRD_ORDER) return "THIRD_ORDER";
     return "UNKNOWN_LEVEL_SET_ORDER";
 } // enum_to_string
 

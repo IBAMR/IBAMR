@@ -1,14 +1,14 @@
 // physical parameters
-L = 1.0
+L = 2.0
 
 // circle parameters
-R  = 0.2
-X0 = 0.5,0.5,0.5
+R  = 1.0
+X0 = 0,0,0
 
 // grid spacing parameters
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
-REF_RATIO  = 2                            // refinement ratio between levels
-N = 64                                    // coarsest grid spacing
+REF_RATIO  = 4                            // refinement ratio between levels
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 AdvectorExplicitPredictorPatchOps {
@@ -36,9 +36,9 @@ AdvectionVelocityFunction {
 }
 
 LevelSet {
-    order              = "FIRST_ORDER"
-    abs_tol            = 1e-5
-    max_iterations     = 100
+    order              = "THIRD_ORDER"
+    sweep_abs_tol      = 1e-5
+    max_iterations     = 3*N*REF_RATIO^(MAX_LEVELS - 1)
     physical_bdry_wall = FALSE
     enable_logging     = TRUE
 }
@@ -61,25 +61,25 @@ HyperbolicLevelIntegrator {
 
 TimeRefinementIntegrator {
    start_time           = 0.0e0  // initial simulation time
-   end_time             = 1.0e0  // final simulation time
+   end_time             = 0.0e0  // final simulation time
    grow_dt              = 2.0e0  // growth factor for timesteps
    max_integrator_steps = 10000  // max number of simulation timesteps
 }
 
 Main {
 // log file parameters
-   log_file_name               = "advect3d.log"
+   log_file_name               = "advect2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 2
-   viz_dump_dirname            = "viz_advect3d"
+   viz_dump_dirname            = "viz_advect2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval      = 0
-   restart_dump_dirname       = "restart_advect3d"
+   restart_dump_dirname       = "restart_advect2d"
 
 // application parameters
    timestepping               = "REFINED"
@@ -89,7 +89,7 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
-   x_lo = 0,0,0
+   x_lo = -L,-L,-L
    x_up = L,L,L
    periodic_dimension = 1,1,1
 }

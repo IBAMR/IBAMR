@@ -1,5 +1,5 @@
-// Filename: FastSweepingLSMethod.h
-// Created on 27 Sep 2017 by Amneet Bhalla and Nishant Nangia
+// Filename: RelaxationLSMethod.h
+// Created on 10 Oct 2017 by Amneet Bhalla and Nishant Nangia
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_FastSweepingLSMethod
-#define included_IBAMR_FastSweepingLSMethod
+#ifndef included_IBAMR_RelaxationLSMethod
+#define included_IBAMR_RelaxationLSMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -64,29 +64,30 @@ class Patch;
 namespace IBAMR
 {
 /*!
- * \brief Class FastSweepingLSMethod provides a fast-sweeping algorithm implementation
- * of the level set method. Specifically, this class produces a solution to the Eikonal
- * equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an 
+ * \brief Class RelaxationLSMethod provides a relaxation algorithm implementation
+ * of the level set method. Specifically, this class iterates (to steady-state) the PDE
+ * \f$\frac{\partial Q}{\partial \tau}+sgn(Q^0)(|\nabla Q | - 1) = 0\f$, which produces a solution
+ * to the Eikonal equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an
  * interface.
  *
- * References
- * Zhao, H., <A HREF="https://graphics.stanford.edu/courses/cs468-03-fall/Papers/zhao_fastsweep1.pdf">
- * A Fast Sweeping Method For Eikonal Equations</A>
+ * Reference
+ * Min, C., <A HREF="http://math.ewha.ac.kr/~chohong/publications/article_15.pdf">
+ * On reinitializing level set functions</A>
  */
-class FastSweepingLSMethod : public IBAMR::LSInitStrategy
+class RelaxationLSMethod : public IBAMR::LSInitStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    FastSweepingLSMethod(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
-                         bool register_for_restart = true);
+    RelaxationLSMethod(const std::string& object_name,
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
+                       bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~FastSweepingLSMethod();
+    virtual ~RelaxationLSMethod();
 
     /*!
      * \brief Typedef specifying distance function near an interface.
@@ -130,33 +131,20 @@ protected:
 
 private:
     /*!
-     * \brief Do one fast sweep over the hierarchy.
-     */
-    void fastSweep(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
-
-    /*!
      * \brief Do one relaxation step over the hierarchy.
      */
-    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-               int dist_idx,
-               int dist_init_idx,
-               const int iter) const;
-
-    /*!
-     * \brief Do one fast sweep over a patch.
-     */
-    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                   const SAMRAI::hier::Box<NDIM>& domain_box,
-                   bool patch_touches_reg_bdry) const;
+    void relaxation(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                    int dist_idx,
+                    int dist_init_idx,
+                    const int iter) const;
 
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_idx,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-               const int iter) const;
+    void relaxation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_idx,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    const int iter) const;
 
     /*!
      * Read input values from a given database.
@@ -176,7 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FastSweepingLSMethod(const FastSweepingLSMethod& from);
+    RelaxationLSMethod(const RelaxationLSMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -187,10 +175,10 @@ private:
      *
      * \return A reference to this object.
      */
-    FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that);
+    RelaxationLSMethod& operator=(const RelaxationLSMethod& that);
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_FastSweepingLSMethod
+#endif //#ifndef included_IBAMR_RelaxationLSMethod

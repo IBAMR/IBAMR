@@ -106,6 +106,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
 ../src/level_set/LSInitStrategy.cpp \
+../src/level_set/RelaxationLSMethod.cpp \
 ../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 ../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 ../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -179,6 +180,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
+../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \

@@ -1,15 +1,11 @@
 // Filename LSLocateInterface.cpp
-// Created on Oct 1, 2017 by Amneet Bhalla
+// Created on Oct 10, 2017 by Nishant Nangia
 
 #include "LSLocateInterface.h"
 
 #include <CartesianGridGeometry.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/HierarchyMathOps.h>
-
-static const double init_positive = 1e8;
-static const double init_negative = -1e8;
-static const double init_interface = 0.0;
 
 // Initialize the neighborhood of a circular interface.
 void
@@ -19,10 +15,6 @@ circular_interface_neighborhood(int D_idx,
                                 bool /*initial_time*/,
                                 void* ctx)
 {
-    CircularInterface* circle = static_cast<CircularInterface*>(ctx);
-    const double& R = circle->R;
-    const IBTK::Vector& X0 = circle->X0;
-
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -49,25 +41,25 @@ circular_interface_neighborhood(int D_idx,
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-
-                const double distance =
-                    std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
+                const double x = coord[0];
+                const double y = coord[1];
 #if (NDIM == 3)
-                + std::pow((coord[2] - X0(2)), 2.0)
+                const double z = coord[2];
 #endif
-                );
-                if (distance < R - 2.0 * patch_dx[0])
-                {
-                    (*D_data)(ci) = init_negative;
-                }
-                else if (distance > R + 2.0 * patch_dx[0])
-                {
-                    (*D_data)(ci) = init_positive;
-                }
-                else
-                {
-                    (*D_data)(ci) = init_interface;
-                }
+                (*D_data)(ci) = 0.001 * (std::pow(x - 1.0, 2.0) + std::pow(y - 1.0, 2.0)
+#if (NDIM == 3)
+                                         +
+                                         std::pow(z - 1.0, 2.0)
+#endif
+                                         +
+                                         0.1) *
+                                (std::sqrt(std::pow(x, 2.0) + std::pow(y, 2.0)
+#if (NDIM == 3)
+                                           +
+                                           std::pow(z, 2.0)
+#endif
+                                               ) -
+                                 1.0);
             }
         }
     }
