@@ -36,10 +36,11 @@ AdvectionVelocityFunction {
 }
 
 LevelSet {
-    order              = "FIRST_ORDER"
-    abs_tol            = 1e-5
-    max_iterations     = 100
-    physical_bdry_wall = FALSE
+    order                      = "FIRST_ORDER"
+    abs_tol                    = 1e-5
+    max_iterations             = 100
+    physical_bdry_wall         = TRUE
+    physical_bdry_wall_loc_idx = 2,3
     enable_logging     = TRUE
 }
 
@@ -91,7 +92,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
    x_lo = 0,0,0
    x_up = L,L,L
-   periodic_dimension = 1,1,1
+   periodic_dimension = 1,0,0
 }
 
 GriddingAlgorithm {

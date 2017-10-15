@@ -6,7 +6,7 @@ R  = 0.2
 X0 = 0.5,0.5
 
 // grid spacing parameters
-MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
@@ -35,11 +35,12 @@ AdvectionVelocityFunction {
 }
 
 LevelSet {
-    order              = "FIRST_ORDER"
-    abs_tol            = 1e-5
-    max_iterations     = 100
-    physical_bdry_wall = FALSE
-    enable_logging     = TRUE
+    order                      = "FIRST_ORDER"
+    abs_tol                    = 1e-5
+    max_iterations             = 100
+    physical_bdry_wall         = TRUE
+    physical_bdry_wall_loc_idx = 0,2,3
+    enable_logging             = TRUE
 }
 
 LocationIndexRobinBcCoefs {
@@ -88,7 +89,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
    x_lo = 0,0
    x_up = L,L
-   periodic_dimension = 1,1
+   periodic_dimension = 1,0
 }
 
 GriddingAlgorithm {

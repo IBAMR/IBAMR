@@ -184,8 +184,9 @@ enum_to_string<LevelSetType>(LevelSetType val)
  */
 enum LevelSetOrder
 {
-    FIRST_ORDER = 1,
-    THIRD_ORDER = 3,
+    FIRST_ORDER_LS = 1,
+    SECOND_ORDER_LS = 2,
+    THIRD_ORDER_LS = 3,
     UNKNOWN_LEVEL_SET_ORDER = -1
 };
 
@@ -193,8 +194,9 @@ template <>
 inline LevelSetOrder
 string_to_enum<LevelSetOrder>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "FIRST_ORDER") == 0) return FIRST_ORDER;
-    if (strcasecmp(val.c_str(), "THIRD_ORDER") == 0) return THIRD_ORDER;
+    if (strcasecmp(val.c_str(), "FIRST_ORDER") == 0) return FIRST_ORDER_LS;
+    if (strcasecmp(val.c_str(), "SECOND_ORDER") == 0) return SECOND_ORDER_LS;
+    if (strcasecmp(val.c_str(), "THIRD_ORDER") == 0) return THIRD_ORDER_LS;
     return UNKNOWN_LEVEL_SET_ORDER;
 } // string_to_enum
 
@@ -202,8 +204,9 @@ template <>
 inline std::string
 enum_to_string<LevelSetOrder>(LevelSetOrder val)
 {
-    if (val == FIRST_ORDER) return "FIRST_ORDER";
-    if (val == THIRD_ORDER) return "THIRD_ORDER";
+    if (val == FIRST_ORDER_LS) return "FIRST_ORDER";
+    if (val == SECOND_ORDER_LS) return "SECOND_ORDER";
+    if (val == THIRD_ORDER_LS) return "THIRD_ORDER";
     return "UNKNOWN_LEVEL_SET_ORDER";
 } // enum_to_string
 

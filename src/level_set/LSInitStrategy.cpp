@@ -47,6 +47,7 @@ namespace IBAMR
 LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
+    d_bc_coef = NULL;
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);

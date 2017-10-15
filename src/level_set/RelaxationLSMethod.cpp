@@ -94,10 +94,10 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<Database> db, bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER)
+    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER_LS)
 {
     // Some default values.
-    d_ls_order = FIRST_ORDER;
+    d_ls_order = FIRST_ORDER_LS;
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
@@ -258,12 +258,12 @@ RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
 #if !defined(NDEBUG)
     TBOX_ASSERT(dist_data->getDepth() == 1);
     TBOX_ASSERT(dist_init_data->getDepth() == 1);
-    if (d_ls_order == FIRST_ORDER)
+    if (d_ls_order == FIRST_ORDER_LS)
     {
         TBOX_ASSERT(D_ghosts >= 1);
         TBOX_ASSERT(P_ghosts >= 1);
     }
-    if (d_ls_order == THIRD_ORDER)
+    if (d_ls_order == THIRD_ORDER_LS)
     {
         TBOX_ASSERT(D_ghosts >= 2);
         TBOX_ASSERT(P_ghosts >= 2);
@@ -278,7 +278,7 @@ RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
     const int num_dirs = (NDIM < 3) ? 4 : 8;
     const int dir = iter % num_dirs;
 
-    if (d_ls_order == FIRST_ORDER)
+    if (d_ls_order == FIRST_ORDER_LS)
     {
         RELAXATION_1ST_ORDER_FC(D,
                                 D_ghosts,
@@ -295,7 +295,7 @@ RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
                                 dx,
                                 dir);
     }
-    else if (d_ls_order == THIRD_ORDER)
+    else if (d_ls_order == THIRD_ORDER_LS)
     {
         RELAXATION_3RD_ORDER_FC(D,
                                 D_ghosts,

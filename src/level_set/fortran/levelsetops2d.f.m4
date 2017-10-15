@@ -84,7 +84,7 @@ c
      &     dlower1,dupper1,
      &     dx,
      &     patch_touches_bdry,
-     &     consider_bdry_wall)
+     &     touches_wall_loc_idx)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -97,28 +97,18 @@ c
       INTEGER dlower1,dupper1
       INTEGER U_gcw
       INTEGER patch_touches_bdry
-      INTEGER consider_bdry_wall
 
 c
 c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL dx(0:NDIM-1)
+      INTEGER touches_wall_loc_idx(0:2*NDIM - 1)
 c
 c     Local variables.
 c
       INTEGER i0,i1
-      REAL    U_wall_coef
-      REAL    h_wall_coef
-
-      if (consider_bdry_wall .eq. 1) then
-        U_wall_coef   = zero
-        h_wall_coef   = half
-      else
-        U_wall_coef   = one
-        h_wall_coef   = one
-      endif
-     
+    
       
 c     Do the four sweeping directions.
       do i1 = ilower1,iupper1
@@ -131,7 +121,7 @@ c     Do the four sweeping directions.
      &                               dlower1,dupper1,
      &                               dx,
      &                               patch_touches_bdry,
-     &                               U_wall_coef,h_wall_coef)
+     &                               touches_wall_loc_idx)
          enddo
       enddo
       
@@ -145,7 +135,7 @@ c     Do the four sweeping directions.
      &                               dlower1,dupper1,
      &                               dx,
      &                               patch_touches_bdry,
-     &                               U_wall_coef,h_wall_coef)
+     &                               touches_wall_loc_idx)     
          enddo
       enddo
       
@@ -159,7 +149,7 @@ c     Do the four sweeping directions.
      &                               dlower1,dupper1,
      &                               dx,
      &                               patch_touches_bdry,
-     &                               U_wall_coef,h_wall_coef)
+     &                               touches_wall_loc_idx)
          enddo
       enddo
       
@@ -173,7 +163,7 @@ c     Do the four sweeping directions.
      &                               dlower1,dupper1,
      &                               dx,
      &                               patch_touches_bdry,
-     &                               U_wall_coef,h_wall_coef)
+     &                               touches_wall_loc_idx)
          enddo
       enddo
 
@@ -195,7 +185,7 @@ c
      &     dlower1,dupper1,
      &     dx,
      &     patch_touches_bdry,
-     &     U_wall_coef,h_wall_coef)
+     &     touches_wall_loc_idx)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -208,13 +198,13 @@ c
       INTEGER dlower1,dupper1
       INTEGER U_gcw
       INTEGER patch_touches_bdry
-      REAL    U_wall_coef,h_wall_coef
-
+     
 c
 c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL dx(0:NDIM-1)
+      INTEGER touches_wall_loc_idx(0:2*NDIM - 1)
 c
 c     Local variables.
 c
@@ -223,7 +213,32 @@ c
       REAL    hx,hy
       REAL    Q,R,S
       REAL    dbar
+      REAL    U_wall_coef 
+      REAL    h_wall_coef
       
+      if (patch_touches_bdry .eq. 1) then  
+        if ((i0 .eq. dlower0) .and. 
+     &     touches_wall_loc_idx(0) .eq. 1) then
+           U_wall_coef   = zero
+           h_wall_coef   = half
+        elseif ((i0 .eq. dupper0) .and. 
+     &     touches_wall_loc_idx(1) .eq. 1) then
+           U_wall_coef   = zero
+           h_wall_coef   = half
+        elseif ((i1 .eq. dlower1) .and. 
+     &     touches_wall_loc_idx(2) .eq. 1) then
+           U_wall_coef   = zero
+           h_wall_coef   = half
+        elseif ((i1 .eq. dupper1) .and. 
+     &     touches_wall_loc_idx(3) .eq. 1) then
+           U_wall_coef   = zero
+           h_wall_coef   = half
+        else
+          U_wall_coef   = one
+          h_wall_coef   = one
+        endif
+      endif
+
 c     Carry out a single sweep
       if (U(i0,i1) .eq. zero) then
         sgn = zero

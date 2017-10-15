@@ -18,7 +18,7 @@
 //      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HinitERS AND CONTRIBUTORS "AS IS"
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HinitER OR CONTRIBUTORS BE
@@ -121,6 +121,7 @@ protected:
     int d_max_its;
     bool d_enable_logging;
     bool d_consider_phys_bdry_wall;
+    int d_wall_location_idx[2 * NDIM];
 
     // Neighborhood locating functions.
     std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
@@ -147,8 +148,7 @@ private:
      */
     void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                   const SAMRAI::hier::Box<NDIM>& domain_box,
-                   bool patch_touches_reg_bdry) const;
+                   const SAMRAI::hier::Box<NDIM>& domain_box) const;
 
     /*!
      * \brief Do one relaxation step over a patch.

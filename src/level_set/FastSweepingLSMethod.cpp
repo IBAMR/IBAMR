@@ -37,6 +37,7 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
 #include "VariableDatabase.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -73,7 +74,7 @@ void FAST_SWEEP_1ST_ORDER_FC(double* U,
 #endif
                              const double* dx,
                              const int& patch_touches_bdry,
-                             const int& consider_bdry_wall);
+                             const int* touches_wall_loc_idx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -87,14 +88,15 @@ namespace IBAMR
 FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
                                            Pointer<Database> db,
                                            bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER)
+    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER_LS)
 {
     // Some default values.
-    d_ls_order = FIRST_ORDER;
+    d_ls_order = FIRST_ORDER_LS;
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
     d_consider_phys_bdry_wall = false;
+    for (int k = 0; k < 2 * NDIM; ++k) d_wall_location_idx[k] = 0;
 
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);
@@ -158,6 +160,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(D_idx, "NONE", true, "NONE", "QUADRATIC", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
+    fill_op->initializeOperatorState(D_transaction, hierarchy);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out iterations
@@ -168,9 +171,8 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         hier_cc_data_ops.copyData(D_iter_idx, D_idx);
-
-        fill_op->initializeOperatorState(D_transaction, hierarchy);
         fill_op->fillData(time);
+
         fastSweep(hier_math_ops, D_idx);
 
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_idx);
@@ -180,14 +182,14 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
         if (d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
-            pout << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
+            plog << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
+            plog << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
                  << std::endl;
         }
 
-        if (diff_L2_norm <= d_abs_tol && d_enable_logging)
+        if (diff_L2_norm <= d_abs_tol)
         {
-            pout << d_object_name << "::initializeLSData(): Fast sweeping algorithm converged for entire domain"
+            plog << d_object_name << "::initializeLSData(): Fast sweeping algorithm converged for entire domain"
                  << std::endl;
         }
     }
@@ -196,8 +198,8 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     {
         if (d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): Reached maximum allowable outer iterations" << std::endl;
-            pout << d_object_name << "::initializeLSData(): ||distance_new - distance_old||_2 = " << diff_L2_norm
+            plog << d_object_name << "::initializeLSData(): Reached maximum allowable outer iterations" << std::endl;
+            plog << d_object_name << "::initializeLSData(): ||distance_new - distance_old||_2 = " << diff_L2_norm
                  << std::endl;
         }
     }
@@ -226,9 +228,7 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const bool patch_touches_bdry =
-                level->patchTouchesRegularBoundary(p()) || level->patchTouchesPeriodicBoundary(p());
-            fastSweep(dist_data, patch, domain_boxes[0], patch_touches_bdry);
+            fastSweep(dist_data, patch, domain_boxes[0]);
         }
     }
     return;
@@ -238,22 +238,37 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 void
 FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
                                 const Pointer<Patch<NDIM> > patch,
-                                const Box<NDIM>& domain_box,
-                                bool patch_touches_bdry) const
+                                const Box<NDIM>& domain_box) const
 {
     double* const D = dist_data->getPointer(0);
     const int D_ghosts = (dist_data->getGhostCellWidth()).max();
 
+    // Check if the patch touches physical domain.
+    int touches_wall_loc_idx[NDIM * 2] = { 0 };
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const bool patch_touches_bdry = pgeom->getTouchesRegularBoundary() || pgeom->getTouchesPeriodicBoundary();
+    if (patch_touches_bdry)
+    {
+        int loc_idx = 0;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int upperlower = 0; upperlower < 2; ++upperlower, ++loc_idx)
+            {
+                touches_wall_loc_idx[loc_idx] = d_consider_phys_bdry_wall &&
+                                                pgeom->getTouchesRegularBoundary(axis, upperlower) &&
+                                                d_wall_location_idx[loc_idx];
+            }
+        }
+    }
+
 #if !defined(NDEBUG)
     TBOX_ASSERT(dist_data->getDepth() == 1);
-    if (d_ls_order == FIRST_ORDER) TBOX_ASSERT(D_ghosts >= 1);
+    if (d_ls_order == FIRST_ORDER_LS) TBOX_ASSERT(D_ghosts >= 1);
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-
-    if (d_ls_order == FIRST_ORDER)
+    if (d_ls_order == FIRST_ORDER_LS)
     {
         FAST_SWEEP_1ST_ORDER_FC(D,
                                 D_ghosts,
@@ -275,7 +290,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellData<NDIM, double> > dist_data,
 #endif
                                 dx,
                                 patch_touches_bdry,
-                                d_consider_phys_bdry_wall);
+                                touches_wall_loc_idx);
     }
     else
     {
@@ -298,7 +313,17 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
     d_abs_tol = input_db->getDoubleWithDefault("abs_tol", d_abs_tol);
 
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+
     d_consider_phys_bdry_wall = input_db->getBoolWithDefault("physical_bdry_wall", d_consider_phys_bdry_wall);
+    Array<int> wall_loc_idices;
+    if (input_db->keyExists("physical_bdry_wall_loc_idx"))
+    {
+        input_db->getArray("physical_bdry_wall_loc_idx", wall_loc_idices);
+    }
+    for (int k = 0; k < wall_loc_idices.size(); ++k)
+    {
+        d_wall_location_idx[wall_loc_idices[k]] = 1;
+    }
 
     return;
 } // getFromInput
