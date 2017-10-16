@@ -66,11 +66,15 @@ namespace IBAMR
 /*!
  * \brief Class FastSweepingLSMethod provides a fast-sweeping algorithm implementation
  * of the level set method. Specifically, this class produces a solution to the Eikonal
- * equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an 
+ * equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an
  * interface.
  *
+ * \note The class can also compute distance function from physical domain boundary if
+ * specified through input file. In presence of a physical domain wall, the distance function
+ * at a grid point is D = min(distance from interface, distance from wall location).
+ *
  * References
- * Zhao, H., <A HREF="https://graphics.stanford.edu/courses/cs468-03-fall/Papers/zhao_fastsweep1.pdf">
+ * Zhao, H., <A HREF="http://www.ams.org/journals/mcom/2005-74-250/S0025-5718-04-01678-3/">
  * A Fast Sweeping Method For Eikonal Equations</A>
  */
 class FastSweepingLSMethod : public IBAMR::LSInitStrategy
@@ -89,20 +93,6 @@ public:
     virtual ~FastSweepingLSMethod();
 
     /*!
-     * \brief Typedef specifying distance function near an interface.
-     */
-    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
-                                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                      double time,
-                                                      bool initial_time,
-                                                      void* ctx);
-
-    /*!
-     * \brief Register interface neighborhood locating functions.
-     */
-    void registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback, void* ctx);
-
-    /*!
      * \brief Initialize level set data using the fast-sweeping method.
      */
     void initializeLSData(int D_idx,
@@ -113,19 +103,9 @@ public:
     /////////////////////////////// PROTECTED ////////////////////////////////////
 
 protected:
-    // Fast sweeping order.
-    LevelSetOrder d_ls_order;
-
-    // Fast sweeping parameters.
-    double d_abs_tol;
-    int d_max_its;
-    bool d_enable_logging;
+    // Algorithm parameters.
     bool d_consider_phys_bdry_wall;
     int d_wall_location_idx[2 * NDIM];
-
-    // Neighborhood locating functions.
-    std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
-    std::vector<void*> d_locate_interface_fcns_ctx;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -136,27 +116,11 @@ private:
     void fastSweep(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
 
     /*!
-     * \brief Do one relaxation step over the hierarchy.
-     */
-    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-               int dist_idx,
-               int dist_init_idx,
-               const int iter) const;
-
-    /*!
      * \brief Do one fast sweep over a patch.
      */
     void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                    const SAMRAI::hier::Box<NDIM>& domain_box) const;
-
-    /*!
-     * \brief Do one relaxation step over a patch.
-     */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_idx,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-               const int iter) const;
 
     /*!
      * Read input values from a given database.

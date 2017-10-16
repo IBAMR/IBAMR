@@ -289,7 +289,7 @@ c     Carry out first order relaxation scheme using Gauss Seidel updates
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine relaxation1storder2d(
+      subroutine relaxationls1storder2d(
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -437,7 +437,7 @@ c     fix near the interface
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine relaxation3rdorder2d(
+      subroutine relaxationls3rdorder2d(
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,

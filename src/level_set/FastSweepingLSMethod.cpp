@@ -1,7 +1,7 @@
 // Filename: FastSweepingLSMethod.cpp
 // Created on 27 Sep 2017 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ namespace IBAMR
 FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
                                            Pointer<Database> db,
                                            bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER_LS)
+    : LSInitStrategy(object_name, register_for_restart)
 {
     // Some default values.
     d_ls_order = FIRST_ORDER_LS;
@@ -106,23 +106,9 @@ FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
 
 FastSweepingLSMethod::~FastSweepingLSMethod()
 {
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
-    }
-    d_registered_for_restart = false;
-
-} // ~FastSweepingLSMethod
-
-void
-FastSweepingLSMethod::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback_fcn,
-                                                               void* ctx)
-{
-    d_locate_interface_fcns.push_back(callback_fcn);
-    d_locate_interface_fcns_ctx.push_back(ctx);
-
+    // intentionally-left blank.
     return;
-} // registerInterfaceNeighborhoodLocatingFcn
+} // ~FastSweepingLSMethod
 
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
@@ -158,7 +144,8 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
     // Set hierarchy objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent D_transaction(D_idx, "NONE", true, "NONE", "QUADRATIC", false, d_bc_coef);
+    InterpolationTransactionComponent D_transaction(
+        D_idx, "LINEAR_REFINE", true, "NONE", "QUADRATIC", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     fill_op->initializeOperatorState(D_transaction, hierarchy);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
@@ -203,6 +190,13 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
                  << std::endl;
         }
     }
+
+    // Deallocate the temporary variable.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
+    }
+    var_db->removePatchDataIndex(D_iter_idx);
 
     return;
 } // initializeLSData

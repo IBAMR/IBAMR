@@ -44,45 +44,45 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define RELAXATION_1ST_ORDER_FC IBAMR_FC_FUNC(relaxation1storder2d, RELAXATION1STORDER2D)
-#define RELAXATION_3RD_ORDER_FC IBAMR_FC_FUNC(relaxation3rdorder2d, RELAXATION3RDORDER2D)
+#define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder2d, RELAXATIONLS1STORDER2D)
+#define RELAXATION_LS_3RD_ORDER_FC IBAMR_FC_FUNC(relaxationls3rdorder2d, RELAXATIONLS3RDORDER2D)
 #endif
 
 #if (NDIM == 3)
-#define RELAXATION_1ST_ORDER_FC IBAMR_FC_FUNC(relaxation1storder3d, RELAXATION1STORDER3D)
-#define RELAXATION_3RD_ORDER_FC IBAMR_FC_FUNC(relaxation3rdorder3d, RELAXATION3RDORDER3D)
+#define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder3d, RELAXATIONLS1STORDER3D)
+#define RELAXATION_LS_3RD_ORDER_FC IBAMR_FC_FUNC(relaxationls3rdorder3d, RELAXATIONLS3RDORDER3D)
 #endif
 
 extern "C" {
-void RELAXATION_1ST_ORDER_FC(double* U,
-                             const int& U_gcw,
-                             const double* V,
-                             const int& V_gcw,
-                             const int& ilower0,
-                             const int& iupper0,
-                             const int& ilower1,
-                             const int& iupper1,
+void RELAXATION_LS_1ST_ORDER_FC(double* U,
+                                const int& U_gcw,
+                                const double* V,
+                                const int& V_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1,
 #if (NDIM == 3)
-                             const int& ilower2,
-                             const int& iupper2,
+                                const int& ilower2,
+                                const int& iupper2,
 #endif
-                             const double* dx,
-                             const int& dir);
+                                const double* dx,
+                                const int& dir);
 
-void RELAXATION_3RD_ORDER_FC(double* U,
-                             const int& U_gcw,
-                             const double* V,
-                             const int& V_gcw,
-                             const int& ilower0,
-                             const int& iupper0,
-                             const int& ilower1,
-                             const int& iupper1,
+void RELAXATION_LS_3RD_ORDER_FC(double* U,
+                                const int& U_gcw,
+                                const double* V,
+                                const int& V_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1,
 #if (NDIM == 3)
-                             const int& ilower2,
-                             const int& iupper2,
+                                const int& ilower2,
+                                const int& iupper2,
 #endif
-                             const double* dx,
-                             const int& dir);
+                                const double* dx,
+                                const int& dir);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -94,15 +94,15 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<Database> db, bool register_for_restart)
-    : LSInitStrategy(object_name, register_for_restart), d_ls_order(FIRST_ORDER_LS)
+    : LSInitStrategy(object_name, register_for_restart)
 {
     // Some default values.
     d_ls_order = FIRST_ORDER_LS;
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
-    d_consider_phys_bdry_wall = false;
 
+    // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);
 
@@ -111,22 +111,9 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
 
 RelaxationLSMethod::~RelaxationLSMethod()
 {
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
-    }
-    d_registered_for_restart = false;
-
-} // ~RelaxationLSMethod
-
-void
-RelaxationLSMethod::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback_fcn, void* ctx)
-{
-    d_locate_interface_fcns.push_back(callback_fcn);
-    d_locate_interface_fcns_ctx.push_back(ctx);
-
+    // intentionally-left blank.
     return;
-} // registerInterfaceNeighborhoodLocatingFcn
+} // ~RelaxationLSMethod
 
 void
 RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_math_ops, double time, bool initial_time)
@@ -177,13 +164,13 @@ RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_m
     hier_cc_data_ops.copyData(D_init_idx, D_idx);
     fill_op->initializeOperatorState(D_init_transaction, hierarchy);
     fill_op->fillData(time);
+
+    fill_op->resetTransactionComponent(D_transaction);
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         hier_cc_data_ops.copyData(D_iter_idx, D_idx);
-
-        fill_op->initializeOperatorState(D_transaction, hierarchy);
         fill_op->fillData(time);
-        relaxation(hier_math_ops, D_idx, D_init_idx, outer_iter);
+        relax(hier_math_ops, D_idx, D_init_idx, outer_iter);
 
         // Compute error
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_idx);
@@ -193,14 +180,14 @@ RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_m
 
         if (d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
-            pout << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
+            plog << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
+            plog << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
                  << std::endl;
         }
 
         if (diff_L2_norm <= d_abs_tol && d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): Relaxation converged for entire domain" << std::endl;
+            plog << d_object_name << "::initializeLSData(): Relaxation converged for entire domain" << std::endl;
         }
     }
 
@@ -208,11 +195,20 @@ RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_m
     {
         if (d_enable_logging)
         {
-            pout << d_object_name << "::initializeLSData(): Reached maximum allowable outer iterations" << std::endl;
-            pout << d_object_name << "::initializeLSData(): ||distance_new - distance_old||_2 = " << diff_L2_norm
+            plog << d_object_name << "::initializeLSData(): Reached maximum allowable outer iterations" << std::endl;
+            plog << d_object_name << "::initializeLSData(): ||distance_new - distance_old||_2 = " << diff_L2_norm
                  << std::endl;
         }
     }
+
+    // Deallocate the temporary variable.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_init_idx);
+    }
+    var_db->removePatchDataIndex(D_iter_idx);
+    var_db->removePatchDataIndex(D_init_idx);
 
     return;
 } // initializeLSData
@@ -220,10 +216,10 @@ RelaxationLSMethod::initializeLSData(int D_idx, Pointer<HierarchyMathOps> hier_m
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-RelaxationLSMethod::relaxation(Pointer<HierarchyMathOps> hier_math_ops,
-                               int dist_idx,
-                               int dist_init_idx,
-                               const int iter) const
+RelaxationLSMethod::relax(Pointer<HierarchyMathOps> hier_math_ops,
+                          int dist_idx,
+                          int dist_init_idx,
+                          const int iter) const
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -237,7 +233,7 @@ RelaxationLSMethod::relaxation(Pointer<HierarchyMathOps> hier_math_ops,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
             const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-            relaxation(dist_data, dist_init_data, patch, iter);
+            relax(dist_data, dist_init_data, patch, iter);
         }
     }
     return;
@@ -245,10 +241,10 @@ RelaxationLSMethod::relaxation(Pointer<HierarchyMathOps> hier_math_ops,
 } // relax
 
 void
-RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
-                               const Pointer<CellData<NDIM, double> > dist_init_data,
-                               const Pointer<Patch<NDIM> > patch,
-                               const int iter) const
+RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
+                          const Pointer<CellData<NDIM, double> > dist_init_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const int iter) const
 {
     double* const D = dist_data->getPointer(0);
     const double* const P = dist_init_data->getPointer(0);
@@ -280,37 +276,37 @@ RelaxationLSMethod::relaxation(Pointer<CellData<NDIM, double> > dist_data,
 
     if (d_ls_order == FIRST_ORDER_LS)
     {
-        RELAXATION_1ST_ORDER_FC(D,
-                                D_ghosts,
-                                P,
-                                P_ghosts,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1),
+        RELAXATION_LS_1ST_ORDER_FC(D,
+                                   D_ghosts,
+                                   P,
+                                   P_ghosts,
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1),
 #if (NDIM == 3)
-                                patch_box.lower(2),
-                                patch_box.upper(2),
+                                   patch_box.lower(2),
+                                   patch_box.upper(2),
 #endif
-                                dx,
-                                dir);
+                                   dx,
+                                   dir);
     }
     else if (d_ls_order == THIRD_ORDER_LS)
     {
-        RELAXATION_3RD_ORDER_FC(D,
-                                D_ghosts,
-                                P,
-                                P_ghosts,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1),
+        RELAXATION_LS_3RD_ORDER_FC(D,
+                                   D_ghosts,
+                                   P,
+                                   P_ghosts,
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1),
 #if (NDIM == 3)
-                                patch_box.lower(2),
-                                patch_box.upper(2),
+                                   patch_box.lower(2),
+                                   patch_box.upper(2),
 #endif
-                                dx,
-                                dir);
+                                   dx,
+                                   dir);
     }
     else
     {
@@ -333,7 +329,6 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
     d_abs_tol = input_db->getDoubleWithDefault("abs_tol", d_abs_tol);
 
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
-    d_consider_phys_bdry_wall = input_db->getBoolWithDefault("physical_bdry_wall", d_consider_phys_bdry_wall);
 
     return;
 } // getFromInput

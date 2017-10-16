@@ -47,7 +47,13 @@ namespace IBAMR
 LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
+    // Some default values.
+    d_ls_order = FIRST_ORDER_LS;
+    d_max_its = 100;
+    d_abs_tol = 1e-5;
+    d_enable_logging = false;
     d_bc_coef = NULL;
+
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
@@ -72,6 +78,15 @@ LSInitStrategy::registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrat
     d_bc_coef = robin_bc_coef;
     return;
 } // registerPhysicalBoundaryCondition
+
+void
+LSInitStrategy::registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback_fcn, void* ctx)
+{
+    d_locate_interface_fcns.push_back(callback_fcn);
+    d_locate_interface_fcns_ctx.push_back(ctx);
+
+    return;
+} // registerInterfaceNeighborhoodLocatingFcn
 
 void LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
 {

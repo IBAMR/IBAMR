@@ -67,11 +67,12 @@ namespace IBAMR
  * \brief Class RelaxationLSMethod provides a relaxation algorithm implementation
  * of the level set method. Specifically, this class iterates (to steady-state) the PDE
  * \f$\frac{\partial Q}{\partial \tau}+sgn(Q^0)(|\nabla Q | - 1) = 0\f$, which produces a solution
- * to the Eikonal equation \f$ |\nabla Q | = 1 \f$, which produces the signed distance away from an
- * interface.
+ * to the Eikonal equation \f$ |\nabla Q | = 1 \f$. The solution of the Eikonal equation
+ * produces the signed distance away from an interface.
+ *
  *
  * Reference
- * Min, C., <A HREF="http://math.ewha.ac.kr/~chohong/publications/article_15.pdf">
+ * Min, C., <A HREF="http://www.sciencedirect.com/science/article/pii/S0021999109007189">
  * On reinitializing level set functions</A>
  */
 class RelaxationLSMethod : public IBAMR::LSInitStrategy
@@ -90,20 +91,6 @@ public:
     virtual ~RelaxationLSMethod();
 
     /*!
-     * \brief Typedef specifying distance function near an interface.
-     */
-    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
-                                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                      double time,
-                                                      bool initial_time,
-                                                      void* ctx);
-
-    /*!
-     * \brief Register interface neighborhood locating functions.
-     */
-    void registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback, void* ctx);
-
-    /*!
      * \brief Initialize level set data using the fast-sweeping method.
      */
     void initializeLSData(int D_idx,
@@ -114,18 +101,6 @@ public:
     /////////////////////////////// PROTECTED ////////////////////////////////////
 
 protected:
-    // Fast sweeping order.
-    LevelSetOrder d_ls_order;
-
-    // Fast sweeping parameters.
-    double d_abs_tol;
-    int d_max_its;
-    bool d_enable_logging;
-    bool d_consider_phys_bdry_wall;
-
-    // Neighborhood locating functions.
-    std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
-    std::vector<void*> d_locate_interface_fcns_ctx;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -133,18 +108,18 @@ private:
     /*!
      * \brief Do one relaxation step over the hierarchy.
      */
-    void relaxation(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                    int dist_idx,
-                    int dist_init_idx,
-                    const int iter) const;
+    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+               int dist_idx,
+               int dist_init_idx,
+               const int iter) const;
 
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relaxation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_idx,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                    const int iter) const;
+    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_idx,
+               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+               const int iter) const;
 
     /*!
      * Read input values from a given database.

@@ -36,7 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
+#include <vector>
 
+#include "ibamr/ibamr_enums.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -95,6 +97,19 @@ public:
     virtual void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef);
 
     /*!
+     * \brief Function specifying distance function near an interface.
+     */
+    typedef void (*LocateInterfaceNeighborhoodFcnPtr)(int D_idx,
+                                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                      double time,
+                                                      bool initial_time,
+                                                      void* ctx);
+    /*!
+     * \brief Register interface neighborhood locating functions.
+     */
+    virtual void registerInterfaceNeighborhoodLocatingFcn(LocateInterfaceNeighborhoodFcnPtr callback, void* ctx);
+
+    /*!
      * \brief Initialize level set data.
      */
     virtual void initializeLSData(int dst_idx,
@@ -116,8 +131,20 @@ protected:
     std::string d_object_name;
     bool d_registered_for_restart;
 
+    // Level set order.
+    LevelSetOrder d_ls_order;
+
+    // Algorithm parameters.
+    double d_abs_tol;
+    int d_max_its;
+    bool d_enable_logging;
+
     // Boundary condition object for level set.
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+
+    // Neighborhood locating functions.
+    std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
+    std::vector<void*> d_locate_interface_fcns_ctx;
 
     /////////////////////////////// PRIVATE //////////////////////////////////////
 
