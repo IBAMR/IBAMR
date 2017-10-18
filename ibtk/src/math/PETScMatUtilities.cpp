@@ -602,10 +602,6 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-    // Set block size.
-    ierr = MatSetBlockSize(mat, NDIM);
-    IBTK_CHKERRQ(ierr);
-
     typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
     static std::vector< StencilMapType > stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);

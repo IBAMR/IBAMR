@@ -53,8 +53,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonSolver::PoissonSolver()
-    : d_poisson_spec(""), d_C_scale(1.0), d_D_scale(1.0), d_default_bc_coef(NULL), d_bc_coefs()
+PoissonSolver::PoissonSolver() : d_poisson_spec(""), d_default_bc_coef(NULL), d_bc_coefs()
 {
     // intentionally blank
     return;
@@ -73,14 +72,6 @@ PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spe
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications
-
-void
-PoissonSolver::setCoefScales(double C_scale, double D_scale)
-{
-    d_C_scale = C_scale;
-    d_D_scale = D_scale;
-    return;
-} // setCoefScales
 
 void
 PoissonSolver::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)

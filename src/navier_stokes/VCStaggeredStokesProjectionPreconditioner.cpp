@@ -336,10 +336,9 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                             Pointer<NodeVariable<NDIM, double> >(NULL),
 #elif (NDIM == 3)
                             Pointer<EdgeVariable<NDIM, double> >(NULL),
-#endif                          
+#endif
                             d_no_fill_op,
-                            d_new_time,
-                            /*cf_bdry_synch*/ true);
+                            d_new_time);
     if (steady_state)
     {
         d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, d_velocity_D_cc_idx);

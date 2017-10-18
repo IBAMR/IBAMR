@@ -449,6 +449,11 @@ private:
      * Variable to indicate if either rho or mu is constant
      */
     bool d_rho_is_const, d_mu_is_const;
+
+    /*
+     * Variable to indicate the scaling factor used for A and u_rhs
+     */
+    double d_A_scale;
 };
 } // namespace IBAMR
 

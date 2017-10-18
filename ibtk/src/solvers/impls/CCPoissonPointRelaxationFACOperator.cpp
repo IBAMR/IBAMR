@@ -101,10 +101,14 @@
 #if (NDIM == 2)
 #define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d, GSSMOOTH2D)
 #define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d, RBGSSMOOTH2D)
+#define VC_CELL_GS_SMOOTH_FC IBTK_FC_FUNC(vccellgssmooth2d, VCCELLGSSMOOTH2D)
+#define VC_CELL_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vccellrbgssmooth2d, VCCELLRBGSSMOOTH2D)
 #endif
 #if (NDIM == 3)
 #define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d, GSSMOOTH3D)
 #define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d, RBGSSMOOTH3D)
+#define VC_CELL_GS_SMOOTH_FC IBTK_FC_FUNC(vccellgssmooth3d, VCCELLGSSMOOTH3D)
+#define VC_CELL_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vccellrbgssmooth3d, VCCELLRBGSSMOOTH3D)
 #endif
 
 // Function interfaces
@@ -141,6 +145,49 @@ void RB_GS_SMOOTH_FC(double* U,
 #endif
                      const double* dx,
                      const int& red_or_black);
+
+void VC_CELL_GS_SMOOTH_FC(double* U,
+                          const int& U_gcw,
+                          const double* alpha0,
+                          const double* alpha1,
+#if (NDIM == 3)
+                          const double* alpha2,
+#endif
+                          const int& alpha_gcw,
+                          const double& beta,
+                          const double* F,
+                          const int& F_gcw,
+                          const int& ilower0,
+                          const int& iupper0,
+                          const int& ilower1,
+                          const int& iupper1,
+#if (NDIM == 3)
+                          const int& ilower2,
+                          const int& iupper2,
+#endif
+                          const double* dx);
+
+void VC_CELL_RB_GS_SMOOTH_FC(double* U,
+                             const int& U_gcw,
+                             const double* alpha0,
+                             const double* alpha1,
+#if (NDIM == 3)
+                             const double* alpha2,
+#endif
+                             const int& alpha_gcw,
+                             const double& beta,
+                             const double* F,
+                             const int& F_gcw,
+                             const int& ilower0,
+                             const int& iupper0,
+                             const int& ilower1,
+                             const int& iupper1,
+#if (NDIM == 3)
+                             const int& ilower2,
+                             const int& iupper2,
+#endif
+                             const double* dx,
+                             const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -490,7 +537,14 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             // for each data depth even if different boundary conditions are
             // imposed on different components of the vector-valued solution
             // data.
-            const double& alpha = d_poisson_spec.getDConstant();
+            const bool D_is_constant = d_poisson_spec.dIsConstant();
+            const double& alpha = D_is_constant ? d_poisson_spec.getDConstant() : 0.0;
+            Pointer<SideData<NDIM, double> > alpha_data = NULL;
+            if (!D_is_constant) alpha_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+#if !defined(NDEBUG)
+            if (!D_is_constant) TBOX_ASSERT(alpha_data);
+#endif
+
             const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
             {
@@ -498,43 +552,103 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 const int U_ghosts = (error_data->getGhostCellWidth()).max();
                 const double* const F = residual_data->getPointer(depth);
                 const int F_ghosts = (residual_data->getGhostCellWidth()).max();
-                if (red_black_ordering)
+                if (D_is_constant)
                 {
-                    int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                    RB_GS_SMOOTH_FC(U,
-                                    U_ghosts,
-                                    alpha,
-                                    beta,
-                                    F,
-                                    F_ghosts,
-                                    patch_box.lower(0),
-                                    patch_box.upper(0),
-                                    patch_box.lower(1),
-                                    patch_box.upper(1),
+                    if (red_black_ordering)
+                    {
+                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                        RB_GS_SMOOTH_FC(U,
+                                        U_ghosts,
+                                        alpha,
+                                        beta,
+                                        F,
+                                        F_ghosts,
+                                        patch_box.lower(0),
+                                        patch_box.upper(0),
+                                        patch_box.lower(1),
+                                        patch_box.upper(1),
 #if (NDIM == 3)
-                                    patch_box.lower(2),
-                                    patch_box.upper(2),
+                                        patch_box.lower(2),
+                                        patch_box.upper(2),
 #endif
-                                    dx,
-                                    red_or_black);
+                                        dx,
+                                        red_or_black);
+                    }
+                    else
+                    {
+                        GS_SMOOTH_FC(U,
+                                     U_ghosts,
+                                     alpha,
+                                     beta,
+                                     F,
+                                     F_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
+#if (NDIM == 3)
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
+#endif
+                                     dx);
+                    }
                 }
                 else
                 {
-                    GS_SMOOTH_FC(U,
-                                 U_ghosts,
-                                 alpha,
-                                 beta,
-                                 F,
-                                 F_ghosts,
-                                 patch_box.lower(0),
-                                 patch_box.upper(0),
-                                 patch_box.lower(1),
-                                 patch_box.upper(1),
+                    const double* const alpha0 = alpha_data->getPointer(0, depth);
+                    const double* const alpha1 = alpha_data->getPointer(1, depth);
 #if (NDIM == 3)
-                                 patch_box.lower(2),
-                                 patch_box.upper(2),
+                    const double* const alpha2 = alpha_data->getPointer(2, depth);
 #endif
-                                 dx);
+                    const int alpha_ghosts = (alpha_data->getGhostCellWidth()).max();
+                    if (red_black_ordering)
+                    {
+                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                        VC_CELL_RB_GS_SMOOTH_FC(U,
+                                                U_ghosts,
+                                                alpha0,
+                                                alpha1,
+#if (NDIM == 3)
+                                                alpha2,
+#endif
+                                                alpha_ghosts,
+                                                beta,
+                                                F,
+                                                F_ghosts,
+                                                patch_box.lower(0),
+                                                patch_box.upper(0),
+                                                patch_box.lower(1),
+                                                patch_box.upper(1),
+#if (NDIM == 3)
+                                                patch_box.lower(2),
+                                                patch_box.upper(2),
+#endif
+                                                dx,
+                                                red_or_black);
+                    }
+                    else
+                    {
+                        VC_CELL_GS_SMOOTH_FC(U,
+                                             U_ghosts,
+                                             alpha0,
+                                             alpha1,
+#if (NDIM == 3)
+                                             alpha2,
+#endif
+                                             alpha_ghosts,
+                                             beta,
+                                             F,
+                                             F_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
+#if (NDIM == 3)
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
+#endif
+                                             dx);
+                    }
                 }
             }
         }
@@ -676,12 +790,11 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
                    << std::endl);
     }
 
-    const bool constant_coefficients =
-        (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant()) && d_poisson_spec.dIsConstant();
+    const bool constant_coefficients = (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant());
     if (!constant_coefficients)
     {
         TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
-                                 << "  requires constant coefficients"
+                                 << "  requires constant C"
                                  << std::endl);
     }
 

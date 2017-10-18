@@ -94,11 +94,6 @@ public:
     void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
-     * \brief Set the scale factor for C and D in the SAMRAI::solv::PoissonSpecifications object.
-     */
-    void setCoefScales(double C_scale, double D_scale);
-
-    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
      * physical boundary conditions.
      *

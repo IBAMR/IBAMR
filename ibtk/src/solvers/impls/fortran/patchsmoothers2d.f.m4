@@ -309,6 +309,161 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c              Variable coefficient patch smoothers
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single Gauss-Seidel sweep for F = div alpha grad U +
+c     beta U.
+c
+c     The smoother is written for cell-centered U and side-centered
+c     alpha = (alpha0,alpha1)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vccellgssmooth2d(
+     &     U,U_gcw,
+     &     alpha0,alpha1,alpha_gcw,
+     &     beta,
+     &     F,F_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,F_gcw,alpha_gcw
+
+      REAL beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &       ilower1-F_gcw:iupper1+F_gcw)
+
+      REAL alpha0(SIDE2d0(ilower,iupper,alpha_gcw))
+      REAL alpha1(SIDE2d1(ilower,iupper,alpha_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &       ilower1-U_gcw:iupper1+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hy
+      REAL    facu0,facl0
+      REAL    facu1,facl1
+      REAL    fac
+c
+c     Perform a single Gauss-Seidel sweep.
+c
+      hx = dx(0)
+      hy = dx(1)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            facu0 = alpha0(i0+1,i1)/(hx*hx)
+            facl0 = alpha0(i0,i1)/(hx*hx)
+            facu1 = alpha1(i0,i1+1)/(hy*hy)
+            facl1 = alpha1(i0,i1)/(hy*hy)
+            fac   = 1.d0/(facu0+facl0+facu1+facl1-beta)
+            U(i0,i1) = fac*(
+     &           facu0*U(i0+1,i1) +
+     &           facl0*U(i0-1,i1) +
+     &           facu1*U(i0,i1+1) +
+     &           facl1*U(i0,i1-1) -
+     &           F(i0,i1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep for F =
+c     div alpha grad U + beta U.
+c
+c     The smoother is written for cell-centered U and side-centered
+c     alpha = (alpha0,alpha1)
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vccellrbgssmooth2d(
+     &     U,U_gcw,
+     &     alpha0,alpha1,alpha_gcw,
+     &     beta,
+     &     F,F_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,F_gcw,alpha_gcw
+      INTEGER red_or_black
+      REAL beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &       ilower1-F_gcw:iupper1+F_gcw)
+
+      REAL alpha0(SIDE2d0(ilower,iupper,alpha_gcw))
+      REAL alpha1(SIDE2d1(ilower,iupper,alpha_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &       ilower1-U_gcw:iupper1+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hy
+      REAL    facu0,facl0
+      REAL    facu1,facl1
+      REAL    fac
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+
+      hx = dx(0)
+      hy = dx(1)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            if ( mod(i0+i1,2) .eq. red_or_black ) then
+               facu0 = alpha0(i0+1,i1)/(hx*hx)
+               facl0 = alpha0(i0,i1)/(hx*hx)
+               facu1 = alpha1(i0,i1+1)/(hy*hy)
+               facl1 = alpha1(i0,i1)/(hy*hy)
+               fac   = 1.d0/(facu0+facl0+facu1+facl1-beta)
+               U(i0,i1) = fac*(
+     &             facu0*U(i0+1,i1) +
+     &             facl0*U(i0-1,i1) +
+     &             facu1*U(i0,i1+1) +
+     &             facl1*U(i0,i1-1) -
+     &             F(i0,i1))
+            endif
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c  Perform a single Gauss-Seidel sweep for 
 c     (f0,f1) = alpha div mu (grad (u0,u1) + grad (u0, u1)^T) + beta c (u0,u1).

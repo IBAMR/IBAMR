@@ -549,16 +549,16 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             }
 
             // Smooth the error using Gauss-Seidel.
-            double alpha = d_D_scale;
+            double alpha = 1.0;
             double beta = 0.0;
             const int C_is_varying = d_poisson_spec.cIsVariable();
             if (d_poisson_spec.cIsConstant())
             {
-                beta = d_poisson_spec.getCConstant() * d_C_scale;
+                beta = d_poisson_spec.getCConstant();
             }
             else if (d_poisson_spec.cIsVariable())
             {
-                beta = d_C_scale;
+                beta = 1.0;
             }
 
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
@@ -869,11 +869,11 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
 
-    double alpha = d_D_scale;
-    double beta = d_C_scale;
+    double alpha = 1.0;
+    double beta = 1.0;
     if (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant())
     {
-        beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant() * d_C_scale;
+        beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
     }
 
     d_level_math_ops[finest_level_num]->vc_laplace(res_idx,

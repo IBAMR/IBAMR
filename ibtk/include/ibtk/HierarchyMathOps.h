@@ -50,9 +50,7 @@
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "NodeVariable.h"
-#include "OuteredgeVariable.h"
 #include "OuterfaceVariable.h"
-#include "OuternodeVariable.h"
 #include "OutersideVariable.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
@@ -782,8 +780,7 @@ public:
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                double src_ghost_fill_time,
-                bool src_cf_bdry_synch);
+                double src_ghost_fill_time);
 
     /*!
      * \brief Interpolate to a cell-centered vector/tensor field from an
@@ -802,8 +799,7 @@ public:
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                double src_ghost_fill_time,
-                bool src_cf_bdry_synch);
+                double src_ghost_fill_time);
 
     /*!
      * \brief Interpolate to a node-centered vector/tensor field from a
@@ -819,7 +815,6 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -839,7 +834,6 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
-                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -1352,18 +1346,6 @@ private:
     void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
-     * \brief Execute schedule for restricting Outernode data to the specified
-     * level from the next finer level.
-     */
-    void xeqScheduleOuternodeRestriction(int dst_idx, int src_idx, int dst_ln);
-
-    /*!
-     * \brief Execute schedule for restricting Outeredge data to the specified
-     * level from the next finer level.
-     */
-    void xeqScheduleOuteredgeRestriction(int dst_idx, int src_idx, int dst_ln);
-
-    /*!
      * \brief Reset cell-centered weights, allocating patch data if needed.
      */
     void resetCellWeights(int coarsest_ln, int finest_ln);
@@ -1389,28 +1371,18 @@ private:
     // Scratch Variables.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_ec_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuteredgeVariable<NDIM, double> > d_oe_var;
-    int d_fc_idx, d_sc_idx, d_nc_idx, d_ec_idx, d_of_idx, d_os_idx, d_on_idx, d_oe_idx;
+    int d_fc_idx, d_sc_idx, d_nc_idx, d_ec_idx, d_of_idx, d_os_idx;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_of_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_oe_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_oe_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_oe_coarsen_scheds;
 
     // Hierarchy data operations.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;

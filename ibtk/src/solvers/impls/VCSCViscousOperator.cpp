@@ -178,11 +178,11 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     d_hier_bdry_fill->fillData(d_solution_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
-    double alpha = d_D_scale;
-    double beta = d_C_scale;
+    double alpha = 1.0;
+    double beta = 1.0;
     if (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant())
     {
-        beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant() * d_C_scale;
+        beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
     }
 
     // Compute the action of the operator.

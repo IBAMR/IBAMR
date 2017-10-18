@@ -67,15 +67,9 @@
 #include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "NodeVariable.h"
-#include "OuteredgeData.h"
-#include "OuteredgeDataFactory.h"
-#include "OuteredgeVariable.h"
 #include "OuterfaceData.h"
 #include "OuterfaceDataFactory.h"
 #include "OuterfaceVariable.h"
-#include "OuternodeData.h"
-#include "OuternodeDataFactory.h"
-#include "OuternodeVariable.h"
 #include "OutersideData.h"
 #include "OutersideDataFactory.h"
 #include "OutersideVariable.h"
@@ -162,33 +156,21 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_finest_ln(finest_ln),
       d_fc_var(new FaceVariable<NDIM, double>(d_object_name + "::scratch_fc")),
       d_sc_var(new SideVariable<NDIM, double>(d_object_name + "::scratch_sc")),
-      d_nc_var(new NodeVariable<NDIM, double>(d_object_name + "::scratch_nc")),
-      d_ec_var(new EdgeVariable<NDIM, double>(d_object_name + "::scratch_ec")),
       d_of_var(new OuterfaceVariable<NDIM, double>(d_object_name + "::scratch_of")),
       d_os_var(new OutersideVariable<NDIM, double>(d_object_name + "::scratch_os")),
-      d_on_var(new OuternodeVariable<NDIM, double>(d_object_name + "::scratch_on")),
-      d_oe_var(new OuteredgeVariable<NDIM, double>(d_object_name + "::scratch_oe")),
       d_fc_idx(-1),
       d_sc_idx(-1),
       d_nc_idx(-1),
       d_ec_idx(-1),
       d_of_idx(-1),
       d_os_idx(-1),
-      d_on_idx(-1),
-      d_oe_idx(-1),
       d_coarsen_op_name(coarsen_op_name),
       d_of_coarsen_op(),
       d_os_coarsen_op(),
-      d_on_coarsen_op(),
-      d_oe_coarsen_op(),
       d_of_coarsen_alg(),
       d_os_coarsen_alg(),
-      d_on_coarsen_alg(),
-      d_oe_coarsen_alg(),
       d_of_coarsen_scheds(),
       d_os_coarsen_scheds(),
-      d_on_coarsen_scheds(),
-      d_oe_coarsen_scheds(),
       d_hier_cc_data_ops(),
       d_hier_fc_data_ops(),
       d_hier_sc_data_ops(),
@@ -213,13 +195,9 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     static const IntVector<NDIM> no_ghosts = 0;
     d_fc_var->setPatchDataFactory(new FaceDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
     d_sc_var->setPatchDataFactory(new SideDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
-    d_nc_var->setPatchDataFactory(new NodeDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
-    d_ec_var->setPatchDataFactory(new EdgeDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
 
     d_of_var->setPatchDataFactory(new OuterfaceDataFactory<NDIM, double>(1));
     d_os_var->setPatchDataFactory(new OutersideDataFactory<NDIM, double>(1));
-    d_on_var->setPatchDataFactory(new OuternodeDataFactory<NDIM, double>(1));
-    d_oe_var->setPatchDataFactory(new OuteredgeDataFactory<NDIM, double>(1));
 
     static const IntVector<NDIM> ghosts = 1;
 
@@ -242,27 +220,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     {
         d_sc_idx = var_db->registerVariableAndContext(d_sc_var, d_context, ghosts);
     }
-
-    if (var_db->checkVariableExists(d_nc_var->getName()))
-    {
-        d_nc_var = var_db->getVariable(d_nc_var->getName());
-        d_nc_idx = var_db->mapVariableAndContextToIndex(d_nc_var, d_context);
-    }
-    else
-    {
-        d_nc_idx = var_db->registerVariableAndContext(d_nc_var, d_context, ghosts);
-    }
     
-    if (var_db->checkVariableExists(d_ec_var->getName()))
-    {
-        d_ec_var = var_db->getVariable(d_ec_var->getName());
-        d_ec_idx = var_db->mapVariableAndContextToIndex(d_ec_var, d_context);
-    }
-    else
-    {
-        d_ec_idx = var_db->registerVariableAndContext(d_ec_var, d_context, ghosts);
-    }
-
     if (var_db->checkVariableExists(d_of_var->getName()))
     {
         d_of_var = var_db->getVariable(d_of_var->getName());
@@ -282,27 +240,6 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     {
         d_os_idx = var_db->registerVariableAndContext(d_os_var, d_context);
     }
-
-    if (var_db->checkVariableExists(d_on_var->getName()))
-    {
-        d_on_var = var_db->getVariable(d_on_var->getName());
-        d_on_idx = var_db->mapVariableAndContextToIndex(d_on_var, d_context);
-    }
-    else
-    {
-        d_on_idx = var_db->registerVariableAndContext(d_on_var, d_context);
-    }
-    
-    if (var_db->checkVariableExists(d_oe_var->getName()))
-    {
-        d_oe_var = var_db->getVariable(d_oe_var->getName());
-        d_oe_idx = var_db->mapVariableAndContextToIndex(d_oe_var, d_context);
-    }
-    else
-    {
-        d_oe_idx = var_db->registerVariableAndContext(d_oe_var, d_context);
-    }
-
 
     if (var_db->checkVariableExists(d_wgt_cc_var->getName()))
     {
@@ -406,16 +343,12 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the CoarsenSchedule vectors.
     d_of_coarsen_scheds.resize(d_finest_ln);
     d_os_coarsen_scheds.resize(d_finest_ln);
-    d_on_coarsen_scheds.resize(d_finest_ln);
-    d_oe_coarsen_scheds.resize(d_finest_ln);
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
         Pointer<PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
         d_of_coarsen_scheds[dst_ln] = d_of_coarsen_alg->createSchedule(dst_level, src_level);
         d_os_coarsen_scheds[dst_ln] = d_os_coarsen_alg->createSchedule(dst_level, src_level);
-        d_on_coarsen_scheds[dst_ln] = d_on_coarsen_alg->createSchedule(dst_level, src_level);
-        d_oe_coarsen_scheds[dst_ln] = d_oe_coarsen_alg->createSchedule(dst_level, src_level);
     }
 
     // Reset the cell weights and compute the volume of the domain.
@@ -2007,20 +1940,13 @@ HierarchyMathOps::interp(const int dst_idx,
                          const int src_idx,
                          const Pointer<NodeVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                         const double src_ghost_fill_time,
-                         const bool src_cf_bdry_synch)
+                         const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        // Allocate temporary data to synchronize the coarse-fine interface.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-        {
-            level->allocatePatchData(d_on_idx);
-        }
 
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2031,19 +1957,6 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
-
-            if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-            {
-                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(d_on_idx);
-                on_data->copy(*src_data);
-            }
-        }
-
-        // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-        {
-            xeqScheduleOuternodeRestriction(src_idx, d_on_idx, ln - 1);
-            level->deallocatePatchData(d_on_idx);
         }
     }
     return;
@@ -2055,20 +1968,13 @@ HierarchyMathOps::interp(const int dst_idx,
                          const int src_idx,
                          const Pointer<EdgeVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                         const double src_ghost_fill_time,
-                         const bool src_cf_bdry_synch)
+                         const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        // Allocate temporary data to synchronize the coarse-fine interface.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-        {
-            level->allocatePatchData(d_oe_idx);
-        }
 
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2079,19 +1985,6 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
-
-            if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-            {
-                Pointer<OuteredgeData<NDIM, double> > oe_data = patch->getPatchData(d_oe_idx);
-                oe_data->copy(*src_data);
-            }
-        }
-
-        // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
-        {
-            xeqScheduleOuteredgeRestriction(src_idx, d_oe_idx, ln - 1);
-            level->deallocatePatchData(d_oe_idx);
         }
     }
     return;
@@ -2100,7 +1993,6 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
-                         const bool dst_cf_bdry_synch,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2108,15 +2000,9 @@ HierarchyMathOps::interp(const int dst_idx,
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
-    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        // Allocate temporary data to synchronize the coarse-fine interface.
-        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-        {
-            level->allocatePatchData(d_on_idx);
-        }
 
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2127,19 +2013,6 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
-
-            if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-            {
-                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(d_on_idx);
-                on_data->copy(*dst_data);
-            }
-        }
-
-        // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-        {
-            xeqScheduleOuternodeRestriction(dst_idx, d_on_idx, ln - 1);
-            level->deallocatePatchData(d_on_idx);
         }
     }
     return;
@@ -2148,7 +2021,6 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
-                         const bool dst_cf_bdry_synch,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2156,15 +2028,9 @@ HierarchyMathOps::interp(const int dst_idx,
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
-    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        // Allocate temporary data to synchronize the coarse-fine interface.
-        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-        {
-            level->allocatePatchData(d_oe_idx);
-        }
 
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2175,19 +2041,6 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
-
-            if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-            {
-                Pointer<OuteredgeData<NDIM, double> > oe_data = patch->getPatchData(d_oe_idx);
-                oe_data->copy(*dst_data);
-            }
-        }
-
-        // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
-        {
-            xeqScheduleOuteredgeRestriction(dst_idx, d_oe_idx, ln - 1);
-            level->deallocatePatchData(d_oe_idx);
         }
     }
     return;
@@ -3433,8 +3286,6 @@ HierarchyMathOps::resetCoarsenOperators()
 #endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
-    d_on_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_on_var, "CONSTANT_COARSEN");
-    d_oe_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_oe_var, "NO_COARSEN");
 
     d_of_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_of_coarsen_alg->registerCoarsen(d_fc_idx, // destination
@@ -3445,16 +3296,6 @@ HierarchyMathOps::resetCoarsenOperators()
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, // destination
                                       d_os_idx, // source
                                       d_os_coarsen_op);
-
-    d_on_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    d_on_coarsen_alg->registerCoarsen(d_nc_idx, // destination
-                                      d_on_idx, // source
-                                      d_on_coarsen_op);
-
-    d_oe_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    d_oe_coarsen_alg->registerCoarsen(d_ec_idx, // destination
-                                      d_oe_idx, // source
-                                      d_oe_coarsen_op);
     return;
 } // resetCoarsenOperators
 
@@ -3515,52 +3356,6 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int s
     }
     return;
 } // xeqScheduleOutersideRestriction
-
-void HierarchyMathOps::xeqScheduleOuternodeRestriction(const int dst_idx, const int src_idx, const int dst_ln)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(dst_ln >= d_coarsest_ln);
-    TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-#endif
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    coarsen_alg->registerCoarsen(dst_idx, src_idx, d_on_coarsen_op);
-    if (coarsen_alg->checkConsistency(d_on_coarsen_scheds[dst_ln]))
-    {
-        coarsen_alg->resetSchedule(d_on_coarsen_scheds[dst_ln]);
-        d_on_coarsen_scheds[dst_ln]->coarsenData();
-        d_on_coarsen_alg->resetSchedule(d_on_coarsen_scheds[dst_ln]);
-    }
-    else
-    {
-        Pointer<PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
-        Pointer<PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level, src_level)->coarsenData();
-    }
-    return;
-} // xeqScheduleOuternodeRestriction
-
-void HierarchyMathOps::xeqScheduleOuteredgeRestriction(const int dst_idx, const int src_idx, const int dst_ln)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(dst_ln >= d_coarsest_ln);
-    TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-#endif
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    coarsen_alg->registerCoarsen(dst_idx, src_idx, d_oe_coarsen_op);
-    if (coarsen_alg->checkConsistency(d_oe_coarsen_scheds[dst_ln]))
-    {
-        coarsen_alg->resetSchedule(d_oe_coarsen_scheds[dst_ln]);
-        d_oe_coarsen_scheds[dst_ln]->coarsenData();
-        d_oe_coarsen_alg->resetSchedule(d_oe_coarsen_scheds[dst_ln]);
-    }
-    else
-    {
-        Pointer<PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
-        Pointer<PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level, src_level)->coarsenData();
-    }
-    return;
-} // xeqScheduleOuteredgeRestriction
 
 void
 HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)

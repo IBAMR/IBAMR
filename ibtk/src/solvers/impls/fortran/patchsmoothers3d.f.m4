@@ -341,6 +341,186 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c              Variable coefficient patch smoothers
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single Gauss-Seidel sweep for F = div alpha grad U +
+c     beta U.
+c
+c     The smoother is written for cell-centered U and side-centered
+c     alpha = (alpha0,alpha1,alpha2)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vccellgssmooth3d(
+     &     U,U_gcw,
+     &     alpha0,alpha1,alpha2,alpha_gcw,
+     &     beta,
+     &     F,F_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,F_gcw,alpha_gcw
+
+      REAL beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
+
+      REAL alpha0(SIDE3d0(ilower,iupper,alpha_gcw))
+      REAL alpha1(SIDE3d1(ilower,iupper,alpha_gcw))
+      REAL alpha2(SIDE3d2(ilower,iupper,alpha_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    hx,hy,hz
+      REAL    facu0,facl0
+      REAL    facu1,facl1
+      REAL    facu2,facl2
+      REAL    fac
+c
+c     Perform a single Gauss-Seidel sweep.
+c
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               facu0 = alpha0(i0+1,i1,i2)/(hx*hx)
+               facl0 = alpha0(i0,i1,i2)/(hx*hx)
+               facu1 = alpha1(i0,i1+1,i2)/(hy*hy)
+               facl1 = alpha1(i0,i1,i2)/(hy*hy)
+               facu2 = alpha2(i0,i1,i2+1)/(hz*hz)
+               facl2 = alpha2(i0,i1,i2)/(hz*hz)
+               fac   = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-beta)
+               U(i0,i1,i2) = fac*(
+     &             facu0*U(i0+1,i1,i2) +
+     &             facl0*U(i0-1,i1,i2) +
+     &             facu1*U(i0,i1+1,i2) +
+     &             facl1*U(i0,i1-1,i2) +
+     &             facu2*U(i0,i1,i2+1) +
+     &             facl2*U(i0,i1,i2-1) -
+     &             F(i0,i1,i2))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep for F =
+c     div alpha grad U + beta U.
+c
+c     The smoother is written for cell-centered U and side-centered
+c     alpha = (alpha0,alpha1,alpha2)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vccellrbgssmooth3d(
+     &     U,U_gcw,
+     &     alpha0,alpha1,alpha2,alpha_gcw,
+     &     beta,
+     &     F,F_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,F_gcw,alpha_gcw
+      INTEGER red_or_black
+
+      REAL beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
+
+      REAL alpha0(SIDE3d0(ilower,iupper,alpha_gcw))
+      REAL alpha1(SIDE3d1(ilower,iupper,alpha_gcw))
+      REAL alpha2(SIDE3d2(ilower,iupper,alpha_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    hx,hy,hz
+      REAL    facu0,facl0
+      REAL    facu1,facl1
+      REAL    facu2,facl2
+      REAL    fac
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
+                  facu0 = alpha0(i0+1,i1,i2)/(hx*hx)
+                  facl0 = alpha0(i0,i1,i2)/(hx*hx)
+                  facu1 = alpha1(i0,i1+1,i2)/(hy*hy)
+                  facl1 = alpha1(i0,i1,i2)/(hy*hy)
+                  facu2 = alpha2(i0,i1,i2+1)/(hz*hz)
+                  facl2 = alpha2(i0,i1,i2)/(hz*hz)
+                  fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-beta)
+                  U(i0,i1,i2) = fac*(
+     &                facu0*U(i0+1,i1,i2) +
+     &                facl0*U(i0-1,i1,i2) +
+     &                facu1*U(i0,i1+1,i2) +
+     &                facl1*U(i0,i1-1,i2) +
+     &                facu2*U(i0,i1,i2+1) +
+     &                facl2*U(i0,i1,i2-1) -
+     &                F(i0,i1,i2))
+               endif
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
 c
 c  Perform a single Gauss-Seidel sweep for 
 c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2).
