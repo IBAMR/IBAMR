@@ -380,19 +380,38 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     }
     else
     {
-        const double coef_idx = d_P_problem_coefs.getDPatchDataId();
-        d_hier_math_ops->grad(d_grad_Phi_idx,
-                              d_grad_Phi_var,
-                              /*cf_bdry_synch*/ true,
-                              coef_idx,
-                              Pointer<SideVariable<NDIM, double> >(NULL),
-                              d_Phi_scratch_idx,
-                              d_Phi_var,
-                              d_Phi_bdry_fill_op,
-                              d_pressure_solver->getSolutionTime(),
-                              0.0,-1,NULL);
-        d_velocity_data_ops->axpy(U_idx, 1.0, d_grad_Phi_idx, U_idx);
-
+        if (d_P_problem_coefs.dIsConstant())
+        {
+            const double coef = d_P_problem_coefs.getDConstant();
+            d_hier_math_ops->grad(U_idx,
+                                  U_sc_var,
+                                  /*cf_bdry_synch*/ true,
+                                  coef,
+                                  d_Phi_scratch_idx,
+                                  d_Phi_var,
+                                  d_Phi_bdry_fill_op,
+                                  d_pressure_solver->getSolutionTime(),
+                                  1.0,
+                                  U_idx,
+                                  U_sc_var);
+        }
+        else
+        {
+            const double coef_idx = d_P_problem_coefs.getDPatchDataId();
+            d_hier_math_ops->grad(d_grad_Phi_idx,
+                                  d_grad_Phi_var,
+                                  /*cf_bdry_synch*/ true,
+                                  coef_idx,
+                                  Pointer<SideVariable<NDIM, double> >(NULL),
+                                  d_Phi_scratch_idx,
+                                  d_Phi_var,
+                                  d_Phi_bdry_fill_op,
+                                  d_pressure_solver->getSolutionTime(),
+                                  0.0,
+                                  -1,
+                                  NULL);
+            d_velocity_data_ops->axpy(U_idx, 1.0, d_grad_Phi_idx, U_idx);
+        }
     }
 
     // Account for nullspace vectors.

@@ -742,7 +742,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
     if (db->keyExists("output_EE")) d_output_EE = db->getBool("output_EE");
     if (db->keyExists("output_rho")) d_output_rho = db->getBool("output_rho");
-    if (db->keyExists("output_mu")) d_output_rho = db->getBool("output_mu");
+    if (db->keyExists("output_mu")) d_output_mu = db->getBool("output_mu");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 

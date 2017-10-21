@@ -1993,6 +1993,7 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                         const bool dst_ghost_interp,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2009,10 +2010,10 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
-            Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+            Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
         }
     }
     return;
@@ -2021,6 +2022,7 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
+                         const bool dst_ghost_interp,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2037,10 +2039,61 @@ HierarchyMathOps::interp(const int dst_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
-            Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+            Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+        }
+    }
+    return;
+} // interp
+
+void
+HierarchyMathOps::harmonic_interp(const int dst_idx,
+                                  const Pointer<SideVariable<NDIM, double> > /*dst_var*/,
+                                  const bool dst_cf_bdry_synch,
+                                  const int src_idx,
+                                  const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                  const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                  const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Allocate temporary data to synchronize the coarse-fine interface.
+        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
+        {
+            level->allocatePatchData(d_os_idx);
+        }
+
+        // Interpolate and extract data on the coarse-fine interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.harmonic_interp(dst_data, src_data, patch);
+
+            if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
+            {
+                Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+                os_data->copy(*dst_data);
+            }
+        }
+    }
+
+    // Synchronize the coarse-fine interface and deallocate temporary data.
+    if (dst_cf_bdry_synch)
+    {
+        for (int ln = d_finest_ln; ln >= d_coarsest_ln + 1; --ln)
+        {
+            xeqScheduleOutersideRestriction(dst_idx, d_os_idx, ln - 1);
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_os_idx);
         }
     }
     return;

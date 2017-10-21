@@ -158,6 +158,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                           d_no_fill,
                           d_new_time);
     // A_U += (C*I*L(D))*U
+    double alpha = 1.0;
     double beta = 1.0;
     if (d_U_problem_coefs.cIsZero() || d_U_problem_coefs.cIsConstant())
     {
@@ -165,7 +166,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     }
     d_hier_math_ops->vc_laplace(A_U_idx,
                                 A_U_sc_var,
-                                1.0,
+                                alpha,
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)

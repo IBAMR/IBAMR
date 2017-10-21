@@ -386,17 +386,14 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_mu_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_velocity_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_velocity_rhs_D_var;
 #elif (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_rhs_D_var;
 #endif
@@ -404,11 +401,22 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
     /*!
+     * Interpolated material property variables.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
+#if (NDIM == 2)
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_mu_interp_var;
+#elif (NDIM == 3)
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_interp_var;
+#endif
+
+    /*!
      * Temporary storage variables
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_temp_sc_var;
     int d_temp_sc_idx;
-
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_temp_cc_var;
+    int d_temp_cc_idx;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -430,10 +438,7 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx, d_rho_cc_idx;
-#if (NDIM == 3)
-    int d_mu_cc_idx;
-#endif
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -444,6 +449,7 @@ private:
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
     int d_velocity_C_idx, d_velocity_D_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
+    int d_rho_interp_idx, d_mu_interp_idx;
 
     /*
      * Variable to indicate if either rho or mu is constant
@@ -454,6 +460,11 @@ private:
      * Variable to indicate the scaling factor used for A and u_rhs
      */
     double d_A_scale;
+
+    /*
+     * Variable to set how often the preconditioner is reinitialized
+     */
+    int d_precond_reinit_interval;
 };
 } // namespace IBAMR
 

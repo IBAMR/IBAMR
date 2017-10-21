@@ -768,9 +768,7 @@ public:
      * node-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
-     * on each coarse-fine interface are synchronized prior to performing the
-     * interpolation.
+     * using (second-order accurate) averaging.
      *
      * \see setPatchHierarchy
      * \see resetLevels
@@ -787,9 +785,7 @@ public:
      * edge-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
-     * on each coarse-fine interface are synchronized prior to performing the
-     * interpolation.
+     * using (second-order accurate) averaging.
      *
      * \see setPatchHierarchy
      * \see resetLevels
@@ -806,15 +802,16 @@ public:
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
-     * on each coarse-fine interface are synchronized after performing the
-     * interpolation.
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
      *
      * \see setPatchHierarchy
      * \see resetLevels
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_ghost_interp,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -825,20 +822,42 @@ public:
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
-     * on each coarse-fine interface are synchronized after performing the
-     * interpolation.
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
      *
      * \see setPatchHierarchy
      * \see resetLevels
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                bool dst_ghost_interp,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                 double src_ghost_fill_time);
 
+    /*!
+     * \brief Harmonically interpolate to a side-centered normal vector/tensor field from a
+     * cell-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) harmonic averaging.  When the interpolation occurs
+     * over multiple levels of the hierarchy, second order interpolation is used
+     * at the coarse-fine interface to correct fine values along the interface.
+     * When specified, coarse values on each coarse-fine interface are
+     * synchronized after performing the interpolation.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                         bool dst_cf_bdry_synch,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
 
     /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
