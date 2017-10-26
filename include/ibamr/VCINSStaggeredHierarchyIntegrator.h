@@ -235,6 +235,30 @@ public:
      */
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
+    /*!
+     * \brief Get whether or not viscosity is constant
+     */
+    inline const bool muIsConstant() const
+    {
+        return d_mu_is_const;
+    }
+
+    /*!
+     * \brief Get cell centered viscosity patch data index
+     */
+    inline const int getMuPatchDataIndex() const
+    {
+        return d_mu_scratch_idx;
+    }
+
+    /*!
+     * \brief Get interpolated node (2D) or edge (3D) centered viscosity patch data index
+     */
+    inline const int getInterpolatedMuPatchDataIndex() const
+    {
+        return d_mu_interp_idx;
+    }
+
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -397,6 +421,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_rhs_D_var;
 #endif
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_velocity_D_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
@@ -411,7 +436,7 @@ private:
 #endif
 
     /*!
-     * Temporary storage variables
+     * Temporary storage variables that contain intermediate quantities
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_temp_sc_var;
     int d_temp_sc_idx;
@@ -447,12 +472,12 @@ private:
      * Scratch variables have only one context: scratch.
      */
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
-    int d_velocity_C_idx, d_velocity_D_idx, d_pressure_D_idx;
+    int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_rho_interp_idx, d_mu_interp_idx;
 
     /*
-     * Variable to indicate if either rho or mu is constant
+     * Variables to indicate if either rho or mu is constant
      */
     bool d_rho_is_const, d_mu_is_const;
 

@@ -839,7 +839,8 @@ public:
 
     /*!
      * \brief Harmonically interpolate to a side-centered normal vector/tensor field from a
-     * cell-centered vector/tensor field.
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
      *
      * Interpolate a vector or tensor field from one variable type to another
      * using (second-order accurate) harmonic averaging.  When the interpolation occurs
@@ -854,6 +855,48 @@ public:
     void harmonic_interp(int dst_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
                          bool dst_cf_bdry_synch,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         bool dst_ghost_interp,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                         double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                         bool dst_ghost_interp,
                          int src_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                          SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,

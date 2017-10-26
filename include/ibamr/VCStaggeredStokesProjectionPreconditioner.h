@@ -157,6 +157,13 @@ public:
      */
     void setMaxIterations(int max_iterations);
 
+    /*!
+     * \brief Set the cell centered quantity representing the viscous velocity coefficient
+     *
+     * \note This quantity is needed on cell centers for the pressure update
+     */
+    void setVelocityCellCenteredDCoefficient(int velocity_D_cc_idx);
+
     //\}
 
 private:
@@ -191,7 +198,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var, d_velocity_D_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx, d_velocity_D_cc_idx, d_grad_Phi_idx;
 };

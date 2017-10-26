@@ -122,6 +122,7 @@
 
 #define N_TO_C_INTERP_FC IBTK_FC_FUNC(ntocinterp2d, NTOCINTERP2D)
 #define C_TO_N_INTERP_FC IBTK_FC_FUNC(ctoninterp2d, CTONINTERP2D)
+#define C_TO_N_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctonharmonicinterp2d, CTONHARMONICINTERP2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
@@ -193,6 +194,7 @@
 
 #define E_TO_C_INTERP_FC IBTK_FC_FUNC(etocinterp3d, ETOCINTERP3D)
 #define C_TO_E_INTERP_FC IBTK_FC_FUNC(ctoeinterp3d, CTOEINTERP3D)
+#define C_TO_E_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoeharmonicinterp3d, CTOEHARMONICINTERP3D)
 #endif // if (NDIM == 3)
 
 extern "C" {
@@ -1215,6 +1217,16 @@ void C_TO_N_INTERP_FC(double* U,
                       const int& iupper1,
                       const int& U_ghost_interp);
 
+void C_TO_N_HARMONIC_INTERP_FC(double* U,
+                               const int& U_gcw,
+                               const double* V,
+                               const int& V_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
+                               const int& U_ghost_interp);
+
 #endif
 
 #if (NDIM == 3)
@@ -1276,6 +1288,20 @@ void C_TO_E_INTERP_FC(const double* u0,
                       const int& ilower2,
                       const int& iupper2,
                       const int& U_ghost_interp);
+
+void C_TO_E_HARMONIC_INTERP_FC(const double* u0,
+                               const double* u1,
+                               const double* u2,
+                               const int& u_gcw,
+                               const double* V,
+                               const int& V_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
+                               const int& ilower2,
+                               const int& iupper2,
+                               const int& U_ghost_interp);
 
 #endif
 }
@@ -4454,21 +4480,21 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
 #if !defined(NDEBUG)
     if (NDIM * dst->getDepth() != src->getDepth())
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  src and dst have incompatible depths"
                    << std::endl);
     }
 
     if (u_ghosts != (dst->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  dst does not have uniform ghost cell widths"
                    << std::endl);
     }
 
     if (V_ghosts != (src->getGhostCellWidth()).min())
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  src does not have uniform ghost cell widths"
                    << std::endl);
     }
@@ -4478,21 +4504,21 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  src has insufficient ghost cell width"
                    << std::endl);
     }
 
     if (patch_box != dst->getBox())
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  dst and src must live on the same patch"
                    << std::endl);
     }
 
     if (patch_box != src->getBox())
     {
-        TBOX_ERROR("PatchMathOps::interp():\n"
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
                    << "  dst and src must live on the same patch"
                    << std::endl);
     }
@@ -4528,7 +4554,212 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double> > dst,
                                       );
     }
     return;
-} // interp
+} // harmonic_interp
+
+void
+PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
+                              const Pointer<CellData<NDIM, double> > src,
+                              const Pointer<Patch<NDIM> > patch,
+                              const bool dst_ghost_interp) const
+{
+#if (NDIM == 3)
+    TBOX_ERROR("Cell to node PatchMathOps::harmonic_interp():\n"
+               << "  not implemented for NDIM = 3."
+               << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+
+#if (NDIM == 2)
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
+    }
+
+    if (U_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (V_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (dst_ghost_interp)
+    {
+        if (V_ghosts < U_ghosts + 1)
+        {
+            TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                       << " src ghost width must be dst ghost width + 1"
+                       << " when using dst_ghost_interp == true");
+        }
+    }
+
+    const Box<NDIM>& V_box = src->getGhostBox();
+    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+#endif
+
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        // Interpolate.
+        double* const U = dst->getPointer(depth);
+        const double* const V = src->getPointer(depth);
+        const int U_ghost_interp = dst_ghost_interp;
+
+        C_TO_N_HARMONIC_INTERP_FC(U,
+                                  U_ghosts,
+                                  V,
+                                  V_ghosts,
+                                  patch_box.lower(0),
+                                  patch_box.upper(0),
+                                  patch_box.lower(1),
+                                  patch_box.upper(1),
+                                  U_ghost_interp);
+    }
+#endif
+
+    return;
+} // harmonic_interp
+
+void
+PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
+                              const Pointer<CellData<NDIM, double> > src,
+                              const Pointer<Patch<NDIM> > patch,
+                              const bool dst_ghost_interp) const
+{
+#if (NDIM == 2)
+    TBOX_ERROR("Cell to edge PatchMathOps::harmonic_interp():\n"
+               << "  not implemented for NDIM = 2."
+               << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
+#endif
+#if (NDIM == 3)
+    const int u_ghosts = (dst->getGhostCellWidth()).max();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (dst->getDepth() != src->getDepth())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src and dst have incompatible depths"
+                   << std::endl);
+    }
+
+    if (u_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (V_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (dst_ghost_interp)
+    {
+        if (V_ghosts < u_ghosts + 1)
+        {
+            TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                       << " src ghost width must be dst ghost width + 1"
+                       << " when using dst_ghost_interp == true");
+        }
+    }
+
+    const Box<NDIM>& V_box = src->getGhostBox();
+    const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
+
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+#endif
+
+    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    {
+        // Interpolate.
+        double* const u0 = dst->getPointer(0, depth);
+        double* const u1 = dst->getPointer(1, depth);
+        double* const u2 = dst->getPointer(2, depth);
+        const double* const V = src->getPointer(depth);
+        const int U_ghost_interp = dst_ghost_interp;
+
+        C_TO_E_HARMONIC_INTERP_FC(u0,
+                                  u1,
+                                  u2,
+                                  u_ghosts,
+                                  V,
+                                  V_ghosts,
+                                  patch_box.lower(0),
+                                  patch_box.upper(0),
+                                  patch_box.lower(1),
+                                  patch_box.upper(1),
+                                  patch_box.lower(2),
+                                  patch_box.upper(2),
+                                  U_ghost_interp);
+    }
+#endif
+
+    return;
+} // harmonic_interp
 
 void
 PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,

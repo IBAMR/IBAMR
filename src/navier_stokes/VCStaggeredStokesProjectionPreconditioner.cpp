@@ -109,7 +109,6 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
       d_no_fill_op(NULL),
       d_Phi_var(NULL),
       d_F_Phi_var(NULL),
-      d_velocity_D_cc_var(NULL),
       d_grad_Phi_var(NULL),
       d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1),
@@ -154,20 +153,6 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_F_Phi_idx >= 0);
-#endif
-    const std::string vel_D_cc_name = d_object_name + "::velocity_D_cc";
-    d_velocity_D_cc_var = var_db->getVariable(vel_D_cc_name);
-    if (d_velocity_D_cc_var)
-    {
-        d_velocity_D_cc_idx = var_db->mapVariableAndContextToIndex(d_velocity_D_cc_var, context);
-    }
-    else
-    {
-        d_velocity_D_cc_var = new CellVariable<NDIM, double>(vel_D_cc_name);
-        d_velocity_D_cc_idx = var_db->registerVariableAndContext(d_velocity_D_cc_var, context, IntVector<NDIM>(CELLG));
-    }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_velocity_D_cc_idx >= 0);
 #endif
     const std::string grad_Phi_var_name = d_object_name + "::grad_Phi";
     d_grad_Phi_var = var_db->getVariable(Phi_var_name);
@@ -264,7 +249,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_Phi_scratch_idx);
         level->allocatePatchData(d_F_Phi_idx);
-        level->allocatePatchData(d_velocity_D_cc_idx);
         level->allocatePatchData(d_grad_Phi_idx);
     }
 
@@ -306,7 +290,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     // so that
     //
     //    Phi := inv(-L_rho) * F_phi = inv(L_rho) * (-F_P - D U^*)
-    //    P   := (-1/dt*inv(L_rho) + 2*mu*k) * F_phi = -1/dt*Phi + 2*mu*k
+    //    P   := (-1/dt*inv(L_rho) + 2*mu*k) * F_phi = -1/dt*Phi + 2*mu*k*F_phi
     //
     // in which L_rho = D*inv(rho)*G, and mu is a diagonal matrix of viscosities
     // at pressure locations ("local viscosity" preconditioner).
@@ -328,17 +312,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
 
-    const int velocity_D_idx = d_U_problem_coefs.getDPatchDataId();
-    d_hier_math_ops->interp(d_velocity_D_cc_idx,
-                            d_velocity_D_cc_var,
-                            velocity_D_idx,
-#if (NDIM == 2)
-                            Pointer<NodeVariable<NDIM, double> >(NULL),
-#elif (NDIM == 3)
-                            Pointer<EdgeVariable<NDIM, double> >(NULL),
-#endif
-                            d_no_fill_op,
-                            d_new_time);
     if (steady_state)
     {
         d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, d_velocity_D_cc_idx);
@@ -423,7 +396,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_Phi_scratch_idx);
         level->deallocatePatchData(d_F_Phi_idx);
-        level->deallocatePatchData(d_velocity_D_cc_idx);
         level->deallocatePatchData(d_grad_Phi_idx);
     }
 
@@ -510,6 +482,18 @@ VCStaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
     }
     return;
 } // setMaxIterations
+
+void
+VCStaggeredStokesProjectionPreconditioner::setVelocityCellCenteredDCoefficient(int velocity_D_cc_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(velocity_D_cc_idx >= 0);
+#endif
+
+    d_velocity_D_cc_idx = velocity_D_cc_idx;
+
+    return;
+} // setVelocityPoissonSpecifications
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

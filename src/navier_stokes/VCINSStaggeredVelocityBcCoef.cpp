@@ -280,7 +280,23 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double mu = d_problem_coefs->getMu();
+
+    double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
+    int mu_idx = -1;
+#if (NDIM == 2)
+    Pointer<NodeData<NDIM, double> > mu_data;
+#elif (NDIM == 3)
+    Pointer<EdgeData<NDIM, double> > mu_data;
+#endif
+    if (!d_fluid_solver->muIsConstant())
+    {
+        mu_idx = d_fluid_solver->getInterpolatedMuPatchDataIndex();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(mu_idx >= 0);
+#endif
+        mu_data = patch.getPatchData(mu_idx);
+    }
+
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
@@ -328,6 +344,19 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     const double du_norm_dx_tan =
                         ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
 
+                    if (!d_fluid_solver->muIsConstant())
+                    {
+#if (NDIM == 2)
+                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+                        mu = mu_array_data(i_upper, 0);
+#elif (NDIM == 3)
+                        const int perp =
+                            2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
+                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+                        mu = mu_array_data(i_upper, 0);
+#endif
+                    }
+
                     // Correct the boundary condition value.
                     alpha = 0.0;
                     beta = 1.0;
@@ -336,6 +365,20 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 }
                 case PSEUDO_TRACTION: // mu*du_tan/dx_norm = g.
                 {
+                    if (!d_fluid_solver->muIsConstant())
+                    {
+                        Index<NDIM> i_upper(i);
+                        i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
+#if (NDIM == 2)
+                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+                        mu = mu_array_data(i_upper, 0);
+#elif (NDIM == 3)
+                        const int perp =
+                            2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
+                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+                        mu = mu_array_data(i_upper, 0);
+#endif
+                    }
                     alpha = 0.0;
                     beta = 1.0;
                     gamma = (is_lower ? -1.0 : +1.0) * (gamma / mu);

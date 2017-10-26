@@ -252,7 +252,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     TBOX_ASSERT(u_target_data);
 #endif
     Pointer<SideData<NDIM, double> > u_current_data =
-        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getScratchContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
 #endif
@@ -270,7 +270,18 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     // conditions are converted into Neumann conditions for the pressure, and
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
-    const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
+    double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
+    int mu_idx = -1;
+    Pointer<CellData<NDIM, double> > mu_data;
+    if (!d_fluid_solver->muIsConstant())
+    {
+        mu_idx = d_fluid_solver->getMuPatchDataIndex();
+#if !defined(NDEBUG)
+        TBOX_ASSERT(mu_idx >= 0);
+#endif
+        mu_data = patch.getPatchData(mu_idx);
+    }
+
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
@@ -308,6 +319,12 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 {
                     i_i(bdry_normal_axis) -= 1;
                 }
+                if (!d_fluid_solver->muIsConstant())
+                {
+                    // Average mu onto side center
+                    mu = 0.5 * ((*mu_data)(i_g) + (*mu_data)(i_i));
+                    // mu = 2.0*((*mu_data)(i_g) * (*mu_data)(i_i))/((*mu_data)(i_g) + (*mu_data)(i_i));
+                }
 
                 // The boundary condition is -p + 2*mu*du_n/dx_n = g.
                 //
@@ -315,19 +332,16 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 // as:
                 //
                 // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
-                static const int NVALS = 3;
-                double u_current[NVALS], u_new[NVALS];
-                SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
-                {
-                    u_current[k] = (*u_current_data)(i_s);
-                    u_new[k] = (*u_target_data)(i_s);
-                }
+                // static const int NVALS = 3;
+                SideIndex<NDIM> i_s_g(
+                    i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                SideIndex<NDIM> i_s_i(
+                    i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower);
                 const double h = dx[bdry_normal_axis];
                 const double du_norm_current_dx_norm =
-                    (is_lower ? +1.0 : -1.0) * (2.0 * u_current[1] - 1.5 * u_current[0] - 0.5 * u_current[2]) / h;
+                    (is_lower ? -1.0 : +1.0) * ((*u_current_data)(i_s_g) - (*u_current_data)(i_s_i)) / (2 * h);
                 const double du_norm_new_dx_norm =
-                    (is_lower ? +1.0 : -1.0) * (2.0 * u_new[1] - 1.5 * u_new[0] - 0.5 * u_new[2]) / h;
+                    (is_lower ? -1.0 : +1.0) * ((*u_target_data)(i_s_g) - (*u_target_data)(i_s_i)) / (2 * h);
                 alpha = 1.0;
                 beta = 0.0;
                 gamma = (d_homogeneous_bc ? 0.0 : mu * du_norm_current_dx_norm) + mu * du_norm_new_dx_norm - gamma;

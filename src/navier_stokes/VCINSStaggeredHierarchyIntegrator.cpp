@@ -701,6 +701,14 @@ VCINSStaggeredHierarchyIntegrator::getConvectiveOperator()
     }
     else if (!d_convective_op)
     {
+        if (d_convective_difference_form != ADVECTIVE)
+        {
+            TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                     << "  unsupported convective operator type: "
+                                     << enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)
+                                     << " \n"
+                                     << "  at present, valid choices are: ADVECTIVE\n");
+        }
         INSStaggeredConvectiveOperatorManager* convective_op_manager =
             INSStaggeredConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(d_convective_op_type,
@@ -1137,6 +1145,9 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_velocity_rhs_D_idx = var_db->registerVariableAndContext(
         d_velocity_rhs_D_var, getCurrentContext(), (NDIM == 2 ? node_ghosts : edge_ghosts));
 
+    d_velocity_D_cc_var = new CellVariable<NDIM, double>(d_object_name + "::velocity_D_cc");
+    d_velocity_D_cc_idx = var_db->registerVariableAndContext(d_velocity_D_cc_var, getCurrentContext(), no_ghosts);
+
     d_temp_sc_var = new SideVariable<NDIM, double>(d_object_name + "::temp_sc");
     d_temp_sc_idx = var_db->registerVariableAndContext(d_temp_sc_var, getCurrentContext(), no_ghosts);
     d_temp_cc_var = new CellVariable<NDIM, double>(d_object_name + ":temp_cc", /*depth*/ NDIM);
@@ -1263,15 +1274,16 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_velocity_C_idx, current_time);
         level->allocatePatchData(d_velocity_rhs_C_idx, current_time);
         level->allocatePatchData(d_velocity_D_idx, current_time);
+        level->allocatePatchData(d_velocity_D_cc_idx, current_time);
         level->allocatePatchData(d_velocity_rhs_D_idx, current_time);
         level->allocatePatchData(d_pressure_D_idx, current_time);
         level->allocatePatchData(d_pressure_rhs_D_idx, current_time);
         level->allocatePatchData(d_temp_sc_idx, current_time);
-        level->allocatePatchData(d_temp_cc_idx, current_time);
         level->allocatePatchData(d_rho_interp_idx, current_time);
-        level->allocatePatchData(d_mu_interp_idx, current_time);
-    }
 
+        // Interpolated viscosity is used for boundary conditions, so we don't deallocate later.
+        if (!level->checkAllocated(d_mu_interp_idx)) level->allocatePatchData(d_mu_interp_idx, current_time);
+    }
     // Compute variable mass density.
     if (d_rho_var)
     {
@@ -1290,6 +1302,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+            level->allocatePatchData(d_temp_cc_idx, half_time);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1301,6 +1314,13 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         // Interpolate onto side centers
         d_hier_math_ops->harmonic_interp(
             d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, half_time);
+
+        // Deallocate temporary patch data
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+            level->deallocatePatchData(d_temp_cc_idx);
+        }
     }
 
     // Compute variable viscosity.
@@ -1326,6 +1346,13 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_mu_var,
                                 d_no_fill_op,
                                 half_time);
+        // d_hier_math_ops->harmonic_interp(d_mu_interp_idx,
+        //                                  d_mu_interp_var,
+        //                                  /*dst_ghost_interp*/ true,
+        //                                  d_mu_scratch_idx,
+        //                                  d_mu_var,
+        //                                  d_no_fill_op,
+        //                                  half_time);
     }
 
     // Setup the operators and solvers.
@@ -1348,8 +1375,8 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
 
     // Initialize the right-hand side terms.
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
+    const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
+    const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
     const double lambda = d_problem_coefs.getLambda();
     double K_rhs = 0.0;
     switch (d_viscous_time_stepping_type)
@@ -1415,6 +1442,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ NULL);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS = (C_rhs*I + L(D_rhs))*U
     double beta = 1.0;
     if (U_rhs_problem_coefs.cIsZero() || U_rhs_problem_coefs.cIsConstant())
@@ -1757,14 +1785,13 @@ VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_velocity_C_idx);
         level->deallocatePatchData(d_velocity_D_idx);
+        level->deallocatePatchData(d_velocity_D_cc_idx);
         level->deallocatePatchData(d_pressure_D_idx);
         level->deallocatePatchData(d_velocity_rhs_C_idx);
         level->deallocatePatchData(d_velocity_rhs_D_idx);
         level->deallocatePatchData(d_pressure_rhs_D_idx);
         level->deallocatePatchData(d_temp_sc_idx);
-        level->deallocatePatchData(d_temp_cc_idx);
         level->deallocatePatchData(d_rho_interp_idx);
-        level->deallocatePatchData(d_mu_interp_idx);
     }
 
     // Execute any registered callbacks.
@@ -1857,8 +1884,8 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
+    const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
+    const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
 
     if (rhs_vec->getComponentDescriptorIndex(0) != d_U_rhs_vec->getComponentDescriptorIndex(0))
     {
@@ -2072,7 +2099,7 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
     }
 
     // Reset the right-hand side vector.
-    const double rho = d_problem_coefs.getRho();
+    const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
     if (!d_creeping_flow)
     {
         const TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
@@ -2759,8 +2786,8 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
     const double half_time = current_time + 0.5 * dt;
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
+    const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
+    const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
     const double lambda = d_problem_coefs.getLambda();
     double K = 0.0;
     switch (d_viscous_time_stepping_type)
@@ -2803,6 +2830,7 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
 #elif (NDIM == 3)
         d_hier_ec_data_ops->setToScalar(d_velocity_D_idx, d_A_scale * (-K * mu), /*interior_only*/ false);
 #endif
+        d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx, d_A_scale * (-K * mu), /*interior_only*/ false);
     }
     else
     {
@@ -2811,6 +2839,7 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
 #elif (NDIM == 3)
         d_hier_ec_data_ops->scale(d_velocity_D_idx, d_A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
 #endif
+        d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, d_A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
     }
     U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
 
@@ -3025,6 +3054,7 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
     d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+
     LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
     {
@@ -3037,6 +3067,8 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
             dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
         StaggeredStokesFACPreconditioner* p_stokes_fac_pc =
             dynamic_cast<StaggeredStokesFACPreconditioner*>(p_stokes_linear_solver);
+        VCStaggeredStokesProjectionPreconditioner* p_vc_stokes_proj_pc =
+            dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(p_stokes_linear_solver);
         if (!(p_stokes_block_pc || p_stokes_fac_pc))
         {
             KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
@@ -3046,6 +3078,9 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
 
                 p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(
+                    p_stokes_krylov_solver->getPreconditioner().getPointer());
+
+                p_vc_stokes_proj_pc = dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
             }
         }
@@ -3063,6 +3098,11 @@ VCINSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double 
         else
         {
             TBOX_WARNING("No special BCs set for the preconditioner \n");
+        }
+
+        if (p_vc_stokes_proj_pc)
+        {
+            p_vc_stokes_proj_pc->setVelocityCellCenteredDCoefficient(d_velocity_D_cc_idx);
         }
     }
     if (d_stokes_solver_needs_init)

@@ -717,3 +717,88 @@ c
       return
       end
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the edge centered vector field (u0,u1,u2) from the cell centered
+c     field V using harmonic averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoeharmonicinterp3d(
+     &     u0,u1,u2,u_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     U_ghost_interp)
+     
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_ghost_interp
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+c
+c     Output.
+c
+      REAL u0(EDGE3d0(ilower,iupper,u_gcw))
+      REAL u1(EDGE3d1(ilower,iupper,u_gcw))
+      REAL u2(EDGE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      INTEGER gcw_shift
+      REAL    nmr,dmr
+
+c     Compute the edge centered interpolation of V
+      gcw_shift = 0
+      if (U_ghost_interp .eq. 1) then
+         gcw_shift = U_gcw
+      endif
+
+      nmr = 4.d0
+      
+      do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
+         do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
+            do i0 = ilower0-gcw_shift,iupper0+gcw_shift
+               dmr = 1.d0/V(i0,i1-1,i2) + 1.d0/V(i0,i1,i2-1)  
+     &               + 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1-1,i2-1)
+               u0(i0,i1,i2) = nmr/dmr
+     
+            enddo
+         enddo
+      enddo 
+  
+      do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
+         do i1 = ilower1-gcw_shift,iupper1+gcw_shift
+            do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+               dmr = 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1,i2-1)  
+     &              + 1.d0/V(i0-1,i1,i2) + 1.d0/V(i0-1,i1,i2-1)
+               u1(i0,i1,i2) = nmr/dmr
+
+            enddo
+         enddo
+      enddo
+
+      do i2 = ilower2-gcw_shift,iupper2+gcw_shift
+         do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
+            do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+               dmr = 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1-1,i2)  
+     &               + 1.d0/V(i0-1,i1,i2) + 1.d0/V(i0-1,i1-1,i2)
+               u2(i0,i1,i2) = nmr/dmr
+
+            enddo
+         enddo
+      enddo
+
+c
+      return
+      end
