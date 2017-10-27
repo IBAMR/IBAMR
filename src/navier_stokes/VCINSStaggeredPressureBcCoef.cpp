@@ -211,12 +211,12 @@ VCINSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 
 void
 VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                       const Pointer<Variable<NDIM> >& variable,
-                                       const Patch<NDIM>& patch,
-                                       const BoundaryBox<NDIM>& bdry_box,
-                                       double /*fill_time*/) const
+                                         Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                         Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                         const Pointer<Variable<NDIM> >& variable,
+                                         const Patch<NDIM>& patch,
+                                         const BoundaryBox<NDIM>& bdry_box,
+                                         double /*fill_time*/) const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -252,7 +252,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     TBOX_ASSERT(u_target_data);
 #endif
     Pointer<SideData<NDIM, double> > u_current_data =
-        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getScratchContext());
+        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
 #endif
@@ -304,10 +304,16 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
         }
         else if (traction_bc)
         {
+#if !defined(NDEBUG)
+            if (!d_fluid_solver->muIsConstant()) TBOX_ASSERT(mu_data);
+#endif
             switch (d_traction_bc_type)
             {
             case TRACTION: // -p + 2*mu*du_n/dx_n = g.
             {
+#if !defined(NDEBUG)
+                if (!d_fluid_solver->muIsConstant()) TBOX_ASSERT(mu_data);
+#endif
                 // Place i_i in the interior cell abutting the boundary, and
                 // place i_g in the ghost cell abutting the boundary.
                 Index<NDIM> i_i(i), i_g(i);
@@ -322,7 +328,16 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 if (!d_fluid_solver->muIsConstant())
                 {
                     // Average mu onto side center
-                    mu = 0.5 * ((*mu_data)(i_g) + (*mu_data)(i_i));
+                    // In certain use cases with traction boundary conditions, this class will attempt to fill
+                    // Robin BC coefficient values along an extended physical boundary outside of the physical domain
+                    // that will never be used. However, viscosity values will not be available at those locations, so
+                    // we
+                    // need to ensure we don't access those unallocated data. The unphysical value should result in bad
+                    // stuff if
+                    // it gets used for whatever reason.
+                    const bool mu_contains_cells =
+                        (mu_data->getGhostBox().contains(i_g) && mu_data->getGhostBox().contains(i_i));
+                    mu = mu_contains_cells ? 0.5 * ((*mu_data)(i_g) + (*mu_data)(i_i)) : -1.0e305;
                     // mu = 2.0*((*mu_data)(i_g) * (*mu_data)(i_i))/((*mu_data)(i_g) + (*mu_data)(i_i));
                 }
 
@@ -332,16 +347,19 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 // as:
                 //
                 // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
-                // static const int NVALS = 3;
-                SideIndex<NDIM> i_s_g(
-                    i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                SideIndex<NDIM> i_s_i(
-                    i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower);
+                static const int NVALS = 3;
+                double u_current[NVALS], u_new[NVALS];
+                SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
+                {
+                    u_current[k] = (*u_current_data)(i_s);
+                    u_new[k] = (*u_target_data)(i_s);
+                }
                 const double h = dx[bdry_normal_axis];
                 const double du_norm_current_dx_norm =
-                    (is_lower ? -1.0 : +1.0) * ((*u_current_data)(i_s_g) - (*u_current_data)(i_s_i)) / (2 * h);
+                    (is_lower ? +1.0 : -1.0) * (2.0 * u_current[1] - 1.5 * u_current[0] - 0.5 * u_current[2]) / h;
                 const double du_norm_new_dx_norm =
-                    (is_lower ? -1.0 : +1.0) * ((*u_target_data)(i_s_g) - (*u_target_data)(i_s_i)) / (2 * h);
+                    (is_lower ? +1.0 : -1.0) * (2.0 * u_new[1] - 1.5 * u_new[0] - 0.5 * u_new[2]) / h;
                 alpha = 1.0;
                 beta = 0.0;
                 gamma = (d_homogeneous_bc ? 0.0 : mu * du_norm_current_dx_norm) + mu * du_norm_new_dx_norm - gamma;

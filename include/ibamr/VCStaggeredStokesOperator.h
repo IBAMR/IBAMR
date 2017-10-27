@@ -113,57 +113,9 @@ public:
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
-    /*!
-     * \brief Compute hierarchy dependent data required for computing y=Ax and
-     * z=Ax+y.
-     *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
-     * - hierarchy configuration (hierarchy pointer and level range)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the input and output vectors
-     *
-     * \note It is generally necessary to reinitialize the operator state when
-     * the hierarchy configuration changes.
-     *
-     * It is safe to call initializeOperatorState() when the state is already
-     * initialized.  In this case, the operator state is first deallocated and
-     * then reinitialized.
-     *
-     * Conditions on arguments:
-     * - input and output vectors must have same hierarchy
-     * - input and output vectors must have same structure, depth, etc.
-     *
-     * Call deallocateOperatorState() to remove any data allocated by this
-     * method.
-     *
-     * \see deallocateOperatorState
-     *
-     * \param in input vector
-     * \param out output vector
-     */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
-
-    /*!
-     * \brief Remove all hierarchy dependent data allocated by
-     * initializeOperatorState().
-     *
-     * Remove all hierarchy dependent data set by initializeOperatorState().  It
-     * is safe to call deallocateOperatorState() when the operator state is
-     * already deallocated.
-     *
-     * \see initializeOperatorState
-     */
-    void deallocateOperatorState();
-
     //\}
 
 protected:
-    // Individual objects for filling separate BC components
-    IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent d_U_trans, d_P_trans;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_fill, d_P_bdry_fill;
 
 private:
     /*!

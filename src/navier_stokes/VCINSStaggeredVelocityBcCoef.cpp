@@ -43,16 +43,18 @@
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "EdgeData.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "NodeData.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
-#include "ibamr/VCINSStaggeredVelocityBcCoef.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
+#include "ibamr/VCINSStaggeredVelocityBcCoef.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -291,12 +293,12 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     if (!d_fluid_solver->muIsConstant())
     {
         mu_idx = d_fluid_solver->getInterpolatedMuPatchDataIndex();
+
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
 #endif
         mu_data = patch.getPatchData(mu_idx);
     }
-
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
@@ -315,6 +317,9 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
         }
         else if (traction_bc)
         {
+#if !defined(NDEBUG)
+            if (!d_fluid_solver->muIsConstant()) TBOX_ASSERT(mu_data);
+#endif
             if (d_comp_idx == bdry_normal_axis)
             {
                 // Set du/dn = 0.
@@ -348,13 +353,21 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     {
 #if (NDIM == 2)
                         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-                        mu = mu_array_data(i_upper, 0);
+
 #elif (NDIM == 3)
                         const int perp =
                             2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
                         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-                        mu = mu_array_data(i_upper, 0);
 #endif
+                        // In certain use cases with traction boundary conditions, this class will attempt to fill
+                        // Robin BC coefficient values along an extended physical boundary outside of the physical
+                        // domain
+                        // that will never be used. However, viscosity values will not be available at those locations,
+                        // so we
+                        // need to ensure we don't access those unallocated data. The unphysical value should result in
+                        // bad stuff if
+                        // it gets used for whatever reason.
+                        mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
                     }
 
                     // Correct the boundary condition value.
@@ -371,13 +384,20 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
 #if (NDIM == 2)
                         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-                        mu = mu_array_data(i_upper, 0);
 #elif (NDIM == 3)
                         const int perp =
                             2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
                         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-                        mu = mu_array_data(i_upper, 0);
 #endif
+                        // In certain use cases with traction boundary conditions, this class will attempt to fill
+                        // Robin BC coefficient values along an extended physical boundary outside of the physical
+                        // domain
+                        // that will never be used. However, viscosity values will not be available at those locations,
+                        // so we
+                        // need to ensure we don't access those unallocated data. The unphysical value should result in
+                        // bad stuff if
+                        // it gets used for whatever reason.
+                        mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
                     }
                     alpha = 0.0;
                     beta = 1.0;
