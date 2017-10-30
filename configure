@@ -31012,8 +31012,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7" >&5
-$as_echo_n "checking for PETSc version 3.7... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.7 or 3.8" >&5
+$as_echo_n "checking for PETSc version 3.7 or 3.8... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -31036,7 +31036,7 @@ int
 main ()
 {
 
-#if ((PETSC_VERSION_GE(3,7,0) && PETSC_VERSION_LT(3,8,0)) || !PETSC_VERSION_RELEASE)
+#if ((PETSC_VERSION_GE(3,7,0) && PETSC_VERSION_LE(3,8,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
@@ -31054,7 +31054,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7 or 3.8" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"

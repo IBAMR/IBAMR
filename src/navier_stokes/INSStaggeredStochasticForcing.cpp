@@ -662,15 +662,15 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            level->allocatePatchData(d_W_cc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_cc_idxs[k]);
+            level->deallocatePatchData(d_W_cc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->deallocatePatchData(d_W_cc_idxs[k]);
 #if (NDIM == 2)
-            level->allocatePatchData(d_W_nc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_nc_idxs[k]);
+            level->deallocatePatchData(d_W_nc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->deallocatePatchData(d_W_nc_idxs[k]);
 #endif
 #if (NDIM == 3)
-            level->allocatePatchData(d_W_ec_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_W_ec_idxs[k]);
+            level->deallocatePatchData(d_W_ec_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) level->deallocatePatchData(d_W_ec_idxs[k]);
 #endif
         }
     }
