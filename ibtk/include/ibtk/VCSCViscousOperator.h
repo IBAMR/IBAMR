@@ -45,7 +45,7 @@ namespace IBTK
  * \brief Class VCSCViscousOperator is a subclass of SCLaplaceOperator
  * which implements a globally second-order accurate side-centered finite
  * difference discretization of a vector elliptic operator of the form
- * \f$ L = \beta C I + \alpha \nabla \cdot \mu \nabla ( (\nabla u) + (\nabla u)^T ) \f$.
+ * \f$ L = \beta C I + \alpha \nabla \cdot \mu ( (\nabla u) + (\nabla u)^T ) \f$.
  *
  * Here \f$ u \f$ and \f$ C \f$ are vector valued side-centered fields and
  * \f$ \mu \f$ is a node-(2D) or edge-(3D) centered scalar field.

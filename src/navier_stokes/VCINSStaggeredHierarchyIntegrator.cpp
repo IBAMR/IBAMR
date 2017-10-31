@@ -701,14 +701,6 @@ VCINSStaggeredHierarchyIntegrator::getConvectiveOperator()
     }
     else if (!d_convective_op)
     {
-        if (d_convective_difference_form != ADVECTIVE)
-        {
-            TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
-                                     << "  unsupported convective operator type: "
-                                     << enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)
-                                     << " \n"
-                                     << "  at present, valid choices are: ADVECTIVE\n");
-        }
         INSStaggeredConvectiveOperatorManager* convective_op_manager =
             INSStaggeredConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(d_convective_op_type,
@@ -968,7 +960,28 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    d_rho_var = INSHierarchyIntegrator::d_rho_var;
+    // Get the density variable, which can either be an advected field maintained by
+    // an appropriate advection-diffusion integrator, or a set field with some functional
+    // form maintained by the INS integrator 
+    if (!d_rho_is_const)
+    {
+        if (d_adv_diff_hier_integrator->getFluidDensityVariable())
+        {
+            d_rho_var = d_adv_diff_hier_integrator->getFluidDensityVariable();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(!d_rho_fcn);
+#endif
+        }
+        else if (INSHierarchyIntegrator::d_rho_var)
+        {
+            d_rho_var = INSHierarchyIntegrator::d_rho_var;
+        }
+        else
+        {
+            TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                   << "  rho_is_const == false but no mass density variable has been registered.\n");
+        }
+    }
     if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
     {
         TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
@@ -992,11 +1005,32 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_rho_scratch_idx = -1;
     }
 
-    d_mu_var = INSHierarchyIntegrator::d_mu_var;
+    // Get the density variable, which can either be an advected field maintained by
+    // an appropriate advection-diffusion integrator, or a set field with some functional
+    // form maintained by the INS integrator 
+    if (!d_mu_is_const)
+    {
+        if (d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        {
+            d_mu_var = d_adv_diff_hier_integrator->getFluidViscosityVariable();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(!d_mu_fcn);
+#endif
+        }
+        else if (INSHierarchyIntegrator::d_mu_var)
+        {
+            d_mu_var = INSHierarchyIntegrator::d_mu_var;
+        }
+        else
+        {
+            TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                   << "  mu_is_const == false but no viscosity variable has been registered.\n");
+        }
+    }
     if (INSHierarchyIntegrator::d_mu_var && !d_mu_var)
     {
         TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << " viscosity variable must be cell-centered.\n");
+                   << "  viscosity variable must be cell-centered.\n");
     }
     if (d_mu_var)
     {
@@ -1068,12 +1102,12 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (d_output_rho)
         {
-            d_visit_writer->registerPlotQuantity("rho", "SCALAR", d_rho_current_idx, 0., d_rho_scale);
+            d_visit_writer->registerPlotQuantity("rho_ins", "SCALAR", d_rho_current_idx, 0., d_rho_scale);
         }
 
         if (d_output_mu)
         {
-            d_visit_writer->registerPlotQuantity("mu", "SCALAR", d_mu_current_idx, 0, d_mu_scale);
+            d_visit_writer->registerPlotQuantity("mu_ins", "SCALAR", d_mu_current_idx, 0, d_mu_scale);
         }
 
         if (d_F_fcn && d_output_F)
@@ -1291,12 +1325,14 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         {
             d_rho_fcn->setDataOnPatchHierarchy(d_rho_current_idx, d_rho_var, d_hierarchy, current_time);
             d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx, d_rho_var, d_hierarchy, new_time);
+            d_hier_cc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
         }
         else
         {
-            d_hier_cc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            d_rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, d_adv_diff_hier_integrator->getCurrentContext());
+            d_hier_cc_data_ops->copyData(d_rho_scratch_idx, d_rho_current_idx, /*interior_only*/ true);
         }
-        d_hier_cc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
         d_rho_bdry_bc_fill_op->fillData(half_time);
 
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -1330,12 +1366,14 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         {
             d_mu_fcn->setDataOnPatchHierarchy(d_mu_current_idx, d_mu_var, d_hierarchy, current_time);
             d_mu_fcn->setDataOnPatchHierarchy(d_mu_new_idx, d_mu_var, d_hierarchy, new_time);
+            d_hier_cc_data_ops->linearSum(d_mu_scratch_idx, 0.5, d_mu_current_idx, 0.5, d_mu_new_idx);
         }
         else
         {
-            d_hier_cc_data_ops->copyData(d_mu_new_idx, d_mu_current_idx);
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            d_mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getCurrentContext());
+            d_hier_cc_data_ops->copyData(d_mu_scratch_idx, d_mu_current_idx, /*interior_only*/ true);
         }
-        d_hier_cc_data_ops->linearSum(d_mu_scratch_idx, 0.5, d_mu_current_idx, 0.5, d_mu_new_idx);
         d_mu_bdry_bc_fill_op->fillData(half_time);
 
         // Interpolate onto node or edge centers
@@ -1996,6 +2034,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
     // Account for internal source/sink distributions.
     if (d_Q_fcn)
     {
+        TBOX_ERROR("Presently not supported for variable coefficient problems");
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
@@ -2435,7 +2474,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }
 
-    if (d_rho_fcn)
+    if (d_rho_var)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(
@@ -2444,7 +2483,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
 
-    if (d_mu_fcn)
+    if (d_mu_var)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent mu_bc_component(

@@ -433,6 +433,62 @@ public:
     void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
+    /*!
+     * Register a cell-centered density to be advected and diffused by the
+     * hierarchy integrator.
+     *
+     * Data management for the registered quantity will be handled by the
+     * hierarchy integrator.
+     *
+     * \note This quantity is maintained just like any other advected quantity,
+     * but requires some additional special treatment since it is used by the 
+     * variable coefficient INS integrator.
+     */
+    void registerTransportedFluidDensity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var);
+
+    /*!
+     * Register a cell-centered viscosity to be advected and diffused by the
+     * hierarchy integrator.
+     *
+     * Data management for the registered quantity will be handled by the
+     * hierarchy integrator.
+     *
+     * \note This quantity is maintained just like any other advected quantity,
+     * but requires some additional special treatment since it is used by the 
+     * variable coefficient INS integrator.
+     */
+    void registerTransportedFluidViscosity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_var);
+
+    /*!
+     * Register a cell-centered level set to be advected and diffused by the
+     * hierarchy integrator.
+     *
+     * Data management for the registered quantity will be handled by the
+     * hierarchy integrator.
+     *
+     * \note This quantity is maintained just like any other advected quantity,
+     * but requires some additional special treatment since it is used by the 
+     * variable coefficient INS integrator.
+     */
+    void registerTransportedFluidLevelSet(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+
+    /*!
+     * Return the density variable to be used by the INS integrator.
+     */ 
+    inline const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getFluidDensityVariable()
+    {
+        return d_rho_fluid_var;
+    }
+
+    /*!
+     * Return the viscosity variable to be used by the INS integrator.
+     */ 
+    inline const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getFluidViscosityVariable()
+    {
+        return d_mu_fluid_var;
+    }
+    
+
 protected:
     /*!
      * The constructor for class AdvDiffHierarchyIntegrator sets some default
@@ -536,6 +592,11 @@ protected:
              SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+
+    /*!
+     * Transported fluid material quantities.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_fluid_var, d_mu_fluid_var, d_ls_fluid_var;
 
     /*
      * Hierarchy operations objects.

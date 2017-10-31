@@ -94,6 +94,14 @@ namespace IBAMR
  * \brief Class VCINSStaggeredHierarchyIntegrator provides a staggered-grid solver
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy, with variable
  * coefficients.
+ *
+ * This class always uses a non-conservative discretization of the form of the momentum equation
+ * \f$\rho(\frac{\partial u}{\partial t} + N(u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$ 
+ * where \f$ N(u) = u \cdot \nabla u \f$ for convective_difference_form = ADVECTIVE and
+ * \f$ N(u) = \nabla \cdot (u u) \f$ for convective_difference_form = CONSERVATIVE.
+ * 
+ * In other words, this class will NEVER treat the left-hand side of the momentum equation in conservative form
+ * i.e. \frac{\partial \rho u}{\partial t} + \nabla \cdot (\rho u u)
  */
 class VCINSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {

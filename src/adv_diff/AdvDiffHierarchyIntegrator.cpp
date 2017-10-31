@@ -833,6 +833,21 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     return;
 } // initializeHierarchyIntegrator
 
+void
+AdvDiffHierarchyIntegrator::registerTransportedFluidDensity(Pointer<CellVariable<NDIM, double> > rho_var)
+{
+    registerTransportedQuantity(rho_var);
+    d_rho_fluid_var = rho_var;
+    return;
+} // registerTransportedQuantity
+
+void
+AdvDiffHierarchyIntegrator::registerTransportedFluidViscosity(Pointer<CellVariable<NDIM, double> > mu_var)
+{
+    registerTransportedQuantity(mu_var);
+    d_mu_fluid_var = mu_var;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object_name,
@@ -864,6 +879,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object
       d_Q_damping_coef(),
       d_Q_init(),
       d_Q_bc_coef(),
+      d_rho_fluid_var(NULL),
+      d_mu_fluid_var(NULL),
       d_hier_cc_data_ops(NULL),
       d_hier_sc_data_ops(NULL),
       d_sol_vecs(),

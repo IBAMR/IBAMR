@@ -4320,7 +4320,7 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
         if (V_ghosts < U_ghosts + 1)
         {
             TBOX_ERROR("PatchMathOps::interp():\n"
-                       << " src ghost width must be dst ghost width + 1"
+                       << " src ghost width must be greater than dst ghost width + 1"
                        << " when using dst_ghost_interp == true");
         }
     }
@@ -4412,7 +4412,7 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double> > dst,
         if (V_ghosts < u_ghosts + 1)
         {
             TBOX_ERROR("PatchMathOps::interp():\n"
-                       << " src ghost width must be dst ghost width + 1"
+                       << " src ghost width must be greater than dst ghost width + 1"
                        << " when using dst_ghost_interp == true");
         }
     }
@@ -4603,8 +4603,8 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double> > dst,
     {
         if (V_ghosts < U_ghosts + 1)
         {
-            TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                       << " src ghost width must be dst ghost width + 1"
+            TBOX_ERROR("PatchMathOps::interp():\n"
+                       << " src ghost width must be greater than dst ghost width + 1"
                        << " when using dst_ghost_interp == true");
         }
     }
@@ -4702,8 +4702,8 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double> > dst,
     {
         if (V_ghosts < u_ghosts + 1)
         {
-            TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                       << " src ghost width must be dst ghost width + 1"
+            TBOX_ERROR("PatchMathOps::interp():\n"
+                       << " src ghost width must be greater than dst ghost width + 1"
                        << " when using dst_ghost_interp == true");
         }
     }
