@@ -228,8 +228,7 @@ public:
                             int cycle_num);
 
     /*!
-     * Reset solution and RHS vectors using state data maintained by the
-     * integrator, and copy the solution data into the state data maintained by
+     * Copy the solution data into the state data maintained by
      * the integrator.
      */
     void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
@@ -344,11 +343,6 @@ private:
     void computeDivSourceTerm(int F_idx, int Q_idx, int U_idx);
 
     /*!
-     * Reinitialize the operators and solvers used by the hierarchy integrator.
-     */
-    void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
      * Project the velocity field following a regridding operation.
      */
     void regridProjection();
@@ -358,6 +352,16 @@ private:
      * cycle number.
      */
     TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
+
+    /*!
+     * Preprocess the operators and solvers used by the hierarchy integrator.
+     */
+    void preprocessOperatorsAndSolvers(double current_time, double new_time);
+
+    /*!
+     * Update the operators and solvers to account for changes due to time-dependent coefficients
+     */
+    void updateOperatorsAndSolvers(double current_time, double new_time, int cycle_num);
 
     /*!
      * Hierarchy operations objects.

@@ -317,9 +317,7 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
         }
         else if (traction_bc)
         {
-#if !defined(NDEBUG)
-            if (!d_fluid_solver->muIsConstant()) TBOX_ASSERT(mu_data);
-#endif
+            const bool mu_data_exists = mu_data;
             if (d_comp_idx == bdry_normal_axis)
             {
                 // Set du/dn = 0.
@@ -351,14 +349,6 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 
                     if (!d_fluid_solver->muIsConstant())
                     {
-#if (NDIM == 2)
-                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-
-#elif (NDIM == 3)
-                        const int perp =
-                            2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-#endif
                         // In certain use cases with traction boundary conditions, this class will attempt to fill
                         // Robin BC coefficient values along an extended physical boundary outside of the physical
                         // domain
@@ -367,7 +357,22 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         // need to ensure we don't access those unallocated data. The unphysical value should result in
                         // bad stuff if
                         // it gets used for whatever reason.
-                        mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+                        if (mu_data_exists)
+                        {
+#if (NDIM == 2)
+                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+
+#elif (NDIM == 3)
+                            const int perp =
+                                2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
+                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+#endif
+                            mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+                        }
+                        else
+                        {
+                            mu = -1.0e305;
+                        }
                     }
 
                     // Correct the boundary condition value.
@@ -382,13 +387,7 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     {
                         Index<NDIM> i_upper(i);
                         i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-#if (NDIM == 2)
-                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-#elif (NDIM == 3)
-                        const int perp =
-                            2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-#endif
+
                         // In certain use cases with traction boundary conditions, this class will attempt to fill
                         // Robin BC coefficient values along an extended physical boundary outside of the physical
                         // domain
@@ -397,7 +396,22 @@ VCINSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         // need to ensure we don't access those unallocated data. The unphysical value should result in
                         // bad stuff if
                         // it gets used for whatever reason.
-                        mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+                        if (mu_data_exists)
+                        {
+#if (NDIM == 2)
+                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+
+#elif (NDIM == 3)
+                            const int perp =
+                                2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
+                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+#endif
+                            mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+                        }
+                        else
+                        {
+                            mu = -1.0e305;
+                        }
                     }
                     alpha = 0.0;
                     beta = 1.0;

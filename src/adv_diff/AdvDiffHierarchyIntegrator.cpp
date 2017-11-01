@@ -665,15 +665,18 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
+        std::ostringstream solver_prefix, precond_prefix;
+        solver_prefix << "adv_diff_" << l << "_";
+        precond_prefix << "adv_diff_pc_" << l << "_";
         d_helmholtz_solvers[l] =
             CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
                                                                  d_object_name + "::helmholtz_solver::" + name,
                                                                  d_helmholtz_solver_db,
-                                                                 "adv_diff_",
+                                                                 solver_prefix.str(),
                                                                  d_helmholtz_precond_type,
                                                                  d_object_name + "::helmholtz_precond::" + name,
                                                                  d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_");
+                                                                 precond_prefix.str());
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
