@@ -266,6 +266,14 @@ public:
         return d_mu_interp_idx;
     }
 
+    /*!
+     * \brief Get the scaling factor used for A, p and u_rhs
+     */
+    inline const double getPressureScalingFactor() const
+    {
+        return d_A_scale;
+    }
+
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -361,7 +369,7 @@ private:
     /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients
      */
-    void updateOperatorsAndSolvers(double current_time, double new_time, int cycle_num);
+    void updateOperatorsAndSolvers(double current_time, double new_time);
 
     /*!
      * Hierarchy operations objects.
@@ -437,6 +445,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_full_var;
+
     /*!
      * Interpolated material property variables.
      */
@@ -487,6 +497,7 @@ private:
     int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_rho_interp_idx, d_mu_interp_idx;
+    int d_N_full_idx;
 
     /*
      * Variables to indicate if either rho or mu is constant
@@ -494,7 +505,7 @@ private:
     bool d_rho_is_const, d_mu_is_const;
 
     /*
-     * Variable to indicate the scaling factor used for A and u_rhs
+     * Variable to indicate the scaling factor used for A, p and u_rhs
      */
     double d_A_scale;
 
