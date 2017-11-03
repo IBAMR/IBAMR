@@ -291,6 +291,13 @@ private:
     StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that);
 
     /*
+     * Whether we re-discretize the Stokes operator on coarser level or are
+     * using Galerkin projection.
+     */
+    bool d_rediscretize_stokes;
+    bool d_res_rediscretized_stokes;
+
+    /*
      * Level solvers and solver parameters.
      */
     std::string d_level_solver_type, d_level_solver_default_options_prefix;
@@ -300,14 +307,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
-     * Velocity prolongation type.
+     * Velocity and pressure prolongation type.
      */
-    std::string d_u_petsc_prolongation_method;
+    std::string d_u_petsc_prolongation_method, d_p_petsc_prolongation_method;
 
     /*
-     * Application ordering of u from MAC DOFs on various patch levels.
+     * Application ordering of u and p from MAC DOFs on various patch levels.
      */
-    std::vector<AO> d_u_app_ordering;
+    std::vector<AO> d_u_p_app_ordering;
 
     /*
      * Eulerian data for storing u and p DOFs indexing.
@@ -333,12 +340,12 @@ private:
     Mat d_J_mat;
 
     /*
-     * Data structures for elasticity and prolongation operator respresentation
+     * Data structures for elasticity and prolongation operator representation
      * on various patch levels.
      */
-    double d_SAJ_fill;
-    std::vector<Mat> d_SAJ_mat, d_prolongation_mat;
-    std::vector<Vec> d_scale_restriction_mat;
+    double d_SAJ_fill, d_RStokesIBP_fill;
+    std::vector<Mat> d_SAJ_mat, d_SAJ_prolongation_mat, d_stokesib_prolongation_mat, d_galerkin_stokesib_mat;
+    std::vector<Vec> d_scale_SAJ_restriction_mat, d_scale_stokesib_restriction_mat;
 
     /*
      * Mappings from patch indices to patch operators.

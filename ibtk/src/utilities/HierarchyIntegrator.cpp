@@ -589,6 +589,12 @@ HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > vis
     return;
 } // registerVisItDataWriter
 
+Pointer<VisItDataWriter<NDIM> >
+HierarchyIntegrator::getVisItDataWriter() const
+{
+    return d_visit_writer;
+}
+
 void
 HierarchyIntegrator::setupPlotData()
 {
@@ -1030,6 +1036,119 @@ HierarchyIntegrator::getHierarchyMathOps() const
 } // HierarchyMathOps
 
 void
+HierarchyIntegrator::registerVariable(int& current_idx,
+                                      int& new_idx,
+                                      int& scratch_idx,
+                                      const Pointer<Variable<NDIM> > variable,
+                                      const IntVector<NDIM>& scratch_ghosts,
+                                      const std::string& coarsen_name,
+                                      const std::string& refine_name,
+                                      Pointer<CartGridFunction> init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(variable);
+#endif
+    d_state_var_init_fcns[variable] = init_fcn;
+
+    const IntVector<NDIM> no_ghosts = 0;
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    current_idx = -1; // insure that uninitialized variable patch data
+    new_idx = -1;     // descriptor indices cause errors
+    scratch_idx = -1;
+
+    d_state_variables.push_back(variable);
+
+    // Setup the current context.
+    current_idx = var_db->registerVariableAndContext(variable, getCurrentContext(), no_ghosts);
+    d_current_data.setFlag(current_idx);
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(current_idx);
+    }
+
+    // Setup the new context.
+    new_idx = var_db->registerVariableAndContext(variable, getNewContext(), no_ghosts);
+    d_new_data.setFlag(new_idx);
+
+    // Setup the scratch context.
+    scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
+    d_scratch_data.setFlag(scratch_idx);
+
+    // Get the data transfer operators.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
+    Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
+
+    // Setup the refine algorithm used to fill data in new or modified patch
+    // levels following a regrid operation.
+    if (refine_operator)
+    {
+        d_fill_after_regrid_bc_idxs.setFlag(scratch_idx);
+        d_fill_after_regrid_prolong_alg.registerRefine(current_idx, current_idx, scratch_idx, refine_operator);
+    }
+
+    // Setup the SYNCH_CURRENT_DATA and SYNCH_NEW_DATA algorithms, used to
+    // synchronize the data on the hierarchy.
+    if (coarsen_operator)
+    {
+        d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(current_idx, current_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(new_idx, new_idx, coarsen_operator);
+    }
+    return;
+} // registerVariable
+
+void
+HierarchyIntegrator::registerVariable(int& idx,
+                                      const Pointer<Variable<NDIM> > variable,
+                                      const IntVector<NDIM>& ghosts,
+                                      Pointer<VariableContext> ctx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(variable);
+#endif
+    if (!ctx) ctx = getScratchContext();
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
+
+    d_scratch_variables.push_back(variable);
+
+    // Setup the scratch context.
+    idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
+    if (*ctx == *getCurrentContext())
+    {
+        d_current_data.setFlag(idx);
+        if (d_registered_for_restart)
+        {
+            var_db->registerPatchDataForRestart(idx);
+        }
+    }
+    else if (*ctx == *getScratchContext())
+        d_scratch_data.setFlag(idx);
+    else if (*ctx == *getNewContext())
+        d_new_data.setFlag(idx);
+    else
+    {
+        TBOX_ERROR(d_object_name << "::registerVariable():\n"
+                                 << "  unrecognized variable context: "
+                                 << ctx->getName()
+                                 << "\n"
+                                 << "  variable context should be one of:\n"
+                                 << "    "
+                                 << getCurrentContext()->getName()
+                                 << ", "
+                                 << getNewContext()->getName()
+                                 << ", or "
+                                 << getScratchContext()->getName()
+                                 << std::endl);
+    }
+    return;
+} // registerVariable
+
+void
 HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("HIERARCHY_INTEGRATOR_VERSION", HIERARCHY_INTEGRATOR_VERSION);
@@ -1294,119 +1413,6 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
     }
     return;
 } // executeApplyGradientDetectorCallbackFcns
-
-void
-HierarchyIntegrator::registerVariable(int& current_idx,
-                                      int& new_idx,
-                                      int& scratch_idx,
-                                      const Pointer<Variable<NDIM> > variable,
-                                      const IntVector<NDIM>& scratch_ghosts,
-                                      const std::string& coarsen_name,
-                                      const std::string& refine_name,
-                                      Pointer<CartGridFunction> init_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(variable);
-#endif
-    d_state_var_init_fcns[variable] = init_fcn;
-
-    const IntVector<NDIM> no_ghosts = 0;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    current_idx = -1; // insure that uninitialized variable patch data
-    new_idx = -1;     // descriptor indices cause errors
-    scratch_idx = -1;
-
-    d_state_variables.push_back(variable);
-
-    // Setup the current context.
-    current_idx = var_db->registerVariableAndContext(variable, getCurrentContext(), no_ghosts);
-    d_current_data.setFlag(current_idx);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(current_idx);
-    }
-
-    // Setup the new context.
-    new_idx = var_db->registerVariableAndContext(variable, getNewContext(), no_ghosts);
-    d_new_data.setFlag(new_idx);
-
-    // Setup the scratch context.
-    scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
-    d_scratch_data.setFlag(scratch_idx);
-
-    // Get the data transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
-    Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
-
-    // Setup the refine algorithm used to fill data in new or modified patch
-    // levels following a regrid operation.
-    if (refine_operator)
-    {
-        d_fill_after_regrid_bc_idxs.setFlag(scratch_idx);
-        d_fill_after_regrid_prolong_alg.registerRefine(current_idx, current_idx, scratch_idx, refine_operator);
-    }
-
-    // Setup the SYNCH_CURRENT_DATA and SYNCH_NEW_DATA algorithms, used to
-    // synchronize the data on the hierarchy.
-    if (coarsen_operator)
-    {
-        d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(current_idx, current_idx, coarsen_operator);
-        d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(new_idx, new_idx, coarsen_operator);
-    }
-    return;
-} // registerVariable
-
-void
-HierarchyIntegrator::registerVariable(int& idx,
-                                      const Pointer<Variable<NDIM> > variable,
-                                      const IntVector<NDIM>& ghosts,
-                                      Pointer<VariableContext> ctx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(variable);
-#endif
-    if (!ctx) ctx = getScratchContext();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
-
-    d_scratch_variables.push_back(variable);
-
-    // Setup the scratch context.
-    idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
-    if (*ctx == *getCurrentContext())
-    {
-        d_current_data.setFlag(idx);
-        if (d_registered_for_restart)
-        {
-            var_db->registerPatchDataForRestart(idx);
-        }
-    }
-    else if (*ctx == *getScratchContext())
-        d_scratch_data.setFlag(idx);
-    else if (*ctx == *getNewContext())
-        d_new_data.setFlag(idx);
-    else
-    {
-        TBOX_ERROR(d_object_name << "::registerVariable():\n"
-                                 << "  unrecognized variable context: "
-                                 << ctx->getName()
-                                 << "\n"
-                                 << "  variable context should be one of:\n"
-                                 << "    "
-                                 << getCurrentContext()->getName()
-                                 << ", "
-                                 << getNewContext()->getName()
-                                 << ", or "
-                                 << getScratchContext()->getName()
-                                 << std::endl);
-    }
-    return;
-} // registerVariable
 
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,

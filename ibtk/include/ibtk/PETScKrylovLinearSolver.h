@@ -432,22 +432,12 @@ private:
     /*!
      * \brief Compute the matrix vector product \f$y=Ax\f$.
      */
-    static PetscErrorCode MatVecMult_A00_SAMRAI(Mat A, Vec x, Vec y);
-
-    /*!
-     * \brief Matrix-vector product for the Schur complement S = A11 - A10 inv(A00) A01.
-     */
-    static PetscErrorCode MatVecMult_Schur_SAMRAI(Mat A, Vec x, Vec y);
+    static PetscErrorCode MatVecMult_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_A00_SAMRAI(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_Schur_SAMRAI(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_SAMRAI(PC pc, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
@@ -462,14 +452,16 @@ private:
 
     std::string d_options_prefix;
 
-    // Data structures for the full system, which may include DOFs associated
-    // with both the AMR grid hierarchy and additional DOFs.
     MPI_Comm d_petsc_comm;
     KSP d_petsc_ksp;
     Mat d_petsc_mat;
+    MatNullSpace d_petsc_nullsp;
     bool d_managing_petsc_ksp;
     bool d_user_provided_mat;
     bool d_user_provided_pc;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
+    Vec d_petsc_nullspace_constant_vec;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace;
 

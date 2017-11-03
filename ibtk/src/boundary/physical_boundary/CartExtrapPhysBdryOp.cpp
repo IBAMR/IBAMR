@@ -123,7 +123,6 @@ compute_quadratic_extrap(D& patch_data,
         {
             if (i_shft(d) != 0)
             {
-#if 1
                 const I& i_intr0 = i_intr;
 
                 I i_intr1 = i_intr;
@@ -140,27 +139,6 @@ compute_quadratic_extrap(D& patch_data,
 
                 return (1.0 / 2.0 * f2 - f1 + 1.0 / 2.0 * f0) * x * x +
                        (-1.0 / 2.0 * f2 + 2.0 * f1 - 3.0 / 2.0 * f0) * x + f0;
-#endif
-
-#if 0
-                // NOTE: The following only works in general for the case that
-                // the ghost cell width is >= 3.
-                const I& i_intr0 = i_intr;
-
-                I i_intr2 = i_intr;
-                i_intr2(d) += 2*i_shft(d);
-
-                I i_intr3 = i_intr2;
-                i_intr3(d) += i_shft(d);
-
-                const double& f0 = patch_data(i_intr0,depth);
-                const double& f2 = patch_data(i_intr2,depth);
-                const double& f3 = patch_data(i_intr3,depth);
-
-                const double x = std::abs(i(d)-i_intr(d));
-
-                return (1.0/3.0*f3-1.0/2.0*f2+1.0/6.0*f0)*x*x+(-2.0/3.0*f3+3.0/2.0*f2-5.0/6.0*f0)*x+f0;
-#endif
             }
         }
     }

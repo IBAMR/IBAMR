@@ -99,11 +99,10 @@ IBHierarchyIntegrator {
    {
 	num_pre_sweeps  = 1
 	num_post_sweeps = 1
-	//U_prolongation_method = "LINEAR_REFINE"
-	//P_prolongation_method = "LINEAR_REFINE"
-	//U_restriction_method  = "CONSERVATIVE_COARSEN"
-	//P_restriction_method  = "CONSERVATIVE_COARSEN"
-        smoother_type = "REDBLACK"
+        U_petsc_prolongation_method = "LINEAR"                 // "RT0"    
+        P_petsc_prolongation_method = "CONSERVATIVE"
+        rediscretize_stokes = FALSE
+        res_rediscretized_stokes = FALSE
 
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
 	level_solver_rel_residual_tol = 1.0e-12

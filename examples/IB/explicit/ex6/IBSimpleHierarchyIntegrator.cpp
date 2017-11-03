@@ -200,8 +200,6 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
-        level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data);
     }
 
     // Deallocate the fluid solver.

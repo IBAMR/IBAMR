@@ -549,8 +549,9 @@ protected:
      * Linear solvers and associated data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_sol_vecs, d_rhs_vecs;
-    std::string d_helmholtz_solver_type, d_helmholtz_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db;
+    std::string d_helmholtz_solver_type, d_helmholtz_precond_type, d_helmholtz_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db,
+        d_helmholtz_sub_precond_db;
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
     std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;

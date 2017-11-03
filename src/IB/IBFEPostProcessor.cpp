@@ -95,49 +95,47 @@ IBFEPostProcessor::~IBFEPostProcessor()
 } // ~IBFEPostProcessor
 
 void
-IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
-                                          libMesh::FEFamily var_fe_family,
-                                          libMesh::Order var_fe_order,
-                                          ScalarMeshFcnPtr var_fcn,
-                                          std::vector<unsigned int> var_fcn_systems,
-                                          void* var_fcn_ctx)
+IBFEPostProcessor::registerScalarVariable(const std::string& name,
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order,
+                                          ScalarMeshFcnPtr fcn,
+                                          const std::vector<SystemData>& system_data,
+                                          void* fcn_ctx)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
-    system.add_variable(var_name, var_fe_order, var_fe_family);
+    System& system = equation_systems->add_system<System>(name + " reconstruction system");
+    system.add_variable(name, fe_order, fe_family);
     d_scalar_var_systems.push_back(&system);
-    d_scalar_var_fcns.push_back(var_fcn);
-    d_scalar_var_fcn_systems.push_back(var_fcn_systems);
-    d_scalar_var_fcn_ctxs.push_back(var_fcn_ctx);
+    d_scalar_var_fcns.push_back(fcn);
+    d_scalar_var_system_data.push_back(system_data);
+    d_scalar_var_fcn_ctxs.push_back(fcn_ctx);
     d_var_systems.push_back(&system);
-    d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
 } // registerScalarVariable
 
 void
-IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
-                                          libMesh::FEFamily var_fe_family,
-                                          libMesh::Order var_fe_order,
-                                          VectorMeshFcnPtr var_fcn,
-                                          std::vector<unsigned int> var_fcn_systems,
-                                          void* var_fcn_ctx,
-                                          unsigned int var_dim)
+IBFEPostProcessor::registerVectorVariable(const std::string& name,
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order,
+                                          VectorMeshFcnPtr fcn,
+                                          const std::vector<SystemData>& system_data,
+                                          void* fcn_ctx,
+                                          unsigned int dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
-    for (unsigned int i = 0; i < var_dim; ++i)
+    System& system = equation_systems->add_system<System>(name + " reconstruction system");
+    for (unsigned int i = 0; i < dim; ++i)
     {
         std::ostringstream os;
-        os << var_name << "_" << i;
-        system.add_variable(os.str(), var_fe_order, var_fe_family);
+        os << name << "_" << i;
+        system.add_variable(os.str(), fe_order, fe_family);
     }
     d_vector_var_systems.push_back(&system);
-    d_vector_var_fcns.push_back(var_fcn);
-    d_vector_var_fcn_systems.push_back(var_fcn_systems);
-    d_vector_var_fcn_ctxs.push_back(var_fcn_ctx);
-    d_vector_var_dims.push_back(var_dim);
+    d_vector_var_fcns.push_back(fcn);
+    d_vector_var_system_data.push_back(system_data);
+    d_vector_var_fcn_ctxs.push_back(fcn_ctx);
+    d_vector_var_dims.push_back(dim);
     d_var_systems.push_back(&system);
-    d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
 } // registerVectorVariable
 
@@ -146,7 +144,7 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
                                           libMesh::FEFamily var_fe_family,
                                           libMesh::Order var_fe_order,
                                           TensorMeshFcnPtr var_fcn,
-                                          std::vector<unsigned int> var_fcn_systems,
+                                          const std::vector<SystemData>& system_data,
                                           void* var_fcn_ctx,
                                           unsigned int var_dim)
 {
@@ -163,11 +161,10 @@ IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     }
     d_tensor_var_systems.push_back(&system);
     d_tensor_var_fcns.push_back(var_fcn);
-    d_tensor_var_fcn_systems.push_back(var_fcn_systems);
+    d_tensor_var_system_data.push_back(system_data);
     d_tensor_var_fcn_ctxs.push_back(var_fcn_ctx);
     d_tensor_var_dims.push_back(var_dim);
     d_var_systems.push_back(&system);
-    d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
 } // registerTensorVariable
 
@@ -188,7 +185,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
                                                ghost_fill_transaction,
                                                d_fe_data_manager->getDefaultInterpSpec());
     return;
-} //
+} // registerInterpolatedScalarEulerianVariable
 
 void
 IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(

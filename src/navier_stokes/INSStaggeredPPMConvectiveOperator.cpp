@@ -566,7 +566,6 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
-    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.

@@ -56,6 +56,7 @@ CONFIGURE_DOT
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
 CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
+CONFIGURE_GTEST
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/eigen")
 CONFIGURE_HDF5

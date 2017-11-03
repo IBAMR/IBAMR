@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "PoissonSpecifications.h"
+#include "petscao.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
@@ -113,6 +114,24 @@ public:
                                           int u_dof_index_idx,
                                           int p_dof_index_idx,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to data
+     * prolongation from a coarser level to a finer level.
+     */
+    static void constructProlongationOp(Mat& mat,
+                                        const std::string& u_op_type,
+                                        const std::string& p_op_type,
+                                        int u_dof_index_idx,
+                                        int p_dof_index_idx,
+                                        const std::vector<int>& num_fine_dofs_per_proc,
+                                        const std::vector<int>& num_coarse_dofs_per_proc,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                        const AO& coarse_level_ao,
+                                        const int u_coarse_ao_offset,
+                                        const int p_coarse_ao_offset);
+
     //\}
 
 protected:

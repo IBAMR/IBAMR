@@ -665,6 +665,8 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
     const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+    IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
     Index<NDIM> num_cells = 1;
     num_cells += domain_upper - domain_lower;
 
@@ -696,7 +698,8 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                 TBOX_ASSERT(dof_idx >= i_lower && dof_idx < i_upper);
 #endif
                 petsc_idxs[counter] = dof_idx;
-                samrai_idxs[counter] = IndexUtilities::mapIndexToInteger(i, domain_lower, num_cells, d, ao_offset);
+                samrai_idxs[counter] =
+                    IndexUtilities::mapIndexToInteger(i, domain_lower, num_cells, d, ao_offset, periodic_shift);
             }
         }
     }

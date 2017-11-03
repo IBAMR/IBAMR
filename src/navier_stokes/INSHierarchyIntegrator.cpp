@@ -481,12 +481,14 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_Q_scale = 1.0;
     d_Omega_scale = 1.0;
     d_Div_U_scale = 1.0;
+    d_EE_scale = 1.0;
     d_output_U = true;
     d_output_P = true;
     d_output_F = false;
     d_output_Q = false;
     d_output_Omega = true;
     d_output_Div_U = true;
+    d_output_EE = false;
     d_velocity_solver = NULL;
     d_pressure_solver = NULL;
 
@@ -573,12 +575,14 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_Q_scale", d_Q_scale);
     db->putDouble("d_Omega_scale", d_Omega_scale);
     db->putDouble("d_Div_U_scale", d_Div_U_scale);
+    db->putDouble("d_EE_scale", d_EE_scale);
     db->putBool("d_output_U", d_output_U);
     db->putBool("d_output_P", d_output_P);
     db->putBool("d_output_F", d_output_F);
     db->putBool("d_output_Q", d_output_Q);
     db->putBool("d_output_Omega", d_output_Omega);
     db->putBool("d_output_Div_U", d_output_Div_U);
+    db->putBool("d_output_EE", d_output_EE);
     return;
 } // putToDatabaseSpecialized
 
@@ -692,12 +696,14 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     if (db->keyExists("Q_scale")) d_Q_scale = db->getDouble("Q_scale");
     if (db->keyExists("Omega_scale")) d_Omega_scale = db->getDouble("Omega_scale");
     if (db->keyExists("Div_U_scale")) d_Div_U_scale = db->getDouble("Div_U_scale");
+    if (db->keyExists("EE_scale")) d_EE_scale = db->getDouble("EE_scale");
     if (db->keyExists("output_U")) d_output_U = db->getBool("output_U");
     if (db->keyExists("output_P")) d_output_P = db->getBool("output_P");
     if (db->keyExists("output_F")) d_output_F = db->getBool("output_F");
     if (db->keyExists("output_Q")) d_output_Q = db->getBool("output_Q");
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
+    if (db->keyExists("output_EE")) d_output_EE = db->getBool("output_EE");
     if (db->keyExists("traction_bc_type"))
         d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 
@@ -715,6 +721,14 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     }
     if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
 
+    if (db->keyExists("velocity_sub_precond_type"))
+    {
+        d_velocity_sub_precond_type = db->getString("velocity_sub_precond_type");
+        if (db->keyExists("velocity_sub_precond_db"))
+            d_velocity_sub_precond_db = db->getDatabase("velocity_sub_precond_db");
+    }
+    if (!d_velocity_sub_precond_db) d_velocity_sub_precond_db = new MemoryDatabase("velocity_sub_precond_db");
+
     if (db->keyExists("pressure_solver_type"))
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
@@ -728,6 +742,14 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     }
     if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
+
+    if (db->keyExists("pressure_sub_precond_type"))
+    {
+        d_pressure_sub_precond_type = db->getString("pressure_sub_precond_type");
+        if (db->keyExists("pressure_sub_precond_db"))
+            d_pressure_sub_precond_db = db->getDatabase("pressure_sub_precond_db");
+    }
+    if (!d_pressure_sub_precond_db) d_pressure_sub_precond_db = new MemoryDatabase("pressure_sub_precond_db");
 
     if (db->keyExists("regrid_projection_solver_type"))
     {
@@ -746,6 +768,15 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     }
     if (!d_regrid_projection_precond_db)
         d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
+
+    if (db->keyExists("regrid_projection_sub_precond_type"))
+    {
+        d_regrid_projection_sub_precond_type = db->getString("regrid_projection_sub_precond_type");
+        if (db->keyExists("regrid_projection_sub_precond_db"))
+            d_regrid_projection_sub_precond_db = db->getDatabase("regrid_projection_sub_precond_db");
+    }
+    if (!d_regrid_projection_sub_precond_db)
+        d_regrid_projection_sub_precond_db = new MemoryDatabase("regrid_projection_sub_precond_db");
     return;
 } // getFromInput
 
@@ -802,12 +833,14 @@ INSHierarchyIntegrator::getFromRestart()
     d_Q_scale = db->getDouble("d_Q_scale");
     d_Omega_scale = db->getDouble("d_Omega_scale");
     d_Div_U_scale = db->getDouble("d_Div_U_scale");
+    d_EE_scale = db->getDouble("d_EE_scale");
     d_output_U = db->getBool("d_output_U");
     d_output_P = db->getBool("d_output_P");
     d_output_F = db->getBool("d_output_F");
     d_output_Q = db->getBool("d_output_Q");
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
+    d_output_EE = db->getBool("d_output_EE");
     return;
 } // getFromRestart
 

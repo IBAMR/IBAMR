@@ -153,6 +153,7 @@ DIM_INDEPENDENT_SOURCES = \
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
+../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp
 endif
 
@@ -309,6 +310,7 @@ pkg_include_HEADERS += \
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
+../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/libmesh_utilities.h
 endif
@@ -331,6 +333,7 @@ $(top_builddir)/src/math/fortran/laplace2d.f \
 $(top_builddir)/src/math/fortran/miscmath2d.f \
 $(top_builddir)/src/math/fortran/vclaplace2d.f \
 $(top_builddir)/src/math/fortran/rot2d.f \
+$(top_builddir)/src/math/fortran/strain2d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
@@ -351,6 +354,7 @@ $(top_builddir)/src/math/fortran/graddetect3d.f \
 $(top_builddir)/src/math/fortran/interp3d.f \
 $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/rot3d.f \
+$(top_builddir)/src/math/fortran/strain3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \

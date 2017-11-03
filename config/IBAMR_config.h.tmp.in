@@ -43,6 +43,9 @@
 /* Define if you have the libgslcblas library. */
 #undef HAVE_LIBGSLCBLAS
 
+/* Define if you have the libgtest library. */
+#undef HAVE_LIBGTEST
+
 /* Define if you have the libhdf5 library. */
 #undef HAVE_LIBHDF5
 

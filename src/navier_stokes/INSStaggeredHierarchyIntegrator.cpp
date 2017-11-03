@@ -429,29 +429,41 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     // Check to see whether the solver types have been set.
     d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED;
     d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;
+    d_stokes_sub_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
+    if (input_db->keyExists("stokes_sub_precond_type"))
+        d_stokes_precond_type = input_db->getString("stokes_sub_precond_type");
 
     d_velocity_solver_type = SCPoissonSolverManager::UNDEFINED;
     d_velocity_precond_type = SCPoissonSolverManager::UNDEFINED;
+    d_velocity_sub_precond_type = SCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("velocity_solver_type"))
         d_velocity_solver_type = input_db->getString("velocity_solver_type");
     if (input_db->keyExists("velocity_precond_type"))
         d_velocity_precond_type = input_db->getString("velocity_precond_type");
+    if (input_db->keyExists("velocity_sub_precond_type"))
+        d_velocity_sub_precond_type = input_db->getString("velocity_sub_precond_type");
 
     d_pressure_solver_type = CCPoissonSolverManager::UNDEFINED;
     d_pressure_precond_type = CCPoissonSolverManager::UNDEFINED;
+    d_pressure_sub_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("pressure_solver_type"))
         d_pressure_solver_type = input_db->getString("pressure_solver_type");
     if (input_db->keyExists("pressure_precond_type"))
         d_pressure_precond_type = input_db->getString("pressure_precond_type");
+    if (input_db->keyExists("pressure_sub_precond_type"))
+        d_pressure_sub_precond_type = input_db->getString("pressure_sub_precond_type");
 
     d_regrid_projection_solver_type = CCPoissonSolverManager::UNDEFINED;
     d_regrid_projection_precond_type = CCPoissonSolverManager::UNDEFINED;
+    d_regrid_projection_sub_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("regrid_projection_solver_type"))
         d_regrid_projection_solver_type = input_db->getString("regrid_projection_solver_type");
     if (input_db->keyExists("regrid_projection_precond_type"))
         d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
+    if (input_db->keyExists("regrid_projection_sub_precond_type"))
+        d_regrid_projection_sub_precond_type = input_db->getString("regrid_projection_sub_precond_type");
 
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
@@ -525,6 +537,14 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     }
     if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase("stokes_precond_db");
 
+    if (input_db->keyExists("stokes_sub_precond_type"))
+    {
+        d_stokes_sub_precond_type = input_db->getString("stokes_sub_precond_type");
+        if (input_db->keyExists("stokes_sub_precond_db"))
+            d_stokes_sub_precond_db = input_db->getDatabase("stokes_sub_precond_db");
+    }
+    if (!d_stokes_sub_precond_db) d_stokes_sub_precond_db = new MemoryDatabase("stokes_sub_precond_db");
+
     // Flag to determine whether we explicitly remove any null space components.
     d_explicitly_remove_nullspace = false;
     if (input_db->keyExists("explicitly_remove_nullspace"))
@@ -565,6 +585,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     d_U_src_var = new SideVariable<NDIM, double>(d_object_name + "::U_src");
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
+    d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
     return;
 } // INSStaggeredHierarchyIntegrator
 
@@ -622,14 +643,19 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
-        d_velocity_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_velocity_solver_type,
-                                                                                 d_object_name + "::velocity_solver",
-                                                                                 d_velocity_solver_db,
-                                                                                 "velocity_",
-                                                                                 d_velocity_precond_type,
-                                                                                 d_object_name + "::velocity_precond",
-                                                                                 d_velocity_precond_db,
-                                                                                 "velocity_pc_");
+        d_velocity_solver =
+            SCPoissonSolverManager::getManager()->allocateSolver(d_velocity_solver_type,
+                                                                 d_object_name + "::velocity_solver",
+                                                                 d_velocity_solver_db,
+                                                                 "velocity_",
+                                                                 d_velocity_precond_type,
+                                                                 d_object_name + "::velocity_precond",
+                                                                 d_velocity_precond_db,
+                                                                 "velocity_pc_",
+                                                                 d_velocity_sub_precond_type,
+                                                                 d_object_name + "::velocity_sub_precond",
+                                                                 d_velocity_sub_precond_db,
+                                                                 "velocity_sub_pc_");
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -640,14 +666,19 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
-        d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_pressure_solver_type,
-                                                                                 d_object_name + "::pressure_solver",
-                                                                                 d_pressure_solver_db,
-                                                                                 "pressure_",
-                                                                                 d_pressure_precond_type,
-                                                                                 d_object_name + "::pressure_precond",
-                                                                                 d_pressure_precond_db,
-                                                                                 "pressure_pc_");
+        d_pressure_solver =
+            CCPoissonSolverManager::getManager()->allocateSolver(d_pressure_solver_type,
+                                                                 d_object_name + "::pressure_solver",
+                                                                 d_pressure_solver_db,
+                                                                 "pressure_",
+                                                                 d_pressure_precond_type,
+                                                                 d_object_name + "::pressure_precond",
+                                                                 d_pressure_precond_db,
+                                                                 "pressure_pc_",
+                                                                 d_pressure_sub_precond_type,
+                                                                 d_object_name + "::pressure_sub_precond",
+                                                                 d_pressure_sub_precond_db,
+                                                                 "pressure_sub_pc_");
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
@@ -669,14 +700,19 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (!d_stokes_solver)
     {
-        d_stokes_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(d_stokes_solver_type,
-                                                                                     d_object_name + "::stokes_solver",
-                                                                                     d_stokes_solver_db,
-                                                                                     "stokes_",
-                                                                                     d_stokes_precond_type,
-                                                                                     d_object_name + "::stokes_precond",
-                                                                                     d_stokes_precond_db,
-                                                                                     "stokes_pc_");
+        d_stokes_solver =
+            StaggeredStokesSolverManager::getManager()->allocateSolver(d_stokes_solver_type,
+                                                                       d_object_name + "::stokes_solver",
+                                                                       d_stokes_solver_db,
+                                                                       "stokes_",
+                                                                       d_stokes_precond_type,
+                                                                       d_object_name + "::stokes_precond",
+                                                                       d_stokes_precond_db,
+                                                                       "stokes_pc_",
+                                                                       d_stokes_sub_precond_type,
+                                                                       d_object_name + "::stokes_sub_precond",
+                                                                       d_stokes_sub_precond_db,
+                                                                       "stokes_sub_pc_");
         d_stokes_solver_needs_init = true;
     }
     return d_stokes_solver;
@@ -971,6 +1007,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         {
             d_visit_writer->registerPlotQuantity("Div U", "SCALAR", d_Div_U_idx, 0, d_Div_U_scale);
         }
+
+        if (d_output_EE)
+        {
+            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getCurrentContext());
+            d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
+        }
     }
 
     // Setup a specialized coarsen algorithm.
@@ -994,6 +1036,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         {
             Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
             if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+            if (!p_stokes_block_pc)
+            {
+                KrylovLinearSolver* p_stokes_krylov_precond =
+                    dynamic_cast<KrylovLinearSolver*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
+                if (p_stokes_krylov_precond) p_stokes_block_pc = p_stokes_krylov_precond->getPreconditioner();
+            }
         }
         if (p_stokes_block_pc)
         {
@@ -2084,6 +2132,27 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         d_hier_math_ops->div(
             d_Div_U_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
     }
+
+    // Compute EE = 0.5*(grad u + grad u^T).
+    if (d_output_EE)
+    {
+        const int EE_idx = var_db->mapVariableAndContextToIndex(d_EE_var, ctx);
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
+        }
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        d_U_bdry_bc_fill_op->fillData(d_integrator_time);
+        d_hier_math_ops->strain_rate(EE_idx, d_EE_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
+    }
     return;
 } // setupPlotDataSpecialized
 
@@ -2111,7 +2180,11 @@ INSStaggeredHierarchyIntegrator::regridProjection()
                                                              d_regrid_projection_precond_type,
                                                              d_object_name + "::regrid_projection_precond",
                                                              d_regrid_projection_precond_db,
-                                                             "regrid_projection_pc_");
+                                                             "regrid_projection_pc_",
+                                                             d_regrid_projection_sub_precond_type,
+                                                             d_object_name + "::regrid_projection_sub_precond",
+                                                             d_regrid_projection_sub_precond_db,
+                                                             "regrid_projection_sub_pc_");
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
@@ -2489,9 +2562,20 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             {
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
-
                 p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
+                if (!(p_stokes_block_pc || p_stokes_fac_pc))
+                {
+                    KrylovLinearSolver* p_stokes_krylov_precond =
+                        dynamic_cast<KrylovLinearSolver*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
+                    if (p_stokes_krylov_precond)
+                    {
+                        p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
+                            p_stokes_krylov_precond->getPreconditioner().getPointer());
+                        p_stokes_fac_pc = dynamic_cast<StaggeredStokesFACPreconditioner*>(
+                            p_stokes_krylov_precond->getPreconditioner().getPointer());
+                    }
+                }
             }
         }
         if (p_stokes_block_pc)

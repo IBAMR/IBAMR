@@ -120,6 +120,7 @@ static Timer* t_vec_dot_norm2;
 #else
 #define PSVR_CHECK1(v)
 #define PSVR_CHECK2(v1, v2)
+#define PSVR_CHECK3(v1, v2, v3)
 #define PSVR_CHECKN(v, N)
 #endif
 }
