@@ -682,56 +682,5 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
     }
-#if 0
-    {
-        double U_L1_norm = 0.0, U_L2_norm = 0.0, U_max_norm = 0.0;
-        System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-        NumericVector<double>* U_vec = U_system.solution.get();
-        NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
-        U_vec->localize(*U_ghost_vec);
-        DofMap& U_dof_map = U_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, U_dof_map.variable_type(0)));
-        libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        const std::vector<double>& JxW = fe->get_JxW();
-        VectorValue<double> U_qp;
-        boost::multi_array<double, 2> U_node;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-            fe->reinit(elem);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                U_dof_map.dof_indices(elem, U_dof_indices[d], d);
-            }
-            const int n_qp = qrule->n_points();
-            get_values_for_interpolation(U_node, *U_ghost_vec, U_dof_indices);
-            for (int qp = 0; qp < n_qp; ++qp)
-            {
-                interpolate(U_qp, qp, U_node, phi);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    U_L1_norm += std::abs(U_qp(d)) * JxW[qp];
-                    U_L2_norm += U_qp(d) * U_qp(d) * JxW[qp];
-                    U_max_norm = std::max(U_max_norm, std::abs(U_qp(d)));
-                }
-            }
-        }
-        SAMRAI_MPI::sumReduction(&U_L1_norm, 1);
-        SAMRAI_MPI::sumReduction(&U_L2_norm, 1);
-        SAMRAI_MPI::maxReduction(&U_max_norm, 1);
-        U_L2_norm = sqrt(U_L2_norm);
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            U_L1_norm_stream << loop_time << " " << U_L1_norm << endl;
-            U_L2_norm_stream << loop_time << " " << U_L2_norm << endl;
-            U_max_norm_stream << loop_time << " " << U_max_norm << endl;
-        }
-    }
-#endif
     return;
 } // postprocess_data

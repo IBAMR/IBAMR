@@ -214,7 +214,6 @@ bool run_example(int argc, char* argv[])
                                             D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
-#if 0
         MeshBase::const_element_iterator el_end = lower_mesh.elements_end();
         for (MeshBase::const_element_iterator el = lower_mesh.elements_begin(); el != el_end; ++el)
         {
@@ -232,7 +231,7 @@ bool run_example(int argc, char* argv[])
                 }
             }
         }
-#endif
+
         Mesh upper_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(upper_mesh,
                                             static_cast<int>(ceil(L / ds)),
@@ -243,7 +242,6 @@ bool run_example(int argc, char* argv[])
                                             2.0 * D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
-#if 0
         el_end = upper_mesh.elements_end();
         for (MeshBase::const_element_iterator el = upper_mesh.elements_begin(); el != el_end; ++el)
         {
@@ -261,7 +259,7 @@ bool run_example(int argc, char* argv[])
                 }
             }
         }
-#endif
+
         vector<Mesh*> meshes(2);
         meshes[0] = &lower_mesh;
         meshes[1] = &upper_mesh;
