@@ -278,6 +278,11 @@ public:
     void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
+     * Get a pointer to the VisIt data writer registered with the solver.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > getVisItDataWriter() const;
+
+    /*!
      * Prepare variables for plotting.
      *
      * Subclasses can control the method used to setup plot data by overriding
@@ -531,6 +536,43 @@ public:
     SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     ///
+    ///  Routines to register new variables with the integrator.
+    ///
+
+    /*!
+     * Register a state variable with the integrator.  When a refine operator is
+     * specified, the data for the variable are automatically maintained as the
+     * patch hierarchy evolves.
+     *
+     * All state variables are registered with three contexts: current, new, and
+     * scratch.  The current context of a state variable is maintained from time
+     * step to time step and, if the necessary coarsen and refine operators are
+     * specified, as the patch hierarchy evolves.
+     */
+    void
+    registerVariable(int& current_idx,
+                     int& new_idx,
+                     int& scratch_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                     const std::string& coarsen_name = "NO_COARSEN",
+                     const std::string& refine_name = "NO_REFINE",
+                     SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
+
+    /*!
+     * Register a variable with the integrator that may not be maintained from
+     * time step to time step.
+     *
+     * By default, variables are registered with the scratch context, which is
+     * deallocated after each time step.
+     */
+    void registerVariable(int& idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                          const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+
+    ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
     ///  abstract base class.
     ///
@@ -689,39 +731,6 @@ protected:
                                              int tag_index,
                                              bool initial_time,
                                              bool uses_richardson_extrapolation_too);
-
-    /*!
-     * Register a state variable with the integrator.  When a refine operator is
-     * specified, the data for the variable are automatically maintained as the
-     * patch hierarchy evolves.
-     *
-     * All state variables are registered with three contexts: current, new, and
-     * scratch.  The current context of a state variable is maintained from time
-     * step to time step and, if the necessary coarsen and refine operators are
-     * specified, as the patch hierarchy evolves.
-     */
-    void
-    registerVariable(int& current_idx,
-                     int& new_idx,
-                     int& scratch_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-                     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-                     const std::string& coarsen_name = "NO_COARSEN",
-                     const std::string& refine_name = "NO_REFINE",
-                     SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
-
-    /*!
-     * Register a variable with the integrator that may not be maintained from
-     * time step to time step.
-     *
-     * By default, variables are registered with the scratch context, which is
-     * deallocated after each time step.
-     */
-    void registerVariable(int& idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-                          const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
 
     /*!
      * Register a ghost cell-filling refine algorithm.

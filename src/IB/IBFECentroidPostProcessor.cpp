@@ -42,6 +42,7 @@
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/auto_ptr.h"
@@ -77,6 +78,33 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+inline void
+get_x_and_FF(libMesh::VectorValue<double>& x,
+             libMesh::TensorValue<double>& FF,
+             const std::vector<double>& x_data,
+             const std::vector<VectorValue<double> >& grad_x_data,
+             const unsigned int dim = NDIM)
+{
+    x.zero();
+    FF.zero();
+    for (unsigned int i = 0; i < dim; ++i)
+    {
+        x(i) = x_data[i];
+        for (unsigned int j = 0; j < dim; ++j)
+        {
+            FF(i, j) = grad_x_data[i](j);
+        }
+    }
+    for (unsigned int i = dim; i < LIBMESH_DIM; ++i)
+    {
+        FF(i, i) = 1.0;
+    }
+    return;
+}
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFECentroidPostProcessor::IBFECentroidPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
@@ -93,49 +121,46 @@ IBFECentroidPostProcessor::~IBFECentroidPostProcessor()
 } // ~IBFECentroidPostProcessor
 
 void
-IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_name,
-                                                  libMesh::FEFamily var_fe_family,
-                                                  libMesh::Order var_fe_order,
-                                                  ScalarMeshFcnPtr var_fcn,
-                                                  std::vector<unsigned int> var_fcn_systems,
-                                                  void* var_fcn_ctx)
+IBFECentroidPostProcessor::registerScalarVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  ScalarMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx)
 {
-    TBOX_ASSERT(var_fe_family == MONOMIAL);
-    TBOX_ASSERT(var_fe_order == CONSTANT);
-    IBFEPostProcessor::registerScalarVariable(
-        var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx);
+    TBOX_ASSERT(fe_family == MONOMIAL);
+    TBOX_ASSERT(fe_order == CONSTANT);
+    IBFEPostProcessor::registerScalarVariable(name, fe_family, fe_order, fcn, system_data, fcn_ctx);
     return;
 } // registerScalarVariable
 
 void
-IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_name,
-                                                  libMesh::FEFamily var_fe_family,
-                                                  libMesh::Order var_fe_order,
-                                                  VectorMeshFcnPtr var_fcn,
-                                                  std::vector<unsigned int> var_fcn_systems,
-                                                  void* var_fcn_ctx,
-                                                  unsigned int var_dim)
+IBFECentroidPostProcessor::registerVectorVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  VectorMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx,
+                                                  unsigned int dim)
 {
-    TBOX_ASSERT(var_fe_family == MONOMIAL);
-    TBOX_ASSERT(var_fe_order == CONSTANT);
-    IBFEPostProcessor::registerVectorVariable(
-        var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx, var_dim);
+    TBOX_ASSERT(fe_family == MONOMIAL);
+    TBOX_ASSERT(fe_order == CONSTANT);
+    IBFEPostProcessor::registerVectorVariable(name, fe_family, fe_order, fcn, system_data, fcn_ctx, dim);
     return;
 } // registerVectorVariable
 
 void
-IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_name,
-                                                  libMesh::FEFamily var_fe_family,
-                                                  libMesh::Order var_fe_order,
-                                                  TensorMeshFcnPtr var_fcn,
-                                                  std::vector<unsigned int> var_fcn_systems,
-                                                  void* var_fcn_ctx,
-                                                  unsigned int var_dim)
+IBFECentroidPostProcessor::registerTensorVariable(const std::string& name,
+                                                  libMesh::FEFamily fe_family,
+                                                  libMesh::Order fe_order,
+                                                  TensorMeshFcnPtr fcn,
+                                                  const std::vector<SystemData>& system_data,
+                                                  void* fcn_ctx,
+                                                  unsigned int dim)
 {
-    TBOX_ASSERT(var_fe_family == MONOMIAL);
-    TBOX_ASSERT(var_fe_order == CONSTANT);
-    IBFEPostProcessor::registerTensorVariable(
-        var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx, var_dim);
+    TBOX_ASSERT(fe_family == MONOMIAL);
+    TBOX_ASSERT(fe_order == CONSTANT);
+    IBFEPostProcessor::registerTensorVariable(name, fe_family, fe_order, fcn, system_data, fcn_ctx, dim);
     return;
 } // registerTensorVariable
 
@@ -147,163 +172,167 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
+    UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
     // Set up all system data required to evaluate the mesh functions.
+    FEDataInterpolation fe(dim, d_fe_data_manager);
+    fe.attachQuadratureRule(qrule.get());
+    fe.evalQuadraturePoints();
+
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<libMesh::Point>& q_point = X_fe->get_xyz();
-    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
     X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     X_data.close();
-
-    for (std::set<unsigned int>::const_iterator cit = d_var_fcn_systems.begin(); cit != d_var_fcn_systems.end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-    }
+    std::vector<int> vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
+    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_data);
 
     const size_t num_scalar_vars = d_scalar_var_systems.size();
     std::vector<const DofMap*> scalar_var_dof_maps(num_scalar_vars);
     std::vector<std::vector<unsigned int> > scalar_var_dof_indices(num_scalar_vars);
-    std::vector<NumericVector<double>*> scalar_var_data(num_scalar_vars);
     std::vector<unsigned int> scalar_var_system_num(num_scalar_vars);
-    std::vector<std::vector<NumericVector<double>*> > scalar_var_fcn_data(num_scalar_vars);
+    std::vector<std::vector<size_t> > scalar_var_fcn_system_idxs(num_scalar_vars);
     for (unsigned int k = 0; k < num_scalar_vars; ++k)
     {
         scalar_var_dof_maps[k] = &d_scalar_var_systems[k]->get_dof_map();
-        scalar_var_data[k] = d_scalar_var_systems[k]->solution.get();
         scalar_var_system_num[k] = d_scalar_var_systems[k]->number();
-        scalar_var_fcn_data[k].reserve(d_scalar_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_scalar_var_fcn_systems[k].begin();
-             cit != d_scalar_var_fcn_systems[k].end();
-             ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            scalar_var_fcn_data[k].push_back(system.current_local_solution.get());
-        }
+        fe.setupInterpolatedSystemDataIndexes(
+            scalar_var_fcn_system_idxs[k], d_scalar_var_system_data[k], equation_systems);
     }
 
     const size_t num_vector_vars = d_vector_var_systems.size();
     std::vector<const DofMap*> vector_var_dof_maps(num_vector_vars);
     std::vector<std::vector<std::vector<unsigned int> > > vector_var_dof_indices(num_vector_vars);
-    std::vector<NumericVector<double>*> vector_var_data(num_vector_vars);
     std::vector<unsigned int> vector_var_system_num(num_vector_vars);
-    std::vector<std::vector<NumericVector<double>*> > vector_var_fcn_data(num_vector_vars);
+    std::vector<std::vector<size_t> > vector_var_fcn_system_idxs(num_vector_vars);
     for (unsigned int k = 0; k < num_vector_vars; ++k)
     {
         vector_var_dof_maps[k] = &d_vector_var_systems[k]->get_dof_map();
         vector_var_dof_indices[k].resize(d_vector_var_dims[k]);
-        vector_var_data[k] = d_vector_var_systems[k]->solution.get();
         vector_var_system_num[k] = d_vector_var_systems[k]->number();
-        vector_var_fcn_data[k].reserve(d_vector_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_vector_var_fcn_systems[k].begin();
-             cit != d_vector_var_fcn_systems[k].end();
-             ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            vector_var_fcn_data[k].push_back(system.current_local_solution.get());
-        }
+        fe.setupInterpolatedSystemDataIndexes(
+            vector_var_fcn_system_idxs[k], d_vector_var_system_data[k], equation_systems);
     }
 
     const size_t num_tensor_vars = d_tensor_var_systems.size();
     std::vector<const DofMap*> tensor_var_dof_maps(num_tensor_vars);
     std::vector<boost::multi_array<std::vector<unsigned int>, 2> > tensor_var_dof_indices(num_tensor_vars);
-    std::vector<NumericVector<double>*> tensor_var_data(num_tensor_vars);
     std::vector<unsigned int> tensor_var_system_num(num_tensor_vars);
-    std::vector<std::vector<NumericVector<double>*> > tensor_var_fcn_data(num_tensor_vars);
+    std::vector<std::vector<size_t> > tensor_var_fcn_system_idxs(num_tensor_vars);
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
         tensor_var_dof_maps[k] = &d_tensor_var_systems[k]->get_dof_map();
         typedef boost::multi_array<std::vector<unsigned int>, 2> array_type;
         array_type::extent_gen extents;
         tensor_var_dof_indices[k].resize(extents[d_tensor_var_dims[k]][d_tensor_var_dims[k]]);
-        tensor_var_data[k] = d_tensor_var_systems[k]->solution.get();
         tensor_var_system_num[k] = d_tensor_var_systems[k]->number();
-        tensor_var_fcn_data[k].reserve(d_tensor_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_tensor_var_fcn_systems[k].begin();
-             cit != d_tensor_var_fcn_systems[k].end();
-             ++cit)
-        {
-            System& system = equation_systems->get_system(*cit);
-            tensor_var_fcn_data[k].push_back(system.current_local_solution.get());
-        }
+        fe.setupInterpolatedSystemDataIndexes(
+            tensor_var_fcn_system_idxs[k], d_tensor_var_system_data[k], equation_systems);
     }
+
+    fe.init(/*use_IB_ghosted_vecs*/ false);
+
+    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
+
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    std::vector<std::vector<const std::vector<double> *> > scalar_var_data(num_scalar_vars),
+        vector_var_data(num_vector_vars), tensor_var_data(num_tensor_vars);
+    std::vector<std::vector<const std::vector<VectorValue<double> > *> > scalar_grad_var_data(num_scalar_vars),
+        vector_grad_var_data(num_vector_vars), tensor_grad_var_data(num_tensor_vars);
 
     // Reconstruct the variables via simple function evaluation.
     TensorValue<double> FF_qp, VV;
-    libMesh::Point X_qp;
-    VectorValue<double> V;
+    VectorValue<double> V, x_qp;
     double v;
-    boost::multi_array<double, 2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
-        X_fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-        }
-
+        fe.reinit(elem);
+        fe.collectDataForInterpolation(elem);
+        fe.interpolate(elem);
         const unsigned int n_qp = qrule->n_points();
-        TBOX_ASSERT(n_qp == 1);
-        const unsigned int qp = 0;
-
-        get_values_for_interpolation(X_node, X_data, X_dof_indices);
-        interpolate(X_qp, qp, X_node, phi_X);
-        jacobian(FF_qp, qp, X_node, dphi_X);
-        const libMesh::Point& s_qp = q_point[qp];
-
-        // Scalar-valued variables.
-        for (unsigned int k = 0; k < num_scalar_vars; ++k)
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            scalar_var_dof_maps[k]->dof_indices(elem, scalar_var_dof_indices[k], 0);
-            d_scalar_var_fcns[k](
-                v, FF_qp, X_qp, s_qp, elem, scalar_var_fcn_data[k], data_time, d_scalar_var_fcn_ctxs[k]);
-            scalar_var_data[k]->set(scalar_var_dof_indices[k][0], v);
-        }
+            const libMesh::Point& X_qp = q_point[qp];
+            const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            get_x_and_FF(x_qp, FF_qp, x_data, grad_x_data);
 
-        // Vector-valued variables.
-        for (unsigned int k = 0; k < num_vector_vars; ++k)
-        {
-            for (unsigned int i = 0; i < d_vector_var_dims[k]; ++i)
+            // Scalar-valued variables.
+            for (unsigned int k = 0; k < num_scalar_vars; ++k)
             {
-                vector_var_dof_maps[k]->dof_indices(elem, vector_var_dof_indices[k][i], i);
+                fe.setInterpolatedDataPointers(
+                    scalar_var_data[k], scalar_grad_var_data[k], scalar_var_fcn_system_idxs[k], elem, qp);
+                scalar_var_dof_maps[k]->dof_indices(elem, scalar_var_dof_indices[k], 0);
+                d_scalar_var_fcns[k](v,
+                                     FF_qp,
+                                     x_qp,
+                                     X_qp,
+                                     elem,
+                                     scalar_var_data[k],
+                                     scalar_grad_var_data[k],
+                                     data_time,
+                                     d_scalar_var_fcn_ctxs[k]);
+                d_scalar_var_systems[k]->solution->set(scalar_var_dof_indices[k][0], v);
             }
-            d_vector_var_fcns[k](
-                V, FF_qp, X_qp, s_qp, elem, vector_var_fcn_data[k], data_time, d_vector_var_fcn_ctxs[k]);
-            for (unsigned int i = 0; i < d_vector_var_dims[k]; ++i)
-            {
-                vector_var_data[k]->set(vector_var_dof_indices[k][i][0], V(i));
-            }
-        }
 
-        // Tensor-valued variables.
-        for (unsigned int k = 0; k < num_tensor_vars; ++k)
-        {
-            for (unsigned int i = 0; i < d_tensor_var_dims[k]; ++i)
+            // Vector-valued variables.
+            for (unsigned int k = 0; k < num_vector_vars; ++k)
             {
-                for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)
+                fe.setInterpolatedDataPointers(
+                    vector_var_data[k], vector_grad_var_data[k], vector_var_fcn_system_idxs[k], elem, qp);
+                for (unsigned int i = 0; i < d_vector_var_dims[k]; ++i)
                 {
-                    tensor_var_dof_maps[k]->dof_indices(
-                        elem, tensor_var_dof_indices[k][i][j], j + i * d_tensor_var_dims[k]);
+                    vector_var_dof_maps[k]->dof_indices(elem, vector_var_dof_indices[k][i], i);
+                }
+                d_vector_var_fcns[k](V,
+                                     FF_qp,
+                                     x_qp,
+                                     X_qp,
+                                     elem,
+                                     vector_var_data[k],
+                                     vector_grad_var_data[k],
+                                     data_time,
+                                     d_vector_var_fcn_ctxs[k]);
+                for (unsigned int i = 0; i < d_vector_var_dims[k]; ++i)
+                {
+                    d_vector_var_systems[k]->solution->set(vector_var_dof_indices[k][i][0], V(i));
                 }
             }
-            d_tensor_var_fcns[k](
-                VV, FF_qp, X_qp, s_qp, elem, tensor_var_fcn_data[k], data_time, d_tensor_var_fcn_ctxs[k]);
-            for (unsigned int i = 0; i < d_tensor_var_dims[k]; ++i)
+
+            // Tensor-valued variables.
+            for (unsigned int k = 0; k < num_tensor_vars; ++k)
             {
-                for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)
+                fe.setInterpolatedDataPointers(
+                    tensor_var_data[k], tensor_grad_var_data[k], tensor_var_fcn_system_idxs[k], elem, qp);
+                for (unsigned int i = 0; i < d_tensor_var_dims[k]; ++i)
                 {
-                    tensor_var_data[k]->set(tensor_var_dof_indices[k][i][j][0], VV(i, j));
+                    for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)
+                    {
+                        tensor_var_dof_maps[k]->dof_indices(
+                            elem, tensor_var_dof_indices[k][i][j], j + i * d_tensor_var_dims[k]);
+                    }
+                }
+                d_tensor_var_fcns[k](VV,
+                                     FF_qp,
+                                     x_qp,
+                                     X_qp,
+                                     elem,
+                                     tensor_var_data[k],
+                                     tensor_grad_var_data[k],
+                                     data_time,
+                                     d_tensor_var_fcn_ctxs[k]);
+                for (unsigned int i = 0; i < d_tensor_var_dims[k]; ++i)
+                {
+                    for (unsigned int j = 0; j < d_tensor_var_dims[k]; ++j)
+                    {
+                        d_tensor_var_systems[k]->solution->set(tensor_var_dof_indices[k][i][j][0], VV(i, j));
+                    }
                 }
             }
         }
@@ -312,15 +341,15 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     // Close all vectors.
     for (unsigned int k = 0; k < num_scalar_vars; ++k)
     {
-        scalar_var_data[k]->close();
+        d_scalar_var_systems[k]->solution->close();
     }
     for (unsigned int k = 0; k < num_vector_vars; ++k)
     {
-        vector_var_data[k]->close();
+        d_vector_var_systems[k]->solution->close();
     }
     for (unsigned int k = 0; k < num_tensor_vars; ++k)
     {
-        tensor_var_data[k]->close();
+        d_tensor_var_systems[k]->solution->close();
     }
     return;
 } // reconstructVariables

@@ -89,7 +89,7 @@ AC_CONFIG_FILES([
   examples/CIBFE/ex1/Makefile
   examples/ConstraintIB/Makefile
   examples/ConstraintIB/eel2d/Makefile
-  examples/ConstraintIB/eel3d/Makefile 
+  examples/ConstraintIB/eel3d/Makefile
   examples/ConstraintIB/falling_sphere/Makefile
   examples/ConstraintIB/flow_past_cylinder/Makefile
   examples/ConstraintIB/impulsively_started_cylinder/Makefile

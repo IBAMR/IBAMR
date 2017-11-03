@@ -88,7 +88,6 @@ public:
                                             bool homogeneous_bc,
                                             int coarsest_ln = -1,
                                             int finest_ln = -1) const;
-
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting

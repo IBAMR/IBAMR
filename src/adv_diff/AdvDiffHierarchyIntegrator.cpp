@@ -673,7 +673,11 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
                                                                  d_helmholtz_precond_type,
                                                                  d_object_name + "::helmholtz_precond::" + name,
                                                                  d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_");
+                                                                 "adv_diff_pc_",
+                                                                 d_helmholtz_sub_precond_type,
+                                                                 d_object_name + "::helmholtz_sub_precond::" + name,
+                                                                 d_helmholtz_sub_precond_db,
+                                                                 "adv_diff_sub_pc_");
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -1204,6 +1208,19 @@ AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_rest
             d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     }
     if (!d_helmholtz_precond_db) d_helmholtz_precond_db = new MemoryDatabase("helmholtz_precond_db");
+
+    if (db->keyExists("sub_precond_type"))
+        d_helmholtz_sub_precond_type = db->getString("sub_precond_type");
+    else if (db->keyExists("helmholtz_sub_precond_type"))
+        d_helmholtz_sub_precond_type = db->getString("helmholtz_sub_precond_type");
+    if (db->keyExists("sub_precond_type") || db->keyExists("helmholtz_sub_precond_type"))
+    {
+        if (db->keyExists("sub_precond_db"))
+            d_helmholtz_sub_precond_db = db->getDatabase("sub_precond_db");
+        else if (db->keyExists("helmholtz_sub_precond_db"))
+            d_helmholtz_sub_precond_db = db->getDatabase("helmholtz_sub_precond_db");
+    }
+    if (!d_helmholtz_sub_precond_db) d_helmholtz_sub_precond_db = new MemoryDatabase("helmholtz_sub_precond_db");
     return;
 } // getFromInput
 

@@ -522,18 +522,21 @@ protected:
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_init;
 
-    std::string d_velocity_solver_type, d_velocity_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_solver_db, d_velocity_precond_db;
+    std::string d_velocity_solver_type, d_velocity_precond_type, d_velocity_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_solver_db, d_velocity_precond_db,
+        d_velocity_sub_precond_db;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
     bool d_velocity_solver_needs_init;
 
-    std::string d_pressure_solver_type, d_pressure_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_solver_db, d_pressure_precond_db;
+    std::string d_pressure_solver_type, d_pressure_precond_type, d_pressure_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_solver_db, d_pressure_precond_db,
+        d_pressure_sub_precond_db;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
     bool d_pressure_solver_needs_init;
 
-    std::string d_regrid_projection_solver_type, d_regrid_projection_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db, d_regrid_projection_precond_db;
+    std::string d_regrid_projection_solver_type, d_regrid_projection_precond_type, d_regrid_projection_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db, d_regrid_projection_precond_db,
+        d_regrid_projection_sub_precond_db;
 
 private:
     /*!

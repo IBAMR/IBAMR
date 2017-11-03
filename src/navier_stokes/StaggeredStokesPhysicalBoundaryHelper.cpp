@@ -159,10 +159,9 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
 } // enforceNormalVelocityBoundaryConditions
 
 void
-StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
-    const int u_data_idx,
-    const int coarsest_ln,
-    const int finest_ln) const
+StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(const int u_data_idx,
+                                                                                const int coarsest_ln,
+                                                                                const int finest_ln) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -182,12 +181,11 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         }
     }
     return;
-}// enforceDivergenceFreeConditionAtBoundary
+} // enforceDivergenceFreeConditionAtBoundary
 
 void
-StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
-    Pointer<SideData<NDIM,double> > u_data,
-    Pointer<Patch<NDIM> > patch) const
+StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideData<NDIM, double> > u_data,
+                                                                                Pointer<Patch<NDIM> > patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
@@ -209,7 +207,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const Index<NDIM>& i = it();
-            if (!bdry_locs_data(i,0))
+            if (!bdry_locs_data(i, 0))
             {
                 // Place i_g in the ghost cell abutting the boundary.
                 Index<NDIM> i_g = i;
@@ -246,7 +244,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         }
     }
     return;
-}// enforceDivergenceFreeConditionAtBoundary
+} // enforceDivergenceFreeConditionAtBoundary
 
 void
 StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,

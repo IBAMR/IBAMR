@@ -89,7 +89,8 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        const vector<const vector<double>*>& /*var_data*/,
+                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -103,7 +104,8 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        const vector<const vector<double>*>& /*var_data*/,
+                        const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -289,31 +291,36 @@ bool run_example(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+        if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
+        {
+            ib_method_ops->registerStressNormalizationPart();
+        }
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up post processor to recover computed stresses.
+        ib_method_ops->initializeFEEquationSystems();
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+
         Pointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
 
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
-                                                                         static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dev",
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
+                                                  vector<SystemData>(),
                                                   &PK1_dev_stress_fcn_data);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
-                                                                         static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
+                                                  vector<SystemData>(),
                                                   &PK1_dil_stress_fcn_data);
 
         Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
@@ -386,11 +393,11 @@ bool run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        ib_post_processor->initializeFEData();
+        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -413,7 +420,7 @@ bool run_example(int argc, char** argv)
             }
             if (uses_exodus)
             {
-                ib_post_processor->postProcessData(loop_time);
+                if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
@@ -464,7 +471,7 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    ib_post_processor->postProcessData(loop_time);
+                    if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
@@ -497,12 +504,12 @@ bool run_example(int argc, char** argv)
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-            AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-            AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            vector<vector<unsigned int> > X_dof_indices(NDIM);
+            libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+            libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
-            const std::vector<double>& JxW = fe->get_JxW();
-            const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            const vector<double>& JxW = fe->get_JxW();
+            const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
             const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
