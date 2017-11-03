@@ -20,7 +20,7 @@ class Configure(config.package.GNUPackage):
   def setupDependencies(self, framework):
     config.package.GNUPackage.setupDependencies(self, framework)
     self.compilerFlags   = framework.require('config.compilerFlags', self)
-    self.mpi             = framework.require('config.packages.MPI',self)
+    self.mpi             = framework.require('config.packages.MPI',  self)
     self.boost           = framework.require('config.packages.boost',self)
     self.deps            = [self.mpi, self.boost]
     return
