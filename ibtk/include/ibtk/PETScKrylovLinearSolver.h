@@ -432,12 +432,22 @@ private:
     /*!
      * \brief Compute the matrix vector product \f$y=Ax\f$.
      */
-    static PetscErrorCode MatVecMult_SAMRAI(Mat A, Vec x, Vec y);
+    static PetscErrorCode MatVecMult_A00_SAMRAI(Mat A, Vec x, Vec y);
+
+    /*!
+     * \brief Matrix-vector product for the Schur complement S = A11 - A10 inv(A00) A01.
+     */
+    static PetscErrorCode MatVecMult_Schur_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-    static PetscErrorCode PCApply_SAMRAI(PC pc, Vec x, Vec y);
+    static PetscErrorCode PCApply_A00_SAMRAI(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    static PetscErrorCode PCApply_Schur_SAMRAI(PC pc, Vec x, Vec y);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.

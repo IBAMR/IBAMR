@@ -57,7 +57,7 @@ PETScSAMRAIVectorReal::createPETScVector(
     static const bool vector_created_via_duplicate = false;
     PETScSAMRAIVectorReal* psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     return psv->d_petsc_vector;
-} // createPETScVector
+}
 
 inline void
 PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
@@ -70,11 +70,12 @@ PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
 #endif
         delete psv;
     }
-    return;
-} // destroyPETScVector
+}
 
-inline SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
-PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
+inline void
+PETScSAMRAIVectorReal::getSAMRAIVector(
+    Vec petsc_vec,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
@@ -82,9 +83,66 @@ PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
 #if !defined(NDEBUG)
     TBOX_ASSERT(psv);
+    TBOX_ASSERT(!psv->d_vector_checked_out_read);
 #endif
-    return psv->d_samrai_vector;
-} // getSAMRAIVector
+    psv->d_vector_checked_out_read_write = true;
+    *samrai_vec = psv->d_samrai_vector;
+}
+
+inline void
+PETScSAMRAIVectorReal::restoreSAMRAIVector(
+    Vec petsc_vec,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(petsc_vec);
+#endif
+    PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(psv);
+    TBOX_ASSERT(psv->d_vector_checked_out_read_write);
+    TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
+#endif
+    psv->d_vector_checked_out_read_write = false;
+    *samrai_vec = NULL;
+    int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_vec));
+    IBTK_CHKERRQ(ierr);
+}
+
+inline void
+PETScSAMRAIVectorReal::getSAMRAIVectorRead(
+    Vec petsc_vec,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(petsc_vec);
+#endif
+    PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(psv);
+    TBOX_ASSERT(!psv->d_vector_checked_out_read_write);
+#endif
+    psv->d_vector_checked_out_read = true;
+    *samrai_vec = psv->d_samrai_vector;
+}
+
+inline void
+PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(
+    Vec petsc_vec,
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(petsc_vec);
+#endif
+    PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(psv);
+    TBOX_ASSERT(psv->d_vector_checked_out_read);
+    TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
+#endif
+    psv->d_vector_checked_out_read = false;
+    *samrai_vec = NULL;
+}
 
 inline void
 PETScSAMRAIVectorReal::replaceSAMRAIVector(
@@ -102,8 +160,7 @@ PETScSAMRAIVectorReal::replaceSAMRAIVector(
     psv->d_samrai_vector = samrai_vec;
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_vec));
     IBTK_CHKERRQ(ierr);
-    return;
-} // getSAMRAIVector
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

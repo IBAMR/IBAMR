@@ -100,10 +100,37 @@ public:
     static void destroyPETScVector(Vec petsc_vec);
 
     /*!
-     * Return pointer to the SAMRAI vector object associated with the given
+     * Get a pointer to the SAMRAI vector object associated with the given
      * PETSc vector object.
+     *
+     * \note The SAMRAI vector must be restored by calling restoreSAMRAIVector().
      */
-    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > getSAMRAIVector(Vec petsc_vec);
+    static void getSAMRAIVector(Vec petsc_vec,
+                                SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec);
+
+    /*!
+     * Restore the SAMRAI vector object associated with the given PETSc vector object.
+     */
+    static void
+    restoreSAMRAIVector(Vec petsc_vec,
+                        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec);
+
+    /*!
+     * Get a pointer to the SAMRAI vector object associated with the given
+     * PETSc vector object.  This vector must be treated as read only.
+     *
+     * \note The SAMRAI vector must be restored by calling restoreSAMRAIVectorRead().
+     */
+    static void
+    getSAMRAIVectorRead(Vec petsc_vec,
+                        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec);
+
+    /*!
+     * Restore the SAMRAI vector object associated with the given PETSc vector object.
+     */
+    static void
+    restoreSAMRAIVectorRead(Vec petsc_vec,
+                            SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >* samrai_vec);
 
     /*!
      * Replace the SAMRAI vector object associated with the given PETSc vector
@@ -170,6 +197,69 @@ private:
 
     static PetscErrorCode VecDestroy_SAMRAI(Vec v);
 
+    static PetscErrorCode VecDuplicateVecs_SAMRAI(Vec v, PetscInt m, Vec* V[]);
+
+    static PetscErrorCode VecDestroyVecs_SAMRAI(PetscInt m, Vec vv[]);
+
+    static PetscErrorCode VecDot_SAMRAI(Vec x, Vec y, PetscScalar* val);
+
+    static PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val);
+
+    static PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val);
+
+    static PetscErrorCode VecTDot_SAMRAI(Vec x, Vec y, PetscScalar* val);
+
+    static PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val);
+
+    static PetscErrorCode VecScale_SAMRAI(Vec x, PetscScalar alpha);
+
+    static PetscErrorCode VecCopy_SAMRAI(Vec x, Vec y);
+
+    static PetscErrorCode VecSet_SAMRAI(Vec x, PetscScalar alpha);
+
+    static PetscErrorCode VecSwap_SAMRAI(Vec x, Vec y);
+
+    static PetscErrorCode VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x);
+
+    static PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x);
+
+    static PetscErrorCode VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x);
+
+    static PetscErrorCode VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x);
+
+    static PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y);
+
+    static PetscErrorCode
+    VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y);
+
+    static PetscErrorCode VecPointwiseMult_SAMRAI(Vec w, Vec x, Vec y);
+
+    static PetscErrorCode VecPointwiseDivide_SAMRAI(Vec w, Vec x, Vec y);
+
+    static PetscErrorCode VecGetSize_SAMRAI(Vec v, PetscInt* size);
+
+    static PetscErrorCode VecGetLocalSize_SAMRAI(Vec v, PetscInt* size);
+
+    static PetscErrorCode VecMax_SAMRAI(Vec x, PetscInt* p, PetscScalar* val);
+
+    static PetscErrorCode VecMin_SAMRAI(Vec x, PetscInt* p, PetscScalar* val);
+
+    static PetscErrorCode VecSetRandom_SAMRAI(Vec x, PetscRandom rctx);
+
+    static PetscErrorCode VecDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val);
+
+    static PetscErrorCode VecTDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val);
+
+    static PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val);
+
+    static PetscErrorCode VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val);
+
+    static PetscErrorCode VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val);
+
+    static PetscErrorCode VecMaxPointwiseDivide_SAMRAI(Vec x, Vec y, PetscScalar* max);
+
+    static PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm);
+
     /*
      * Vector data is maintained in the SAMRAI vector structure.
      */
@@ -179,7 +269,7 @@ private:
      * PETSc vector object corresponding to this PETScAbstractVectorReal object.
      */
     Vec d_petsc_vector;
-    bool d_vector_created_via_duplicate;
+    bool d_vector_created_via_duplicate, d_vector_checked_out_read_write, d_vector_checked_out_read;
 };
 } // namespace IBTK
 
