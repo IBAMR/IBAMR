@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBTK],[140227],[griffith@cims.nyu.edu],[IBTK],[https://ibamr.googlecode.com])
+AC_INIT([IBTK],[171104],[boyceg@gmail.com],[IBAMR],[https://ibamr.github.io])
 AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])

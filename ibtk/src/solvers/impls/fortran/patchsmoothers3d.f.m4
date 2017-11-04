@@ -3,7 +3,7 @@ c     Patch smoothers for use in multigrid preconditioners.
 c
 c     Created on 25 Aug 2010 by Boyce Griffith
 c
-c     Copyright (c) 2002-2014, Boyce Griffith
+c     Copyright (c) 2002-2017, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
