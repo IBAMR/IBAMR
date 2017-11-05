@@ -127,7 +127,7 @@ int main()
   fi
 
   if test -e "$LIBMESH_DIR/include/boost" ; then
-    AC_MSG_ERROR([libMesh must be configured to use an external boost library])
+    AC_MSG_ERROR([libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
   fi
 
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
