@@ -50,10 +50,9 @@ circular_interface_neighborhood(int D_idx,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                const double distance =
-                    std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
+                const double distance = std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
 #if (NDIM == 3)
-                + std::pow((coord[2] - X0(2)), 2.0)
+                                                  + std::pow((coord[2] - X0(2)), 2.0)
 #endif
                 );
                 if (distance < R - 2.0 * patch_dx[0])
