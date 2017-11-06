@@ -104,6 +104,7 @@ public:
                                                       double time,
                                                       bool initial_time,
                                                       void* ctx);
+
     /*!
      * \brief Register interface neighborhood locating functions.
      */
@@ -124,8 +125,6 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     // Book-keeping.
     std::string d_object_name;
@@ -145,8 +144,6 @@ protected:
     // Neighborhood locating functions.
     std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
     std::vector<void*> d_locate_interface_fcns_ctx;
-
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 
 private:
     /*!

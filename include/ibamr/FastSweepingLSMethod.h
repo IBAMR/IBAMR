@@ -100,14 +100,10 @@ public:
                           double time,
                           bool initial_time);
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     // Algorithm parameters.
     bool d_consider_phys_bdry_wall;
     int d_wall_location_idx[2 * NDIM];
-
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 
 private:
     /*!
