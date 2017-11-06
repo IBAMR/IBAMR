@@ -3,7 +3,7 @@ c     Routines to compute discrete strain rate on patches.
 c
 c     Created on 08 Dec 2016 by Nishant Nangia
 c
-c     Copyright (c) 2002-2014, Boyce Griffith
+c     Copyright (c) 2002-2017, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without

@@ -34,13 +34,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "RigidBodyKinematics.h"
-#include "PatchLevel.h"
 #include "CartesianPatchGeometry.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/MathUtilities.h"
+#include "PatchLevel.h"
+#include "RigidBodyKinematics.h"
 #include "ibamr/namespaces.h"
 #include "muParser.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 
 namespace IBAMR
 {

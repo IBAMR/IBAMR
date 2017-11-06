@@ -1,7 +1,7 @@
 // Filename: LSInitStrategy.cpp
 // Created on 27 Sep 2017 by Amneet Bhalla and Nishant Nangia
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2002-2017, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

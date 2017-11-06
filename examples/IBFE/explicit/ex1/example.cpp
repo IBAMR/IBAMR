@@ -51,6 +51,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -68,7 +69,7 @@ namespace ModelData
 // Problem parameters.
 static const double R = 0.25;
 static const double w = 0.0625;
-static const double gamma = 0.1;
+static const double gamma = 0.15;
 static const double mu = 1.0;
 
 // Coordinate mapping function.
@@ -88,7 +89,8 @@ PK1_stress_function(TensorValue<double>& PP,
                     const libMesh::Point& /*X*/,
                     const libMesh::Point& /*s*/,
                     Elem* const /*elem*/,
-                    const std::vector<NumericVector<double>*>& /*system_data*/,
+                    const std::vector<const std::vector<double>*>& /*var_data*/,
+                    const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                     double /*time*/,
                     void* /*ctx*/)
 {
@@ -244,8 +246,36 @@ run_example(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IBFE solver.
+        ib_method_ops->initializeFEEquationSystems();
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+        ib_method_ops->registerPK1StressFunction(IBFEMethod::PK1StressFcnData(PK1_stress_function));
+        if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
+        {
+            ib_method_ops->registerStressNormalizationPart();
+        }
+
+        // Set up post processor to recover computed stresses.
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+        {
+            Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+            Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+            HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+                /*data_idx*/ -1,
+                "LINEAR_REFINE",
+                /*use_cf_bdry_interpolation*/ false,
+                "CONSERVATIVE_COARSEN",
+                "LINEAR");
+            FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
+                                                    QGAUSS,
+                                                    FIFTH,
+                                                    /*use_adaptive_quadrature*/ false,
+                                                    /*point_density*/ 2.0,
+                                                    /*use_consistent_mass_matrix*/ true);
+            ib_post_processor->registerInterpolatedScalarEulerianVariable(
+                "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
+        }
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -304,7 +334,7 @@ run_example(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
@@ -314,6 +344,7 @@ run_example(int argc, char* argv[])
             system.get_dof_map().add_periodic_boundary(pbc);
         }
         ib_method_ops->initializeFEData();
+        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -336,6 +367,7 @@ run_example(int argc, char* argv[])
             }
             if (uses_exodus)
             {
+                if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
@@ -386,6 +418,7 @@ run_example(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
+                    if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
@@ -421,8 +454,8 @@ run_example(int argc, char* argv[])
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-            AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-            AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+            libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const std::vector<double>& JxW = fe->get_JxW();
             const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();

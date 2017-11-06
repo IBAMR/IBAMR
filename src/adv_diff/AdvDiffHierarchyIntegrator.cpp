@@ -1,7 +1,7 @@
 // Filename: AdvDiffHierarchyIntegrator.cpp
 // Created on 21 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -1224,6 +1224,19 @@ AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_rest
             d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     }
     if (!d_helmholtz_precond_db) d_helmholtz_precond_db = new MemoryDatabase("helmholtz_precond_db");
+
+    if (db->keyExists("sub_precond_type"))
+        d_helmholtz_sub_precond_type = db->getString("sub_precond_type");
+    else if (db->keyExists("helmholtz_sub_precond_type"))
+        d_helmholtz_sub_precond_type = db->getString("helmholtz_sub_precond_type");
+    if (db->keyExists("sub_precond_type") || db->keyExists("helmholtz_sub_precond_type"))
+    {
+        if (db->keyExists("sub_precond_db"))
+            d_helmholtz_sub_precond_db = db->getDatabase("sub_precond_db");
+        else if (db->keyExists("helmholtz_sub_precond_db"))
+            d_helmholtz_sub_precond_db = db->getDatabase("helmholtz_sub_precond_db");
+    }
+    if (!d_helmholtz_sub_precond_db) d_helmholtz_sub_precond_db = new MemoryDatabase("helmholtz_sub_precond_db");
     return;
 } // getFromInput
 

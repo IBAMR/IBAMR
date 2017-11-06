@@ -1,7 +1,7 @@
 // Filename: CIBSaddlePointSolver.h
 // Created on 10 Nov 2014 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

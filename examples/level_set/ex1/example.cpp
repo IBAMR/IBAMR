@@ -265,10 +265,9 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
                     const double distance =
                         std::sqrt(std::pow((coord[0] - circle.X0(0)), 2.0) + std::pow((coord[1] - circle.X0(1)), 2.0)
 #if (NDIM == 3)
-                                  +
-                                  std::pow((coord[2] - circle.X0(2)), 2.0)
+                                  + std::pow((coord[2] - circle.X0(2)), 2.0)
 #endif
-                                      );
+                        );
 
                     (*E_data)(ci) = distance - circle.R;
                 }

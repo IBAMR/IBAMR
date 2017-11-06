@@ -2,9 +2,9 @@
 # -------------------------------------------------------------
 AC_DEFUN([CONFIGURE_GTEST],[
 echo
-echo "==================================================="
+echo "=================================================="
 echo "Configuring optional package Google Test Framework"
-echo "==================================================="
+echo "=================================================="
 
 PACKAGE_SETUP_ENVIRONMENT
 
@@ -145,12 +145,9 @@ if test "$GTEST_ENABLED" = yes; then
   PACKAGE_LIBS_PREPEND("$LIBGTEST")
  
 else
-  AC_MSG_NOTICE([Optional package Google Test Framework is DISABLED
-  
-  ])
+  AC_MSG_NOTICE([Optional package Google Test Framework is DISABLED])
 fi
 
 PACKAGE_RESTORE_ENVIRONMENT
-echo
 
 ])

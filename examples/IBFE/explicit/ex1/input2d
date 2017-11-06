@@ -23,6 +23,7 @@ IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta fun
 SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
+ELIMINATE_PRESSURE_JUMPS   = FALSE             // whether to modify the stress to eliminate jumps in the Eulerian pressure field
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                    = 0.3               // maximum CFL number

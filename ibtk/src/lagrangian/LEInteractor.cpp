@@ -1,7 +1,7 @@
 // Filename: LEInteractor.cpp
 // Created on 14 Jul 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include "Patch.h"
 #include "SideData.h"
 #include "SideGeometry.h"
+#include <Eigen/Dense>
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
@@ -978,6 +979,351 @@ ib4_kernel_fcn(double r)
         return 0.0;
     }
 }
+
+inline int
+NINT(double a)
+{
+    return (a >= 0.0 ? static_cast<int>(a + 0.5) : static_cast<int>(a - 0.5));
+}
+
+typedef boost::multi_array<double, 1> Weight;
+typedef boost::array<Weight, NDIM> TensorProductWeights;
+typedef boost::multi_array<double, NDIM> MLSWeight;
+
+void
+perform_mls(const int stencil_sz,
+            const double* const X,
+            const int* const stencil_lower,
+            const int* const /*stencil_upper*/,
+            const double* const p_start,
+            const double* const dx,
+            const ArrayData<NDIM, double>& mask_data,
+            const TensorProductWeights& D,
+            MLSWeight& Psi)
+{
+    MLSWeight::extent_gen extents;
+    MLSWeight T;
+
+#if (NDIM == 2)
+    T.resize(extents[stencil_sz][stencil_sz]);
+    Psi.resize(extents[stencil_sz][stencil_sz]);
+#elif(NDIM == 3)
+    T.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
+    Psi.resize(extents[stencil_sz][stencil_sz][stencil_sz]);
+#endif
+
+    // Compute the tensor product of the weights.
+    double x[NDIM], p_j, p_k;
+#if (NDIM == 3)
+    for (int i2 = 0; i2 < stencil_sz; ++i2)
+    {
+        const int ic2 = stencil_lower[2] + i2;
+#endif
+        for (int i1 = 0; i1 < stencil_sz; ++i1)
+        {
+            const int ic1 = stencil_lower[1] + i1;
+            for (int i0 = 0; i0 < stencil_sz; ++i0)
+            {
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+#endif
+            }
+        }
+#if (NDIM == 3)
+    }
+#endif
+
+    // Set the Gram matrix and the RHS.
+    // Here we are solving the equation of the type G L = p, in which p
+    // is the vector of basis functions that we want to reproduce, G is Gram
+    // matrix and L is Lagrange muliplier which imposes the reproducibilty constraint.
+    Eigen::Matrix<double, NDIM + 1, NDIM + 1> G;
+    G.setZero();
+    Eigen::Matrix<double, NDIM + 1, 1> p, L;
+    p[0] = 1.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        p[d + 1] = X[d];
+    }
+
+    for (int j = 0; j <= NDIM; ++j)
+    {
+        for (int k = 0; k <= NDIM; ++k)
+        {
+#if (NDIM == 3)
+            for (int i2 = 0; i2 < stencil_sz; ++i2)
+            {
+                x[2] = p_start[2] + i2 * dx[2];
+#endif
+                for (int i1 = 0; i1 < stencil_sz; ++i1)
+                {
+                    x[1] = p_start[1] + i1 * dx[1];
+                    for (int i0 = 0; i0 < stencil_sz; ++i0)
+                    {
+                        x[0] = p_start[0] + i0 * dx[0];
+
+#if (NDIM == 2)
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
+                        G(j, k) += p_j * p_k * T[i1][i0];
+#elif(NDIM == 3)
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
+                    G(j, k) += p_j * p_k * T[i2][i1][i0];
+#endif
+                    }
+                }
+#if (NDIM == 3)
+            }
+#endif
+        }
+    }
+
+    // Solve the system for L
+    L = G.ldlt().solve(p);
+
+    // Find the modified weights using the Lagrange multiplier and to-be-reproduced
+    // polynomial basis.
+    std::fill(Psi.origin(), Psi.origin() + Psi.num_elements(), 0.0);
+#if (NDIM == 3)
+    for (int i2 = 0; i2 < stencil_sz; ++i2)
+    {
+        x[2] = p_start[2] + i2 * dx[2];
+#endif
+        for (int i1 = 0; i1 < stencil_sz; ++i1)
+        {
+            x[1] = p_start[1] + i1 * dx[1];
+            for (int i0 = 0; i0 < stencil_sz; ++i0)
+            {
+                x[0] = p_start[0] + i0 * dx[0];
+#if (NDIM == 2)
+                for (int j = 0; j <= 2; ++j)
+                {
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : x[1]);
+                    Psi[i1][i0] += L[j] * p_j;
+                }
+                Psi[i1][i0] *= T[i1][i0];
+#elif(NDIM == 3)
+            for (int j = 0; j <= 3; ++j)
+            {
+                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                Psi[i2][i1][i0] += L[j] * p_j;
+            }
+            Psi[i2][i1][i0] *= T[i2][i1][i0];
+#endif
+            }
+        }
+#if (NDIM == 3)
+    }
+#endif
+
+    return;
+
+} // perform_mls
+
+void
+get_mls_weights(const std::string& kernel_fcn,
+                const double* const X,
+                const double* const X_shift,
+                const double* const dx,
+                const double* const x_lower,
+                const int* const ilower,
+                const ArrayData<NDIM, double>& mask_data,
+                int* stencil_lower,
+                int* stencil_upper,
+                MLSWeight& Psi)
+{
+    Weight::extent_gen extents;
+
+    if (kernel_fcn == "IB_4")
+    {
+        // Resize some arrays.
+        const int stencil_sz = LEInteractor::getStencilSize("IB_4");
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[stencil_sz]);
+        }
+
+        // Determine the interpolation stencil corresponding to the position
+        // of X within the cell and compute the regular IB weights.
+        double X_dx, q, r, p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
+            stencil_lower[d] = NINT(X_dx) + ilower[d] - 2;
+            stencil_upper[d] = stencil_lower[d] + 3;
+            r = X_dx - ((stencil_lower[d] + 1 - ilower[d]) + 0.5);
+            p_start[d] = X[d] - (r + 1) * dx[d];
+            q = std::sqrt(1.0 + 4.0 * r * (1.0 - r));
+            D[d][0] = 0.125 * (3.0 - 2.0 * r - q);
+            D[d][1] = 0.125 * (3.0 - 2.0 * r + q);
+            D[d][2] = 0.125 * (1.0 + 2.0 * r + q);
+            D[d][3] = 0.125 * (1.0 + 2.0 * r - q);
+        }
+        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+    }
+    else if (kernel_fcn == "USER_DEFINED")
+    {
+        boost::array<double, NDIM> X_cell;
+        boost::array<int, NDIM> stencil_center;
+
+        // Determine the Cartesian cell in which X is located.
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            stencil_center[d] = static_cast<int>(std::floor((X[d] + X_shift[d] - x_lower[d]) / dx[d])) + ilower[d];
+            X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
+        }
+
+        // Determine the interpolation stencil corresponding to the position of
+        // X within the cell.
+        if (LEInteractor::s_kernel_fcn_stencil_size % 2 == 0)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (X[d] < X_cell[d])
+                {
+                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
+                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2 - 1;
+                }
+                else
+                {
+                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2 + 1;
+                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+                }
+            }
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
+                stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+            }
+        }
+
+        // Compute the kernel function weights.
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[LEInteractor::s_kernel_fcn_stencil_size]);
+        }
+
+        double p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
+            for (int k = 0, j = stencil_lower[d]; j <= stencil_upper[d]; ++j, ++k)
+            {
+                D[d][k] = LEInteractor::s_kernel_fcn(
+                    (X[d] + X_shift[d] - (X_cell[d] + static_cast<double>(j - stencil_center[d]) * dx[d])) / dx[d]);
+            }
+        }
+        perform_mls(
+            LEInteractor::s_kernel_fcn_stencil_size, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+    }
+
+    return;
+} // get_mls_weights
+
+void
+interpolate_data(const int stencil_sz,
+                 const int* const ig_lower,
+                 const int* const ig_upper,
+                 const int* const stencil_lower,
+                 const int* const stencil_upper,
+                 const ArrayData<NDIM, double>& q_data,
+                 const int q_comp,
+                 const MLSWeight& Psi,
+                 double& Q)
+{
+    int istart[NDIM], istop[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        istart[d] = std::max(ig_lower[d] - stencil_lower[d], 0);
+        istop[d] = (stencil_sz - 1) - std::max(stencil_upper[d] - ig_upper[d], 0);
+    }
+
+    // Interpolate q onto Q using the modified weights.
+    Q = 0.0;
+#if (NDIM == 3)
+    for (int i2 = istart[2]; i2 <= istop[2]; ++i2)
+    {
+        const int ic2 = stencil_lower[2] + i2;
+#endif
+        for (int i1 = istart[1]; i1 <= istop[1]; ++i1)
+        {
+            const int ic1 = stencil_lower[1] + i1;
+            for (int i0 = istart[0]; i0 <= istop[0]; ++i0)
+            {
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                Q += q_data(idx, q_comp) * Psi[i1][i0];
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+#endif
+            }
+        }
+#if (NDIM == 3)
+    }
+#endif
+
+    return;
+
+} // interpolate_data
+
+void
+spread_data(const int stencil_sz,
+            const int* const ig_lower,
+            const int* const ig_upper,
+            const int* const stencil_lower,
+            const int* const stencil_upper,
+            const double* const dx,
+            ArrayData<NDIM, double>& q_data,
+            const int q_comp,
+            const MLSWeight& Psi,
+            const double& Q)
+{
+    int istart[NDIM], istop[NDIM];
+    double fac = 1.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        istart[d] = std::max(ig_lower[d] - stencil_lower[d], 0);
+        istop[d] = (stencil_sz - 1) - std::max(stencil_upper[d] - ig_upper[d], 0);
+        fac /= dx[d];
+    }
+
+#if (NDIM == 3)
+    for (int i2 = istart[2]; i2 <= istop[2]; ++i2)
+    {
+        const int ic2 = stencil_lower[2] + i2;
+#endif
+        for (int i1 = istart[1]; i1 <= istop[1]; ++i1)
+        {
+            const int ic1 = stencil_lower[1] + i1;
+            for (int i0 = istart[0]; i0 <= istop[0]; ++i0)
+            {
+                const int ic0 = stencil_lower[0] + i0;
+#if (NDIM == 2)
+                const Index<NDIM> idx(ic0, ic1);
+                q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
+#elif(NDIM == 3)
+            const Index<NDIM> idx(ic0, ic1, ic2);
+            q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+#endif
+            }
+        }
+#if (NDIM == 3)
+    }
+#endif
+} // spread_data
 }
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -1523,6 +1869,31 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
+                          const Pointer<CellData<NDIM, double> > mask_data,
+                          const Pointer<CellData<NDIM, double> > q_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
                           const Pointer<NodeData<NDIM, double> > q_data,
                           const Pointer<Patch<NDIM> > patch,
                           const Box<NDIM>& interp_box,
@@ -1558,6 +1929,31 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                 &X_data[0],
                 static_cast<int>(X_data.size()),
                 X_depth,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double> > mask_data,
+                          const Pointer<SideData<NDIM, double> > q_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                mask_data,
                 q_data,
                 patch,
                 interp_box,
@@ -1648,6 +2044,136 @@ LEInteractor::interpolate(double* const Q_data,
                     periodic_shifts,
                     interp_fcn);
     }
+    return;
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<CellData<NDIM, double> > mask_data,
+                          const Pointer<CellData<NDIM, double> > q_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& interp_box,
+                          const std::string& interp_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(mask_data->getDepth() == 1);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+    const IntVector<NDIM>& iupper = patch_box.upper();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = q_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(interp_fcn);
+    const int min_ghosts = getMinimumGhostWidth(interp_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
+                   << "  kernel function          = "
+                   << interp_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = "
+                   << interp_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << stencil_size
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << mask_gcw_min
+                   << "\n");
+    }
+    const IntVector<NDIM> ig_lower = ilower - q_gcw;
+    const IntVector<NDIM> ig_upper = iupper + q_gcw;
+
+    // Get boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Interpolate.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        IntVector<NDIM> stencil_lower, stencil_upper;
+        for (int k = 0; k < nindices; ++k)
+        {
+            int s = local_indices[k];
+            MLSWeight Psi;
+            const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
+            get_mls_weights(interp_fcn,
+                            &X_data[s * NDIM],
+                            &periodic_shifts[k * NDIM],
+                            dx,
+                            x_lower,
+                            ilower,
+                            mask_data->getArrayData(),
+                            stencil_lower,
+                            stencil_upper,
+                            Psi);
+
+            for (int comp = 0; comp < Q_depth; ++comp)
+            {
+                interpolate_data(stencil_sz,
+                                 ig_lower,
+                                 ig_upper,
+                                 stencil_lower,
+                                 stencil_upper,
+                                 q_data->getArrayData(),
+                                 comp,
+                                 Psi,
+                                 Q_data[s * Q_depth + comp]);
+            }
+        }
+    }
+
     return;
 }
 
@@ -1807,6 +2333,148 @@ LEInteractor::interpolate(double* const Q_data,
             }
         }
     }
+    return;
+}
+
+void
+LEInteractor::interpolate(double* const Q_data,
+                          const int Q_size,
+                          const int Q_depth,
+                          const double* const X_data,
+                          const int X_size,
+                          const int X_depth,
+                          const Pointer<SideData<NDIM, double> > mask_data,
+                          const Pointer<SideData<NDIM, double> > q_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const Box<NDIM>& interp_box,
+                          const std::string& interp_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(q_data->getDepth() == 1);
+    TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(mask_data->getDepth() == 1);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(interp_fcn);
+    const int min_ghosts = getMinimumGhostWidth(interp_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:\n"
+                   << "  kernel function          = "
+                   << interp_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = "
+                   << interp_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << stencil_size
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << mask_gcw_min
+                   << "\n");
+    }
+
+    // Get boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Interpolate.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        IntVector<NDIM> stencil_lower, stencil_upper;
+
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis);
+            const IntVector<NDIM> ig_lower = data_box.lower() - q_gcw;
+            const IntVector<NDIM> ig_upper = data_box.upper() + q_gcw;
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5 * dx[axis];
+            x_upper_axis[axis] += 0.5 * dx[axis];
+
+            for (int k = 0; k < nindices; ++k)
+            {
+                int s = local_indices[k];
+                MLSWeight Psi;
+                const int stencil_sz = LEInteractor::getStencilSize(interp_fcn);
+                get_mls_weights(interp_fcn,
+                                &X_data[s * NDIM],
+                                &periodic_shifts[k * NDIM],
+                                dx,
+                                x_lower_axis.data(),
+                                ilower,
+                                mask_data->getArrayData(axis),
+                                stencil_lower,
+                                stencil_upper,
+                                Psi);
+                interpolate_data(stencil_sz,
+                                 ig_lower,
+                                 ig_upper,
+                                 stencil_lower,
+                                 stencil_upper,
+                                 q_data->getArrayData(axis),
+                                 0,
+                                 Psi,
+                                 Q_data[s * Q_depth + axis]);
+            }
+        }
+    }
+
     return;
 }
 
@@ -2377,7 +3045,7 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                      const int X_depth,
                      const Pointer<Patch<NDIM> > patch,
                      const Box<NDIM>& spread_box,
-                     const std::string& interp_fcn)
+                     const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data,
@@ -2389,7 +3057,32 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
            X_depth,
            patch,
            spread_box,
-           interp_fcn);
+           spread_fcn);
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
+                     Pointer<CellData<NDIM, double> > q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM> > patch,
+                     const Box<NDIM>& spread_box,
+                     const std::string& spread_fcn)
+{
+    if (Q_data.empty()) return;
+    spread(mask_data,
+           q_data,
+           &Q_data[0],
+           static_cast<int>(Q_data.size()),
+           Q_depth,
+           &X_data[0],
+           static_cast<int>(X_data.size()),
+           X_depth,
+           patch,
+           spread_box,
+           spread_fcn);
 }
 
 void
@@ -2400,7 +3093,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                      const int X_depth,
                      const Pointer<Patch<NDIM> > patch,
                      const Box<NDIM>& spread_box,
-                     const std::string& interp_fcn)
+                     const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data,
@@ -2412,7 +3105,7 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
            X_depth,
            patch,
            spread_box,
-           interp_fcn);
+           spread_fcn);
 }
 
 void
@@ -2423,7 +3116,7 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                      const int X_depth,
                      const Pointer<Patch<NDIM> > patch,
                      const Box<NDIM>& spread_box,
-                     const std::string& interp_fcn)
+                     const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data,
@@ -2435,7 +3128,32 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
            X_depth,
            patch,
            spread_box,
-           interp_fcn);
+           spread_fcn);
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
+                     Pointer<SideData<NDIM, double> > q_data,
+                     const std::vector<double>& Q_data,
+                     const int Q_depth,
+                     const std::vector<double>& X_data,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM> > patch,
+                     const Box<NDIM>& spread_box,
+                     const std::string& spread_fcn)
+{
+    if (Q_data.empty()) return;
+    spread(mask_data,
+           q_data,
+           &Q_data[0],
+           static_cast<int>(Q_data.size()),
+           Q_depth,
+           &X_data[0],
+           static_cast<int>(X_data.size()),
+           X_depth,
+           patch,
+           spread_box,
+           spread_fcn);
 }
 
 void
@@ -2446,7 +3164,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                      const int X_depth,
                      const Pointer<Patch<NDIM> > patch,
                      const Box<NDIM>& spread_box,
-                     const std::string& interp_fcn)
+                     const std::string& spread_fcn)
 {
     if (Q_data.empty()) return;
     spread(q_data,
@@ -2458,7 +3176,7 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
            X_depth,
            patch,
            spread_box,
-           interp_fcn);
+           spread_fcn);
 }
 
 void
@@ -2522,6 +3240,137 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                periodic_shifts,
                spread_fcn);
     }
+    return;
+}
+
+void
+LEInteractor::spread(Pointer<CellData<NDIM, double> > mask_data,
+                     Pointer<CellData<NDIM, double> > q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM> > patch,
+                     const Box<NDIM>& spread_box,
+                     const std::string& spread_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(mask_data);
+    TBOX_ASSERT(mask_data->getDepth() == 1);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+    const IntVector<NDIM>& iupper = patch_box.upper();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(spread_fcn);
+    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian field data:\n"
+                   << "  kernel function          = "
+                   << spread_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian mask data:\n"
+                   << "  kernel function          = "
+                   << spread_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << stencil_size
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << mask_gcw_min
+                   << "\n");
+    }
+    const IntVector<NDIM> ig_lower = ilower - q_gcw;
+    const IntVector<NDIM> ig_upper = iupper + q_gcw;
+
+    // Get boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Spread.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        IntVector<NDIM> stencil_lower, stencil_upper;
+        for (int k = 0; k < nindices; ++k)
+        {
+            int s = local_indices[k];
+            MLSWeight Psi;
+            const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
+            get_mls_weights(spread_fcn,
+                            &X_data[s * NDIM],
+                            &periodic_shifts[k * NDIM],
+                            dx,
+                            x_lower,
+                            ilower,
+                            mask_data->getArrayData(),
+                            stencil_lower,
+                            stencil_upper,
+                            Psi);
+
+            for (int comp = 0; comp < Q_depth; ++comp)
+            {
+                spread_data(stencil_sz,
+                            ig_lower,
+                            ig_upper,
+                            stencil_lower,
+                            stencil_upper,
+                            dx,
+                            q_data->getArrayData(),
+                            comp,
+                            Psi,
+                            Q_data[s * Q_depth + comp]);
+            }
+        }
+    }
+
     return;
 }
 
@@ -2674,6 +3523,146 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                    periodic_shifts,
                    spread_fcn,
                    axis);
+        }
+    }
+    return;
+}
+
+void
+LEInteractor::spread(Pointer<SideData<NDIM, double> > mask_data,
+                     Pointer<SideData<NDIM, double> > q_data,
+                     const double* const Q_data,
+                     const int Q_size,
+                     const int Q_depth,
+                     const double* const X_data,
+                     const int X_size,
+                     const int X_depth,
+                     const Pointer<Patch<NDIM> > patch,
+                     const Box<NDIM>& spread_box,
+                     const std::string& spread_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
+    TBOX_ASSERT(q_data->getDepth() == 1);
+    TBOX_ASSERT(mask_data);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const IntVector<NDIM>& ilower = patch_box.lower();
+
+    // Get ghost cell width info.
+    const IntVector<NDIM>& q_gcw = q_data->getGhostCellWidth();
+    const IntVector<NDIM>& mask_gcw = mask_data->getGhostCellWidth();
+    const int stencil_size = getStencilSize(spread_fcn);
+    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const int q_gcw_min = q_gcw.min();
+    const int mask_gcw_min = mask_gcw.min();
+    if (q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian field data:"
+                   << "  kernel function          = "
+                   << spread_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << min_ghosts
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << q_gcw_min
+                   << "\n");
+    }
+    if (mask_gcw_min < stencil_size)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:"
+                   << "  kernel function          = "
+                   << spread_fcn
+                   << "\n"
+                   << "  kernel stencil size      = "
+                   << stencil_size
+                   << "\n"
+                   << "  minimum ghost cell width = "
+                   << stencil_size
+                   << "\n"
+                   << "  ghost cell width         = "
+                   << mask_gcw_min
+                   << "\n");
+    }
+
+    // Determine the boundary info.
+    boost::array<int, NDIM> patch_touches_lower_physical_bdry(array_zero<int, NDIM>());
+    boost::array<int, NDIM> patch_touches_upper_physical_bdry(array_zero<int, NDIM>());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis, upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_shifts(NDIM * local_indices.size());
+
+    // Spread.
+    const int nindices = static_cast<int>(local_indices.size());
+    if (nindices)
+    {
+        boost::array<double, NDIM> x_lower_axis, x_upper_axis;
+        IntVector<NDIM> stencil_lower, stencil_upper;
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis);
+            const IntVector<NDIM> ig_lower = data_box.lower() - q_gcw;
+            const IntVector<NDIM> ig_upper = data_box.upper() + q_gcw;
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5 * dx[axis];
+            x_upper_axis[axis] += 0.5 * dx[axis];
+
+            for (int k = 0; k < nindices; ++k)
+            {
+                int s = local_indices[k];
+                MLSWeight Psi;
+                const int stencil_sz = LEInteractor::getStencilSize(spread_fcn);
+                get_mls_weights(spread_fcn,
+                                &X_data[s * NDIM],
+                                &periodic_shifts[k * NDIM],
+                                dx,
+                                x_lower_axis.data(),
+                                ilower,
+                                mask_data->getArrayData(axis),
+                                stencil_lower,
+                                stencil_upper,
+                                Psi);
+                spread_data(stencil_sz,
+                            ig_lower,
+                            ig_upper,
+                            stencil_lower,
+                            stencil_upper,
+                            dx,
+                            q_data->getArrayData(axis),
+                            0,
+                            Psi,
+                            Q_data[s * Q_depth + axis]);
+            }
         }
     }
     return;
