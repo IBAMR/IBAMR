@@ -1,7 +1,7 @@
 // Filename: RelaxationLSMethod.cpp
 // Created on 10 Oct 2017 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2002-2017, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
