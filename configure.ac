@@ -133,6 +133,9 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex1/Makefile
   examples/adv_diff/ex2/Makefile
   examples/advect/Makefile
+  examples/level_set/Makefile
+  examples/level_set/ex0/Makefile
+  examples/level_set/ex1/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/ex0/Makefile
   examples/navier_stokes/ex1/Makefile
@@ -149,6 +152,8 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
+  src/level_set/Makefile
+  src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile

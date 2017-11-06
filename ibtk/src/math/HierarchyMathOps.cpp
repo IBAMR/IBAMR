@@ -415,6 +415,12 @@ HierarchyMathOps::getVolumeOfPhysicalDomain() const
     return d_volume;
 } // getVolumeOfPhysicalDomain
 
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+HierarchyMathOps::getPatchHierarchy() const
+{
+    return d_hierarchy;
+} // getPatchHierarchy
+
 void
 HierarchyMathOps::setCoarsenOperatorName(const std::string& coarsen_op_name)
 {
