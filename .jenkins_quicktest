@@ -1,29 +1,34 @@
 #!/bin/bash
 set -e
 set -o pipefail
+
+# export the following environment variables
+# before executing this script in the jenkins
+# execute shell
+
 config() {
     ./configure \
-        CFLAGS="-Wall" \
-        CXXFLAGS="-Wall" \
-        FCFLAGS="-Wall" \
-        CC="ccache $HOME/linux/openmpi/1.10.2/bin/mpicc" \
-        CXX="ccache $HOME/linux/openmpi/1.10.2/bin/mpicxx" \
-        FC=$HOME/linux/openmpi/1.10.2/bin/mpif90 \
-        CPPFLAGS="-DOMPI_SKIP_MPICXX" \
+        CFLAGS=$CFLAGS \
+        CXXFLAGS=$CXXFLAGS \
+        FCFLAGS=$FCFLAGS \
+        CC=$MPICC \
+        CXX=$MPICXX \
+        FC=$MPIFC \
+        CPPFLAGS=$CPPFLAGS \
         --with-hypre=$PETSC_DIR/$PETSC_ARCH \
         --with-samrai=$SAMRAI_DIR \
-        --with-hdf5=$HOME/linux/hdf5/1.8.16 \
-        --with-blitz=$HOME/linux/blitz/0.10 \
-        --with-silo=$HOME/linux/silo/4.10 \
-        --with-boost=$HOME/linux/boost/1.61.0 \
+        --with-hdf5=$HDF5_DIR \
+        --with-silo=$SILO_DIR \
+        --with-boost=$BOOST_DIR \
         --enable-libmesh \
-        --with-libmesh=$HOME/linux/libmesh/1.0.0/1.0.0-debug \
-        --with-libmesh-method=dbg \
+        --with-libmesh=$LIBMESH_DIR \
+        --with-libmesh-method=$LIBMESH_METHOD \
         --enable-gsl \
-        --with-gsl=$HOME/linux/gsl/2.3 \
+        --with-gsl=$GSL_DIR \
         --enable-gtest \
-        --with-gtest=$HOME/linux/googletest
+        --with-gtest=$GTEST_DIR
 }
+
 config
 make -kj4 lib
 make gtest

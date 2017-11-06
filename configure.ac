@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[140227],[griffith@cims.nyu.edu],[IBAMR],[https://ibamr.googlecode.com])
+AC_INIT([IBAMR],[171104],[boyceg@gmail.com],[IBAMR],[https://ibamr.github.io])
 AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -54,7 +54,14 @@ CHECK_BUILTIN_PREFETCH
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
 CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
-CONFIGURE_GTEST
+echo
+echo "=================================="
+echo "Configuring required package Boost"
+echo "=================================="
+AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
+BOOST_REQUIRE([1.57.0],[
+  AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
+  USING_BUNDLED_BOOST=yes])
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
 CONFIGURE_HDF5
@@ -64,6 +71,7 @@ CONFIGURE_PETSC
 CONFIGURE_SAMRAI
 CONFIGURE_SILO
 CONFIGURE_GSL
+CONFIGURE_GTEST
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 
@@ -89,7 +97,7 @@ AC_CONFIG_FILES([
   examples/CIBFE/ex1/Makefile
   examples/ConstraintIB/Makefile
   examples/ConstraintIB/eel2d/Makefile
-  examples/ConstraintIB/eel3d/Makefile 
+  examples/ConstraintIB/eel3d/Makefile
   examples/ConstraintIB/falling_sphere/Makefile
   examples/ConstraintIB/flow_past_cylinder/Makefile
   examples/ConstraintIB/impulsively_started_cylinder/Makefile
@@ -106,10 +114,6 @@ AC_CONFIG_FILES([
   examples/IB/explicit/ex4/Makefile
   examples/IB/explicit/ex5/Makefile
   examples/IB/explicit/ex6/Makefile
-  examples/IB/implicit/Makefile
-  examples/IB/implicit/ex0/Makefile
-  examples/IB/implicit/ex1/Makefile
-  examples/IB/implicit/ex2/Makefile
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile

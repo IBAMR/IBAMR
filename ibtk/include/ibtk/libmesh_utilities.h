@@ -1,7 +1,7 @@
 // Filename: libmesh_utilities.h
 // Created on 19 Apr 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -53,62 +53,93 @@
 
 namespace IBTK
 {
-typedef void (*ScalarMeshFcnPtr)(double& F,
-                                 const libMesh::TensorValue<double>& FF,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                 double data_time,
-                                 void* ctx);
+/*!
+ * Struct allowing for the specification of system variables / gradients and the NumericVector used to evaluate
+ * those quantities.
+ */
+struct SystemData
+{
+    SystemData(const std::string& system_name = "",
+               const std::vector<int>& vars = std::vector<int>(),
+               const std::vector<int>& grad_vars = std::vector<int>(),
+               libMesh::NumericVector<double>* const system_vec = NULL)
+        : system_name(system_name), vars(vars), grad_vars(grad_vars), system_vec(system_vec)
+    {
+    }
 
-typedef void (*VectorMeshFcnPtr)(libMesh::VectorValue<double>& F,
-                                 const libMesh::TensorValue<double>& FF,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                 double data_time,
-                                 void* ctx);
+    std::string system_name;
+    std::vector<int> vars, grad_vars;
+    libMesh::NumericVector<double>* system_vec;
+};
 
-typedef void (*TensorMeshFcnPtr)(libMesh::TensorValue<double>& F,
-                                 const libMesh::TensorValue<double>& FF,
-                                 const libMesh::Point& X,
-                                 const libMesh::Point& s,
-                                 libMesh::Elem* elem,
-                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                 double data_time,
-                                 void* ctx);
+typedef void (*ScalarMeshFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
 
-typedef void (*ScalarSurfaceFcnPtr)(double& F,
-                                    const libMesh::TensorValue<double>& FF,
-                                    const libMesh::Point& X,
-                                    const libMesh::Point& s,
-                                    libMesh::Elem* elem,
-                                    unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                    double data_time,
-                                    void* ctx);
+typedef void (*VectorMeshFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
 
-typedef void (*VectorSurfaceFcnPtr)(libMesh::VectorValue<double>& F,
-                                    const libMesh::TensorValue<double>& FF,
-                                    const libMesh::Point& X,
-                                    const libMesh::Point& s,
-                                    libMesh::Elem* elem,
-                                    unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                    double data_time,
-                                    void* ctx);
+typedef void (*TensorMeshFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
 
-typedef void (*TensorSurfaceFcnPtr)(libMesh::TensorValue<double>& F,
-                                    const libMesh::TensorValue<double>& FF,
-                                    const libMesh::Point& X,
-                                    const libMesh::Point& s,
-                                    libMesh::Elem* elem,
-                                    unsigned short int side,
-                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
-                                    double data_time,
-                                    void* ctx);
+typedef void (*ScalarSurfaceFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
+
+typedef void (*VectorSurfaceFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
+
+typedef void (*TensorSurfaceFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& x,
+    const libMesh::Point& X,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<const std::vector<double>*>& system_var_data,
+    const std::vector<const std::vector<libMesh::VectorValue<double> >*>& system_grad_var_data,
+    double data_time,
+    void* ctx);
 
 template <class MultiArray, class Array>
 inline void
@@ -194,7 +225,7 @@ template <class MultiArray>
 inline void
 interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = U_node.shape()[0];
+    const int n_nodes = static_cast<int>(U_node.shape()[0]);
     U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {

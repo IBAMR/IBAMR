@@ -5,7 +5,7 @@ c
 c     Created on 27 May 2010 by Thomas Fai
 c     Modified on 12 Feb 2016 by Nishant Nangia
 c
-c     Copyright (c) 2002-2014, Boyce Griffith
+c     Copyright (c) 2002-2017, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without

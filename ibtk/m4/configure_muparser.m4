@@ -23,7 +23,7 @@ if test x$MUPARSER_DIR != x ; then
   fi
 fi
 USING_BUNDLED_MUPARSER=no
-echo "first check for a system muParser library; if not found, revert to bundled muParser library"
+AC_MSG_NOTICE([first check for a system muParser library; if not found, revert to bundled muParser library])
 CPPFLAGS_PREPEND($MUPARSER_CPPFLAGS)
 $as_unset ac_cv_header_muParser_h
 AC_CHECK_HEADER([muParser.h],[

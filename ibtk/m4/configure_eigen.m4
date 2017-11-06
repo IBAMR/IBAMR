@@ -14,7 +14,7 @@ AC_ARG_WITH([eigen],
    fi
    EIGEN_DIR=$withval])
 USING_BUNDLED_EIGEN=no
-echo "first check for a system Eigen library; if not found, revert to bundled Eigen library"
+AC_MSG_NOTICE([first check for a system Eigen library; if not found, revert to bundled Eigen library])
 CHECK_EIGEN($EIGEN_DIR)
 if test "$HAVE_EIGEN" = no ; then
   USING_BUNDLED_EIGEN=yes

@@ -75,7 +75,8 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -89,7 +90,8 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const libMesh::Point& /*X*/,
                         const libMesh::Point& /*s*/,
                         Elem* const /*elem*/,
-                        const std::vector<NumericVector<double>*>& /*system_data*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
                         void* /*ctx*/)
 {
@@ -258,6 +260,7 @@ bool run_example(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+        ib_method_ops->initializeFEEquationSystems();
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
 
@@ -273,7 +276,7 @@ bool run_example(int argc, char** argv)
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
+                                                  std::vector<SystemData>(),
                                                   &PK1_dev_stress_fcn_data);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
@@ -282,7 +285,7 @@ bool run_example(int argc, char** argv)
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
+                                                  std::vector<SystemData>(),
                                                   &PK1_dil_stress_fcn_data);
 
         Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
@@ -344,11 +347,11 @@ bool run_example(int argc, char** argv)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        ib_post_processor->initializeFEData();
+        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -371,7 +374,7 @@ bool run_example(int argc, char** argv)
             }
             if (uses_exodus)
             {
-                ib_post_processor->postProcessData(loop_time);
+                if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
@@ -415,7 +418,7 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    ib_post_processor->postProcessData(loop_time);
+                    if (ib_post_processor) ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }

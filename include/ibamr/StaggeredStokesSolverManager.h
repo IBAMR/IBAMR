@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesSolverManager.h
 // Created on 16 Aug 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ public:
      * Allocate a new StaggeredStokesSolver object of the specified type with a
      * preconditioner of a specified type.
      *
-     * \note The preconditioner settings are used only when the allocated solver
+     * \note The preconditioner settings are used only when the parent solver
      * is a KrylovLinearSolver.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver>
@@ -127,7 +127,12 @@ public:
                    const std::string& precond_type,
                    const std::string& precond_object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
-                   const std::string& precond_default_options_prefix) const;
+                   const std::string& precond_default_options_prefix,
+                   const std::string& sub_precond_type = "",
+                   const std::string& sub_precond_object_name = "",
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_precond_input_db =
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(),
+                   const std::string& sub_precond_default_options_prefix = "") const;
 
     /*!
      * Typedef for functions to construct staggered-grid Stokes solvers.
