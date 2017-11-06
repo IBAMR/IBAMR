@@ -1,7 +1,7 @@
 // Filename: IBFECentroidPostProcessor.h
 // Created on 4 Dec 2013 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -66,12 +66,12 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void registerScalarVariable(const std::string& var_name,
-                                libMesh::FEFamily var_fe_family,
-                                libMesh::Order var_fe_order,
-                                IBTK::ScalarMeshFcnPtr var_fcn,
-                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-                                void* var_fcn_ctx = NULL);
+    void registerScalarVariable(const std::string& name,
+                                libMesh::FEFamily fe_family,
+                                libMesh::Order fe_order,
+                                IBTK::ScalarMeshFcnPtr fcn,
+                                const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                                void* fcn_ctx = NULL);
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -84,7 +84,7 @@ public:
                                 libMesh::FEFamily var_fe_family,
                                 libMesh::Order var_fe_order,
                                 IBTK::VectorMeshFcnPtr var_fcn,
-                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+                                const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
                                 void* var_fcn_ctx = NULL,
                                 unsigned int var_dim = NDIM);
 
@@ -99,7 +99,7 @@ public:
                                 libMesh::FEFamily var_fe_family,
                                 libMesh::Order var_fe_order,
                                 IBTK::TensorMeshFcnPtr var_fcn,
-                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+                                const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
                                 void* var_fcn_ctx = NULL,
                                 unsigned int var_dim = NDIM);
 

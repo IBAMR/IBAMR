@@ -3,7 +3,7 @@ c     Routines to compute level set operations on patches.
 c
 c     Created on 28 Sep 2017 by Nishant Nangia and Amneet Bhalla
 c
-c     Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
+c     Copyright (c) 2002-2017, Nishant Nangia and Amneet Bhalla
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without

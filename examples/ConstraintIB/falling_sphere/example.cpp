@@ -52,14 +52,14 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/LData.h>
 
 // Application
-#include "RigidBodyKinematics.h"
-#include "ForceProjector.h"
 #include "CartGridBodyForce.h"
+#include "ForceProjector.h"
+#include "RigidBodyKinematics.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

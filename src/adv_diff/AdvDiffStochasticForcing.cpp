@@ -1,7 +1,7 @@
 // Filename: AdvDiffStochasticForcing.cpp
 // Created on 29 Apr 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -201,11 +201,12 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            level->allocatePatchData(d_C_current_cc_idx);
-            level->allocatePatchData(d_C_half_cc_idx);
-            level->allocatePatchData(d_C_new_cc_idx);
-            level->allocatePatchData(d_F_sc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k) level->allocatePatchData(d_F_sc_idxs[k]);
+            if (!level->checkAllocated(d_C_current_cc_idx)) level->allocatePatchData(d_C_current_cc_idx);
+            if (!level->checkAllocated(d_C_half_cc_idx)) level->allocatePatchData(d_C_half_cc_idx);
+            if (!level->checkAllocated(d_C_new_cc_idx)) level->allocatePatchData(d_C_new_cc_idx);
+            if (!level->checkAllocated(d_F_sc_idx)) level->allocatePatchData(d_F_sc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k)
+                if (!level->checkAllocated(d_F_sc_idxs[k])) level->allocatePatchData(d_F_sc_idxs[k]);
         }
 
         // Set concentration value used to compute concentration-dependent flux
@@ -385,20 +386,6 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
-    }
-
-    // Deallocate data to store components of the stochastic stress components.
-    if (!initial_time)
-    {
-        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            level->deallocatePatchData(d_C_current_cc_idx);
-            level->deallocatePatchData(d_C_half_cc_idx);
-            level->deallocatePatchData(d_C_new_cc_idx);
-            level->deallocatePatchData(d_F_sc_idx);
-            for (int k = 0; k < d_num_rand_vals; ++k) level->deallocatePatchData(d_F_sc_idxs[k]);
-        }
     }
     return;
 } // setDataOnPatchHierarchy

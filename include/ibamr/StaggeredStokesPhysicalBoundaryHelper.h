@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesPhysicalBoundaryHelper.h
 // Created on 28 Aug 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,6 @@ public:
                                             bool homogeneous_bc,
                                             int coarsest_ln = -1,
                                             int finest_ln = -1) const;
-
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting

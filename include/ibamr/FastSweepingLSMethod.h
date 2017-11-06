@@ -1,7 +1,7 @@
 // Filename: FastSweepingLSMethod.h
 // Created on 27 Sep 2017 by Amneet Bhalla and Nishant Nangia
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2002-2017, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -100,14 +100,10 @@ public:
                           double time,
                           bool initial_time);
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     // Algorithm parameters.
     bool d_consider_phys_bdry_wall;
     int d_wall_location_idx[2 * NDIM];
-
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 
 private:
     /*!

@@ -1,7 +1,7 @@
 // Filename: WallForceEvaluator.h
 // Created by Steven Delong
 //
-// Copyright (c) 2002-2014, Steven Delong, Boyce Griffith
+// Copyright (c) 2002-2017, Steven Delong, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

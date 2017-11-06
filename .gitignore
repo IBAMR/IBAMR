@@ -156,3 +156,7 @@ Temporary Items
 *.exe
 *.out
 *.app
+build
+configure.log
+configure.log.bkp
+RDict.log
