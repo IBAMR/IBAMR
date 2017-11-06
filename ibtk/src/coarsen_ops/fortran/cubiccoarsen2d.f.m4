@@ -3,7 +3,7 @@ c     Routines to coarsen values via high-order interpolation.
 c
 c     Created on 02 May 2008 by Boyce Griffith
 c
-c     Copyright (c) 2002-2014, Boyce Griffith
+c     Copyright (c) 2002-2017, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without

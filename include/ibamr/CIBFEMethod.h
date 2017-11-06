@@ -1,7 +1,7 @@
 // Filename: CIBFEMethod.h
 // Created on 14 Oct 2014 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -361,13 +361,13 @@ public:
     /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
-    virtual void registerEulerianVariables();
+    void registerEulerianVariables();
 
     /*!
      * \brief Register Eulerian refinement or coarsening algorithms with the parent
      * IBHierarchyIntegrator.
      */
-    virtual void registerEulerianCommunicationAlgorithms();
+    void registerEulerianCommunicationAlgorithms();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy

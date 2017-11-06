@@ -1,7 +1,7 @@
 // Filename: INSStaggeredHierarchyIntegrator.h
 // Created on 20 Mar 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -352,8 +352,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace;
 
-    std::string d_stokes_solver_type, d_stokes_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
+    std::string d_stokes_solver_type, d_stokes_precond_type, d_stokes_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db, d_stokes_sub_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
 

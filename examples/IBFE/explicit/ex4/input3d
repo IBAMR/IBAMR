@@ -4,9 +4,9 @@ RHO = 1.0
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3                                      // maximum number of levels in locally refined grid
+MAX_LEVELS = 2                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                      // refinement ratio between levels
-N = 32                                              // actual    number of grid cells on coarsest grid level
+N = 16                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level

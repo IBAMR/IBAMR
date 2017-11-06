@@ -1,7 +1,7 @@
 // Filename: LSiloDataWriter.h
 // Created on 26 Apr 2005 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

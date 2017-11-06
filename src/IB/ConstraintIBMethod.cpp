@@ -1,7 +1,7 @@
 // Filename: ConstraintIBMethod.cpp
 // Created on 1 Dec 2011 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -2416,7 +2416,7 @@ ConstraintIBMethod::calculateTorque()
                     R_cross_U_constraint[2] = (x * (U_correction[1]) - y * (U_correction[0]));
 #endif
 
-                    for (int d = 0; d < NDIM; ++d)
+                    for (int d = 0; d < 3; ++d)
                     {
                         inertia_torque[location_struct_handle][d] += R_cross_U_inertia[d];
                         constraint_torque[location_struct_handle][d] += R_cross_U_constraint[d];

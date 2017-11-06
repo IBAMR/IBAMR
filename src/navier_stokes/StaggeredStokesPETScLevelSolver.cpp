@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesPETScLevelSolver.cpp
 // Created on 08 Sep 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -196,14 +196,14 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-        StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
-                                                                         d_U_problem_coefs,
-                                                                         d_U_bc_coefs,
-                                                                         d_new_time,
-                                                                         d_num_dofs_per_proc,
-                                                                         d_u_dof_index_idx,
-                                                                         d_p_dof_index_idx,
-                                                                         d_level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                     d_U_problem_coefs,
+                                                                     d_U_bc_coefs,
+                                                                     d_new_time,
+                                                                     d_num_dofs_per_proc,
+                                                                     d_u_dof_index_idx,
+                                                                     d_p_dof_index_idx,
+                                                                     d_level);
     d_petsc_pc = d_petsc_mat;
 
 

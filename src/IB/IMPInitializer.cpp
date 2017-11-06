@@ -1,7 +1,7 @@
 // Filename: IMPInitializer.cpp
 // Created on 16 Oct 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -166,8 +166,8 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     // and weighting factors.
     const int dim = mesh->mesh_dimension();
     FEType fe_type(FIRST, LAGRANGE);
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
+    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
