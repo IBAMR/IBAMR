@@ -66,7 +66,8 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     var_rho)
+     &     var_rho,
+     &     use_harmonic_interp)
 c
       implicit none
 c
@@ -76,6 +77,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER f_gcw,mu_gcw,rho_gcw,u_gcw,v_gcw,var_rho
+      INTEGER use_harmonic_interp
 
       REAL alpha,beta,gamma
 

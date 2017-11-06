@@ -55,6 +55,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/SideDataSynchronization.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -241,6 +242,11 @@ public:
      * Explicitly remove nullspace components from a solution vector.
      */
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
+
+    /*!
+     * Set the interpolation type used for material properties rho and mu
+     */
+    void setVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
 
     /*!
      * \brief Get whether or not viscosity is constant
@@ -503,6 +509,11 @@ private:
      * Variables to indicate if either rho or mu is constant
      */
     bool d_rho_is_const, d_mu_is_const;
+
+    /*
+     * Variable to indicate the type of interpolation to be done for rho and mu
+     */
+    IBTK::VCInterpType d_vc_interp_type;
 
     /*
      * Variable to indicate the scaling factor used for A, p and u_rhs

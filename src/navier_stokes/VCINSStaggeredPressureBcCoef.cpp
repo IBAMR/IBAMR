@@ -80,6 +80,9 @@ VCINSStaggeredPressureBcCoef::VCINSStaggeredPressureBcCoef(const VCINSStaggeredH
     setPhysicalBcCoefs(bc_coefs);
     setTractionBcType(traction_bc_type);
     setHomogeneousBc(homogeneous_bc);
+
+    // Set a default interpolation type.
+    d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
 } // VCINSStaggeredPressureBcCoef
 
@@ -327,7 +330,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 }
                 if (!d_fluid_solver->muIsConstant())
                 {
-                    // Average mu onto side center
+                    // Average mu onto side centers
                     // In certain use cases with traction boundary conditions, this class will attempt to fill
                     // Robin BC coefficient values along an extended physical boundary outside of the physical domain
                     // that will never be used. However, viscosity values will not be available at those locations, so
@@ -337,8 +340,18 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     // it gets used for whatever reason.
                     const bool mu_contains_cells =
                         (mu_data->getGhostBox().contains(i_g) && mu_data->getGhostBox().contains(i_i));
-                    mu = mu_contains_cells ? 0.5 * ((*mu_data)(i_g) + (*mu_data)(i_i)) : -1.0e305;
-                    // mu = 2.0*((*mu_data)(i_g) * (*mu_data)(i_i))/((*mu_data)(i_g) + (*mu_data)(i_i));
+                    if (d_mu_interp_type == VC_AVERAGE_INTERP)
+                    {
+                        mu = mu_contains_cells ? 0.5 * ((*mu_data)(i_g) + (*mu_data)(i_i)) : -1.0e305;
+                    }
+                    else if (d_mu_interp_type == VC_HARMONIC_INTERP)
+                    {
+                        mu = mu_contains_cells ? 2.0*((*mu_data)(i_g) * (*mu_data)(i_i))/((*mu_data)(i_g) + (*mu_data)(i_i)) : -1.0e305;
+                    }
+                    else
+                    {
+                        TBOX_ERROR("this statement should not be reached");
+                    }
                 }
 
                 // The boundary condition is -p + 2*mu*du_n/dx_n = g.
@@ -406,6 +419,12 @@ VCINSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
     }
     return ret_val;
 } // numberOfExtensionsFillable
+
+void
+VCINSStaggeredPressureBcCoef::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
+{
+    d_mu_interp_type = mu_interp_type;
+} // setViscosityInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

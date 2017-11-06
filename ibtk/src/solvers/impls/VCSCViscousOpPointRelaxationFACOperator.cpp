@@ -891,6 +891,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    sol_var,
                                                    Pointer<HierarchyGhostCellInterpolation>(NULL),
                                                    d_solution_time,
+                                                   "VC_AVERAGE_INTERP",
                                                    d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() :
                                                                                   -1);
 

@@ -970,7 +970,10 @@ public:
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.
      *
-     * \note This routine is only appropriate for NDIM == 2 and uses node centered coef1
+     * \note This routine is only appropriate for NDIM == 2 and uses node centered coef1.
+     * Interally, coef1 will be interpolated onto cell centers when needed. Harmonic interpolation
+     * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
+     * from nodes to cells
      *
      * \see setPatchHierarchy
      * \see resetLevels
@@ -985,6 +988,7 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
+                    const std::string& coef1_interp_type = "VC_HARMONIC_INTERP",
                     int coef2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,
@@ -996,7 +1000,10 @@ public:
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.
      *
-     * \note This routine is only appropriate for NDIM == 3 and uses edge centered coef1
+     * \note This routine is only appropriate for NDIM == 3 and uses edge centered coef1.
+     * Interally, coef1 will be interpolated onto cell centers when needed. Harmonic interpolation
+     * is used by default, but coef1_interp_type = VC_AVERAGE_INTERP will apply arithmetic averaging
+     * from edges to cells
      *
      * \see setPatchHierarchy
      * \see resetLevels
@@ -1011,6 +1018,7 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
+                    const std::string& = "VC_HARMONIC_INTERP",
                     int coef2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,

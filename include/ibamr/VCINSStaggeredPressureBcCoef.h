@@ -40,6 +40,7 @@
 #include "IntVector.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR
@@ -244,6 +245,12 @@ public:
 
     //\}
 
+    /*!
+     * \brief Set the interpolation type to bring cell centered viscosity
+     * to side centers
+     */
+    void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type); 
+
 protected:
 private:
     /*!
@@ -282,6 +289,11 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * The type of interpolation to bring cell centered viscosity to side centers.
+     */
+    IBTK::VCInterpType d_mu_interp_type;
 };
 } // namespace IBAMR
 

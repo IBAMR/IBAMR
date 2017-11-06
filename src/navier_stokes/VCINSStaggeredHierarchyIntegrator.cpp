@@ -526,13 +526,32 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                                  << " Use INSStaggeredHierarchyIntegrator instead.");
     }
 
+    // Get the interpolation type for the material properties
+    d_vc_interp_type = VC_HARMONIC_INTERP;
+    if (input_db->keyExists("vc_interpolation_type"))
+    {
+        d_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("vc_interpolation_type"));
+    }
+    switch (d_vc_interp_type)
+    {
+    case VC_HARMONIC_INTERP:
+    case VC_AVERAGE_INTERP:
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << "  unsupported variable coefficient interpolation type: "
+                                 << IBTK::enum_to_string<VCInterpType>(d_vc_interp_type)
+                                 << " \n"
+                                 << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
+    }
+
     // Get the scaling coefficient
     d_A_scale = 1.0;
     if (input_db->keyExists("condition_no_scaling")) d_A_scale = input_db->getDouble("condition_no_scaling");
     if (d_A_scale <= 0.0)
     {
         TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
-                                 << " scaling for improving condition number of\n"
+                                 << " scaling for improving the condition number of\n"
                                  << " the Stokes system must be positive.");
     }
 
@@ -1325,34 +1344,27 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     // Get the current value of viscosity
     if (d_mu_var)
     {
-        if (d_mu_fcn)
-        {
-            d_mu_fcn->setDataOnPatchHierarchy(d_mu_current_idx, d_mu_var, d_hierarchy, current_time);
-        }
-        else
-        {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            d_mu_current_idx =
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int mu_adv_diff_current_idx =
                 var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getCurrentContext());
-        }
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, d_mu_current_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_adv_diff_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
         // Interpolate onto node or edge centers
-        d_hier_math_ops->interp(d_mu_interp_idx,
-                                d_mu_interp_var,
-                                /*dst_ghost_interp*/ true,
-                                d_mu_scratch_idx,
-                                d_mu_var,
-                                d_no_fill_op,
-                                current_time);
-        // d_hier_math_ops->harmonic_interp(d_mu_interp_idx,
-        //                                  d_mu_interp_var,
-        //                                  /*dst_ghost_interp*/ true,
-        //                                  d_mu_scratch_idx,
-        //                                  d_mu_var,
-        //                                  d_no_fill_op,
-        //                                  current_time);
+        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        {
+            d_hier_math_ops->interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
+                                    d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
+        }
+        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        {
+            d_hier_math_ops->harmonic_interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
+                                             d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached");
+        }
     }
 
     // Allocate solver vectors.
@@ -1387,7 +1399,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         K_rhs = 0.5;
         break;
     default:
-        TBOX_ERROR("this statment should not be reached");
+        TBOX_ERROR("this statement should not be reached");
     }
 
     // The rho/dt * u^n term will be taken care of later since it must be multiplied by the newest value of rho
@@ -1439,7 +1451,8 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_U_scratch_idx,
                                 d_U_var,
                                 d_no_fill_op,
-                                current_time);
+                                current_time,
+                                IBTK::enum_to_string(d_vc_interp_type));
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -1547,17 +1560,10 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Get the newest values of rho and mu if necessary
     if (d_rho_var)
     {
-        if (d_rho_fcn)
-        {
-            d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx, d_rho_var, d_hierarchy, new_time);
-        }
-        else
-        {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            d_rho_new_idx =
-                var_db->mapVariableAndContextToIndex(d_rho_var, d_adv_diff_hier_integrator->getNewContext());
-        }
-        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, d_rho_new_idx, /*interior_only*/ true);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int rho_adv_diff_new_idx =
+            var_db->mapVariableAndContextToIndex(d_rho_var, d_adv_diff_hier_integrator->getNewContext());
+        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_adv_diff_new_idx, /*interior_only*/ true);
         d_rho_bdry_bc_fill_op->fillData(new_time);
 
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -1573,8 +1579,20 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             }
         }
         // Interpolate onto side centers
-        d_hier_math_ops->harmonic_interp(
-            d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        {
+            d_hier_math_ops->interp(
+                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+        }
+        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        {
+            d_hier_math_ops->harmonic_interp(
+                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached");
+        }
 
         // Deallocate temporary patch data
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -1585,33 +1603,26 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     }
     if (d_mu_var)
     {
-        if (d_mu_fcn)
-        {
-            d_mu_fcn->setDataOnPatchHierarchy(d_mu_new_idx, d_mu_var, d_hierarchy, new_time);
-        }
-        else
-        {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            d_mu_new_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getNewContext());
-        }
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, d_mu_new_idx, /*interior_only*/ true);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int mu_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getNewContext());
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_adv_diff_new_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(new_time);
 
         // Interpolate onto node or edge centers
-        d_hier_math_ops->interp(d_mu_interp_idx,
-                                d_mu_interp_var,
-                                /*dst_ghost_interp*/ true,
-                                d_mu_scratch_idx,
-                                d_mu_var,
-                                d_no_fill_op,
-                                new_time);
-        // d_hier_math_ops->harmonic_interp(d_mu_interp_idx,
-        //                                  d_mu_interp_var,
-        //                                  /*dst_ghost_interp*/ true,
-        //                                  d_mu_scratch_idx,
-        //                                  d_mu_var,
-        //                                  d_no_fill_op,
-        //                                  new_time);
+        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        {
+            d_hier_math_ops->interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
+                                    d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
+        }
+        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        {
+            d_hier_math_ops->harmonic_interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
+                                             d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached");
+        }
     }
 
     // Update the solvers and operators to take into account new state variables
@@ -1969,7 +1980,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         }
         else
         {
-            TBOX_ERROR("this statment should not be reached");
+            TBOX_ERROR("this statement should not be reached");
         }
 
         // Scale by newest rho and tack on the convective term to the RHS
@@ -2196,7 +2207,13 @@ VCINSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorRea
         sol_vec->axpy(-sol_dot_nul / nul_L2_norm, d_nul_vecs[k], sol_vec);
     }
     return;
-}
+} // removeNullSpace
+
+void VCINSStaggeredHierarchyIntegrator::setVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+{
+    d_vc_interp_type = vc_interp_type;
+    return;
+} // setVCInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2895,6 +2912,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
     P_bc_coef->setTimeInterval(current_time, new_time);
+    P_bc_coef->setViscosityInterpolationType(d_vc_interp_type);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef =
@@ -3149,7 +3167,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
         K = 0.5;
         break;
     default:
-        TBOX_ERROR("this statment should not be reached");
+        TBOX_ERROR("this statement should not be reached");
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
@@ -3233,7 +3251,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
+                plog << d_object_name << "::updateOperatorsAndSolvers`(): initializing "
                                          "velocity subdomain solver"
                      << std::endl;
             LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
@@ -3256,7 +3274,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)
-                plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
+                plog << d_object_name << "::updateOperatorsAndSolvers(): initializing "
                                          "pressure subdomain solver"
                      << std::endl;
             LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
@@ -3331,7 +3349,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
     if (d_stokes_solver_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
+            plog << d_object_name << "::updateOperatorsAndSolvers(): initializing "
                                      "incompressible Stokes solver"
                  << std::endl;
         if (p_stokes_linear_solver)

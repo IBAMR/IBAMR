@@ -476,6 +476,7 @@ public:
                     double gamma,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    bool use_harmonic_interp,
                     int l = 0,
                     int m = 0,
                     int n = 0) const;
@@ -493,6 +494,7 @@ public:
                     double gamma,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    bool use_harmonic_interp,
                     int l = 0,
                     int m = 0,
                     int n = 0) const;

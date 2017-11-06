@@ -1142,7 +1142,8 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
                           const int& iupper2,
 #endif
                           const double* dx,
-                          const int& rho_varying);
+                          const int& rho_varying,
+                          const int& use_harmonic_interp);
 
 void S_TO_C_STRAIN_FC(double* E_diag,
                       const int& E_diag_gcw,
@@ -5621,6 +5622,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          const double gamma_in,
                          const Pointer<SideData<NDIM, double> > src2_in,
                          const Pointer<Patch<NDIM> > patch,
+                         const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
@@ -5779,7 +5781,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1),
                          dx,
-                         rho_varying);
+                         rho_varying,
+                         use_harmonic_interp);
 #elif (NDIM == 3)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                << "  requires edge centered coef1 for NDIM = 3."
@@ -5810,6 +5813,7 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          const double gamma_in,
                          const Pointer<SideData<NDIM, double> > src2_in,
                          const Pointer<Patch<NDIM> > patch,
+                         const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
@@ -5982,7 +5986,8 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
                          patch_box.lower(2),
                          patch_box.upper(2),
                          dx,
-                         rho_varying);
+                         rho_varying,
+                         use_harmonic_interp);
 #elif (NDIM == 2)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                << "  requires node centered coef1 for NDIM = 2."

@@ -207,6 +207,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     x_sc_var,
                                     Pointer<HierarchyGhostCellInterpolation>(NULL),
                                     d_solution_time,
+                                    "VC_AVERAGE_INTERP",
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);

@@ -179,6 +179,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 U_sc_var,
                                 d_no_fill,
                                 d_new_time,
+                                "VC_AVERAGE_INTERP",
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
                                 Pointer<SideVariable<NDIM, double> >(NULL),
                                 1.0,
