@@ -70,9 +70,6 @@ srcs-IB_explicit_3.cpp :=
 srcs-IB_explicit_4.cpp :=
 srcs-IB_explicit_5.cpp :=
 srcs-IB_explicit_6.cpp :=
-srcs-IB_implicit_0.cpp :=
-srcs-IB_implicit_1.cpp :=
-srcs-IB_implicit_2.cpp :=
 srcs-IBFE_explicit_0.cpp :=
 srcs-IBFE_explicit_1.cpp :=
 srcs-IBFE_explicit_2.cpp :=
@@ -100,7 +97,7 @@ srcs-ConstraintIB_eel2d.cpp :=
 #  IMP_explicit_0
 #  ConstraintIB_eel2d
 #  advect (no main())
-examples := IB_explicit_0 IB_explicit_1 IB_explicit_2 IB_explicit_3 IB_explicit_4 IB_explicit_5 IB_explicit_6 IB_implicit_0 IB_implicit_1 IB_implicit_2 \
+examples := IB_explicit_0 IB_explicit_1 IB_explicit_2 IB_explicit_3 IB_explicit_4 IB_explicit_5 IB_explicit_6 \
   adv_diff_0 adv_diff_1 adv_diff_2 \
   navier_stokes_0 navier_stokes_1 navier_stokes_2 navier_stokes_3 navier_stokes_4 navier_stokes_5 navier_stokes_6 \
 
@@ -134,9 +131,6 @@ srcs-IB_explicit_3.o := $(foreach ex, IB_explicit_3, $(call concatlang,$(ex)))
 srcs-IB_explicit_4.o := $(foreach ex, IB_explicit_4, $(call concatlang,$(ex)))
 srcs-IB_explicit_5.o := $(foreach ex, IB_explicit_5, $(call concatlang,$(ex)))
 srcs-IB_explicit_6.o := $(foreach ex, IB_explicit_6, $(call concatlang,$(ex)))
-srcs-IB_implicit_0.o := $(foreach ex, IB_implicit_0, $(call concatlang,$(ex)))
-srcs-IB_implicit_1.o := $(foreach ex, IB_implicit_1, $(call concatlang,$(ex)))
-srcs-IB_implicit_2.o := $(foreach ex, IB_implicit_2, $(call concatlang,$(ex)))
 srcs-IBFE_explicit_0.o := $(foreach ex, IBFE_explicit_0, $(call concatlang,$(ex)))
 srcs-IBFE_explicit_1.o := $(foreach ex, IBFE_explicit_1, $(call concatlang,$(ex)))
 srcs-IBFE_explicit_2.o := $(foreach ex, IBFE_explicit_2, $(call concatlang,$(ex)))
@@ -180,15 +174,6 @@ IB_explicit_5: $(srcs-IB_explicit_5.o)
 
 IB_explicit_6: $(srcs-IB_explicit_6.o)
 	$(CLINKER) -o $@ $(srcs-IB_explicit_6.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
-
-IB_implicit_0: $(srcs-IB_implicit_0.o)
-	$(CLINKER) -o $@ $(srcs-IB_implicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
-
-IB_implicit_1: $(srcs-IB_implicit_1.o)
-	$(CLINKER) -o $@ $(srcs-IB_implicit_1.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
-
-IB_implicit_2: $(srcs-IB_implicit_2.o)
-	$(CLINKER) -o $@ $(srcs-IB_implicit_2.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)
 
 IBFE_explicit_0: $(srcs-IBFE_explicit_0.o)
 	$(CLINKER) -o $@ $(srcs-IBFE_explicit_0.o) $(IBAMR_LDFLAGS) $(IBAMR_LIB) $(PETSC_LIB)

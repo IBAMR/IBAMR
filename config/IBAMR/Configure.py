@@ -246,7 +246,7 @@ class Configure(config.base.Configure):
     import time
     if not os.path.isdir(os.path.join(self.arch.arch, 'include')):
       os.makedirs(os.path.join(self.arch.arch,'include'))
-    fd = file(os.path.join(self.arch.arch,'include', self.project+'configinfo.h'), 'w')
+    fd = file(os.path.join(self.arch.arch,'include', self.Project+'_config_info.h'), 'w')
     fd.write('static const char *'+self.project+'configureruntime = "'+time.ctime(time.time())+'";\n')
     fd.write('static const char *'+self.project+'configureoptions = "'+self.framework.getOptionsString(['configModules', 'optionsModule']).replace('\"','\\"')+'";\n')
     fd.close()
@@ -258,7 +258,7 @@ class Configure(config.base.Configure):
     import script
     if not os.path.isdir(os.path.join(self.arch.arch, 'include')):
       os.makedirs(os.path.join(self.arch.arch,'include'))
-    fd = file(os.path.join(self.arch.arch,'include', self.project+'machineinfo.h'),'w')
+    fd = file(os.path.join(self.arch.arch,'include', self.Project+'_machine_info.h'),'w')
     fd.write('static const char *'+self.project+'machineinfo = \"\\n\"\n')
     fd.write('\"-----------------------------------------\\n\"\n')
     fd.write('\"Libraries compiled on %s on %s \\n\"\n' % (time.ctime(time.time()), platform.node()))
@@ -350,10 +350,10 @@ include lib/petsc/conf/ibamrvariables
     #  raise RuntimeError('Wrong PETSC_DIR option specified: '+str(self.projectdir.dir) + '\n  Configure invoked in: '+os.path.realpath(os.getcwd()))
     #if self.framework.argDB['prefix'] and os.path.isdir(self.framework.argDB['prefix']) and os.path.samefile(self.framework.argDB['prefix'], self.projectdir.dir):
     #  raise RuntimeError('Incorrect option --prefix='+self.framework.argDB['prefix']+' specified. It cannot be same as PETSC_DIR!')
-    self.framework.header          = self.arch.arch+'/include/'+self.project+'conf.h'
-    self.framework.cHeader         = self.arch.arch+'/include/'+self.project+'fix.h'
-    self.framework.makeMacroHeader = self.arch.arch+'/lib/petsc/conf/'+self.project+'variables'
-    self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.project+'rules'
+    self.framework.header          = self.arch.arch+'/include/'+self.Project+'_config.h'
+    self.framework.cHeader         = self.arch.arch+'/include/'+self.Project+'_fix.h'
+    self.framework.makeMacroHeader = self.arch.arch+'/lib/petsc/conf/'+self.Project+'_variables'
+    self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.Project+'_rules'
     if not self.muparser.found:
       raise RuntimeError('MuParser not found, but is required by IBAMR')
     if not self.samrai.found:

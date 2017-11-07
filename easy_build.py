@@ -126,8 +126,8 @@ def execute(command, quiet=QUIET):
         exitCode = process.returncode
         return output
 
-get_petsc       = 'mkdir -p $PETSC_DIR && git clone -b knepley/ibamr https://bitbucket.org/deleeke/petsc $PETSC_DIR'
-fetch_petsc     = 'mkdir -p $PETSC_DIR && cd $PETSC_DIR && git fetch origin && git pull origin knepley/ibamr'
+get_petsc       = 'mkdir -p $PETSC_DIR && git clone -b maint https://bitbucket.org/petsc/petsc $PETSC_DIR'
+fetch_petsc     = 'mkdir -p $PETSC_DIR && cd $PETSC_DIR && git fetch origin && git pull origin maint'
 configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-fblaslapack ' + petsc_config_options
 make_petsc      = 'cd $PETSC_DIR && make'
 # NOTE: libmesh breaks when HDF5 is built by PETSc, but works when built by IBAMR.
