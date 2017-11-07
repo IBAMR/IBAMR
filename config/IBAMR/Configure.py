@@ -334,7 +334,7 @@ class Configure(config.base.Configure):
 gmakefile: ../config/gmakegen.py
 	$(PYTHON) ../config/gmakegen.py
 
-include lib/petsc/conf/IBAMR_variables
+include lib/petsc/conf/ibamrvariables
 ''')
     return
 
@@ -352,8 +352,8 @@ include lib/petsc/conf/IBAMR_variables
     #  raise RuntimeError('Incorrect option --prefix='+self.framework.argDB['prefix']+' specified. It cannot be same as PETSC_DIR!')
     self.framework.header          = self.arch.arch+'/include/'+self.Project+'_config.h'
     self.framework.cHeader         = self.arch.arch+'/include/'+self.Project+'_fix.h'
-    self.framework.makeMacroHeader = self.arch.arch+'/lib/petsc/conf/'+self.Project+'_variables'
-    self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.Project+'_rules'
+    self.framework.makeMacroHeader = self.arch.arch+'/lib/petsc/conf/'+self.project+'variables'
+    self.framework.makeRuleHeader  = self.arch.arch+'/lib/petsc/conf/'+self.project+'rules'
     if not self.muparser.found:
       raise RuntimeError('MuParser not found, but is required by IBAMR')
     if not self.samrai.found:
