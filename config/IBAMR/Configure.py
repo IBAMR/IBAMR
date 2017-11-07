@@ -334,7 +334,7 @@ class Configure(config.base.Configure):
 gmakefile: ../config/gmakegen.py
 	$(PYTHON) ../config/gmakegen.py
 
-include lib/petsc/conf/ibamrvariables
+include lib/petsc/conf/IBAMR_variables
 ''')
     return
 
