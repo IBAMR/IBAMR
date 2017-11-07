@@ -147,6 +147,12 @@ public:
 
     //\}
 
+    /*!
+     * \brief Set the interpolation type to be used in computing the
+     * variable coefficient viscous Laplacian.
+     */
+    void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
+
 protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
@@ -183,6 +189,11 @@ private:
      * \return A reference to this object.
      */
     VCSCViscousOpPointRelaxationFACOperator& operator=(const VCSCViscousOpPointRelaxationFACOperator& that);
+
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
 };
 } // namespace IBTK
 

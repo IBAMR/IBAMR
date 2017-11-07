@@ -46,6 +46,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -240,7 +241,8 @@ run_example(int argc, char* argv[])
                                  u_side_idx,
                                  u_side_var,
                                  bdry_fill_op,
-                                 data_time);
+                                 data_time,
+                                 VC_AVERAGE_INTERP);
 #endif
 
 #if (NDIM == 3)
@@ -254,7 +256,8 @@ run_example(int argc, char* argv[])
                                  u_side_idx,
                                  u_side_var,
                                  bdry_fill_op,
-                                 data_time);
+                                 data_time,
+                                 VC_AVERAGE_INTERP);
 #endif
         // Compute error and print error norms.
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_side_data_ops =

@@ -146,7 +146,8 @@ void VC_GS_SMOOTH_FC(double* U0,
                      const int& iupper2,
 #endif
                      const double* dx,
-                     const int& var_c);
+                     const int& var_c,
+                     const int& use_harmonic_interp);
 
 void VC_GS_SMOOTH_MASK_FC(double* U0,
                           double* U1,
@@ -179,7 +180,7 @@ void VC_GS_SMOOTH_MASK_FC(double* U0,
                           const double* mu0,
                           const double* mu1,
                           const double* mu2,
-#endif                          
+#endif
                           const int& mu_gcw,
                           const double& alpha,
                           const double& beta,
@@ -192,7 +193,8 @@ void VC_GS_SMOOTH_MASK_FC(double* U0,
                           const int& iupper2,
 #endif
                           const double* dx,
-                          const int& var_c);
+                          const int& var_c,
+                          const int& use_harmonic_interp);
 
 void VC_RB_GS_SMOOTH_FC(double* U0,
                         double* U1,
@@ -233,6 +235,7 @@ void VC_RB_GS_SMOOTH_FC(double* U0,
 #endif
                         const double* dx,
                         const int& var_c,
+                        const int& use_harmonic_interp,
                         const int& red_or_black);
 
 void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
@@ -280,6 +283,7 @@ void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
 #endif
                              const double* dx,
                              const int& var_c,
+                             const int& use_harmonic_interp,
                              const int& red_or_black);
 }
 
@@ -377,6 +381,10 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
                      "IBTK::VCSCViscousOpPointRelaxationFACOperator::solveCoarsestLevel()");
                  t_compute_residual = TimerManager::getManager()->getTimer(
                      "IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual()"););
+
+    // Set a default interpolation type.
+    d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
+
     return;
 } // VCSCViscousOpPointRelaxationFACOperator
 
@@ -548,6 +556,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                 d_bc_helper->copyDataAtDirichletBoundaries(error_data, residual_data, patch);
             }
 
+            // What type of averaging to use for the patch smoothers
+            const bool use_harmonic_interp = (d_D_interp_type == VC_HARMONIC_INTERP);
+
             // Smooth the error using Gauss-Seidel.
             double alpha = 1.0;
             double beta = 0.0;
@@ -660,6 +671,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #endif
                                                 dx,
                                                 C_is_varying,
+                                                use_harmonic_interp,
                                                 red_or_black);
                     }
                     else
@@ -708,7 +720,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                              patch_box.upper(2),
 #endif
                                              dx,
-                                             C_is_varying);
+                                             C_is_varying,
+                                             use_harmonic_interp);
                     }
                 }
                 else
@@ -755,6 +768,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #endif
                                            dx,
                                            C_is_varying,
+                                           use_harmonic_interp,
                                            red_or_black);
                     }
                     else
@@ -797,7 +811,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                         patch_box.upper(2),
 #endif
                                         dx,
-                                        C_is_varying);
+                                        C_is_varying,
+                                        use_harmonic_interp);
                     }
                 }
             }
@@ -891,7 +906,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    sol_var,
                                                    Pointer<HierarchyGhostCellInterpolation>(NULL),
                                                    d_solution_time,
-                                                   "VC_AVERAGE_INTERP",
+                                                   d_D_interp_type,
                                                    d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() :
                                                                                   -1);
 
@@ -901,6 +916,13 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
 } // computeResidual
+
+void
+VCSCViscousOpPointRelaxationFACOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
+{
+    d_D_interp_type = D_interp_type;
+    return;
+} // setViscosityInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

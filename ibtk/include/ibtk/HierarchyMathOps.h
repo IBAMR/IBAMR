@@ -58,6 +58,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -988,7 +989,7 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
-                    const std::string& coef1_interp_type = "VC_HARMONIC_INTERP",
+                    IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
                     int coef2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,
@@ -1018,7 +1019,7 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                     double src1_ghost_fill_time,
-                    const std::string& = "VC_HARMONIC_INTERP",
+                    IBTK::VCInterpType coef1_interp_type = VC_HARMONIC_INTERP,
                     int coef2_idx = -1,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef2_var = NULL,
                     double gamma = 0.0,

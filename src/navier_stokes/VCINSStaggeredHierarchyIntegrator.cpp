@@ -1240,7 +1240,12 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         if (!p_stokes_block_pc)
         {
             Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
-            if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+            if (p_stokes_krylov_solver)
+            {
+                p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+                Pointer<VCStaggeredStokesOperator> p_vc_stokes_op = p_stokes_krylov_solver->getOperator();
+                if (p_vc_stokes_op) p_vc_stokes_op->setDPatchDataInterpolationType(d_vc_interp_type);
+            }
         }
         if (p_stokes_block_pc)
         {
@@ -1253,6 +1258,18 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                 p_stokes_block_pc->setPressureSubdomainSolver(getPressureSubdomainSolver());
             }
         }
+    }
+
+    // Set the velocity subdomain solver interpolation type if necessary
+    IBTK::PETScKrylovLinearSolver* p_velocity_solver =
+        dynamic_cast<IBTK::PETScKrylovLinearSolver*>(d_velocity_solver.getPointer());
+    if (p_velocity_solver)
+    {
+        Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
+        Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
+            p_poisson_fac_pc->getFACPreconditionerStrategy();
+        // if (p_vc_point_fac_op) TBOX_ERROR("checl");
+        if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_vc_interp_type);
     }
 
     // Setup the convective operator.
@@ -1452,7 +1469,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_U_var,
                                 d_no_fill_op,
                                 current_time,
-                                IBTK::enum_to_string(d_vc_interp_type));
+                                d_vc_interp_type);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.

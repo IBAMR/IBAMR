@@ -95,7 +95,6 @@
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
@@ -2519,7 +2518,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                              const Pointer<SideVariable<NDIM, double> > src1_var,
                              const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
-                             const std::string& coef1_interp_type,
+                             const IBTK::VCInterpType coef1_interp_type,
                              int coef2_idx,
                              Pointer<SideVariable<NDIM, double> > /*coef2_var*/,
                              const double gamma,
@@ -2546,16 +2545,15 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                        << std::endl);
         }
     }
-    if (string_to_enum<VCInterpType>(coef1_interp_type) != VC_HARMONIC_INTERP && 
-        string_to_enum<VCInterpType>(coef1_interp_type) != VC_AVERAGE_INTERP)
+    if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << coef1_interp_type
+                   << enum_to_string<VCInterpType>(coef1_interp_type)
                    << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
-    const bool use_harmonic_interp = string_to_enum<VCInterpType>(coef1_interp_type) == VC_HARMONIC_INTERP;
+    const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
 
     // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
     // gamma src2 independently on each level.
@@ -2625,7 +2623,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                              const Pointer<SideVariable<NDIM, double> > src1_var,
                              const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
                              const double src1_ghost_fill_time,
-                             const std::string& coef1_interp_type,
+                             const IBTK::VCInterpType coef1_interp_type,
                              int coef2_idx,
                              Pointer<SideVariable<NDIM, double> > /*coef2_var*/,
                              const double gamma,
@@ -2652,16 +2650,15 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
                        << std::endl);
         }
     }
-    if (string_to_enum<VCInterpType>(coef1_interp_type) != VC_HARMONIC_INTERP && 
-        string_to_enum<VCInterpType>(coef1_interp_type) != VC_AVERAGE_INTERP)
+    if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << coef1_interp_type
+                   << enum_to_string<VCInterpType>(coef1_interp_type)
                    << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
-    const bool use_harmonic_interp = string_to_enum<VCInterpType>(coef1_interp_type) == VC_HARMONIC_INTERP;
+    const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
 
     // Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2 src1 +
     // gamma src2 independently on each level.

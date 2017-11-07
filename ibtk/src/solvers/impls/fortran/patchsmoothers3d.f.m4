@@ -521,7 +521,7 @@ c
       return
       end
 c
-c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c  Perform a single Gauss-Seidel sweep for 
 c     (f0,f1,f2) = alpha div mu (grad (u0,u1,u2) + grad (u0, u1,u2)^T) + beta c (u0,u1,u2).
 c
@@ -539,9 +539,14 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     var_c)
+     &     var_c,
+     &     use_harmonic_interp)
 c
       implicit none
+c
+c     Functions.
+c
+      REAL a_avg, h_avg
 c
 c     Input.
 c
@@ -549,7 +554,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER u_gcw,f_gcw,c_gcw,mu_gcw
-      INTEGER var_c
+      INTEGER var_c,use_harmonic_interp
 
       REAL alpha,beta
 
@@ -596,21 +601,37 @@ c
                   c = c0(i0,i1,i2)*beta
                endif       
          
-               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
-     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                    mu2(i0+1,i1+1,i2)
-               mu_upper = mu_upper/12.d0
+               if (use_harmonic_interp .eq. 1) then
+                  mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-               mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
-     &                    mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
-     &                    mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
-     &                    mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
-     &                    mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
-     &                    mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-               mu_lower = mu_lower/12.d0
+                  mu_lower = h_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               else
+                  mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                  mu_lower = a_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               endif
          
                dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &             fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -644,21 +665,37 @@ c
                   c = c1(i0,i1,i2)*beta
                endif
 
-               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
-     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                    mu2(i0+1,i1+1,i2)
-               mu_upper = mu_upper/12.d0
+               if (use_harmonic_interp .eq. 1) then
+                 mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                              mu0(i0,i1,i2+1),            
+     &                              mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                              mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                              mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                              mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                              mu2(i0+1,i1+1,i2))
 
-               mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
-     &                    mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
-     &                    mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
-     &                    mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
-     &                    mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
-     &                    mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
-               mu_lower = mu_lower/12.d0
+                 mu_lower = h_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                              mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                              mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                           mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                              mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                              mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+               else
+                 mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                              mu0(i0,i1,i2+1),            
+     &                              mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                              mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                              mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                              mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                              mu2(i0+1,i1+1,i2))
+
+                 mu_lower = a_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                              mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                              mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                           mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                              mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                              mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+               endif
         
                dnr = alpha*(fac*(mu_upper + mu_lower)+
      &            fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
@@ -692,22 +729,39 @@ c
                if (var_c .eq. 1) then
                   c = c2(i0,i1,i2)*beta
                endif
+               if (use_harmonic_interp .eq. 1) then
+                  mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-               mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu0(i0,i1,i2+1)+
-     &                    mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                    mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                    mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                    mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                    mu2(i0+1,i1+1,i2)
-               mu_upper = mu_upper/12.d0
+                  mu_lower = h_avg(mu0(i0,i1,i2-1),mu0(i0,i1+1,i2-1),
+     &                             mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu1(i0,i1,i2-1),
+     &                             mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                             mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                             mu2(i0+1,i1+1,i2-1))
+               else
+                  mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-               mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
-     &                    mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+mu1(i0,i1,i2-1)+
-     &                    mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
-     &                    mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
-     &                    mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
-     &                    mu2(i0+1,i1+1,i2-1)
-               mu_lower = mu_lower/12.d0
+                  mu_lower = a_avg(mu0(i0,i1,i2-1),mu0(i0,i1+1,i2-1),
+     &                             mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu1(i0,i1,i2-1),
+     &                             mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                             mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                             mu2(i0+1,i1+1,i2-1))
+                endif
           
                dnr = alpha*(fac*(mu_upper + mu_lower)+
      &          fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
@@ -756,9 +810,14 @@ c
      &     ilower2,iupper2,
      &     dx,
      &     var_c,
+     &     use_harmonic_interp,
      &     red_or_black)
 c
       implicit none
+c
+c     Functions.
+c
+      REAL a_avg, h_avg
 c
 c     Input.
 c
@@ -766,7 +825,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER u_gcw,f_gcw,c_gcw,mu_gcw
-      INTEGER var_c
+      INTEGER var_c,use_harmonic_interp
       INTEGER red_or_black
 
       REAL alpha,beta
@@ -817,22 +876,37 @@ c
                      c = c0(i0,i1,i2)*beta
                   endif       
          
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+               if (use_harmonic_interp .eq. 1) then
+                  mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
-     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
-     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
-     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
-     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
-     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_lower = mu_lower/12.d0
+                  mu_lower = h_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               else
+                  mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                  mu_lower = a_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               endif
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -868,22 +942,38 @@ c
                      c = c1(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                    mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
-     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
-     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
-     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
-     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
-     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
-                  mu_lower = mu_lower/12.d0
+                    mu_lower = h_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  else
+                    mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                    mu_lower = a_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  endif
+
         
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
@@ -919,23 +1009,41 @@ c
                      c = c2(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                      mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
-     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu1(i0,i1,i2-1)+
-     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
-     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
-     &                       mu2(i0+1,i1+1,i2-1)
-                  mu_lower = mu_lower/12.d0
+                      mu_lower = h_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+               else
+                      mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
+
+                      mu_lower = a_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+                endif
           
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
@@ -989,9 +1097,14 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     var_c)
+     &     var_c,
+     &     use_harmonic_interp)
 c
       implicit none
+c
+c     Functions.
+c
+      REAL a_avg, h_avg
 c
 c     Input.
 c
@@ -999,7 +1112,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,mask_gcw
-      INTEGER var_c
+      INTEGER var_c,use_harmonic_interp
 
       REAL alpha,beta
 
@@ -1051,22 +1164,37 @@ c
                      c = c0(i0,i1,i2)*beta
                   endif       
          
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+               if (use_harmonic_interp .eq. 1) then
+                  mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
-     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
-     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
-     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
-     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
-     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_lower = mu_lower/12.d0
+                  mu_lower = h_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               else
+                  mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                  mu_lower = a_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               endif
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -1102,22 +1230,37 @@ c
                      c = c1(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                    mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
-     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
-     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
-     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
-     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
-     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
-                  mu_lower = mu_lower/12.d0
+                    mu_lower = h_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  else
+                    mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                    mu_lower = a_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  endif
         
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
@@ -1153,23 +1296,41 @@ c
                      c = c2(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                      mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
-     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu1(i0,i1,i2-1)+
-     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
-     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
-     &                       mu2(i0+1,i1+1,i2-1)
-                  mu_lower = mu_lower/12.d0
+                      mu_lower = h_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+                  else
+                      mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
+
+                      mu_lower = a_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+                  endif
           
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
@@ -1222,9 +1383,14 @@ c
      &     ilower2,iupper2,
      &     dx,
      &     var_c,
+     &     use_harmonic_interp,
      &     red_or_black)
 c
       implicit none
+c
+c     Functions.
+c
+      REAL a_avg, h_avg
 c
 c     Input.
 c
@@ -1232,7 +1398,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,mask_gcw
-      INTEGER var_c
+      INTEGER var_c,use_harmonic_interp
       INTEGER red_or_black
 
       REAL alpha,beta
@@ -1288,22 +1454,37 @@ c
                      c = c0(i0,i1,i2)*beta
                   endif       
          
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+               if (use_harmonic_interp .eq. 1) then
+                  mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0-1,i1,i2)+mu0(i0-1,i1+1,i2)+
-     &                       mu0(i0-1,i1,i2+1)+mu0(i0-1,i1+1,i2+1)+
-     &                       mu1(i0-1,i1,i2)+mu1(i0,i1,i2)+
-     &                       mu1(i0-1,i1,i2+1)+mu1(i0,i1,i2+1)+
-     &                       mu2(i0-1,i1,i2)+mu2(i0,i1,i2)+
-     &                       mu2(i0-1,i1+1,i2)+mu2(i0,i1+1,i2)
-                  mu_lower = mu_lower/12.d0
+                  mu_lower = h_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               else
+                  mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                  mu_lower = a_avg(mu0(i0-1,i1,i2),mu0(i0-1,i1+1,i2),
+     &                            mu0(i0-1,i1,i2+1),mu0(i0-1,i1+1,i2+1),
+     &                            mu1(i0-1,i1,i2),mu1(i0,i1,i2),
+     &                            mu1(i0-1,i1,i2+1),mu1(i0,i1,i2+1),
+     &                            mu2(i0-1,i1,i2),mu2(i0,i1,i2),
+     &                            mu2(i0-1,i1+1,i2),mu2(i0,i1+1,i2))
+               endif
          
                   dnr =  alpha*(fac*(mu_upper + mu_lower) + 
      &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
@@ -1340,22 +1521,37 @@ c
                      c = c1(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                    mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1-1,i2)+mu0(i0,i1,i2)+
-     &                       mu0(i0,i1-1,i2+1)+mu0(i0,i1,i2+1)+
-     &                       mu1(i0,i1-1,i2)+mu1(i0+1,i1-1,i2)+
-     &                       mu1(i0,i1-1,i2+1)+mu1(i0+1,i1-1,i2+1)+
-     &                       mu2(i0,i1-1,i2)+mu2(i0+1,i1-1,i2)+
-     &                       mu2(i0,i1,i2)+mu2(i0+1,i1,i2)
-                  mu_lower = mu_lower/12.d0
+                    mu_lower = h_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  else
+                    mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                             mu0(i0,i1,i2+1),            
+     &                             mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                             mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                             mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                             mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                             mu2(i0+1,i1+1,i2))
+
+                    mu_lower = a_avg(mu0(i0,i1-1,i2),mu0(i0,i1,i2),
+     &                             mu0(i0,i1-1,i2+1),mu0(i0,i1,i2+1),
+     &                             mu1(i0,i1-1,i2),mu1(i0+1,i1-1,i2),
+     &                          mu1(i0,i1-1,i2+1),mu1(i0+1,i1-1,i2+1),
+     &                             mu2(i0,i1-1,i2),mu2(i0+1,i1-1,i2),
+     &                             mu2(i0,i1,i2),mu2(i0+1,i1,i2))
+                  endif
         
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
@@ -1392,23 +1588,41 @@ c
                      c = c2(i0,i1,i2)*beta
                   endif
 
-                  mu_upper = mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu0(i0,i1,i2+1)+             
-     &                       mu0(i0,i1+1,i2+1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu1(i0,i1,i2+1)+
-     &                       mu1(i0+1,i1,i2+1)+mu2(i0,i1,i2)+
-     &                       mu2(i0+1,i1,i2)+mu2(i0,i1+1,i2)+
-     &                       mu2(i0+1,i1+1,i2)
-                  mu_upper = mu_upper/12.d0
+                  if (use_harmonic_interp .eq. 1) then
+                      mu_upper = h_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
 
-                  mu_lower = mu0(i0,i1,i2-1)+mu0(i0,i1+1,i2-1)+
-     &                       mu0(i0,i1,i2)+mu0(i0,i1+1,i2)+
-     &                       mu1(i0,i1,i2-1)+
-     &                       mu1(i0+1,i1,i2-1)+mu1(i0,i1,i2)+
-     &                       mu1(i0+1,i1,i2)+mu2(i0,i1,i2-1)+
-     &                       mu2(i0+1,i1,i2-1)+mu2(i0,i1+1,i2-1)+
-     &                       mu2(i0+1,i1+1,i2-1)
-                  mu_lower = mu_lower/12.d0
+                      mu_lower = h_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+               else
+                      mu_upper = a_avg(mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu0(i0,i1,i2+1),
+     &                                 mu0(i0,i1+1,i2+1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu1(i0,i1,i2+1),
+     &                                 mu1(i0+1,i1,i2+1),mu2(i0,i1,i2),
+     &                                 mu2(i0+1,i1,i2),mu2(i0,i1+1,i2),
+     &                                 mu2(i0+1,i1+1,i2))
+
+                      mu_lower = a_avg(mu0(i0,i1,i2-1),
+     &                                 mu0(i0,i1+1,i2-1),
+     &                                 mu0(i0,i1,i2),mu0(i0,i1+1,i2),
+     &                                 mu1(i0,i1,i2-1),
+     &                                 mu1(i0+1,i1,i2-1),mu1(i0,i1,i2),
+     &                                 mu1(i0+1,i1,i2),mu2(i0,i1,i2-1),
+     &                              mu2(i0+1,i1,i2-1),mu2(i0,i1+1,i2-1),
+     &                                 mu2(i0+1,i1+1,i2-1))
+                endif
           
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
      &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+

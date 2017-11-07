@@ -424,6 +424,7 @@ void
 VCINSStaggeredPressureBcCoef::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
 {
     d_mu_interp_type = mu_interp_type;
+    return;
 } // setViscosityInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

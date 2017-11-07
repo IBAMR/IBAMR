@@ -42,6 +42,7 @@
 #include "SAMRAIVectorReal.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -115,6 +116,12 @@ public:
 
     //\}
 
+    /*!
+     * \brief Set the interpolation type to be used in computing the
+     * variable coefficient viscous Laplacian.
+     */
+    void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
+
 protected:
 
 private:
@@ -144,6 +151,11 @@ private:
      * \return A reference to this object.
      */
     VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that);
+
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
 };
 } // namespace IBAMR
 

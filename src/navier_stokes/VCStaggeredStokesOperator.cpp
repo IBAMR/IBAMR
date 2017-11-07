@@ -85,6 +85,10 @@ VCStaggeredStokesOperator::VCStaggeredStokesOperator(const std::string& object_n
 {
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::VCStaggeredStokesOperator::apply()"););
+
+    // Set a default interpolation type.
+    d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
+
     return;
 } // VCStaggeredStokesOperator
 
@@ -179,7 +183,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 U_sc_var,
                                 d_no_fill,
                                 d_new_time,
-                                "VC_AVERAGE_INTERP",
+                                d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
                                 Pointer<SideVariable<NDIM, double> >(NULL),
                                 1.0,
@@ -201,6 +205,13 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     IBAMR_TIMER_STOP(t_apply);
     return;
 } // apply
+
+void
+VCStaggeredStokesOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
+{
+    d_D_interp_type = D_interp_type;
+    return;
+} // setViscosityInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
