@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/LSetDataFactory.h"
+#include "petscsys.h"
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
 
@@ -66,7 +67,7 @@ namespace IBTK
  * LIndexSetData.
  */
 template <class T>
-class LIndexSetDataFactory : public LSetDataFactory<T>
+class PETSC_VISIBILITY_PUBLIC LIndexSetDataFactory : public LSetDataFactory<T>
 {
 public:
     /*!

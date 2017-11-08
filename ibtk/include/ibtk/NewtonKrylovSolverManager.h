@@ -39,6 +39,7 @@
 #include <string>
 
 #include "ibtk/NewtonKrylovSolver.h"
+#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -50,7 +51,7 @@ namespace IBTK
  * \brief Class NewtonKrylovSolverManager is a singleton manager class to
  * provide access to generic NewtonKrylovSolver implementations.
  */
-class NewtonKrylovSolverManager
+class PETSC_VISIBILITY_PUBLIC NewtonKrylovSolverManager
 {
 public:
     /*!

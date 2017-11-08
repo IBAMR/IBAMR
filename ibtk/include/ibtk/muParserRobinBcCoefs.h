@@ -39,13 +39,12 @@
 #include <string>
 #include <vector>
 
-#include <petscsys.h>
-
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "muParser.h"
 #include "ibtk/ibtk_utilities.h"
+#include "muParser.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

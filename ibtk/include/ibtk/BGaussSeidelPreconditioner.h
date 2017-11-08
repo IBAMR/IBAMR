@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "ibtk/LinearSolver.h"
+#include "petscsys.h"
 #include "tbox/ConstPointer.h"
 #include "tbox/Pointer.h"
 
@@ -99,7 +100,7 @@ namespace IBTK
  \endverbatim
  *
  */
-class BGaussSeidelPreconditioner : public LinearSolver
+class PETSC_VISIBILITY_PUBLIC BGaussSeidelPreconditioner : public LinearSolver
 {
 public:
     /*!

@@ -50,7 +50,7 @@ namespace IBTK
  * \brief Class SCPoissonSolverManager is a singleton manager class to provide
  * access to generic side-centered PoissonSolver implementations.
  */
-class SCPoissonSolverManager
+class PETSC_VISIBILITY_PUBLIC SCPoissonSolverManager
 {
 public:
     /*!

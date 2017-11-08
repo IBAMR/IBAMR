@@ -40,6 +40,7 @@
 
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -66,7 +67,7 @@ namespace IBTK
  * \brief Class LMarkerUtilities is a utility class that defines useful
  * functions for dealing with Lagrangian marker particles.
  */
-class LMarkerUtilities
+class PETSC_VISIBILITY_PUBLIC LMarkerUtilities
 {
 public:
     /*!

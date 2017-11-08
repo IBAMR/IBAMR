@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -64,7 +65,7 @@ namespace IBTK
  * face-centered ghost region surrounding a patch appropriate for
  * "synchronizing" face-centered values at patch boundaries.
  */
-class FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class PETSC_VISIBILITY_PUBLIC FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

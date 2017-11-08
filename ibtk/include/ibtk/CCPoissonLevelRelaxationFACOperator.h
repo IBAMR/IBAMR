@@ -39,14 +39,13 @@
 #include <string>
 #include <vector>
 
-#include <petscsys.h>
-
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "petscksp.h"
 #include "petscmat.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

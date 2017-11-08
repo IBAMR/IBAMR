@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -54,16 +55,12 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK
-{
-class LinearOperator;
-} // namespace IBTK
-
 /////////////////////////////// FORWARD DECLARATION //////////////////////////
 
 namespace IBTK
 {
-}
+class LinearOperator;
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -117,7 +114,7 @@ namespace IBTK
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScKrylovLinearSolver : public KrylovLinearSolver
+class PETSC_VISIBILITY_PUBLIC PETScKrylovLinearSolver : public KrylovLinearSolver
 {
 public:
     friend class PETScNewtonKrylovSolver;

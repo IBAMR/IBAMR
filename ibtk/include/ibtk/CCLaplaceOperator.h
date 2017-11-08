@@ -44,6 +44,7 @@
 #include "VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -56,7 +57,7 @@ namespace IBTK
  * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
  * \cdot D \nabla\f$.
  */
-class CCLaplaceOperator : public LaplaceOperator
+class PETSC_VISIBILITY_PUBLIC CCLaplaceOperator : public LaplaceOperator
 {
 public:
     /*!

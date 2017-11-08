@@ -36,11 +36,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <string>
 
-#include <petscsys.h>
-
 #include "PatchLevel.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

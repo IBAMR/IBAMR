@@ -41,7 +41,7 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "ComponentSelector.h"
-#include "ibamrconf.h"
+#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -56,8 +56,8 @@
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"

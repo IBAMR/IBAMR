@@ -51,7 +51,7 @@
 #include "EdgeIndex.h"    // IWYU pragma: keep
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "ibamrconf.h"
+#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"

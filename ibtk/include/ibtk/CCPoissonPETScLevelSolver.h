@@ -44,6 +44,7 @@
 #include "VariableContext.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -107,7 +108,7 @@ namespace IBTK
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">http://www.mcs.anl.gov/petsc/petsc-as</A>.
  */
-class CCPoissonPETScLevelSolver : public PETScLevelSolver, public PoissonSolver
+class PETSC_VISIBILITY_PUBLIC CCPoissonPETScLevelSolver : public PETScLevelSolver, public PoissonSolver
 {
 public:
     /*!

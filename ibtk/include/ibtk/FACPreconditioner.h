@@ -42,6 +42,7 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -83,7 +84,7 @@ namespace IBTK
  enable_logging = FALSE  // see setLoggingEnabled()
  \endverbatim
 */
-class FACPreconditioner : public LinearSolver
+class PETSC_VISIBILITY_PUBLIC FACPreconditioner : public LinearSolver
 {
 public:
     /*!

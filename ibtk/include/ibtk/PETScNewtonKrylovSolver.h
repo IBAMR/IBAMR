@@ -104,7 +104,7 @@ namespace IBTK
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScNewtonKrylovSolver : public NewtonKrylovSolver
+class PETSC_VISIBILITY_PUBLIC PETScNewtonKrylovSolver : public NewtonKrylovSolver
 {
 public:
     /*!

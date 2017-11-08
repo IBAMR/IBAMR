@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 namespace IBTK
@@ -52,7 +53,7 @@ namespace IBTK
 /*!
  * \brief Class LMesh is a collection of LNode objects.
  */
-class LMesh : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC LMesh : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

@@ -63,7 +63,7 @@ namespace IBTK
  * \brief Class PETScVecUtilities provides utility functions for <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Vec objects.
  */
-class PETScVecUtilities
+class PETSC_VISIBILITY_PUBLIC PETScVecUtilities
 {
 public:
     /*!

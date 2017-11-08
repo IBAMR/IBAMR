@@ -41,6 +41,7 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -57,7 +58,7 @@ namespace IBTK
  * implementation of Krylov subspace solvers for linear problems of the form
  * \f$Ax=b\f$.
  */
-class KrylovLinearSolver : public LinearSolver
+class PETSC_VISIBILITY_PUBLIC KrylovLinearSolver : public LinearSolver
 {
 public:
     /*!

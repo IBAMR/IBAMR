@@ -44,7 +44,7 @@
 #include "CellIndex.h"
 #include "EdgeData.h"
 #include "EdgeGeometry.h"
-#include "ibamrconf.h"
+#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "NodeData.h"
@@ -52,7 +52,6 @@
 #include "Patch.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include <Eigen/Dense>
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
@@ -62,10 +61,10 @@
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+#include <Eigen/Dense>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

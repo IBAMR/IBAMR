@@ -45,6 +45,7 @@
 #include "ibtk/LinearSolver.h"
 #include "petscksp.h"
 #include "petscmat.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
@@ -86,7 +87,7 @@ namespace IBTK
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScLevelSolver : public LinearSolver
+class PETSC_VISIBILITY_PUBLIC PETScLevelSolver : public LinearSolver
 {
 public:
     /*!

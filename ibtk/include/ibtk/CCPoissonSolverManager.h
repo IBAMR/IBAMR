@@ -39,6 +39,7 @@
 #include <string>
 
 #include "ibtk/PoissonSolver.h"
+#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -50,7 +51,7 @@ namespace IBTK
  * \brief Class CCPoissonSolverManager is a singleton manager class to provide
  * access to generic cell-centered PoissonSolver implementations.
  */
-class CCPoissonSolverManager
+class PETSC_VISIBILITY_PUBLIC CCPoissonSolverManager
 {
 public:
     /*!

@@ -37,6 +37,7 @@
 
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "petscsys.h"
 #include "tbox/Array.h"
 
 namespace SAMRAI
@@ -56,7 +57,7 @@ namespace IBTK
  * \brief Class PhysicalBoundaryUtilities is a utility class to organize
  * functions related to setting values at physical boundaries.
  */
-class PhysicalBoundaryUtilities
+class PETSC_VISIBILITY_PUBLIC PhysicalBoundaryUtilities
 {
 public:
     /*!

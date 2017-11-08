@@ -37,6 +37,7 @@
 
 #include <vector>
 
+#include "petscsys.h"
 #include "tbox/AbstractStream.h"
 #include "tbox/Complex.h"
 
@@ -57,7 +58,7 @@ namespace IBTK
  * heterogeneous networks, which require a machine-independent storage format
  * such as XDR.
  */
-class FixedSizedStream : public SAMRAI::tbox::AbstractStream
+class PETSC_VISIBILITY_PUBLIC FixedSizedStream : public SAMRAI::tbox::AbstractStream
 {
 public:
     /*!

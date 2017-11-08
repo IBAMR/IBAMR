@@ -44,6 +44,7 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -64,7 +65,7 @@ namespace IBTK
  * boundaries via constant, linear, or quadratic extrapolation from interior
  * values.
  */
-class CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

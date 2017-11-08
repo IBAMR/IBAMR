@@ -39,6 +39,7 @@
 
 #include "IntVector.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI
@@ -62,7 +63,7 @@ namespace IBTK
  * \brief Class LMarker provides inter-processor communications functionality
  * for a Lagrangian marker.
  */
-class LMarker : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC LMarker : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

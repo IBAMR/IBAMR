@@ -38,6 +38,7 @@
 #include <string>
 
 #include "ibtk/LinearOperator.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -58,7 +59,7 @@ namespace IBTK
  * specification of general operators to compute Jacobian-vector products, i.e.,
  * \f$ F'[x]v \f$.
  */
-class JacobianOperator : public LinearOperator
+class PETSC_VISIBILITY_PUBLIC JacobianOperator : public LinearOperator
 {
 public:
     /*!

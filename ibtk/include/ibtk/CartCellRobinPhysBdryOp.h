@@ -41,6 +41,7 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "petscsys.h"
 #include "tbox/Array.h"
 
 namespace SAMRAI
@@ -80,7 +81,7 @@ namespace IBTK
  * the two classes is that class CartCellRobinPhysBdryOp allows for the
  * specification of boundary conditions for vector-valued quantities.
  */
-class CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
+class PETSC_VISIBILITY_PUBLIC CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
 public:
     /*!

@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -110,7 +111,7 @@ namespace IBTK
  level solver
  \endverbatim
 */
-class SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class PETSC_VISIBILITY_PUBLIC SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!

@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <deque>
 #include <list>
 #include <map>
@@ -60,6 +61,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/ibtk_enums.h"
+#include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"

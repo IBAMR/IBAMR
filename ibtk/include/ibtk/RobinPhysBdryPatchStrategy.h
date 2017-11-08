@@ -42,6 +42,7 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -69,7 +70,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy that are generally not needed for filling
  * ghost cell values at physical boundaries.
  */
-class RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

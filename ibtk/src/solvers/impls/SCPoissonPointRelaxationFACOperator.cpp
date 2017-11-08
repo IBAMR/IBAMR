@@ -47,7 +47,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
 #include "HierarchySideDataOpsReal.h"
-#include "ibamrconf.h"
+#include "IBTK_config.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -83,7 +83,6 @@
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"

@@ -40,6 +40,7 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -61,7 +62,7 @@ namespace IBTK
  * specification of general operators to compute \f$ y=F[x] \f$ and \f$ z=F[x]+y
  * \f$.
  */
-class GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

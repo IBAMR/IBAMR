@@ -47,6 +47,7 @@
 #include "PatchHierarchy.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -129,7 +130,7 @@ namespace IBTK
  *
  HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
-class CCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
+class PETSC_VISIBILITY_PUBLIC CCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
 {
 public:
     /*!

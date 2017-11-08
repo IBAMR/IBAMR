@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -65,7 +66,7 @@ namespace IBTK
  * 3D, it is also possible to configure this fill pattern object also to exclude
  * all edges.
  */
-class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class PETSC_VISIBILITY_PUBLIC CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

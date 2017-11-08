@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "RefineOperator.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -62,7 +63,7 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object which prolongs cell-centered double
  * precision patch data via quadratic interpolation.
  */
-class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class PETSC_VISIBILITY_PUBLIC CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

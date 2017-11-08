@@ -36,12 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <ostream>
 #include <vector>
 
 #include "BasePatchLevel.h"
 #include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -80,7 +82,7 @@ namespace IBTK
  * SAMRAI::mesh::StandardTagAndInitStrategy will work properly with class
  * StandardTagAndInitStrategySet.
  */
-class StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!

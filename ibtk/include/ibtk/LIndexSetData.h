@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/LSetData.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -64,7 +65,7 @@ namespace IBTK
  * \see SAMRAI::pdat::IndexData
  */
 template <class T>
-class LIndexSetData : public LSetData<T>
+class PETSC_VISIBILITY_PUBLIC LIndexSetData : public LSetData<T>
 {
 public:
     /*!

@@ -37,6 +37,7 @@
 
 #include <string>
 
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -59,7 +60,7 @@ namespace IBTK
 /*!
  * \brief Class DebuggingUtilities provides debugging functionality.
  */
-class DebuggingUtilities
+class PETSC_VISIBILITY_PUBLIC DebuggingUtilities
 {
 public:
     /*!

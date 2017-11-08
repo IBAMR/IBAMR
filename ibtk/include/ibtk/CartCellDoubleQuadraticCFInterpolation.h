@@ -44,6 +44,7 @@
 #include "PatchHierarchy.h"
 #include "RefineOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -70,7 +71,7 @@ namespace IBTK
  * interpolation in the normal and tangential directions at coarse-fine
  * interfaces.
  */
-class CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class PETSC_VISIBILITY_PUBLIC CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!

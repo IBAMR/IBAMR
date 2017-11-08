@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "RefineOperator.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -62,7 +63,7 @@ namespace IBTK
  * prolonging IB marker data from coarser levels to finer levels in the patch
  * hierarchy.
  */
-class LMarkerRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class PETSC_VISIBILITY_PUBLIC LMarkerRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!

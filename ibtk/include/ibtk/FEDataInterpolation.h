@@ -39,6 +39,7 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/equation_systems.h"
+#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,7 +49,7 @@ namespace IBTK
  * \brief Class FEDataInterpolation manages data requred to evaluate one or more FE field variables at a collection of
  * points, possibly (not not necessarily) corresponding to the points of a quadrature rule.
  */
-class FEDataInterpolation
+class PETSC_VISIBILITY_PUBLIC FEDataInterpolation
 {
 public:
     FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);

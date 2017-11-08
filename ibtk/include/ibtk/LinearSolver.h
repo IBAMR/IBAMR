@@ -41,6 +41,7 @@
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -51,7 +52,7 @@ namespace IBTK
  * \brief Class LinearSolver provides an abstract interface for the
  * implementation of solvers for linear problems of the form \f$Ax=b\f$.
  */
-class LinearSolver : public virtual GeneralSolver
+class PETSC_VISIBILITY_PUBLIC LinearSolver : public virtual GeneralSolver
 {
 public:
     /*!

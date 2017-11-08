@@ -44,12 +44,14 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
-struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
+struct PETSC_VISIBILITY_PUBLIC CellIndexFortranOrder
+    : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
 {
     inline bool operator()(const SAMRAI::pdat::CellIndex<NDIM>& lhs, const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
     {
@@ -71,7 +73,7 @@ struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM
  * such as conversion routines between physical coordinates and Cartesian index
  * space.
  */
-class IndexUtilities
+class PETSC_VISIBILITY_PUBLIC IndexUtilities
 {
 public:
     /*

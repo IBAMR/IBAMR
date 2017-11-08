@@ -38,6 +38,7 @@
 #include <string>
 
 #include "Variable.h"
+#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,7 +49,7 @@ namespace IBTK
  * corresponding to patch data of type LSetData.
  */
 template <class T>
-class LSetVariable : public SAMRAI::hier::Variable<NDIM>
+class PETSC_VISIBILITY_PUBLIC LSetVariable : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!

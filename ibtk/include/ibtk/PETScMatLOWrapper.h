@@ -41,6 +41,7 @@
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "petscmat.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
@@ -52,7 +53,7 @@ namespace IBTK
  * \brief Class PETScMatLOWrapper provides a LinearOperator interface for a <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat object.
  */
-class PETScMatLOWrapper : public LinearOperator
+class PETSC_VISIBILITY_PUBLIC PETScMatLOWrapper : public LinearOperator
 {
 public:
     /*!

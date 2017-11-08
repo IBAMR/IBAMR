@@ -39,6 +39,7 @@
 
 #include "IntVector.h"
 #include "PatchLevel.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 #include "tbox/Schedule.h"
 
@@ -61,7 +62,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class CopyToRootSchedule
+class PETSC_VISIBILITY_PUBLIC CopyToRootSchedule
 {
 public:
     /*!

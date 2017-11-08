@@ -37,6 +37,7 @@
 
 #include <cstring>
 
+#include "petscsys.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// ENUM DEFINITIONS /////////////////////////////
@@ -47,7 +48,7 @@ namespace IBTK
  * \brief Routine for converting strings to enums.
  */
 template <typename T>
-inline T
+PETSC_VISIBILITY_PUBLIC inline T
 string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
@@ -58,7 +59,7 @@ string_to_enum(const std::string& /*val*/)
  * \brief Routine for converting enums to strings.
  */
 template <typename T>
-inline std::string enum_to_string(T /*val*/)
+PETSC_VISIBILITY_PUBLIC inline std::string enum_to_string(T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
@@ -67,17 +68,10 @@ inline std::string enum_to_string(T /*val*/)
 /*!
  * \brief Enumerated type for different multigrid cycle types.
  */
-enum MGCycleType
-{
-    F_CYCLE,
-    FMG_CYCLE,
-    V_CYCLE,
-    W_CYCLE,
-    UNKNOWN_MG_CYCLE_TYPE = -1
-};
+PETSC_VISIBILITY_PUBLIC enum MGCycleType { F_CYCLE, FMG_CYCLE, V_CYCLE, W_CYCLE, UNKNOWN_MG_CYCLE_TYPE = -1 };
 
 template <>
-inline MGCycleType
+PETSC_VISIBILITY_PUBLIC inline MGCycleType
 string_to_enum<MGCycleType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "F") == 0) return F_CYCLE;
@@ -96,7 +90,7 @@ string_to_enum<MGCycleType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string
+PETSC_VISIBILITY_PUBLIC inline std::string
 enum_to_string<MGCycleType>(MGCycleType val)
 {
     if (val == F_CYCLE) return "F_CYCLE";
@@ -109,15 +103,10 @@ enum_to_string<MGCycleType>(MGCycleType val)
 /*!
  * \brief Enumerated type for different regridding modes.
  */
-enum RegridMode
-{
-    STANDARD,
-    AGGRESSIVE,
-    UNKNOWN_REGRID_MODE = -1
-};
+PETSC_VISIBILITY_PUBLIC enum RegridMode { STANDARD, AGGRESSIVE, UNKNOWN_REGRID_MODE = -1 };
 
 template <>
-inline RegridMode
+PETSC_VISIBILITY_PUBLIC inline RegridMode
 string_to_enum<RegridMode>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
@@ -126,7 +115,7 @@ string_to_enum<RegridMode>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string
+PETSC_VISIBILITY_PUBLIC inline std::string
 enum_to_string<RegridMode>(RegridMode val)
 {
     if (val == STANDARD) return "STANDARD";
@@ -137,8 +126,7 @@ enum_to_string<RegridMode>(RegridMode val)
 /*!
  * \brief Enumerated type for different standard data contexts.
  */
-enum VariableContextType
-{
+PETSC_VISIBILITY_PUBLIC enum VariableContextType {
     CURRENT_DATA,
     NEW_DATA,
     SCRATCH_DATA,
@@ -146,7 +134,7 @@ enum VariableContextType
 };
 
 template <>
-inline VariableContextType
+PETSC_VISIBILITY_PUBLIC inline VariableContextType
 string_to_enum<VariableContextType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
@@ -156,7 +144,7 @@ string_to_enum<VariableContextType>(const std::string& val)
 } // string_to_enum
 
 template <>
-inline std::string
+PETSC_VISIBILITY_PUBLIC inline std::string
 enum_to_string<VariableContextType>(VariableContextType val)
 {
     if (val == CURRENT_DATA) return "CURRENT_DATA";

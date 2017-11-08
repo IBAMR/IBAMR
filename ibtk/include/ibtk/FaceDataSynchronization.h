@@ -43,6 +43,7 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -65,7 +66,7 @@ namespace IBTK
  * \brief Class FaceDataSynchronization encapsulates the operations required to
  * "synchronize" face-centered values defined at patch boundaries.
  */
-class FaceDataSynchronization : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC FaceDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

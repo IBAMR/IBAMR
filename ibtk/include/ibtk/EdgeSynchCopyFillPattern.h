@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -70,7 +71,7 @@ namespace IBTK
  * in three spatial dimensions, we first synchronize values in the x direction,
  * then in the y direction, and finally in the z direction.
  */
-class EdgeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class PETSC_VISIBILITY_PUBLIC EdgeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

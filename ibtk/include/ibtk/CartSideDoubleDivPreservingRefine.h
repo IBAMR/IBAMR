@@ -40,6 +40,7 @@
 #include "IntVector.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -61,7 +62,7 @@ namespace IBTK
  * precision patch data via conservative linear interpolation with divergence-
  * and curl-preserving corrections.
  */
-class CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

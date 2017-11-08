@@ -38,6 +38,7 @@
 #include "Box.h"
 #include "IndexData.h"
 #include "ibtk/LSet.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI
@@ -72,7 +73,7 @@ namespace IBTK
  * index space.
  */
 template <class T>
-class LSetDataIterator : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC LSetDataIterator : public SAMRAI::tbox::DescribedClass
 {
 public:
     friend class LSetData<T>;

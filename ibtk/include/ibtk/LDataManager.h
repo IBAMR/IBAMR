@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <map>
 #include <ostream>
 #include <string>
@@ -63,6 +64,7 @@
 #include "ibtk/ParallelSet.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscao.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"

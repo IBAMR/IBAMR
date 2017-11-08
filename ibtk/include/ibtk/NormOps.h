@@ -33,6 +33,8 @@
 #ifndef included_IBTK_NormOps
 #define included_IBTK_NormOps
 
+#include "petscsys.h"
+
 namespace SAMRAI
 {
 namespace solv
@@ -51,7 +53,7 @@ namespace IBTK
  * \brief Class NormOps provides functionality for computing discrete vector
  * norms.
  */
-class NormOps
+class PETSC_VISIBILITY_PUBLIC NormOps
 {
 public:
     /*!

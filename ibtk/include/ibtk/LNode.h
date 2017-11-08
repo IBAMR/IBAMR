@@ -36,12 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <vector>
 
 #include "IntVector.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -68,7 +70,7 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information and data
  * storage for a single node of a Lagrangian mesh.
  */
-class LNode : public LNodeIndex
+class PETSC_VISIBILITY_PUBLIC LNode : public LNodeIndex
 {
 public:
     /*!

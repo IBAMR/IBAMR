@@ -36,9 +36,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <string>
 #include <vector>
 
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -64,7 +66,7 @@ namespace IBTK
  * \brief Class LData provides storage for a single scalar- or vector-valued
  * Lagrangian quantity.
  */
-class LData : public SAMRAI::tbox::Serializable
+class PETSC_VISIBILITY_PUBLIC LData : public SAMRAI::tbox::Serializable
 {
 public:
     /*!

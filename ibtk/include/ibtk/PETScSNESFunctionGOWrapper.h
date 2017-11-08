@@ -54,7 +54,7 @@ namespace IBTK
  * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
  * function.
  */
-class PETScSNESFunctionGOWrapper : public GeneralOperator
+class PETSC_VISIBILITY_PUBLIC PETScSNESFunctionGOWrapper : public GeneralOperator
 {
 public:
     /*!

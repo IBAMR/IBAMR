@@ -36,12 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <vector>
 
 #include "IntVector.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -68,7 +70,7 @@ namespace IBTK
  * functionality to a collection of Lagrangian objects.
  */
 template <class T>
-class LSet : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC LSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

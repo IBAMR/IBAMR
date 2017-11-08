@@ -40,6 +40,7 @@
 
 #include "PoissonSpecifications.h"
 #include "ibtk/LinearOperator.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -58,7 +59,7 @@ namespace IBTK
  * \brief Class LaplaceOperator is an abstract base class for a Laplace-type
  * operators.
  */
-class LaplaceOperator : public LinearOperator
+class PETSC_VISIBILITY_PUBLIC LaplaceOperator : public LinearOperator
 {
 public:
     /*!

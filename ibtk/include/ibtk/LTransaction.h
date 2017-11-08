@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <iosfwd>
 #include <vector>
 
@@ -44,6 +45,7 @@
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscsys.h"
 #include "tbox/Transaction.h"
 
 namespace SAMRAI
@@ -67,7 +69,7 @@ namespace IBTK
  * \see SAMRAI::tbox::Transaction
  */
 template <class T>
-class LTransaction : public SAMRAI::tbox::Transaction
+class PETSC_VISIBILITY_PUBLIC LTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!

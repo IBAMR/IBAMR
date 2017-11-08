@@ -39,6 +39,7 @@
 
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -60,7 +61,7 @@ namespace IBTK
  * SAMRAI::xfer::CoarsenPatchStrategy objects to be employed by a single
  * SAMRAI::xfer::CoarsenSchedule.
  */
-class CoarsenPatchStrategySet : public SAMRAI::xfer::CoarsenPatchStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC CoarsenPatchStrategySet : public SAMRAI::xfer::CoarsenPatchStrategy<NDIM>
 {
 public:
     /*!

@@ -44,6 +44,7 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "boost/array.hpp"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -66,7 +67,7 @@ namespace IBTK
  * \brief Class NodeDataSynchronization encapsulates the operations required to
  * "synchronize" node-centered values defined at patch boundaries.
  */
-class NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

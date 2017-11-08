@@ -39,6 +39,7 @@
 #include <string>
 
 #include "ibtk/LinearSolver.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -81,7 +82,7 @@ namespace IBTK
  \endverbatim
  *
  */
-class BJacobiPreconditioner : public LinearSolver
+class PETSC_VISIBILITY_PUBLIC BJacobiPreconditioner : public LinearSolver
 {
 public:
     /*!

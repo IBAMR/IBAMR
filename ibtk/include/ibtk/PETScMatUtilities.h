@@ -36,11 +36,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
+
 #include <vector>
 
 #include "PoissonSpecifications.h"
 #include "petscao.h"
 #include "petscmat.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
@@ -68,7 +70,7 @@ namespace IBTK
  * \brief Class PETScMatUtilities provides utility functions for <A
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat objects.
  */
-class PETScMatUtilities
+class PETSC_VISIBILITY_PUBLIC PETScMatUtilities
 {
 public:
     /*!

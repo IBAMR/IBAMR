@@ -39,6 +39,7 @@
 
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonSolver.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -63,7 +64,7 @@ namespace IBTK
  *
  * \see PETScKrylovPoissonSolver
  */
-class KrylovLinearSolverPoissonSolverInterface : public PoissonSolver
+class PETSC_VISIBILITY_PUBLIC KrylovLinearSolverPoissonSolverInterface : public PoissonSolver
 {
 public:
     /*!

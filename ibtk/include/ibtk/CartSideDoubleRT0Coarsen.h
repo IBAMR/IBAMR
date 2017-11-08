@@ -37,12 +37,11 @@
 
 #include <string>
 
-#include <petscsys.h>
-
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"
 #include "CoarsenOperator.h"
 #include "IntVector.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

@@ -39,6 +39,7 @@
 #include <string>
 
 #include "ibtk/KrylovLinearSolver.h"
+#include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -50,7 +51,7 @@ namespace IBTK
  * \brief Class KrylovLinearSolverManager is a singleton manager class to
  * provide access to generic KrylovLinearSolver implementations.
  */
-class KrylovLinearSolverManager
+class PETSC_VISIBILITY_PUBLIC KrylovLinearSolverManager
 {
 public:
     /*!

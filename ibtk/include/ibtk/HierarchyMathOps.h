@@ -36,10 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <string>
 #include <vector>
-
-#include <petscsys.h>
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -60,6 +59,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/PatchMathOps.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

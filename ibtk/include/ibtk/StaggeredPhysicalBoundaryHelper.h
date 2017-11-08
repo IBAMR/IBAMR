@@ -81,7 +81,7 @@ namespace IBTK
  * \brief Class StaggeredPhysicalBoundaryHelper provides helper functions to
  * handle physical boundary conditions for a staggered grid discretizations.
  */
-class StaggeredPhysicalBoundaryHelper : SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC StaggeredPhysicalBoundaryHelper : SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

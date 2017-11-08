@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "VariableFillPattern.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -64,7 +65,7 @@ namespace IBTK
  * side-centered ghost region surrounding a patch appropriate for
  * "synchronizing" side-centered values at patch boundaries.
  */
-class SideSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class PETSC_VISIBILITY_PUBLIC SideSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!

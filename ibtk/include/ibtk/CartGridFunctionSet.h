@@ -36,12 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <string>
 #include <vector>
 
 #include "IntVector.h"
 #include "PatchLevel.h"
 #include "ibtk/CartGridFunction.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -65,7 +67,7 @@ namespace IBTK
  * \brief Class CartGridFunctionSet is a concrete CartGridFunction that is used
  * to allow multiple CartGridFunction objects to act as a single function.
  */
-class CartGridFunctionSet : public CartGridFunction
+class PETSC_VISIBILITY_PUBLIC CartGridFunctionSet : public CartGridFunction
 {
 public:
     /*!

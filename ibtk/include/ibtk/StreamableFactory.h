@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -76,7 +77,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableManager
  */
-class StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

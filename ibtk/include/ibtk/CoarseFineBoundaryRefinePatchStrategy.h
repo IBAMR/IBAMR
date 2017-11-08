@@ -41,6 +41,7 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -68,7 +69,7 @@ namespace IBTK
  * functionality of SAMRAI::xfer::RefinePatchStrategy to facilitate the
  * implementation of coarse-fine interface discretizations.
  */
-class CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class PETSC_VISIBILITY_PUBLIC CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

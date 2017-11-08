@@ -1893,7 +1893,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        // Loop over the elements and compute the values to be spread and the
+        // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         T_bdry.clear();
         x_bdry.clear();

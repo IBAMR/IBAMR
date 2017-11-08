@@ -72,7 +72,7 @@ namespace IBTK
  * \brief Class PoissonUtilities provides utility functions for constructing
  * Poisson solvers.
  */
-class PoissonUtilities
+class PETSC_VISIBILITY_PUBLIC PoissonUtilities
 {
 public:
     /*!

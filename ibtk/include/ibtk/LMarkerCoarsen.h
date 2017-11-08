@@ -40,6 +40,7 @@
 #include "Box.h"
 #include "CoarsenOperator.h"
 #include "IntVector.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -62,7 +63,7 @@ namespace IBTK
  * restricting IB marker data from finer levels to coarser levels in the patch
  * hierarchy.
  */
-class LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class PETSC_VISIBILITY_PUBLIC LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!

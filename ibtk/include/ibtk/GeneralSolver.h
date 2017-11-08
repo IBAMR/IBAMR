@@ -40,6 +40,7 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
+#include "petscsys.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -61,7 +62,7 @@ namespace IBTK
  * implementation of linear or nonlinear solvers for systems of equations
  * defined on an AMR patch hierarchy.
  */
-class GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

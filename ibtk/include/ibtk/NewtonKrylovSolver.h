@@ -41,6 +41,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -57,7 +58,7 @@ namespace IBTK
  * implementation of inexact Newton-Krylov solvers for nonlinear problems of the
  * form \f$ F[x]=b \f$.
  */
-class NewtonKrylovSolver : public GeneralSolver
+class PETSC_VISIBILITY_PUBLIC NewtonKrylovSolver : public GeneralSolver
 {
 public:
     /*!

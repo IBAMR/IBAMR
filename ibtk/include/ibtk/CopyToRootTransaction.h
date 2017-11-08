@@ -40,6 +40,7 @@
 #include "IntVector.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
+#include "petscsys.h"
 #include "tbox/Pointer.h"
 #include "tbox/Transaction.h"
 
@@ -62,7 +63,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class CopyToRootTransaction : public SAMRAI::tbox::Transaction
+class PETSC_VISIBILITY_PUBLIC CopyToRootTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!

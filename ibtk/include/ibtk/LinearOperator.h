@@ -38,6 +38,7 @@
 #include <string>
 
 #include "ibtk/GeneralOperator.h"
+#include "petscsys.h"
 
 namespace SAMRAI
 {
@@ -57,7 +58,7 @@ namespace IBTK
  * specification of linear operators to compute \f$ y=Ax \f$ and \f$ z=Ax+y \f$
  * and, optionally, \f$ y=A^{T} x \f$ and \f$ z=A^{T}x+y \f$.
  */
-class LinearOperator : public GeneralOperator
+class PETSC_VISIBILITY_PUBLIC LinearOperator : public GeneralOperator
 {
 public:
     /*!
