@@ -44,6 +44,7 @@
 #include "PatchHierarchy.h"
 #include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
+#include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
@@ -187,6 +188,8 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
       d_rho_fluid(std::numeric_limits<double>::quiet_NaN()),
       d_mu_fluid(std::numeric_limits<double>::quiet_NaN()),
+      d_fluid_velocity_update_type("UPDATE_VELOCITY"),
+      d_use_momentum_update(false),
       d_timestep_counter(0),
       d_output_interval(1),
       d_print_output(false),
@@ -199,7 +202,8 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_output_MOI(false),
       d_output_eul_mom(false),
       d_dir_name("./ConstraintIBMethodDump"),
-      d_base_output_filename("ImmersedStructrue")
+      d_base_output_filename("ImmersedStructrue"),
+      d_rho_ins_idx(-1)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -420,6 +424,7 @@ ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double n
 
     IBTK_TIMER_START(t_interpolateFluidSolveVelocity);
     copyFluidVariable(d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx);
+    if (d_use_momentum_update) computeFluidSolveMomentum();
     interpolateFluidSolveVelocity();
     IBTK_TIMER_STOP(t_interpolateFluidSolveVelocity);
 
@@ -538,6 +543,29 @@ ConstraintIBMethod::registerEulerianVariables()
         d_u_scratch_idx = var_db->registerVariableAndContext(d_u_var, d_scratch_context, side_ghosts);
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
+    }
+
+    if (d_use_momentum_update)
+    {
+        // Get the density maintained by the integrator
+        VCINSStaggeredHierarchyIntegrator* p_vc_ins_hier_integrator =
+            dynamic_cast<VCINSStaggeredHierarchyIntegrator*>(IBStrategy::getINSHierarchyIntegrator());
+
+        if (p_vc_ins_hier_integrator)
+        {
+            d_rho_ins_idx = p_vc_ins_hier_integrator->getInterpolatedMuPatchDataIndex(); // temporary -- change to density
+#if !defined(NDEBUG)
+            TBOX_ASSERT(d_rho_ins_idx >= 0);
+#endif
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
+                                     << "  in order to use fluid_velocity_update_type = "
+                                     << d_fluid_velocity_update_type
+                                     << " \n"
+                                     << "  a VCINSStaggeredHierarchyIntegrator object must be registered\n");
+        }
     }
 
     return;
@@ -696,6 +724,8 @@ ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_tim
     return;
 } // postprocessIntegrateData
 
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
 void
 ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
 {
@@ -703,6 +733,7 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
     d_needs_div_free_projection = input_db->getBoolWithDefault("needs_divfree_projection", d_needs_div_free_projection);
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
     d_mu_fluid = input_db->getDoubleWithDefault("mu_fluid", d_mu_fluid);
+    d_fluid_velocity_update_type = input_db->getStringWithDefault("fluid_velocity_update_type", d_fluid_velocity_update_type);
 
     // Printing stuff to files.
     Pointer<Database> output_db = input_db->getDatabase("PrintOutput");
@@ -725,6 +756,22 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
             "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum is calculated but divergence free projection "
             "is not active"
             << std::endl);
+    if (d_fluid_velocity_update_type == "UPDATE_VELOCITY")
+    {
+        d_use_momentum_update = false;
+    }
+    else if (d_fluid_velocity_update_type == "UPDATE_MOMENTUM")
+    {
+        d_use_momentum_update = true;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::getFromInput():\n"
+                                 << "  unsupported fluid velocity update type: "
+                                 << d_fluid_velocity_update_type
+                                 << " \n"
+                                 << "  valid choices are: UPDATE_VELOCITY and  UPDATE_MOMENTUM\n");
+    }
 
     if (!from_restart)
         tbox::Utilities::recursiveMkdir(d_dir_name);
@@ -2187,6 +2234,39 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 } // copyFluidVariable
 
 void
+ConstraintIBMethod::computeFluidSolveMomentum()
+{
+    // If momentum updating is being used, d_u_fluidSolve_cib_idx will
+    // hold rho_ins * u_fluidSolve. This quantity will be used for interpolation 
+    // onto the Lagrangian mesh 
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_rho_ins_idx >= 0);
+#endif
+    d_hier_sc_data_ops->multiply(d_u_fluidSolve_cib_idx, d_u_fluidSolve_cib_idx, d_rho_ins_idx);
+
+    // Fill ghost cells
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+    InterpolationTransactionComponent component(d_u_fluidSolve_cib_idx,
+                                                DATA_REFINE_TYPE,
+                                                USE_CF_INTERPOLATION,
+                                                SIDE_DATA_COARSEN_TYPE,
+                                                BDRY_EXTRAP_TYPE,
+                                                CONSISTENT_TYPE_2_BDRY,
+                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, NULL),
+                                                NULL);
+    transaction_comps.push_back(component);
+
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+    const bool homogeneous_bc = true;
+    hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    hier_bdry_fill->fillData(0.0);
+} // computeFluidSolveMomentum
+
+void
 ConstraintIBMethod::interpolateFluidSolveVelocity()
 {
     const int coarsest_ln = 0;
@@ -2537,4 +2617,8 @@ ConstraintIBMethod::calculatePower()
     return;
 } // calculatePower
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
 } // IBAMR
+
+//////////////////////////////////////////////////////////////////////////////
