@@ -109,11 +109,9 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
       d_no_fill_op(NULL),
       d_Phi_var(NULL),
       d_F_Phi_var(NULL),
-      d_grad_Phi_var(NULL),
       d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1),
-      d_velocity_D_cc_idx(-1),
-      d_grad_Phi_idx(-1)
+      d_velocity_D_cc_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -154,22 +152,6 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_F_Phi_idx >= 0);
 #endif
-    const std::string grad_Phi_var_name = d_object_name + "::grad_Phi";
-    d_grad_Phi_var = var_db->getVariable(Phi_var_name);
-    if (d_grad_Phi_var)
-    {
-        d_grad_Phi_idx = var_db->mapVariableAndContextToIndex(d_grad_Phi_var, context);
-    }
-    else
-    {
-        d_grad_Phi_var = new SideVariable<NDIM, double>(grad_Phi_var_name);
-        d_grad_Phi_idx = var_db->registerVariableAndContext(d_grad_Phi_var, context, IntVector<NDIM>(SIDEG));
-    }
-#if !defined(NDEBUG)
-        TBOX_ASSERT(d_grad_Phi_idx >= 0);
-#endif
-
-
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer(
@@ -249,7 +231,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_Phi_scratch_idx);
         level->allocatePatchData(d_F_Phi_idx);
-        level->allocatePatchData(d_grad_Phi_idx);
     }
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
@@ -371,8 +352,8 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         else
         {
             const double coef_idx = d_P_problem_coefs.getDPatchDataId();
-            d_hier_math_ops->grad(d_grad_Phi_idx,
-                                  d_grad_Phi_var,
+            d_hier_math_ops->grad(U_idx,
+                                  U_sc_var,
                                   /*cf_bdry_synch*/ true,
                                   coef_idx,
                                   Pointer<SideVariable<NDIM, double> >(NULL),
@@ -380,10 +361,9 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                                   d_Phi_var,
                                   d_Phi_bdry_fill_op,
                                   d_pressure_solver->getSolutionTime(),
-                                  0.0,
-                                  -1,
-                                  NULL);
-            d_velocity_data_ops->axpy(U_idx, 1.0, d_grad_Phi_idx, U_idx);
+                                  1.0,
+                                  U_idx,
+                                  U_sc_var);
         }
     }
 
@@ -396,7 +376,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_Phi_scratch_idx);
         level->deallocatePatchData(d_F_Phi_idx);
-        level->deallocatePatchData(d_grad_Phi_idx);
     }
 
     // Deallocate the solver (if necessary).
