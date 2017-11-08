@@ -113,9 +113,14 @@ FastSweepingLSMethod::~FastSweepingLSMethod()
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
                                        Pointer<HierarchyMathOps> hier_math_ops,
+                                       int integrator_step,
                                        double time,
                                        bool initial_time)
 {
+    bool initialize_ls =
+        d_reinitialize_ls || initial_time || (d_reinit_interval && integrator_step % d_reinit_interval == 0);
+    if (!initialize_ls) return;
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
@@ -197,6 +202,9 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
     }
     var_db->removePatchDataIndex(D_iter_idx);
+
+    // Indicate that the LS has been initialized.
+    d_reinitialize_ls = false;
 
     return;
 } // initializeLSData
@@ -307,6 +315,8 @@ FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
     d_abs_tol = input_db->getDoubleWithDefault("abs_tol", d_abs_tol);
 
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+
+    d_reinit_interval = input_db->getIntegerWithDefault("reinit_interval", d_reinit_interval);
 
     d_consider_phys_bdry_wall = input_db->getBoolWithDefault("physical_bdry_wall", d_consider_phys_bdry_wall);
     Array<int> wall_loc_idices;

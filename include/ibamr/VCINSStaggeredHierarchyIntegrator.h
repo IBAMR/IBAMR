@@ -249,9 +249,30 @@ public:
     void setVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
 
     /*!
+     * \brief Function to reset fluid density or viscosity if they are
+     * maintained by this integrator.
+     */
+    typedef void (*ResetFluidPropertiesFcnPtr)(int property_idx,
+                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                               int cycle_num,
+                                               double time,
+                                               double new_time,
+                                               void* ctx);
+
+    /*!
+     * \brief Register interface neighborhood locating functions.
+     */
+    void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register interface neighborhood locating functions.
+     */
+    void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
      * \brief Get whether or not viscosity is constant
      */
-    inline const bool muIsConstant() const
+    inline bool muIsConstant() const
     {
         return d_mu_is_const;
     }
@@ -259,7 +280,7 @@ public:
     /*!
      * \brief Get cell centered viscosity patch data index
      */
-    inline const int getMuPatchDataIndex() const
+    inline int getMuPatchDataIndex() const
     {
         return d_mu_scratch_idx;
     }
@@ -267,7 +288,7 @@ public:
     /*!
      * \brief Get interpolated node (2D) or edge (3D) centered viscosity patch data index
      */
-    inline const int getInterpolatedMuPatchDataIndex() const
+    inline int getInterpolatedMuPatchDataIndex() const
     {
         return d_mu_interp_idx;
     }
@@ -275,7 +296,7 @@ public:
     /*!
      * \brief Get the scaling factor used for A, p and u_rhs
      */
-    inline const double getPressureScalingFactor() const
+    inline double getPressureScalingFactor() const
     {
         return d_A_scale;
     }
@@ -462,6 +483,12 @@ private:
 #elif (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_interp_var;
 #endif
+
+    /*!
+     * Functions resetting rho and mu if they are maintained by this integrator.
+     */
+    std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
+    std::vector<void *> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
      * Temporary storage variables that contain intermediate quantities
