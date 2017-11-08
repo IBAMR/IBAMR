@@ -1269,7 +1269,6 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
             p_poisson_fac_pc->getFACPreconditionerStrategy();
-        // if (p_vc_point_fac_op) TBOX_ERROR("checl");
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_vc_interp_type);
     }
 
