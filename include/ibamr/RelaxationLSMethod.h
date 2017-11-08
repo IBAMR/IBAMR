@@ -91,10 +91,11 @@ public:
     virtual ~RelaxationLSMethod();
 
     /*!
-     * \brief Initialize level set data using the fast-sweeping method.
+     * \brief Initialize level set data using the relaxation method.
      */
     void initializeLSData(int D_idx,
                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                          int integrator_step,
                           double time,
                           bool initial_time);
 

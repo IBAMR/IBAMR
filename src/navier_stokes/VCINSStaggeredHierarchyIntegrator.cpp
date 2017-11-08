@@ -376,7 +376,6 @@ static const int MUCELLG = 2;
 // boundary and physical boundary ghost cell values.
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
-static const bool MU_USE_CF_INTERPOLATION = false;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
@@ -910,6 +909,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> node_ghosts = NODEG;
@@ -984,10 +984,11 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // form maintained by the INS integrator 
     if (!d_rho_is_const)
     {
-        if (d_adv_diff_hier_integrator->getFluidDensityVariable())
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
         {
-            d_rho_var = d_adv_diff_hier_integrator->getFluidDensityVariable();
+            d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
+            // AdvDiffHierarchyIntegrator should initialize the density variable.
             TBOX_ASSERT(!d_rho_fcn);
 #endif
         }
@@ -1001,11 +1002,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                    << "  rho_is_const == false but no mass density variable has been registered.\n");
         }
     }
-    if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
-    {
-        TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  mass density variable must be cell-centered.\n");
-    }
+
     if (d_rho_var)
     {
         registerVariable(d_rho_current_idx,
@@ -1021,7 +1018,11 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         d_rho_current_idx = -1;
         d_rho_new_idx = -1;
-        d_rho_scratch_idx = -1;
+        d_rho_fcn = NULL;
+
+        Pointer<CellVariable<NDIM, double> > rho_cc_scratch_var =
+            new CellVariable<NDIM, double>(d_object_name + "_rho_cc_scratch_var", /*depth*/ 1);
+        d_rho_scratch_idx = var_db->registerVariableAndContext(rho_cc_scratch_var, getScratchContext(), cell_ghosts);
     }
 
     // Get the density variable, which can either be an advected field maintained by
@@ -1029,10 +1030,11 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // form maintained by the INS integrator 
     if (!d_mu_is_const)
     {
-        if (d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
         {
-            d_mu_var = d_adv_diff_hier_integrator->getFluidViscosityVariable();
+            d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
+            // AdvDiffHierarchyIntegrator should initialize the viscosity variable.
             TBOX_ASSERT(!d_mu_fcn);
 #endif
         }
@@ -1046,11 +1048,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                    << "  mu_is_const == false but no viscosity variable has been registered.\n");
         }
     }
-    if (INSHierarchyIntegrator::d_mu_var && !d_mu_var)
-    {
-        TBOX_ERROR("VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  viscosity variable must be cell-centered.\n");
-    }
+
     if (d_mu_var)
     {
         registerVariable(d_mu_current_idx,
@@ -1066,7 +1064,11 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         d_mu_current_idx = -1;
         d_mu_new_idx = -1;
-        d_mu_scratch_idx = -1;
+        d_mu_fcn = NULL;
+
+        Pointer<CellVariable<NDIM, double> > mu_cc_scratch_var =
+            new CellVariable<NDIM, double>(d_object_name + "_mu_cc_scratch_var", /*depth*/ 1);
+        d_mu_scratch_idx = var_db->registerVariableAndContext(mu_cc_scratch_var, getScratchContext(), mu_cell_ghosts);
     }
 
     // Register plot variables that are maintained by the
@@ -1119,12 +1121,12 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             d_visit_writer->registerPlotQuantity("P", "SCALAR", d_P_current_idx, 0, d_P_scale);
         }
 
-        if (d_output_rho && !d_rho_is_const)
+        if (d_output_rho && !d_rho_is_const && d_rho_var)
         {
             d_visit_writer->registerPlotQuantity("rho_ins", "SCALAR", d_rho_current_idx, 0., d_rho_scale);
         }
 
-        if (d_output_mu && !d_mu_is_const)
+        if (d_output_mu && !d_mu_is_const && d_mu_var)
         {
             d_visit_writer->registerPlotQuantity("mu_ins", "SCALAR", d_mu_current_idx, 0, d_mu_scale);
         }
@@ -1174,7 +1176,6 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
 
     // Initialize and register variables used to compute INS coefficients
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_pressure_D_var = new SideVariable<NDIM, double>(d_object_name + "::pressure_D");
     d_pressure_D_idx = var_db->registerVariableAndContext(d_pressure_D_var, getCurrentContext(), side_ghosts);
 
@@ -1353,18 +1354,29 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_rho_interp_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
         level->allocatePatchData(d_N_full_idx, current_time);
+        if (d_rho_var.isNull()) level->allocatePatchData(d_rho_scratch_idx, current_time);
+        if (d_mu_var.isNull()) level->allocatePatchData(d_mu_scratch_idx, current_time);
     }
 
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
 
     // Get the current value of viscosity
-    if (d_mu_var)
+    if (!d_mu_is_const)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int mu_adv_diff_current_idx =
-                var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getCurrentContext());
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_adv_diff_current_idx, /*interior_only*/ true);
+        int mu_current_idx;
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        {
+            mu_current_idx =
+                var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+                                                     d_adv_diff_hier_integrator->getCurrentContext());
+        }
+        else
+        {
+            mu_current_idx = d_mu_current_idx;
+        }
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
         // Interpolate onto node or edge centers
@@ -1454,7 +1466,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ NULL);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
-    // RHS = (C_rhs*I + L(D_rhs))*U
+    // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
                                 1.0,
@@ -1569,18 +1581,45 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     }
 
     // Update the state variables of any linked advection-diffusion solver.
+    // NOTE: This also updates rho and mu if they are maintained by adv-diff integrator.
     if (d_adv_diff_hier_integrator)
     {
         d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
     }
 
+    // Update rho and mu if they are maintained by the fluid integrator.
+    if (!d_rho_is_const && d_rho_var)
+    {
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](
+                d_rho_new_idx, d_hier_math_ops, cycle_num, current_time, new_time, d_reset_rho_fcns_ctx[k]);
+        }
+    }
+    if (!d_mu_is_const && d_mu_var)
+    {
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](
+                d_mu_new_idx, d_hier_math_ops, cycle_num, current_time, new_time, d_reset_mu_fcns_ctx[k]);
+        }
+    }
+
     // Get the newest values of rho and mu if necessary
-    if (d_rho_var)
+    if (!d_rho_is_const)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int rho_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_rho_var, d_adv_diff_hier_integrator->getNewContext());
-        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_adv_diff_new_idx, /*interior_only*/ true);
+        int rho_new_idx;
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
+        {
+            rho_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidDensityVariable(),
+                                                               d_adv_diff_hier_integrator->getNewContext());
+        }
+        else
+        {
+            rho_new_idx = d_rho_new_idx;
+        }
+        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_new_idx, /*interior_only*/ true);
         d_rho_bdry_bc_fill_op->fillData(new_time);
 
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -1618,11 +1657,20 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             level->deallocatePatchData(d_temp_cc_idx);
         }
     }
-    if (d_mu_var)
+    if (!d_mu_is_const)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int mu_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_adv_diff_hier_integrator->getNewContext());
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_adv_diff_new_idx, /*interior_only*/ true);
+        int mu_new_idx;
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidViscosityVariable())
+        {
+            mu_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidViscosityVariable(),
+                                                              d_adv_diff_hier_integrator->getNewContext());
+        }
+        else
+        {
+            mu_new_idx = d_mu_new_idx;
+        }
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_new_idx, /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(new_time);
 
         // Interpolate onto node or edge centers
@@ -1821,6 +1869,8 @@ VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         level->deallocatePatchData(d_rho_interp_idx);
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_N_full_idx);
+        if (d_rho_var.isNull()) level->deallocatePatchData(d_rho_scratch_idx);
+        if (d_mu_var.isNull()) level->deallocatePatchData(d_mu_scratch_idx);
     }
 
     // Execute any registered callbacks.
@@ -2125,7 +2175,7 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
                                                       const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
                                                       const double current_time,
                                                       const double new_time,
-                                                      const int cycle_num)
+                                                      const int /*cycle_num*/)
 {
     const double dt = new_time - current_time;
     const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
@@ -2231,6 +2281,22 @@ void VCINSStaggeredHierarchyIntegrator::setVCInterpolationType(const IBTK::VCInt
     d_vc_interp_type = vc_interp_type;
     return;
 } // setVCInterpolationType
+
+void
+VCINSStaggeredHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_reset_rho_fcns.push_back(callback);
+    d_reset_rho_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetFluidDensityFcn
+
+void
+VCINSStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_reset_mu_fcns.push_back(callback);
+    d_reset_mu_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetFluidViscosityFcn
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2475,7 +2541,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }
 
-    if (d_rho_var)
+    if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(
@@ -2484,7 +2550,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
 
-    if (d_mu_var)
+    if (!d_mu_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent mu_bc_component(
