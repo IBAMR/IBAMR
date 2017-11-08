@@ -92,12 +92,16 @@
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux2d, CTOFFLUX2D)
 #define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux2d, CTOFANISOFLUX2D)
 #define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd2d, CTOFGRADADD2D)
+#define C_TO_F_FLUX_ADD_FC IBTK_FC_FUNC(ctoffluxadd2d, CTOFFLUXADD2D)
+#define C_TO_F_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctofanisofluxadd2d, CTOFANISOFLUXADD2D)
 #define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd2d, CTOFINTERP2ND2D)
 
 #define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad2d, CTOSGRAD2D)
 #define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux2d, CTOSFLUX2D)
 #define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux2d, CTOSANISOFLUX2D)
 #define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd2d, CTOSGRADADD2D)
+#define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd2d, CTOSFLUXADD2D)
+#define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd2d, CTOSANISOFLUXADD2D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd2d, CTOSINTERP2ND2D)
 #define C_TO_S_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctosharmonicinterp2nd2d, CTOSHARMONICINTERP2ND2D)
 
@@ -161,12 +165,16 @@
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux3d, CTOFFLUX3D)
 #define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux3d, CTOFANISOFLUX3D)
 #define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd3d, CTOFGRADADD3D)
+#define C_TO_F_FLUX_ADD_FC IBTK_FC_FUNC(ctoffluxadd3d, CTOFFLUXADD3D)
+#define C_TO_F_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctofanisofluxadd3d, CTOFANISOFLUXADD3D)
 #define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd3d, CTOFINTERP2ND3D)
 
 #define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad3d, CTOSGRAD3D)
 #define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux3d, CTOSFLUX3D)
 #define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux3d, CTOSANISOFLUX3D)
 #define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd3d, CTOSGRADADD3D)
+#define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd3d, CTOSFLUXADD3D)
+#define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd3d, CTOSANISOFLUXADD3D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd3d, CTOSINTERP2ND3D)
 #define C_TO_S_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctosharmonicinterp2nd3d, CTOSHARMONICINTERP2ND3D)
 
@@ -756,6 +764,68 @@ void C_TO_F_GRAD_ADD_FC(double* g0,
 #endif
                         const double* dx);
 
+void C_TO_F_FLUX_ADD_FC(double* g0,
+                        double* g1,
+#if (NDIM == 3)
+                        double* g2,
+#endif
+                        const int& g_gcw,
+                        const double* alpha0,
+                        const double* alpha1,
+#if (NDIM == 3)
+                        const double* alpha2,
+#endif
+                        const int& alpha_gcw,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
+#if (NDIM == 3)
+                        const double* v2,
+#endif
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
+
+void C_TO_F_ANISO_FLUX_ADD_FC(double* g0,
+                              double* g1,
+#if (NDIM == 3)
+                              double* g2,
+#endif
+                              const int& g_gcw,
+                              const double* alpha0,
+                              const double* alpha1,
+#if (NDIM == 3)
+                              const double* alpha2,
+#endif
+                              const int& alpha_gcw,
+                              const double* U,
+                              const int& U_gcw,
+                              const double& beta,
+                              const double* v0,
+                              const double* v1,
+#if (NDIM == 3)
+                              const double* v2,
+#endif
+                              const int& v_gcw,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
+#if (NDIM == 3)
+                              const int& ilower2,
+                              const int& iupper2,
+#endif
+                              const double* dx);
+
 void C_TO_F_INTERP_FC(double* u0,
                       double* u1,
 #if (NDIM == 3)
@@ -867,6 +937,68 @@ void C_TO_S_GRAD_ADD_FC(double* g0,
                         const int& iupper2,
 #endif
                         const double* dx);
+
+void C_TO_S_FLUX_ADD_FC(double* g0,
+                        double* g1,
+#if (NDIM == 3)
+                        double* g2,
+#endif
+                        const int& g_gcw,
+                        const double* alpha0,
+                        const double* alpha1,
+#if (NDIM == 3)
+                        const double* alpha2,
+#endif
+                        const int& alpha_gcw,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
+#if (NDIM == 3)
+                        const double* v2,
+#endif
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
+
+void C_TO_S_ANISO_FLUX_ADD_FC(double* g0,
+                              double* g1,
+#if (NDIM == 3)
+                              double* g2,
+#endif
+                              const int& g_gcw,
+                              const double* alpha0,
+                              const double* alpha1,
+#if (NDIM == 3)
+                              const double* alpha2,
+#endif
+                              const int& alpha_gcw,
+                              const double* U,
+                              const int& U_gcw,
+                              const double& beta,
+                              const double* v0,
+                              const double* v1,
+#if (NDIM == 3)
+                              const double* v2,
+#endif
+                              const int& v_gcw,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
+#if (NDIM == 3)
+                              const int& ilower2,
+                              const int& iupper2,
+#endif
+                              const double* dx);
 
 void C_TO_S_INTERP_FC(double* u0,
                       double* u1,
@@ -3431,35 +3563,42 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_F_FLUX_FC(g0,
-                       g1,
-#if (NDIM == 3)
-                       g2,
-#endif
-                       g_ghosts,
-                       alpha0,
-                       alpha1,
-#if (NDIM == 3)
-                       alpha2,
-#endif
-                       alpha_ghosts,
-                       U,
-                       U_ghosts,
-                       patch_box.lower(0),
-                       patch_box.upper(0),
-                       patch_box.lower(1),
-                       patch_box.upper(1),
-#if (NDIM == 3)
-                       patch_box.lower(2),
-                       patch_box.upper(2),
-#endif
-                       dx);
-
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
-            const int v_ghosts = (src2->getGhostCellWidth()).max();
+            C_TO_F_FLUX_FC(g0,
+                           g1,
 
+#if (NDIM == 3)
+                           g2,
+#endif
+                           g_ghosts,
+                           alpha0,
+                           alpha1,
+#if (NDIM == 3)
+                           alpha2,
+#endif
+                           alpha_ghosts,
+                           U,
+                           U_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
+#if (NDIM == 3)
+                           patch_box.lower(2),
+                           patch_box.upper(2),
+#endif
+                           dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
+            const int v_ghosts = (src2->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3483,42 +3622,77 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
-            patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_F_FLUX_ADD_FC(g0,
+                               g1,
+
+#if (NDIM == 3)
+                               g2,
+#endif
+                               g_ghosts,
+                               alpha0,
+                               alpha1,
+#if (NDIM == 3)
+                               alpha2,
+#endif
+                               alpha_ghosts,
+                               U,
+                               U_ghosts,
+                               beta,
+                               v0,
+                               v1,
+#if (NDIM == 3)
+                               v2,
+#endif
+                               v_ghosts,
+                               patch_box.lower(0),
+                               patch_box.upper(0),
+                               patch_box.lower(1),
+                               patch_box.upper(1),
+#if (NDIM == 3)
+                               patch_box.lower(2),
+                               patch_box.upper(2),
+#endif
+                               dx);
         }
     }
     else
     {
-        C_TO_F_ANISO_FLUX_FC(g0,
-                             g1,
-#if (NDIM == 3)
-                             g2,
-#endif
-                             g_ghosts,
-                             alpha0,
-                             alpha1,
-#if (NDIM == 3)
-                             alpha2,
-#endif
-                             alpha_ghosts,
-                             U,
-                             U_ghosts,
-                             patch_box.lower(0),
-                             patch_box.upper(0),
-                             patch_box.lower(1),
-                             patch_box.upper(1),
-#if (NDIM == 3)
-                             patch_box.lower(2),
-                             patch_box.upper(2),
-#endif
-                             dx);
-
-        // Account for non-zero beta.
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
-            const int v_ghosts = (src2->getGhostCellWidth()).max();
+            C_TO_F_ANISO_FLUX_FC(g0,
+                                 g1,
 
+#if (NDIM == 3)
+                                 g2,
+#endif
+                                 g_ghosts,
+                                 alpha0,
+                                 alpha1,
+#if (NDIM == 3)
+                                 alpha2,
+#endif
+                                 alpha_ghosts,
+                                 U,
+                                 U_ghosts,
+                                 patch_box.lower(0),
+                                 patch_box.upper(0),
+                                 patch_box.lower(1),
+                                 patch_box.upper(1),
+#if (NDIM == 3)
+                                 patch_box.lower(2),
+                                 patch_box.upper(2),
+#endif
+                                 dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
+            const int v_ghosts = (src2->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3542,8 +3716,37 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
-            patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_F_ANISO_FLUX_ADD_FC(g0,
+                                     g1,
+
+#if (NDIM == 3)
+                                     g2,
+#endif
+                                     g_ghosts,
+                                     alpha0,
+                                     alpha1,
+#if (NDIM == 3)
+                                     alpha2,
+#endif
+                                     alpha_ghosts,
+                                     U,
+                                     U_ghosts,
+                                     beta,
+                                     v0,
+                                     v1,
+#if (NDIM == 3)
+                                     v2,
+#endif
+                                     v_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
+#if (NDIM == 3)
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
+#endif
+                                     dx);
         }
     }
     return;
@@ -3645,35 +3848,41 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_S_FLUX_FC(g0,
-                       g1,
-#if (NDIM == 3)
-                       g2,
-#endif
-                       g_ghosts,
-                       alpha0,
-                       alpha1,
-#if (NDIM == 3)
-                       alpha2,
-#endif
-                       alpha_ghosts,
-                       U,
-                       U_ghosts,
-                       patch_box.lower(0),
-                       patch_box.upper(0),
-                       patch_box.lower(1),
-                       patch_box.upper(1),
-#if (NDIM == 3)
-                       patch_box.lower(2),
-                       patch_box.upper(2),
-#endif
-                       dx);
-
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
+            C_TO_S_FLUX_FC(g0,
+                           g1,
+#if (NDIM == 3)
+                           g2,
+#endif
+                           g_ghosts,
+                           alpha0,
+                           alpha1,
+#if (NDIM == 3)
+                           alpha2,
+#endif
+                           alpha_ghosts,
+                           U,
+                           U_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
+#if (NDIM == 3)
+                           patch_box.lower(2),
+                           patch_box.upper(2),
+#endif
+                           dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
             const int v_ghosts = (src2->getGhostCellWidth()).max();
-
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3697,42 +3906,75 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
-            patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_S_FLUX_ADD_FC(g0,
+                               g1,
+#if (NDIM == 3)
+                               g2,
+#endif
+                               g_ghosts,
+                               alpha0,
+                               alpha1,
+#if (NDIM == 3)
+                               alpha2,
+#endif
+                               alpha_ghosts,
+                               U,
+                               U_ghosts,
+                               beta,
+                               v0,
+                               v1,
+#if (NDIM == 3)
+                               v2,
+#endif
+                               v_ghosts,
+                               patch_box.lower(0),
+                               patch_box.upper(0),
+                               patch_box.lower(1),
+                               patch_box.upper(1),
+#if (NDIM == 3)
+                               patch_box.lower(2),
+                               patch_box.upper(2),
+#endif
+                               dx);
         }
     }
     else
     {
-        C_TO_S_ANISO_FLUX_FC(g0,
-                             g1,
-#if (NDIM == 3)
-                             g2,
-#endif
-                             g_ghosts,
-                             alpha0,
-                             alpha1,
-#if (NDIM == 3)
-                             alpha2,
-#endif
-                             alpha_ghosts,
-                             U,
-                             U_ghosts,
-                             patch_box.lower(0),
-                             patch_box.upper(0),
-                             patch_box.lower(1),
-                             patch_box.upper(1),
-#if (NDIM == 3)
-                             patch_box.lower(2),
-                             patch_box.upper(2),
-#endif
-                             dx);
-
-        // Account for non-zero beta.
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
+            C_TO_S_ANISO_FLUX_FC(g0,
+                                 g1,
+#if (NDIM == 3)
+                                 g2,
+#endif
+                                 g_ghosts,
+                                 alpha0,
+                                 alpha1,
+#if (NDIM == 3)
+                                 alpha2,
+#endif
+                                 alpha_ghosts,
+                                 U,
+                                 U_ghosts,
+                                 patch_box.lower(0),
+                                 patch_box.upper(0),
+                                 patch_box.lower(1),
+                                 patch_box.upper(1),
+#if (NDIM == 3)
+                                 patch_box.lower(2),
+                                 patch_box.upper(2),
+#endif
+                                 dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
             const int v_ghosts = (src2->getGhostCellWidth()).max();
-
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3756,8 +3998,36 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
-            patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_S_ANISO_FLUX_ADD_FC(g0,
+                                     g1,
+#if (NDIM == 3)
+                                     g2,
+#endif
+                                     g_ghosts,
+                                     alpha0,
+                                     alpha1,
+#if (NDIM == 3)
+                                     alpha2,
+#endif
+                                     alpha_ghosts,
+                                     U,
+                                     U_ghosts,
+                                     beta,
+                                     v0,
+                                     v1,
+#if (NDIM == 3)
+                                     v2,
+#endif
+                                     v_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
+#if (NDIM == 3)
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
+#endif
+                                     dx);
         }
     }
     return;
