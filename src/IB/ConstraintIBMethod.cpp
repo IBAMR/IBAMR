@@ -553,7 +553,7 @@ ConstraintIBMethod::registerEulerianVariables()
 
         if (p_vc_ins_hier_integrator)
         {
-            d_rho_ins_idx = p_vc_ins_hier_integrator->getInterpolatedMuPatchDataIndex(); // temporary -- change to density
+            d_rho_ins_idx = p_vc_ins_hier_integrator->getInterpolatedRhoPatchDataIndex();
 #if !defined(NDEBUG)
             TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif

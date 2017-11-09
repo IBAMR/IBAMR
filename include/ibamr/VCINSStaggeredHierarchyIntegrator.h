@@ -294,6 +294,14 @@ public:
     }
 
     /*!
+     * \brief Get the interpolated side centered density patch data index
+     */
+    inline int getInterpolatedRhoPatchDataIndex() const
+    {
+        return d_rho_interp_idx;
+    }
+
+    /*!
      * \brief Get the scaling factor used for A, p and u_rhs
      */
     inline double getPressureScalingFactor() const
