@@ -263,7 +263,12 @@ private:
     void copyFluidVariable(int copy_from_idx, int copy_to);
 
     /*!
-     * \brief Compute and store the fluid solve momentum rho_ins * u_fluidSolve in cases where momentum 
+     * \brief Copy density patch data.
+     */
+    void copyDensityVariable(int copy_from_idx, int copy_to);
+
+    /*!
+     * \brief Compute and store the fluid solve momentum rho_ins * u_fluidSolve in cases where momentum
      * updating is used
      */
     void computeFluidSolveMomentum();
@@ -411,15 +416,20 @@ private:
     std::vector<std::vector<double> > d_tagged_pt_position;
 
     /*!
-     * Density and viscosity of the fluid.
+     * Density of the structures.
      */
-    double d_rho_fluid, d_mu_fluid;
+    std::vector<double> d_rho_solid;
 
     /*!
-     * Type of update to carry out on the fluid velocity.
+     * Density of the fluid in constant coefficient case.
      */
-    std::string d_fluid_velocity_update_type;
-    bool d_use_momentum_update;
+    double d_rho_fluid;
+
+    /*!
+     * Type of correction to carry out on the fluid velocity.
+     */
+    std::string d_fluid_velocity_correction_type;
+    bool d_use_momentum_correction;
 
     /*!
      * Iteration_counter for printing stuff.
@@ -464,9 +474,10 @@ private:
     int d_u_scratch_idx, d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
 
     /*!
-     * Variable index associated with the spatially varying density field, which is maintained by an integrator.
+     * Variables associated with the spatially varying density field, which is maintained by an integrator.
      */
-    int d_rho_ins_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
+    int d_rho_ins_idx, d_rho_scratch_idx;
 
     /*!
      * The following variables are needed to solve cell centered poison equation for \f$ \phi \f$ ,which is

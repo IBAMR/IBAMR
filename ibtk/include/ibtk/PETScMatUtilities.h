@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "PoissonSpecifications.h"
+#include "ibtk/ibtk_enums.h"
 #include "petscao.h"
 #include "petscmat.h"
 #include "petscvec.h"
@@ -133,7 +134,8 @@ public:
                                                  double data_time,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
-                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                                                 VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the

@@ -443,7 +443,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
     int dof_index_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+    VCInterpType mu_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -689,7 +690,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
         PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
-            matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time);
+            matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time, mu_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);

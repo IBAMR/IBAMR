@@ -273,6 +273,7 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     // conditions are converted into Neumann conditions for the pressure, and
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
+    const double p_scale = d_fluid_solver->getPressureScalingFactor();
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
     int mu_idx = -1;
     Pointer<CellData<NDIM, double> > mu_data;
@@ -375,14 +376,15 @@ VCINSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     (is_lower ? +1.0 : -1.0) * (2.0 * u_new[1] - 1.5 * u_new[0] - 0.5 * u_new[2]) / h;
                 alpha = 1.0;
                 beta = 0.0;
-                gamma = (d_homogeneous_bc ? 0.0 : mu * du_norm_current_dx_norm) + mu * du_norm_new_dx_norm - gamma;
+                gamma = ((d_homogeneous_bc ? 0.0 : mu * du_norm_current_dx_norm) + mu * du_norm_new_dx_norm - gamma) *
+                        p_scale;
                 break;
             }
             case PSEUDO_TRACTION: // -p = g.
             {
                 alpha = 1.0;
                 beta = 0.0;
-                gamma = -gamma;
+                gamma = -gamma * p_scale;
                 break;
             }
             default:

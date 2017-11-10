@@ -111,6 +111,9 @@ VCSCViscousOperator::VCSCViscousOperator(const std::string& object_name, const b
                      TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::initializeOperatorState()");
                  t_deallocate_operator_state =
                      TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::deallocateOperatorState()"););
+
+    // Set a default interpolation type.
+    d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
     return;
 } // VCSCViscousOperator()
 
@@ -207,7 +210,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     x_sc_var,
                                     Pointer<HierarchyGhostCellInterpolation>(NULL),
                                     d_solution_time,
-                                    VC_AVERAGE_INTERP,
+                                    d_D_interp_type,
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
@@ -325,6 +328,13 @@ VCSCViscousOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+void
+VCSCViscousOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
+{
+    d_D_interp_type = D_interp_type;
+    return;
+} // setDPatchDataInterpolationType
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

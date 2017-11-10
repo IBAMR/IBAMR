@@ -41,6 +41,7 @@
 #include "BoundaryBox.h"
 #include "PoissonSpecifications.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_enums.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -118,15 +119,16 @@ public:
      * the PoissonSpecification object are passed separately and are denoted
      * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
      */
-    static void
-    computeVCSCViscousOpMatrixCoefficients(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                           const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
-                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           double alpha,
-                                           double beta,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                           double data_time);
+    static void computeVCSCViscousOpMatrixCoefficients(
+        SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        double alpha,
+        double beta,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -179,7 +181,8 @@ public:
                                              double alpha,
                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                              double data_time,
-                                             bool homogeneous_bc);
+                                             bool homogeneous_bc,
+                                             VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -228,7 +231,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry);
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
 protected:
 private:

@@ -105,6 +105,25 @@ compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 } // compute_mu_avg
 
 inline double
+compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> node_box(i, i);
+    const int n_nodes = pow(2, NDIM);
+
+    double avg_mu = 0.0;
+    int total_nodes = 0;
+    for (NodeIterator<NDIM> n(node_box); n; n++, total_nodes++)
+    {
+        avg_mu += 1.0 / mu_data(n(), /*depth*/ 0);
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_nodes == n_nodes);
+#endif
+    return n_nodes / avg_mu;
+} // compute_mu_harmonic_avg
+
+inline double
 compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 {
     Box<NDIM> edge_box(i, i);
@@ -125,6 +144,28 @@ compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 #endif
     return avg_mu / n_edges;
 } // compute_mu_avg
+
+inline double
+compute_mu_harmonic_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> edge_box(i, i);
+    const int n_edges = 12;
+
+    double avg_mu = 0.0;
+    int total_edges = 0;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++, total_edges++)
+        {
+            avg_mu += 1.0 / mu_data(e(), /*depth*/ 0);
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_edges == n_edges);
+#endif
+    return n_edges / avg_mu;
+} // compute_mu_harmonic_avg
 
 inline double
 get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double> > mu_data)
@@ -684,7 +725,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     double alpha,
     double beta,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    double data_time)
+    double data_time,
+    VCInterpType mu_interp_type)
 {
 
 #if !defined(NDEBUG)
@@ -771,8 +813,21 @@ typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
                     const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
                     const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
-                    const double mu_upper = compute_mu_avg(cc, *mu_data);
-                    const double mu_lower = compute_mu_avg(cc + shift_axis_minus, *mu_data);
+                    double mu_upper, mu_lower;
+                    if (mu_interp_type == VC_AVERAGE_INTERP)
+                    {
+                        mu_upper = compute_mu_avg(cc, *mu_data);
+                        mu_lower = compute_mu_avg(cc + shift_axis_minus, *mu_data);
+                    }
+                    else if (mu_interp_type == VC_HARMONIC_INTERP)
+                    {
+                        mu_upper = compute_mu_harmonic_avg(cc, *mu_data);
+                        mu_lower = compute_mu_harmonic_avg(cc + shift_axis_minus, *mu_data);
+                    }
+                    else
+                    {
+                        TBOX_ERROR("this statement should not be reached");
+                    }
 
                     const double coef_plus = (2.0 * alpha * mu_upper) / (dx[axis] * dx[axis]);
                     const double coef_minus = (2.0 * alpha * mu_lower) / (dx[axis] * dx[axis]);
@@ -1515,7 +1570,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                                                            double alpha,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            double data_time,
-                                                           bool homogeneous_bc)
+                                                           bool homogeneous_bc,
+                                                           VCInterpType mu_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
@@ -1858,8 +1914,21 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
 
                 const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
-                const double mu_upper = compute_mu_avg(i, *mu_data);
-                const double mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                double mu_upper, mu_lower;
+                if (mu_interp_type == VC_AVERAGE_INTERP)
+                {
+                    mu_upper = compute_mu_avg(i, *mu_data);
+                    mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                }
+                else if (mu_interp_type == VC_HARMONIC_INTERP)
+                {
+                    mu_upper = compute_mu_harmonic_avg(i, *mu_data);
+                    mu_lower = compute_mu_harmonic_avg(i + shift_axis_minus, *mu_data);
+                }
+                else
+                {
+                    TBOX_ERROR("this statement should not be reached");
+                }
                 const double D = is_lower ? mu_lower : mu_upper;
 
                 if (b != 0.0)
@@ -1999,7 +2068,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                                                              Pointer<Patch<NDIM> > patch,
                                                              const PoissonSpecifications& poisson_spec,
                                                              double alpha,
-                                                             const Array<BoundaryBox<NDIM> >& type1_cf_bdry)
+                                                             const Array<BoundaryBox<NDIM> >& type1_cf_bdry,
+                                                             VCInterpType mu_interp_type)
 {
 #if (NDIM == 2)
     Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
@@ -2172,8 +2242,21 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const SideIndex<NDIM> i_s_bdry(
                     i + (is_lower ? shift_axis_minus : shift_axis_plus), bdry_normal_axis, SideIndex<NDIM>::Lower);
 
-                const double mu_upper = compute_mu_avg(i, *mu_data);
-                const double mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                double mu_upper, mu_lower;
+                if (mu_interp_type == VC_AVERAGE_INTERP)
+                {
+                    mu_upper = compute_mu_avg(i, *mu_data);
+                    mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                }
+                else if (mu_interp_type == VC_HARMONIC_INTERP)
+                {
+                    mu_upper = compute_mu_harmonic_avg(i, *mu_data);
+                    mu_lower = compute_mu_harmonic_avg(i + shift_axis_minus, *mu_data);
+                }
+                else
+                {
+                    TBOX_ERROR("this statement should not be reached");
+                }
                 const double D = is_lower ? mu_lower : mu_upper;
 
                 rhs_data(i_s) -= (2.0 * alpha) * (D / h) * sol_data(i_s_bdry) / h;

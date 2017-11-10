@@ -125,6 +125,12 @@ public:
         return new VCSCViscousPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
+    /*!
+     * \brief Set the interpolation type to be used in interpolating the
+     * viscosity.
+     */
+    void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
+
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -169,6 +175,11 @@ private:
      * \return A reference to this object.
      */
     VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that);
+
+    /*
+     * The interpolation type to be used for viscosity
+     */
+    IBTK::VCInterpType d_mu_interp_type;
 };
 } // namespace IBTK
 

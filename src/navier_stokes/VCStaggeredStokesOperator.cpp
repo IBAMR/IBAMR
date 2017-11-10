@@ -211,7 +211,7 @@ VCStaggeredStokesOperator::setDPatchDataInterpolationType(const IBTK::VCInterpTy
 {
     d_D_interp_type = D_interp_type;
     return;
-} // setViscosityInterpolationType
+} // setDPatchDataInterpolationType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

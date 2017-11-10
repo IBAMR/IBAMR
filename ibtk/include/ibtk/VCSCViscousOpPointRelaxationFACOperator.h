@@ -153,6 +153,11 @@ public:
      */
     void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
 
+    /*!
+     * \brief Get the coarse level solver
+     */
+    SAMRAI::tbox::Pointer<PoissonSolver> getCoarseSolver();
+
 protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.

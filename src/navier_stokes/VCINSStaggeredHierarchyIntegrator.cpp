@@ -1270,6 +1270,15 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
             p_poisson_fac_pc->getFACPreconditionerStrategy();
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_vc_interp_type);
+
+        Pointer<VCSCViscousOperator> p_velocity_op = p_velocity_solver->getOperator();
+        if (p_velocity_op) p_velocity_op->setDPatchDataInterpolationType(d_vc_interp_type);
+
+        if (p_vc_point_fac_op)
+        {
+            Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_vc_point_fac_op->getCoarseSolver();
+            if (p_poisson_fac_pc) p_vc_level_solver->setViscosityInterpolationType(d_vc_interp_type);
+        }
     }
 
     // Setup the convective operator.

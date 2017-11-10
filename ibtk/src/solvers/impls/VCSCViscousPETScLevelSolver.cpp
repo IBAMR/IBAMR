@@ -85,6 +85,8 @@ VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(const std::string& obje
                                                          const std::string& default_options_prefix)
     : SCPoissonPETScLevelSolver(object_name, input_db, default_options_prefix)
 {
+    // Set a default interpolation type.
+    d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
 } // VCSCViscousPETScLevelSolver
 
@@ -128,7 +130,8 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
                                                         d_solution_time,
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
-                                                        d_level);
+                                                        d_level,
+                                                        d_mu_interp_type);
 
     d_petsc_pc = d_petsc_mat;
 
@@ -163,12 +166,18 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
         {
-            PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(
-                *b_adj_data, patch, d_poisson_spec, 1.0, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+            PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(*b_adj_data,
+                                                                       patch,
+                                                                       d_poisson_spec,
+                                                                       1.0,
+                                                                       d_bc_coefs,
+                                                                       d_solution_time,
+                                                                       d_homogeneous_bc,
+                                                                       d_mu_interp_type);
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1, d_mu_interp_type);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
@@ -181,6 +190,13 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     var_db->removePatchDataIndex(b_adj_idx);
     return;
 } // setupKSPVecs
+
+void
+VCSCViscousPETScLevelSolver::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
+{
+    d_mu_interp_type = mu_interp_type;
+    return;
+} // setViscosityInterpolationType
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -922,7 +922,13 @@ VCSCViscousOpPointRelaxationFACOperator::setDPatchDataInterpolationType(const IB
 {
     d_D_interp_type = D_interp_type;
     return;
-} // setViscosityInterpolationType
+} // setDPatchDataInterpolationType
+
+Pointer<PoissonSolver>
+VCSCViscousOpPointRelaxationFACOperator::getCoarseSolver()
+{
+    return d_coarse_solver;
+} // getCoarseSolver
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
