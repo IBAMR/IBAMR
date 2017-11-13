@@ -394,7 +394,8 @@ ConstraintIBMethod::~ConstraintIBMethod()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
-        if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
+        if (d_use_momentum_correction && level->checkAllocated(d_rho_scratch_idx))
+            level->deallocatePatchData(d_rho_scratch_idx);
     }
 
     return;
@@ -2406,6 +2407,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
+
+    d_hier_sc_data_ops->printData(d_u_fluidSolve_cib_idx, pout);
 
     if (d_use_momentum_correction)
     {
