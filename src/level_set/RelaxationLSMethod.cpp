@@ -138,11 +138,30 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Create a temporary variable to hold previous iteration values.
-    const int D_iter_idx = var_db->registerClonedPatchDataIndex(D_var, D_idx);
-    const int D_init_idx = var_db->registerClonedPatchDataIndex(D_var, D_idx);
+    // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
+    // since it is not guaranteed that D_idx will have proper ghost cell width.
+    IntVector<NDIM> cell_ghosts;
+    if (d_ls_order == FIRST_ORDER_LS)
+    {
+        cell_ghosts = 1;
+    }
+    else if (d_ls_order == THIRD_ORDER_LS)
+    {
+        cell_ghosts = 2;
+    }
+    else
+    {
+        TBOX_ERROR("RelaxationLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
+    }
+    const int D_scratch_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+    const int D_iter_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::ITER"), cell_ghosts);
+    const int D_init_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::INIT"), cell_ghosts);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        hierarchy->getPatchLevel(ln)->allocatePatchData(D_scratch_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_iter_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_init_idx, time);
     }
@@ -151,13 +170,13 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     // away from the interface and actual distance value near the interface.
     for (unsigned k = 0; k < d_locate_interface_fcns.size(); ++k)
     {
-        (*d_locate_interface_fcns[k])(D_idx, hier_math_ops, time, initial_time, d_locate_interface_fcns_ctx[k]);
+        (*d_locate_interface_fcns[k])(D_scratch_idx, hier_math_ops, time, initial_time, d_locate_interface_fcns_ctx[k]);
     }
 
     // Set hierarchy objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
-        D_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
+        D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
     InterpolationTransactionComponent D_init_transaction(
         D_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
@@ -169,19 +188,19 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Copy initial condition
-    hier_cc_data_ops.copyData(D_init_idx, D_idx);
+    hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx);
     fill_op->initializeOperatorState(D_init_transaction, hierarchy);
     fill_op->fillData(time);
 
     fill_op->resetTransactionComponent(D_transaction);
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
-        hier_cc_data_ops.copyData(D_iter_idx, D_idx);
+        hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
         fill_op->fillData(time);
-        relax(hier_math_ops, D_idx, D_init_idx, outer_iter);
+        relax(hier_math_ops, D_scratch_idx, D_init_idx, outer_iter);
 
         // Compute error
-        hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_idx);
+        hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_scratch_idx);
         diff_L2_norm = hier_cc_data_ops.L2Norm(D_iter_idx, cc_wgt_idx);
 
         outer_iter += 1;
@@ -209,12 +228,17 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         }
     }
 
+    // Copy signed distance into supplied patch data index
+    hier_cc_data_ops.copyData(D_idx, D_scratch_idx);
+
     // Deallocate the temporary variable.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_init_idx);
     }
+    var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
     var_db->removePatchDataIndex(D_init_idx);
 

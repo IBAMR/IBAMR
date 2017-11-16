@@ -663,7 +663,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out third order relaxation scheme using Gauss Seidel updates
-c     NOTE: this scheme between third and fourth s
+c     NOTE: this scheme is between third and fourth
 c     order near the interface and second order everywhere else
 c
 c     Uses second order WENO for spatial discretization with a subcell

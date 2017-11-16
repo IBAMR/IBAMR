@@ -2408,8 +2408,6 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
 
-    d_hier_sc_data_ops->printData(d_u_fluidSolve_cib_idx, pout);
-
     if (d_use_momentum_correction)
     {
         d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx, /*interior_only*/ true);

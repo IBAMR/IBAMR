@@ -858,19 +858,29 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
     }
 
     // Reset fluid density (if needed).
-    const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fluid_var, getCurrentContext());
-    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+    if (d_rho_fluid_var)
     {
-        d_reset_rho_fcns[k](
-            rho_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time, d_reset_rho_fcns_ctx[k]);
+        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](rho_current_idx,
+                                d_hier_math_ops,
+                                d_integrator_step,
+                                current_time,
+                                initial_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
     }
 
     // Reset fluid viscosity (if needed).
-    const int mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_fluid_var, getCurrentContext());
-    for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+    if (d_mu_fluid_var)
     {
-        d_reset_mu_fcns[k](
-            mu_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time, d_reset_mu_fcns_ctx[k]);
+        const int mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](
+                mu_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time, d_reset_mu_fcns_ctx[k]);
+        }
     }
 
     return;
