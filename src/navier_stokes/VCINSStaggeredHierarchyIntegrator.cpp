@@ -2663,6 +2663,7 @@ VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     static const bool synch_cf_interface = true;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
 
     // Interpolate u to cell centers.
     if (d_output_U)
@@ -2678,6 +2679,10 @@ VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     {
         const int F_sc_idx = var_db->mapVariableAndContextToIndex(d_F_var, ctx);
         const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
+
+        // If at initial time, fill with zeros because F will not have data yet
+        if (initial_time) d_hier_sc_data_ops->setToScalar(F_sc_idx, 0.0);
+        
         d_hier_math_ops->interp(
             F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }

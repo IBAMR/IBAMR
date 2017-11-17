@@ -471,7 +471,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_scratch_context;
-    int d_u_scratch_idx, d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
+    int d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
 
     /*!
      * Variables associated with the spatially varying density field, which is maintained by an integrator.

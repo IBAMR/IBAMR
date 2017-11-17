@@ -561,7 +561,6 @@ ConstraintIBMethod::registerEulerianVariables()
         d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
         const IntVector<NDIM> cell_ghosts = CELLG;
         const IntVector<NDIM> side_ghosts = SIDEG;
-        d_u_scratch_idx = var_db->registerVariableAndContext(d_u_var, d_scratch_context, side_ghosts);
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
@@ -1920,7 +1919,6 @@ ConstraintIBMethod::applyProjection()
 
     // Allocate temporary data.
     ComponentSelector scratch_idxs;
-    scratch_idxs.setFlag(d_u_scratch_idx);
     scratch_idxs.setFlag(d_phi_idx);
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1966,8 +1964,20 @@ ConstraintIBMethod::applyProjection()
     rhs_vec.addComponent(d_Div_u_var, d_Div_u_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the Poisson solver.
+    // Note that here, the delta t is absorbed in the phi term
     d_velcorrection_projection_spec->setCZero();
-    d_velcorrection_projection_spec->setDConstant(-1.0);
+    if (d_use_momentum_correction)
+    {
+        // Copy rho from INS integrator and take reciprocal and scale
+        copyDensityVariable(d_rho_ins_idx, d_rho_scratch_idx);
+        d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx);
+        d_hier_sc_data_ops->scale(d_rho_scratch_idx, -1.0, d_rho_scratch_idx);
+        d_velcorrection_projection_spec->setDPatchDataId(d_rho_scratch_idx);
+    }
+    else
+    {
+        d_velcorrection_projection_spec->setDConstant(-1.0/d_rho_fluid);
+    }
 
     d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
     d_velcorrection_projection_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
@@ -2000,18 +2010,37 @@ ConstraintIBMethod::applyProjection()
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_FuRMoRP_new_time);
 
-    // Set U := U - grad Phi.
+    // Set U := U - 1/rho * grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
-    getHierarchyMathOps()->grad(d_u_scratch_idx,
-                                Pointer<SideVariable<NDIM, double> >(d_u_var), // dst
-                                U_scratch_cf_bdry_synch,                       // dst_cf_bdry_synch
-                                1.0,                                           // alpha
-                                d_phi_idx,
-                                d_phi_var,    // src
-                                d_no_fill_op, // src_bdry_fill
-                                d_FuRMoRP_new_time);
-
-    d_hier_sc_data_ops->axpy(d_u_fluidSolve_idx, -1.0, d_u_scratch_idx, d_u_fluidSolve_idx);
+    if (d_use_momentum_correction)
+    {
+        getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    U_scratch_cf_bdry_synch,
+                                    d_rho_scratch_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_rho_var),
+                                    d_phi_idx,
+                                    d_phi_var,
+                                    d_no_fill_op,
+                                    d_FuRMoRP_new_time,
+                                    1.0,
+                                    d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+    }
+    else
+    {
+        getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    U_scratch_cf_bdry_synch,
+                                    -1.0/d_rho_fluid,
+                                    d_phi_idx,
+                                    d_phi_var,
+                                    d_no_fill_op,
+                                    d_FuRMoRP_new_time,
+                                    1.0,
+                                    d_u_fluidSolve_idx,
+                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+    }
 
     // Compute div U after applying the projection operator
     if (d_do_log)
