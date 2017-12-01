@@ -177,8 +177,6 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
-    InterpolationTransactionComponent D_init_transaction(
-        D_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, d_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
@@ -187,12 +185,13 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    // Copy initial condition
-    hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx);
-    fill_op->initializeOperatorState(D_init_transaction, hierarchy);
+    // Fill ghost cells for scratch data
+    fill_op->initializeOperatorState(D_transaction, hierarchy);
     fill_op->fillData(time);
 
-    fill_op->resetTransactionComponent(D_transaction);
+    // Copy initial condition, including ghost cells
+    hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
+
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
