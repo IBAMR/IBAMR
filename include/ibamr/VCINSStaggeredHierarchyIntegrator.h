@@ -270,6 +270,14 @@ public:
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
+     * \brief Get whether or not density is constant
+     */
+    inline bool rhoIsConstant() const
+    {
+        return d_rho_is_const;
+    }
+
+    /*!
      * \brief Get whether or not viscosity is constant
      */
     inline bool muIsConstant() const

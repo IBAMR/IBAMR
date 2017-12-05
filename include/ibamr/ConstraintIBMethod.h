@@ -432,6 +432,11 @@ private:
     bool d_use_momentum_correction;
 
     /*!
+     * Whether or not the density from the integrator is constant
+     */
+    bool d_rho_is_const;
+
+    /*!
      * Iteration_counter for printing stuff.
      */
     int d_timestep_counter, d_output_interval;
