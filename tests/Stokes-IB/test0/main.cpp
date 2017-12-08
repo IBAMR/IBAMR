@@ -52,7 +52,6 @@
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
-#include <ibamr/StaggeredStokesIBBoxRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesSolver.h>
@@ -84,13 +83,14 @@ class StokesIBSolver : public IBAMR::StaggeredStokesSolver
 {
 public:
     StokesIBSolver(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                   Pointer<StaggeredStokesIBBoxRelaxationFACOperator> fac_op,
+                   Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op,
                    Pointer<StaggeredStokesFACPreconditioner> fac_pc,
                    Pointer<IBMethod> ib_method_ops)
     {
         d_hierarchy = patch_hierarchy;
         d_stokes_op = new StaggeredStokesOperator("StokesIBSolver::stokes_op", false);
         d_fac_op = fac_op;
+        d_fac_op->setIBTimeSteppingType(MIDPOINT_RULE);
         d_fac_pc = fac_pc;
         d_ib_ops = ib_method_ops;
 
@@ -269,8 +269,10 @@ public:
 
         // Initialize Stokes op and IB FAC pc
         {
-            Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-            Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(b);
+            Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+            PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
+            Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+            PETScSAMRAIVectorReal::getSAMRAIVector(b, &f_g);
             d_stokes_op->initializeOperatorState(*u_p, *f_g);
             d_fac_pc->initializeSolverState(*u_p, *f_g);
         }
@@ -314,7 +316,8 @@ public:
         Vec petsc_b;
         VecDuplicate(b, &petsc_b);
         VecCopy(b, petsc_b);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(petsc_b);
+        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        PETScSAMRAIVectorReal::getSAMRAIVector(petsc_b, &f_g);
 
         d_stokes_op->setHomogeneousBc(false);
         d_stokes_op->modifyRhsForBcs(*f_g);
@@ -322,7 +325,8 @@ public:
 
         KSPSolve(d_petsc_ksp, petsc_b, petsc_x);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
+        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x, &u_p);
         d_stokes_op->imposeSolBcs(*u_p);
 
         VecDestroy(&petsc_b);
@@ -333,7 +337,7 @@ public:
 private:
     Pointer<PatchHierarchy<NDIM> > d_hierarchy;
     Pointer<StaggeredStokesOperator> d_stokes_op;
-    Pointer<StaggeredStokesIBBoxRelaxationFACOperator> d_fac_op;
+    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> d_fac_op;
     Pointer<StaggeredStokesFACPreconditioner> d_fac_pc;
     Pointer<IBMethod> d_ib_ops;
 
@@ -359,8 +363,10 @@ private:
         MatShellGetContext(A, &p_ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(y);
+        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
+        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        PETScSAMRAIVectorReal::getSAMRAIVector(y, &f_g);
 
         const int u_idx = u_p->getComponentDescriptorIndex(0);
         const int f_u_idx = f_g->getComponentDescriptorIndex(0);
@@ -400,8 +406,10 @@ private:
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
         Pointer<PatchLevel<NDIM> > finest_level = solver->d_hierarchy->getPatchLevel(solver->d_finest_ln);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(y);
+        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
+        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        PETScSAMRAIVectorReal::getSAMRAIVector(y, &f_g);
         const int u_idx = u_p->getComponentDescriptorIndex(0);
         const int p_idx = u_p->getComponentDescriptorIndex(1);
         const int f_u_idx = f_g->getComponentDescriptorIndex(0);
@@ -449,8 +457,10 @@ private:
         void* ctx;
         PCShellGetContext(pc, &ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(ctx);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(x);
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(y);
+        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        PETScSAMRAIVectorReal::getSAMRAIVector(x, &f_g);
+        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        PETScSAMRAIVectorReal::getSAMRAIVector(y, &u_p);
         solver->d_fac_pc->solveSystem(*u_p, *f_g);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
@@ -561,7 +571,7 @@ main(int argc, char* argv[])
 
         // Create the IB FAC op/pc and StokesIBSolver.
         Pointer<Database> stokes_ib_precond_db = input_db->getDatabase("stokes_ib_precond_db");
-        Pointer<StaggeredStokesIBBoxRelaxationFACOperator> fac_op = new StaggeredStokesIBBoxRelaxationFACOperator(
+        Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op = new StaggeredStokesIBLevelRelaxationFACOperator(
             "StaggeredStokesIBBoxRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StaggeredStokesFACPreconditioner> fac_pc =
             new StaggeredStokesFACPreconditioner("StaggeredStokesFACPC", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
@@ -699,8 +709,8 @@ main(int argc, char* argv[])
 
         // Get the matrix/matrix-free representation of force Jacobian (A).
         Mat A = NULL, A_MFFD = NULL;
-        ib_method_ops->constructLagrangianForceJacobian(A, MATAIJ);
-        ib_method_ops->constructLagrangianForceJacobian(A_MFFD, MATSHELL);
+        ib_method_ops->constructLagrangianForceJacobian(A, MATAIJ, new_time);
+        ib_method_ops->constructLagrangianForceJacobian(A_MFFD, MATSHELL, new_time);
 
         // ===================================================================
         // TEST matrix (or matrix-free) version of elasticity op.
@@ -718,7 +728,8 @@ main(int argc, char* argv[])
                                          PETScMatUtilities::ib_4_interp_fcn,
                                          PETScMatUtilities::ib_4_interp_stencil,
                                          num_dofs_per_proc[finest_ln],
-                                         u_dof_index_idx);
+                                         u_dof_index_idx,
+                                         new_time);
 
         // Configure the fac pc/op
         fac_pc->setPhysicalBcCoefs(navier_stokes_integrator->getIntermediateVelocityBoundaryConditions(),

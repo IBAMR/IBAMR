@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesIBLevelRelaxationFACOperator.cpp
 // Created on 22 Mar 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
+#include <limits>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include <limits>
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -64,6 +64,7 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
+#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
@@ -90,13 +91,12 @@
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "petscksp.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-#include "petscksp.h"
-#include "boost/array.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

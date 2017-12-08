@@ -1,7 +1,7 @@
 // Filename: IBStandardInitializer.cpp
 // Created on 22 Nov 2006 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -1172,11 +1172,30 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     {
                         std::swap<int>(e.first, e.second);
                     }
-                    d_spring_edge_map[ln][j].insert(std::make_pair(e.first, e));
-                    SpringSpec spec_data;
-                    spec_data.parameters = parameters;
-                    spec_data.force_fcn_idx = force_fcn_idx;
-                    d_spring_spec_data[ln][j].insert(std::make_pair(e, spec_data));
+                    bool found_connection = false;
+                    std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
+                        d_spring_edge_map[ln][j].equal_range(e.first);
+                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    {
+                        if (it->second == e) found_connection = true;
+                    }
+                    if (found_connection)
+                    {
+                        TBOX_WARNING(d_object_name
+                                     << ":\n  Duplicate spring connection between nodes "
+                                     << (e.first + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j])) << " and "
+                                     << (e.second + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j]))
+                                     << " encountered in ASCII input file named " << spring_filename << ".\n"
+                                     << "  Skipping duplicated connection." << std::endl);
+                    }
+                    else
+                    {
+                        d_spring_edge_map[ln][j].insert(std::make_pair(e.first, e));
+                        SpringSpec spec_data;
+                        spec_data.parameters = parameters;
+                        spec_data.force_fcn_idx = force_fcn_idx;
+                        d_spring_spec_data[ln][j].insert(std::make_pair(e, spec_data));
+                    }
                 }
 
                 // Close the input file.
@@ -1412,11 +1431,30 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     {
                         std::swap<int>(e.first, e.second);
                     }
-                    d_xspring_edge_map[ln][j].insert(std::make_pair(e.first, e));
-                    XSpringSpec spec_data;
-                    spec_data.parameters = parameters;
-                    spec_data.force_fcn_idx = force_fcn_idx;
-                    d_xspring_spec_data[ln][j].insert(std::make_pair(e, spec_data));
+                    bool found_connection = false;
+                    std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
+                        d_xspring_edge_map[ln][j].equal_range(e.first);
+                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    {
+                        if (it->second == e) found_connection = true;
+                    }
+                    if (found_connection)
+                    {
+                        TBOX_WARNING(d_object_name
+                                     << ":\n  Duplicate xspring connection between nodes "
+                                     << (e.first + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j])) << " and "
+                                     << (e.second + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j]))
+                                     << " encountered in ASCII input file named " << xspring_filename << ".\n"
+                                     << "  Skipping duplicated connection." << std::endl);
+                    }
+                    else
+                    {
+                        d_xspring_edge_map[ln][j].insert(std::make_pair(e.first, e));
+                        XSpringSpec spec_data;
+                        spec_data.parameters = parameters;
+                        spec_data.force_fcn_idx = force_fcn_idx;
+                        d_xspring_spec_data[ln][j].insert(std::make_pair(e, spec_data));
+                    }
                 }
 
                 // Close the input file.
@@ -1658,11 +1696,32 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                     //
                     // Note that in the beam property map, each edge is
                     // associated with only the "current" vertex.
-                    BeamSpec spec_data;
-                    spec_data.neighbor_idxs = std::make_pair(next_idx, prev_idx);
-                    spec_data.bend_rigidity = bend;
-                    spec_data.curvature = curv;
-                    d_beam_spec_data[ln][j].insert(std::make_pair(curr_idx, spec_data));
+                    bool found_connection = false;
+                    std::pair<std::multimap<int, BeamSpec>::iterator, std::multimap<int, BeamSpec>::iterator> range =
+                        d_beam_spec_data[ln][j].equal_range(curr_idx);
+                    for (std::multimap<int, BeamSpec>::iterator it = range.first; it != range.second; ++it)
+                    {
+                        const BeamSpec& spec_data = it->second;
+                        if (spec_data.neighbor_idxs == std::make_pair(next_idx, prev_idx)) found_connection = true;
+                    }
+                    if (found_connection)
+                    {
+                        TBOX_WARNING(d_object_name
+                                     << ":\n  Duplicate beam connection between nodes "
+                                     << (prev_idx + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j])) << ",  "
+                                     << (curr_idx + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j])) << ", and "
+                                     << (next_idx + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j]))
+                                     << " encountered in ASCII input file named " << beam_filename << ".\n"
+                                     << "  Skipping duplicated connection." << std::endl);
+                    }
+                    else
+                    {
+                        BeamSpec spec_data;
+                        spec_data.neighbor_idxs = std::make_pair(next_idx, prev_idx);
+                        spec_data.bend_rigidity = bend;
+                        spec_data.curvature = curv;
+                        d_beam_spec_data[ln][j].insert(std::make_pair(curr_idx, spec_data));
+                    }
                 }
 
                 // Close the input file.
@@ -2002,18 +2061,37 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                         curr_idx += d_vertex_offset[ln][j];
                         next_idx += d_vertex_offset[ln][j];
                     }
+                    Edge e;
+                    e.first = curr_idx;
+                    e.second = next_idx;
 
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
                     // associated with only the "current" vertex.
-                    Edge e;
-                    e.first = curr_idx;
-                    e.second = next_idx;
-                    d_rod_edge_map[ln][j].insert(std::make_pair(e.first, e));
-                    RodSpec rod_spec;
-                    rod_spec.properties = properties;
-                    d_rod_spec_data[ln][j].insert(std::make_pair(e, rod_spec));
+                    bool found_connection = false;
+                    std::pair<std::multimap<int, Edge>::iterator, std::multimap<int, Edge>::iterator> range =
+                        d_rod_edge_map[ln][j].equal_range(curr_idx);
+                    for (std::multimap<int, Edge>::iterator it = range.first; it != range.second; ++it)
+                    {
+                        if (it->second == e) found_connection = true;
+                    }
+                    if (found_connection)
+                    {
+                        TBOX_WARNING(d_object_name
+                                     << ":\n  Duplicate rod connection between nodes "
+                                     << (e.first + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j])) << " and "
+                                     << (e.second + (input_uses_global_idxs ? 0 : -d_vertex_offset[ln][j]))
+                                     << " encountered in ASCII input file named " << rod_filename << ".\n"
+                                     << "  Skipping duplicated connection." << std::endl);
+                    }
+                    else
+                    {
+                        d_rod_edge_map[ln][j].insert(std::make_pair(e.first, e));
+                        RodSpec rod_spec;
+                        rod_spec.properties = properties;
+                        d_rod_spec_data[ln][j].insert(std::make_pair(e, rod_spec));
+                    }
                 }
 
                 // Close the input file.
@@ -2058,6 +2136,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
+            std::set<int> target_point_idxs;
             TargetSpec default_spec;
             default_spec.stiffness = 0.0;
             default_spec.damping = 0.0;
@@ -2138,51 +2217,55 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                                                      << std::endl);
                         }
 
-                        if (!(line_stream >> d_target_spec_data[ln][j][n].stiffness))
+                        if (target_point_idxs.count(n))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << target_point_stiffness_filename
-                                                     << std::endl);
+                            TBOX_WARNING(d_object_name << ":\n  Duplicate target point node " << n
+                                                       << " encountered in ASCII input file named "
+                                                       << target_point_stiffness_filename << ".\n"
+                                                       << "  Skipping duplicated point." << std::endl);
                         }
-                        else if (d_target_spec_data[ln][j][n].stiffness < 0.0)
+                        else
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << target_point_stiffness_filename
-                                                     << std::endl
-                                                     << "  target point spring constant is negative"
-                                                     << std::endl);
-                        }
+                            target_point_idxs.insert(n);
 
-                        if (!(line_stream >> d_target_spec_data[ln][j][n].damping))
-                        {
-                            d_target_spec_data[ln][j][n].damping = 0.0;
-                        }
-                        else if (d_target_spec_data[ln][j][n].damping < 0.0)
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << target_point_stiffness_filename
-                                                     << std::endl
-                                                     << "  target point damping coefficient is negative"
-                                                     << std::endl);
-                        }
-                    }
+                            if (!(line_stream >> d_target_spec_data[ln][j][n].stiffness))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << target_point_stiffness_filename
+                                                         << std::endl);
+                            }
+                            else if (d_target_spec_data[ln][j][n].stiffness < 0.0)
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << target_point_stiffness_filename
+                                                         << std::endl
+                                                         << "  target point spring constant is negative" << std::endl);
+                            }
 
-                    // Check to see if the penalty spring constant is zero and,
-                    // if so, emit a warning.
-                    const double kappa = d_target_spec_data[ln][j][n].stiffness;
-                    if (!warned && d_enable_target_points[ln][j] &&
-                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa, 0.0)))
-                    {
-                        TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring "
-                                                      "constant encountered in ASCII input file "
-                                                      "named "
-                                                   << target_point_stiffness_filename
-                                                   << "."
-                                                   << std::endl);
-                        warned = true;
+                            if (!(line_stream >> d_target_spec_data[ln][j][n].damping))
+                            {
+                                d_target_spec_data[ln][j][n].damping = 0.0;
+                            }
+                            else if (d_target_spec_data[ln][j][n].damping < 0.0)
+                            {
+                                TBOX_ERROR(d_object_name
+                                           << ":\n  Invalid entry in input file encountered on line " << k + 2
+                                           << " of file " << target_point_stiffness_filename << std::endl
+                                           << "  target point damping coefficient is negative" << std::endl);
+                            }
+                            // Check to see if the penalty spring constant is zero and,
+                            // if so, emit a warning.
+                            const double kappa = d_target_spec_data[ln][j][n].stiffness;
+                            if (!warned && d_enable_target_points[ln][j] &&
+                                (kappa == 0.0 || MathUtilities<double>::equalEps(kappa, 0.0)))
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring "
+                                                              "constant encountered in ASCII input file "
+                                                              "named "
+                                                           << target_point_stiffness_filename << "." << std::endl);
+                                warned = true;
+                            }
+                        }
                     }
                 }
 
@@ -2256,6 +2339,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
+            std::set<int> anchor_point_idxs;
             AnchorSpec default_spec;
             default_spec.is_anchor_point = false;
             d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
@@ -2335,7 +2419,18 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                                                      << std::endl);
                         }
 
-                        d_anchor_spec_data[ln][j][n].is_anchor_point = true;
+                        if (anchor_point_idxs.count(n))
+                        {
+                            TBOX_WARNING(d_object_name << ":\n  Duplicate anchor point node " << n
+                                                       << " encountered in ASCII input file named "
+                                                       << anchor_point_filename << ".\n"
+                                                       << "  Skipping duplicated point." << std::endl);
+                        }
+                        else
+                        {
+                            anchor_point_idxs.insert(n);
+                            d_anchor_spec_data[ln][j][n].is_anchor_point = true;
+                        }
                     }
                 }
 
@@ -2377,6 +2472,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
+            std::set<int> mass_point_idxs;
             BdryMassSpec default_spec;
             default_spec.bdry_mass = 0.0;
             default_spec.stiffness = 0.0;
@@ -2457,38 +2553,40 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                                                      << std::endl);
                         }
 
-                        if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].bdry_mass))
+                        if (mass_point_idxs.count(n))
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl);
+                            TBOX_WARNING(d_object_name << ":\n  Duplicate boundary mass point node " << n
+                                                       << " encountered in ASCII input file named "
+                                                       << bdry_mass_filename << ".\n"
+                                                       << "  Skipping duplicated point." << std::endl);
                         }
-                        else if (d_bdry_mass_spec_data[ln][j][n].bdry_mass < 0.0)
+                        else
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl
-                                                     << "  boundary mass is negative"
-                                                     << std::endl);
-                        }
+                            mass_point_idxs.insert(n);
 
-                        if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].stiffness))
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl);
-                        }
-                        else if (d_bdry_mass_spec_data[ln][j][n].stiffness < 0.0)
-                        {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k + 2
-                                                     << " of file "
-                                                     << bdry_mass_filename
-                                                     << std::endl
-                                                     << "  boundary mass spring constant is negative"
-                                                     << std::endl);
+                            if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].bdry_mass))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << bdry_mass_filename << std::endl);
+                            }
+                            else if (d_bdry_mass_spec_data[ln][j][n].bdry_mass < 0.0)
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << bdry_mass_filename << std::endl
+                                                         << "  boundary mass is negative" << std::endl);
+                            }
+
+                            if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].stiffness))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << bdry_mass_filename << std::endl);
+                            }
+                            else if (d_bdry_mass_spec_data[ln][j][n].stiffness < 0.0)
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line "
+                                                         << k + 2 << " of file " << bdry_mass_filename << std::endl
+                                                         << "  boundary mass spring constant is negative" << std::endl);
+                            }
                         }
                     }
                 }

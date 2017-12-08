@@ -34,12 +34,12 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "tbox/Utilities.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/PIO.h"
-#include "tbox/MathUtilities.h"
-#include "PatchLevel.h"
 #include "CartesianPatchGeometry.h"
+#include "PatchLevel.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
 
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
@@ -50,8 +50,8 @@
 #include "muParser.h"
 
 // C++ INCLUDES
-#include <string>
 #include <limits>
+#include <string>
 
 namespace IBAMR
 {

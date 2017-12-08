@@ -1,7 +1,7 @@
 // Filename: PatchMathOps.cpp
 // Created on 23 Jul 2002 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -92,12 +92,16 @@
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux2d, CTOFFLUX2D)
 #define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux2d, CTOFANISOFLUX2D)
 #define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd2d, CTOFGRADADD2D)
+#define C_TO_F_FLUX_ADD_FC IBTK_FC_FUNC(ctoffluxadd2d, CTOFFLUXADD2D)
+#define C_TO_F_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctofanisofluxadd2d, CTOFANISOFLUXADD2D)
 #define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd2d, CTOFINTERP2ND2D)
 
 #define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad2d, CTOSGRAD2D)
 #define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux2d, CTOSFLUX2D)
 #define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux2d, CTOSANISOFLUX2D)
 #define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd2d, CTOSGRADADD2D)
+#define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd2d, CTOSFLUXADD2D)
+#define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd2d, CTOSANISOFLUXADD2D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd2d, CTOSINTERP2ND2D)
 
 #define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl2d, FTOCCURL2D)
@@ -116,6 +120,8 @@
 #define C_TO_S_ROT_FC IBTK_FC_FUNC(ctosrot2d, CTOSROT2D)
 
 #define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
+
+#define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain2d, STOCSTRAIN2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
@@ -154,12 +160,16 @@
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux3d, CTOFFLUX3D)
 #define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux3d, CTOFANISOFLUX3D)
 #define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd3d, CTOFGRADADD3D)
+#define C_TO_F_FLUX_ADD_FC IBTK_FC_FUNC(ctoffluxadd3d, CTOFFLUXADD3D)
+#define C_TO_F_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctofanisofluxadd3d, CTOFANISOFLUXADD3D)
 #define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd3d, CTOFINTERP2ND3D)
 
 #define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad3d, CTOSGRAD3D)
 #define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux3d, CTOSFLUX3D)
 #define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux3d, CTOSANISOFLUX3D)
 #define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd3d, CTOSGRADADD3D)
+#define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd3d, CTOSFLUXADD3D)
+#define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd3d, CTOSANISOFLUXADD3D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd3d, CTOSINTERP2ND3D)
 
 #define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl3d, FTOCCURL3D)
@@ -179,6 +189,8 @@
 #define S_TO_E_CURL_FC IBTK_FC_FUNC(stoecurl3d, STOECURL3D)
 
 #define E_TO_S_ROT_FC IBTK_FC_FUNC(etosrot3d, ETOSROT3D)
+
+#define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain3d, STOCSTRAIN3D)
 #endif // if (NDIM == 3)
 
 extern "C" {
@@ -740,6 +752,68 @@ void C_TO_F_GRAD_ADD_FC(double* g0,
 #endif
                         const double* dx);
 
+void C_TO_F_FLUX_ADD_FC(double* g0,
+                        double* g1,
+#if (NDIM == 3)
+                        double* g2,
+#endif
+                        const int& g_gcw,
+                        const double* alpha0,
+                        const double* alpha1,
+#if (NDIM == 3)
+                        const double* alpha2,
+#endif
+                        const int& alpha_gcw,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
+#if (NDIM == 3)
+                        const double* v2,
+#endif
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
+
+void C_TO_F_ANISO_FLUX_ADD_FC(double* g0,
+                              double* g1,
+#if (NDIM == 3)
+                              double* g2,
+#endif
+                              const int& g_gcw,
+                              const double* alpha0,
+                              const double* alpha1,
+#if (NDIM == 3)
+                              const double* alpha2,
+#endif
+                              const int& alpha_gcw,
+                              const double* U,
+                              const int& U_gcw,
+                              const double& beta,
+                              const double* v0,
+                              const double* v1,
+#if (NDIM == 3)
+                              const double* v2,
+#endif
+                              const int& v_gcw,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
+#if (NDIM == 3)
+                              const int& ilower2,
+                              const int& iupper2,
+#endif
+                              const double* dx);
+
 void C_TO_F_INTERP_FC(double* u0,
                       double* u1,
 #if (NDIM == 3)
@@ -851,6 +925,68 @@ void C_TO_S_GRAD_ADD_FC(double* g0,
                         const int& iupper2,
 #endif
                         const double* dx);
+
+void C_TO_S_FLUX_ADD_FC(double* g0,
+                        double* g1,
+#if (NDIM == 3)
+                        double* g2,
+#endif
+                        const int& g_gcw,
+                        const double* alpha0,
+                        const double* alpha1,
+#if (NDIM == 3)
+                        const double* alpha2,
+#endif
+                        const int& alpha_gcw,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
+#if (NDIM == 3)
+                        const double* v2,
+#endif
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
+
+void C_TO_S_ANISO_FLUX_ADD_FC(double* g0,
+                              double* g1,
+#if (NDIM == 3)
+                              double* g2,
+#endif
+                              const int& g_gcw,
+                              const double* alpha0,
+                              const double* alpha1,
+#if (NDIM == 3)
+                              const double* alpha2,
+#endif
+                              const int& alpha_gcw,
+                              const double* U,
+                              const int& U_gcw,
+                              const double& beta,
+                              const double* v0,
+                              const double* v1,
+#if (NDIM == 3)
+                              const double* v2,
+#endif
+                              const int& v_gcw,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
+#if (NDIM == 3)
+                              const int& ilower2,
+                              const int& iupper2,
+#endif
+                              const double* dx);
 
 void C_TO_S_INTERP_FC(double* u0,
                       double* u1,
@@ -1096,6 +1232,26 @@ void S_TO_S_VC_LAPLACE_FC(double* f0,
 #endif
                           const double* dx);
 #endif
+
+void S_TO_C_STRAIN_FC(double* E_diag,
+                      const int& E_diag_gcw,
+                      double* E_offDiag,
+                      const int& E_offDiag_gcw,
+                      const double* u0,
+                      const double* u1,
+#if (NDIM == 3)
+                      const double* u2,
+#endif
+                      const int& u_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+#if (NDIM == 3)
+                      const int& ilower2,
+                      const int& iupper2,
+#endif
+                      const double* dx);
 
 #if (NDIM == 2)
 void N_TO_S_ROT_FC(double* w0,
@@ -3291,35 +3447,42 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_F_FLUX_FC(g0,
-                       g1,
-#if (NDIM == 3)
-                       g2,
-#endif
-                       g_ghosts,
-                       alpha0,
-                       alpha1,
-#if (NDIM == 3)
-                       alpha2,
-#endif
-                       alpha_ghosts,
-                       U,
-                       U_ghosts,
-                       patch_box.lower(0),
-                       patch_box.upper(0),
-                       patch_box.lower(1),
-                       patch_box.upper(1),
-#if (NDIM == 3)
-                       patch_box.lower(2),
-                       patch_box.upper(2),
-#endif
-                       dx);
-
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
-            const int v_ghosts = (src2->getGhostCellWidth()).max();
+            C_TO_F_FLUX_FC(g0,
+                           g1,
 
+#if (NDIM == 3)
+                           g2,
+#endif
+                           g_ghosts,
+                           alpha0,
+                           alpha1,
+#if (NDIM == 3)
+                           alpha2,
+#endif
+                           alpha_ghosts,
+                           U,
+                           U_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
+#if (NDIM == 3)
+                           patch_box.lower(2),
+                           patch_box.upper(2),
+#endif
+                           dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
+            const int v_ghosts = (src2->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3343,42 +3506,77 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
-            patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_F_FLUX_ADD_FC(g0,
+                               g1,
+
+#if (NDIM == 3)
+                               g2,
+#endif
+                               g_ghosts,
+                               alpha0,
+                               alpha1,
+#if (NDIM == 3)
+                               alpha2,
+#endif
+                               alpha_ghosts,
+                               U,
+                               U_ghosts,
+                               beta,
+                               v0,
+                               v1,
+#if (NDIM == 3)
+                               v2,
+#endif
+                               v_ghosts,
+                               patch_box.lower(0),
+                               patch_box.upper(0),
+                               patch_box.lower(1),
+                               patch_box.upper(1),
+#if (NDIM == 3)
+                               patch_box.lower(2),
+                               patch_box.upper(2),
+#endif
+                               dx);
         }
     }
     else
     {
-        C_TO_F_ANISO_FLUX_FC(g0,
-                             g1,
-#if (NDIM == 3)
-                             g2,
-#endif
-                             g_ghosts,
-                             alpha0,
-                             alpha1,
-#if (NDIM == 3)
-                             alpha2,
-#endif
-                             alpha_ghosts,
-                             U,
-                             U_ghosts,
-                             patch_box.lower(0),
-                             patch_box.upper(0),
-                             patch_box.lower(1),
-                             patch_box.upper(1),
-#if (NDIM == 3)
-                             patch_box.lower(2),
-                             patch_box.upper(2),
-#endif
-                             dx);
-
-        // Account for non-zero beta.
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
-            const int v_ghosts = (src2->getGhostCellWidth()).max();
+            C_TO_F_ANISO_FLUX_FC(g0,
+                                 g1,
 
+#if (NDIM == 3)
+                                 g2,
+#endif
+                                 g_ghosts,
+                                 alpha0,
+                                 alpha1,
+#if (NDIM == 3)
+                                 alpha2,
+#endif
+                                 alpha_ghosts,
+                                 U,
+                                 U_ghosts,
+                                 patch_box.lower(0),
+                                 patch_box.upper(0),
+                                 patch_box.lower(1),
+                                 patch_box.upper(1),
+#if (NDIM == 3)
+                                 patch_box.lower(2),
+                                 patch_box.upper(2),
+#endif
+                                 dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
+            const int v_ghosts = (src2->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3402,8 +3600,37 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
-            patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_F_ANISO_FLUX_ADD_FC(g0,
+                                     g1,
+
+#if (NDIM == 3)
+                                     g2,
+#endif
+                                     g_ghosts,
+                                     alpha0,
+                                     alpha1,
+#if (NDIM == 3)
+                                     alpha2,
+#endif
+                                     alpha_ghosts,
+                                     U,
+                                     U_ghosts,
+                                     beta,
+                                     v0,
+                                     v1,
+#if (NDIM == 3)
+                                     v2,
+#endif
+                                     v_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
+#if (NDIM == 3)
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
+#endif
+                                     dx);
         }
     }
     return;
@@ -3505,35 +3732,41 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_S_FLUX_FC(g0,
-                       g1,
-#if (NDIM == 3)
-                       g2,
-#endif
-                       g_ghosts,
-                       alpha0,
-                       alpha1,
-#if (NDIM == 3)
-                       alpha2,
-#endif
-                       alpha_ghosts,
-                       U,
-                       U_ghosts,
-                       patch_box.lower(0),
-                       patch_box.upper(0),
-                       patch_box.lower(1),
-                       patch_box.upper(1),
-#if (NDIM == 3)
-                       patch_box.lower(2),
-                       patch_box.upper(2),
-#endif
-                       dx);
-
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
+            C_TO_S_FLUX_FC(g0,
+                           g1,
+#if (NDIM == 3)
+                           g2,
+#endif
+                           g_ghosts,
+                           alpha0,
+                           alpha1,
+#if (NDIM == 3)
+                           alpha2,
+#endif
+                           alpha_ghosts,
+                           U,
+                           U_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
+#if (NDIM == 3)
+                           patch_box.lower(2),
+                           patch_box.upper(2),
+#endif
+                           dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
             const int v_ghosts = (src2->getGhostCellWidth()).max();
-
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3557,42 +3790,75 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
-            patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_S_FLUX_ADD_FC(g0,
+                               g1,
+#if (NDIM == 3)
+                               g2,
+#endif
+                               g_ghosts,
+                               alpha0,
+                               alpha1,
+#if (NDIM == 3)
+                               alpha2,
+#endif
+                               alpha_ghosts,
+                               U,
+                               U_ghosts,
+                               beta,
+                               v0,
+                               v1,
+#if (NDIM == 3)
+                               v2,
+#endif
+                               v_ghosts,
+                               patch_box.lower(0),
+                               patch_box.upper(0),
+                               patch_box.lower(1),
+                               patch_box.upper(1),
+#if (NDIM == 3)
+                               patch_box.lower(2),
+                               patch_box.upper(2),
+#endif
+                               dx);
         }
     }
     else
     {
-        C_TO_S_ANISO_FLUX_FC(g0,
-                             g1,
-#if (NDIM == 3)
-                             g2,
-#endif
-                             g_ghosts,
-                             alpha0,
-                             alpha1,
-#if (NDIM == 3)
-                             alpha2,
-#endif
-                             alpha_ghosts,
-                             U,
-                             U_ghosts,
-                             patch_box.lower(0),
-                             patch_box.upper(0),
-                             patch_box.lower(1),
-                             patch_box.upper(1),
-#if (NDIM == 3)
-                             patch_box.lower(2),
-                             patch_box.upper(2),
-#endif
-                             dx);
-
-        // Account for non-zero beta.
-        if (src2 && (beta != 0.0))
+        if (!src2 || (beta == 0.0))
         {
-#if !defined(NDEBUG)
+            C_TO_S_ANISO_FLUX_FC(g0,
+                                 g1,
+#if (NDIM == 3)
+                                 g2,
+#endif
+                                 g_ghosts,
+                                 alpha0,
+                                 alpha1,
+#if (NDIM == 3)
+                                 alpha2,
+#endif
+                                 alpha_ghosts,
+                                 U,
+                                 U_ghosts,
+                                 patch_box.lower(0),
+                                 patch_box.upper(0),
+                                 patch_box.lower(1),
+                                 patch_box.upper(1),
+#if (NDIM == 3)
+                                 patch_box.lower(2),
+                                 patch_box.upper(2),
+#endif
+                                 dx);
+        }
+        else
+        {
+            const double* const v0 = src2->getPointer(0);
+            const double* const v1 = src2->getPointer(1);
+#if (NDIM == 3)
+            const double* const v2 = src2->getPointer(2);
+#endif
             const int v_ghosts = (src2->getGhostCellWidth()).max();
-
+#if !defined(NDEBUG)
             if (v_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
@@ -3616,8 +3882,36 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
                            << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
-            patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
+            C_TO_S_ANISO_FLUX_ADD_FC(g0,
+                                     g1,
+#if (NDIM == 3)
+                                     g2,
+#endif
+                                     g_ghosts,
+                                     alpha0,
+                                     alpha1,
+#if (NDIM == 3)
+                                     alpha2,
+#endif
+                                     alpha_ghosts,
+                                     U,
+                                     U_ghosts,
+                                     beta,
+                                     v0,
+                                     v1,
+#if (NDIM == 3)
+                                     v2,
+#endif
+                                     v_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
+#if (NDIM == 3)
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
+#endif
+                                     dx);
         }
     }
     return;
@@ -6929,6 +7223,281 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
                        );
     return;
 } // pointwiseMaxNorm
+
+void
+PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
+                          Pointer<CellData<NDIM, double> > dst2,
+                          const Pointer<SideData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    double* const E_diag = dst1->getPointer();
+    const int E_diag_ghosts = (dst1->getGhostCellWidth()).max();
+
+    double* const E_offDiag = dst2->getPointer();
+    const int E_offDiag_ghosts = (dst2->getGhostCellWidth()).max();
+
+    const double* const u0 = src->getPointer(0);
+    const double* const u1 = src->getPointer(1);
+#if (NDIM == 3)
+    const double* const u2 = src->getPointer(2);
+#endif
+    const int u_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (E_diag_ghosts != (dst1->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst1 does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (E_offDiag_ghosts != (dst2->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst2 does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (u_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (src == dst1)
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src == dst1."
+                   << std::endl);
+    }
+
+    if (src == dst2)
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src == dst2."
+                   << std::endl);
+    }
+
+    const Box<NDIM>& U_box = src->getGhostBox();
+    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src has insufficient ghost cell width"
+                   << std::endl);
+    }
+
+    const int E_diag_depth = dst1->getDepth();
+    const int E_offDiag_depth = dst2->getDepth();
+
+    if (
+#if (NDIM == 2)
+        (E_offDiag_depth != 1)
+#endif
+#if (NDIM == 3)
+            (E_offDiag_depth != NDIM)
+#endif
+                )
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst2 has incorrect depth"
+                   << std::endl);
+    }
+
+    if (patch_box != dst1->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst1 and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != dst2->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst2 and src must live on the same patch"
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst and src must live on the same patch"
+                   << std::endl);
+    }
+#endif
+
+    S_TO_C_STRAIN_FC(E_diag,
+                     E_diag_ghosts,
+                     E_offDiag,
+                     E_offDiag_ghosts,
+                     u0,
+                     u1,
+#if (NDIM == 3)
+                     u2,
+#endif
+                     u_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1),
+#if (NDIM == 3)
+                     patch_box.lower(2),
+                     patch_box.upper(2),
+#endif
+                     dx);
+    return;
+} // strain
+
+void
+PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst,
+                          const Pointer<SideData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    const int E_ghosts = (dst->getGhostCellWidth()).max();
+    const int E_depth = dst->getDepth();
+
+    const double* const u0 = src->getPointer(0);
+    const double* const u1 = src->getPointer(1);
+#if (NDIM == 3)
+    const double* const u2 = src->getPointer(2);
+#endif
+    const int u_ghosts = (src->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (E_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (u_ghosts != (src->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src does not have uniform ghost cell widths"
+                   << std::endl);
+    }
+
+    if (src == dst)
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src == dst."
+                   << std::endl);
+    }
+
+    const Box<NDIM>& U_box = src->getGhostBox();
+    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
+
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  src has insufficient ghost cell width."
+                   << std::endl);
+    }
+
+    if ((E_depth != NDIM * (NDIM + 1) / 2) && (E_depth != NDIM * NDIM))
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst has incorrect depth"
+                   << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst and src must live on same patch."
+                   << std::endl);
+    }
+
+    if (patch_box != src->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::strain_rate():\n"
+                   << "  dst and src must live on same patch."
+                   << std::endl);
+    }
+#endif
+    if (E_depth == NDIM * (NDIM + 1) / 2)
+    {
+        double* const E_diag = dst->getPointer(0);
+        double* const E_offDiag = dst->getPointer(NDIM);
+        S_TO_C_STRAIN_FC(E_diag,
+                         E_ghosts,
+                         E_offDiag,
+                         E_ghosts,
+                         u0,
+                         u1,
+#if (NDIM == 3)
+                         u2,
+#endif
+                         u_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
+#if (NDIM == 3)
+                         patch_box.lower(2),
+                         patch_box.upper(2),
+#endif
+                         dx);
+    }
+    else if (E_depth == NDIM * NDIM)
+    {
+        Pointer<CellData<NDIM, double> > E_diag =
+            new CellData<NDIM, double>(patch_box, NDIM, IntVector<NDIM>(E_ghosts));
+        Pointer<CellData<NDIM, double> > E_offDiag =
+            new CellData<NDIM, double>(patch_box, NDIM == 2 ? 1 : 3, IntVector<NDIM>(E_ghosts));
+
+        S_TO_C_STRAIN_FC(E_diag->getPointer(),
+                         E_ghosts,
+                         E_offDiag->getPointer(),
+                         E_ghosts,
+                         u0,
+                         u1,
+#if (NDIM == 3)
+                         u2,
+#endif
+                         u_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
+#if (NDIM == 3)
+                         patch_box.lower(2),
+                         patch_box.upper(2),
+#endif
+                         dx);
+#if (NDIM == 2)
+        dst->copyDepth(0, *E_diag, 0);
+        dst->copyDepth(1, *E_offDiag, 0);
+        dst->copyDepth(2, *E_offDiag, 0);
+        dst->copyDepth(3, *E_diag, 1);
+#endif
+#if (NDIM == 3)
+        dst->copyDepth(0, *E_diag, 0);
+        dst->copyDepth(1, *E_offDiag, 2);
+        dst->copyDepth(2, *E_offDiag, 1);
+        dst->copyDepth(3, *E_offDiag, 2);
+        dst->copyDepth(4, *E_diag, 1);
+        dst->copyDepth(5, *E_offDiag, 0);
+        dst->copyDepth(6, *E_offDiag, 1);
+        dst->copyDepth(7, *E_offDiag, 0);
+        dst->copyDepth(8, *E_diag, 2);
+#endif
+    }
+    return;
+} // strain
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

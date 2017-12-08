@@ -1,7 +1,7 @@
 // Filename: HierarchyMathOps.h
 // Created on 11 Jun 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -203,6 +203,11 @@ public:
     double getVolumeOfPhysicalDomain() const;
 
     //\}
+
+    /*!
+     * \brief Get the patch hierarchy object associated with the class.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     //\{ \name Mathematical operations.
 
@@ -1148,6 +1153,45 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
                           int src_idx,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+
+    /*!
+     * \brief Compute the cell-centered strain rate of a side-centered vector field
+     * using centered differences.
+     *
+     * Sets dst1 = strain src (diagonal components).
+     * Sets dst2 = strain src (off diagonal components).
+     *
+     * Compute the strain of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void strain_rate(int dst1_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst1_var,
+                     int dst2_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst2_var,
+                     int src_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
+                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                     double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the cell-centered strain rate of a side-centered vector field
+     * using centered differences.
+
+     * Sets dst = strain src.
+     *
+     * Compute the strain of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void strain_rate(int dst_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                     int src_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
+                     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                     double src_ghost_fill_time);
 
 private:
     /*!

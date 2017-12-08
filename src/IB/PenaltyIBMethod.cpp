@@ -1,7 +1,7 @@
 // Filename: PenaltyIBMethod.cpp
 // Created on 28 Sep 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -403,7 +403,7 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
                                        init_data_time,
                                        initial_time);
 
-    // Initialize various Lagrangian data objects.
+    // Initialize velocity and position data objects for massive points.
     if (initial_time)
     {
         const int coarsest_ln = 0;
@@ -412,29 +412,14 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            const bool can_be_refined = ln < finest_ln || d_gridding_alg->levelCanBeRefined(ln);
 
             Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
-            Pointer<LData> M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
-            Pointer<LData> K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
             Pointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
             Pointer<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
-                                                            local_index_offset,
-                                                            M_data,
-                                                            K_data,
-                                                            d_hierarchy,
-                                                            ln,
-                                                            init_data_time,
-                                                            can_be_refined,
-                                                            initial_time,
-                                                            d_l_data_manager);
+
             if (d_silo_writer)
             {
-                d_silo_writer->registerVariableData("M", M_data, ln);
                 d_silo_writer->registerVariableData("Y", Y_data, ln);
             }
 
@@ -448,6 +433,56 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
     }
     return;
 } // initializePatchHierarchy
+
+void
+PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                         int level_number,
+                                         double init_data_time,
+                                         bool can_be_refined,
+                                         bool initial_time,
+                                         Pointer<BasePatchLevel<NDIM> > old_level,
+                                         bool allocate_data)
+{
+    IBMethod::initializeLevelData(hierarchy,
+                                  level_number,
+                                  init_data_time,
+                                  can_be_refined,
+                                  initial_time,
+                                  old_level,
+                                  allocate_data);
+
+    if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
+    {
+        // Initialize Mass and Spring constant data.
+        // Position and Velocity will be copied later.
+        Pointer<LData> M_data = d_l_data_manager->createLData("M",
+                                                              level_number,
+                                                              1,
+                                                              /*manage_data*/ true);
+        Pointer<LData> K_data = d_l_data_manager->createLData("K",
+                                                              level_number,
+                                                              1,
+                                                              /*manage_data*/ true);
+        static const int global_index_offset = 0;
+        static const int local_index_offset = 0;
+        d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
+                                                        local_index_offset,
+                                                        M_data,
+                                                        K_data,
+                                                        hierarchy,
+                                                        level_number,
+                                                        init_data_time,
+                                                        can_be_refined,
+                                                        initial_time,
+                                                        d_l_data_manager);
+
+        if (d_silo_writer)
+        {
+            d_silo_writer->registerVariableData("M", M_data, level_number);
+        }
+    }
+    return;
+}
 
 void
 PenaltyIBMethod::putToDatabase(Pointer<Database> db)

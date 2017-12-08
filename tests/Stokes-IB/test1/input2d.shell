@@ -101,8 +101,8 @@ IBHierarchyIntegrator {
 	num_post_sweeps = 1
         U_petsc_prolongation_method = "LINEAR"                 // "RT0"    
         P_petsc_prolongation_method = "CONSERVATIVE"
-        rediscretize_stokes = FALSE
-        res_rediscretized_stokes = FALSE
+        rediscretize_stokes = TRUE
+        res_rediscretized_stokes = TRUE
 
 	level_solver_type   = "PETSC_LEVEL_SOLVER"
 	level_solver_rel_residual_tol = 1.0e-12

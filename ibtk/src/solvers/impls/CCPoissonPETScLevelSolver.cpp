@@ -1,7 +1,7 @@
 // Filename: CCPoissonPETScLevelSolver.cpp
 // Created on 30 Aug 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -113,6 +113,22 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_is*/,
+                                                 std::vector<std::set<int> >& /*nonoverlap_is*/)
+{
+    // Construct subdomains for ASM and MSM preconditioner, indexed directly by PETSc IS.
+    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
+                                                        d_nonoverlap_is,
+                                                        d_box_size,
+                                                        d_overlap_size,
+                                                        d_num_dofs_per_proc,
+                                                        d_dof_index_idx,
+                                                        d_level,
+                                                        d_cf_boundary);
+    return;
+} // generateASMSubdomains
+
+void
 CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
                                                             const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
@@ -137,14 +153,6 @@ CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     PETScMatUtilities::constructPatchLevelCCLaplaceOp(
         d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, d_level);
     d_petsc_pc = d_petsc_mat;
-    PETScMatUtilities::constructPatchLevelASMSubdomains(d_overlap_is,
-                                                        d_nonoverlap_is,
-                                                        d_box_size,
-                                                        d_overlap_size,
-                                                        d_num_dofs_per_proc,
-                                                        d_dof_index_idx,
-                                                        d_level,
-                                                        d_cf_boundary);
 
     // Setup SAMRAI communication objects.
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);

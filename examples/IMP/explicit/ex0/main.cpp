@@ -124,7 +124,6 @@ main(int argc, char* argv[])
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -279,11 +278,14 @@ main(int argc, char* argv[])
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        if (visit_data_writer)
+        {
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+        }
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
-        if (uses_visit)
+        if (silo_data_writer)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
-            time_integrator->registerVisItDataWriter(visit_data_writer);
             ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
@@ -302,12 +304,12 @@ main(int argc, char* argv[])
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
+        if (dump_viz_data)
         {
             pout << "\n\nWriting visualization files...\n\n";
             time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
+            if (visit_data_writer) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            if (silo_data_writer) silo_data_writer->writePlotData(iteration_num, loop_time);
         }
 
         // Open streams to save volume of structure.
@@ -345,12 +347,12 @@ main(int argc, char* argv[])
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(iteration_num, loop_time);
+                if (visit_data_writer) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                if (silo_data_writer) silo_data_writer->writePlotData(iteration_num, loop_time);
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {

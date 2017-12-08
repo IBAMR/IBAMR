@@ -1,7 +1,7 @@
 // Filename: IBExplicitHierarchyIntegrator.cpp
 // Created on 12 Jul 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -504,8 +504,6 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
             level->deallocatePatchData(d_p_idx);
             level->deallocatePatchData(d_q_idx);
         }
-        level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data);
     }
 
     // Execute any registered callbacks.

@@ -1,7 +1,7 @@
 // Filename: DirectMobilitySolver.h
 // Created on 20 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
 //
-// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

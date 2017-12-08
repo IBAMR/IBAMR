@@ -43,13 +43,13 @@
 #define included_SAMRAI_config
 #endif
 
-#include "ibamr/namespaces.h"
-#include "tbox/Utilities.h"
-#include "VariableDatabase.h"
-#include "SideData.h"
-#include "SideVariable.h"
 #include "CellData.h"
 #include "CellVariable.h"
+#include "SideData.h"
+#include "SideVariable.h"
+#include "VariableDatabase.h"
+#include "ibamr/namespaces.h"
+#include "tbox/Utilities.h"
 
 namespace IBTK
 {
