@@ -179,6 +179,14 @@ public:
         return d_l_data_U_correction;
     }
 
+    /*!
+     * \brief Get the current center of mass for all Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getCurrentStructureCOM()
+    {
+        return d_center_of_mass_current;
+    }
+
 private:
     /*!
      * \brief Default constructor.

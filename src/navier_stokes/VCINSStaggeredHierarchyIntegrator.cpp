@@ -2553,7 +2553,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(
-            d_rho_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "QUADRATIC", false);
+            d_rho_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "CONSTANT", false);
         d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
@@ -2562,7 +2562,7 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent mu_bc_component(
-            d_mu_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "QUADRATIC", false);
+            d_mu_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "CONSTANT", false);
         d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
     }
