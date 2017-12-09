@@ -214,23 +214,6 @@ bool run_example(int argc, char* argv[])
                                             D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
-        MeshBase::const_element_iterator el_end = lower_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = lower_mesh.elements_begin(); el != el_end; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor(side);
-                if (at_mesh_bdry)
-                {
-                    BoundaryInfo* boundary_info = lower_mesh.boundary_info.get();
-                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
-                    {
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
-                    }
-                }
-            }
-        }
 
         Mesh upper_mesh(init.comm(), NDIM);
         MeshTools::Generation::build_square(upper_mesh,
