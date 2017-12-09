@@ -225,23 +225,6 @@ bool run_example(int argc, char* argv[])
                                             2.0 * D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
-        el_end = upper_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = upper_mesh.elements_begin(); el != el_end; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor(side);
-                if (at_mesh_bdry)
-                {
-                    BoundaryInfo* boundary_info = upper_mesh.boundary_info.get();
-                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
-                    {
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
-                    }
-                }
-            }
-        }
 
         vector<Mesh*> meshes(2);
         meshes[0] = &lower_mesh;
