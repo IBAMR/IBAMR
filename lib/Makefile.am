@@ -142,6 +142,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolver.cpp \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
+../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCINSStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/VCINSStaggeredPressureBcCoef.cpp \
 ../src/navier_stokes/VCINSStaggeredVelocityBcCoef.cpp \
@@ -253,6 +254,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCINSStaggeredHierarchyIntegrator.h \
 ../include/ibamr/VCINSStaggeredPressureBcCoef.h \
 ../include/ibamr/VCINSStaggeredVelocityBcCoef.h \
@@ -288,7 +290,8 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
@@ -305,4 +308,5 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f
