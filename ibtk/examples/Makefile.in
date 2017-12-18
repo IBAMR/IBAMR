@@ -503,7 +503,7 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = CCLaplace CCPoisson PETScOps PhysBdryOps SCLaplace SCPoisson VCLaplace
+SUBDIRS = CCLaplace CCPoisson PETScOps PhysBdryOps SCLaplace SCPoisson VCLaplace VCViscousSolver
 all: all-recursive
 
 .SUFFIXES:
@@ -834,6 +834,7 @@ examples:
 	@(cd SCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd SCPoisson   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd VCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd VCViscousSolver   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 gtest:
 	@(cd CCLaplace   && make gtest) || exit 1;
@@ -842,6 +843,7 @@ gtest:
 	@(cd SCLaplace   && make gtest) || exit 1;
 	@(cd SCPoisson   && make gtest) || exit 1;
 	@(cd VCLaplace   && make gtest) || exit 1;
+	@(cd VCViscousSolver   && make gtest) || exit 1;
 
 gtest-long:
 	@(cd CCLaplace   && make gtest) || exit 1;
@@ -850,6 +852,7 @@ gtest-long:
 	@(cd SCLaplace   && make gtest-long) || exit 1;
 	@(cd SCPoisson   && make gtest-long) || exit 1;
 	@(cd VCLaplace   && make gtest-long) || exit 1;
+	@(cd VCViscousSolver   && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd CCLaplace   && make gtest-long) || exit 1;
@@ -858,6 +861,7 @@ gtest-all:
 	@(cd SCLaplace   && make gtest-long) || exit 1;
 	@(cd SCPoisson   && make gtest-long) || exit 1;
 	@(cd VCLaplace   && make gtest-long) || exit 1;
+	@(cd VCViscousSolver   && make gtest-long) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

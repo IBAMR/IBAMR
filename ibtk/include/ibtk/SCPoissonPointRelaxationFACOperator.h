@@ -229,6 +229,24 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
 
+    /*
+     * Coarse level solvers and solver parameters.
+     */
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+
+    /*
+     * Patch overlap data.
+     */
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
+
+    /*
+     * Dirichlet boundary condition utilities.
+     */
+    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    int d_mask_idx;
+
 private:
     /*!
      * \brief Default constructor.
@@ -257,23 +275,6 @@ private:
      */
     SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that);
 
-    /*
-     * Coarse level solvers and solver parameters.
-     */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Patch overlap data.
-     */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
-
-    /*
-     * Dirichlet boundary condition utilities.
-     */
-    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
-    int d_mask_idx;
 };
 } // namespace IBTK
 

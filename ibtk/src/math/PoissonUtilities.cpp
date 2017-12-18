@@ -45,8 +45,10 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "EdgeData.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "NodeData.h"
 #include "OutersideData.h"
 #include "Patch.h"
 #include "PatchData.h"
@@ -75,23 +77,6 @@ namespace IBTK
 
 namespace
 {
-struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
-{
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
-    {
-        return ((lhs(0) < rhs(0))
-#if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-                    );
-    }
-};
-
 inline Box<NDIM>
 compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
@@ -99,6 +84,103 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 }
+
+inline double
+compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> node_box(i, i);
+    const int n_nodes = pow(2, NDIM);
+
+    double avg_mu = 0.0;
+    int total_nodes = 0;
+    for (NodeIterator<NDIM> n(node_box); n; n++, total_nodes++)
+    {
+        avg_mu += mu_data(n(), /*depth*/ 0);
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_nodes == n_nodes);
+#endif
+    return avg_mu / n_nodes;
+} // compute_mu_avg
+
+inline double
+compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> node_box(i, i);
+    const int n_nodes = pow(2, NDIM);
+
+    double avg_mu = 0.0;
+    int total_nodes = 0;
+    for (NodeIterator<NDIM> n(node_box); n; n++, total_nodes++)
+    {
+        avg_mu += 1.0 / mu_data(n(), /*depth*/ 0);
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_nodes == n_nodes);
+#endif
+    return n_nodes / avg_mu;
+} // compute_mu_harmonic_avg
+
+inline double
+compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> edge_box(i, i);
+    const int n_edges = 12;
+
+    double avg_mu = 0.0;
+    int total_edges = 0;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++, total_edges++)
+        {
+            avg_mu += mu_data(e(), /*depth*/ 0);
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_edges == n_edges);
+#endif
+    return avg_mu / n_edges;
+} // compute_mu_avg
+
+inline double
+compute_mu_harmonic_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
+{
+    Box<NDIM> edge_box(i, i);
+    const int n_edges = 12;
+
+    double avg_mu = 0.0;
+    int total_edges = 0;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++, total_edges++)
+        {
+            avg_mu += 1.0 / mu_data(e(), /*depth*/ 0);
+        }
+    }
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(total_edges == n_edges);
+#endif
+    return n_edges / avg_mu;
+} // compute_mu_harmonic_avg
+
+inline double
+get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double> > mu_data)
+{
+    const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+    return mu_array_data(i, /*depth*/ 0);
+}
+
+inline Index<NDIM>
+get_shift(int dir, int shift)
+{
+    SAMRAI::hier::Index<NDIM> iv(0);
+    iv(dir) = shift;
+    return iv;
+} // get_shift
 }
 
 void
@@ -126,7 +208,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexComp> stencil_map;
+    std::map<Index<NDIM>, int, IndexFortranOrder> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
@@ -333,7 +415,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexComp> stencil_map;
+    std::map<Index<NDIM>, int, IndexFortranOrder> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
@@ -635,6 +717,522 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 }
 
 void
+PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
+    SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const std::vector<std::map<Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+    double alpha,
+    double beta,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    VCInterpType mu_interp_type)
+{
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(matrix_coefficients.getDepth() == stencil_sz);
+#endif
+    matrix_coefficients.fillAll(0.0);
+
+    const bool C_is_varying = poisson_spec.cIsVariable();
+    Pointer<SideData<NDIM, double> > C_data = NULL;
+    if (C_is_varying) C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
+
+#if (NDIM == 2)
+    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#elif (NDIM == 3)
+    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#endif
+
+#if !defined(NDEBUG)
+    if (C_is_varying) TBOX_ASSERT(!C_data.isNull());
+    TBOX_ASSERT(!mu_data.isNull());
+#endif
+
+#if (NDIM == 2)
+    const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+#endif
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const double* const patch_x_lower = pgeom->getXLower();
+    const double* const patch_x_upper = pgeom->getXUpper();
+    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        touches_regular_bdry[axis].resizeArray(2);
+        touches_periodic_bdry[axis].resizeArray(2);
+        for (int upperlower = 0; upperlower < 2; ++upperlower)
+        {
+            touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
+            touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
+        }
+    }
+
+    // Compute all matrix coefficients, including those on the physical
+    // boundary; however, do not yet take physical boundary conditions into
+    // account.  Boundary conditions are handled subsequently.
+typedef std::map<Index<NDIM>, int, IndexFortranOrder> StencilMapType;
+#if (NDIM == 2)
+    StencilMapType stencil_map = stencil_map_vec[0];
+#endif
+    static const Index<NDIM> ORIGIN(0);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
+        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+        {
+            const Index<NDIM>& cc = b();
+            const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
+
+            if (C_is_varying)
+            {
+                matrix_coefficients(i, stencil_map[ORIGIN]) = beta * (*C_data)(i, 0);
+            }
+            else
+            {
+                matrix_coefficients(i, stencil_map[ORIGIN]) =
+                    poisson_spec.cIsZero() ? 0.0 : beta * poisson_spec.getCConstant();
+            }
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == axis)
+                {
+                    const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                    const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                    double mu_upper, mu_lower;
+                    if (mu_interp_type == VC_AVERAGE_INTERP)
+                    {
+                        mu_upper = compute_mu_avg(cc, *mu_data);
+                        mu_lower = compute_mu_avg(cc + shift_axis_minus, *mu_data);
+                    }
+                    else if (mu_interp_type == VC_HARMONIC_INTERP)
+                    {
+                        mu_upper = compute_mu_harmonic_avg(cc, *mu_data);
+                        mu_lower = compute_mu_harmonic_avg(cc + shift_axis_minus, *mu_data);
+                    }
+                    else
+                    {
+                        TBOX_ERROR("this statement should not be reached");
+                    }
+
+                    const double coef_plus = (2.0 * alpha * mu_upper) / (dx[axis] * dx[axis]);
+                    const double coef_minus = (2.0 * alpha * mu_lower) / (dx[axis] * dx[axis]);
+                    matrix_coefficients(i, stencil_map[shift_axis_plus]) = coef_plus;
+                    matrix_coefficients(i, stencil_map[shift_axis_minus]) = coef_minus;
+                    matrix_coefficients(i, stencil_map[ORIGIN]) -= coef_plus + coef_minus;
+                }
+                else
+                {
+                    const Index<NDIM> shift_d_plus = get_shift(d, 1);
+                    const Index<NDIM> shift_d_minus = get_shift(d, -1);
+                    const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                    const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+#if (NDIM == 2)
+                    const double mu_upper = mu_array_data(cc + shift_d_plus, 0);
+                    const double mu_lower = mu_array_data(cc, 0);
+#elif (NDIM == 3)   
+                    // Get edge data aligned with perp dir. (perpendicular to d and axis) and shifted in the d dir.
+                    const int perp = 2*(d + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
+                    const double mu_upper = get_mu_edge(cc + shift_d_plus, perp, mu_data);
+                    const double mu_lower = get_mu_edge(cc, perp, mu_data);
+#endif
+
+                    matrix_coefficients(i, stencil_map[shift_d_plus]) = (alpha * mu_upper) / (dx[d] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_minus]) = (alpha * mu_lower) / (dx[d] * dx[d]);
+                    matrix_coefficients(i, stencil_map[ORIGIN]) -= matrix_coefficients(i, stencil_map[shift_d_plus]) +
+                                                                   matrix_coefficients(i, stencil_map[shift_d_minus]);
+
+                    matrix_coefficients(i, stencil_map[shift_d_plus + shift_axis_plus]) =
+                        (alpha * mu_upper) / (dx[axis] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_plus + shift_axis_minus]) =
+                        -(alpha * mu_upper) / (dx[axis] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_minus + shift_axis_plus]) =
+                        -(alpha * mu_lower) / (dx[axis] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_minus + shift_axis_minus]) =
+                        (alpha * mu_lower) / (dx[axis] * dx[d]);
+                }
+            }
+        }
+    }
+
+    // Modify matrix coefficients to account for physical boundary conditions
+    // along boundaries which ARE NOT aligned with the data axis.
+    //
+    // NOTE: It important to set these values first to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis == axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
+
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+            // Temporarily reset the patch geometry object associated with the
+            // patch so that boundary conditions are set at the correct spatial
+            // locations.
+            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                shifted_patch_x_lower[d] = patch_x_lower[d];
+                shifted_patch_x_upper[d] = patch_x_upper[d];
+            }
+            shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
+            shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
+            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                     touches_regular_bdry,
+                                                                     touches_periodic_bdry,
+                                                                     dx,
+                                                                     shifted_patch_x_lower.data(),
+                                                                     shifted_patch_x_upper.data()));
+
+            // Set the boundary condition coefficients.
+            static const bool homogeneous_bc = true;
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+            // Restore the original patch geometry object.
+            patch->setPatchGeometry(pgeom);
+
+            // Modify the matrix coefficients to account for homogeneous
+            // boundary conditions.
+            //
+            // Here, we follow the same linear extrapolation approach
+            // implemented in class CartesianRobinBcHelper.  Namely, with u_i
+            // denoting the interior cell, u_o denoting the ghost cell, and u_b
+            // and u_n denoting the value and normal derivative of u at the
+            // boundary,
+            //
+            //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+            //
+            // Now, if
+            //
+            //     a*u_b + b*u_n = 0
+            //
+            // then
+            //
+            //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const double& a = (*acoef_data)(i, 0);
+                const double& b = (*bcoef_data)(i, 0);
+                const double& h = dx[bdry_normal_axis];
+
+                Index<NDIM> i_intr = i;
+                if (is_lower)
+                {
+                    i_intr(bdry_normal_axis) += 0;
+                }
+                else
+                {
+                    i_intr(bdry_normal_axis) -= 1;
+                }
+                const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+
+                if (is_lower)
+                {
+                    Index<NDIM> shift = get_shift(bdry_normal_axis, -1);
+                    matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
+                        matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
+                }
+                else
+                {
+                    Index<NDIM> shift = get_shift(bdry_normal_axis, 1);
+                    matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
+                        matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
+                }
+            }
+        }
+    }
+
+    // Modify matrix coefficients to account for physical boundary
+    // conditions for other components of velocity along boundaries which ARE
+    // aligned with the data axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
+            {
+                if (comp == axis) continue;
+
+                const Box<NDIM> bc_coef_box = compute_tangential_extension(side_box, comp);
+
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+                // Temporarily reset the patch geometry object associated with the
+                // patch so that boundary conditions are set at the correct spatial
+                // locations.
+                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    shifted_patch_x_lower[d] = patch_x_lower[d];
+                    shifted_patch_x_upper[d] = patch_x_upper[d];
+                }
+                shifted_patch_x_lower[comp] -= 0.5 * dx[comp];
+                shifted_patch_x_upper[comp] -= 0.5 * dx[comp];
+                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower.data(),
+                                                                         shifted_patch_x_upper.data()));
+
+                // Set the boundary condition coefficients.
+                static const bool homogeneous_bc = true;
+                ExtendedRobinBcCoefStrategy* extended_bc_coef =
+                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[comp]);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                }
+                bc_coefs[comp]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+                // Restore the original patch geometry object.
+                patch->setPatchGeometry(pgeom);
+
+                // Modify the matrix coefficients to account for homogeneous
+                // boundary conditions.
+                //
+                // Here, we follow the same linear extrapolation approach
+                // implemented in class CartesianRobinBcHelper.  Namely, with u_i
+                // denoting the interior cell, u_o denoting the ghost cell, and u_b
+                // and u_n denoting the value and normal derivative of u at the
+                // boundary,
+                //
+                //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+                //
+                // Now, if
+                //
+                //     a*u_b + b*u_n = 0
+                //
+                // then
+                //
+                //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+                for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
+                {
+                    const Index<NDIM>& i = bc();
+                    const Index<NDIM> i_upper = i + get_shift(comp, 1);
+                    const double& a_lower = (*acoef_data)(i, 0);
+                    const double& b_lower = (*bcoef_data)(i, 0);
+                    const double& a_upper = (*acoef_data)(i_upper, 0);
+                    const double& b_upper = (*bcoef_data)(i_upper, 0);
+                    const double& h = dx[bdry_normal_axis];
+
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+
+                    if (is_lower)
+                    {
+                        Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
+                        Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
+                        matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
+                            (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
+                        matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
+
+                        Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
+                        Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
+                        matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
+                            (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
+                        matrix_coefficients(i_s, stencil_map[shift_outer_upper]) = 0.0;
+                    }
+                    else
+                    {
+                        Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
+                        Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
+                        matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
+                            (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
+                        matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
+
+                        Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
+                        Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
+                        matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
+                            (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
+                        matrix_coefficients(i_s, stencil_map[shift_outer_upper]) = 0.0;
+                    }
+                }
+            }
+        }
+    }
+
+    // Modify matrix coefficients to account for physical boundary
+    // conditions along boundaries which ARE aligned with the data axis.
+    //
+    // NOTE: It important to set these values last to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+            // Set the boundary condition coefficients.
+            static const bool homogeneous_bc = true;
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+            // Modify the matrix coefficients to account for homogeneous
+            // boundary conditions.
+            //
+            // With u_i denoting the interior cell, u_o denoting the ghost cell,
+            // and u_b and u_n denoting the value and normal derivative of u at
+            // the boundary,
+            //
+            //     u_n = (u_o - u_i)/(2*h)
+            //
+            // Now, if
+            //
+            //     a*u_b + b*u_n = 0
+            //
+            // then if b != 0,
+            //
+            //     u_o = u_i - 2*h*(a/b)*u_b
+            //
+            // and
+            //
+            //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
+            //
+            // If b == 0, then u_b = 0, which we enforce directly.
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const double& a = (*acoef_data)(i, 0);
+                const double& b = (*bcoef_data)(i, 0);
+                if (b == 0.0)
+                {
+                    for (int k = 0; k < stencil_sz; ++k)
+                    {
+                        matrix_coefficients(i_s, k) = 0.0;
+                    }
+                    matrix_coefficients(i_s, stencil_map[ORIGIN]) = 1.0;
+                }
+                else
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+#endif
+                    if (is_lower)
+                    {
+                        const Index<NDIM> shift_outer = get_shift(bdry_normal_axis, -1);
+                        const Index<NDIM> shift_inner = get_shift(bdry_normal_axis, 1);
+                        matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
+                        matrix_coefficients(i_s, stencil_map[shift_inner]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]);
+                        matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
+                    }
+                    else
+                    {
+                        const Index<NDIM> shift_outer = get_shift(bdry_normal_axis, 1);
+                        const Index<NDIM> shift_inner = get_shift(bdry_normal_axis, -1);
+                        matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
+                        matrix_coefficients(i_s, stencil_map[shift_inner]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]);
+                        matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
+
+void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                                               Pointer<Patch<NDIM> > patch,
                                               const PoissonSpecifications& poisson_spec,
@@ -645,7 +1243,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(1, bc_coef);
     adjustRHSAtPhysicalBoundary(rhs_data, patch, poisson_spec, bc_coefs, data_time, homogeneous_bc);
     return;
-}
+} // adjustRHSAtPhysicalBoundary
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
@@ -744,7 +1342,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
         }
     }
     return;
-}
+} // adjustRHSAtPhysicalBoundary
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
@@ -963,7 +1561,388 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
         }
     }
     return;
-}
+} // adjustRHSAtPhysicalBoundary
+
+void
+PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
+                                                           Pointer<Patch<NDIM> > patch,
+                                                           const PoissonSpecifications& poisson_spec,
+                                                           double alpha,
+                                                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                           double data_time,
+                                                           bool homogeneous_bc,
+                                                           VCInterpType mu_interp_type)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+#endif
+
+#if (NDIM == 2)
+    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#elif (NDIM == 3)
+    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#endif
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!mu_data.isNull());
+#endif
+
+#if (NDIM == 2)
+    const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+#endif
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const double* const patch_x_lower = pgeom->getXLower();
+    const double* const patch_x_upper = pgeom->getXUpper();
+    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        touches_regular_bdry[axis].resizeArray(2);
+        touches_periodic_bdry[axis].resizeArray(2);
+        for (int upperlower = 0; upperlower < 2; ++upperlower)
+        {
+            touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
+            touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
+        }
+    }
+
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // along boundaries which ARE NOT aligned with the data axis.
+    //
+    // NOTE: It important to set these values first to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis == axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
+
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+            // Temporarily reset the patch geometry object associated with the
+            // patch so that boundary conditions are set at the correct spatial
+            // locations.
+            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                shifted_patch_x_lower[d] = patch_x_lower[d];
+                shifted_patch_x_upper[d] = patch_x_upper[d];
+            }
+            shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
+            shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
+            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                     touches_regular_bdry,
+                                                                     touches_periodic_bdry,
+                                                                     dx,
+                                                                     shifted_patch_x_lower.data(),
+                                                                     shifted_patch_x_upper.data()));
+
+            // Set the boundary condition coefficients.
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+            // Restore the original patch geometry object.
+            patch->setPatchGeometry(pgeom);
+
+            // Here, we follow the same linear extrapolation approach
+            // implemented in class CartesianRobinBcHelper.  Namely, with u_i
+            // denoting the interior cell, u_o denoting the ghost cell, and u_b
+            // and u_n denoting the value and normal derivative of u at the
+            // boundary,
+            //
+            //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+            //
+            // Now, if
+            //
+            //     a*u_b + b*u_n = g
+            //
+            // then, with u_i = 0,
+            //
+            //     u_o = 2*h*g/(2*b + a*h)
+            //
+            // so that the boundary flux is
+            //
+            //     (u_i - u_o)/h = -2*g/(2*b + h*a)
+            //
+            // In this loop, we modify the rhs entries appropriately.
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const double& a = (*acoef_data)(i, 0);
+                const double& b = (*bcoef_data)(i, 0);
+                const double& g = (*gcoef_data)(i, 0);
+                const double& h = dx[bdry_normal_axis];
+                Index<NDIM> i_intr = i;
+                if (is_lower)
+                {
+                    i_intr(bdry_normal_axis) += 0;
+                }
+                else
+                {
+                    i_intr(bdry_normal_axis) -= 1;
+                }
+                const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+
+                const Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
+#if (NDIM == 2)
+                const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
+                const double mu_lower = mu_array_data(i_intr, 0);
+#elif (NDIM == 3)
+                const int perp = 2*(bdry_normal_axis + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
+                const double mu_upper = get_mu_edge(i_intr + shift_bdry_normal, perp, mu_data);
+                const double mu_lower = get_mu_edge(i_intr, perp, mu_data);
+#endif
+
+                const double D = is_lower ? mu_lower : mu_upper;
+                rhs_data(i_s) += alpha * (D / h) * (-2.0 * g) / (2.0 * b + h * a);
+            }
+        }
+    }
+
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // for other components of velocity along boundaries which ARE aligned with
+    // the data axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
+            {
+                if (comp == axis) continue;
+
+                const Box<NDIM> bc_coef_box = compute_tangential_extension(side_box, comp);
+
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+                // Temporarily reset the patch geometry object associated with the
+                // patch so that boundary conditions are set at the correct spatial
+                // locations.
+                boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    shifted_patch_x_lower[d] = patch_x_lower[d];
+                    shifted_patch_x_upper[d] = patch_x_upper[d];
+                }
+                shifted_patch_x_lower[comp] -= 0.5 * dx[comp];
+                shifted_patch_x_upper[comp] -= 0.5 * dx[comp];
+                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower.data(),
+                                                                         shifted_patch_x_upper.data()));
+
+                // Set the boundary condition coefficients.
+                ExtendedRobinBcCoefStrategy* extended_bc_coef =
+                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[comp]);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                }
+                bc_coefs[comp]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+                // Restore the original patch geometry object.
+                patch->setPatchGeometry(pgeom);
+
+                // Modify the matrix coefficients to account for homogeneous
+                // boundary conditions.
+                //
+                // Here, we follow the same linear extrapolation approach
+                // implemented in class CartesianRobinBcHelper.  Namely, with u_i
+                // denoting the interior cell, u_o denoting the ghost cell, and u_b
+                // and u_n denoting the value and normal derivative of u at the
+                // boundary,
+                //
+                //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+                //
+                // Now, if
+                //
+                //     a*u_b + b*u_n = g
+                //
+                // then, with u_i = 0,
+                //
+                //     u_o = 2*h*g/(2*b + a*h)
+                for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
+                {
+                    const Index<NDIM>& i = bc();
+                    const Index<NDIM>& i_upper = i + get_shift(comp, 1);
+                    const double& a_lower = (*acoef_data)(i, 0);
+                    const double& b_lower = (*bcoef_data)(i, 0);
+                    const double& g_lower = (*gcoef_data)(i, 0);
+                    const double& a_upper = (*acoef_data)(i_upper, 0);
+                    const double& b_upper = (*bcoef_data)(i_upper, 0);
+                    const double& g_upper = (*gcoef_data)(i_upper, 0);
+                    const double& h = dx[bdry_normal_axis];
+                    const double& hd = dx[comp];
+
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+
+                    const Index<NDIM> shift_d = get_shift(comp, 1);
+#if (NDIM == 2)
+                    const double mu_upper = mu_array_data(i + shift_d, 0);
+                    const double mu_lower = mu_array_data(i, 0);
+#elif (NDIM == 3)
+                    const int perp = 2*(comp + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
+                    const double mu_upper = get_mu_edge(i + shift_d, perp, mu_data);
+                    const double mu_lower = get_mu_edge(i, perp, mu_data);
+#endif
+                    if (is_lower)
+                    {
+                        rhs_data(i_s) -= alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
+                        rhs_data(i_s) += alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                    }
+                    else
+                    {
+                        rhs_data(i_s) += alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
+                        rhs_data(i_s) -= alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                    }
+                }
+            }
+        }
+    }
+
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // along boundaries which ARE aligned with the data axis.
+    //
+    // NOTE: It important to set these values last to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+            // Set the boundary condition coefficients.
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+            // For the non-symmetric boundary treatment,
+            //
+            //     u_n = (u_o - u_i)/(2*h)
+            //
+            // Now, if
+            //
+            //     a*u_b + b*u_n = g
+            //
+            // then, with u_b = u_i = 0,
+            //
+            //     u_o = 2*h*g/b
+            //
+            // so that the boundary flux is
+            //
+            //     (u_b - u_o)/h = -2*g/b
+            //
+            // In this loop, we modify the rhs entries appropriately.
+            //
+            // NOTE: At Dirichlet boundaries, boundary values are provided by
+            // the right-hand side vector.
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const double& b = (*bcoef_data)(i, 0);
+                const double& g = (*gcoef_data)(i, 0);
+                const double& h = dx[bdry_normal_axis];
+                const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+
+                const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
+                double mu_upper, mu_lower;
+                if (mu_interp_type == VC_AVERAGE_INTERP)
+                {
+                    mu_upper = compute_mu_avg(i, *mu_data);
+                    mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                }
+                else if (mu_interp_type == VC_HARMONIC_INTERP)
+                {
+                    mu_upper = compute_mu_harmonic_avg(i, *mu_data);
+                    mu_lower = compute_mu_harmonic_avg(i + shift_axis_minus, *mu_data);
+                }
+                else
+                {
+                    TBOX_ERROR("this statement should not be reached");
+                }
+                const double D = is_lower ? mu_lower : mu_upper;
+
+                if (b != 0.0)
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+#endif
+                    rhs_data(i_s_bdry) += (2.0 * alpha) * (D / h) * (-2.0 * g) / b;
+                }
+            }
+        }
+    }
+    return;
+} // adjustVCSCViscousOpRHSAtPhysicalBoundary
 
 void
 PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data,
@@ -1082,6 +2061,210 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data
     }
     return;
 } // adjustRHSAtCoarseFineBoundary
+
+void
+PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
+                                                             const SideData<NDIM, double>& sol_data,
+                                                             Pointer<Patch<NDIM> > patch,
+                                                             const PoissonSpecifications& poisson_spec,
+                                                             double alpha,
+                                                             const Array<BoundaryBox<NDIM> >& type1_cf_bdry,
+                                                             VCInterpType mu_interp_type)
+{
+#if (NDIM == 2)
+    Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#elif (NDIM == 3)
+    Pointer<EdgeData<NDIM, double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+#endif
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!mu_data.isNull());
+#endif
+
+#if (NDIM == 2)
+    const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+#endif
+
+    // Modify the rhs entries to account for coarse-fine interface boundary conditions.
+    const int n_cf_bdry_boxes = type1_cf_bdry.size();
+    const IntVector<NDIM> ghost_width_to_fill(1);
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    // Modify the rhs entries to account for inhomogeneous Dirichelt boundary
+    // conditions along boundaries which ARE NOT aligned with the data axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_cf_bdry_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis == axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
+
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const double& h = dx[bdry_normal_axis];
+                Index<NDIM> i_intr = i, i_bdry = i;
+                if (is_lower)
+                {
+                    i_intr(bdry_normal_axis) += 0;
+                    i_bdry(bdry_normal_axis) -= 1;
+                }
+                else
+                {
+                    i_intr(bdry_normal_axis) -= 1;
+                    i_bdry(bdry_normal_axis) += 0;
+                }
+                const SideIndex<NDIM> i_s_intr(i_intr, axis, SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> i_s_bdry(i_bdry, axis, SideIndex<NDIM>::Lower);
+
+                const Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
+#if (NDIM == 2)
+                const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
+                const double mu_lower = mu_array_data(i_intr, 0);
+#elif (NDIM == 3)
+                const int perp = 2*(bdry_normal_axis + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
+                const double mu_upper = get_mu_edge(i_intr + shift_bdry_normal, perp, mu_data);
+                const double mu_lower = get_mu_edge(i_intr, perp, mu_data);
+#endif
+
+                const double D = is_lower ? mu_lower : mu_upper;
+                rhs_data(i_s_intr) -= alpha * (D / h) * sol_data(i_s_bdry) / h;
+            }
+        }
+    }
+
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // for other components of velocity along boundaries which ARE aligned with
+    // the data axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_cf_bdry_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            for (unsigned int comp = 0; comp < NDIM; ++comp)
+            {
+                if (comp == axis) continue;
+
+                for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
+                {
+                    const Index<NDIM>& i = bc();
+                    const double& h = dx[bdry_normal_axis];
+                    const double& hd = dx[comp];
+
+                    const Index<NDIM> shift_d = get_shift(comp, 1);
+#if (NDIM == 2)
+                    const double mu_upper = mu_array_data(i + shift_d, 0);
+                    const double mu_lower = mu_array_data(i, 0);
+#elif (NDIM == 3)
+                    const int perp = 2*(comp + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2} 
+                    const double mu_upper = get_mu_edge(i + shift_d, perp, mu_data);
+                    const double mu_lower = get_mu_edge(i, perp, mu_data);
+#endif
+
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    if (is_lower)
+                    {
+                        const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                        const SideIndex<NDIM> sw(i + shift_axis_minus, comp, SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> nw(i + shift_axis_minus, comp, SideIndex<NDIM>::Upper);
+
+                        rhs_data(i_s) -= alpha * (mu_lower / (h * hd)) * sol_data(sw);
+                        rhs_data(i_s) += alpha * (mu_upper / (h * hd)) * sol_data(nw);
+                    }
+                    else
+                    {
+                        const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                        const SideIndex<NDIM> se(i, comp, SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> ne(i, comp, SideIndex<NDIM>::Upper);
+
+                        rhs_data(i_s) += alpha * (mu_lower / (h * hd)) * sol_data(se);
+                        rhs_data(i_s) -= alpha * (mu_upper / (h * hd)) * sol_data(ne);
+                    }
+                }
+            }
+        }
+    }
+
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // along boundaries which ARE aligned with the data axis.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (int n = 0; n < n_cf_bdry_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+
+            if (bdry_normal_axis != axis) continue;
+
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const Index<NDIM>& i = bc();
+                const double& h = dx[bdry_normal_axis];
+
+                const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
+                const Index<NDIM> shift_axis_plus = get_shift(bdry_normal_axis, 1);
+
+                const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> i_s_bdry(
+                    i + (is_lower ? shift_axis_minus : shift_axis_plus), bdry_normal_axis, SideIndex<NDIM>::Lower);
+
+                double mu_upper, mu_lower;
+                if (mu_interp_type == VC_AVERAGE_INTERP)
+                {
+                    mu_upper = compute_mu_avg(i, *mu_data);
+                    mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                }
+                else if (mu_interp_type == VC_HARMONIC_INTERP)
+                {
+                    mu_upper = compute_mu_harmonic_avg(i, *mu_data);
+                    mu_lower = compute_mu_harmonic_avg(i + shift_axis_minus, *mu_data);
+                }
+                else
+                {
+                    TBOX_ERROR("this statement should not be reached");
+                }
+                const double D = is_lower ? mu_lower : mu_upper;
+
+                rhs_data(i_s) -= (2.0 * alpha) * (D / h) * sol_data(i_s_bdry) / h;
+            }
+        }
+    }
+    return;
+} // adjustVCSCViscousOpRHSAtCoarseFineBoundary
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

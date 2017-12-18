@@ -169,6 +169,17 @@ protected:
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
+    /*!
+     * \name PETSc objects.
+     */
+    //\{
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    std::vector<int> d_num_dofs_per_proc;
+    int d_dof_index_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
+    //\}
+
 private:
     /*!
      * \brief Default constructor.
@@ -196,17 +207,6 @@ private:
      * \return A reference to this object.
      */
     SCPoissonPETScLevelSolver& operator=(const SCPoissonPETScLevelSolver& that);
-
-    /*!
-     * \name PETSc objects.
-     */
-    //\{
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    std::vector<int> d_num_dofs_per_proc;
-    int d_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
-    //\}
 };
 } // namespace IBTK
 

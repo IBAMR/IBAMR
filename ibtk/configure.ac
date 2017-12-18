@@ -95,6 +95,7 @@ AC_CONFIG_FILES([
   examples/SCLaplace/Makefile
   examples/SCPoisson/Makefile
   examples/VCLaplace/Makefile
+  examples/VCViscousSolver/Makefile
   lib/Makefile
   scripts/Makefile
   src/Makefile

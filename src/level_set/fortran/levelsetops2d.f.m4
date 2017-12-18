@@ -429,7 +429,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out third order relaxation scheme using Gauss Seidel updates
-c     NOTE: this scheme between third and fourth s
+c     NOTE: this scheme is between between third and fourth
 c     order near the interface and second order everywhere else
 c
 c     Uses second order WENO for spatial discretization with a subcell
@@ -551,11 +551,13 @@ c
       REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
       REAL    Dxx0,Dyy0
       REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    mach_eps
 
       hx = dx(0)
       hy = dx(1)
       cfl = 0.45d0
       eps = 1.d-10
+      mach_eps = 1.d-16
 
       if (V(i0,i1) .eq. zero) then
          sgn = zero
@@ -586,6 +588,9 @@ c     Compute ENO differences with subcell fix
         else
           hxp = hx*V(i0,i1)/diff
         endif
+
+c       Ensure nonzero value 
+        hxp = sign(one,hxp)*dmax1(abs(hxp), mach_eps)
         Dxp = (zero-U(i0,i1))/hxp - hxp/two*minmod(Dxx,Dxxp)
       else
         Dxp = (U(i0+1,i1)-U(i0,i1))/hx - hx/two*minmod(Dxx,Dxxp)
@@ -602,6 +607,9 @@ c     Compute ENO differences with subcell fix
         else
           hxm = hx*V(i0,i1)/diff
         endif
+
+c       Ensure nonzero value 
+        hxm = sign(one,hxm)*dmax1(abs(hxm), mach_eps)
         Dxm = (U(i0,i1)-zero)/hxm + hxm/two*minmod(Dxx,Dxxm)
       else
         Dxm = (U(i0,i1)-U(i0-1,i1))/hx + hx/two*minmod(Dxx,Dxxm)
@@ -618,6 +626,9 @@ c     Compute ENO differences with subcell fix
         else
           hyp = hy*V(i0,i1)/diff
         endif
+
+c       Ensure nonzero value 
+        hyp = sign(one,hyp)*dmax1(abs(hyp), mach_eps)
         Dyp = (zero-U(i0,i1))/hyp - hyp/two*minmod(Dyy,Dyyp)
       else
         Dyp = (U(i0,i1+1)-U(i0,i1))/hy - hy/two*minmod(Dyy,Dyyp)
@@ -634,6 +645,9 @@ c     Compute ENO differences with subcell fix
         else
           hym = hy*V(i0,i1)/diff
         endif
+
+c       Ensure nonzero value 
+        hym = sign(one,hym)*dmax1(abs(hym), mach_eps)
         Dym = (U(i0,i1)-zero)/hym + hym/two*minmod(Dyy,Dyym)
       else
         Dym = (U(i0,i1)-U(i0,i1-1))/hy + hy/two*minmod(Dyy,Dyym)

@@ -338,6 +338,66 @@ public:
                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
+     * \brief Computes the cell-centered vector field dst from the node-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the cell-centered vector field dst from the edge-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the node-centered vector field dst from the cell-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                bool dst_ghost_interp) const;
+
+    /*!
+     * \brief Computes the edge-centered vector field dst from the cell-centered
+     * vector field src by spatial averaging.
+     */
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                bool dst_ghost_interp) const;
+
+    /*!
+     * \brief Computes the side-centered vector field dst from the cell-centered
+     * vector field src by spatial harmonic averaging.
+     */
+    void harmonic_interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes the node-centered vector field dst from the cell-centered
+     * vector field src by spatial harmonic averaging.
+     */
+    void harmonic_interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                         bool dst_ghost_interp) const;
+
+    /*!
+     * \brief Computes the edge-centered vector field dst from the cell-centered
+     * vector field src by spatial harmonic averaging.
+     */
+    void harmonic_interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                         bool dst_ghost_interp) const;
+
+    /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
@@ -404,17 +464,37 @@ public:
                  int n = 0) const;
 
     /*!
-     * \brief Computes dst_l = alpha div coef ((grad src1_m) + (grad src1_m)^T)
-     * + beta src1_m + gamma src2_n.
+     * \brief Computes dst_l = alpha div coef1 ((grad src1_m) + (grad src1_m)^T)
+     * + beta coef2 src1_m + gamma src2_n.
      */
     void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
                     double alpha,
                     double beta,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > coef,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > coef1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > coef2,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
                     double gamma,
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    bool use_harmonic_interp,
+                    int l = 0,
+                    int m = 0,
+                    int n = 0) const;
+
+    /*!
+     * \brief Computes dst_l = alpha div coef1 ((grad src1_m) + (grad src1_m)^T)
+     * + beta coef2 src1_m + gamma src2_n.
+     */
+    void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+                    double alpha,
+                    double beta,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > coef1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > coef2,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                    double gamma,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    bool use_harmonic_interp,
                     int l = 0,
                     int m = 0,
                     int n = 0) const;

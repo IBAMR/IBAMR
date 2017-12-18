@@ -1,7 +1,7 @@
 // Filename: AdvDiffHierarchyIntegrator.cpp
 // Created on 21 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -665,19 +665,18 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
+        std::ostringstream solver_prefix, precond_prefix;
+        solver_prefix << "adv_diff_" << l << "_";
+        precond_prefix << "adv_diff_pc_" << l << "_";
         d_helmholtz_solvers[l] =
             CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
                                                                  d_object_name + "::helmholtz_solver::" + name,
                                                                  d_helmholtz_solver_db,
-                                                                 "adv_diff_",
+                                                                 solver_prefix.str(),
                                                                  d_helmholtz_precond_type,
                                                                  d_object_name + "::helmholtz_precond::" + name,
                                                                  d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_",
-                                                                 d_helmholtz_sub_precond_type,
-                                                                 d_object_name + "::helmholtz_sub_precond::" + name,
-                                                                 d_helmholtz_sub_precond_db,
-                                                                 "adv_diff_sub_pc_");
+                                                                 precond_prefix.str());
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -837,6 +836,144 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     return;
 } // initializeHierarchyIntegrator
 
+void
+AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles)
+{
+    HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
+    const bool initial_time = MathUtilities<double>::equalEps(current_time, d_start_time);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // First reinitialize level sets (if needed).
+    for (std::map<Pointer<CellVariable<NDIM, double> >, Pointer<LSInitStrategy> >::const_iterator cit =
+             d_ls_reinit_map.begin();
+         cit != d_ls_reinit_map.end();
+         ++cit)
+    {
+        Pointer<CellVariable<NDIM, double> > ls_var = cit->first;
+        Pointer<LSInitStrategy> ls_reinitializer = cit->second;
+        const int ls_current_idx = var_db->mapVariableAndContextToIndex(ls_var, getCurrentContext());
+        ls_reinitializer->initializeLSData(
+            ls_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time);
+    }
+
+    // Reset fluid density (if needed).
+    if (d_rho_fluid_var)
+    {
+        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](rho_current_idx,
+                                d_hier_math_ops,
+                                d_integrator_step,
+                                current_time,
+                                initial_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+    }
+
+    // Reset fluid viscosity (if needed).
+    if (d_mu_fluid_var)
+    {
+        const int mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](
+                mu_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time, d_reset_mu_fcns_ctx[k]);
+        }
+    }
+
+    return;
+} // preprocessIntegrateHierarchy
+
+void
+AdvDiffHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_reset_rho_fcns.push_back(callback);
+    d_reset_rho_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetFluidDensityFcn
+
+void
+AdvDiffHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_reset_mu_fcns.push_back(callback);
+    d_reset_mu_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetFluidViscosityFcn
+
+void
+AdvDiffHierarchyIntegrator::registerTransportedFluidDensity(Pointer<CellVariable<NDIM, double> > rho_var)
+{
+    registerTransportedQuantity(rho_var);
+    d_rho_fluid_var = rho_var;
+    return;
+} // registerTransportedFluidDensity
+
+void
+AdvDiffHierarchyIntegrator::registerTransportedFluidViscosity(Pointer<CellVariable<NDIM, double> > mu_var)
+{
+    registerTransportedQuantity(mu_var);
+    d_mu_fluid_var = mu_var;
+} // registerTransportedFluidViscosity
+
+void
+AdvDiffHierarchyIntegrator::registerTransportedLevelSet(Pointer<CellVariable<NDIM, double> > Q_var)
+{
+    registerTransportedQuantity(Q_var);
+    const std::string var_name = Q_var->getName();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!var_name.empty());
+#endif
+    d_ls_var[var_name] = Q_var;
+    return;
+} // registerTransportedLevelSet
+
+void
+AdvDiffHierarchyIntegrator::registerLevelSetReinitializationStrategy(Pointer<CellVariable<NDIM, double> > Q_var,
+                                                                     Pointer<LSInitStrategy> reinitializer)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    d_ls_reinit_map[Q_var] = reinitializer;
+    return;
+} // registerLevelSetReinitializationStrategy
+
+Pointer<CellVariable<NDIM, double> >
+AdvDiffHierarchyIntegrator::getFluidDensityVariable()
+{
+    return d_rho_fluid_var;
+} // getFluidDensityVariable
+
+Pointer<CellVariable<NDIM, double> >
+AdvDiffHierarchyIntegrator::getFluidViscosityVariable()
+{
+    return d_mu_fluid_var;
+} // getFluidViscosityVariable
+
+Pointer<CellVariable<NDIM, double> >
+AdvDiffHierarchyIntegrator::getLevelSetVariable(const std::string& var_name)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_ls_var[var_name].isNull());
+#endif
+    return d_ls_var[var_name];
+} // getLevelSetVariable
+
+Pointer<LSInitStrategy>
+AdvDiffHierarchyIntegrator::getLevelSetReinitializationStrategy(const std::string& var_name)
+{
+    return getLevelSetReinitializationStrategy(getLevelSetVariable(var_name));
+
+} // getLevelSetReinitializationStrategy
+
+Pointer<LSInitStrategy>
+AdvDiffHierarchyIntegrator::getLevelSetReinitializationStrategy(Pointer<CellVariable<NDIM, double> > Q_var)
+{
+    return d_ls_reinit_map[Q_var];
+} // getLevelSetReinitializationStrategy
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object_name,
@@ -868,6 +1005,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object
       d_Q_damping_coef(),
       d_Q_init(),
       d_Q_bc_coef(),
+      d_rho_fluid_var(NULL),
+      d_mu_fluid_var(NULL),
       d_hier_cc_data_ops(NULL),
       d_hier_sc_data_ops(NULL),
       d_sol_vecs(),

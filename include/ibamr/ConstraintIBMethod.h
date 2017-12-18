@@ -179,6 +179,14 @@ public:
         return d_l_data_U_correction;
     }
 
+    /*!
+     * \brief Get the current center of mass for all Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getCurrentStructureCOM()
+    {
+        return d_center_of_mass_current;
+    }
+
 private:
     /*!
      * \brief Default constructor.
@@ -261,6 +269,17 @@ private:
      * \brief Copy vector.
      */
     void copyFluidVariable(int copy_from_idx, int copy_to);
+
+    /*!
+     * \brief Copy density patch data.
+     */
+    void copyDensityVariable(int copy_from_idx, int copy_to);
+
+    /*!
+     * \brief Compute and store the fluid solve momentum rho_ins * u_fluidSolve in cases where momentum
+     * updating is used
+     */
+    void computeFluidSolveMomentum();
 
     /*!
      * \brief Interpolate fluid solve velocity from Eulerian grid onto the Lagrangian mesh.
@@ -405,9 +424,25 @@ private:
     std::vector<std::vector<double> > d_tagged_pt_position;
 
     /*!
-     * Density and viscosity of the fluid.
+     * Density of the structures.
      */
-    double d_rho_fluid, d_mu_fluid;
+    std::vector<double> d_rho_solid;
+
+    /*!
+     * Density of the fluid in constant coefficient case.
+     */
+    double d_rho_fluid;
+
+    /*!
+     * Type of correction to carry out on the fluid velocity.
+     */
+    std::string d_fluid_velocity_correction_type;
+    bool d_use_momentum_correction;
+
+    /*!
+     * Whether or not the density from the integrator is constant
+     */
+    bool d_rho_is_const;
 
     /*!
      * Iteration_counter for printing stuff.
@@ -449,7 +484,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_scratch_context;
-    int d_u_scratch_idx, d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
+    int d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
+
+    /*!
+     * Variables associated with the spatially varying density field, which is maintained by an integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
+    int d_rho_ins_idx, d_rho_scratch_idx;
 
     /*!
      * The following variables are needed to solve cell centered poison equation for \f$ \phi \f$ ,which is

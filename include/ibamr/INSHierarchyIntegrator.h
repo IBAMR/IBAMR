@@ -254,7 +254,7 @@ public:
     void registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
 
     /*!
-     * Supply an IBTK:CartGridFunction object to specify the value the mass
+     * Supply an IBTK:CartGridFunction object to specify the value of the mass
      * density variable.
      */
     void setMassDensityFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
@@ -264,6 +264,23 @@ public:
      * the mass density variable.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> getMassDensityFunction() const;
+
+    /*!
+     * Register a variable viscosity variable with the hierarchy integrator.
+     */
+    void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var);
+
+    /*!
+     * Supply an IBTK:CartGridFunction object to specify the value of the
+     * viscosity variable.
+     */
+    void setViscosityFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_fcn);
+
+    /*!
+     * Get the IBTK::CartGridFunction object being used to specify the value of
+     * the viscosity variable.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> getViscosityFunction() const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver.
@@ -490,26 +507,26 @@ protected:
      * Boolean values indicates whether to output various quantities for
      * visualization.
      */
-    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale, d_EE_scale;
-    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U, d_output_EE;
+    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale, d_EE_scale, d_rho_scale, d_mu_scale;
+    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U, d_output_EE, d_output_rho, d_output_mu;
 
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var, d_mu_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
-     * fluid source/sink distributions.
+     * fluid source/sink distributions, density, or viscosity.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM> *d_P_bc_coef, *d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn, d_mu_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
-        d_Q_bdry_bc_fill_op, d_no_fill_op;
+        d_Q_bdry_bc_fill_op, d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op, d_no_fill_op;
 
     /*!
      * Hierarchy operators and solvers and related configuration data.
