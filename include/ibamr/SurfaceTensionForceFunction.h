@@ -77,7 +77,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class SurfaceTensionForceFunction provides surface tension forcing
- * using the continous surface tension force model of Brackbill, Kothe and Zemach.
+ * using the continuum surface tension force model of Brackbill, Kothe, and Zemach.
  *
  * Reference
  * Brackbill et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/002199919290240Y">
@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Set the indicator function's patch data index that
      * will be used to compute the surface tension. The indicator function
-     * can be either be a level set function, a volume fraction function or
+     * can be either a level set function, a volume fraction function or a
      * phase field function.
      */
     virtual void setIndicatorPatchDataIndex(int phi_idx);

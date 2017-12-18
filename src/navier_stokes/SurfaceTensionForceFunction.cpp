@@ -90,12 +90,13 @@ void MOLLIFY_IB_4_FC(double* V,
                      const int& ilower0,
                      const int& iupper0,
                      const int& ilower1,
-                     const int& iupper1,
+                     const int& iupper1
 #if (NDIM == 3)
+                     ,
                      const int& ilower2,
-                     const int& iupper2,
+                     const int& iupper2
 #endif
-                     const double* dx);
+                     );
 
 void SC_NORMAL_FC(double* N00,
                   double* N01,
@@ -106,9 +107,6 @@ void SC_NORMAL_FC(double* N00,
                   double* N11,
 #if (NDIM == 3)
                   double* N12,
-#endif
-
-#if (NDIM == 3)
                   double* N20,
                   double* N21,
                   double* N22,
@@ -137,9 +135,6 @@ void CC_CURVATURE_FC(double* K,
                      const double* N11,
 #if (NDIM == 3)
                      const double* N12,
-#endif
-
-#if (NDIM == 3)
                      const double* N20,
                      const double* N21,
                      const double* N22,
@@ -163,6 +158,12 @@ void SC_SURFACE_TENSION_FORCE_FC(double* F0,
                                  const int& F_gcw,
                                  const double* K,
                                  const int& K_gcw,
+                                 const double* N00,
+                                 const double* N11,
+#if (NDIM == 3)
+                                 const double* N22,
+#endif
+                                 const int& N_gcw,
                                  const int& ilower0,
                                  const int& iupper0,
                                  const int& ilower1,
@@ -317,8 +318,6 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
                 const int U_gcw = (scratch_phi_data->getGhostCellWidth()).max();
 
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const double* const dx = pgeom->getDx();
 
                 if (d_kernel_fcn == "IB_4")
                 {
@@ -329,12 +328,13 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
                                     patch_box.lower(0),
                                     patch_box.upper(0),
                                     patch_box.lower(1),
-                                    patch_box.upper(1),
+                                    patch_box.upper(1)
 #if (NDIM == 3)
+                                        ,
                                     patch_box.lower(2),
-                                    patch_box.upper(2),
+                                    patch_box.upper(2)
 #endif
-                                    dx);
+                                        );
                 }
             }
         }
@@ -417,7 +417,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
 
     // First find normal in terms of gradient of phi.
     // n = grad(phi)
-    SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(1));
+    SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > U = patch->getPatchData(d_smooth_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
@@ -485,6 +485,12 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                                 F_data->getGhostCellWidth().max(),
                                 K.getPointer(),
                                 K.getGhostCellWidth().max(),
+                                N.getPointer(0, 0),
+                                N.getPointer(1, 1),
+#if (NDIM == 3)
+                                N.getPointer(2, 2),
+#endif
+                                N.getGhostCellWidth().max(),
                                 patch_box.lower(0),
                                 patch_box.upper(0),
                                 patch_box.lower(1),
