@@ -47,7 +47,7 @@
 
 namespace IBAMR
 {
-class INSHierarchyIntegrator;
+class AdvDiffHierarchyIntegrator;
 } // namespace IBAMR
 namespace SAMRAI
 {
@@ -79,6 +79,10 @@ namespace IBAMR
  * \brief Class SurfaceTensionForceFunction provides surface tension forcing
  * using the continuum surface tension force model of Brackbill, Kothe, and Zemach.
  *
+ * \note Presently, this class assumes that the indicator function is a cell centered
+ * variable that is maintained by the advection-diffusion integrator. The indicator variable
+ * can either be a level set function, a volume fraction function, or a phase field function.
+ *
  * Reference
  * Brackbill et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/002199919290240Y">
  * A continuum method for modeling surface tension</A>
@@ -91,21 +95,14 @@ public:
      */
     SurfaceTensionForceFunction(const std::string& object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                const INSHierarchyIntegrator* fluid_solver,
+                                const AdvDiffHierarchyIntegrator* adv_diff_solver,
+                                const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > indicator_var,
                                 SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
 
     /*!
      * \brief Destructor.
      */
     virtual ~SurfaceTensionForceFunction();
-
-    /*!
-     * \brief Set the indicator function's patch data index that
-     * will be used to compute the surface tension. The indicator function
-     * can be either a level set function, a volume fraction function or a
-     * phase field function.
-     */
-    virtual void setIndicatorPatchDataIndex(int phi_idx);
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the indicator function.
@@ -118,13 +115,11 @@ public:
     virtual void setSurfaceTensionCoef(double sigma);
 
     /*!
-     * \brief Get the indicator function's patch data index that
-     * is used to compute the surface tension.
+     * \brief Set the number of interface cells m over which the surface tension force will be applied.
+     * The surface tension will take effect in the band -m*h to m*h around the interface,
+     * where h = (dx*dy)^(1/2) in 2D and h = (dx*dy*dz)^(1/3) in 3D.
      */
-    int getIndicatorPatchDataIndex() const
-    {
-        return d_phi_idx;
-    } // getIndicatorPatchDataIndex
+    virtual void setNumberOfInterfaceCells(double m);
 
     /*!
      * \brief Get the smoother (kernel function) to mollify the indicator function.
@@ -141,6 +136,14 @@ public:
     {
         return d_sigma;
     } // getSurfaceTensionCoef
+
+    /*!
+     * \brief Get the number of interface cells over which the surface tension force will be applied.
+     */
+    double getNumberOfInterfaceCells() const
+    {
+        return d_num_interface_cells;
+    } // getNumberOfInterfaceCells
 
     /*!
      * \name Methods to set the data.
@@ -209,6 +212,12 @@ private:
     SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that);
 
     /*!
+     * Convert the indicator variable to a smoothed heaviside
+     */
+    void convertToHeaviside(int phi_scratch_idx,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
      * Set the data on the patch interior.
      */
     void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
@@ -236,11 +245,11 @@ private:
      */
     int getMinimumGhostWidth(const std::string& kernel_fcn);
 
-    int d_phi_idx;
+    const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_indicator_var;
     int d_smooth_phi_idx;
     std::string d_kernel_fcn;
-    double d_sigma;
-    const INSHierarchyIntegrator* const d_fluid_solver;
+    double d_sigma, d_num_interface_cells;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };
 } // namespace IBAMR

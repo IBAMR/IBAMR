@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE
+SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
@@ -18,6 +18,8 @@ examples:
 	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CIB              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd level_set        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd multiphase_flow  && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 if GTEST_ENABLED
 gtest:
@@ -30,6 +32,8 @@ gtest:
 	@(cd ConstraintIB     && make gtest) || exit 1;
 	@(cd CIB              && make gtest) || exit 1;
 	@(cd CIBFE            && make gtest) || exit 1;
+	@(cd level_set        && make gtest) || exit 1;
+	@(cd multiphase_flow  && make gtest) || exit 1;
 
 gtest-long:
 	@(cd IB               && make gtest-long) || exit 1;
@@ -41,6 +45,8 @@ gtest-long:
 	@(cd ConstraintIB     && make gtest-long) || exit 1;
 	@(cd CIB              && make gtest-long) || exit 1;
 	@(cd CIBFE            && make gtest-long) || exit 1;
+	@(cd level_set        && make gtest-long) || exit 1;
+	@(cd multiphase_flow  && make gtest-long) || exit 1;
 
 gtest-all:
 	@(cd IB               && make gtest-all) || exit 1;
@@ -52,6 +58,8 @@ gtest-all:
 	@(cd ConstraintIB     && make gtest-all) || exit 1;
 	@(cd CIB              && make gtest-all) || exit 1;
 	@(cd CIBFE            && make gtest-all) || exit 1;
+	@(cd level_set        && make gtest-all) || exit 1;
+	@(cd multiphase_flow  && make gtest-all) || exit 1;
 else
 gtest:
 	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

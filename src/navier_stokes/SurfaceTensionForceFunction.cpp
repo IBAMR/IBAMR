@@ -49,7 +49,7 @@
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/SurfaceTensionForceFunction.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
@@ -194,14 +194,18 @@ smooth_kernel(const double r)
 
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
                                                          const Pointer<Database> input_db,
-                                                         const INSHierarchyIntegrator* fluid_solver,
+                                                         const AdvDiffHierarchyIntegrator* adv_diff_solver,
+                                                         const Pointer<Variable<NDIM> > indicator_var,
                                                          Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
-    : CartGridFunction(object_name), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
+    : CartGridFunction(object_name),
+      d_adv_diff_solver(adv_diff_solver),
+      d_indicator_var(indicator_var),
+      d_grid_geometry(grid_geometry)
 {
     // Set some default values
-    d_phi_idx = -1;
     d_kernel_fcn = "none";
     d_sigma = 1.0;
+    d_num_interface_cells = 2.0;
 
     if (input_db)
     {
@@ -212,6 +216,8 @@ SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& obje
 
         d_sigma = input_db->getDoubleWithDefault("sigma", d_sigma);
         d_sigma = input_db->getDoubleWithDefault("surface_tension_coef", d_sigma);
+
+        d_num_interface_cells = input_db->getDoubleWithDefault("num_interface_cells", d_num_interface_cells);
     }
     return;
 } // SurfaceTensionForceFunction
@@ -221,13 +227,6 @@ SurfaceTensionForceFunction::~SurfaceTensionForceFunction()
     // intentionally blank
     return;
 } // ~SurfaceTensionForceFunction
-
-void
-SurfaceTensionForceFunction::setIndicatorPatchDataIndex(int phi_idx)
-{
-    d_phi_idx = phi_idx;
-    return;
-} // setIndicatorPatchDataIndex
 
 void
 SurfaceTensionForceFunction::setSmoother(const std::string& kernel_fcn)
@@ -242,6 +241,13 @@ SurfaceTensionForceFunction::setSurfaceTensionCoef(double sigma)
     d_sigma = sigma;
     return;
 } // setSurfaceTensionCoef
+
+void
+SurfaceTensionForceFunction::setNumberOfInterfaceCells(double m)
+{
+    d_num_interface_cells = m;
+    return;
+} // setNumberOfInterfaceCells
 
 bool
 SurfaceTensionForceFunction::isTimeDependent() const
@@ -262,13 +268,15 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
-    // Allocate data for smooth indicator function.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > phi_var;
-    var_db->mapIndexToVariable(d_phi_idx, phi_var);
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = phi_var;
+    // Get the newest patch data index for the indicator variable
+    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_indicator_var;
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!phi_var.isNull());
+    TBOX_ASSERT(!phi_cc_var.isNull());
+#endif
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int phi_adv_diff_idx = var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getNewContext());
+#if !defined(NDEBUG)
+    TBOX_ASSERT(phi_adv_diff_idx >= 0);
 #endif
 
     IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
@@ -287,11 +295,16 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Fill smooth phi with given phi.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.copyData(d_phi_idx, scratch_phi_idx, /*interior_only*/ true);
+    hier_cc_data_ops.copyData(scratch_phi_idx, phi_adv_diff_idx, /*interior_only*/ true);
 
+    // Convert the scratch indicator variable to a smoothed heaviside to ensure that the force is only applied near the
+    // interface
+    convertToHeaviside(scratch_phi_idx, hierarchy);
+
+    // Fill ghost cells
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent scratch_phi_transaction(
-        scratch_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, NULL);
+        scratch_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
     Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     fill_op->initializeOperatorState(scratch_phi_transaction, hierarchy, coarsest_ln, finest_ln);
     fill_op->fillData(data_time);
@@ -299,7 +312,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     // Mollify phi.
     if (d_kernel_fcn == "none")
     {
-        hier_cc_data_ops.copyData(scratch_phi_idx, d_smooth_phi_idx, /*interior_only*/ false);
+        hier_cc_data_ops.copyData(d_smooth_phi_idx, scratch_phi_idx, /*interior_only*/ false);
     }
     else
     {
@@ -313,7 +326,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
                 Pointer<CellData<NDIM, double> > smooth_phi_data = patch->getPatchData(d_smooth_phi_idx);
                 Pointer<CellData<NDIM, double> > scratch_phi_data = patch->getPatchData(scratch_phi_idx);
                 double* const V = smooth_phi_data->getPointer(0);
-                const double* const U = smooth_phi_data->getPointer(0);
+                const double* const U = scratch_phi_data->getPointer(0);
                 const int V_gcw = (smooth_phi_data->getGhostCellWidth()).max();
                 const int U_gcw = (scratch_phi_data->getGhostCellWidth()).max();
 
@@ -336,11 +349,15 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
                                         );
                 }
+                else
+                {
+                    TBOX_ERROR("this statement should not be reached");
+                }
             }
         }
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         InterpolationTransactionComponent smooth_phi_transaction(
-            d_smooth_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, NULL);
+            d_smooth_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
         fill_op->resetTransactionComponent(smooth_phi_transaction);
         fill_op->fillData(data_time);
     }
@@ -381,6 +398,8 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     if (f_cc_data) f_cc_data->fillAll(0.0);
     if (f_sc_data) f_sc_data->fillAll(0.0);
 
+    if (initial_time) return;
+
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
     if (f_sc_data) setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
     return;
@@ -389,6 +408,47 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+SurfaceTensionForceFunction::convertToHeaviside(int phi_scratch_idx, Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            double vol_cell = 1.0;
+            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
+
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+                const double phi = (*phi_data)(ci);
+                if (phi <= -eps)
+                {
+                    (*phi_data)(ci) = 0.0;
+                }
+                else if (phi >= eps)
+                {
+                    (*phi_data)(ci) = 1.0;
+                }
+                else
+                {
+                    (*phi_data)(ci) = 0.5 + 0.5 * phi / eps + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / eps);
+                }
+            }
+        }
+    }
+    return;
+} // convertToHeaviside
 
 void
 SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > /*F_data*/,
@@ -416,7 +476,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
-    // n = grad(phi)
+    // N= grad(phi)
     SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > U = patch->getPatchData(d_smooth_phi_idx);
 
@@ -447,7 +507,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                  dx);
 
     // Next find the cell centered curvature.
-    // K = -div (n/|n|)
+    // K = -div (N/|N|)
     CellData<NDIM, double> K(patch_box, /*depth*/ 1, /*gcw*/ IntVector<NDIM>(1));
     CC_CURVATURE_FC(K.getPointer(),
                     K.getGhostCellWidth().max(),

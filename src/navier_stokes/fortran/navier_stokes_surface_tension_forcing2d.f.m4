@@ -272,6 +272,7 @@ c           compute -d/dx term.
                 norm_grad_lower = 0.d0
             endif
 
+c           Compute -div
             K(i0,i1) = fac0*(N00(i0,i1)*norm_grad_lower - 
      &              N00(i0+1,i1)*norm_grad_upper)
             
@@ -291,8 +292,9 @@ c           compute -d/dy term.
                 norm_grad_lower = 1.d0/norm_grad_lower
             else
                 norm_grad_lower = 0.d0
-            endif      
-
+            endif    
+              
+c           Compute -div
             K(i0,i1) = K(i0,i1) + fac1*(N11(i0,i1)*norm_grad_lower -
      &              N11(i0,i1+1)*norm_grad_upper)          
 

@@ -651,8 +651,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `rho' not found in input.");
+            d_problem_coefs.setRho(0.0);
         }
 
         if (db->keyExists("mu"))
@@ -661,8 +660,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            TBOX_ERROR(d_object_name << ":  "
-                                     << "Key data `mu' not found in input.");
+            d_problem_coefs.setMu(0.0);
         }
 
         if (db->keyExists("lambda"))
