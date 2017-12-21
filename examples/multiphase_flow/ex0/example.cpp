@@ -251,7 +251,7 @@ run_example(int argc, char* argv[])
         }
 
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
-        if (!periodic_shift.min() > 0 && input_db->keyExists("PhiBcCoefs"))
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
                 "phi_bc_coef", app_initializer->getComponentDatabase("PhiBcCoefs"), grid_geometry);
