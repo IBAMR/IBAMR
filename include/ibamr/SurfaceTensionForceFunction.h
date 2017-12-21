@@ -214,8 +214,17 @@ private:
     /*!
      * Convert the indicator variable to a smoothed heaviside
      */
-    void convertToHeaviside(int phi_scratch_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void convertToHeaviside(int phi_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
+     * Mollify data.
+     */
+    void mollifyData(int phi_idx,
+                     int coarsest_ln,
+                     int finest_ln,
+                     double data_time,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
 
     /*!
      * Set the data on the patch interior.
@@ -247,7 +256,7 @@ private:
 
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_indicator_var;
-    int d_smooth_phi_idx;
+    int d_C_idx, d_phi_idx;
     std::string d_kernel_fcn;
     double d_sigma, d_num_interface_cells;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;

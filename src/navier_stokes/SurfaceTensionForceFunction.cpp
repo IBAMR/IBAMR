@@ -280,87 +280,43 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
-    d_smooth_phi_idx =
-        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::SMOOTH"), cell_ghosts);
-    const int scratch_phi_idx =
-        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+    d_C_idx = var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::C"), cell_ghosts);
+    d_phi_idx =
+        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        hierarchy->getPatchLevel(ln)->allocatePatchData(d_smooth_phi_idx, data_time);
-        hierarchy->getPatchLevel(ln)->allocatePatchData(scratch_phi_idx, data_time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(d_C_idx, data_time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(d_phi_idx, data_time);
     }
 
-    // Fill smooth phi with given phi.
+    // Copy level set into phi and C.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.copyData(scratch_phi_idx, phi_adv_diff_idx, /*interior_only*/ true);
+    hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_idx, /*interior_only*/ true);
+    hier_cc_data_ops.copyData(d_C_idx, phi_adv_diff_idx, /*interior_only*/ true);
 
-    // Convert the scratch indicator variable to a smoothed heaviside to ensure that the force is only applied near the
-    // interface
-    convertToHeaviside(scratch_phi_idx, hierarchy);
+    // Convert C to a smoothed heaviside to ensure that the force is only
+    // applied near the interface
+    convertToHeaviside(d_C_idx, hierarchy);
 
     // Fill ghost cells
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent scratch_phi_transaction(
-        scratch_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
-    Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
-    fill_op->initializeOperatorState(scratch_phi_transaction, hierarchy, coarsest_ln, finest_ln);
-    fill_op->fillData(data_time);
+    InterpolationTransactionComponent C_transaction(
+        d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
+    InterpolationTransactionComponent phi_transaction(
+        d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
+    Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
+    Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
+    C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
+    phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
 
-    // Mollify phi.
-    if (d_kernel_fcn == "none")
-    {
-        hier_cc_data_ops.copyData(d_smooth_phi_idx, scratch_phi_idx, /*interior_only*/ false);
-    }
-    else
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+    C_fill_op->fillData(data_time);
+    phi_fill_op->fillData(data_time);
 
-                Pointer<CellData<NDIM, double> > smooth_phi_data = patch->getPatchData(d_smooth_phi_idx);
-                Pointer<CellData<NDIM, double> > scratch_phi_data = patch->getPatchData(scratch_phi_idx);
-                double* const V = smooth_phi_data->getPointer(0);
-                const double* const U = scratch_phi_data->getPointer(0);
-                const int V_gcw = (smooth_phi_data->getGhostCellWidth()).max();
-                const int U_gcw = (scratch_phi_data->getGhostCellWidth()).max();
-
-                const Box<NDIM>& patch_box = patch->getBox();
-
-                if (d_kernel_fcn == "IB_4")
-                {
-                    MOLLIFY_IB_4_FC(V,
-                                    V_gcw,
-                                    U,
-                                    U_gcw,
-                                    patch_box.lower(0),
-                                    patch_box.upper(0),
-                                    patch_box.lower(1),
-                                    patch_box.upper(1)
-#if (NDIM == 3)
-                                        ,
-                                    patch_box.lower(2),
-                                    patch_box.upper(2)
-#endif
-                                        );
-                }
-                else
-                {
-                    TBOX_ERROR("this statement should not be reached");
-                }
-            }
-        }
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent smooth_phi_transaction(
-            d_smooth_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
-        fill_op->resetTransactionComponent(smooth_phi_transaction);
-        fill_op->fillData(data_time);
-    }
+    // Mollify C.
+    mollifyData(d_C_idx, coarsest_ln, finest_ln, data_time, hierarchy, C_fill_op);
 
     // Fill data on each patch level
     CartGridFunction::setDataOnPatchHierarchy(
@@ -369,11 +325,11 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     // Deallocate and remove scratch/smooth phi.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        hierarchy->getPatchLevel(ln)->deallocatePatchData(scratch_phi_idx);
-        hierarchy->getPatchLevel(ln)->deallocatePatchData(d_smooth_phi_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(d_phi_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(d_C_idx);
     }
-    var_db->removePatchDataIndex(scratch_phi_idx);
-    var_db->removePatchDataIndex(d_smooth_phi_idx);
+    var_db->removePatchDataIndex(d_phi_idx);
+    var_db->removePatchDataIndex(d_C_idx);
 
     return;
 } // setDataOnPatchHierarchy
@@ -410,7 +366,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SurfaceTensionForceFunction::convertToHeaviside(int phi_scratch_idx, Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+SurfaceTensionForceFunction::convertToHeaviside(int phi_idx, Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -427,7 +383,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_scratch_idx, Pointer<Pat
             double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
 
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -449,6 +405,63 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_scratch_idx, Pointer<Pat
     }
     return;
 } // convertToHeaviside
+
+void
+SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
+                                         int coarsest_ln,
+                                         int finest_ln,
+                                         double data_time,
+                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         Pointer<HierarchyGhostCellInterpolation> fill_op)
+{
+    if (d_kernel_fcn == "none") return;
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<CellData<NDIM, double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
+            CellData<NDIM, double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
+
+            C_data.copy(*smooth_C_data);
+
+            double* const V = smooth_C_data->getPointer(0);
+            const double* const U = C_data.getPointer(0);
+            const int V_gcw = (smooth_C_data->getGhostCellWidth()).max();
+            const int U_gcw = (C_data.getGhostCellWidth()).max();
+
+            if (d_kernel_fcn == "IB_4")
+            {
+                MOLLIFY_IB_4_FC(V,
+                                V_gcw,
+                                U,
+                                U_gcw,
+                                patch_box.lower(0),
+                                patch_box.upper(0),
+                                patch_box.lower(1),
+                                patch_box.upper(1)
+#if (NDIM == 3)
+                                    ,
+                                patch_box.lower(2),
+                                patch_box.upper(2)
+#endif
+                                    );
+            }
+            else
+            {
+                TBOX_ERROR("this statement should not be reached");
+            }
+        }
+    }
+
+    if (fill_op) fill_op->fillData(data_time);
+
+    return;
+} // mollifyData
 
 void
 SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > /*F_data*/,
@@ -476,9 +489,9 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
-    // N= grad(phi)
+    // N = grad(phi)
     SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > U = patch->getPatchData(d_smooth_phi_idx);
+    Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -494,8 +507,8 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                  N.getPointer(2, 2),
 #endif
                  N.getGhostCellWidth().max(),
-                 U->getPointer(),
-                 U->getGhostCellWidth().max(),
+                 Phi->getPointer(),
+                 Phi->getGhostCellWidth().max(),
                  patch_box.lower(0),
                  patch_box.upper(0),
                  patch_box.lower(1),
@@ -535,8 +548,37 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
 #endif
                     dx);
 
+    // Compute N = grad(C)
+    Pointer<CellData<NDIM, double> > C = patch->getPatchData(d_C_idx);
+
+    SC_NORMAL_FC(N.getPointer(0, 0),
+                 N.getPointer(0, 1),
+#if (NDIM == 3)
+                 N.getPointer(0, 2),
+#endif
+                 N.getPointer(1, 0),
+                 N.getPointer(1, 1),
+#if (NDIM == 3)
+                 N.getPointer(1, 2),
+                 N.getPointer(2, 0),
+                 N.getPointer(2, 1),
+                 N.getPointer(2, 2),
+#endif
+                 N.getGhostCellWidth().max(),
+                 C->getPointer(),
+                 C->getGhostCellWidth().max(),
+                 patch_box.lower(0),
+                 patch_box.upper(0),
+                 patch_box.lower(1),
+                 patch_box.upper(1),
+#if (NDIM == 3)
+                 patch_box.lower(2),
+                 patch_box.upper(2),
+#endif
+                 dx);
+
     // Compute the surface tension force
-    // F = sigma * K * grad(phi)
+    // F = sigma * K * grad(C)
     SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
                                 F_data->getPointer(1),
 #if (NDIM == 3)
