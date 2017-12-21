@@ -271,8 +271,7 @@ run_example(int argc, char* argv[])
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
-                                            phi_var,
-                                            grid_geometry);
+                                            phi_var);
         time_integrator->registerBodyForceFunction(surface_tension_force);
 
         // Initialize hierarchy configuration and data on all patches.

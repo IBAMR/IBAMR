@@ -195,12 +195,8 @@ smooth_kernel(const double r)
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
                                                          const Pointer<Database> input_db,
                                                          const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                         const Pointer<Variable<NDIM> > indicator_var,
-                                                         Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
-    : CartGridFunction(object_name),
-      d_adv_diff_solver(adv_diff_solver),
-      d_indicator_var(indicator_var),
-      d_grid_geometry(grid_geometry)
+                                                         const Pointer<Variable<NDIM> > level_set_var)
+    : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Set some default values
     d_kernel_fcn = "none";
@@ -268,8 +264,8 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
-    // Get the newest patch data index for the indicator variable
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_indicator_var;
+    // Get the newest patch data index for the level set variable
+    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
@@ -299,7 +295,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     // Convert C to a smoothed heaviside to ensure that the force is only
     // applied near the interface
-    convertToHeaviside(d_C_idx, hierarchy);
+    convertToHeaviside(d_C_idx, coarsest_ln, finest_ln, hierarchy);
 
     // Fill ghost cells
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -366,10 +362,11 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SurfaceTensionForceFunction::convertToHeaviside(int phi_idx, Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
+                                                int coarsest_ln,
+                                                int finest_ln,
+                                                Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);

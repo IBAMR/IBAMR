@@ -80,8 +80,9 @@ namespace IBAMR
  * using the continuum surface tension force model of Brackbill, Kothe, and Zemach.
  *
  * \note Presently, this class assumes that the indicator function is a cell centered
- * variable that is maintained by the advection-diffusion integrator. The indicator variable
- * can either be a level set function, a volume fraction function, or a phase field function.
+ * level-set variable that is maintained by the advection-diffusion integrator. In general,
+ * the indicator variable can either be a level set function, a volume fraction function,
+ * or a phase field function.
  *
  * Reference
  * Brackbill et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/002199919290240Y">
@@ -96,8 +97,7 @@ public:
     SurfaceTensionForceFunction(const std::string& object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                 const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > indicator_var,
-                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+                                const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var);
 
     /*!
      * \brief Destructor.
@@ -105,7 +105,7 @@ public:
     virtual ~SurfaceTensionForceFunction();
 
     /*!
-     * \brief Set the smoother (kernel function) to mollify the indicator function.
+     * \brief Set the smoother (kernel function) to mollify the Heaviside function.
      */
     virtual void setSmoother(const std::string& kernel_fcn);
 
@@ -122,7 +122,7 @@ public:
     virtual void setNumberOfInterfaceCells(double m);
 
     /*!
-     * \brief Get the smoother (kernel function) to mollify the indicator function.
+     * \brief Get the smoother (kernel function) to mollify the Heaviside function.
      */
     std::string getSmoother() const
     {
@@ -212,9 +212,12 @@ private:
     SurfaceTensionForceFunction& operator=(const SurfaceTensionForceFunction& that);
 
     /*!
-     * Convert the indicator variable to a smoothed heaviside
+     * Convert the level set variable to a smoothed heaviside function.
      */
-    void convertToHeaviside(int phi_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void convertToHeaviside(int phi_idx,
+                            int coarsest_ln,
+                            int finest_ln,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * Mollify data.
@@ -255,11 +258,10 @@ private:
     int getMinimumGhostWidth(const std::string& kernel_fcn);
 
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_indicator_var;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
     int d_C_idx, d_phi_idx;
     std::string d_kernel_fcn;
     double d_sigma, d_num_interface_cells;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };
 } // namespace IBAMR
 
