@@ -110,7 +110,7 @@ OUTPUT_DIV_U         = TRUE
 OUTPUT_RHO           = TRUE
 OUTPUT_MU            = FALSE
 RHO_IS_CONST         = FALSE
-MU_IS_CONST          = TRUE
+MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // More solver parameters

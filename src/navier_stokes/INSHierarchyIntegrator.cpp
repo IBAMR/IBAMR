@@ -651,7 +651,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            d_problem_coefs.setRho(0.0);
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant density specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setRho(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("mu"))
@@ -660,7 +663,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
         }
         else
         {
-            d_problem_coefs.setMu(0.0);
+            TBOX_WARNING("INSHierarchyIntegrator::getFromInput()\n"
+                         << "  no constant viscosity specified;\n"
+                         << "  setting to quiet_NaN");
+            d_problem_coefs.setMu(std::numeric_limits<double>::quiet_NaN());
         }
 
         if (db->keyExists("lambda"))
