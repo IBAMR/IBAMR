@@ -1786,7 +1786,49 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
             break;
 
         case EDGE3: ////////// SECOND ORDER 1D elements
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_dof_map.dof_indices(elem, U_dof_indices[d], d);
+                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+                U_vec.get(U_dof_indices[d], U_vals[d]);
+                X_vec.get(X_dof_indices[d], X_vals[d]);
+            }
+
+            // Read off the "corner" and "midpoint" values and positions.
+            const int n_nodes = elem->n_nodes();
+            std::vector<libMesh::Point> U_node(n_nodes), X_node(n_nodes);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                for (int i = 0; i < n_nodes; ++i)
+                {
+                    U_node[i](d) = U_vals[d][i];
+                    X_node[i](d) = X_vals[d][i];
+                }
+            }
+            libMesh::Point& U0 = U_node[0]; // corner   node
+            libMesh::Point& U1 = U_node[1]; // corner   node
+            libMesh::Point& U2 = U_node[2]; // midpoint node
+            libMesh::Point& X0 = X_node[0]; // corner   node
+            libMesh::Point& X1 = X_node[1]; // corner   node
+            libMesh::Point& X2 = X_node[2]; // midpoint node
+
+            // Replace the tangential component with the *linear* interpolation
+            // of the corner values.
+            libMesh::Point tau0 = (X1 - X0).unit();
+            U2 -= (U2 * tau0) * tau0;
+            U2 += (0.5 * ((U0 + U1) * tau0)) * tau0;
+
+            // Insert the values into the numeric vector.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_updated_vals[d] = U2(d);
+                U_updated_dof_indices[d] = U_dof_indices[d][2];
+            }
+            U_vec.insert(U_updated_vals, U_updated_dof_indices);
+
             break;
+        }
 
         case TRI3: ////////// FIRST ORDER 2D elements
         case QUAD4:
@@ -1796,6 +1838,7 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
         case TRI6: ////////// SECOND ORDER 2D elements
         case QUAD8:
         case QUAD9:
+        {
             for (int k = 0; k < elem->n_sides(); ++k)
             {
                 // WARNING: This probably is not the correct thing to do for
@@ -1833,17 +1876,19 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
                 // Replace the tangential component with the *linear*
                 // interpolation of the corner values.
                 libMesh::Point tau0 = (X1 - X0).unit();
-                U2 += (0.5 * ((U0 + U1) * tau0) - (U2 * tau0)) * tau0;
+                U2 -= (U2 * tau0) * tau0;
+                U2 += (0.5 * ((U0 + U1) * tau0)) * tau0;
 
                 // Insert the values into the numeric vector.
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
+                    U_updated_vals[d] = U2(d);
                     U_updated_dof_indices[d] = U_dof_indices[d][2];
-                    U_updated_vals[d] = U_node[2](d);
                 }
                 U_vec.insert(U_updated_vals, U_updated_dof_indices);
             }
             break;
+        }
 
         case TET4: ////////// FIRST ORDER 3D elements
         case HEX8:

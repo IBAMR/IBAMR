@@ -666,14 +666,6 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
-        if (d_constrain_tangential_motion)
-        {
-            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   *d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   d_constrain_interior_faces);
-        }
     }
     return;
 } // eulerStep
@@ -692,14 +684,6 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
-        if (d_constrain_tangential_motion)
-        {
-            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   *d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   d_constrain_interior_faces);
-        }
     }
     return;
 } // midpointStep
@@ -721,14 +705,6 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
-        if (d_constrain_tangential_motion)
-        {
-            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   *d_X_new_vecs[part],
-                                                                   COORDS_SYSTEM_NAME,
-                                                                   d_constrain_interior_faces);
-        }
     }
     return;
 } // trapezoidalStep
