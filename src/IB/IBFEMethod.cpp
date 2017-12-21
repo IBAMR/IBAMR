@@ -642,6 +642,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         X_vec->localize(*X_ghost_vec);
         d_fe_data_managers[part]->interp(
             u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+
+        if (d_constrain_tangential_motion)
+        {
+            d_fe_data_managers[part]->constrainTangentialComponent(
+                *U_vec, VELOCITY_SYSTEM_NAME, *X_vec, COORDS_SYSTEM_NAME, d_constrain_interior_faces);
+        }
     }
     return;
 } // interpolateVelocity
@@ -660,6 +666,14 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_constrain_tangential_motion)
+        {
+            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   *d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   d_constrain_interior_faces);
+        }
     }
     return;
 } // eulerStep
@@ -678,6 +692,14 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_constrain_tangential_motion)
+        {
+            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   *d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   d_constrain_interior_faces);
+        }
     }
     return;
 } // midpointStep
@@ -699,6 +721,14 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        if (d_constrain_tangential_motion)
+        {
+            d_fe_data_managers[part]->constrainTangentialComponent(*d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   *d_X_new_vecs[part],
+                                                                   COORDS_SYSTEM_NAME,
+                                                                   d_constrain_interior_faces);
+        }
     }
     return;
 } // trapezoidalStep
@@ -2509,6 +2539,8 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_split_tangential_force = false;
     d_use_jump_conditions = false;
     d_use_consistent_mass_matrix = true;
+    d_constrain_tangential_motion = false;
+    d_constrain_interior_faces = false;
     d_do_log = false;
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
@@ -2676,6 +2708,11 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+
+    // Tangential motion settings.
+    if (db->isBool("constrain_tangential_motion"))
+        d_constrain_tangential_motion = db->getBool("constrain_tangential_motion");
+    if (db->isBool("constrain_interior_faces")) d_constrain_interior_faces = db->getBool("constrain_interior_faces");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
