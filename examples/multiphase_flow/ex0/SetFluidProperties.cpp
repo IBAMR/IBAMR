@@ -38,7 +38,7 @@ callSetFluidViscosityCallbackFunction(int mu_idx,
 {
     // Set the density from the level set information
     static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidProperties->setDensityPatchData(mu_idx, hier_math_ops, integrator_step, current_time, initial_time);
+    ptr_SetFluidProperties->setViscosityPatchData(mu_idx, hier_math_ops, integrator_step, current_time, initial_time);
 
     return;
 
@@ -53,7 +53,8 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const double rho_inside,
                                        const double mu_outside,
                                        const double mu_inside,
-                                       const int ls_reinit_interval)
+                                       const int ls_reinit_interval,
+                                       const double num_interface_cells)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_name(ls_name),
@@ -61,7 +62,8 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
       d_rho_inside(rho_inside),
       d_mu_outside(mu_outside),
       d_mu_inside(mu_inside),
-      d_ls_reinit_interval(ls_reinit_interval)
+      d_ls_reinit_interval(ls_reinit_interval),
+      d_num_interface_cells(num_interface_cells)
 {
     // intentionally left blank
     return;
@@ -99,7 +101,9 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const double alpha = 2.5 * patch_dx[0];
+            double vol_cell = 1.0;
+            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
 
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_current_idx);
@@ -157,7 +161,9 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const double alpha = 2.5 * patch_dx[0];
+            double vol_cell = 1.0;
+            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / (double)NDIM);
 
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_current_idx);

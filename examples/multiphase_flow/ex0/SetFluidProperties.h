@@ -62,7 +62,8 @@ public:
                        const double rho_inside,
                        const double mu_outside,
                        const double mu_inside,
-                       const int ls_reinit_interval);
+                       const int ls_reinit_interval,
+                       const double num_interface_cells);
 
     /*!
      * Destructor for this class.
@@ -134,6 +135,11 @@ private:
      * Level set reinitialization interval
      */
     int d_ls_reinit_interval;
+
+    /*!
+     * Number of interface cells over which to smooth the material properties
+     */
+    double d_num_interface_cells;
 
 }; // SetFluidProperties
 

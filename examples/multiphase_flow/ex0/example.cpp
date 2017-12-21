@@ -192,6 +192,7 @@ run_example(int argc, char* argv[])
         const double mu_inside = input_db->getDouble("MU_I");
         const double mu_outside = input_db->getDouble("MU_O");
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
+        const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
                                                                             adv_diff_integrator,
                                                                             ls_name,
@@ -199,7 +200,8 @@ run_example(int argc, char* argv[])
                                                                             rho_inside,
                                                                             mu_outside,
                                                                             mu_inside,
-                                                                            ls_reinit_interval);
+                                                                            ls_reinit_interval,
+                                                                            num_interface_cells);
         adv_diff_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
                                                           static_cast<void*>(ptr_SetFluidProperties));
         adv_diff_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
