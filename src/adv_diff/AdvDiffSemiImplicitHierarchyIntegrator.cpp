@@ -1,7 +1,7 @@
 // Filename: AdvDiffSemiImplicitHierarchyIntegrator.cpp
 // Created on 22 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -755,10 +755,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
                 if (d_u_fcn[u_var])
                 {
                     d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
-                }
-                else
-                {
-                    d_hier_fc_data_ops->copyData(u_new_idx, u_current_idx);
                 }
                 d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
             }

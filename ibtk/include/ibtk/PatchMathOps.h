@@ -1,7 +1,7 @@
 // Filename: PatchMathOps.h
 // Created on 23 Jul 2002 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -640,6 +640,25 @@ public:
     void pointwiseMaxNorm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst1 = strain src (diagonal), and dst2 = strain src (off diagonal).
+     *
+     * Uses centered differences.
+     */
+    void strain_rate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst1,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst2,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = strain src.
+     *
+     * Uses centered differences.
+     */
+    void strain_rate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     //\}
 

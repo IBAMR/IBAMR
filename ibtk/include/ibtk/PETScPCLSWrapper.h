@@ -1,7 +1,7 @@
 // Filename: PETScPCLSWrapper.h
 // Created on 19 Oct 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

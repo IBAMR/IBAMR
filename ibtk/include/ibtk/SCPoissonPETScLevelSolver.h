@@ -1,7 +1,7 @@
 // Filename: SCPoissonPETScLevelSolver.h
 // Created on 08 Sep 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -133,6 +133,10 @@ public:
     } // allocate_solver
 
 protected:
+    /*!
+     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     */
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is);
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */

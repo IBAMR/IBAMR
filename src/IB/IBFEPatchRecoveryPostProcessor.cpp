@@ -1,7 +1,7 @@
 // Filename: IBFEPatchRecoveryPostProcessor.cpp
 // Created on 2 Jul 2013 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -218,7 +218,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     //
     // Unlike the standard Z-Z patch recovery algorithm, we use "tight" element
     // patches for non-vertex nodes.
-    AutoPtr<PointLocatorBase> point_locator = PointLocatorBase::build(TREE, *d_mesh);
+    UniquePtr<PointLocatorBase> point_locator = PointLocatorBase::build(TREE, *d_mesh);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -323,7 +323,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     d_elem_n_qp.resize(n_elem, 0);
     d_elem_qp_global_offset.resize(n_elem, 0);
     d_elem_qp_local_offset.resize(n_elem, 0);
-    AutoPtr<QBase> qrule;
+    UniquePtr<QBase> qrule;
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -366,7 +366,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::MatrixXd M(num_basis_fcns, num_basis_fcns);
     Eigen::VectorXd P(num_basis_fcns);
-    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
@@ -508,9 +508,9 @@ IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
     const unsigned int dim = d_mesh->mesh_dimension();
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::VectorXd P(num_basis_fcns), a(num_basis_fcns), f(num_basis_fcns);
-    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
@@ -576,9 +576,9 @@ IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     const unsigned int dim = d_mesh->mesh_dimension();
     const unsigned int num_basis_fcns = num_polynomial_basis_fcns(dim, d_interp_order);
     Eigen::VectorXd P(num_basis_fcns), a(num_basis_fcns), f(num_basis_fcns);
-    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    UniquePtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();

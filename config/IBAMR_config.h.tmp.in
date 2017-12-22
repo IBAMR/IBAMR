@@ -17,12 +17,6 @@
 /* Defined if the requested minimum BOOST version is satisfied */
 #undef HAVE_BOOST
 
-/* Define to 1 if you have <boost/array.hpp> */
-#undef HAVE_BOOST_ARRAY_HPP
-
-/* Define to 1 if you have <boost/multi_array.hpp> */
-#undef HAVE_BOOST_MULTI_ARRAY_HPP
-
 /* Boolean value indicating whether the C++ compiler supports the
    __builtin_expect keyword */
 #undef HAVE_BUILTIN_EXPECT
@@ -42,6 +36,9 @@
 
 /* Define if you have the libgslcblas library. */
 #undef HAVE_LIBGSLCBLAS
+
+/* Define if you have the libgtest library. */
+#undef HAVE_LIBGTEST
 
 /* Define if you have the libhdf5 library. */
 #undef HAVE_LIBHDF5

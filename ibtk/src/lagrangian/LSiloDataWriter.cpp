@@ -1,7 +1,7 @@
 // Filename: LSiloDataWriter.cpp
 // Created on 26 Apr 2005 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -2074,6 +2074,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             }
         }
 
+        DBFreeOptlist(optlist);
         DBClose(dbfile);
 
         // Create or update the dumps file on the root MPI process.

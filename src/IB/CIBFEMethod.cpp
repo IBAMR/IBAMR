@@ -1,7 +1,7 @@
 // Filename: CIBFEMethod.cpp
 // Created on 14 Oct 2014 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -628,14 +628,14 @@ CIBFEMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double sca
         EquationSystems* equation_systems = d_equation_systems[part];
         MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+        UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& L_system = *d_F_systems[part];
         DofMap& L_dof_map = L_system.get_dof_map();
         std::vector<std::vector<unsigned int> > L_dof_indices(NDIM);
         FEType L_fe_type = L_dof_map.variable_type(0);
-        AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
+        UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
         FEBase* L_fe = L_fe_autoptr.get();
         L_fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = L_fe->get_JxW();
@@ -759,7 +759,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     EquationSystems* equation_systems = d_equation_systems[part];
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& L_system = *d_F_systems[part];
@@ -770,10 +770,10 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType L_fe_type = L_dof_map.variable_type(0);
     FEType X_fe_type = X_dof_map.variable_type(0);
-    AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr(NULL);
+    UniquePtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type)), X_fe_autoptr(NULL);
     if (L_fe_type != X_fe_type)
     {
-        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+        X_fe_autoptr = UniquePtr<FEBase>(FEBase::build(dim, X_fe_type));
     }
     FEBase* L_fe = L_fe_autoptr.get();
     FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : L_fe_autoptr.get();
@@ -1337,7 +1337,7 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     const int part = 0; // XXXX
     MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
+    UniquePtr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1346,7 +1346,7 @@ CIBFEMethod::computeCOMOfStructure(Eigen::Vector3d& center_of_mass, EquationSyst
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
-    AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
+    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();

@@ -1,7 +1,7 @@
 // Filename: INSHierarchyIntegrator.h
 // Created on 10 Aug 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -490,8 +490,8 @@ protected:
      * Boolean values indicates whether to output various quantities for
      * visualization.
      */
-    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale;
-    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U;
+    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale, d_EE_scale;
+    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U, d_output_EE;
 
     /*!
      * Fluid solver variables.

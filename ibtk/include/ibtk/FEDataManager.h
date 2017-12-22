@@ -1,7 +1,7 @@
 // Filename: FEDataManager.h
 // Created on 19 Apr 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -503,7 +503,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
                                      libMesh::QuadratureType quad_type,
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
@@ -521,7 +521,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateInterpQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateInterpQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
                                            const InterpSpec& spec,
                                            libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
@@ -536,7 +536,7 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateSpreadQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+    static bool updateSpreadQuadratureRule(libMesh::UniquePtr<libMesh::QBase>& qrule,
                                            const SpreadSpec& spec,
                                            libMesh::Elem* elem,
                                            const boost::multi_array<double, 2>& X_node,
