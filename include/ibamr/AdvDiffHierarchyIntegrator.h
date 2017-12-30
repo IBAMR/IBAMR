@@ -554,6 +554,19 @@ protected:
     double getMaximumTimeStepSizeSpecialized();
 
     /*!
+     * Initialize composite hierarchy data.
+     *
+     * The class initailizes level set data in this routine which may
+     * require composite grid to compute it (depending upon level set algorithm).
+     * It also resets fluid density and viscosity based upon newly computed
+     * level set.
+     */
+    void initializeCompositeHierarchyDataSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        double init_data_time,
+        bool initial_time);
+
+    /*!
      * Reset cached hierarchy dependent data.
      */
     void

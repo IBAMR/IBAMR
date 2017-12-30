@@ -841,7 +841,7 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
 {
     HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    const bool initial_time = MathUtilities<double>::equalEps(current_time, d_start_time);
+    const bool initial_time = false;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // First reinitialize level sets (if needed).
@@ -1090,6 +1090,61 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
+
+void
+AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                                        double init_data_time,
+                                                                        bool initial_time)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // First reinitialize level set.
+    for (std::map<Pointer<CellVariable<NDIM, double> >, Pointer<LSInitStrategy> >::const_iterator cit =
+             d_ls_reinit_map.begin();
+         cit != d_ls_reinit_map.end();
+         ++cit)
+    {
+        Pointer<CellVariable<NDIM, double> > ls_var = cit->first;
+        Pointer<LSInitStrategy> ls_reinitializer = cit->second;
+        ls_reinitializer->setReinitializeLSData(true);
+
+        const int ls_current_idx = var_db->mapVariableAndContextToIndex(ls_var, getCurrentContext());
+        ls_reinitializer->initializeLSData(
+            ls_current_idx, d_hier_math_ops, d_integrator_step, init_data_time, initial_time);
+    }
+
+    // Reset fluid density.
+    if (d_rho_fluid_var)
+    {
+        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](rho_current_idx,
+                                d_hier_math_ops,
+                                d_integrator_step,
+                                init_data_time,
+                                initial_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+    }
+
+    // Reset fluid viscosity.
+    if (d_mu_fluid_var)
+    {
+        const int mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_fluid_var, getCurrentContext());
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](mu_current_idx,
+                               d_hier_math_ops,
+                               d_integrator_step,
+                               init_data_time,
+                               initial_time,
+                               d_reset_mu_fcns_ctx[k]);
+        }
+    }
+
+    return;
+} // initializeCompositeHierarchyDataSpecialized
 
 void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
