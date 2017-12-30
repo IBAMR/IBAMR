@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <deque>
 #include <list>
 #include <map>
@@ -420,6 +421,11 @@ public:
      */
     void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = NULL);
 
+    /*!
+     * Perform data initialization after the entire hierarchy has been constructed.
+     */
+    void initializeCompositeHierarchyData(double init_data_time, bool initial_time);
+
     ///
     ///  Implementations of functions declared in the
     ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
@@ -653,6 +659,14 @@ protected:
      * An empty default implementation is provided.
      */
     virtual void setupPlotDataSpecialized();
+
+    /*!
+     * Virtual method to perform implementation-specific data initialization
+     * after the entire hierarchy has been constructed.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
 
     /*!
      * Virtual method to perform implementation-specific data initialization on
