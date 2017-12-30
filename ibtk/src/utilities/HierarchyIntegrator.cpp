@@ -263,6 +263,12 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
+
+        // Initialize composite hierarchy data that was not initailized by
+        // gridding algorithm's call to initializeLevelData().
+        initializeCompositeHierarchyData(d_hierarchy, d_integrator_time, initial_time);
+
+        // Synchronize the state data on the patch hierarchy.
         synchronizeHierarchyData(CURRENT_DATA);
     }
 
@@ -510,6 +516,10 @@ HierarchyIntegrator::regridHierarchy()
                           << "  this may indicate overlapping patches in the AMR grid hierarchy.");
     }
 
+    // Reinitialize composite grid data.
+    const bool initial_time = false;
+    initializeCompositeHierarchyData(d_hierarchy, d_integrator_time, initial_time);
+
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
@@ -726,6 +736,23 @@ HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDetector
     d_apply_gradient_detector_callback_ctxs.push_back(ctx);
     return;
 } // registerApplyGradientDetectorCallback
+
+void
+HierarchyIntegrator::initializeCompositeHierarchyData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                      double init_data_time,
+                                                      bool initial_time)
+{
+    // Perform specialized data initialization.
+    initializeCompositeHierarchyDataSpecialized(hierarchy, init_data_time, initial_time);
+
+    // Initialize data associated with any child integrators.
+    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
+         ++it)
+    {
+        (*it)->initializeCompositeHierarchyData(hierarchy, init_data_time, initial_time);
+    }
+    return;
+} // initializeCompositeHierarchyData
 
 void
 HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
@@ -1309,6 +1336,16 @@ HierarchyIntegrator::setupPlotDataSpecialized()
     // intentionally blank
     return;
 } // setupPlotDataSpecialized
+
+void
+HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(
+    Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    double /*init_data_time*/,
+    bool /*initial_time*/)
+{
+    // intentionally blank
+    return;
+} // initializeLevelDataSpecialized
 
 void
 HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,

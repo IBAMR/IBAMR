@@ -420,6 +420,17 @@ public:
      */
     void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = NULL);
 
+    /*!
+     * Perform data initialization after the entire hierarchy has been constructed.
+     *
+     * \note Subclasses should not override the implementation of this function
+     * provided by class HierarchyIntegrator.  Instead, they should override the
+     * protected virtual member function initializeCompositeHierarchyDataSpecialized().
+     */
+    void initializeCompositeHierarchyData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                          double init_data_time,
+                                          bool initial_time);
+
     ///
     ///  Implementations of functions declared in the
     ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
@@ -653,6 +664,17 @@ protected:
      * An empty default implementation is provided.
      */
     virtual void setupPlotDataSpecialized();
+
+    /*!
+     * Virtual method to perform implementation-specific data initialization
+     * after the entire hierarchy has been constructed.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void initializeCompositeHierarchyDataSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Virtual method to perform implementation-specific data initialization on
