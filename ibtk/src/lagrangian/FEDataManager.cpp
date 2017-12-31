@@ -1816,8 +1816,7 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
             // Replace the tangential component with the *linear* interpolation
             // of the corner values.
             libMesh::Point tau0 = (X1 - X0).unit();
-            U2 -= (U2 * tau0) * tau0;
-            U2 += (0.5 * ((U0 + U1) * tau0)) * tau0;
+            U2 += (0.5 * ((U0 + U1) * tau0) - (U2 * tau0)) * tau0;
 
             // Insert the values into the numeric vector.
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -1826,7 +1825,6 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
                 U_updated_dof_indices[d] = U_dof_indices[d][2];
             }
             U_vec.insert(U_updated_vals, U_updated_dof_indices);
-
             break;
         }
 
@@ -1876,8 +1874,7 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
                 // Replace the tangential component with the *linear*
                 // interpolation of the corner values.
                 libMesh::Point tau0 = (X1 - X0).unit();
-                U2 -= (U2 * tau0) * tau0;
-                U2 += (0.5 * ((U0 + U1) * tau0)) * tau0;
+                U2 += (0.5 * ((U0 + U1) * tau0) - (U2 * tau0)) * tau0;
 
                 // Insert the values into the numeric vector.
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1898,13 +1895,13 @@ FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
         case TET10: ////////// SECOND ORDER 3D elements
         case HEX20:
         case HEX27:
-            TBOX_ERROR("unimplemented!\n");
+            TBOX_ERROR("needs to be implemented!!!!\n");
             break;
 
         default:
             TBOX_ERROR("unimplemented for element type = " << elem_type << "!\n");
+            break;
         }
-        break;
     }
     U_vec.close();
     return;
