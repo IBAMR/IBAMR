@@ -572,12 +572,12 @@ c
 
          if (use_harmonic_interp .eq. 1) then
             mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
-     &                       mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                       mu(i0,i1+1),mu(i0+1,i1+1))
             mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1-1),mu(i0+1,i1-1))
          else
             mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
-     &                       mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                       mu(i0,i1+1),mu(i0+1,i1+1))
             mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1-1),mu(i0+1,i1-1))
          endif
@@ -718,12 +718,12 @@ c
 
             if (use_harmonic_interp .eq. 1) then
                 mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
                 mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
@@ -872,12 +872,12 @@ c
 
             if (use_harmonic_interp .eq. 1) then
                 mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
                 mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
@@ -1030,12 +1030,12 @@ c
 
             if (use_harmonic_interp .eq. 1) then
                 mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
                 mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1)+mu(i0+1,i1+1))
+     &                           mu(i0,i1+1),mu(i0+1,i1+1))
                 mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
