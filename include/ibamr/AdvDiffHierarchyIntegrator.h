@@ -562,7 +562,6 @@ protected:
      * level set.
      */
     void initializeCompositeHierarchyDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         double init_data_time,
         bool initial_time);
 

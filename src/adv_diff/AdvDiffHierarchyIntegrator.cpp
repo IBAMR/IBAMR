@@ -1092,9 +1092,7 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 } // getMaximumTimeStepSizeSpecialized
 
 void
-AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                                        double init_data_time,
-                                                                        bool initial_time)
+AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
