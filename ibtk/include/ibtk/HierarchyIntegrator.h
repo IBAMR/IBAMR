@@ -427,9 +427,7 @@ public:
      * provided by class HierarchyIntegrator.  Instead, they should override the
      * protected virtual member function initializeCompositeHierarchyDataSpecialized().
      */
-    void initializeCompositeHierarchyData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                          double init_data_time,
-                                          bool initial_time);
+    void initializeCompositeHierarchyData(double init_data_time, bool initial_time);
 
     ///
     ///  Implementations of functions declared in the
@@ -672,7 +670,6 @@ protected:
      * An empty default implementation is provided.
      */
     virtual void initializeCompositeHierarchyDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         double init_data_time,
         bool initial_time);
 

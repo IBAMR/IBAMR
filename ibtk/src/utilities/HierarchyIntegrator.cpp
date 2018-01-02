@@ -266,7 +266,7 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
 
         // Initialize composite hierarchy data that was not initailized by
         // gridding algorithm's call to initializeLevelData().
-        initializeCompositeHierarchyData(d_hierarchy, d_integrator_time, initial_time);
+        initializeCompositeHierarchyData(d_integrator_time, initial_time);
 
         // Synchronize the state data on the patch hierarchy.
         synchronizeHierarchyData(CURRENT_DATA);
@@ -518,7 +518,7 @@ HierarchyIntegrator::regridHierarchy()
 
     // Reinitialize composite grid data.
     const bool initial_time = false;
-    initializeCompositeHierarchyData(d_hierarchy, d_integrator_time, initial_time);
+    initializeCompositeHierarchyData(d_integrator_time, initial_time);
 
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
@@ -738,18 +738,16 @@ HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDetector
 } // registerApplyGradientDetectorCallback
 
 void
-HierarchyIntegrator::initializeCompositeHierarchyData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                                      double init_data_time,
-                                                      bool initial_time)
+HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, bool initial_time)
 {
     // Perform specialized data initialization.
-    initializeCompositeHierarchyDataSpecialized(hierarchy, init_data_time, initial_time);
+    initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
 
     // Initialize data associated with any child integrators.
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
          ++it)
     {
-        (*it)->initializeCompositeHierarchyData(hierarchy, init_data_time, initial_time);
+        (*it)->initializeCompositeHierarchyData(init_data_time, initial_time);
     }
     return;
 } // initializeCompositeHierarchyData
@@ -1339,7 +1337,6 @@ HierarchyIntegrator::setupPlotDataSpecialized()
 
 void
 HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(
-    Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
     double /*init_data_time*/,
     bool /*initial_time*/)
 {
