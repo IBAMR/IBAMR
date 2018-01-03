@@ -4,11 +4,11 @@ import os
 class Configure(config.package.GNUPackage):
   def __init__(self, framework):
     config.package.GNUPackage.__init__(self, framework)
-    self.download  = ['https://github.com/libMesh/libmesh/releases/download/v1.1.0/libmesh-1.1.0.tar.gz']
+    self.download  = ['https://github.com/libMesh/libmesh/releases/download/v1.2.1/libmesh-1.2.1.tar.gz']
     self.functions = []
     self.includes  = ['libmesh/libmesh.h', 'libmesh/libmesh_config.h']
     self.liblist   = [['libmesh.la']]
-    self.pkgname   = 'libmesh-1.1.0'
+    self.pkgname   = 'libmesh-1.2.1'
     self.cxx       = 1
     return
 
