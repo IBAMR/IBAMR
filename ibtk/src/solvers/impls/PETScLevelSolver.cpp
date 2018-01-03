@@ -477,7 +477,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
 
         // Get the local submatrices.
-        ierr = MatGetSubMatrices(
+        ierr = MatCreateSubMatrices(
             d_petsc_mat, d_n_local_subdomains, &d_overlap_is[0], &d_overlap_is[0], MAT_INITIAL_MATRIX, &d_sub_mat);
         IBTK_CHKERRQ(ierr);
 
@@ -572,12 +572,12 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-            ierr = MatGetSubMatrices(d_petsc_mat,
-                                     d_n_local_subdomains,
-                                     d_n_local_subdomains ? &d_overlap_is[0] : NULL,
-                                     d_n_local_subdomains ? &local_idxs[0] : NULL,
-                                     MAT_INITIAL_MATRIX,
-                                     &d_sub_bc_mat);
+            ierr = MatCreateSubMatrices(d_petsc_mat,
+                                        d_n_local_subdomains,
+                                        d_n_local_subdomains ? &d_overlap_is[0] : NULL,
+                                        d_n_local_subdomains ? &local_idxs[0] : NULL,
+                                        MAT_INITIAL_MATRIX,
+                                        &d_sub_bc_mat);
             IBTK_CHKERRQ(ierr);
             for (int i = 0; i < d_n_local_subdomains; ++i)
             {
@@ -774,8 +774,8 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
 } // init
 
 void
-PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
-                                        std::vector<std::set<int> >& nonoverlap_is)
+PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& /*overlap_is*/,
+                                        std::vector<std::set<int> >& /*nonoverlap_is*/)
 {
     TBOX_ERROR("PETScLevelSolver::generateASMSubdomains(): Subclasses need to generate ASM subdomains. \n");
 
@@ -783,8 +783,8 @@ PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
 } // generateASMSubdomains
 
 void
-PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& field_names,
-                                               std::vector<std::set<int> >& field_is)
+PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& /*field_names*/,
+                                               std::vector<std::set<int> >& /*field_is*/)
 {
     TBOX_ERROR(
         "PETScLevelSolver::generateFieldSplitSubdomains(): Subclasses need to generate FieldSplit subdomains. \n");
