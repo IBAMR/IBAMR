@@ -1589,7 +1589,6 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 
         // Extract the mesh.
         const MeshBase& mesh = d_es->get_mesh();
-        const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
 
         // Extract the FE system and DOF map, and setup the FE object.

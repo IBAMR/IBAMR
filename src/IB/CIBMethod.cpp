@@ -741,7 +741,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 } // forwardEulerStep
 
 void
-CIBMethod::backwardEulerStep(double current_time, double new_time)
+CIBMethod::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR(
         "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "
