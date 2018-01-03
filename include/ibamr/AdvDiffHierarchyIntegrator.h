@@ -140,6 +140,9 @@ public:
      * Data management for the registered advection velocity will be handled by
      * the hierarchy integrator.
      *
+     * If a function is not provided, it is the responsibility of the user
+     * to ensure that the current and new contexts are set correctly.
+     *
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
@@ -162,6 +165,9 @@ public:
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
      * particular advection velocity.
+     *
+     * If a function is not provided, it is the responsibility of the user
+     * to ensure that the current and new contexts are set correctly.
      */
     void setAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
                                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
