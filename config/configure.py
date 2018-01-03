@@ -289,13 +289,13 @@ def configure(configure_options):
       raise RuntimeError('Need to set PETSC_DIR in the environment')
     ret, aversion, version = chkpetscversion(os.environ['PETSC_DIR'])
     if ret:
-      msg = "\
+      msg = "\n\
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
 The version of PETSc you are using is out-of-date, we recommend updating to the new release\n\
   Available Version: %s   Installed Version: %s\n\
 http://www.mcs.anl.gov/petsc/download/index.html\n\
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" % (str(aversion), str(version))
-      raise RuntimeError(msg)
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" % (str(aversion), str(version))
+      print msg
     bsDir   = os.path.join(os.environ['PETSC_DIR'], 'config', 'BuildSystem')
     if not os.path.isdir(bsDir):
       raise RuntimeError('Could not find BuildSystem')
