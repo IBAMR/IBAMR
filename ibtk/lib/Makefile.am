@@ -21,7 +21,7 @@ clean-local:
 
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
+$(top_builddir)/ibtk/src/lagrangian/fortran/lagrangian_delta.f
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
@@ -317,45 +317,45 @@ endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
-$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
-$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
-$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
-$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.f \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.f \
-$(top_builddir)/src/math/fortran/curl2d.f \
-$(top_builddir)/src/math/fortran/div2d.f \
-$(top_builddir)/src/math/fortran/flux2d.f \
-$(top_builddir)/src/math/fortran/grad2d.f \
-$(top_builddir)/src/math/fortran/graddetect2d.f \
-$(top_builddir)/src/math/fortran/interp2d.f \
-$(top_builddir)/src/math/fortran/laplace2d.f \
-$(top_builddir)/src/math/fortran/miscmath2d.f \
-$(top_builddir)/src/math/fortran/vclaplace2d.f \
-$(top_builddir)/src/math/fortran/rot2d.f \
-$(top_builddir)/src/math/fortran/strain2d.f \
-$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
-$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
-$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
+$(top_builddir)/ibtk/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
+$(top_builddir)/ibtk/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
+$(top_builddir)/ibtk/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
+$(top_builddir)/ibtk/src/coarsen_ops/fortran/cubiccoarsen2d.f \
+$(top_builddir)/ibtk/src/coarsen_ops/fortran/rt0coarsen2d.f \
+$(top_builddir)/ibtk/src/lagrangian/fortran/lagrangian_interaction2d.f \
+$(top_builddir)/ibtk/src/math/fortran/curl2d.f \
+$(top_builddir)/ibtk/src/math/fortran/div2d.f \
+$(top_builddir)/ibtk/src/math/fortran/flux2d.f \
+$(top_builddir)/ibtk/src/math/fortran/grad2d.f \
+$(top_builddir)/ibtk/src/math/fortran/graddetect2d.f \
+$(top_builddir)/ibtk/src/math/fortran/interp2d.f \
+$(top_builddir)/ibtk/src/math/fortran/laplace2d.f \
+$(top_builddir)/ibtk/src/math/fortran/miscmath2d.f \
+$(top_builddir)/ibtk/src/math/fortran/vclaplace2d.f \
+$(top_builddir)/ibtk/src/math/fortran/rot2d.f \
+$(top_builddir)/ibtk/src/math/fortran/strain2d.f \
+$(top_builddir)/ibtk/src/refine_ops/fortran/cart_side_refine2d.f \
+$(top_builddir)/ibtk/src/refine_ops/fortran/divpreservingrefine2d.f \
+$(top_builddir)/ibtk/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
-$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
-$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
-$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
-$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
-$(top_builddir)/src/coarsen_ops/fortran/rt0coarsen3d.f \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_interaction3d.f \
-$(top_builddir)/src/math/fortran/curl3d.f \
-$(top_builddir)/src/math/fortran/div3d.f \
-$(top_builddir)/src/math/fortran/flux3d.f \
-$(top_builddir)/src/math/fortran/grad3d.f \
-$(top_builddir)/src/math/fortran/graddetect3d.f \
-$(top_builddir)/src/math/fortran/interp3d.f \
-$(top_builddir)/src/math/fortran/laplace3d.f \
-$(top_builddir)/src/math/fortran/rot3d.f \
-$(top_builddir)/src/math/fortran/strain3d.f \
-$(top_builddir)/src/math/fortran/miscmath3d.f \
-$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
-$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
-$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
+$(top_builddir)/ibtk/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
+$(top_builddir)/ibtk/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
+$(top_builddir)/ibtk/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
+$(top_builddir)/ibtk/src/coarsen_ops/fortran/cubiccoarsen3d.f \
+$(top_builddir)/ibtk/src/coarsen_ops/fortran/rt0coarsen3d.f \
+$(top_builddir)/ibtk/src/lagrangian/fortran/lagrangian_interaction3d.f \
+$(top_builddir)/ibtk/src/math/fortran/curl3d.f \
+$(top_builddir)/ibtk/src/math/fortran/div3d.f \
+$(top_builddir)/ibtk/src/math/fortran/flux3d.f \
+$(top_builddir)/ibtk/src/math/fortran/grad3d.f \
+$(top_builddir)/ibtk/src/math/fortran/graddetect3d.f \
+$(top_builddir)/ibtk/src/math/fortran/interp3d.f \
+$(top_builddir)/ibtk/src/math/fortran/laplace3d.f \
+$(top_builddir)/ibtk/src/math/fortran/rot3d.f \
+$(top_builddir)/ibtk/src/math/fortran/strain3d.f \
+$(top_builddir)/ibtk/src/math/fortran/miscmath3d.f \
+$(top_builddir)/ibtk/src/refine_ops/fortran/cart_side_refine3d.f \
+$(top_builddir)/ibtk/src/refine_ops/fortran/divpreservingrefine3d.f \
+$(top_builddir)/ibtk/src/solvers/impls/fortran/patchsmoothers3d.f

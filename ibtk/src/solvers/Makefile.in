@@ -87,14 +87,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/solvers
+subdir = ibtk/src/solvers
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
-	$(top_srcdir)/m4/configure_doxygen.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
 	$(top_srcdir)/m4/configure_gtest.m4 \
@@ -115,7 +114,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config/IBTK_config.h.tmp
+CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -225,10 +224,6 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
 DLLTOOL = @DLLTOOL@
-DOT = @DOT@
-DOT_DIR = @DOT_DIR@
-DOXYGEN = @DOXYGEN@
-DOXYGEN_DIR = @DOXYGEN_DIR@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -245,8 +240,6 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_DOT = @HAVE_DOT@
-HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
@@ -496,11 +489,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_builddir}/config
-AM_LDFLAGS = -L${top_builddir}/lib
-IBTK_LIBS = ${top_builddir}/lib/libIBTK.a
-IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
-IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/config -I${top_builddir}/ibtk/config
+AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/ibtk/lib
+IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
+IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a
+IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = impls interfaces wrappers .
@@ -517,9 +510,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/solvers/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign ibtk/src/solvers/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/solvers/Makefile
+	  $(AUTOMAKE) --foreign ibtk/src/solvers/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

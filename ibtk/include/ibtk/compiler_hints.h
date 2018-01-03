@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include "IBAMR_config.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 namespace IBTK
 {
-#if IBTK_HAVE_BUILTIN_EXPECT
+#if IBAMR_HAVE_BUILTIN_EXPECT
 #define UNLIKELY(c) __builtin_expect(!!(c), 0)
 #define LIKELY(c) __builtin_expect(!!(c), 1)
 #else
@@ -49,7 +49,7 @@ namespace IBTK
 #define LIKELY(c) (c)
 #endif
 
-#if IBTK_HAVE_BUILTIN_PREFETCH
+#if IBAMR_HAVE_BUILTIN_PREFETCH
 #define PREFETCH_READ_NTA(a) __builtin_prefetch((a), 0, 0)
 #define PREFETCH_READ_NTA_BLOCK(a, n)                                                                                  \
     do                                                                                                                 \

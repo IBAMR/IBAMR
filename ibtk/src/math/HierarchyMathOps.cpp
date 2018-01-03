@@ -61,7 +61,7 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBTK_config.h"
+#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

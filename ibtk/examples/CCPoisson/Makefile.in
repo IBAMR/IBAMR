@@ -94,14 +94,13 @@ EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI3D_ENABLED_TRUE@am__append_4 = main3d
 @GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_5 = test3d
 @SAMRAI3D_ENABLED_TRUE@am__append_6 = $(EXAMPLES) $(GTESTS)
-subdir = examples/CCPoisson
+subdir = ibtk/examples/CCPoisson
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
-	$(top_srcdir)/m4/configure_doxygen.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
 	$(top_srcdir)/m4/configure_gtest.m4 \
@@ -122,7 +121,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config/IBTK_config.h.tmp
+CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
@@ -138,7 +137,7 @@ am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
 am__objects_1 = main2d-ex_main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(IBTK2d_LIBS) $(IBTK_LIBS)
+main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -149,21 +148,21 @@ main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 am__objects_2 = main3d-ex_main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBTK3d_LIBS) $(IBTK_LIBS)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_3 = test2d-test_main.$(OBJEXT)
 am_test2d_OBJECTS = $(am__objects_3)
 test2d_OBJECTS = $(am_test2d_OBJECTS)
-test2d_DEPENDENCIES = $(IBTK2d_LIBS) $(IBTK_LIBS)
+test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_4 = test3d-test_main.$(OBJEXT)
 am_test3d_OBJECTS = $(am__objects_4)
 test3d_OBJECTS = $(am_test3d_OBJECTS)
-test3d_DEPENDENCIES = $(IBTK3d_LIBS) $(IBTK_LIBS)
+test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -257,10 +256,6 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
 DLLTOOL = @DLLTOOL@
-DOT = @DOT@
-DOT_DIR = @DOT_DIR@
-DOXYGEN = @DOXYGEN@
-DOXYGEN_DIR = @DOXYGEN_DIR@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -277,8 +272,6 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_DOT = @HAVE_DOT@
-HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
@@ -528,11 +521,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_builddir}/config
-AM_LDFLAGS = -L${top_builddir}/lib
-IBTK_LIBS = ${top_builddir}/lib/libIBTK.a
-IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
-IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/config -I${top_builddir}/ibtk/config
+AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/ibtk/lib
+IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
+IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a
+IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = ex_main.cpp
@@ -541,16 +534,16 @@ EXTRA_DIST = README input2d input3d input2d.test input3d.test
 EXAMPLES = $(am__append_1) $(am__append_4)
 GTESTS = $(am__append_2) $(am__append_5)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(IBTK_LDFLAGS) $(IBTK2d_LIBS) $(IBTK_LIBS)
+main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBTK_LDFLAGS) $(IBTK3d_LIBS) $(IBTK_LIBS)
+main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_SOURCES = $(EXAMPLE_DRIVER)
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-test2d_LDADD = $(IBTK_LDFLAGS) $(IBTK2d_LIBS) $(IBTK_LIBS)
+test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
 test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-test3d_LDADD = $(IBTK_LDFLAGS) $(IBTK3d_LIBS) $(IBTK_LIBS)
+test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
@@ -565,9 +558,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/CCPoisson/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign ibtk/examples/CCPoisson/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/CCPoisson/Makefile
+	  $(AUTOMAKE) --foreign ibtk/examples/CCPoisson/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

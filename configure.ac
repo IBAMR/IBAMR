@@ -144,6 +144,40 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex4/Makefile
   examples/navier_stokes/ex5/Makefile
   examples/navier_stokes/ex6/Makefile
+  ibtk/Makefile
+  ibtk/examples/Makefile
+  ibtk/examples/CCLaplace/Makefile
+  ibtk/examples/CCPoisson/Makefile
+  ibtk/examples/PETScOps/Makefile
+  ibtk/examples/PETScOps/ProlongationMat/Makefile
+  ibtk/examples/PhysBdryOps/Makefile
+  ibtk/examples/SCLaplace/Makefile
+  ibtk/examples/SCPoisson/Makefile
+  ibtk/examples/VCLaplace/Makefile
+  ibtk/lib/Makefile
+  ibtk/scripts/Makefile
+  ibtk/src/Makefile
+  ibtk/src/boundary/Makefile
+  ibtk/src/boundary/cf_interface/Makefile
+  ibtk/src/boundary/cf_interface/fortran/Makefile
+  ibtk/src/boundary/physical_boundary/Makefile
+  ibtk/src/boundary/physical_boundary/fortran/Makefile
+  ibtk/src/coarsen_ops/Makefile
+  ibtk/src/coarsen_ops/fortran/Makefile
+  ibtk/src/fortran/Makefile
+  ibtk/src/lagrangian/Makefile
+  ibtk/src/lagrangian/fortran/Makefile
+  ibtk/src/math/Makefile
+  ibtk/src/math/fortran/Makefile
+  ibtk/src/refine_ops/Makefile
+  ibtk/src/refine_ops/fortran/Makefile
+  ibtk/src/solvers/Makefile
+  ibtk/src/solvers/impls/Makefile
+  ibtk/src/solvers/impls/fortran/Makefile
+  ibtk/src/solvers/interfaces/Makefile
+  ibtk/src/solvers/wrappers/Makefile
+  ibtk/src/utilities/Makefile
+  ibtk/contrib/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
@@ -166,7 +200,9 @@ AC_CONFIG_FILES([
   tests/Stokes-IB/test1/Makefile
   tests/Stokes-IB/test2/Makefile
 ])
-AC_CONFIG_SUBDIRS([ibtk])
+if test "$USING_BUNDLED_MUPARSER" = yes ; then
+  AC_CONFIG_SUBDIRS([ibtk/contrib/muparser])
+fi
 AC_OUTPUT
 echo
 echo "===================================================================="

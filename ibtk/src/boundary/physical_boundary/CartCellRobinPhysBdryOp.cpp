@@ -42,7 +42,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "ComponentSelector.h"
-#include "IBTK_config.h"
+#include "IBAMR_config.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
