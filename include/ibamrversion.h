@@ -1,0 +1,44 @@
+#if !defined(__IBAMRVERSION_H)
+#define __IBAMRVERSION_H
+
+#define IBAMR_VERSION_RELEASE    0
+#define IBAMR_VERSION_MAJOR      1
+#define IBAMR_VERSION_MINOR      0
+#define IBAMR_VERSION_SUBMINOR   0
+#define IBAMR_VERSION_PATCH      0
+#define IBAMR_RELEASE_DATE       "unknown"
+#define IBAMR_VERSION_DATE       "unknown"
+
+#if !defined (IBAMR_VERSION_GIT)
+#define IBAMR_VERSION_GIT        "unknown"
+#endif
+
+#if !defined(IBAMR_VERSION_DATE_GIT)
+#define IBAMR_VERSION_DATE_GIT   "unknown"
+#endif
+
+#define IBAMR_VERSION_(MAJOR,MINOR,SUBMINOR) \
+  ((IBAMR_VERSION_MAJOR == (MAJOR)) &&       \
+   (IBAMR_VERSION_MINOR == (MINOR)) &&       \
+   (IBAMR_VERSION_SUBMINOR == (SUBMINOR)) && \
+   (IBAMR_VERSION_RELEASE  == 1))
+
+#define IBAMR_VERSION_LT(MAJOR,MINOR,SUBMINOR)          \
+  (IBAMR_VERSION_RELEASE == 1 &&                        \
+   (IBAMR_VERSION_MAJOR < (MAJOR) ||                    \
+    (IBAMR_VERSION_MAJOR == (MAJOR) &&                  \
+     (IBAMR_VERSION_MINOR < (MINOR) ||                  \
+      (IBAMR_VERSION_MINOR == (MINOR) &&                \
+       (IBAMR_VERSION_SUBMINOR < (SUBMINOR)))))))
+
+#define IBAMR_VERSION_LE(MAJOR,MINOR,SUBMINOR) \
+  (IBAMR_VERSION_LT(MAJOR,MINOR,SUBMINOR) || \
+   IBAMR_VERSION_(MAJOR,MINOR,SUBMINOR))
+
+#define IBAMR_VERSION_GT(MAJOR,MINOR,SUBMINOR) \
+  (0 == IBAMR_VERSION_LE(MAJOR,MINOR,SUBMINOR))
+
+#define IBAMR_VERSION_GE(MAJOR,MINOR,SUBMINOR) \
+  (0 == IBAMR_VERSION_LT(MAJOR,MINOR,SUBMINOR))
+
+#endif

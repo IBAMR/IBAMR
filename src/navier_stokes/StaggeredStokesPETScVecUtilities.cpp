@@ -46,7 +46,7 @@
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
-#include "IBAMR_config.h"
+#include "ibamr/ibamr_enums.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"

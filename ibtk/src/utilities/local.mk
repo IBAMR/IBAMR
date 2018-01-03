@@ -1,0 +1,33 @@
+srcs-ibtk.cpp += $(call thisdir, \
+	AppInitializer.cpp \
+	CartGridFunction.cpp \
+	CartGridFunctionSet.cpp \
+	CellNoCornersFillPattern.cpp \
+	CoarsenPatchStrategySet.cpp \
+	CopyToRootSchedule.cpp \
+	CopyToRootTransaction.cpp \
+	DebuggingUtilities.cpp \
+	EdgeDataSynchronization.cpp \
+	EdgeSynchCopyFillPattern.cpp \
+	FaceDataSynchronization.cpp \
+	FaceSynchCopyFillPattern.cpp \
+	FixedSizedStream.cpp \
+	HierarchyIntegrator.cpp \
+	IndexUtilities.cpp \
+	LMarkerUtilities.cpp \
+	muParserCartGridFunction.cpp \
+	NodeDataSynchronization.cpp \
+	NodeSynchCopyFillPattern.cpp \
+	NormOps.cpp \
+	ParallelEdgeMap.cpp \
+	ParallelMap.cpp \
+	ParallelSet.cpp \
+	RefinePatchStrategySet.cpp \
+	SideDataSynchronization.cpp \
+	SideNoCornersFillPattern.cpp \
+	SideSynchCopyFillPattern.cpp \
+	StandardTagAndInitStrategySet.cpp \
+	Streamable.cpp \
+	StreamableFactory.cpp \
+	StreamableManager.cpp \
+	)

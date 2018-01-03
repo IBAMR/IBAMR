@@ -1,13 +1,15 @@
 #ifndef included_IBAMR_RNG
 #define included_IBAMR_RNG
 
+#include <petscsys.h>
+
 namespace IBAMR
 {
 /*!
  * \brief Class RNG organizes functions that provide random-number generator
  * functionality.
  */
-class RNG
+class PETSC_VISIBILITY_PUBLIC RNG
 {
 public:
     static void srandgen(unsigned long seed);

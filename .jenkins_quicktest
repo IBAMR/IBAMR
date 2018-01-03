@@ -1,34 +1,38 @@
 #!/bin/bash
 set -e
 set -o pipefail
+export IBAMR_DIR=$PWD
+export IBAMR_ARCH=build
+export PETSC_DIR=$IBAMR_DIR/$IBAMR_ARCH/PETSC
+export PETSC_ARCH=linux-debug
 
-# export the following environment variables
-# before executing this script in the jenkins
-# execute shell
-
-config() {
-    ./configure \
-        CFLAGS=$CFLAGS \
-        CXXFLAGS=$CXXFLAGS \
-        FCFLAGS=$FCFLAGS \
-        CC=$MPICC \
-        CXX=$MPICXX \
-        FC=$MPIFC \
-        CPPFLAGS=$CPPFLAGS \
-        --with-hypre=$PETSC_DIR/$PETSC_ARCH \
-        --with-samrai=$SAMRAI_DIR \
-        --with-hdf5=$HDF5_DIR \
-        --with-silo=$SILO_DIR \
-        --with-boost=$BOOST_DIR \
-        --enable-libmesh \
-        --with-libmesh=$LIBMESH_DIR \
-        --with-libmesh-method=$LIBMESH_METHOD \
-        --enable-gsl \
-        --with-gsl=$GSL_DIR \
-        --enable-gtest \
-        --with-gtest=$GTEST_DIR
+build_petsc() {
+    mkdir -p $PETSC_DIR && git clone -b knepley/ibamr https://bitbucket.org/deleeke/petsc $PETSC_DIR
+    cd $PETSC_DIR
+    ./configure --download-openmpi --download-fblaslapack \
+        --CC=$C_COMPILER --CXX=$CXX_COMPILER --FC=$FORTRAN_COMPILER \
+        --with-clanguage=c++ --with-debugging=$DEBUG_OPTION
+    make
 }
 
-config
-make -kj4 lib
-make gtest
+config_ibamr(){
+    cd $IBAMR_DIR
+    ./configure.new \
+    --with-mpi-dir=$PETSC_DIR/$PETSC_ARCH/ \
+    --download-fblaslapack \
+    --download-muparser \
+    --download-samrai \
+    --download-hdf5 \
+    --download-silo \
+    --download-eigen \
+    --download-boost=$BOOST_TARBALL \
+    --boost-headers-only \
+    --download-libmesh \
+    --with-clanguage=c++ \
+    --with-debugging=$DEBUG_OPTION
+}
+
+rm -rf $IBAMR_ARCH
+build_petsc
+config_ibamr
+make all

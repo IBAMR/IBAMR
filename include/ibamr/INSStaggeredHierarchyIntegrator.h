@@ -90,7 +90,7 @@ namespace IBAMR
  * \brief Class INSStaggeredHierarchyIntegrator provides a staggered-grid solver
  * for the incompressible Navier-Stokes equations on an AMR grid hierarchy.
  */
-class INSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC INSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
 public:
     /*!

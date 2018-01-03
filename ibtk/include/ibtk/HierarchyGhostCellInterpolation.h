@@ -40,6 +40,8 @@
 #include <string>
 #include <vector>
 
+#include <petscsys.h>
+
 #include "BoxGeometryFillPattern.h"
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -90,7 +92,7 @@ namespace IBTK
  * from interior values, setting ghost cell values may require both coarsening
  * and refining.
  */
-class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

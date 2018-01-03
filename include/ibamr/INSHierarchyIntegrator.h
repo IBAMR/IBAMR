@@ -80,7 +80,7 @@ namespace IBAMR
  * hierarchy, along with basic data management for variables defined on that
  * hierarchy.
  */
-class INSHierarchyIntegrator : public IBTK::HierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC INSHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
 public:
     /*!

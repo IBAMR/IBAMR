@@ -76,7 +76,7 @@ namespace IBAMR
  * \note Class IBKirchhoffRodForceGen DOES NOT correct for periodic
  * displacements of IB points.
  */
-class IBKirchhoffRodForceGen : public virtual SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC IBKirchhoffRodForceGen : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

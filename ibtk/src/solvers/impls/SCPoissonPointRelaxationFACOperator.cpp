@@ -47,7 +47,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -83,6 +83,7 @@
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -278,7 +279,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "CONSTANT_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
-    d_coarse_solver_type = SCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
+    d_coarse_solver_type = SCPoissonSolverManager::PETSC_LEVEL_SOLVER;
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;

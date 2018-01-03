@@ -78,7 +78,7 @@ namespace IBAMR
  * StaggeredStokesFACPreconditionerStrategy implementing a level relaxation
  * smoother for use as a multigrid preconditioner.
 */
-class StaggeredStokesLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
+class PETSC_VISIBILITY_PUBLIC StaggeredStokesLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
     /*!

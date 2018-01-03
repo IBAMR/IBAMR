@@ -110,7 +110,7 @@ namespace IBAMR
  level solver
  \endverbatim
 */
-class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
+class PETSC_VISIBILITY_PUBLIC StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
 {
 public:
     /*!

@@ -61,7 +61,7 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -95,6 +95,7 @@
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"

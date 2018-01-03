@@ -43,6 +43,7 @@
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -52,7 +53,7 @@ namespace IBTK
  * \brief Class AppInitializer provides functionality to simplify the
  * initialization code in an application code.
  */
-class AppInitializer : public SAMRAI::tbox::DescribedClass
+class PETSC_VISIBILITY_PUBLIC AppInitializer : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

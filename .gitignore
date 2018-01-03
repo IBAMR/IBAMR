@@ -133,6 +133,7 @@ Temporary Items
 *.lo
 *.o
 *.obj
+objs-dbg
 
 # Precompiled Headers
 *.gch
@@ -157,7 +158,15 @@ Temporary Items
 *.exe
 *.out
 *.app
-build
+
+# PETSc stuff
+RDict.db
+RDict.log
 configure.log
 configure.log.bkp
-RDict.log
+base_module.mod
+arch-*
+build
+
+# Python
+*.pyc

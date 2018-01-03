@@ -88,7 +88,7 @@ namespace IBAMR
  * formally second-order accurate, nonlinearly-implicit version of the immersed
  * boundary method.
  */
-class IBImplicitStaggeredHierarchyIntegrator : public IBHierarchyIntegrator
+class PETSC_VISIBILITY_PUBLIC IBImplicitStaggeredHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!

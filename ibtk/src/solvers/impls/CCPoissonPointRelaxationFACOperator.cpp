@@ -52,7 +52,7 @@
 #include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "IBTK_config.h"
+#include "ibamrconf.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -85,6 +85,7 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
@@ -259,7 +260,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method = "CONSERVATIVE_COARSEN";
-    d_coarse_solver_type = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
+    d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
