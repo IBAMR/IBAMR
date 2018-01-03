@@ -68,7 +68,14 @@ PETSC_VISIBILITY_PUBLIC inline std::string enum_to_string(T /*val*/)
 /*!
  * \brief Enumerated type for different multigrid cycle types.
  */
-PETSC_VISIBILITY_PUBLIC enum MGCycleType { F_CYCLE, FMG_CYCLE, V_CYCLE, W_CYCLE, UNKNOWN_MG_CYCLE_TYPE = -1 };
+enum MGCycleType
+{
+    F_CYCLE,
+    FMG_CYCLE,
+    V_CYCLE,
+    W_CYCLE,
+    UNKNOWN_MG_CYCLE_TYPE = -1
+};
 
 template <>
 PETSC_VISIBILITY_PUBLIC inline MGCycleType
@@ -103,7 +110,12 @@ enum_to_string<MGCycleType>(MGCycleType val)
 /*!
  * \brief Enumerated type for different regridding modes.
  */
-PETSC_VISIBILITY_PUBLIC enum RegridMode { STANDARD, AGGRESSIVE, UNKNOWN_REGRID_MODE = -1 };
+enum RegridMode
+{
+    STANDARD,
+    AGGRESSIVE,
+    UNKNOWN_REGRID_MODE = -1
+};
 
 template <>
 PETSC_VISIBILITY_PUBLIC inline RegridMode
@@ -126,7 +138,8 @@ enum_to_string<RegridMode>(RegridMode val)
 /*!
  * \brief Enumerated type for different standard data contexts.
  */
-PETSC_VISIBILITY_PUBLIC enum VariableContextType {
+enum VariableContextType
+{
     CURRENT_DATA,
     NEW_DATA,
     SCRATCH_DATA,

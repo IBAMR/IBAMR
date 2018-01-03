@@ -35,7 +35,7 @@
 #include <utility>
 #include <vector>
 
-#include "eigen3/Eigen/Core"
+#include "Eigen/Core"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"

@@ -37,7 +37,7 @@
 #include <ostream>
 #include <vector>
 
-#include "eigen3/Eigen/Geometry"
+#include "Eigen/Geometry"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -60,7 +60,7 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-#include "eigen3/unsupported/Eigen/MatrixFunctions"
+#include "unsupported/Eigen/MatrixFunctions"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
