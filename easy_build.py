@@ -128,7 +128,7 @@ def execute(command, quiet=QUIET):
 
 get_petsc       = 'mkdir -p $PETSC_DIR && git clone -b maint https://bitbucket.org/petsc/petsc $PETSC_DIR'
 fetch_petsc     = 'mkdir -p $PETSC_DIR && cd $PETSC_DIR && git fetch origin && git pull origin maint'
-configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-fblaslapack ' + petsc_config_options
+configure_petsc = 'cd $PETSC_DIR && ./configure --download-openmpi --download-fblaslapack --download-hypre' + petsc_config_options
 make_petsc      = 'cd $PETSC_DIR && make'
 # NOTE: libmesh breaks when HDF5 is built by PETSc, but works when built by IBAMR.
 configure_ibamr = './configure.new --IBAMR_ARCH=$IBAMR_ARCH --download-muparser --download-silo '
