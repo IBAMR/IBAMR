@@ -29,6 +29,7 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
                                          const int integrator_step,
                                          const double current_time,
                                          const bool initial_time,
+                                         const bool regrid_time,
                                          void* ctx);
 
 /*!
@@ -43,6 +44,7 @@ void callSetFluidViscosityCallbackFunction(int mu_idx,
                                            const int integrator_step,
                                            const double current_time,
                                            const bool initial_time,
+                                           const bool regrid_time,
                                            void* ctx);
 
 class SetFluidProperties
@@ -77,7 +79,8 @@ public:
                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int integrator_step,
                              const double current_time,
-                             const bool initial_time);
+                             const bool initial_time,
+                             const bool regrid_time);
 
     /*!
      * Set the viscosity based on the current level set information
@@ -86,7 +89,8 @@ public:
                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int integrator_step,
                                const double current_time,
-                               const bool initial_time);
+                               const bool initial_time,
+                               const bool regrid_time);
 
     //////////////// PRIVATE /////////////////////////////
 

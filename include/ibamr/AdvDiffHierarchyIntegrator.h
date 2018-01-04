@@ -453,6 +453,7 @@ public:
                                                int integrator_step,
                                                double time,
                                                bool initial_time,
+                                               bool regrid_time,
                                                void* ctx);
 
     /*!

@@ -18,11 +18,12 @@ callSetFluidDensityCallbackFunction(int rho_idx,
                                     const int integrator_step,
                                     const double current_time,
                                     const bool initial_time,
+                                    const bool regrid_time,
                                     void* ctx)
 {
     // Set the density from the level set information
     static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidProperties->setDensityPatchData(rho_idx, hier_math_ops, integrator_step, current_time, initial_time);
+    ptr_SetFluidProperties->setDensityPatchData(rho_idx, hier_math_ops, integrator_step, current_time, initial_time, regrid_time);
 
     return;
 
@@ -34,11 +35,12 @@ callSetFluidViscosityCallbackFunction(int mu_idx,
                                       const int integrator_step,
                                       const double current_time,
                                       const bool initial_time,
+                                      const bool regrid_time,
                                       void* ctx)
 {
     // Set the density from the level set information
     static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidProperties->setViscosityPatchData(mu_idx, hier_math_ops, integrator_step, current_time, initial_time);
+    ptr_SetFluidProperties->setViscosityPatchData(mu_idx, hier_math_ops, integrator_step, current_time, initial_time, regrid_time);
 
     return;
 
@@ -81,7 +83,8 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                                         SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                         const int integrator_step,
                                         const double /*current_time*/,
-                                        const bool initial_time)
+                                        const bool initial_time,
+                                        const bool /*regrid_time*/)
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -141,7 +144,8 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                           const int integrator_step,
                                           const double /*current_time*/,
-                                          const bool initial_time)
+                                          const bool initial_time,
+                                          const bool /*regrid_time*/)
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

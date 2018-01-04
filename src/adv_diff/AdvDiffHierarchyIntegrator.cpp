@@ -868,6 +868,7 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
                                 d_integrator_step,
                                 current_time,
                                 initial_time,
+                                false /*regrid_time*/,
                                 d_reset_rho_fcns_ctx[k]);
         }
     }
@@ -878,8 +879,13 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
         const int mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_fluid_var, getCurrentContext());
         for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
         {
-            d_reset_mu_fcns[k](
-                mu_current_idx, d_hier_math_ops, d_integrator_step, current_time, initial_time, d_reset_mu_fcns_ctx[k]);
+            d_reset_mu_fcns[k](mu_current_idx,
+                               d_hier_math_ops,
+                               d_integrator_step,
+                               current_time,
+                               initial_time,
+                               false /*regrid_time*/,
+                               d_reset_mu_fcns_ctx[k]);
         }
     }
 
@@ -1110,7 +1116,7 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
         ls_reinitializer->initializeLSData(
             ls_current_idx, d_hier_math_ops, d_integrator_step, init_data_time, initial_time);
     }
-
+    
     // Reset fluid density.
     if (d_rho_fluid_var)
     {
@@ -1122,6 +1128,7 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
                                 d_integrator_step,
                                 init_data_time,
                                 initial_time,
+                                true /*regrid_time*/,
                                 d_reset_rho_fcns_ctx[k]);
         }
     }
@@ -1137,6 +1144,7 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
                                d_integrator_step,
                                init_data_time,
                                initial_time,
+                               true /*regrid_time*/,
                                d_reset_mu_fcns_ctx[k]);
         }
     }
