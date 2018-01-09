@@ -205,7 +205,8 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_dir_name("./ConstraintIBMethodDump"),
       d_base_output_filename("ImmersedStructrue"),
       d_rho_ins_idx(-1),
-      d_rho_scratch_idx(-1)
+      d_rho_scratch_idx(-1),
+      d_u_phys_bdry_op(NULL)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
@@ -2466,7 +2467,7 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_ins.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_idx, d_wgt_sc_idx);
 
     u_cib.setToScalar(0.0);
-    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
+    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
 
     if (d_use_momentum_correction)
     {

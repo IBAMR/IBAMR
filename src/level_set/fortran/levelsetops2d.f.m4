@@ -432,12 +432,12 @@ c     Carry out third order relaxation scheme using Gauss Seidel updates
 c     NOTE: this scheme is between between third and fourth
 c     order near the interface and second order everywhere else
 c
-c     Uses second order WENO for spatial discretization with a subcell
+c     Uses second order ENO for spatial discretization with a subcell
 c     fix near the interface
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine relaxationls3rdorder2d(
+      subroutine relaxationls3rdorder2deno(
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -470,7 +470,7 @@ c
       if (dir .eq. 0) then
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorder2deno(U,U_gcw,V,V_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -479,7 +479,7 @@ c
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorder2deno(U,U_gcw,V,V_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -488,7 +488,7 @@ c
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
-              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorder2deno(U,U_gcw,V,V_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -497,7 +497,7 @@ c
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdorder2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorder2deno(U,U_gcw,V,V_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -509,10 +509,10 @@ c
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Carry out single third order sweep
+c     Carry out single third order sweep using ENO stencil
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine evalrelax3rdorder2d(
+      subroutine evalrelax3rdorder2deno(
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -652,6 +652,294 @@ c       Ensure nonzero value
       else
         Dym = (U(i0,i1)-U(i0,i1-1))/hy + hy/two*minmod(Dyy,Dyym)
       endif
+
+      H = HG(Dxp,Dxm,Dyp,Dym,sgn)
+      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
+
+      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out third order relaxation scheme using Gauss Seidel updates
+c     
+c     Uses third order WENO for spatial discretization with a subcell
+c     fix near the interface
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine relaxationls3rdorder2dweno(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     dir)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+      INTEGER dir
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+
+      if (dir .eq. 0) then
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 1) then
+        do i1 = ilower1,iupper1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 2) then
+        do i1 = iupper1,ilower1,-1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 3 )then
+        do i1 = iupper1,ilower1,-1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 i0,i1,dx)
+          enddo
+        enddo
+      endif
+
+      return
+      end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out single third order sweep using WENO
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine evalrelax3rdorder2dweno(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     i0,i1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL minmod, HG
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hxp,hxm
+      REAL    hy,hyp,hym
+      REAL    Dxm,Dxp,Dym,Dyp
+      REAL    Dxc,Dyc
+      REAL    Dxl,Dxr
+      REAL    Dyb,Dyt
+      REAL    rxm,wxm
+      REAL    rxp,wxp
+      REAL    rym,wym
+      REAL    ryp,wyp
+      REAL    h1,h2
+      REAL    Dxx0,Dyy0
+      REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    mach_eps
+
+      hx = dx(0)
+      hy = dx(1)
+      cfl = 0.45d0
+      eps = 1.d-10
+      mach_eps = 1.d-16
+
+      if (V(i0,i1) .eq. zero) then
+         sgn = zero
+      else
+         sgn = sign(one,V(i0,i1))
+      endif
+
+
+c     Compute all the required finite differences
+      Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx) 
+      Dyc  = (U(i0,i1+1) - U(i0,i1-1))/(two*hy)
+      Dxl  = (three*U(i0,i1) - four*U(i0-1,i1) + U(i0-2,i1))
+     &       /(two*hx)
+      Dxr = (-three*U(i0,i1) + four*U(i0+1,i1) - U(i0+2,i1))
+     &      /(two*hx)
+      Dyb  = (three*U(i0,i1) - four*U(i0,i1-1) + U(i0,i1-2))
+     &       /(two*hy)
+      Dyt = (-three*U(i0,i1) + four*U(i0,i1+1) - U(i0,i1+2))
+     &      /(two*hy)
+
+      rxm = (eps + (U(i0,i1) -two*U(i0-1,i1) + U(i0-2,i1))**two)/
+     &     (eps + (U(i0+1,i1) -two*U(i0,i1) + U(i0-1,i1))**two)
+      wxm = one/(one + two*rxm**two) 
+      rxp = (eps + (U(i0+2,i1) -two*U(i0+1,i1) + U(i0,i1))**two)/
+     &     (eps + (U(i0+1,i1) -two*U(i0,i1) + U(i0-1,i1))**two)
+      wxp = one/(one + two*rxp**two)
+
+      rym = (eps + (U(i0,i1) -two*U(i0,i1-1) + U(i0,i1-2))**two)/
+     &     (eps + (U(i0,i1+1) -two*U(i0,i1) + U(i0,i1-1))**two)
+      wym = one/(one + two*rym**two)
+      ryp = (eps + (U(i0,i1+2) -two*U(i0,i1+1) + U(i0,i1))**two)/
+     &     (eps + (U(i0,i1+1) -two*U(i0,i1) + U(i0,i1-1))**two)
+      wyp = one/(one + two*ryp**two)
+ 
+
+c     Set dummy values for hxp,hxm,hyp,hym
+      hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
+
+c     Compute ENO differences with subcell fix
+      if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
+        Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
+     &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
+        diff = V(i0,i1)-V(i0+1,i1)
+        if (abs(Dxx0) .gt. eps) then
+          D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
+     &        -four*V(i0,i1)*V(i0+1,i1)
+          hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
+        else
+          hxp = hx*V(i0,i1)/diff
+        endif
+
+c       Ensure nonzero value 
+        hxp = sign(one,hxp)*dmax1(abs(hxp), mach_eps)
+        
+        h1 = hx; h2 = hxp
+        Dxc = (-U(i0,i1)*h1**2 + 
+     &        (-U(i0-1,i1) + U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+
+        h1 = hxp; h2 = hx - hxp
+        Dxr = (-U(i0+1,i1)*h1**2 + two*(-U(i0,i1))*h1*h2 + 
+     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
+      endif
+
+      if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
+        Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
+     &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
+        diff = V(i0,i1)-V(i0-1,i1)
+        if (abs(Dxx0) .gt. eps) then
+          D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
+     &        -four*V(i0,i1)*V(i0-1,i1)
+          hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
+        else
+          hxm = hx*V(i0,i1)/diff
+        endif
+
+c       Ensure nonzero value 
+        hxm = sign(one,hxm)*dmax1(abs(hxm), mach_eps)
+       
+        h1 = hxm; h2 = hx
+        Dxc = ((-U(i0,i1) + U(i0+1, i1))*h1**2 + 
+     &         (U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+
+        h1 = hx - hxm; h2 = hxm
+        Dxl = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 + 
+     &         U(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2)) 
+      endif
+
+      if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
+        Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
+     &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
+        diff = V(i0,i1)-V(i0,i1+1)
+        if (abs(Dyy0) .gt. eps) then
+          D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
+     &        -four*V(i0,i1)*V(i0,i1+1)
+          hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
+        else
+          hyp = hy*V(i0,i1)/diff
+        endif
+
+c       Ensure nonzero value 
+        hyp = sign(one,hyp)*dmax1(abs(hyp), mach_eps)
+ 
+        h1 = hy; h2 = hyp
+        Dyc = (-U(i0,i1)*h1**2 +
+     &        (-U(i0,i1-1) + U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+
+        h1 = hyp; h2 = hy - hyp
+        Dyt = (-U(i0,i1+1)*h1**2 + two*(-U(i0,i1))*h1*h2 +
+     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+      endif
+
+      if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
+        Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
+     &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
+        diff = V(i0,i1)-V(i0,i1-1)
+        if (abs(Dyy0) .gt. eps) then
+          D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
+     &        -four*V(i0,i1)*V(i0,i1-1)
+          hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
+        else
+          hym = hy*V(i0,i1)/diff
+        endif
+
+c       Ensure nonzero value 
+        hym = sign(one,hym)*dmax1(abs(hym), mach_eps)
+
+        h1 = hym; h2 = hy
+        Dyc = ((-U(i0,i1) + U(i0, i1+1))*h1**2 +
+     &         (U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+
+        h1 = hy - hym; h2 = hym
+        Dyb = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 +
+     &         U(i0,i1-1)*h2**2)/(h1*h2*(h1 + h2))
+      endif
+
+c     Compute first order derivatives
+
+      Dxm = (one - wxm)*Dxc + wxm*Dxl
+      Dxp = (one - wxp)*Dxc + wxp*Dxr
+
+      Dym = (one - wym)*Dyc + wym*Dyb
+      Dyp = (one - wyp)*Dyc + wyp*Dyt
 
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)

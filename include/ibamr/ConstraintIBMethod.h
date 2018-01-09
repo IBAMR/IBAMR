@@ -187,6 +187,15 @@ public:
         return d_center_of_mass_current;
     }
 
+    /*
+     * Set velocity physical boundary options
+     */
+    inline void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
+    {
+        d_u_phys_bdry_op = u_phys_bdry_op;
+        return;
+    }
+
 private:
     /*!
      * \brief Default constructor.
@@ -522,6 +531,9 @@ private:
     std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
     std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+
+    // Velocity boundary operator.
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op;
 };
 } // namespace IBAMR
 
