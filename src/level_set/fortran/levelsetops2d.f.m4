@@ -551,13 +551,11 @@ c
       REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
       REAL    Dxx0,Dyy0
       REAL    H,dt,sgn,cfl,eps,D,diff
-      REAL    mach_eps
 
       hx = dx(0)
       hy = dx(1)
       cfl = 0.45d0
       eps = 1.d-10
-      mach_eps = 1.d-16
 
       if (V(i0,i1) .eq. zero) then
          sgn = zero
@@ -589,8 +587,6 @@ c     Compute ENO differences with subcell fix
           hxp = hx*V(i0,i1)/diff
         endif
 
-c       Ensure nonzero value 
-        hxp = sign(one,hxp)*dmax1(abs(hxp), mach_eps)
         Dxp = (zero-U(i0,i1))/hxp - hxp/two*minmod(Dxx,Dxxp)
       else
         Dxp = (U(i0+1,i1)-U(i0,i1))/hx - hx/two*minmod(Dxx,Dxxp)
@@ -608,8 +604,6 @@ c       Ensure nonzero value
           hxm = hx*V(i0,i1)/diff
         endif
 
-c       Ensure nonzero value 
-        hxm = sign(one,hxm)*dmax1(abs(hxm), mach_eps)
         Dxm = (U(i0,i1)-zero)/hxm + hxm/two*minmod(Dxx,Dxxm)
       else
         Dxm = (U(i0,i1)-U(i0-1,i1))/hx + hx/two*minmod(Dxx,Dxxm)
@@ -627,8 +621,6 @@ c       Ensure nonzero value
           hyp = hy*V(i0,i1)/diff
         endif
 
-c       Ensure nonzero value 
-        hyp = sign(one,hyp)*dmax1(abs(hyp), mach_eps)
         Dyp = (zero-U(i0,i1))/hyp - hyp/two*minmod(Dyy,Dyyp)
       else
         Dyp = (U(i0,i1+1)-U(i0,i1))/hy - hy/two*minmod(Dyy,Dyyp)
@@ -646,8 +638,6 @@ c       Ensure nonzero value
           hym = hy*V(i0,i1)/diff
         endif
 
-c       Ensure nonzero value 
-        hym = sign(one,hym)*dmax1(abs(hym), mach_eps)
         Dym = (U(i0,i1)-zero)/hym + hym/two*minmod(Dyy,Dyym)
       else
         Dym = (U(i0,i1)-U(i0,i1-1))/hy + hy/two*minmod(Dyy,Dyym)
@@ -656,7 +646,9 @@ c       Ensure nonzero value
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
 
-      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      if (dt .gt. zero) then
+        U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      endif
 
       return
       end
