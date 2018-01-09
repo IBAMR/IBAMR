@@ -852,14 +852,12 @@ c
       REAL    Dzz,Dzzp,Dzzm
       REAL    Dxx0,Dyy0,Dzz0
       REAL    H,dt,sgn,cfl,eps,D,diff
-      REAL    mach_eps
 
       hx = dx(0)
       hy = dx(1)
       hz = dx(2)
       cfl = 0.3d0
       eps = 1.d-10
-      mach_eps = 1.d-16
 
       if (V(i0,i1,i2) .eq. zero) then
          sgn = zero
@@ -896,8 +894,6 @@ c     Compute ENO differences with subcell fix
           hxp = hx*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hxp = sign(one,hxp)*dmax1(abs(hxp), mach_eps)
         Dxp = (zero-U(i0,i1,i2))/hxp - hxp/two*minmod(Dxx,Dxxp)
       else
         Dxp = (U(i0+1,i1,i2)-U(i0,i1,i2))/hx - hx/two*minmod(Dxx,Dxxp)
@@ -915,8 +911,6 @@ c       Ensure nonzero value
           hxm = hx*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hxm = sign(one,hxm)*dmax1(abs(hxm), mach_eps)
         Dxm = (U(i0,i1,i2)-zero)/hxm + hxm/two*minmod(Dxx,Dxxm)
       else
         Dxm = (U(i0,i1,i2)-U(i0-1,i1,i2))/hx + hx/two*minmod(Dxx,Dxxm)
@@ -934,8 +928,6 @@ c       Ensure nonzero value
           hyp = hy*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hyp = sign(one,hyp)*dmax1(abs(hyp), mach_eps)
         Dyp = (zero-U(i0,i1,i2))/hyp - hyp/two*minmod(Dyy,Dyyp)
       else
         Dyp = (U(i0,i1+1,i2)-U(i0,i1,i2))/hy - hy/two*minmod(Dyy,Dyyp)
@@ -953,8 +945,6 @@ c       Ensure nonzero value
           hym = hy*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hym = sign(one,hym)*dmax1(abs(hym), mach_eps)
         Dym = (U(i0,i1,i2)-zero)/hym + hym/two*minmod(Dyy,Dyym)
       else
         Dym = (U(i0,i1,i2)-U(i0,i1-1,i2))/hy + hy/two*minmod(Dyy,Dyym)
@@ -972,8 +962,6 @@ c       Ensure nonzero value
           hzp = hz*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hzp = sign(one,hzp)*dmax1(abs(hzp), mach_eps)
         Dzp = (zero-U(i0,i1,i2))/hzp - hzp/two*minmod(Dzz,Dzzp)
       else
         Dzp = (U(i0,i1,i2+1)-U(i0,i1,i2))/hz - hz/two*minmod(Dzz,Dzzp)
@@ -991,8 +979,6 @@ c       Ensure nonzero value
           hzm = hz*V(i0,i1,i2)/diff
         endif
 
-c       Ensure nonzero value 
-        hzm = sign(one,hzm)*dmax1(abs(hzm), mach_eps)
         Dzm = (U(i0,i1,i2)-zero)/hzm + hzm/two*minmod(Dzz,Dzzm)
       else
         Dzm = (U(i0,i1,i2)-U(i0,i1,i2-1))/hz + hz/two*minmod(Dzz,Dzzm)
@@ -1001,7 +987,9 @@ c       Ensure nonzero value
       H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
       dt = cfl*dmin1(hx,hy,hz,hxp,hxm,hyp,hym,hzp,hzm)
 
-      U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+      if (dt .gt. zero) then
+        U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+      endif
 
       return
       end
