@@ -695,36 +695,36 @@ c
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
               call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,dx)
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
           enddo
         enddo
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
               call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,dx)
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
           enddo
         enddo
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
               call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,dx)
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
           enddo
         enddo
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
               call evalrelax3rdorder2dweno(U,U_gcw,V,V_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,dx)
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
           enddo
         enddo
       endif
@@ -783,13 +783,11 @@ c
       REAL    h1,h2
       REAL    Dxx0,Dyy0
       REAL    H,dt,sgn,cfl,eps,D,diff
-      REAL    mach_eps
 
       hx = dx(0)
       hy = dx(1)
       cfl = 0.45d0
       eps = 1.d-10
-      mach_eps = 1.d-16
 
       if (V(i0,i1) .eq. zero) then
          sgn = zero
@@ -840,9 +838,6 @@ c     Compute ENO differences with subcell fix
         else
           hxp = hx*V(i0,i1)/diff
         endif
-
-c       Ensure nonzero value 
-        hxp = sign(one,hxp)*dmax1(abs(hxp), mach_eps)
         
         h1 = hx; h2 = hxp
         Dxc = (-U(i0,i1)*h1**2 + 
@@ -864,9 +859,6 @@ c       Ensure nonzero value
         else
           hxm = hx*V(i0,i1)/diff
         endif
-
-c       Ensure nonzero value 
-        hxm = sign(one,hxm)*dmax1(abs(hxm), mach_eps)
        
         h1 = hxm; h2 = hx
         Dxc = ((-U(i0,i1) + U(i0+1, i1))*h1**2 + 
@@ -888,9 +880,6 @@ c       Ensure nonzero value
         else
           hyp = hy*V(i0,i1)/diff
         endif
-
-c       Ensure nonzero value 
-        hyp = sign(one,hyp)*dmax1(abs(hyp), mach_eps)
  
         h1 = hy; h2 = hyp
         Dyc = (-U(i0,i1)*h1**2 +
@@ -913,9 +902,6 @@ c       Ensure nonzero value
           hym = hy*V(i0,i1)/diff
         endif
 
-c       Ensure nonzero value 
-        hym = sign(one,hym)*dmax1(abs(hym), mach_eps)
-
         h1 = hym; h2 = hy
         Dyc = ((-U(i0,i1) + U(i0, i1+1))*h1**2 +
      &         (U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
@@ -936,7 +922,9 @@ c     Compute first order derivatives
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
 
-      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      if (dt .gt. zero) then
+        U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      endif
 
       return
       end

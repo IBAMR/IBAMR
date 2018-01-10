@@ -286,7 +286,7 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
         double E_domain = 0.0;
         double E_interface = 0.0;
         int num_interface_pts = 0;
-        // Compute L1 Norm for specific regions (only in serial)
+        // Compute L1 Norm for specific regions
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);

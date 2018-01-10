@@ -36,7 +36,7 @@ AdvectionVelocityFunction {
 
 LevelSet {
     order              = "THIRD_ORDER"
-    sweep_abs_tol      = 1e-5
+    abs_tol            = 1e-5
     max_iterations     = 2*N*REF_RATIO^(MAX_LEVELS - 1)
     physical_bdry_wall = FALSE
     enable_logging     = TRUE
