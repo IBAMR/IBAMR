@@ -8278,7 +8278,6 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double> > dst1,
                    << std::endl);
     }
 
-    const int E_diag_depth = dst1->getDepth();
     const int E_offDiag_depth = dst2->getDepth();
 
     if (

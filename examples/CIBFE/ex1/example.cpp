@@ -626,7 +626,7 @@ run_example(int argc, char* argv[])
         pout << "\n\nWriting mobility matrix file in MATLAB format...\n\n";
         PetscViewer matlab_viewer;
         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "mobility_mat.dat", FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        PetscViewerPushFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
         PetscObjectSetName((PetscObject)MM, "MobilityMatrix");
         MatView(MM, matlab_viewer);
         PetscViewerDestroy(&matlab_viewer);
@@ -639,7 +639,7 @@ run_example(int argc, char* argv[])
         // Output mass matrix for MATLAB viewing.
         pout << "\n\nWriting mass matrix file in MATLAB format...\n\n";
         PetscViewerBinaryOpen(PETSC_COMM_WORLD, "mass_mat.dat", FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        PetscViewerPushFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
         PetscObjectSetName((PetscObject)mm, "MassMatrix");
         MatView(mm, matlab_viewer);
         PetscViewerDestroy(&matlab_viewer);
