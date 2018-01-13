@@ -780,7 +780,7 @@ c
       REAL    rxp,wxp
       REAL    rym,wym
       REAL    ryp,wyp
-      REAL    h1,h2
+      REAL    h1,h2,hmin
       REAL    Dxx0,Dyy0
       REAL    H,dt,sgn,cfl,eps,D,diff
 
@@ -788,12 +788,14 @@ c
       hy = dx(1)
       cfl = 0.45d0
       eps = 1.d-10
+      hmin = dmin1(hx,hy)
 
-      if (V(i0,i1) .eq. zero) then
-         sgn = zero
-      else
-         sgn = sign(one,V(i0,i1))
-      endif
+      sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
+c      if (V(i0,i1) .eq. zero) then
+c         sgn = zero
+c      else
+c         sgn = sign(one,V(i0,i1))
+c      endif
 
 
 c     Compute all the required finite differences
@@ -845,7 +847,11 @@ c     Compute ENO differences with subcell fix
 
         h1 = hxp; h2 = hx - hxp
         Dxr = (-U(i0+1,i1)*h1**2 + two*(-U(i0,i1))*h1*h2 + 
-     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
+     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+        
+        if (abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+           sgn = zero
+        endif  
       endif
 
       if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
@@ -866,7 +872,11 @@ c     Compute ENO differences with subcell fix
 
         h1 = hx - hxm; h2 = hxm
         Dxl = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 + 
-     &         U(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2)) 
+     &         U(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2))
+        
+        if (abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+           sgn = zero
+        endif 
       endif
 
       if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
@@ -888,6 +898,10 @@ c     Compute ENO differences with subcell fix
         h1 = hyp; h2 = hy - hyp
         Dyt = (-U(i0,i1+1)*h1**2 + two*(-U(i0,i1))*h1*h2 +
      &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
+
+        if (abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+           sgn = zero
+        endif 
       endif
 
       if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
@@ -909,6 +923,10 @@ c     Compute ENO differences with subcell fix
         h1 = hy - hym; h2 = hym
         Dyb = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 +
      &         U(i0,i1-1)*h2**2)/(h1*h2*(h1 + h2))
+
+        if (abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+           sgn = zero
+        endif    
       endif
 
 c     Compute first order derivatives
@@ -922,9 +940,9 @@ c     Compute first order derivatives
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
 
-      if (dt .gt. zero) then
+c     if (dt .gt. zero) then
         U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
-      endif
+c      endif
 
       return
       end
