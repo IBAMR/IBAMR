@@ -791,12 +791,6 @@ c
       hmin = dmin1(hx,hy)
 
       sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
-c      if (V(i0,i1) .eq. zero) then
-c         sgn = zero
-c      else
-c         sgn = sign(one,V(i0,i1))
-c      endif
-
 
 c     Compute all the required finite differences
       Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx) 
@@ -940,9 +934,7 @@ c     Compute first order derivatives
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
 
-c     if (dt .gt. zero) then
-        U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
-c      endif
+      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
 
       return
       end
