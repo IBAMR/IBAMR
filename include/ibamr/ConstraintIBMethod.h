@@ -196,6 +196,25 @@ public:
         return;
     }
 
+    /*
+     * Set the volume element for each Lagrangian node for each individual structure
+     */
+    inline void setVolumeElement(double vol_element, int struct_no)
+    {
+        d_vol_element[struct_no] = vol_element;
+        d_vol_element_is_set[struct_no] = true;
+        return;
+    }
+
+    /*
+     * Set the volume element for each Lagrangian node for all the structures
+     */
+    inline void setVolumeElement(std::vector<double> vol_element)
+    {
+        d_vol_element = vol_element;
+        d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
+    }
+
 private:
     /*!
      * \brief Default constructor.
@@ -381,6 +400,11 @@ private:
      * Volume element associated with material points.
      */
     std::vector<double> d_vol_element;
+
+    /*
+     * Whether or not the volume has been set for the material structure
+     */
+    std::vector<bool> d_vol_element_is_set;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?

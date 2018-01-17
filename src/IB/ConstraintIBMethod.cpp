@@ -170,6 +170,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
       d_FuRMoRP_current_time(0.0),
       d_FuRMoRP_new_time(0.0),
       d_vol_element(d_no_structures, 0.0),
+      d_vol_element_is_set(d_no_structures, false),
       d_needs_div_free_projection(false),
       d_rigid_trans_vel_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_rigid_trans_vel_new(d_no_structures, std::vector<double>(3, 0.0)),
@@ -1372,6 +1373,7 @@ void
 ConstraintIBMethod::calculateVolumeElement()
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
+    std::vector<double> vol_structures(d_no_structures, 0.0);
 
     // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1408,6 +1410,13 @@ ConstraintIBMethod::calculateVolumeElement()
         const size_t structs_on_this_ln = structIDs.size();
         for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
+            // If the volume element has already been set, then skip the volume computation
+            if (d_vol_element_is_set[struct_no])
+            {
+                tbox::plog << "Skipping volume element computation for structure no. " << struct_no << std::endl;
+                tbox::pout << "Skipping volume element computation for structure no. " << struct_no << std::endl;
+                continue;
+            }
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
@@ -1450,7 +1459,7 @@ ConstraintIBMethod::calculateVolumeElement()
 
                 for (CellData<NDIM, int>::Iterator it(patch_box); it; it++)
                 {
-                    if ((*vol_cc_scratch_idx_data)(*it)) d_vol_element[location_struct_handle] += patch_cell_vol;
+                    if ((*vol_cc_scratch_idx_data)(*it)) vol_structures[location_struct_handle] += patch_cell_vol;
 
                 } // on the same patch
                 vol_cc_scratch_idx_data->fill(0, patch_box, 0);
@@ -1459,14 +1468,23 @@ ConstraintIBMethod::calculateVolumeElement()
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
-    SAMRAI_MPI::sumReduction(&d_vol_element[0], d_no_structures);
-    std::vector<double> vol_structures = d_vol_element;
+    SAMRAI_MPI::sumReduction(&vol_structures[0], d_no_structures);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[struct_no];
         const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-        d_vol_element[struct_no] /= struct_param.getTotalNodes();
+
+        // If the volume element has already been set, then no need to compute it
+        if (d_vol_element_is_set[struct_no])
+        {
+            vol_structures[struct_no] = struct_param.getTotalNodes() * d_vol_element[struct_no];
+        }
+        else
+        {
+            d_vol_element[struct_no] = vol_structures[struct_no]/struct_param.getTotalNodes();
+            d_vol_element_is_set[struct_no] = true;
+        }
 
         tbox::plog << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
