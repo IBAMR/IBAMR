@@ -211,6 +211,9 @@ public:
      */
     inline void setVolumeElement(std::vector<double> vol_element)
     {
+#if !defined(NDEBUG)
+        TBOX_ASSERT(vol_element.size() == ((size_t) d_no_structures)) ;
+#endif
         d_vol_element = vol_element;
         d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
     }
