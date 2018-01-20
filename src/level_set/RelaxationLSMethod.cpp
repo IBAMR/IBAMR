@@ -45,12 +45,20 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder2d, RELAXATIONLS1STORDER2D)
-#define RELAXATION_LS_3RD_ORDER_FC IBAMR_FC_FUNC(relaxationls3rdorder2dweno, RELAXATIONLS3RDORDER2DWENO)
+#define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno2d, RELAXATIONLS3RDORDERENO2D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno2d, GODUNOVHAMILTONIANENO2D)
+#define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno2d, RELAXATIONLS3RDORDERWENO2D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno2d, GODUNOVHAMILTONIANWENO2D)
+#define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint2d, PROJECTLSMASSCONSTRAINT2D)
 #endif
 
 #if (NDIM == 3)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder3d, RELAXATIONLS1STORDER3D)
-#define RELAXATION_LS_3RD_ORDER_FC IBAMR_FC_FUNC(relaxationls3rdorder3d, RELAXATIONLS3RDORDER3D)
+#define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno3d, RELAXATIONLS3RDORDERENO3D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno3d, GODUNOVHAMILTONIANENO3D)
+#define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno3d, RELAXATIONLS3RDORDERWENO3D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno3d, GODUNOVHAMILTONIANWENO3D)
+#define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint3d, PROJECTLSMASSCONSTRAINT3D)
 #endif
 
 extern "C" {
@@ -69,20 +77,81 @@ void RELAXATION_LS_1ST_ORDER_FC(double* U,
                                 const double* dx,
                                 const int& dir);
 
-void RELAXATION_LS_3RD_ORDER_FC(double* U,
-                                const int& U_gcw,
-                                const double* V,
-                                const int& V_gcw,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
+void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
+                                    const int& U_gcw,
+                                    const double* V,
+                                    const int& V_gcw,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
 #if (NDIM == 3)
-                                const int& ilower2,
-                                const int& iupper2,
+                                    const int& ilower2,
+                                    const int& iupper2,
 #endif
-                                const double* dx,
-                                const int& dir);
+                                    const double* dx,
+                                    const int& dir);
+
+void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
+                                          const int& U_gcw,
+                                          const double* V,
+                                          const int& V_gcw,
+                                          const int& ilower0,
+                                          const int& iupper0,
+                                          const int& ilower1,
+                                          const int& iupper1,
+#if (NDIM == 3)
+                                          const int& ilower2,
+                                          const int& iupper2,
+#endif
+                                          const double* dx);
+
+void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
+                                     const int& U_gcw,
+                                     const double* V,
+                                     const int& V_gcw,
+                                     const int& ilower0,
+                                     const int& iupper0,
+                                     const int& ilower1,
+                                     const int& iupper1,
+#if (NDIM == 3)
+                                     const int& ilower2,
+                                     const int& iupper2,
+#endif
+                                     const double* dx,
+                                     const int& dir);
+
+void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
+                                           const int& U_gcw,
+                                           const double* V,
+                                           const int& V_gcw,
+                                           const int& ilower0,
+                                           const int& iupper0,
+                                           const int& ilower1,
+                                           const int& iupper1,
+#if (NDIM == 3)
+                                           const int& ilower2,
+                                           const int& iupper2,
+#endif
+                                           const double* dx);
+
+void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
+                                   const int& U_gcw,
+                                   const double* C,
+                                   const int& C_gcw,
+                                   const double* V,
+                                   const int& V_gcw,
+                                   const double* H,
+                                   const int& H_gcw,
+                                   const int& ilower0,
+                                   const int& iupper0,
+                                   const int& ilower1,
+                                   const int& iupper1,
+#if (NDIM == 3)
+                                   const int& ilower2,
+                                   const int& iupper2,
+#endif
+                                   const double* dx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -97,10 +166,11 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     : LSInitStrategy(object_name, register_for_restart)
 {
     // Some default values.
-    d_ls_order = FIRST_ORDER_LS;
+    d_ls_order = THIRD_ORDER_ENO_LS;
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
+    d_apply_mass_constraint = true;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -122,9 +192,17 @@ RelaxationLSMethod::initializeLSData(int D_idx,
                                      double time,
                                      bool initial_time)
 {
-    bool initialize_ls =
+    const bool initialize_ls =
         d_reinitialize_ls || initial_time || (d_reinit_interval && integrator_step % d_reinit_interval == 0);
     if (!initialize_ls) return;
+
+    if (d_apply_mass_constraint && initial_time)
+    {
+        TBOX_WARNING(d_object_name << "::initializeLSData():\n"
+                                   << " Mass constraint is automatically turned off for initial hierarchy time"
+                                   << std::endl);
+    }
+    const bool constrain_ls_mass = (d_apply_mass_constraint && !initial_time);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -143,9 +221,13 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     IntVector<NDIM> cell_ghosts;
     if (d_ls_order == FIRST_ORDER_LS)
     {
+        TBOX_WARNING(d_object_name << "::initializeLSData():\n"
+                                   << " First order relxation is known to cause significant interface volume loss \n"
+                                   << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO."
+                                   << std::endl);
         cell_ghosts = 1;
     }
-    else if (d_ls_order == THIRD_ORDER_LS)
+    else if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
     {
         cell_ghosts = 2;
     }
@@ -159,14 +241,20 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::ITER"), cell_ghosts);
     const int D_init_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::INIT"), cell_ghosts);
+    const int D_copy_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::COPY"), cell_ghosts);
+    const int H_init_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_INIT"), cell_ghosts);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_scratch_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_iter_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_init_idx, time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(D_copy_idx, time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(H_init_idx, time);
     }
 
-    // First, fill cells with some large positive/negative values
+    // First, fill cells with some positive/negative values
     // away from the interface and actual distance value near the interface.
     for (unsigned k = 0; k < d_locate_interface_fcns.size(); ++k)
     {
@@ -177,7 +265,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
+    Pointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
+    InterpolationTransactionComponent H_transcation(
+        H_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, NULL);
+    Pointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out relaxation
@@ -185,18 +276,35 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    // Fill ghost cells for scratch data
-    fill_op->initializeOperatorState(D_transaction, hierarchy);
-    fill_op->fillData(time);
+    // Initialize operator states
+    D_fill_op->initializeOperatorState(D_transaction, hierarchy);
+    H_fill_op->initializeOperatorState(H_transcation, hierarchy);
 
     // Copy initial condition, including ghost cells
+    D_fill_op->fillData(time);
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
+        // Refill ghost data and relax
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
-        fill_op->fillData(time);
+        D_fill_op->fillData(time);
         relax(hier_math_ops, D_scratch_idx, D_init_idx, outer_iter);
+
+        if (constrain_ls_mass)
+        {
+            // First compute |grad phi_0|
+            compute_initial_hamiltonian(hier_math_ops, H_init_idx, D_init_idx);
+
+            // Next, fill its ghost cells
+            H_fill_op->fillData(time);
+
+            // Copy D_scratch into D_copy
+            hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx, /*interior_only*/ false);
+
+            // Finally, apply the constraint
+            apply_mass_constraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
+        }
 
         // Compute error
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_scratch_idx);
@@ -236,16 +344,27 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_init_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(D_copy_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(H_init_idx);
     }
     var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
     var_db->removePatchDataIndex(D_init_idx);
+    var_db->removePatchDataIndex(D_copy_idx);
+    var_db->removePatchDataIndex(H_init_idx);
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
 
     return;
 } // initializeLSData
+
+void
+RelaxationLSMethod::setApplyMassConstraint(bool apply_mass_constraint)
+{
+    d_apply_mass_constraint = apply_mass_constraint;
+    return;
+} // setApplyMassConstraint
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -293,7 +412,7 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
         TBOX_ASSERT(D_ghosts >= 1);
         TBOX_ASSERT(P_ghosts >= 1);
     }
-    if (d_ls_order == THIRD_ORDER_LS)
+    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
     {
         TBOX_ASSERT(D_ghosts >= 2);
         TBOX_ASSERT(P_ghosts >= 2);
@@ -325,22 +444,39 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
                                    dx,
                                    dir);
     }
-    else if (d_ls_order == THIRD_ORDER_LS)
+    else if (d_ls_order == THIRD_ORDER_ENO_LS)
     {
-        RELAXATION_LS_3RD_ORDER_FC(D,
-                                   D_ghosts,
-                                   P,
-                                   P_ghosts,
-                                   patch_box.lower(0),
-                                   patch_box.upper(0),
-                                   patch_box.lower(1),
-                                   patch_box.upper(1),
+        RELAXATION_LS_3RD_ORDER_ENO_FC(D,
+                                       D_ghosts,
+                                       P,
+                                       P_ghosts,
+                                       patch_box.lower(0),
+                                       patch_box.upper(0),
+                                       patch_box.lower(1),
+                                       patch_box.upper(1),
 #if (NDIM == 3)
-                                   patch_box.lower(2),
-                                   patch_box.upper(2),
+                                       patch_box.lower(2),
+                                       patch_box.upper(2),
 #endif
-                                   dx,
-                                   dir);
+                                       dx,
+                                       dir);
+    }
+    else if (d_ls_order == THIRD_ORDER_WENO_LS)
+    {
+        RELAXATION_LS_3RD_ORDER_WENO_FC(D,
+                                        D_ghosts,
+                                        P,
+                                        P_ghosts,
+                                        patch_box.lower(0),
+                                        patch_box.upper(0),
+                                        patch_box.lower(1),
+                                        patch_box.upper(1),
+#if (NDIM == 3)
+                                        patch_box.lower(2),
+                                        patch_box.upper(2),
+#endif
+                                        dx,
+                                        dir);
     }
     else
     {
@@ -351,9 +487,188 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 } // relax
 
 void
+RelaxationLSMethod::compute_initial_hamiltonian(Pointer<HierarchyMathOps> hier_math_ops,
+                                                int ham_init_idx,
+                                                int dist_init_idx) const
+{
+    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
+            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            compute_initial_hamiltonian(ham_init_data, dist_init_data, patch);
+        }
+    }
+    return;
+
+} // compute_initial_hamiltonian
+
+void
+RelaxationLSMethod::compute_initial_hamiltonian(Pointer<CellData<NDIM, double> > ham_init_data,
+                                                const Pointer<CellData<NDIM, double> > dist_init_data,
+                                                const Pointer<Patch<NDIM> > patch) const
+{
+    double* const H = ham_init_data->getPointer(0);
+    const double* const P = dist_init_data->getPointer(0);
+    const int H_ghosts = (ham_init_data->getGhostCellWidth()).max();
+    const int P_ghosts = (dist_init_data->getGhostCellWidth()).max();
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ham_init_data->getDepth() == 1);
+    TBOX_ASSERT(dist_init_data->getDepth() == 1);
+    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
+    {
+        TBOX_ASSERT(H_ghosts >= 2);
+        TBOX_ASSERT(P_ghosts >= 2);
+    }
+#endif
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    if (d_ls_order == THIRD_ORDER_ENO_LS)
+    {
+        GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(H,
+                                             H_ghosts,
+                                             P,
+                                             P_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
+#if (NDIM == 3)
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
+#endif
+                                             dx);
+    }
+    else if (d_ls_order == THIRD_ORDER_WENO_LS)
+    {
+        GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(H,
+                                              H_ghosts,
+                                              P,
+                                              P_ghosts,
+                                              patch_box.lower(0),
+                                              patch_box.upper(0),
+                                              patch_box.lower(1),
+                                              patch_box.upper(1),
+#if (NDIM == 3)
+                                              patch_box.lower(2),
+                                              patch_box.upper(2),
+#endif
+                                              dx);
+    }
+    else
+    {
+        TBOX_ERROR("RelaxationLSMethod does not support mass constraint for " << enum_to_string(d_ls_order)
+                                                                              << std::endl);
+    }
+
+    return;
+} // compute_initial_hamiltonian
+
+void
+RelaxationLSMethod::apply_mass_constraint(Pointer<HierarchyMathOps> hier_math_ops,
+                                          int dist_idx,
+                                          int dist_copy_idx,
+                                          int dist_init_idx,
+                                          int ham_init_idx) const
+{
+    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+            const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
+            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+            const Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
+            apply_mass_constraint(dist_data, dist_copy_data, dist_init_data, ham_init_data, patch);
+        }
+    }
+    return;
+
+} // apply_mass_constraint
+
+void
+RelaxationLSMethod::apply_mass_constraint(Pointer<CellData<NDIM, double> > dist_data,
+                                          const Pointer<CellData<NDIM, double> > dist_copy_data,
+                                          const Pointer<CellData<NDIM, double> > dist_init_data,
+                                          const Pointer<CellData<NDIM, double> > ham_init_data,
+                                          const Pointer<Patch<NDIM> > patch) const
+{
+    double* const U = dist_data->getPointer(0);
+    const double* const C = dist_copy_data->getPointer(0);
+    const double* const V = dist_init_data->getPointer(0);
+    const double* const H = ham_init_data->getPointer(0);
+    const int U_ghosts = (dist_data->getGhostCellWidth()).max();
+    const int C_ghosts = (dist_copy_data->getGhostCellWidth()).max();
+    const int V_ghosts = (dist_init_data->getGhostCellWidth()).max();
+    const int H_ghosts = (ham_init_data->getGhostCellWidth()).max();
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(dist_data->getDepth() == 1);
+    TBOX_ASSERT(dist_copy_data->getDepth() == 1);
+    TBOX_ASSERT(ham_init_data->getDepth() == 1);
+    TBOX_ASSERT(dist_init_data->getDepth() == 1);
+    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
+    {
+        TBOX_ASSERT(U_ghosts >= 2);
+        TBOX_ASSERT(C_ghosts >= 2);
+        TBOX_ASSERT(H_ghosts >= 2);
+    }
+#endif
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
+    {
+        PROJECT_LS_MASS_CONSTRAINT_FC(U,
+                                      U_ghosts,
+                                      C,
+                                      C_ghosts,
+                                      V,
+                                      V_ghosts,
+                                      H,
+                                      H_ghosts,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
+#if (NDIM == 3)
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
+#endif
+                                      dx);
+    }
+    else
+    {
+        TBOX_ERROR("RelaxationLSMethod does not support mass constraint for " << enum_to_string(d_ls_order)
+                                                                              << std::endl);
+    }
+
+    return;
+} // apply_mass_constraint
+
+void
 RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
 {
-    std::string ls_order = "FIRST_ORDER";
+    std::string ls_order = "THIRD_ORDER_ENO";
     ls_order = input_db->getStringWithDefault("order", ls_order);
     d_ls_order = string_to_enum<LevelSetOrder>(ls_order);
 
@@ -365,6 +680,8 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
     d_reinit_interval = input_db->getIntegerWithDefault("reinit_interval", d_reinit_interval);
 
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+
+    d_apply_mass_constraint = input_db->getBoolWithDefault("apply_mass_constraint", d_apply_mass_constraint);
 
     return;
 } // getFromInput
