@@ -284,6 +284,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     D_fill_op->fillData(time);
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
+    // Compute and store |grad phi_0| to apply the mass constraint
+    computeInitialHamiltonian(hier_math_ops, H_init_idx, D_init_idx);
+    H_fill_op->fillData(time);
+
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         // Refill ghost data and relax
@@ -293,17 +297,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
         if (constrain_ls_mass)
         {
-            // First compute |grad phi_0|
-            compute_initial_hamiltonian(hier_math_ops, H_init_idx, D_init_idx);
-
-            // Next, fill its ghost cells
-            H_fill_op->fillData(time);
-
-            // Copy D_scratch into D_copy
             hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx, /*interior_only*/ false);
-
-            // Finally, apply the constraint
-            apply_mass_constraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
+            applyMassConstraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
         }
 
         // Compute error
@@ -487,9 +482,9 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 } // relax
 
 void
-RelaxationLSMethod::compute_initial_hamiltonian(Pointer<HierarchyMathOps> hier_math_ops,
-                                                int ham_init_idx,
-                                                int dist_init_idx) const
+RelaxationLSMethod::computeInitialHamiltonian(Pointer<HierarchyMathOps> hier_math_ops,
+                                              int ham_init_idx,
+                                              int dist_init_idx) const
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -503,17 +498,17 @@ RelaxationLSMethod::compute_initial_hamiltonian(Pointer<HierarchyMathOps> hier_m
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
             const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-            compute_initial_hamiltonian(ham_init_data, dist_init_data, patch);
+            computeInitialHamiltonian(ham_init_data, dist_init_data, patch);
         }
     }
     return;
 
-} // compute_initial_hamiltonian
+} // computeInitialHamiltonian
 
 void
-RelaxationLSMethod::compute_initial_hamiltonian(Pointer<CellData<NDIM, double> > ham_init_data,
-                                                const Pointer<CellData<NDIM, double> > dist_init_data,
-                                                const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > ham_init_data,
+                                              const Pointer<CellData<NDIM, double> > dist_init_data,
+                                              const Pointer<Patch<NDIM> > patch) const
 {
     double* const H = ham_init_data->getPointer(0);
     const double* const P = dist_init_data->getPointer(0);
@@ -573,14 +568,14 @@ RelaxationLSMethod::compute_initial_hamiltonian(Pointer<CellData<NDIM, double> >
     }
 
     return;
-} // compute_initial_hamiltonian
+} // computeInitialHamiltonian
 
 void
-RelaxationLSMethod::apply_mass_constraint(Pointer<HierarchyMathOps> hier_math_ops,
-                                          int dist_idx,
-                                          int dist_copy_idx,
-                                          int dist_init_idx,
-                                          int ham_init_idx) const
+RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
+                                        int dist_idx,
+                                        int dist_copy_idx,
+                                        int dist_init_idx,
+                                        int ham_init_idx) const
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -596,7 +591,7 @@ RelaxationLSMethod::apply_mass_constraint(Pointer<HierarchyMathOps> hier_math_op
             const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
             const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
             const Pointer<CellData<NDIM, double> > ham_init_data = patch->getPatchData(ham_init_idx);
-            apply_mass_constraint(dist_data, dist_copy_data, dist_init_data, ham_init_data, patch);
+            applyMassConstraint(dist_data, dist_copy_data, dist_init_data, ham_init_data, patch);
         }
     }
     return;
@@ -604,11 +599,11 @@ RelaxationLSMethod::apply_mass_constraint(Pointer<HierarchyMathOps> hier_math_op
 } // apply_mass_constraint
 
 void
-RelaxationLSMethod::apply_mass_constraint(Pointer<CellData<NDIM, double> > dist_data,
-                                          const Pointer<CellData<NDIM, double> > dist_copy_data,
-                                          const Pointer<CellData<NDIM, double> > dist_init_data,
-                                          const Pointer<CellData<NDIM, double> > ham_init_data,
-                                          const Pointer<Patch<NDIM> > patch) const
+RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_data,
+                                        const Pointer<CellData<NDIM, double> > dist_copy_data,
+                                        const Pointer<CellData<NDIM, double> > dist_init_data,
+                                        const Pointer<CellData<NDIM, double> > ham_init_data,
+                                        const Pointer<Patch<NDIM> > patch) const
 {
     double* const U = dist_data->getPointer(0);
     const double* const C = dist_copy_data->getPointer(0);

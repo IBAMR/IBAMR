@@ -70,12 +70,15 @@ namespace IBAMR
  * to the Eikonal equation \f$ |\nabla Q | = 1 \f$. The solution of the Eikonal equation
  * produces the signed distance away from an interface.
  *
- * An optional mass constraint can be applied to certain LS schemes by first computing an intermediate
- * \f$\tilde{Q}\f$ and projecting in the following way:
+ * An optional mass constraint can be applied to certain high-order LS schemes by
+ * first computing an intermediate \f$\tilde{Q}\f$ and projecting in the following way:
+
  * \f$Q = \tilde{Q} + \lambda_{ij}H'(Q^0)|\nabla Q^0|\f$.
- * This greatly improves the volume conservation of the interface while still retaining the order of accuracy
- * and signed distance property. The mass conservation constraint assumes that \f$Q^0\f$ is already close to a
- * signed distance function and is hence, by default, disabled at initial time.
+
+ * This greatly improves the volume conservation of the interface while still
+ * retaining the order of accuracy and signed distance property. The mass conservation
+ * constraint assumes that \f$Q^0\f$ is already close to a signed distance function and
+ * is hence, by default, disabled at initial time.
  *
  *
  * References
@@ -139,34 +142,34 @@ private:
     /*!
      * \brief Compute the Hamiltonian of the indicator field over the hierarchy
      */
-    void compute_initial_hamiltonian(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                     int ham_init_idx,
-                                     int dist_init_idx) const;
+    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                   int ham_init_idx,
+                                   int dist_init_idx) const;
 
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void compute_initial_hamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
+                                   const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+                                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Apply the mass constraint over the hierarchy
      */
-    void apply_mass_constraint(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                               int dist_idx,
-                               int dist_copy_idx,
-                               int dist_init_idx,
-                               int ham_init_idx) const;
+    void applyMassConstraint(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                             int dist_idx,
+                             int dist_copy_idx,
+                             int dist_init_idx,
+                             int ham_init_idx) const;
 
     /*!
      * \brief Apply the mass constraint over a patch
      */
-    void apply_mass_constraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
-                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * Read input values from a given database.
