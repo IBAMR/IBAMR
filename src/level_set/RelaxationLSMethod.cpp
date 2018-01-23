@@ -302,6 +302,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
         if (constrain_ls_mass)
         {
+            D_fill_op->fillData(time);
             hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx, /*interior_only*/ false);
             applyMassConstraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
         }
