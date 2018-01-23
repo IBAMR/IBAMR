@@ -90,7 +90,8 @@ void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
                                     const int& iupper2,
 #endif
                                     const double* dx,
-                                    const int& dir);
+                                    const int& dir,
+                                    const bool& use_subcell);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
                                           const int& U_gcw,
@@ -104,7 +105,8 @@ void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
                                           const int& ilower2,
                                           const int& iupper2,
 #endif
-                                          const double* dx);
+                                          const double* dx,
+                                          const bool& use_subcell);
 
 void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
                                      const int& U_gcw,
@@ -119,7 +121,8 @@ void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
                                      const int& iupper2,
 #endif
                                      const double* dx,
-                                     const int& dir);
+                                     const int& dir,
+                                     const bool& use_subcell);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
                                            const int& U_gcw,
@@ -133,7 +136,8 @@ void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
                                            const int& ilower2,
                                            const int& iupper2,
 #endif
-                                           const double* dx);
+                                           const double* dx,
+                                           const bool& use_subcell);
 
 void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
                                    const int& U_gcw,
@@ -171,6 +175,7 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_abs_tol = 1e-5;
     d_enable_logging = false;
     d_apply_mass_constraint = true;
+    d_apply_subcell_fix = false;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -361,6 +366,13 @@ RelaxationLSMethod::setApplyMassConstraint(bool apply_mass_constraint)
     return;
 } // setApplyMassConstraint
 
+void
+RelaxationLSMethod::setApplySubcellFix(bool apply_subcell_fix)
+{
+    d_apply_subcell_fix = apply_subcell_fix;
+    return;
+} // setApplySubcellFix
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -454,7 +466,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
                                        patch_box.upper(2),
 #endif
                                        dx,
-                                       dir);
+                                       dir,
+                                       d_apply_subcell_fix);
     }
     else if (d_ls_order == THIRD_ORDER_WENO_LS)
     {
@@ -471,7 +484,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
                                         patch_box.upper(2),
 #endif
                                         dx,
-                                        dir);
+                                        dir,
+                                        d_apply_subcell_fix);
     }
     else
     {
@@ -543,7 +557,8 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
                                              patch_box.lower(2),
                                              patch_box.upper(2),
 #endif
-                                             dx);
+                                             dx,
+                                             d_apply_subcell_fix);
     }
     else if (d_ls_order == THIRD_ORDER_WENO_LS)
     {
@@ -559,7 +574,8 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
                                               patch_box.lower(2),
                                               patch_box.upper(2),
 #endif
-                                              dx);
+                                              dx,
+                                              d_apply_subcell_fix);
     }
     else
     {
@@ -677,6 +693,7 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
 
     d_apply_mass_constraint = input_db->getBoolWithDefault("apply_mass_constraint", d_apply_mass_constraint);
+    d_apply_subcell_fix = input_db->getBoolWithDefault("apply_subcell_fix", d_apply_subcell_fix);
 
     return;
 } // getFromInput

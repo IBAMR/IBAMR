@@ -678,7 +678,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     dir)
+     &     dir,use_subcell)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -691,6 +691,7 @@ c
       INTEGER ilower2,iupper2
       INTEGER U_gcw,V_gcw
       INTEGER dir
+      LOGICAL use_subcell
 
 c
 c     Input/Output.
@@ -711,7 +712,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -723,7 +724,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -735,7 +736,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -747,7 +748,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -759,7 +760,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -771,7 +772,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -783,7 +784,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -795,7 +796,7 @@ c
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
-     &                                   i0,i1,i2,dx)
+     &                                   i0,i1,i2,dx,use_subcell)
             enddo
           enddo
         enddo
@@ -815,7 +816,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     i0,i1,i2,
-     &     dx)
+     &     dx,
+     &     use_subcell)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -832,6 +834,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER U_gcw,V_gcw
+      LOGICAL use_subcell
 
 c
 c     Input/Output.
@@ -882,7 +885,7 @@ c     Set dummy values for hxp,hxm,hyp,hym
       hzp = 1.d12;hzm = 1.d12
 
 c     Compute ENO differences with subcell fix
-      if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1,i2)-two*V(i0,i1,i2)+V(i0+1,i1,i2),
      &                V(i0,i1,i2)-two*V(i0+1,i1,i2)+V(i0+2,i1,i2))
         diff = V(i0,i1,i2)-V(i0+1,i1,i2)
@@ -899,7 +902,7 @@ c     Compute ENO differences with subcell fix
         Dxp = (U(i0+1,i1,i2)-U(i0,i1,i2))/hx - hx/two*minmod(Dxx,Dxxp)
       endif
 
-      if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1,i2)-two*V(i0,i1,i2)+V(i0+1,i1,i2),
      &                V(i0,i1,i2)-two*V(i0-1,i1,i2)+V(i0-2,i1,i2))
         diff = V(i0,i1,i2)-V(i0-1,i1,i2)
@@ -916,7 +919,7 @@ c     Compute ENO differences with subcell fix
         Dxm = (U(i0,i1,i2)-U(i0-1,i1,i2))/hx + hx/two*minmod(Dxx,Dxxm)
       endif
 
-      if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1,i2)-two*V(i0,i1,i2)+V(i0,i1+1,i2),
      &                V(i0,i1,i2)-two*V(i0,i1+1,i2)+V(i0,i1+2,i2))
         diff = V(i0,i1,i2)-V(i0,i1+1,i2)
@@ -933,7 +936,7 @@ c     Compute ENO differences with subcell fix
         Dyp = (U(i0,i1+1,i2)-U(i0,i1,i2))/hy - hy/two*minmod(Dyy,Dyyp)
       endif
 
-      if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1,i2)-two*V(i0,i1,i2)+V(i0,i1+1,i2),
      &                V(i0,i1,i2)-two*V(i0,i1-1,i2)+V(i0,i1-2,i2))
         diff = V(i0,i1,i2)-V(i0,i1-1,i2)
@@ -950,7 +953,7 @@ c     Compute ENO differences with subcell fix
         Dym = (U(i0,i1,i2)-U(i0,i1-1,i2))/hy + hy/two*minmod(Dyy,Dyym)
       endif
 
-      if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero) then
         Dzz0 = minmod(V(i0,i1,i2-1)-two*V(i0,i1,i2)+V(i0,i1,i2+1),
      &                V(i0,i1,i2)-two*V(i0,i1,i2+1)+V(i0,i1,i2+2))
         diff = V(i0,i1,i2)-V(i0,i1,i2+1)
@@ -967,7 +970,7 @@ c     Compute ENO differences with subcell fix
         Dzp = (U(i0,i1,i2+1)-U(i0,i1,i2))/hz - hz/two*minmod(Dzz,Dzzp)
       endif
 
-      if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero) then
+      if (use_subcell .and. V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero) then
         Dzz0 = minmod(V(i0,i1,i2-1)-two*V(i0,i1,i2)+V(i0,i1,i2+1),
      &                V(i0,i1,i2)-two*V(i0,i1,i2-1)+V(i0,i1,i2-2))
         diff = V(i0,i1,i2)-V(i0,i1,i2-1)

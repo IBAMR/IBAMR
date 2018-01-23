@@ -118,9 +118,17 @@ public:
      */
     void setApplyMassConstraint(bool apply_mass_constraint);
 
+    /*!
+     * \brief Indicated that the class should apply the subcell fix.
+     */
+    void setApplySubcellFix(bool apply_subcell_fix);
+
 protected:
     // Flag for applying the mass constraint
     bool d_apply_mass_constraint;
+
+    // Flag for applying subcell fix
+    bool d_apply_subcell_fix;
 
 private:
     /*!
