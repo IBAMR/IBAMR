@@ -1073,7 +1073,8 @@ c     Compute first order derivatives
       Dyp = (one - wyp)*Dyc + wyp*Dyt
 
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
-      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
+      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym,
+     &               abs(hx-hxm),abs(hy-hym),abs(hx-hxp),abs(hy-hyp))
 
       if (dt .gt. zero) then
         U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
