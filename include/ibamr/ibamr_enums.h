@@ -188,6 +188,7 @@ enum LevelSetOrder
     SECOND_ORDER_LS = 2,
     THIRD_ORDER_ENO_LS = 3,
     THIRD_ORDER_WENO_LS = 4,
+    FIFTH_ORDER_WENO_LS = 5,
     UNKNOWN_LEVEL_SET_ORDER = -1
 };
 
@@ -199,6 +200,7 @@ string_to_enum<LevelSetOrder>(const std::string& val)
     if (strcasecmp(val.c_str(), "SECOND_ORDER") == 0) return SECOND_ORDER_LS;
     if (strcasecmp(val.c_str(), "THIRD_ORDER_ENO") == 0) return THIRD_ORDER_ENO_LS;
     if (strcasecmp(val.c_str(), "THIRD_ORDER_WENO") == 0) return THIRD_ORDER_WENO_LS;
+    if (strcasecmp(val.c_str(), "FIFTH_ORDER_WENO") == 0) return FIFTH_ORDER_WENO_LS;
     return UNKNOWN_LEVEL_SET_ORDER;
 } // string_to_enum
 
@@ -210,6 +212,7 @@ enum_to_string<LevelSetOrder>(LevelSetOrder val)
     if (val == SECOND_ORDER_LS) return "SECOND_ORDER";
     if (val == THIRD_ORDER_ENO_LS) return "THIRD_ORDER_ENO";
     if (val == THIRD_ORDER_WENO_LS) return "THIRD_ORDER_WENO";
+    if (val == FIFTH_ORDER_WENO_LS) return "FIFTH_ORDER_WENO";
     return "UNKNOWN_LEVEL_SET_ORDER";
 } // enum_to_string
 

@@ -49,6 +49,9 @@
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno2d, GODUNOVHAMILTONIANENO2D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno2d, RELAXATIONLS3RDORDERWENO2D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno2d, GODUNOVHAMILTONIANWENO2D)
+#define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno2d, RELAXATIONLS5THORDERWENO2D)
+#define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
+    IBAMR_FC_FUNC(godnuovhamiltonian5thorderweno2d, GODUNOVHAMILTONIAN5THORDERWENO2D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint2d, PROJECTLSMASSCONSTRAINT2D)
 #endif
 
@@ -58,6 +61,9 @@
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno3d, GODUNOVHAMILTONIANENO3D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno3d, RELAXATIONLS3RDORDERWENO3D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno3d, GODUNOVHAMILTONIANWENO3D)
+#define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno3d, RELAXATIONLS5THORDERWENO3D)
+#define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
+    IBAMR_FC_FUNC(godnuovhamiltonian5thorderweno3d, GODUNOVHAMILTONIAN5THORDERWENO3D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint3d, PROJECTLSMASSCONSTRAINT3D)
 #endif
 
@@ -91,7 +97,7 @@ void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
 #endif
                                     const double* dx,
                                     const int& dir,
-                                    const bool& use_subcell);
+                                    const int& use_subcell);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
                                           const int& U_gcw,
@@ -106,7 +112,7 @@ void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
                                           const int& iupper2,
 #endif
                                           const double* dx,
-                                          const bool& use_subcell);
+                                          const int& use_subcell);
 
 void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
                                      const int& U_gcw,
@@ -122,7 +128,7 @@ void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
 #endif
                                      const double* dx,
                                      const int& dir,
-                                     const bool& use_subcell);
+                                     const int& use_subcell);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
                                            const int& U_gcw,
@@ -137,7 +143,36 @@ void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
                                            const int& iupper2,
 #endif
                                            const double* dx,
-                                           const bool& use_subcell);
+                                           const int& use_subcell);
+
+void RELAXATION_LS_5TH_ORDER_WENO_FC(double* U,
+                                     const int& U_gcw,
+                                     const double* V,
+                                     const int& V_gcw,
+                                     const int& ilower0,
+                                     const int& iupper0,
+                                     const int& ilower1,
+                                     const int& iupper1,
+#if (NDIM == 3)
+                                     const int& ilower2,
+                                     const int& iupper2,
+#endif
+                                     const double* dx,
+                                     const int& dir);
+
+void GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC(double* U,
+                                           const int& U_gcw,
+                                           const double* V,
+                                           const int& V_gcw,
+                                           const int& ilower0,
+                                           const int& iupper0,
+                                           const int& ilower1,
+                                           const int& iupper1,
+#if (NDIM == 3)
+                                           const int& ilower2,
+                                           const int& iupper2,
+#endif
+                                           const double* dx);
 
 void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
                                    const int& U_gcw,
@@ -236,6 +271,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     {
         cell_ghosts = 2;
     }
+    else if (d_ls_order == FIFTH_ORDER_WENO_LS)
+    {
+        cell_ghosts = 3;
+    }
     else
     {
         TBOX_ERROR("RelaxationLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
@@ -290,8 +329,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
     // Compute and store |grad phi_0| to apply the mass constraint
-    computeInitialHamiltonian(hier_math_ops, H_init_idx, D_init_idx);
-    H_fill_op->fillData(time);
+    if (constrain_ls_mass)
+    {
+        computeInitialHamiltonian(hier_math_ops, H_init_idx, D_init_idx);
+        H_fill_op->fillData(time);
+    }
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
@@ -425,6 +467,10 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
         TBOX_ASSERT(D_ghosts >= 2);
         TBOX_ASSERT(P_ghosts >= 2);
     }
+    if (d_ls_order == FIFTH_ORDER_WENO_LS)
+    {
+        TBOX_ASSERT(D_ghosts >= 3);
+    }
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
@@ -468,7 +514,7 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 #endif
                                        dx,
                                        dir,
-                                       d_apply_subcell_fix);
+                                       static_cast<int>(d_apply_subcell_fix));
     }
     else if (d_ls_order == THIRD_ORDER_WENO_LS)
     {
@@ -486,7 +532,24 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 #endif
                                         dx,
                                         dir,
-                                        d_apply_subcell_fix);
+                                        static_cast<int>(d_apply_subcell_fix));
+    }
+    else if (d_ls_order == FIFTH_ORDER_WENO_LS)
+    {
+        RELAXATION_LS_5TH_ORDER_WENO_FC(D,
+                                        D_ghosts,
+                                        P,
+                                        P_ghosts,
+                                        patch_box.lower(0),
+                                        patch_box.upper(0),
+                                        patch_box.lower(1),
+                                        patch_box.upper(1),
+#if (NDIM == 3)
+                                        patch_box.lower(2),
+                                        patch_box.upper(2),
+#endif
+                                        dx,
+                                        dir);
     }
     else
     {
@@ -538,6 +601,12 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
         TBOX_ASSERT(H_ghosts >= 2);
         TBOX_ASSERT(P_ghosts >= 2);
     }
+    else if (d_ls_order == FIFTH_ORDER_WENO_LS)
+        ;
+    {
+        TBOX_ASSERT(H_ghosts >= 3);
+        TBOX_ASSERT(P_ghosts >= 3);
+    }
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
@@ -559,7 +628,7 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
                                              patch_box.upper(2),
 #endif
                                              dx,
-                                             d_apply_subcell_fix);
+                                             static_cast<int>(d_apply_subcell_fix));
     }
     else if (d_ls_order == THIRD_ORDER_WENO_LS)
     {
@@ -576,7 +645,23 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
                                               patch_box.upper(2),
 #endif
                                               dx,
-                                              d_apply_subcell_fix);
+                                              static_cast<int>(d_apply_subcell_fix));
+    }
+    else if (d_ls_order == FIFTH_ORDER_WENO_LS)
+    {
+        GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC(H,
+                                              H_ghosts,
+                                              P,
+                                              P_ghosts,
+                                              patch_box.lower(0),
+                                              patch_box.upper(0),
+                                              patch_box.lower(1),
+                                              patch_box.upper(1),
+#if (NDIM == 3)
+                                              patch_box.lower(2),
+                                              patch_box.upper(2),
+#endif
+                                              dx);
     }
     else
     {
@@ -642,13 +727,19 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
         TBOX_ASSERT(C_ghosts >= 2);
         TBOX_ASSERT(H_ghosts >= 2);
     }
+    if (d_ls_order == FIFTH_ORDER_WENO_LS)
+    {
+        TBOX_ASSERT(U_ghosts >= 3);
+        TBOX_ASSERT(C_ghosts >= 3);
+        TBOX_ASSERT(H_ghosts >= 3);
+    }
 #endif
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
+    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS || d_ls_order == FIFTH_ORDER_WENO_LS)
     {
         PROJECT_LS_MASS_CONSTRAINT_FC(U,
                                       U_ghosts,

@@ -45,6 +45,66 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the smoothed Heaviside
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function H_eps(x,eps)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL x,eps
+      if (x .lt. -eps) then
+        H_eps = zero
+      else if (abs(x) .le. eps) then
+        H_eps = half*(one + x/eps + sin(pi*x/eps)/pi)
+      else
+        H_eps = one
+      endif
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the smoothed delta function
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function D_eps(x,eps)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL x,eps
+      if (abs(x) .le. eps) then
+        D_eps = one/(two*eps)*(one + cos(pi*x/eps))
+      else
+        D_eps = zero
+      endif
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the smoothed sgn function
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      REAL function S_eps(x,eps)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL H_eps
+      REAL x,eps
+
+C       S_eps = two*H_eps(x,eps) - one
+C       S_eps = x/sqrt(x**2+eps**2)
+
+      S_eps = sign(one,x)
+      if (x.eq.zero) then
+        S_eps = zero
+      endif
+
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the Godunov Hamiltonian.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -380,7 +440,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL HG
+      REAL HG, S_eps
 
 c
 c     Input.
@@ -399,7 +459,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-      REAL    hx,hy
+      REAL    hx,hy,hmin
       REAL    sgn
       REAL    dt
       REAL    G
@@ -408,12 +468,9 @@ c
 
       hx = dx(0)
       hy = dx(1)
-      dt = half*dmin1(hx,hy)
-      if (V(i0,i1) .eq. zero) then
-         sgn = zero
-      else
-         sgn = sign(one,V(i0,i1))
-      endif
+      hmin = dmin1(hx,hy)
+      dt = half*hmin
+      sgn = S_eps(V(i0,i1),hmin)
 
       Dxm = one/hx*(U(i0,i1)-U(i0-1,i1))
       Dxp = one/hx*(U(i0+1,i1)-U(i0,i1))
@@ -456,7 +513,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
       INTEGER dir
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -530,7 +587,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL minmod, HG
+      REAL minmod, HG, S_eps
 
 c
 c     Input.
@@ -538,7 +595,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -564,7 +621,7 @@ c
       eps = 1.d-10
 
       hmin = dmin1(hx,hy)
-      sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
+      sgn = S_eps(V(i0,i1),hmin)
 
 c     Compute all the required finite differences
       Dxx  = (U(i0-1,i1) - two*U(i0,i1) + U(i0+1,i1))/(hx**two)
@@ -578,7 +635,7 @@ c     Set dummy values for hxp,hxm,hyp,hym
       hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
 
 c     Compute ENO differences with subcell fix
-      if (use_subcell .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
         diff = V(i0,i1)-V(i0+1,i1)
@@ -595,7 +652,7 @@ c     Compute ENO differences with subcell fix
         Dxp = (U(i0+1,i1)-U(i0,i1))/hx - hx/two*minmod(Dxx,Dxxp)
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
         diff = V(i0,i1)-V(i0-1,i1)
@@ -612,7 +669,7 @@ c     Compute ENO differences with subcell fix
         Dxm = (U(i0,i1)-U(i0-1,i1))/hx + hx/two*minmod(Dxx,Dxxm)
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
         diff = V(i0,i1)-V(i0,i1+1)
@@ -629,7 +686,7 @@ c     Compute ENO differences with subcell fix
         Dyp = (U(i0,i1+1)-U(i0,i1))/hy - hy/two*minmod(Dyy,Dyyp)
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
         diff = V(i0,i1)-V(i0,i1-1)
@@ -679,7 +736,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL minmod, HG
+      REAL minmod, HG, S_eps
 
 c
 c     Input.
@@ -687,7 +744,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER H_gcw,V_gcw
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -715,7 +772,7 @@ c
       do i1 = ilower1,iupper1
         do i0 = ilower0,iupper0
 
-          sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
+          sgn = S_eps(V(i0,i1),hmin)
 
 c         Compute all the required finite differences
           Dxx  = (V(i0-1,i1) - two*V(i0,i1) + V(i0+1,i1))/(hx**two)
@@ -729,7 +786,8 @@ c         Set dummy values for hxp,hxm,hyp,hym
           hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
 
 c         Compute ENO differences with subcell fix
-          if (use_subcell .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0+1,i1) .lt. zero) then
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
             diff = V(i0,i1)-V(i0+1,i1)
@@ -740,13 +798,14 @@ c         Compute ENO differences with subcell fix
             else
               hxp = hx*V(i0,i1)/diff
             endif
-            hxp = dmax1(hxp,1.d-16)
+            hxp = dmax1(hxp,sqrt(smallr))
             Dxp = (zero-V(i0,i1))/hxp - hxp/two*minmod(Dxx,Dxxp)
           else
             Dxp = (V(i0+1,i1)-V(i0,i1))/hx - hx/two*minmod(Dxx,Dxxp)
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0-1,i1) .lt. zero) then
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
             diff = V(i0,i1)-V(i0-1,i1)
@@ -757,13 +816,14 @@ c         Compute ENO differences with subcell fix
             else
               hxm = hx*V(i0,i1)/diff
             endif
-            hxm = dmax1(hxm,1.d-16)
+            hxm = dmax1(hxm,sqrt(smallr))
             Dxm = (V(i0,i1)-zero)/hxm + hxm/two*minmod(Dxx,Dxxm)
           else
             Dxm = (V(i0,i1)-V(i0-1,i1))/hx + hx/two*minmod(Dxx,Dxxm)
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0,i1+1) .lt. zero) then
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
             diff = V(i0,i1)-V(i0,i1+1)
@@ -774,13 +834,14 @@ c         Compute ENO differences with subcell fix
             else
               hyp = hy*V(i0,i1)/diff
             endif
-            hyp = dmax1(hyp,1.d-16)
+            hyp = dmax1(hyp,sqrt(smallr))
             Dyp = (zero-V(i0,i1))/hyp - hyp/two*minmod(Dyy,Dyyp)
           else
             Dyp = (V(i0,i1+1)-V(i0,i1))/hy - hy/two*minmod(Dyy,Dyyp)
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0,i1-1) .lt. zero) then
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                    V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
             diff = V(i0,i1)-V(i0,i1-1)
@@ -791,7 +852,7 @@ c         Compute ENO differences with subcell fix
             else
               hym = hy*V(i0,i1)/diff
             endif
-            hym = dmax1(hym,1.d-16)
+            hym = dmax1(hym,sqrt(smallr))
             Dym = (V(i0,i1)-zero)/hym + hym/two*minmod(Dyy,Dyym)
           else
             Dym = (V(i0,i1)-V(i0,i1-1))/hy + hy/two*minmod(Dyy,Dyym)
@@ -831,7 +892,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
       INTEGER dir
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -906,7 +967,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL minmod, HG
+      REAL minmod, HG, S_eps
 
 c
 c     Input.
@@ -914,7 +975,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -947,7 +1008,7 @@ c
       eps = 1.d-10
 
       hmin = dmin1(hx,hy)
-      sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
+      sgn = S_eps(V(i0,i1),hmin)
 
 c     Compute all the required finite differences
       Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx) 
@@ -980,7 +1041,7 @@ c     Set dummy values for hxp,hxm,hyp,hym
       hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
 
 c     Compute ENO differences with subcell fix
-      if (use_subcell .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
         diff = V(i0,i1)-V(i0+1,i1)
@@ -1001,7 +1062,7 @@ c     Compute ENO differences with subcell fix
      &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
         diff = V(i0,i1)-V(i0-1,i1)
@@ -1022,7 +1083,7 @@ c     Compute ENO differences with subcell fix
      &         U(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2))
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
         diff = V(i0,i1)-V(i0,i1+1)
@@ -1043,7 +1104,7 @@ c     Compute ENO differences with subcell fix
      &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
       endif
 
-      if (use_subcell .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
+      if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
         diff = V(i0,i1)-V(i0,i1-1)
@@ -1105,7 +1166,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL minmod, HG
+      REAL minmod, HG, S_eps
 
 c
 c     Input.
@@ -1113,7 +1174,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER H_gcw,V_gcw
-      LOGICAL use_subcell
+      INTEGER use_subcell
 
 c
 c     Input/Output.
@@ -1147,7 +1208,7 @@ c
       do i1 = ilower1,iupper1
         do i0 = ilower0,iupper0
 
-          sgn = V(i0,i1)/sqrt(V(i0,i1)**2 + hmin**2)
+          sgn = S_eps(V(i0,i1),hmin)
 
 c         Compute all the required finite differences
           Dxc  = (V(i0+1,i1) - V(i0-1,i1))/(two*hx) 
@@ -1180,7 +1241,8 @@ c         Set dummy values for hxp,hxm,hyp,hym
           hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
 
 c         Compute WENO differences with subcell fix
-          if (use_subcell .and. V(i0,i1)*V(i0+1,i1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0+1,i1) .lt. zero) then
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
             diff = V(i0,i1)-V(i0+1,i1)
@@ -1192,7 +1254,7 @@ c         Compute WENO differences with subcell fix
               hxp = hx*V(i0,i1)/diff
             endif
         
-            h1 = hx; h2 = hxp
+            h1 = hx; h2 = dmax1(hxp,sqrt(smallr))
             Dxc = (-V(i0,i1)*h1**2 + 
      &            (-V(i0-1,i1) + V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
@@ -1201,7 +1263,8 @@ c         Compute WENO differences with subcell fix
      &              (-V(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0-1,i1) .lt. zero) then
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                   V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
             diff = V(i0,i1)-V(i0-1,i1)
@@ -1213,16 +1276,18 @@ c         Compute WENO differences with subcell fix
               hxm = hx*V(i0,i1)/diff
             endif
        
-            h1 = hxm; h2 = hx
+            h1 = dmax1(hxm,sqrt(smallr)); h2 = hx
             Dxc = ((-V(i0,i1) + V(i0+1, i1))*h1**2 + 
      &            (V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
-            h1 = hx - hxm; h2 = hxm
+            h1 = dmax1(hx - hxm,sqrt(smallr))
+            h2 = dmax1(hxm,sqrt(smallr))
             Dxl = (V(i0,i1)*h1**2 + two*V(i0,i1)*h1*h2 + 
      &            V(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2))
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0,i1+1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0,i1+1) .lt. zero) then
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                   V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
             diff = V(i0,i1)-V(i0,i1+1)
@@ -1234,7 +1299,7 @@ c         Compute WENO differences with subcell fix
               hyp = hy*V(i0,i1)/diff
             endif
  
-            h1 = hy; h2 = hyp
+            h1 = hy; h2 = dmax1(hyp,sqrt(smallr))
             Dyc = (-V(i0,i1)*h1**2 +
      &            (-V(i0,i1-1) + V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
@@ -1243,7 +1308,8 @@ c         Compute WENO differences with subcell fix
      &              (-V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
           endif
 
-          if (use_subcell .and. V(i0,i1)*V(i0,i1-1) .lt. zero) then
+          if (use_subcell .ne. 0 .and.
+     &        V(i0,i1)*V(i0,i1-1) .lt. zero) then
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                    V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
             diff = V(i0,i1)-V(i0,i1-1)
@@ -1255,11 +1321,12 @@ c         Compute WENO differences with subcell fix
               hym = hy*V(i0,i1)/diff
             endif
 
-            h1 = hym; h2 = hy
+            h1 = dmax1(hym,sqrt(smallr)); h2 = hy
             Dyc = ((-V(i0,i1) + V(i0, i1+1))*h1**2 +
      &            (V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
-            h1 = hy - hym; h2 = hym
+            h1 = dmax1(hy - hym,sqrt(smallr))
+            h2 = dmax1(hym,sqrt(smallr))
             Dyb = (V(i0,i1)*h1**2 + two*V(i0,i1)*h1*h2 +
      &            V(i0,i1-1)*h2**2)/(h1*h2*(h1 + h2))
           endif
@@ -1274,6 +1341,226 @@ c         Compute first order derivatives
 
           H(i0,i1) = HG(Dxp,Dxm,Dyp,Dym,sgn)
         enddo
+      enddo
+
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out fifth order relaxation scheme using Gauss Seidel updates
+c     
+c     Uses fifth order WENO for spatial discretization
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine relaxationls5thorderweno2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     dir)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+      INTEGER dir
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+
+      if (dir .eq. 0) then
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 1) then
+        do i1 = ilower1,iupper1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 2) then
+        do i1 = iupper1,ilower1,-1
+          do i0 = ilower0,iupper0
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
+          enddo
+        enddo
+      elseif (dir .eq. 3 )then
+        do i1 = iupper1,ilower1,-1
+          do i0 = iupper0,ilower0,-1
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     i0,i1,dx)
+          enddo
+        enddo
+      endif
+
+      return
+      end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out single fifth order sweep using a WENO stencil
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine evalrelax5thorderweno2d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     i0,i1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL HG, WENO5_interp, S_eps
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,k
+      REAL    hx,hy,hmin
+      REAL    Dxm,Dxp,Dym,Dyp
+      REAL    H,dt,sgn,cfl
+      REAL    Qxp(-2:2),Qxm(-2:2),Qyp(-2:2),Qym(-2:2)
+
+      hx = dx(0)
+      hy = dx(1)
+      cfl = 0.45d0
+      hmin = dmin1(hx,hy)
+      sgn = S_eps(V(i0,i1),hmin)
+
+c     Compute all the required finite differences and their WENO5 interpolation
+      do k = -2,2
+        Qxm(k) = (U(i0+k,i1) - U(i0+k-1,i1))/hx
+        Qym(k) = (U(i0,i1+k) - U(i0,i1+k-1))/hy
+      enddo
+      do k = 2,-2,-1
+        Qxp(-k) = (U(i0+k+1,i1) - U(i0+k,i1))/hx
+        Qyp(-k) = (U(i0,i1+k+1) - U(i0,i1+k))/hy
+      enddo
+      Dxm = WENO5_interp(Qxm)
+      Dxp = WENO5_interp(Qxp)
+      Dym = WENO5_interp(Qym)
+      Dyp = WENO5_interp(Qyp)
+
+      H = HG(Dxp,Dxm,Dyp,Dym,sgn)
+      dt = cfl*dmin1(hx,hy)
+
+      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out single fifth order sweep using a WENO stencil
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine godnuovhamiltonian5thorderweno2d(
+     &     H,H_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL HG, WENO5_interp, S_eps
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER H_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL H(CELL2d(ilower,iupper,H_gcw))
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,k
+      REAL    hx,hy,hmin
+      REAL    Dxm,Dxp,Dym,Dyp
+      REAL    Qxp(-2:2),Qxm(-2:2),Qyp(-2:2),Qym(-2:2)
+      REAL    sgn
+
+      hx = dx(0)
+      hy = dx(1)
+      hmin = dmin1(hx,hy)
+
+      do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+            sgn = S_eps(V(i0,i1),hmin)
+
+c           Compute all the required finite differences and their WENO5 interpolation
+            do k = -2,2
+              Qxm(k) = (V(i0+k,i1) - V(i0+k-1,i1))/hx
+              Qym(k) = (V(i0,i1+k) - V(i0,i1+k-1))/hy
+            enddo
+            do k = 2,-2,-1
+              Qxp(-k) = (V(i0+k+1,i1) - V(i0+k,i1))/hx
+              Qyp(-k) = (V(i0,i1+k+1) - V(i0,i1+k))/hy
+            enddo
+            Dxm = WENO5_interp(Qxm)
+            Dxp = WENO5_interp(Qxp)
+            Dym = WENO5_interp(Qym)
+            Dyp = WENO5_interp(Qyp)
+
+            H(i0,i1) = HG(Dxp,Dxm,Dyp,Dym,sgn)
+          enddo
       enddo
 
       return
@@ -1298,6 +1585,11 @@ c
 include(TOP_SRCDIR/src/fortran/const.i)dnl
 
 c
+c     Functions.
+c
+      REAL D_eps
+
+c
 c     Input.
 c
       INTEGER ilower0,iupper0
@@ -1318,7 +1610,7 @@ c
       INTEGER i0,i1
       REAL    hx,hy,hmin
       REAL    lambda
-      REAL    hij,hmn,phi0
+      REAL    dij,dmn,phi0
       INTEGER m,n
       REAL    nmr,dnr
       REAL    w(-1:1,-1:1)
@@ -1342,23 +1634,15 @@ c     Compute integration weights based on Simpson's rule
       do i1 = ilower1,iupper1
         do i0 = ilower0,iupper0
             phi0 = V(i0,i1)
-            if (abs(phi0) .gt. hmin) then
-              hij = zero
-            else
-              hij = one/(two*hmin) * (one+cos(pi*phi0/hmin))
-            endif
-            nmr = 100.d0*hij*(C(i0,i1) - phi0)
-            dnr = 100.d0*(hij**2)*H(i0,i1)
+            dij = D_eps(phi0, hmin)
+            nmr = 100.d0*dij*(C(i0,i1) - phi0)
+            dnr = 100.d0*(dij**2)*H(i0,i1)
             do m = -1,1
               do n = -1,1
                 phi0 = V(i0+m,i1+n)
-                if (abs(phi0) .gt. hmin) then
-                  hmn = zero
-                else
-                  hmn = one/(two*hmin) * (one+cos(pi*phi0/hmin))
-                endif
-                nmr = nmr + w(m,n)*hmn*(C(i0+m,i1+n) - phi0)
-                dnr = dnr + w(m,n)*hmn**2*H(i0+m,i1+n)
+                dmn = D_eps(phi0, hmin)
+                nmr = nmr + w(m,n)*dmn*(C(i0+m,i1+n) - phi0)
+                dnr = dnr + w(m,n)*(dmn**2)*H(i0+m,i1+n)
               enddo
             enddo
             nmr = hx*hy/144.d0*nmr
@@ -1366,7 +1650,7 @@ c     Compute integration weights based on Simpson's rule
             lambda = -nmr/dnr
 
             if (dnr .gt. zero) then
-              U(i0,i1) = C(i0,i1) + lambda*hij*H(i0,i1)
+              U(i0,i1) = C(i0,i1) + lambda*dij*H(i0,i1)
             endif
 
         enddo
