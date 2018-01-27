@@ -124,11 +124,12 @@ public:
     static const std::string FORCE_T_SYSTEM_NAME;
     static const std::string FORCE_B_SYSTEM_NAME;
     static const std::string FORCE_N_SYSTEM_NAME;
-    static const std::string NORMAL_SYSTEM_NAME;
     static const std::string WSS_I_SYSTEM_NAME;
     static const std::string WSS_O_SYSTEM_NAME;
-    static const std::string DV_X_SYSTEM_NAME;
-    static const std::string DU_Y_SYSTEM_NAME;
+    static const std::string DV_X_O_SYSTEM_NAME;
+    static const std::string DU_Y_O_SYSTEM_NAME;
+    static const std::string DV_X_I_SYSTEM_NAME;
+    static const std::string DU_Y_I_SYSTEM_NAME;
     static const std::string DV_Z_SYSTEM_NAME;
     static const std::string DU_Z_SYSTEM_NAME;
     static const std::string DW_X_SYSTEM_NAME;
@@ -277,11 +278,11 @@ public:
                                      double data_time,
                                      unsigned int part = 0);
 
-    //~ void interpolatePressure(
-    //~ int p_data_idx,
-    //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& p_synch_scheds,
-    //~ const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
-    //~ double data_time);
+    
+    void calcHydroF(double data_time, int u_idx, int p_idx);
+    
+    
+    
 
     void computeFluidTraction(double current_time,
                               libMesh::PetscVector<double>& P_j_ghost_vec,
@@ -487,7 +488,6 @@ protected:
 #if (NDIM == 3)
                                      libMesh::PetscVector<double>& d2w_j_vec,
 #endif
-                                     libMesh::PetscVector<double>& n_qp_vec,
                                      double data_time,
                                      unsigned int part);
 
@@ -574,9 +574,9 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_X0_systems, d_U_systems, d_WSS_i_systems, d_WSS_o_systems,
-        d_du_y_systems, d_dv_x_systems, d_dw_x_systems, d_dw_y_systems, d_P_o_systems, d_P_i_systems, d_TAU_systems,
+        d_du_y_o_systems, d_dv_x_o_systems, d_du_y_i_systems, d_dv_x_i_systems, d_dw_x_systems, d_dw_y_systems, d_P_o_systems, d_P_i_systems, d_TAU_systems,
         d_du_j_systems, d_dv_j_systems, d_dw_j_systems, d_F_systems, d_P_j_systems, d_dP_j_systems, d_F_n_systems,
-        d_F_t_systems, d_F_b_systems, d_H_systems, d_dv_z_systems, d_du_z_systems, d_n_qp_systems;
+        d_F_t_systems, d_F_b_systems, d_H_systems, d_dv_z_systems, d_du_z_systems;
     std::vector<libMesh::System *> d_d2u_j_systems, d_d2v_j_systems, d_d2w_j_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
@@ -593,14 +593,15 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_du_j_half_vecs, d_du_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_dv_j_half_vecs, d_dv_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_dw_j_half_vecs, d_dw_j_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_n_qp_half_vecs, d_n_qp_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_d2u_j_half_vecs, d_d2u_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_d2v_j_half_vecs, d_d2v_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_d2w_j_half_vecs, d_d2w_j_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_WSS_i_half_vecs, d_WSS_i_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_WSS_o_half_vecs, d_WSS_o_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_du_y_half_vecs, d_du_y_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_dv_x_half_vecs, d_dv_x_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_du_y_o_half_vecs, d_du_y_o_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_dv_x_o_half_vecs, d_dv_x_o_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_du_y_i_half_vecs, d_du_y_i_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_dv_x_i_half_vecs, d_dv_x_i_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_dw_x_half_vecs, d_dw_x_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_dw_y_half_vecs, d_dw_y_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_du_z_half_vecs, d_du_z_IB_ghost_vecs;
