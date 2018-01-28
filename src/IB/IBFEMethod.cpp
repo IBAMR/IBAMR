@@ -2260,7 +2260,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double /*new_time*/, i
     const int U_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getVelocityVariable(),
                                                            getINSHierarchyIntegrator()->getCurrentContext());
 
-	calcHydroF(current_time, U_idx, p_idx);
+	//calcHydroF(current_time, U_idx, p_idx);
 	
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -2287,16 +2287,16 @@ IBFEMethod::postprocessIntegrateData(double current_time, double /*new_time*/, i
 #endif
 
         
-        //~ computeFluidTraction(current_time,
-                             //~ *P_j_ghost_vec,
-                             //~ *du_j_ghost_vec,
-                             //~ *dv_j_ghost_vec,
-//~ #if (NDIM == 3)
-                             //~ *dw_j_ghost_vec,
-//~ #endif
-                             //~ U_idx,
-                             //~ p_idx,
-                             //~ part);
+        computeFluidTraction(current_time,
+                             *P_j_ghost_vec,
+                             *du_j_ghost_vec,
+                             *dv_j_ghost_vec,
+#if (NDIM == 3)
+                             *dw_j_ghost_vec,
+#endif
+                             U_idx,
+                             p_idx,
+                             part);
         
         // Reset time-dependent Lagrangian data.
         d_X_new_vecs[part]->close();
@@ -3250,29 +3250,25 @@ IBFEMethod::computeFluidTraction(const double data_time,
 
        // Using the jumps and the force defined as F = [tau]
       
-                    TAU_qp[NDIM * local_indices[k] + axis] = (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]);
-                    
-                    
-                    
-                    
-                    //~ (1.0/dA_da)*(- P_j_qp[local_indices[k]] * N_qp[NDIM *
-                    //~ local_indices[k] + axis] + 2.0 * (axis == 0 ? du_j_qp[NDIM * local_indices[k]]* N_qp[NDIM *
-                    //~ local_indices[k]] + du_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1] :
-                    //~ dv_j_qp[NDIM * local_indices[k]] * N_qp[NDIM * local_indices[k]] + dv_j_qp[NDIM *
-                    //~ local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1]) -
+					TAU_qp[NDIM * local_indices[k] + axis] =  (1.0/dA_da)*(- P_j_qp[local_indices[k]] * N_qp[NDIM *
+                    local_indices[k] + axis] + (axis == 0 ? du_j_qp[NDIM * local_indices[k]]* N_qp[NDIM *
+                    local_indices[k]] + du_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1] :
+                    dv_j_qp[NDIM * local_indices[k]] * N_qp[NDIM * local_indices[k]] + dv_j_qp[NDIM *
+                    local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1]));
+                     //~ -
                      //~ d_mu * (axis == 0 ? -N_qp[NDIM * local_indices[k] + 1] :  N_qp[NDIM * local_indices[k]]) *
                      //~ (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]) +
                      //~ d_mu * (axis == 0 ? -N_qp[NDIM * local_indices[k] + 1] : N_qp[NDIM * local_indices[k]]) *
                      //~ (dv_x_i_qp[local_indices[k]] - du_y_i_qp[local_indices[k]]));
         
                     
-                /*
+                
                 // Using the exterior traciton tau_e
-                    TAU_qp[NDIM * local_indices[k] + axis] = (1.0/dA_da)*(d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] -
-                                                                          P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]) -
-                                                                          d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
-                                                                          (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]));
-*/
+                    //~ TAU_qp[NDIM * local_indices[k] + axis] = (1.0/dA_da)*(2.0*d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] -
+                                                                          //~ P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] +
+                                                                          //~ d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
+                                                                          //~ (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]));
+
                 }
             }
         }
@@ -3506,9 +3502,6 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 		double* X0_local_soln;
 		VecGetArray(X0_local_vec, &X0_local_soln);
 		
-		
-		
-		
 		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
 		const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
 		VectorValue<double> tau1, tau2, Tau1, Tau2, n, N, normal, XX;
@@ -3523,8 +3516,6 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 			const Box<NDIM>& box = patch->getBox();
 			patch_boxes.push_back(std::make_pair(patch_num, box));
 		}
-		
-		
 		
 		    
 		boost::multi_array<double, 2> X_node, X0_node, n_qp_node;
@@ -3619,8 +3610,7 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
             // Interpolate X, du, and dv at all of the quadrature points
             // via accumulation, i.e., X(qp) = sum_k X_k * phi_k(qp) for
             // each qp.
-
-            //~
+            
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 
@@ -3630,8 +3620,6 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
                 else
                     interpolate(&Tau2(0), qp, X0_node, X_dphi_deta);
                 N = Tau1.cross(Tau2);
-                
-                
                 
                 interpolate(&tau1(0), qp, X_node, X_dphi_dxi);
                 if (dim == 1)
@@ -3653,29 +3641,15 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
                     }
                     N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                 }
-            }
-            qp_offset += n_qp;
-        }
-
-        // Interpolate values from the Cartesian grid patch to the quadrature
-        // points.
-        // Note: Values are interpolated only to those quadrature points that
-        // are within the patch interior
-		std::vector<int> local_indices;
-        local_indices.clear();
-        const int upper_bound = n_qp_patch;
-        if (upper_bound == 0) return;
-        local_indices.reserve(upper_bound);
-        for (unsigned int k = 0; k < n_qp_patch; ++k)
-        {
-            //const double* const
-            Vector normal; 
-            normal[0]=N_qp[NDIM * k]; normal[1]=N_qp[NDIM * k+1];
+                
+                            //const double* const
+                            
+                            
+              Vector normal; 
+            normal[0]=N_qp[NDIM * (qp_offset + qp)]; normal[1]=N_qp[NDIM * (qp_offset + qp) + 1];
             			
-
-       
-            const CellIndex<NDIM> cell_idx =  IndexUtilities::getCellIndex(&X_qp[NDIM * k], patch_geom, ratio);
-            exit(0); 
+            const CellIndex<NDIM> cell_idx =  IndexUtilities::getCellIndex(&X_qp[NDIM * (qp_offset + qp)],grid_geom, ratio);
+            
             bool found_local_patch = false;
 			int patch_num = -1;
 			for (std::vector<std::pair<int, Box<NDIM> > >::const_iterator it = patch_boxes.begin(); 
@@ -3683,9 +3657,9 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 			{
 				const Box<NDIM>& box = it->second;
 				found_local_patch = box.contains(cell_idx);
+			
 				if (found_local_patch) 
 				{
-					pout<<" Found patch containg X_eval "<<"\n\n";
 					// Get patch containing X_eval. 
 					patch_num = it->first;
 					Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
@@ -3694,11 +3668,11 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 					Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_idx);
 					Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
                
-					// Force due to pressure.
+					//~ // Force due to pressure.
                     Vector p_force; 
                     p_force = -(*p_data)(cell_idx) * normal;
                     
-					// Force due to viscosity. 
+					//~ // Force due to viscosity. 
 					Matrix vel_grad_tensor = Matrix::Zero();
 					for (unsigned int d = 0; d < NDIM; ++d)
 					{
@@ -3719,7 +3693,7 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 						}
 					}
 					
-					Matrix def_grad_tensor = vel_grad_tensor;
+					 Matrix def_grad_tensor = vel_grad_tensor;
 					for (unsigned int d = 0; d < NDIM; ++d)
 					{
 						for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3730,7 +3704,7 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 							def_grad_tensor(axis, d) = def_grad_tensor(d, axis);
 						}
 					}
-                //    elem.vorticity = vel_grad_tensor(1,0) - vel_grad_tensor(0,1);
+                //~ //    elem.vorticity = vel_grad_tensor(1,0) - vel_grad_tensor(0,1);
                     Vector v_force; // = elem.viscous_force;
 					v_force = 2.0 * d_mu * def_grad_tensor * normal;
                     
@@ -3738,15 +3712,134 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 					// Increment p & v force and torque vectors.
 					for (unsigned int d = 0; d < NDIM; ++d)
 					{
-						TAU_qp[NDIM * local_indices[k] + d] = p_force[d] + v_force[d];
+						TAU_qp[NDIM * (qp_offset + qp) + d] = p_force[d] + v_force[d];
 					}
                 }
 			}
-          
-          
-          
+                
+                
+                
+               
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+            }
+            qp_offset += n_qp;
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
         }
+
+        // Interpolate values from the Cartesian grid patch to the quadrature
+        // points.
+        // Note: Values are interpolated only to those quadrature points that
+        // are within the patch interior
+		//~ std::vector<int> local_indices;
+        //~ local_indices.clear();
+        //~ const int upper_bound = n_qp_patch;
+        //~ if (upper_bound == 0) return;
+        //~ local_indices.reserve(upper_bound);
+        //~ for (unsigned int k = 0; k < n_qp_patch; ++k)
+        //~ {
+            //const double* const
+            //~ Vector normal; 
+            //~ normal[0]=N_qp[NDIM * k]; normal[1]=N_qp[NDIM * k+1];
+            			
+            //~ const CellIndex<NDIM> cell_idx =  IndexUtilities::getCellIndex(&X_qp[NDIM * k],grid_geom, ratio);
+            
+            //~ bool found_local_patch = false;
+			//~ int patch_num = -1;
+			//~ for (std::vector<std::pair<int, Box<NDIM> > >::const_iterator it = patch_boxes.begin(); 
+				 //~ it != patch_boxes.end() && !found_local_patch; ++it)
+			//~ {
+				//~ const Box<NDIM>& box = it->second;
+				//~ found_local_patch = box.contains(cell_idx);
+			
+				//~ if (found_local_patch) 
+				//~ {
+					//~ pout<<" Found patch containg X_eval "<<"\n\n";
+					//~ // Get patch containing X_eval. 
+					//~ patch_num = it->first;
+					//~ Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
+					
+					//~ // Get velocity and pressure data. 
+					//~ Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_idx);
+					//~ Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+               
+					// Force due to pressure.
+                    //~ Vector p_force; 
+                    //~ p_force = -(*p_data)(cell_idx) * normal;
+                    
+					// Force due to viscosity. 
+					//~ Matrix vel_grad_tensor = Matrix::Zero();
+					//~ for (unsigned int d = 0; d < NDIM; ++d)
+					//~ {
+						//~ vel_grad_tensor(d, d) = ((*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)) - 
+												//~ (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower))) / dx[d];
+						//~ for (unsigned int axis = 0; axis < NDIM; ++axis)
+						//~ {
+							//~ if (axis == d) continue; 
+							
+							//~ CellIndex<NDIM> cell_upper_nbr_idx = cell_idx, cell_lower_nbr_idx = cell_idx;
+							//~ cell_upper_nbr_idx(axis) += 1;
+							//~ cell_lower_nbr_idx(axis) -= 1;
+							
+							//~ vel_grad_tensor(d, axis) = 0.25 * (((*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Lower)) +
+														//~ (*u_data)(SideIndex<NDIM>(cell_upper_nbr_idx, d, SideIndex<NDIM>::Upper))) - 
+														//~ ((*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Lower)) +
+														//~ (*u_data)(SideIndex<NDIM>(cell_lower_nbr_idx, d, SideIndex<NDIM>::Upper)))) / dx[axis];
+						//~ }
+					//~ }
+					
+					 //~ Matrix def_grad_tensor = vel_grad_tensor;
+					//~ for (unsigned int d = 0; d < NDIM; ++d)
+					//~ {
+						//~ for (unsigned int axis = 0; axis < NDIM; ++axis)
+						//~ {
+							//~ if (axis == d) continue; 
+							
+							//~ def_grad_tensor(d, axis) = 0.5 * (vel_grad_tensor(d, axis) + vel_grad_tensor(axis, d));
+							//~ def_grad_tensor(axis, d) = def_grad_tensor(d, axis);
+						//~ }
+					//~ }
+                //    elem.vorticity = vel_grad_tensor(1,0) - vel_grad_tensor(0,1);
+                    //~ Vector v_force; // = elem.viscous_force;
+					//~ v_force = 2.0 * d_mu * def_grad_tensor * normal;
+                    
+                    
+					//~ // Increment p & v force and torque vectors.
+					//~ for (unsigned int d = 0; d < NDIM; ++d)
+					//~ {
+						//~ TAU_qp[NDIM * local_indices[k] + d] = 0.0; //p_force[d] + v_force[d];
+					//~ }
+                //~ }
+			//~ }
+            
+        //~ }
+     
     	
            
          
