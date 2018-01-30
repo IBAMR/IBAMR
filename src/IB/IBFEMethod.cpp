@@ -3535,6 +3535,13 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 
 			const double* const dx = pgeom->getDx();
 			
+			double diag_dis = 0.0;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                diag_dis += dx[d] * dx[d];
+            }
+            const double dh = d_vel_interp_width * sqrt(diag_dis);
+			
 			
 			unsigned int n_qp_patch = 0;
 			for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -3636,6 +3643,8 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
 
                     }
                     N_qp[NDIM * (qp_offset + qp) + i] = n(i);
+                    
+                    X_qp[NDIM * (qp_offset + qp) + i] += 2.0 * n(i) * dh;
                 }
                 
                             //const double* const
@@ -3796,7 +3805,7 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
     // Print element data.
 
 	return;
-}
+} //calcHydroF
 
 
 
