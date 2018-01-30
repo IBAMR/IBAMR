@@ -46,24 +46,24 @@
 #if (NDIM == 2)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder2d, RELAXATIONLS1STORDER2D)
 #define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno2d, RELAXATIONLS3RDORDERENO2D)
-#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno2d, GODUNOVHAMILTONIANENO2D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godunovhamiltonianeno2d, GODUNOVHAMILTONIANENO2D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno2d, RELAXATIONLS3RDORDERWENO2D)
-#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno2d, GODUNOVHAMILTONIANWENO2D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godunovhamiltonianweno2d, GODUNOVHAMILTONIANWENO2D)
 #define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno2d, RELAXATIONLS5THORDERWENO2D)
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
-    IBAMR_FC_FUNC(godnuovhamiltonian5thorderweno2d, GODUNOVHAMILTONIAN5THORDERWENO2D)
+    IBAMR_FC_FUNC(godunovhamiltonian5thorderweno2d, GODUNOVHAMILTONIAN5THORDERWENO2D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint2d, PROJECTLSMASSCONSTRAINT2D)
 #endif
 
 #if (NDIM == 3)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder3d, RELAXATIONLS1STORDER3D)
 #define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno3d, RELAXATIONLS3RDORDERENO3D)
-#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godnuovhamiltonianeno3d, GODUNOVHAMILTONIANENO3D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godunovhamiltonianeno3d, GODUNOVHAMILTONIANENO3D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno3d, RELAXATIONLS3RDORDERWENO3D)
-#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godnuovhamiltonianweno3d, GODUNOVHAMILTONIANWENO3D)
+#define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godunovhamiltonianweno3d, GODUNOVHAMILTONIANWENO3D)
 #define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno3d, RELAXATIONLS5THORDERWENO3D)
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
-    IBAMR_FC_FUNC(godnuovhamiltonian5thorderweno3d, GODUNOVHAMILTONIAN5THORDERWENO3D)
+    IBAMR_FC_FUNC(godunovhamiltonian5thorderweno3d, GODUNOVHAMILTONIAN5THORDERWENO3D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint3d, PROJECTLSMASSCONSTRAINT3D)
 #endif
 
@@ -97,7 +97,8 @@ void RELAXATION_LS_3RD_ORDER_ENO_FC(double* U,
 #endif
                                     const double* dx,
                                     const int& dir,
-                                    const int& use_subcell);
+                                    const int& use_subcell,
+                                    const int& use_sign_fix);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC(double* U,
                                           const int& U_gcw,
@@ -128,7 +129,8 @@ void RELAXATION_LS_3RD_ORDER_WENO_FC(double* U,
 #endif
                                      const double* dx,
                                      const int& dir,
-                                     const int& use_subcell);
+                                     const int& use_subcell,
+                                     const int& use_sign_fix);
 
 void GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC(double* U,
                                            const int& U_gcw,
@@ -209,8 +211,9 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_max_its = 100;
     d_abs_tol = 1e-5;
     d_enable_logging = false;
-    d_apply_mass_constraint = true;
+    d_apply_mass_constraint = false;
     d_apply_subcell_fix = false;
+    d_apply_sign_fix = false;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -416,6 +419,13 @@ RelaxationLSMethod::setApplySubcellFix(bool apply_subcell_fix)
     return;
 } // setApplySubcellFix
 
+void
+RelaxationLSMethod::setApplySignFix(bool apply_sign_fix)
+{
+    d_apply_sign_fix = apply_sign_fix;
+    return;
+} // setApplySignFix
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -514,7 +524,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 #endif
                                        dx,
                                        dir,
-                                       static_cast<int>(d_apply_subcell_fix));
+                                       static_cast<int>(d_apply_subcell_fix),
+                                       static_cast<int>(d_apply_sign_fix));
     }
     else if (d_ls_order == THIRD_ORDER_WENO_LS)
     {
@@ -532,7 +543,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
 #endif
                                         dx,
                                         dir,
-                                        static_cast<int>(d_apply_subcell_fix));
+                                        static_cast<int>(d_apply_subcell_fix),
+                                        static_cast<int>(d_apply_sign_fix));
     }
     else if (d_ls_order == FIFTH_ORDER_WENO_LS)
     {
@@ -786,6 +798,9 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
 
     d_apply_mass_constraint = input_db->getBoolWithDefault("apply_mass_constraint", d_apply_mass_constraint);
     d_apply_subcell_fix = input_db->getBoolWithDefault("apply_subcell_fix", d_apply_subcell_fix);
+
+    d_apply_sign_fix = input_db->getBoolWithDefault("apply_sign_fix", d_apply_sign_fix);
+    d_apply_sign_fix = input_db->getBoolWithDefault("apply_sgn_fix", d_apply_sign_fix);
 
     return;
 } // getFromInput

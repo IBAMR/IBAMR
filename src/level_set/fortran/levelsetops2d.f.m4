@@ -501,7 +501,8 @@ c
      &     ilower1,iupper1,
      &     dx,
      &     dir,
-     &     use_subcell)
+     &     use_subcell,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -513,7 +514,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
       INTEGER dir
-      INTEGER use_subcell
+      INTEGER use_subcell,use_sign_fix
 
 c
 c     Input/Output.
@@ -532,7 +533,8 @@ c
               call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
-     &                                    i0,i1,dx,use_subcell)
+     &                                    i0,i1,dx,
+     &                                    use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 1) then
@@ -541,7 +543,8 @@ c
               call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
-     &                                    i0,i1,dx,use_subcell)
+     &                                    i0,i1,dx,
+     &                                    use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 2) then
@@ -550,7 +553,8 @@ c
               call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
-     &                                    i0,i1,dx,use_subcell)
+     &                                    i0,i1,dx,
+     &                                    use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 3 )then
@@ -559,7 +563,8 @@ c
               call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
-     &                                    i0,i1,dx,use_subcell)
+     &                                    i0,i1,dx,
+     &                                    use_subcell,use_sign_fix)
           enddo
         enddo
       endif
@@ -579,7 +584,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &     ilower1,iupper1,
      &     i0,i1,
      &     dx,
-     &     use_subcell)
+     &     use_subcell,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -595,7 +601,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
-      INTEGER use_subcell
+      INTEGER use_subcell, use_sign_fix
 
 c
 c     Input/Output.
@@ -622,6 +628,26 @@ c
 
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
+
+c     Sign fix
+      if (use_sign_fix .ne. 0) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+          sgn = zero
+        endif
+      endif
 
 c     Compute all the required finite differences
       Dxx  = (U(i0-1,i1) - two*U(i0,i1) + U(i0+1,i1))/(hx**two)
@@ -722,7 +748,7 @@ c     fix near the interface
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine godnuovhamiltonianeno2d(
+      subroutine godunovhamiltonianeno2d(
      &     H,H_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -880,7 +906,8 @@ c
      &     ilower1,iupper1,
      &     dx,
      &     dir,
-     &     use_subcell)
+     &     use_subcell,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -892,7 +919,7 @@ c
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
       INTEGER dir
-      INTEGER use_subcell
+      INTEGER use_subcell,use_sign_fix
 
 c
 c     Input/Output.
@@ -911,7 +938,8 @@ c
               call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx,use_subcell)
+     &                                     i0,i1,dx,
+     &                                     use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 1) then
@@ -920,7 +948,8 @@ c
               call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx,use_subcell)
+     &                                     i0,i1,dx,
+     &                                     use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 2) then
@@ -929,7 +958,8 @@ c
               call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx,use_subcell)
+     &                                     i0,i1,dx,
+     &                                     use_subcell,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 3 )then
@@ -938,7 +968,8 @@ c
               call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx,use_subcell)
+     &                                     i0,i1,dx,
+     &                                     use_subcell,use_sign_fix)
           enddo
         enddo
       endif
@@ -959,7 +990,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &     ilower1,iupper1,
      &     i0,i1,
      &     dx,
-     &     use_subcell)
+     &     use_subcell,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -975,7 +1007,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
-      INTEGER use_subcell
+      INTEGER use_subcell,use_sign_fix
 
 c
 c     Input/Output.
@@ -1009,6 +1041,26 @@ c
 
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
+
+c     Sign fix
+      if (use_sign_fix .ne. 0) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+          sgn = zero
+        endif
+      endif
 
 c     Compute all the required finite differences
       Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx) 
@@ -1152,7 +1204,7 @@ c     Uses second order WENO for spatial discretization with a subcell
 c     fix near the interface
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine godnuovhamiltonianweno2d(
+      subroutine godunovhamiltonianweno2d(
      &     H,H_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -1500,7 +1552,7 @@ c
 c     Carry out single fifth order sweep using a WENO stencil
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine godnuovhamiltonian5thorderweno2d(
+      subroutine godunovhamiltonian5thorderweno2d(
      &     H,H_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
@@ -1614,6 +1666,7 @@ c
       INTEGER m,n
       REAL    nmr,dnr
       REAL    w(-1:1,-1:1)
+      LOGICAL near_interface
 
       hx = dx(0)
       hy = dx(1)
@@ -1633,6 +1686,15 @@ c     Compute integration weights based on Simpson's rule
 
       do i1 = ilower1,iupper1
         do i0 = ilower0,iupper0
+c           If the point to be updated is not near the interface, then do not attempt to update it,
+c           as this can cause the level set variable to blow up
+            near_interface = (V(i0,i1)*V(i0+1,i1) .le. zero .or.
+     &                        V(i0,i1)*V(i0,i1+1) .le. zero .or.
+     &                        V(i0,i1)*V(i0-1,i1) .le. zero .or.
+     &                        V(i0,i1)*V(i0,i1-1) .le. zero)
+            if (.not. near_interface) then
+              cycle
+            endif
             phi0 = V(i0,i1)
             dij = D_eps(phi0, hmin)
             nmr = 100.d0*dij*(C(i0,i1) - phi0)

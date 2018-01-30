@@ -119,9 +119,14 @@ public:
     void setApplyMassConstraint(bool apply_mass_constraint);
 
     /*!
-     * \brief Indicated that the class should apply the subcell fix.
+     * \brief Indicate that the class should apply the subcell fix.
      */
     void setApplySubcellFix(bool apply_subcell_fix);
+
+    /*!
+     * \brief Indicate that the class should apply the sign fix near interface points.
+     */
+    void setApplySignFix(bool apply_sign_fix);
 
 protected:
     // Flag for applying the mass constraint
@@ -129,6 +134,9 @@ protected:
 
     // Flag for applying subcell fix
     bool d_apply_subcell_fix;
+
+    // Flag for applying sign fix near interface points
+    bool d_apply_sign_fix;
 
 private:
     /*!
