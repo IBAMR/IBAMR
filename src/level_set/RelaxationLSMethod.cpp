@@ -614,7 +614,6 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
         TBOX_ASSERT(P_ghosts >= 2);
     }
     else if (d_ls_order == FIFTH_ORDER_WENO_LS)
-        ;
     {
         TBOX_ASSERT(H_ghosts >= 3);
         TBOX_ASSERT(P_ghosts >= 3);
