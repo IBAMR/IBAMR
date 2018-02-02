@@ -392,7 +392,7 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 } // setupTagBuffer
     
 
-
+/*
 // The following pressure interpolation function uses simple bilinear interpolation including the jump [[p]]
 void
 IBFEMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
@@ -951,9 +951,9 @@ IBFEMethod::interpolatePressureForTraction(const int p_data_idx, const double da
     return;
 
 } // interpolatePressureForTraction (using jump [[p]])
+*/
 
-
-    /*
+    
  // This function calculates the pressure(P- and P+) on the interface using extrapolation in the normal direction
 void
 IBFEMethod::interpolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
@@ -1853,7 +1853,7 @@ IBFEMethod::interpolatePressureForTraction(const int p_data_idx, const double da
     return;
 
 } // interpolatePressureForTraction
-*/
+
 
 void
 IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
@@ -2260,7 +2260,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double /*new_time*/, i
     const int U_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getVelocityVariable(),
                                                            getINSHierarchyIntegrator()->getCurrentContext());
 
-	calcHydroF(current_time, U_idx, p_idx);
+	//calcHydroF(current_time, U_idx, p_idx);
 	
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -2286,7 +2286,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double /*new_time*/, i
         dw_j_vec->localize(*dw_j_ghost_vec);
 #endif
 
- /*       
+
         computeFluidTraction(current_time,
                              *P_j_ghost_vec,
                              *du_j_ghost_vec,
@@ -2297,7 +2297,6 @@ IBFEMethod::postprocessIntegrateData(double current_time, double /*new_time*/, i
                              U_idx,
                              p_idx,
                              part);
-*/
         
         // Reset time-dependent Lagrangian data.
         d_X_new_vecs[part]->close();
@@ -3250,25 +3249,29 @@ IBFEMethod::computeFluidTraction(const double data_time,
     */                                                          
 
        // Using the jumps and the force defined as F = [tau]
-      
-					TAU_qp[NDIM * local_indices[k] + axis] =  (1.0/dA_da)*(- P_j_qp[local_indices[k]] * N_qp[NDIM *
+       //~ (1.0/dA_da)*
+					//~ pout<< " da_da = " <<dA_da<<"\n\n";
+     /* 
+					TAU_qp[NDIM * local_indices[k] + axis] =  (1.0/dA_da) * (- P_j_qp[local_indices[k]] * N_qp[NDIM *
                     local_indices[k] + axis] + (axis == 0 ? du_j_qp[NDIM * local_indices[k]]* N_qp[NDIM *
                     local_indices[k]] + du_j_qp[NDIM * local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1] :
                     dv_j_qp[NDIM * local_indices[k]] * N_qp[NDIM * local_indices[k]] + dv_j_qp[NDIM *
                     local_indices[k]+1] * N_qp[NDIM * local_indices[k] +1]));
+                    * /
                      //~ -
                      //~ d_mu * (axis == 0 ? -N_qp[NDIM * local_indices[k] + 1] :  N_qp[NDIM * local_indices[k]]) *
                      //~ (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]) +
                      //~ d_mu * (axis == 0 ? -N_qp[NDIM * local_indices[k] + 1] : N_qp[NDIM * local_indices[k]]) *
                      //~ (dv_x_i_qp[local_indices[k]] - du_y_i_qp[local_indices[k]]));
         
-                    
+          */          
                 
-                // Using the exterior traciton tau_e
-                    //~ TAU_qp[NDIM * local_indices[k] + axis] = (1.0/dA_da)*(2.0*d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] -
-                                                                          //~ P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis] +
-                                                                          //~ d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
-                                                                          //~ (dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]));
+                //~ // Using the exterior traciton tau_e
+                    TAU_qp[NDIM * local_indices[k] + axis] = (1.0/dA_da)*(d_mu * WSS_o_qp[NDIM * local_indices[k] + axis] -
+                                                                          P_o_qp[local_indices[k]] * N_qp[NDIM * local_indices[k] + axis]);
+                                                                          // +
+                                                                          //d_mu * (axis == 0 ? N_qp[NDIM * local_indices[k] + 1] : -N_qp[NDIM * local_indices[k]]) *
+                                                                          //(dv_x_o_qp[local_indices[k]] - du_y_o_qp[local_indices[k]]));
 
                 }
             }
@@ -3644,7 +3647,7 @@ void IBFEMethod::calcHydroF(const double data_time, const int u_idx, const int p
                     }
                     N_qp[NDIM * (qp_offset + qp) + i] = n(i);
                     
-                    X_qp[NDIM * (qp_offset + qp) + i] += 2.0 * n(i) * dh;
+                    X_qp[NDIM * (qp_offset + qp) + i] += 2.5 * n(i) * dh;
                 }
                 
                             //const double* const
