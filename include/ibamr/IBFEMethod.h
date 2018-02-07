@@ -579,7 +579,7 @@ protected:
         d_F_t_systems, d_F_b_systems, d_H_systems, d_dv_z_systems, d_du_z_systems;
     std::vector<libMesh::System *> d_d2u_j_systems, d_d2v_j_systems, d_d2w_j_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_X0_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X0_vecs, d_X0_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_H_half_vecs, d_H_IB_ghost_vecs;
