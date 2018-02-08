@@ -34,12 +34,12 @@
 #include "ForceProjector.h"
 
 #include "Box.h"
-#include "ibamr/namespaces.h"
 #include "Patch.h"
 #include "PatchLevel.h"
+#include "VariableDatabase.h"
+#include "ibamr/namespaces.h"
 #include "tbox/Array.h"
 #include "tbox/PIO.h"
-#include "VariableDatabase.h"
 
 namespace IBTK
 {

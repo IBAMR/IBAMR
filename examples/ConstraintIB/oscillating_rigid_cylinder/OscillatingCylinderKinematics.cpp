@@ -34,12 +34,12 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include "tbox/Utilities.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/PIO.h"
-#include "tbox/MathUtilities.h"
-#include "PatchLevel.h"
 #include "CartesianPatchGeometry.h"
+#include "PatchLevel.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
 
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
@@ -50,47 +50,15 @@
 #include "muParser.h"
 
 // C++ INCLUDES
-#include <string>
 #include <limits>
+#include <string>
 
 namespace IBAMR
 {
-namespace
-{
-static const bool DISCARD_COMMENTS = false;
-static const double PII = 3.1415926535897932384626433832795;
-
-inline std::string
-discard_comments(const std::string& input_string)
-{
-    // Create a copy of the input string, but without any text following a '!',
-    // '#', or '%' character.
-    std::string output_string = input_string;
-    std::istringstream string_stream;
-
-    // Discard any text following a '!' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '!');
-    string_stream.clear();
-
-    // Discard any text following a '#' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '#');
-    string_stream.clear();
-
-    // Discard any text following a '%' character.
-    string_stream.str(output_string);
-    std::getline(string_stream, output_string, '%');
-    string_stream.clear();
-    return output_string;
-} // discard_comments
-
-} // namespace anonymous
-
 OscillatingCylinderKinematics::OscillatingCylinderKinematics(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              LDataManager* l_data_manager,
-                                                             Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                             Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                                                              bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_prescribed_trans_vel(0.0),
@@ -222,7 +190,7 @@ OscillatingCylinderKinematics::setOscillatingCylinderSpecificVelocity(const doub
 
     for (int k = 0; k < number_lag_points; ++k)
     {
-        d_current_kinematics_vel[0][0][k] = d_prescribed_trans_vel + d_Uinf * std::cos(2 * PII * d_freq * time);
+        d_current_kinematics_vel[0][0][k] = d_prescribed_trans_vel + d_Uinf * std::cos(2 * M_PI * d_freq * time);
     }
 
     return;
@@ -275,7 +243,7 @@ OscillatingCylinderKinematics::getCurrentKinematicsVelocity(const int level) con
 } // getCurrentKinematicsVelocity
 
 void
-OscillatingCylinderKinematics::setShape(const double new_time, const std::vector<double>&)
+OscillatingCylinderKinematics::setShape(const double /*new_time*/, const std::vector<double>&)
 {
     // intentionally left blank
     return;

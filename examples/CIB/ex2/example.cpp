@@ -349,8 +349,8 @@ run_example(int argc, char* argv[])
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            pout << "\n\nNet rigid force and torque on plate is : \n" << ib_method_ops->getNetRigidGeneralizedForce(0)
-                 << "\n\n";
+            pout << "\n\nNet rigid force and torque on plate is : \n"
+                 << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

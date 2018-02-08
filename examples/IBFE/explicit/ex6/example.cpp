@@ -76,7 +76,8 @@ block_tether_force_function(VectorValue<double>& F,
                             const libMesh::Point& X,
                             const libMesh::Point& s,
                             Elem* const /*elem*/,
-                            const vector<NumericVector<double>*>& /*system_data*/,
+                            const std::vector<const std::vector<double>*>& /*var_data*/,
+                            const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                             double /*time*/,
                             void* /*ctx*/)
 {
@@ -91,7 +92,8 @@ beam_tether_force_function(VectorValue<double>& F,
                            const libMesh::Point& X,
                            const libMesh::Point& s,
                            Elem* const /*elem*/,
-                           const vector<NumericVector<double>*>& /*system_data*/,
+                           const std::vector<const std::vector<double>*>& /*var_data*/,
+                           const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                            double /*time*/,
                            void* /*ctx*/)
 {
@@ -107,31 +109,41 @@ beam_tether_force_function(VectorValue<double>& F,
     return;
 } // beam_tether_force_function
 
+// (Penalty) stress tensor function for the solid block.
+static double c1_s;
+void
+block_PK1_stress_function(TensorValue<double>& PP,
+                          const TensorValue<double>& FF,
+                          const libMesh::Point& /*X*/,
+                          const libMesh::Point& /*s*/,
+                          Elem* const /*elem*/,
+                          const std::vector<const std::vector<double>*>& /*var_data*/,
+                          const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                          double /*time*/,
+                          void* /*ctx*/)
+{
+    PP = 2.0 * c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
+    return;
+} // block_PK1_stress_function
+
 // Stress tensor function for the thin beam.
 static double mu_s, lambda_s;
 void
 beam_PK1_stress_function(TensorValue<double>& PP,
                          const TensorValue<double>& FF,
                          const libMesh::Point& /*X*/,
-                         const libMesh::Point& s,
+                         const libMesh::Point& /*s*/,
                          Elem* const /*elem*/,
-                         const vector<NumericVector<double>*>& /*system_data*/,
+                         const std::vector<const std::vector<double>*>& /*var_data*/,
+                         const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
                          double /*time*/,
                          void* /*ctx*/)
 {
-    const double r = sqrt((s(0) - 0.2) * (s(0) - 0.2) + (s(1) - 0.2) * (s(1) - 0.2));
-    if (r > 0.05)
-    {
-        static const TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        const TensorValue<double> CC = FF.transpose() * FF;
-        const TensorValue<double> EE = 0.5 * (CC - II);
-        const TensorValue<double> SS = lambda_s * EE.tr() * II + 2.0 * mu_s * EE;
-        PP = FF * SS;
-    }
-    else
-    {
-        PP.zero();
-    }
+    static const TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+    const TensorValue<double> CC = FF.transpose() * FF;
+    const TensorValue<double> EE = 0.5 * (CC - II);
+    const TensorValue<double> SS = lambda_s * EE.tr() * II + 2.0 * mu_s * EE;
+    PP = FF * SS;
     return;
 } // beam_PK1_stress_function
 }
@@ -262,6 +274,7 @@ run_example(int argc, char* argv[])
 
         mu_s = input_db->getDouble("MU_S");
         lambda_s = input_db->getDouble("LAMBDA_S");
+        c1_s = input_db->getDouble("C1_S");
         kappa_s = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
@@ -315,13 +328,30 @@ run_example(int argc, char* argv[])
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
+        IBFEMethod::PK1StressFcnData block_PK1_stress_data(block_PK1_stress_function);
         ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
+        ib_method_ops->registerPK1StressFunction(block_PK1_stress_data, 0);
+        string block_kernel_fcn = input_db->getStringWithDefault("BLOCK_KERNEL_FUNCTION", "PIECEWISE_LINEAR");
+        FEDataManager::InterpSpec block_interp_spec = ib_method_ops->getDefaultInterpSpec();
+        block_interp_spec.kernel_fcn = block_kernel_fcn;
+        ib_method_ops->setInterpSpec(block_interp_spec, 0);
+        FEDataManager::SpreadSpec block_spread_spec = ib_method_ops->getDefaultSpreadSpec();
+        block_spread_spec.kernel_fcn = block_kernel_fcn;
+        ib_method_ops->setSpreadSpec(block_spread_spec, 0);
 
         IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
         IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function);
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 1);
         ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 1);
+        string beam_kernel_fcn = input_db->getStringWithDefault("BEAM_KERNEL_FUNCTION", "IB_3");
+        FEDataManager::InterpSpec beam_interp_spec = ib_method_ops->getDefaultInterpSpec();
+        beam_interp_spec.kernel_fcn = beam_kernel_fcn;
+        ib_method_ops->setInterpSpec(beam_interp_spec, 1);
+        FEDataManager::SpreadSpec beam_spread_spec = ib_method_ops->getDefaultSpreadSpec();
+        beam_spread_spec.kernel_fcn = beam_kernel_fcn;
+        ib_method_ops->setSpreadSpec(beam_spread_spec, 1);
 
+        ib_method_ops->initializeFEEquationSystems();
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 
@@ -382,8 +412,8 @@ run_example(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        AutoPtr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : NULL);
-        AutoPtr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : NULL);
+        libMesh::UniquePtr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -538,8 +568,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
         std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
-        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        libMesh::UniquePtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
+        libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
@@ -582,7 +612,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     NumericVector<double>* X_vec = X_system.solution.get();
-    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    libMesh::UniquePtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();

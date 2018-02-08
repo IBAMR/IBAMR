@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBTK],[140227],[griffith@cims.nyu.edu],[IBTK],[https://ibamr.googlecode.com])
+AC_INIT([IBTK],[171104],[boyceg@gmail.com],[IBAMR],[https://ibamr.github.io])
 AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -56,7 +56,14 @@ CONFIGURE_DOT
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
 CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
-CONFIGURE_GTEST
+echo
+echo "=================================="
+echo "Configuring required package Boost"
+echo "=================================="
+AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
+BOOST_REQUIRE([1.57.0],[
+  AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
+  USING_BUNDLED_BOOST=yes])
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/eigen")
 CONFIGURE_HDF5
@@ -66,6 +73,7 @@ CONFIGURE_PETSC
 CONFIGURE_SAMRAI
 CONFIGURE_SILO
 CONFIGURE_GSL
+CONFIGURE_GTEST
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 

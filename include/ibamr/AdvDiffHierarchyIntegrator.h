@@ -1,7 +1,7 @@
 // Filename: AdvDiffHierarchyIntegrator.h
 // Created on 21 May 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2017, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -139,6 +139,9 @@ public:
      * Data management for the registered advection velocity will be handled by
      * the hierarchy integrator.
      *
+     * If a function is not provided, it is the responsibility of the user
+     * to ensure that the current and new contexts are set correctly.
+     *
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
@@ -161,6 +164,9 @@ public:
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
      * particular advection velocity.
+     *
+     * If a function is not provided, it is the responsibility of the user
+     * to ensure that the current and new contexts are set correctly.
      */
     void setAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
                                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
@@ -549,8 +555,9 @@ protected:
      * Linear solvers and associated data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_sol_vecs, d_rhs_vecs;
-    std::string d_helmholtz_solver_type, d_helmholtz_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db;
+    std::string d_helmholtz_solver_type, d_helmholtz_precond_type, d_helmholtz_sub_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db,
+        d_helmholtz_sub_precond_db;
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
     std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;

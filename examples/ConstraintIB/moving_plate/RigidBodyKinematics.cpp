@@ -34,13 +34,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "RigidBodyKinematics.h"
-#include "PatchLevel.h"
 #include "CartesianPatchGeometry.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/MathUtilities.h"
+#include "PatchLevel.h"
+#include "RigidBodyKinematics.h"
 #include "ibamr/namespaces.h"
 #include "muParser.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 
 namespace IBAMR
 {
@@ -52,8 +52,9 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
-      d_current_time(0.0),
       d_kinematics_data(),
+      d_current_time(0.0),
+      d_new_time(0.0),
       d_kinematics_vel(NDIM),
       d_shape(NDIM),
       d_center_of_mass(3),

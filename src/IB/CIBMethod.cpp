@@ -1,7 +1,7 @@
 // Filename: CIBMethod.cpp
 // Created on 21 Apr 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -741,7 +741,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 } // forwardEulerStep
 
 void
-CIBMethod::backwardEulerStep(double current_time, double new_time)
+CIBMethod::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR(
         "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "

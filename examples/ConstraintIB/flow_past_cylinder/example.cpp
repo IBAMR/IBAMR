@@ -54,10 +54,9 @@
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/LData.h>
 
 // Application
 #include "RigidBodyKinematics.h"

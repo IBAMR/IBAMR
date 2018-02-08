@@ -1,7 +1,7 @@
 // Filename: KrylovFreeBodyMobilitySolver.cpp
 // Created on 16 Aug 2015 by Amneet Bhalla and Bakytzhan Kallemov.
 //
-// Copyright (c) 2002-2014, Amneet Bhalla, Bakytzhan Kallemov, and
+// Copyright (c) 2002-2017, Amneet Bhalla, Bakytzhan Kallemov, and
 // Boyce Griffith.
 //
 // All rights reserved.

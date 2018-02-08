@@ -1,7 +1,7 @@
 // Filename: ConstraintIBMethod.cpp
 // Created on 1 Dec 2011 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -566,7 +566,7 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateVolumeElement();
     setInitialLagrangianVelocity();
-        
+
     return;
 } // initializeHierarchyOperatorsandData
 
@@ -612,10 +612,10 @@ ConstraintIBMethod::putToDatabase(Pointer<Database> db)
     // Put the following quantities to restart database.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-	std::ostringstream posidentifier;
+        std::ostringstream posidentifier;
         posidentifier << "POSN_COM_STRUCT_" << struct_no;
         db->putDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
-		
+
         std::ostringstream defvelidentifier, defomegaidentifier;
         defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
         defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
@@ -776,10 +776,10 @@ ConstraintIBMethod::getFromRestart()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-	std::ostringstream posidentifier;
+        std::ostringstream posidentifier;
         posidentifier << "POSN_COM_STRUCT_" << struct_no;
         db->getDoubleArray(posidentifier.str(), &d_center_of_mass_current[struct_no][0], 3);
-		
+
         std::ostringstream defvelidentifier, defomegaidentifier;
         defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
         defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
@@ -817,23 +817,24 @@ ConstraintIBMethod::setInitialLagrangianVelocity()
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateCOMandMOIOfStructures();
-	
+
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         d_ib_kinematics[struct_no]->setKinematicsVelocity(d_FuRMoRP_current_time,
                                                           d_incremented_angle_from_reference_axis[struct_no],
                                                           d_center_of_mass_current[struct_no],
                                                           d_tagged_pt_position[struct_no]);
-        d_ib_kinematics[struct_no]->setShape(d_FuRMoRP_current_time, d_incremented_angle_from_reference_axis[struct_no]);
+        d_ib_kinematics[struct_no]->setShape(d_FuRMoRP_current_time,
+                                             d_incremented_angle_from_reference_axis[struct_no]);
 
-		if (!from_restart)
-        {	
-			const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
-			if (struct_param.getStructureIsSelfTranslating()) calculateMomentumOfKinematicsVelocity(struct_no);
+        if (!from_restart)
+        {
+            const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
+            if (struct_param.getStructureIsSelfTranslating()) calculateMomentumOfKinematicsVelocity(struct_no);
 
-			d_vel_com_def_current[struct_no] = d_vel_com_def_new[struct_no];
-			d_omega_com_def_current[struct_no] = d_omega_com_def_new[struct_no];
-		}
+            d_vel_com_def_current[struct_no] = d_vel_com_def_new[struct_no];
+            d_omega_com_def_current[struct_no] = d_omega_com_def_new[struct_no];
+        }
     }
     return;
 } // setInitialLagrangianVelocity
@@ -2048,7 +2049,7 @@ ConstraintIBMethod::forwardEulerStep(double current_time, double new_time)
     IBMethod::forwardEulerStep(current_time, new_time);
 
     setFuRMoRPTime(current_time, new_time);
-	
+
     IBTK_TIMER_START(t_eulerStep);
     updateStructurePositionEulerStep();
     IBTK_TIMER_STOP(t_eulerStep);

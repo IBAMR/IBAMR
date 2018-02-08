@@ -38,13 +38,13 @@
 
 #include <string>
 
+#include <PatchHierarchy.h>
+#include <SideVariable.h>
+#include <VariableContext.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
-#include <PatchHierarchy.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
 
 namespace IBTK
 {

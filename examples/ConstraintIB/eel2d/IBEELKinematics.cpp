@@ -182,7 +182,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
 
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    
+
     return;
 
 } // IBEELKinematics
