@@ -5,13 +5,20 @@ MU = 2.0*R/Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3        // maximum number of levels in locally refined grid
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 4        // refinement ratio between levels
 REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
 
-N = 16                                   // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
-L = 16
+L = 32.0
+
+// Initial control volume parameters
+InitHydroForceBox_0 {
+   lower_left_corner  = -0.65, -0.65, 0.0
+   upper_right_corner = 0.65, 0.65, 0.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -101,10 +108,15 @@ ConstraintIBMethod {
    rho_fluid                = RHO
    mu_fluid                 = MU
    
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
+   
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
    output_drag           = TRUE               //default false
+   output_torque         = TRUE               //default false
    output_power          = FALSE              //default false
    output_rig_transvel   = TRUE               //default false
    output_rig_rotvel     = TRUE               //default false
@@ -245,10 +257,6 @@ ConstraintIBKinematics {
   }                 
 
 
-
-
-
-
 Main {
 // log file parameters
    log_file_name    = "IB2d_cylinder2d.log"
@@ -276,7 +284,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (63 , 32) ]
+   domain_boxes = [ (0,0) , (N , N/2) ]
    x_lo         = -8.0, -8.0         // lower end of computational domain.
    x_up         =  24.0, 8.0         // upper end of computational domain.
    periodic_dimension = 0, 0

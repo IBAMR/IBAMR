@@ -1,31 +1,34 @@
 // physical parameters
-Re = 20                   // Reynolds number of the flow
-b = 1.0                   // length scale
-U0 = 1.0                  // velocity scale of the problem.
-RHO = 1.0                 // fluid mass density
-MU = RHO*U0*b/Re          // fluid viscosity
+Re = 550                   // Reynolds number of the flow
+D = 2*0.5                 // length scale
+U0 = 1.0                   // velocity scale of the problem.
+RHO = 1.0                  // fluid mass density
+MU = RHO*U0*D/Re           // fluid viscosity
 
 // grid spacing parameters
-MAX_LEVELS = 3                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
-NFINEST = 1024                             // actual number of grid cells on finest grid level
-N = NFINEST/(REF_RATIO^(MAX_LEVELS - 1))  // coarsest grid spacing
+NXFINEST = 900*8                          // actual number of grid cells on finest grid level
+NYFINEST = 600*8     
+NX = NXFINEST/(REF_RATIO^(MAX_LEVELS - 1))  // coarsest grid spacing
+NY = NYFINEST/(REF_RATIO^(MAX_LEVELS - 1))
 
 // solver parameters
 DELTA_FUNCTION       = "IB_4"
+START_TIME           = 0.0e0                      // initial simulation time
+END_TIME             = 7.0                        // final simulation time
 MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
 GROW_DT              = 2.0e0                      // growth factor for timesteps
 NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration.
 CONVECTIVE_OP_TYPE   = "PPM"                      // convective differencing discretization type
 CONVECTIVE_FORM      = "ADVECTIVE"                // how to compute the convective terms
-NORMALIZE_PRESSURE   = TRUE                       // whether to explicitly force the pressure to have mean zero
+NORMALIZE_PRESSURE   = FALSE                      // whether to explicitly force the pressure to have mean zero
 CFL_MAX              = 0.3                        // maximum CFL number
-DT_MAX               = 0.001                      // maximum timestep size
-START_TIME           = 0.0e0                      // initial simulation time
-END_TIME             = 10*DT_MAX                  // final simulation time
+DT_MAX               = 0.002/8.0                      // maximum timestep size
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL  = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+REGRID_INTERVAL      = 10000000000000
+REGRID_CFL_INTERVAL  = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = FALSE
@@ -33,41 +36,33 @@ OUTPUT_OMEGA         = TRUE
 OUTPUT_DIV_U         = TRUE
 ENABLE_LOGGING       = TRUE
 
-// Initial control volume parameters
-InitHydroForceBox_0 {
-   lower_left_corner  = -2.0, -1.0, 0.0
-   upper_right_corner = 2.0, 1.0, 0.0
-   init_velocity      = 0.0, 0.0, 0.0
-}
 
 
 VelocityBcCoefs_0 {
-
-
    acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
+   acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
+   bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "0.0"
+   gcoef_function_0 = "1.0"  
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+   gcoef_function_2 = "1.0"
+   gcoef_function_3 = "1.0"
 }
 
 VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
+   acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
+   bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
@@ -83,37 +78,34 @@ IBHierarchyIntegrator {
    grow_dt              = GROW_DT
    num_cycles           = NUM_CYCLES
    regrid_cfl_interval  = REGRID_CFL_INTERVAL
+   regrid_interval      = REGRID_INTERVAL
    dt_max               = DT_MAX
    enable_logging       = ENABLE_LOGGING
    max_integrator_steps = MAX_INTEGRATOR_STEPS
-   error_on_dt_change   = FALSE
+   error_on_dt_change   = TRUE
    warn_on_dt_change    = FALSE
 }
 
 ConstraintIBMethod {
    delta_fcn                = DELTA_FUNCTION
    enable_logging           = ENABLE_LOGGING
-   needs_divfree_projection = FALSE
+   needs_divfree_projection = TRUE
    rho_fluid                = RHO
    mu_fluid                 = MU
-   
-   // Options to calculate the structure's momenta
-   calculate_structure_linear_mom       = TRUE            // default false
-   calculate_structure_rotational_mom   = TRUE            // default false
+   structure_names = "cylinder2d"
    
    PrintOutput {
    print_output          = TRUE               //default false
-   output_interval       = 1                  //default 1
+   output_interval       = 8                  //default 1
    output_drag           = TRUE               //default false
-   output_torque         = TRUE               //default false
    output_power          = FALSE              //default false
-   output_rig_transvel   = TRUE               //default false
-   output_rig_rotvel     = TRUE               //default false
-   output_com_coords     = TRUE               //default false
+   output_rig_transvel   = FALSE              //default false
+   output_rig_rotvel     = FALSE              //default false
+   output_com_coords     = FALSE              //default false
    output_moment_inertia = FALSE              //default false
    output_eulerian_mom   = FALSE              //default false
-   output_dirname        = "./plate2d"        //default "./ConstraintIBMethodDump"
-   base_filename         = "plate2d"          //default  "ImmersedStructure"
+   output_dirname        = "./cylinderDump"        //default "./ConstraintIBMethodDump"
+   base_filename         = "cylinder2d"          //default  "ImmersedStructure"
   }
 
 }
@@ -122,8 +114,8 @@ num_structures = 1
 
 ConstraintIBKinematics {
 
-plate2d {
-     structure_names                  = "plate2d"
+cylinder2d {
+     structure_names                  = "cylinder2d"
      structure_levels                 =  MAX_LEVELS - 1
      calculate_translational_momentum = 0,0,0
      calculate_rotational_momentum    = 0,0,0
@@ -133,15 +125,22 @@ plate2d {
 
 }
 
+HydroForceEval {
+	print_interval = 8 
+	surf_print_interval = int(1.0 / DT_MAX)
+	mu_fluid = MU
+	lifted_struct_names = "cylinder2d_2h", "cylinder2d_3h"
+    struct_names = "cylinder2d", "cylinder2d"
+    is_stationary = TRUE, TRUE
+}
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "plate2d"
-
-   plate2d {
+   structure_names = "cylinder2d"
+   
+   cylinder2d {
       level_number = MAX_LEVELS - 1
    }
-   
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -227,32 +226,32 @@ INSStaggeredHierarchyIntegrator {
 Main {
 
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "cylin2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = int(END_TIME/(3*DT_MAX))
-   viz_dump_dirname            = "viz_2d"
+   viz_dump_interval           = 80             // zero to turn off
+   viz_dump_dirname            = "viz_cylin2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 150                     // zero to turn off
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_interval       = 500                   // zero to turn off
+   restart_dump_dirname        = "restart_cylin2d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 0                       // zero to turn off
-   data_dump_dirname           = "hier_data_IB2d"
+   data_dump_dirname           = "hier_data_cylin2d"
 
 // timer dump parameters
-   timer_dump_interval         = 100                     // zero to turn off
+   timer_dump_interval         = 0                     // zero to turn off
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (N - 1 , N - 1) ]
-   x_lo         =  -10.0*b, -11.0*b                          // lower end of computational domain.
-   x_up         =   22.0*b,  11.0*b                      // upper end of computational domain.
-   periodic_dimension = 1, 1
+   domain_boxes = [ (0,0) , (NX - 1 , NY - 1) ]
+   x_lo         =  -6.0*D, -6.0*D                          // lower end of computational domain.
+   x_up         =   12.0*D,  6.0*D                      // upper end of computational domain.
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {
@@ -268,23 +267,33 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 = 512, 512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 = NX, NY // largest patch allowed in hierarchy
+      level_1 = NX*REF_RATIO, NY*REF_RATIO                  // all finer levels will use same values as level_0...
+      level_2 = NX*REF_RATIO^2, NY*REF_RATIO^2
+      level_3 = NX*REF_RATIO^3, NY*REF_RATIO^3
+      level_4 = NX*REF_RATIO^4, NY*REF_RATIO^4
    }
 
    smallest_patch_size {
-      level_0 =  8,  8 // smallest patch allowed in hierarchy
+      level_0 =  32,  32 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   efficiency_tolerance   = 0.6e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.8e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR"
+   //tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes{
+      level_0 = [ (0, 2*NY/12) , (10*NX/18 - 1 , 10*NY/12 - 1) ]
+      level_1 = [ (0, 3*NY*REF_RATIO/12) , (9*NX*REF_RATIO/18 - 1 , 9*NY*REF_RATIO/12 - 1) ]
+      level_2 = [ (0, 4*NY*REF_RATIO^2/12) , (8*NX*REF_RATIO^2/18 - 1 , 8*NY*REF_RATIO^2/12 - 1) ]
+      level_3 = [ (0, 5*NY*REF_RATIO^3/12) , (7*NX*REF_RATIO^3/18 - 1 , 7*NY*REF_RATIO^3/12 - 1) ]
+   }
 }
 
 LoadBalancer {

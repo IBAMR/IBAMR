@@ -4,9 +4,9 @@ MU = 0.785/Re        // the viscosity required to attain the specified Reynolds 
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 4                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 3                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
-N = 16                                    // actual    number of grid cells on coarsest grid level
+N = 64                                    // actual    number of grid cells on coarsest grid level
 
 // solver parameters
 DELTA_FUNCTION       = "IB_4"
@@ -16,10 +16,10 @@ MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
 GROW_DT              = 2.0e0                      // growth factor for timesteps
 NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration. For cIB set 1. 
 CONVECTIVE_OP_TYPE   = "PPM"                      // convective differencing discretization type
-CONVECTIVE_FORM      = "ADVECTIVE"                // how to compute the convective terms
+CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE   = TRUE                      // whether to explicitly force the pressure to have mean zero
-CFL_MAX              = 0.1                        // maximum CFL number
-DT_MAX               = 0.001                      // maximum timestep size
+CFL_MAX              = 0.3                        // maximum CFL number
+DT_MAX               = 0.0001                      // maximum timestep size
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -30,10 +30,14 @@ OUTPUT_OMEGA         = TRUE
 OUTPUT_DIV_U         = TRUE
 ENABLE_LOGGING       = TRUE
 
+// Initial control volume parameters
+InitHydroForceBox_0 {
+   lower_left_corner  = -1.0, -0.7, 0.0
+   upper_right_corner = 1.0, 0.7, 0.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
 
 VelocityBcCoefs_0 {
-
-
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -87,10 +91,15 @@ ConstraintIBMethod {
    rho_fluid                = RHO
    mu_fluid                 = MU
    
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
+   
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
-   output_drag           = FALSE               //default false
+   output_drag           = TRUE               //default false
+   output_torque         = TRUE               //default false
    output_power          = FALSE              //default false
    output_rig_transvel   = TRUE              //default false
    output_rig_rotvel     = TRUE              //default false

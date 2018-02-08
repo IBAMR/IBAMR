@@ -1,6 +1,5 @@
-// Filename: example.cpp
-// Modified by Amneet Bhalla from IBAMR examples.
-
+// Filename: main.cpp
+//
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
@@ -14,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -28,7 +27,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// POSSIBILITY OF SUCH DAMAGE
 
 // Config files
 #include <IBAMR_config.h>
@@ -47,22 +46,28 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBHydrodynamicForceEvaluator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
+#include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
-#include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/LData.h>
 
-// Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
+// Application
+#include "RigidBodyKinematics.h"
+#include "HydroForceEval.h"
 
-// Application objects
-#include "IBEELKinematics.h"
+using namespace SAMRAI::geom;
+using namespace SAMRAI::hier;
+using namespace SAMRAI::pdat;
+using namespace SAMRAI::tbox;
+using namespace IBTK;
+
+std::ofstream drag_stream;
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -72,7 +77,30 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-/*******************************************************************************
+void
+COMTransVelocity(const double time, Eigen::Vector3d& trans_vel)
+{
+    trans_vel.setZero();
+    trans_vel[0] = 0.0;
+
+    return;
+} // COMTransVelocity
+
+/*!
+ * \brief Function to get element connectivity data by overriding spring class.
+ */
+inline double
+spring_force(double /*R*/, const double* /*params*/, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
+{
+    return 0.0;
+} // spring_force
+inline double
+spring_force_deriv(double /*R*/, const double* /*params*/, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
+{
+    return 0.0;
+} // spring_force_deriv
+
+/****************************** *************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
  *                                                                             *
@@ -87,7 +115,7 @@ bool
 run_example(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -159,6 +187,8 @@ run_example(int argc, char* argv[])
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+		ib_force_fcn->registerSpringForceFunction(-1, &spring_force, &spring_force_deriv);
+		ib_force_fcn->registerSpringForceFunction(1, &spring_force, &spring_force_deriv);
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
@@ -227,48 +257,25 @@ run_example(int argc, char* argv[])
 
         // Create ConstraintIBKinematics objects
         vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
-        Pointer<ConstraintIBKinematics> ib_kinematics_op;
-        // struct_0
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
+        Pointer<RigidBodyKinematics> ib_kinematics_op;
+        ib_kinematics_op = new RigidBodyKinematics(
+            "cylinder2d",
+            app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("cylinder2d"),
+            ib_method_ops->getLDataManager(),
+            patch_hierarchy);
+        ib_kinematics_op->registerRigidBodyKinematics(static_cast<RigidBodyKinematics::RigidVelFcn>(&COMTransVelocity),
+                                                      NULL);
         ibkinematics_ops_vec.push_back(ib_kinematics_op);
 
         // register ConstraintIBKinematics objects with ConstraintIBMethod.
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
-        // Create hydrodynamic force evaluator object.
-        double rho_fluid = input_db->getDouble("RHO");
-        double mu_fluid = input_db->getDouble("MU");
-        double start_time = time_integrator->getIntegratorTime();
-        Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
-
-        // Get the initial box position and velocity from input
-        const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
-        IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
-
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
-	input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
-	
-	// Register control volume
-        hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
-
-        // Create COM variable
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
-        IBTK::Vector3d eel_COM;
-        for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[0][d];
-
-        // Set the torque evaluation axis to point from newest COM
-        hydro_force->setTorqueOrigin(eel_COM, 0);
-
-        // Register optional plot data
-        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
-
+		// Create hydrodynamic surface force evaluator object.
+		Pointer<HydroForceEval> hf_eval =
+			new HydroForceEval("HydroForceEval", 
+							   app_initializer->getComponentDatabase("HydroForceEval"), patch_hierarchy, ib_method_ops->getLDataManager());
+		
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -277,18 +284,28 @@ run_example(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-
-        // Get velocity and pressure variables from integrator
+        
+         // Setup data to compute hydrodynamic traction.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
+        
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-
+        
         const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-
+        
+		// Ghost data for surface hydrodynamic force calculation. 
+		Pointer<SideVariable<NDIM, double> > u_wide_var = new SideVariable<NDIM, double>("u_wide_var", /*depth*/ 1);
+		Pointer<CellVariable<NDIM, double> > p_wide_var = new CellVariable<NDIM, double>("p_wide_var", /*depth*/ 1);
+		int u_wide_idx = var_db->registerVariableAndContext(u_wide_var,
+															var_db->getContext("u_wide_var::CONTEXT"),
+															/*ghost cell width*/ hier::IntVector<NDIM>(1));
+		int p_wide_idx = var_db->registerVariableAndContext(p_wide_var,
+															var_db->getContext("p_wide_var::CONTEXT"),
+															/*ghost cell width*/ hier::IntVector<NDIM>(0));
+	
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -301,113 +318,64 @@ run_example(int argc, char* argv[])
         }
 
         // Main time step loop.
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        double current_time, new_time;
-        double box_disp = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
-            iteration_num = time_integrator->getIntegratorStep();
+			iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
-            current_time = loop_time;
-
+	    
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            dt = time_integrator->getMaximumTimeStepSize();
-            loop_time += dt;
-            new_time = loop_time;
-
-            // Regrid the hierarchy if necessary.
-            if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
-
-            // Set the box velocity to nonzero only if the eel has moved sufficiently far.
-            IBTK::Vector3d box_vel;
-            box_vel.setZero();
-	    
-            // Velocity due to free-swimming
-            std::vector<std::vector<double> > COM_vel = ib_method_ops->getCurrentCOMVelocity();
-            for (int d = 0; d < NDIM; ++d) box_vel(d) = COM_vel[0][d];
-
-            int coarsest_ln = 0;
-            Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-            const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
-            const double* const DX = coarsest_grid_geom->getDx();
-	    
-	    // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
-	    // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that 
-	    // the CV will translate by 1 coarse mesh width in the direction of swimming (negative x-direction). 
-	    // Otherwise, keep the CV in place by setting its velocity to zero.
-            box_disp += box_vel[0] * dt;
-            if (abs(box_disp) >= abs(0.9 * DX[0]))
-            {
-                box_vel.setZero();
-                box_vel[0] = -DX[0] / dt;
-
-                box_disp = 0.0;
-            }
-            else
-            {
-                box_vel.setZero();
-            }
-
-            // Update the location of the box for time n + 1
-            hydro_force->updateStructureDomain(box_vel, dt, patch_hierarchy, 0);
-
-            // Compute the momentum of u^n in box n+1 on the newest hierarchy
-            hydro_force->computeLaggedMomentumIntegral(
-                u_idx, patch_hierarchy, navier_stokes_integrator->getVelocityBoundaryConditions());
-
-            // Advance the hierarchy
+            // Regrid the hierarchy if necessary
+			const bool regrid_hierarchy = time_integrator->atRegridPoint();
+			if (regrid_hierarchy) time_integrator->regridHierarchy();
+			
+			dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
-
+			loop_time += dt;
+	    
             pout << "\n";
-            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "At end of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // Get the momentum of the eel
-            IBTK::Vector3d eel_mom, eel_rot_mom;
-            eel_mom.setZero();
-            eel_rot_mom.setZero();
-            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getStructureMomentum();
-            for (int d = 0; d < NDIM; ++d) eel_mom[d] = structure_linear_momentum[0][d];
-            std::vector<std::vector<double> > structure_rotational_momentum =
-                ib_method_ops->getStructureRotationalMomentum();
-            for (int d = 0; d < 3; ++d) eel_rot_mom[d] = structure_rotational_momentum[0][d];
-
-            // Store the new momenta of the eel
-            hydro_force->updateStructureMomentum(eel_mom, eel_rot_mom, 0);
-
-            // Evaluate hydrodynamic force on the eel.
-            hydro_force->computeHydrodynamicForce(u_idx,
-                                                  p_idx,
-                                                  /*f_idx*/ -1,
-                                                  patch_hierarchy,
-                                                  dt,
-                                                  navier_stokes_integrator->getVelocityBoundaryConditions(),
-                                                  navier_stokes_integrator->getPressureBoundaryConditions());
-
-            // Print the drag and torque
-            hydro_force->postprocessIntegrateData(current_time, new_time);
-
-            // Update CV plot data
-            hydro_force->updateStructurePlotData(patch_hierarchy, 0);
-
-            // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
-            for (int d = 0; d < 3; ++d) eel_COM[d] = structure_COM[0][d];
-
-            // Set the torque evaluation axis to point from newest COM
-            hydro_force->setTorqueOrigin(eel_COM, 0);
-
+            iteration_num += 1;
+			
+            // Copy fluid variables.
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                const Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+				if (!level->checkAllocated(u_wide_idx)) level->allocatePatchData(u_wide_idx);
+				if (!level->checkAllocated(p_wide_idx)) level->allocatePatchData(p_wide_idx);
+            }
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.copyData(u_wide_idx, u_idx, /*interior only*/ false);
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_cc_data_ops.copyData(p_wide_idx, p_idx, /*interior only*/ false);
+	    
+			RefineAlgorithm<NDIM> u_ghost_fill_alg, p_ghost_fill_alg;
+			Pointer<RefineSchedule<NDIM> > u_ghost_fill_schd, p_ghost_fill_schd;
+			u_ghost_fill_alg.registerRefine(u_wide_idx, u_wide_idx, u_wide_idx, NULL);
+			p_ghost_fill_alg.registerRefine(p_wide_idx, p_wide_idx, p_wide_idx, NULL);
+			u_ghost_fill_schd = u_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
+			p_ghost_fill_schd = p_ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
+			u_ghost_fill_schd->fillData(loop_time);
+			p_ghost_fill_schd->fillData(loop_time);
+	    
+			// Evaluate force at immersed body surface.
+			hf_eval->calcHydroForce(u_wide_idx, p_wide_idx, /*f_idx*/ -1, patch_hierarchy, 
+									ib_method_ops->getLDataManager(), loop_time, iteration_num);
+			
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
-            iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
             if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {

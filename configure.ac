@@ -100,6 +100,7 @@ AC_CONFIG_FILES([
   examples/ConstraintIB/eel3d/Makefile
   examples/ConstraintIB/falling_sphere/Makefile
   examples/ConstraintIB/flow_past_cylinder/Makefile
+  examples/ConstraintIB/flow_past_cylinder_HF/Makefile
   examples/ConstraintIB/impulsively_started_cylinder/Makefile
   examples/ConstraintIB/knifefish/Makefile
   examples/ConstraintIB/moving_plate/Makefile

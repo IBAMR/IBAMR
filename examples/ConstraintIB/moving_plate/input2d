@@ -33,6 +33,13 @@ OUTPUT_OMEGA         = TRUE
 OUTPUT_DIV_U         = TRUE
 ENABLE_LOGGING       = TRUE
 
+// Initial control volume parameters
+InitHydroForceBox_0 {
+   lower_left_corner  = -2.0, -1.0, 0.0
+   upper_right_corner = 2.0, 1.0, 0.0
+   init_velocity      = 0.0, 0.0, 0.0
+}
+
 
 VelocityBcCoefs_0 {
 
@@ -90,10 +97,15 @@ ConstraintIBMethod {
    rho_fluid                = RHO
    mu_fluid                 = MU
    
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
+   
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
    output_drag           = TRUE               //default false
+   output_torque         = TRUE               //default false
    output_power          = FALSE              //default false
    output_rig_transvel   = TRUE               //default false
    output_rig_rotvel     = TRUE               //default false
