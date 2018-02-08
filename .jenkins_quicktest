@@ -31,4 +31,5 @@ config() {
 
 config
 make -kj4 lib
-make gtest
+make -kj4 examples
+#make gtest
