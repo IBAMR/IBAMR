@@ -612,6 +612,11 @@ protected:
     bool d_use_consistent_mass_matrix;
 
     /*
+     * Data related to handling tangential constraints.
+     */
+    bool d_constrain_tangential_motion, d_constrain_interior_faces;
+
+    /*
      * Data related to handling stress normalization.
      */
     double d_epsilon;

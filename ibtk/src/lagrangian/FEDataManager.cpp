@@ -1755,6 +1755,157 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     return converged;
 } // computeL2Projection
 
+void
+FEDataManager::constrainTangentialComponent(NumericVector<double>& U_vec,
+                                            const std::string& U_system_name,
+                                            NumericVector<double>& X_vec,
+                                            const std::string& X_system_name,
+                                            const bool constrain_interior_faces)
+{
+    const MeshBase& mesh = d_es->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    System& U_system = d_es->get_system(U_system_name);
+    System& X_system = d_es->get_system(X_system_name);
+    const DofMap& U_dof_map = U_system.get_dof_map();
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > U_dof_indices(NDIM), X_dof_indices(NDIM);
+    std::vector<std::vector<double> > U_vals(NDIM), X_vals(NDIM);
+    std::vector<unsigned int> U_updated_dof_indices(NDIM);
+    std::vector<double> U_updated_vals(NDIM);
+    MeshBase::const_element_iterator el = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
+    for (; el != end_el; ++el)
+    {
+        const Elem* elem = *el;
+        ElemType elem_type = elem->type();
+        switch (elem_type)
+        {
+        case EDGE2: ////////// FIRST ORDER 1D elements
+            // no DOFs to constrain
+            break;
+
+        case EDGE3: ////////// SECOND ORDER 1D elements
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_dof_map.dof_indices(elem, U_dof_indices[d], d);
+                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+                U_vec.get(U_dof_indices[d], U_vals[d]);
+                X_vec.get(X_dof_indices[d], X_vals[d]);
+            }
+
+            // Read off the "corner" and "midpoint" values and positions.
+            const int n_nodes = elem->n_nodes();
+            std::vector<libMesh::Point> U_node(n_nodes), X_node(n_nodes);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                for (int i = 0; i < n_nodes; ++i)
+                {
+                    U_node[i](d) = U_vals[d][i];
+                    X_node[i](d) = X_vals[d][i];
+                }
+            }
+            libMesh::Point& U0 = U_node[0]; // corner   node
+            libMesh::Point& U1 = U_node[1]; // corner   node
+            libMesh::Point& U2 = U_node[2]; // midpoint node
+            libMesh::Point& X0 = X_node[0]; // corner   node
+            libMesh::Point& X1 = X_node[1]; // corner   node
+            libMesh::Point& X2 = X_node[2]; // midpoint node
+
+            // Replace the tangential component with the *linear* interpolation
+            // of the corner values.
+            libMesh::Point tau0 = (X1 - X0).unit();
+            U2 += (0.5 * ((U0 + U1) * tau0) - (U2 * tau0)) * tau0;
+
+            // Insert the values into the numeric vector.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_updated_vals[d] = U2(d);
+                U_updated_dof_indices[d] = U_dof_indices[d][2];
+            }
+            U_vec.insert(U_updated_vals, U_updated_dof_indices);
+            break;
+        }
+
+        case TRI3: ////////// FIRST ORDER 2D elements
+        case QUAD4:
+            // no DOFs to constrain
+            break;
+
+        case TRI6: ////////// SECOND ORDER 2D elements
+        case QUAD8:
+        case QUAD9:
+        {
+            for (int k = 0; k < elem->n_sides(); ++k)
+            {
+                // WARNING: This probably is not the correct thing to do for
+                // periodic boundaries.
+                if (!constrain_interior_faces && elem->neighbor_ptr(k) != NULL) continue;
+
+                // Construct a side element and lookup the relevant DOFs.
+                UniquePtr<const Elem> side_elem = elem->build_side_ptr(k);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    U_dof_map.dof_indices(side_elem.get(), U_dof_indices[d], d);
+                    X_dof_map.dof_indices(side_elem.get(), X_dof_indices[d], d);
+                    U_vec.get(U_dof_indices[d], U_vals[d]);
+                    X_vec.get(X_dof_indices[d], X_vals[d]);
+                }
+
+                // Read off the "corner" and "midpoint" values and positions.
+                const int n_nodes = side_elem->n_nodes();
+                std::vector<libMesh::Point> U_node(n_nodes), X_node(n_nodes);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    for (int i = 0; i < n_nodes; ++i)
+                    {
+                        U_node[i](d) = U_vals[d][i];
+                        X_node[i](d) = X_vals[d][i];
+                    }
+                }
+                libMesh::Point& U0 = U_node[0]; // corner   node
+                libMesh::Point& U1 = U_node[1]; // corner   node
+                libMesh::Point& U2 = U_node[2]; // midpoint node
+                libMesh::Point& X0 = X_node[0]; // corner   node
+                libMesh::Point& X1 = X_node[1]; // corner   node
+                libMesh::Point& X2 = X_node[2]; // midpoint node
+
+                // Replace the tangential component with the *linear*
+                // interpolation of the corner values.
+                libMesh::Point tau0 = (X1 - X0).unit();
+                U2 += (0.5 * ((U0 + U1) * tau0) - (U2 * tau0)) * tau0;
+
+                // Insert the values into the numeric vector.
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    U_updated_vals[d] = U2(d);
+                    U_updated_dof_indices[d] = U_dof_indices[d][2];
+                }
+                U_vec.insert(U_updated_vals, U_updated_dof_indices);
+            }
+            break;
+        }
+
+        case TET4: ////////// FIRST ORDER 3D elements
+        case HEX8:
+            // no DOFs to constrain
+            break;
+
+        case TET10: ////////// SECOND ORDER 3D elements
+        case HEX20:
+        case HEX27:
+            TBOX_ERROR("needs to be implemented!!!!\n");
+            break;
+
+        default:
+            TBOX_ERROR("unimplemented for element type = " << elem_type << "!\n");
+            break;
+        }
+    }
+    U_vec.close();
+    return;
+}
+
 bool
 FEDataManager::updateQuadratureRule(UniquePtr<QBase>& qrule,
                                     QuadratureType type,

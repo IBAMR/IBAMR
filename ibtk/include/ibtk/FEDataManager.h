@@ -496,6 +496,16 @@ public:
                              unsigned int max_its = 100);
 
     /*!
+     * \brief Constrain the tangential component of a vector-valued field to be
+     * the linear interpolation of the corner values.
+     */
+    void constrainTangentialComponent(libMesh::NumericVector<double>& U_vec,
+                                      const std::string& U_system_name,
+                                      libMesh::NumericVector<double>& X_vec,
+                                      const std::string& X_system_name,
+                                      bool constrain_interior_faces);
+
+    /*!
      * Update the quarature rule for the current element.  If the provided
      * qrule is already configured appropriately, it is not modified.
      *
