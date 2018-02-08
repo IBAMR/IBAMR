@@ -182,8 +182,8 @@ bool run_example(int argc, char* argv[], std::vector<double>& Q_err)
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form)
-             << " form.\n";
+        pout << "solving the advection equation in "
+             << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
         Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
