@@ -119,43 +119,41 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
     if (!from_restart)
     {
         // Ensure that box is aligned to grid cell sides at coarsest level
-	const int coarsest_ln = 0;
-	Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-	const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
-	const double* const dx_coarsest = coarsest_grid_geom->getDx();
-	const double* const grid_X_lower = coarsest_grid_geom->getXLower();
-	bool modified_box = false;
+        const int coarsest_ln = 0;
+        Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+        const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+        const double* const dx_coarsest = coarsest_grid_geom->getDx();
+        const double* const grid_X_lower = coarsest_grid_geom->getXLower();
+        bool modified_box = false;
         const IBTK::Vector3d box_X_lower_old = box_X_lower;
         const IBTK::Vector3d box_X_upper_old = box_X_upper;
 
         for (int d = 0; d < NDIM; ++d)
-	{
-	    double num_cells_lower = (box_X_lower[d]-grid_X_lower[d])/dx_coarsest[d];
-	    double num_cells_upper = (box_X_upper[d]-grid_X_lower[d])/dx_coarsest[d];
-	    
-	    if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
-	    {
+        {
+            double num_cells_lower = (box_X_lower[d] - grid_X_lower[d]) / dx_coarsest[d];
+            double num_cells_upper = (box_X_upper[d] - grid_X_lower[d]) / dx_coarsest[d];
+
+            if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
+            {
                 TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d
-                             << ". Modifying coordinate to nearest box side\n");
+                             << d << ". Modifying coordinate to nearest box side\n");
                 const int N = floor(num_cells_lower);
-		box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * N;
-		modified_box = true;
-	    }
-	    
-	    if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
-	    {
+                box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+                modified_box = true;
+            }
+
+            if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
+            {
                 TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d
-                             << ". Modifying coordinate to nearest box side\n");
+                             << d << ". Modifying coordinate to nearest box side\n");
                 const int N = ceil(num_cells_upper);
-		box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * N;
-		modified_box = true;
-	    }
-	}
-	
-	if (modified_box)
-	{
+                box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+                modified_box = true;
+            }
+        }
+
+        if (modified_box)
+        {
             pout << "IBHydrodynamicForceEvaluator::registerStructure: integration box modified from\n"
                  << "[" << box_X_lower_old[0] << ", " << box_X_upper_old[0] << "]"
                  << " x [" << box_X_lower_old[1] << ", " << box_X_upper_old[1] << "]"
@@ -169,11 +167,11 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
         force_obj.box_u_current = box_vel;
         force_obj.box_X_lower_current = box_X_lower;
         force_obj.box_X_upper_current = box_X_upper;
-	force_obj.box_vol_current = (box_X_upper[0] - box_X_lower[0]) * (box_X_upper[1] - box_X_lower[1])
+        force_obj.box_vol_current = (box_X_upper[0] - box_X_lower[0]) * (box_X_upper[1] - box_X_lower[1])
 #if (NDIM == 3)
-				    * (box_X_upper[2] - box_X_lower[2])
+                                    * (box_X_upper[2] - box_X_lower[2])
 #endif
-				    ;
+            ;
 
         force_obj.F_current.setZero();
         force_obj.T_current.setZero();
@@ -194,8 +192,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
         else
         {
             TBOX_ERROR("IBHydrodynamicForceEvaluator::registerStructure(). Restart database corresponding to "
-                       << d_object_name
-                       << " not found in restart file.\n");
+                       << d_object_name << " not found in restart file.\n");
         }
 
         std::ostringstream F, T, P, L, P_box, L_box, X_lo, X_hi, r_or, vol_curr;
@@ -519,7 +516,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
             // Shorten the integration box so it only includes the control volume
             integration_box.upper() -= 1;
-	    
+
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -529,15 +526,15 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
                 // Part of the box on this patch.
                 Box<NDIM> trim_box = patch_box * integration_box;
-		
+
                 // Loop over the box and compute momentum.
                 Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_u_idx);
                 Pointer<SideData<NDIM, double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
-		
-		for (int axis = 0; axis < NDIM; ++axis)
-		{
-		    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, axis)); b; b++)
-		    {
+
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, axis)); b; b++)
+                    {
                         const CellIndex<NDIM>& cell_idx = *b;
                         const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
                         const double& u_axis = (*u_data)(side_idx);
@@ -631,10 +628,10 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
             Box<NDIM> integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
-	    
-	    // Shorten the integration box so it only includes the control volume
-	    integration_box.upper() -= 1;
-	    
+
+            // Shorten the integration box so it only includes the control volume
+            integration_box.upper() -= 1;
+
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -708,12 +705,10 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                 }
                                 else
                                 {
-                                    u(d) =
-                                        0.25 *
-                                        ((*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Lower)) +
-                                         (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Upper)));
+                                    u(d) = 0.25 * ((*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) +
+                                                   (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Upper)) +
+                                                   (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Lower)) +
+                                                   (*u_data)(SideIndex<NDIM>(cell_nbr_idx, d, SideIndex<NDIM>::Upper)));
                                 }
                             }
                             trac += -d_rho * n.dot(u) * u * dA;
@@ -729,8 +724,14 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                 {
                                     viscous_force(axis) =
                                         n(axis) * (2.0 * d_mu) / (2.0 * patch_dx[axis]) *
-                                        ((*u_data)(SideIndex<NDIM>(cell_nbr_idx, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)) -
-                                         (*u_data)(SideIndex<NDIM>(cell_idx, axis, upperlower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper)));
+                                        ((*u_data)(SideIndex<NDIM>(cell_nbr_idx,
+                                                                   axis,
+                                                                   upperlower ? SideIndex<NDIM>::Upper :
+                                                                                SideIndex<NDIM>::Lower)) -
+                                         (*u_data)(SideIndex<NDIM>(cell_idx,
+                                                                   axis,
+                                                                   upperlower ? SideIndex<NDIM>::Lower :
+                                                                                SideIndex<NDIM>::Upper)));
                                 }
                                 else
                                 {
@@ -739,10 +740,14 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
                                     viscous_force(d) =
                                         d_mu / (2.0 * patch_dx[d]) *
-                                            ((*u_data)(
-                                                 SideIndex<NDIM>(cell_idx + offset, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)) -
-                                             (*u_data)(
-                                                 SideIndex<NDIM>(cell_idx - offset, axis, upperlower ? SideIndex<NDIM>::Upper : SideIndex<NDIM>::Lower)))
+                                            ((*u_data)(SideIndex<NDIM>(cell_idx + offset,
+                                                                       axis,
+                                                                       upperlower ? SideIndex<NDIM>::Upper :
+                                                                                    SideIndex<NDIM>::Lower)) -
+                                             (*u_data)(SideIndex<NDIM>(cell_idx - offset,
+                                                                       axis,
+                                                                       upperlower ? SideIndex<NDIM>::Upper :
+                                                                                    SideIndex<NDIM>::Lower)))
 
                                         +
 
@@ -753,7 +758,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                              (*u_data)(SideIndex<NDIM>(cell_idx, d, SideIndex<NDIM>::Lower)) -
                                              (*u_data)(SideIndex<NDIM>(cell_idx + offset, d, SideIndex<NDIM>::Lower))
 
-                                                 );
+                                            );
                                 }
                             }
                             IBTK::Vector3d n_dot_T = n(axis) * viscous_force;
@@ -801,7 +806,7 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
         force_obj.box_u_current = force_obj.box_u_new;
         force_obj.box_X_lower_current = force_obj.box_X_lower_new;
         force_obj.box_X_upper_current = force_obj.box_X_upper_new;
-	force_obj.box_vol_current = force_obj.box_vol_new;
+        force_obj.box_vol_current = force_obj.box_vol_new;
         force_obj.F_current = force_obj.F_new;
         force_obj.T_current = force_obj.T_new;
         force_obj.P_current = force_obj.P_new;
@@ -1123,9 +1128,9 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
             const double* const dx = pgeom->getDx();
             const double cell_vol = dx[0] * dx[1]
 #if (NDIM > 2)
-            * dx[2]
+                                    * dx[2]
 #endif
-            ;
+                ;
             Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
             wgt_sc_data->fillAll(cell_vol);
             // Rescale values along the edges of the patches.
@@ -1157,7 +1162,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
                         const double extra_vol = 0.5 * static_cast<double>(ratio(axis)) * cell_vol;
                         Box<NDIM> side_bdry_box = SideGeometry<NDIM>::toSideBox(bdry_box, axis);
                         array_ops.addScalar(
-                                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
+                            wgt_sc_data->getArrayData(axis), wgt_sc_data->getArrayData(axis), extra_vol, side_bdry_box);
                     }
                 }
             }
@@ -1176,7 +1181,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
                                 IntVector<NDIM> periodic_offset = 0;
                                 periodic_offset(axis) = sgn * periodic_shift(axis);
                                 const Box<NDIM> refined_box =
-                                Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
+                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
                                 const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
                                 if (!intersection.empty())
                                 {
@@ -1300,7 +1305,7 @@ IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d&
             side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
         }
         else
-	{
+        {
             side_coord[d] =
                 patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
         }

@@ -39,19 +39,19 @@
 #include <string>
 #include <vector>
 
-#include "tbox/Pointer.h"
-#include "VariableContext.h"
+#include "Eigen/Dense"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
-#include "ibamr/IBMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
+#include "VariableContext.h"
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBMethod.h"
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
-#include "Eigen/Dense"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -178,7 +178,7 @@ public:
     {
         return d_l_data_U_correction;
     }
-    
+
     /*!
      * \brief Get the total volume for all the Lagrangian structures
      */
@@ -186,7 +186,7 @@ public:
     {
         return d_structure_vol;
     }
-    
+
     /*!
      * \brief Get the total linear momentum for all the Lagrangian structures
      */
@@ -376,7 +376,7 @@ private:
      * \brief Calculate Eulerian Momentum.
      */
     void calculateEulerianMomentum();
-    
+
     /*!
      * \brief Calculate total translational momentum of all Lagrangian structures
      */
@@ -406,7 +406,7 @@ private:
      * Volume element associated with material points.
      */
     std::vector<double> d_vol_element;
-    
+
     /*!
      * Volume associated with each immersed structure
      */
@@ -540,7 +540,7 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
+    std::vector<std::ofstream*> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
         d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
@@ -551,9 +551,9 @@ private:
     /*!
      * Pre and post fluid solve call back functions and contexts.
      */
-    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 };
 } // namespace IBAMR
 

@@ -135,7 +135,7 @@ public:
         IBTK::Vector3d box_X_lower_new, box_X_upper_new;
 
         // Box volume (area in 2D)
-	double box_vol_current, box_vol_new;
+        double box_vol_current, box_vol_new;
 
         // Indicator variable index of the control volume for plotting
         int inside_strct_idx;
