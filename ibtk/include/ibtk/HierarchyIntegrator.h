@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+
 #include <deque>
 #include <list>
 #include <map>
@@ -422,10 +423,6 @@ public:
 
     /*!
      * Perform data initialization after the entire hierarchy has been constructed.
-     *
-     * \note Subclasses should not override the implementation of this function
-     * provided by class HierarchyIntegrator.  Instead, they should override the
-     * protected virtual member function initializeCompositeHierarchyDataSpecialized().
      */
     void initializeCompositeHierarchyData(double init_data_time, bool initial_time);
 
@@ -669,9 +666,7 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void initializeCompositeHierarchyDataSpecialized(
-        double init_data_time,
-        bool initial_time);
+    virtual void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time);
 
     /*!
      * Virtual method to perform implementation-specific data initialization on

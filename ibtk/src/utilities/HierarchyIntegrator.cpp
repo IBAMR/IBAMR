@@ -32,7 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
 #include <deque>
 #include <limits>
@@ -40,6 +39,7 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <stddef.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -98,7 +98,7 @@ namespace
 {
 // Version of HierarchyIntegrator restart file data.
 static const int HIERARCHY_INTEGRATOR_VERSION = 1;
-}
+} // namespace
 
 const std::string HierarchyIntegrator::SYNCH_CURRENT_DATA_ALG = "SYNCH_CURRENT_DATA";
 const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
@@ -293,17 +293,9 @@ HierarchyIntegrator::advanceHierarchy(double dt)
     if (dt < dt_min || dt > dt_max)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = "
-                                 << d_integrator_time
-                                 << ": time step size dt = "
-                                 << dt
-                                 << "\n"
-                                 << "  minimum time step size = "
-                                 << dt_min
-                                 << "\n"
-                                 << "  maximum time step size = "
-                                 << dt_max
-                                 << "\n");
+                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << "\n"
+                                 << "  minimum time step size = " << dt_min << "\n"
+                                 << "  maximum time step size = " << dt_max << "\n");
     }
 
     if (d_integrator_time + dt > d_end_time)
@@ -316,28 +308,17 @@ HierarchyIntegrator::advanceHierarchy(double dt)
     if (dt < 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = "
-                                 << d_integrator_time
-                                 << ": time step size dt = "
-                                 << dt
-                                 << ".\n");
+                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << ".\n");
     }
     else if (dt == 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = "
-                                 << d_integrator_time
-                                 << ": time step size dt = "
-                                 << dt
-                                 << ".\n");
+                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt << ".\n");
     }
     else if (current_time == new_time || MathUtilities<double>::equalEps(current_time, new_time))
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
-                                 << "  at time = "
-                                 << d_integrator_time
-                                 << ": time step size dt = "
-                                 << dt
+                                 << "  at time = " << d_integrator_time << ": time step size dt = " << dt
                                  << " is zero to machine precision.\n");
     }
     if (d_enable_logging)
@@ -494,9 +475,7 @@ HierarchyIntegrator::regridHierarchy()
         break;
     default:
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                                 << "  unrecognized regrid mode: "
-                                 << enum_to_string<RegridMode>(d_regrid_mode)
-                                 << "."
+                                 << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "."
                                  << std::endl);
     }
 
@@ -507,12 +486,8 @@ HierarchyIntegrator::regridHierarchy()
         TBOX_WARNING(
             d_object_name << "::regridHierarchy():\n"
                           << "  change in domain volume detected (volume is computed by summing control volumes)\n"
-                          << "    old volume = "
-                          << old_volume
-                          << "\n"
-                          << "    new volume = "
-                          << new_volume
-                          << "\n"
+                          << "    old volume = " << old_volume << "\n"
+                          << "    new volume = " << new_volume << "\n"
                           << "  this may indicate overlapping patches in the AMR grid hierarchy.");
     }
 
@@ -1158,17 +1133,10 @@ HierarchyIntegrator::registerVariable(int& idx,
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"
-                                 << "  unrecognized variable context: "
-                                 << ctx->getName()
-                                 << "\n"
+                                 << "  unrecognized variable context: " << ctx->getName() << "\n"
                                  << "  variable context should be one of:\n"
-                                 << "    "
-                                 << getCurrentContext()->getName()
-                                 << ", "
-                                 << getNewContext()->getName()
-                                 << ", or "
-                                 << getScratchContext()->getName()
-                                 << std::endl);
+                                 << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName()
+                                 << ", or " << getScratchContext()->getName() << std::endl);
     }
     return;
 } // registerVariable
@@ -1336,9 +1304,7 @@ HierarchyIntegrator::setupPlotDataSpecialized()
 } // setupPlotDataSpecialized
 
 void
-HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(
-    double /*init_data_time*/,
-    bool /*initial_time*/)
+HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init_data_time*/, bool /*initial_time*/)
 {
     // intentionally blank
     return;
@@ -1643,8 +1609,7 @@ HierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("HIERARCHY_INTEGRATOR_VERSION");
     if (ver != HIERARCHY_INTEGRATOR_VERSION)

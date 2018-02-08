@@ -46,10 +46,12 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBHydrodynamicForceEvaluator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
@@ -68,11 +70,10 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 void
-COMTransVelocity(const double /*time*/, Eigen::Vector3d& trans_vel)
+COMTransVelocity(const double /*time*/, IBTK::Vector3d& trans_vel)
 {
     trans_vel.setZero();
     trans_vel[0] = 1.0;
-
     return;
 } // COMTransVelocity
 
@@ -245,6 +246,30 @@ run_example(int argc, char* argv[])
         ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
         ib_method_ops->initializeHierarchyOperatorsandData();
 
+        // Create hydrodynamic force evaluator object.
+        double rho_fluid = input_db->getDouble("RHO");
+        double mu_fluid = input_db->getDouble("MU");
+        Pointer<IBHydrodynamicForceEvaluator> hydro_force =
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+
+        // Get the initial box position and velocity from input
+        const string init_hydro_force_box_db_name = "InitHydroForceBox_0";
+        IBTK::Vector3d box_X_lower, box_X_upper, box_init_vel;
+
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("lower_left_corner", &box_X_lower[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("upper_right_corner", &box_X_upper[0], 3);
+        input_db->getDatabase(init_hydro_force_box_db_name)->getDoubleArray("init_velocity", &box_init_vel[0], 3);
+
+        // Register control volume
+        hydro_force->registerStructure(box_X_lower, box_X_upper, patch_hierarchy, box_init_vel, 0);
+
+        // Get the center of mass of the plate
+        IBTK::Vector3d Plate_COM;
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+
+        // Register optional plot data
+        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
+
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -253,6 +278,17 @@ run_example(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
+
+        // Setup data to compute hydrodynamic traction.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+
+        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -268,10 +304,12 @@ run_example(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
+        double current_time, new_time;
+        double box_disp = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
-            loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time = time_integrator->getIntegratorTime();
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -279,14 +317,91 @@ run_example(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+            new_time = loop_time;
+
+            // Regrid the hierarchy if necessary.
+            if (time_integrator->atRegridPoint()) time_integrator->regridHierarchy();
+
+            // Set the box velocity to nonzero only if the plate has moved sufficiently far.
+            IBTK::Vector3d box_vel;
+            box_vel.setZero();
+            COMTransVelocity(current_time, box_vel);
+
+            const int coarsest_ln = 0;
+            Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+            const Pointer<CartesianGridGeometry<NDIM> > coarsest_grid_geom = coarsest_level->getGridGeometry();
+            const double* const DX = coarsest_grid_geom->getDx();
+
+            // Set the box velocity to ensure that the immersed body remains inside the control volume at all times.
+            // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
+            // the CV will translate by 1 coarse mesh width in the direction of translation (positive x-direction).
+            // Otherwise, keep the CV in place by setting its velocity to zero.
+            box_disp += box_vel[0] * dt;
+            if (box_disp >= 0.9 * DX[0])
+            {
+                box_vel.setZero();
+                box_vel[0] = DX[0] / dt;
+
+                box_disp = 0.0;
+            }
+            else
+            {
+                box_vel.setZero();
+            }
+
+            // Update the location of the box for time n + 1
+            hydro_force->updateStructureDomain(box_vel, dt, patch_hierarchy, 0);
+
+            // Compute the momentum of u^n in box n+1 on the newest hierarchy
+            hydro_force->computeLaggedMomentumIntegral(
+                u_idx, patch_hierarchy, navier_stokes_integrator->getVelocityBoundaryConditions());
+
+            // Advance the hierarchy
+            time_integrator->advanceHierarchy(dt);
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            // Get the momentum of the plate
+            IBTK::Vector3d Plate_mom, Plate_ang_mom;
+            Plate_mom.setZero();
+            Plate_ang_mom.setZero();
+
+            std::vector<std::vector<double> > structure_linear_momentum = ib_method_ops->getStructureMomentum();
+            for (int d = 0; d < 3; ++d) Plate_mom[d] = structure_linear_momentum[0][d];
+
+            std::vector<std::vector<double> > structure_rotational_momentum =
+                ib_method_ops->getStructureRotationalMomentum();
+            for (int d = 0; d < 3; ++d) Plate_ang_mom[d] = structure_rotational_momentum[0][d];
+
+            // Store the new momenta of the plate
+            hydro_force->updateStructureMomentum(Plate_mom, Plate_ang_mom, 0);
+
+            // Evaluate hydrodynamic force on the eel.
+            hydro_force->computeHydrodynamicForce(u_idx,
+                                                  p_idx,
+                                                  /*f_idx*/ -1,
+                                                  patch_hierarchy,
+                                                  dt,
+                                                  navier_stokes_integrator->getVelocityBoundaryConditions(),
+                                                  navier_stokes_integrator->getPressureBoundaryConditions());
+
+            // Write the force data in a file.
+            hydro_force->postprocessIntegrateData(current_time, new_time);
+
+            // Update the plotting data for the CV
+            hydro_force->updateStructurePlotData(patch_hierarchy, 0);
+
+            // Set the torque origin for the next time step
+            structure_COM = ib_method_ops->getStructureCOM();
+            for (int d = 0; d < 3; ++d) Plate_COM[d] = structure_COM[0][d];
+
+            // Set the torque evaluation axis to point from newest COM
+            hydro_force->setTorqueOrigin(Plate_COM, 0);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
