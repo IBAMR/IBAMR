@@ -1699,6 +1699,75 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
     return d_L2_proj_matrix_diag[system_name];
 } // buildDiagonalL2MassMatrix
 
+SparseMatrix<double>*
+FEDataManager::buildProjectionStabilizationMatrix(const std::string& system_name)
+{
+    plog << "FEDataManager::buildProjectionStabilizationMatrix(): building stabilization matrix for system: "
+         << system_name << "\n";
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const Parallel::Communicator& comm = mesh.comm();
+    const unsigned int dim = mesh.mesh_dimension();
+
+    // Extract the FE system and DOF map, and setup the FE object.
+    System& system = d_es->get_system(system_name);
+    const int sys_num = system.number();
+    DofMap& dof_map = system.get_dof_map();
+    SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
+    dof_map.compute_sparsity(mesh);
+    std::vector<unsigned int> dof_indices;
+    FEType fe_type = dof_map.variable_type(0);
+    UniquePtr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<double>& JxW = fe->get_JxW();
+    const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+    // Build solver components.
+    SparseMatrix<double>* C_mat = SparseMatrix<double>::build(comm).release();
+    C_mat->attach_dof_map(dof_map);
+    C_mat->init();
+
+    // Loop over the mesh to construct the system matrix.
+    DenseMatrix<double> C_e;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+        const double elem_vol = elem->volume();
+        fe->reinit(elem);
+        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+        {
+            dof_map_cache.dof_indices(elem, dof_indices, var_num);
+            const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+            C_e.resize(dof_indices_sz, dof_indices_sz);
+            const size_t n_basis = dof_indices.size();
+            const unsigned int n_qp = qrule->n_points();
+            for (unsigned int i = 0; i < n_basis; ++i)
+            {
+                for (unsigned int j = 0; j < n_basis; ++j)
+                {
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        C_e(i, j) += ((phi[i][qp] * phi[j][qp]) * JxW[qp] -
+                                      (elem_vol / static_cast<double>(n_basis * n_basis))) /
+                                     elem_vol;
+                    }
+                }
+            }
+            dof_map.constrain_element_matrix(C_e, dof_indices);
+            C_mat->add_matrix(C_e, dof_indices);
+        }
+    }
+
+    // Assemble the matrix.
+    C_mat->close();
+
+    return C_mat;
+} // buildProjectionStabilizationMatrix
+
 bool
 FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                    NumericVector<double>& F_vec,

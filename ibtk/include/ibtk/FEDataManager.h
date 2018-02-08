@@ -486,6 +486,11 @@ public:
     libMesh::NumericVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
     /*!
+     * \return Pointer to a stabilization matrix related to P0 projection.
+     */
+    libMesh::NumericVector<double>* buildProjectionStabilizationMatrix(const std::string& system_name);
+
+    /*!
      * \brief Set U to be the L2 projection of F.
      */
     bool computeL2Projection(libMesh::NumericVector<double>& U,
