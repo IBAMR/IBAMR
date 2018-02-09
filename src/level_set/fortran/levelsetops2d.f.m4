@@ -631,20 +631,16 @@ c
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
           sgn = zero
         endif
       endif
@@ -1044,20 +1040,16 @@ c
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
-     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
           sgn = zero
         endif
       endif
@@ -1719,3 +1711,6 @@ c           as this can cause the level set variable to blow up
       enddo
       return
       end
+
+
+

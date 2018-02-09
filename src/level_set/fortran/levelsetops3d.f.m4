@@ -934,33 +934,27 @@ c
       cfl = 0.3d0
       eps = 1.d-10
 
-      hmin = dmin1(hx,hy)
+      hmin = dmin1(hx,hy,hz)
       sgn = S_eps(V(i0,i1,i2),hmin)
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0+1,i1,i2))) then
+        if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0-1,i1,i2))) then
+        if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1+1,i2))) then
+        if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1-1,i2))) then
+        if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2+1))) then
+        if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero .and.
-     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2-1))) then
+        if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero) then
           sgn = zero
         endif
       endif
@@ -1159,7 +1153,7 @@ c
       hy = dx(1)
       hz = dx(2)
       eps = 1.d-10
-      hmin = dmin1(hx,hy)
+      hmin = dmin1(hx,hy,hz)
       do i2 = ilower2,iupper2
         do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
@@ -1293,7 +1287,7 @@ c         Compute ENO differences with subcell fix
             else
               hzm = hz*V(i0,i1,i2)/diff
             endif
-            hzp = dmax1(hzp,sqrt(smallr))
+            hzm = dmax1(hzm,sqrt(smallr))
             Dzm = (V(i0,i1,i2)-zero)/hzm + hzm/two*minmod(Dzz,Dzzm)
           else
             Dzm = (V(i0,i1,i2)-V(i0,i1,i2-1))/hz+hz/two*minmod(Dzz,Dzzm)
@@ -1505,5 +1499,4 @@ c           as this can cause the level set variable to blow up
       enddo
       return
       end
-
  
