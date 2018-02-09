@@ -128,6 +128,11 @@ public:
      */
     void setApplySignFix(bool apply_sign_fix);
 
+    /*!
+     * \brief Hard set the ghost cell width for the level set variable.
+     */
+    void setLSGhostCellWidth(int D_gcw);
+
 protected:
     // Flag for applying the mass constraint
     bool d_apply_mass_constraint;
@@ -137,6 +142,9 @@ protected:
 
     // Flag for applying sign fix near interface points
     bool d_apply_sign_fix;
+
+    // Ghost cell width for level set variable
+    int d_D_gcw;
 
 private:
     /*!

@@ -214,6 +214,7 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_apply_mass_constraint = false;
     d_apply_subcell_fix = false;
     d_apply_sign_fix = false;
+    d_D_gcw = -1;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -268,15 +269,15 @@ RelaxationLSMethod::initializeLSData(int D_idx,
                                    << " First order relxation is known to cause significant interface volume loss \n"
                                    << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO."
                                    << std::endl);
-        cell_ghosts = 1;
+        cell_ghosts = std::max(1, d_D_gcw);
     }
     else if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
     {
-        cell_ghosts = 2;
+        cell_ghosts = std::max(2, d_D_gcw);
     }
     else if (d_ls_order == FIFTH_ORDER_WENO_LS)
     {
-        cell_ghosts = 3;
+        cell_ghosts = std::max(3, d_D_gcw);
     }
     else
     {
@@ -425,6 +426,13 @@ RelaxationLSMethod::setApplySignFix(bool apply_sign_fix)
     d_apply_sign_fix = apply_sign_fix;
     return;
 } // setApplySignFix
+
+void
+RelaxationLSMethod::setLSGhostCellWidth(int D_gcw)
+{
+    d_D_gcw = D_gcw;
+    return;
+} // setLSGhostCellWidth
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -800,6 +808,8 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
 
     d_apply_sign_fix = input_db->getBoolWithDefault("apply_sign_fix", d_apply_sign_fix);
     d_apply_sign_fix = input_db->getBoolWithDefault("apply_sgn_fix", d_apply_sign_fix);
+
+    d_D_gcw = input_db->getIntegerWithDefault("ghost_cell_width", d_D_gcw);
 
     return;
 } // getFromInput
