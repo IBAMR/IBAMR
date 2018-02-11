@@ -275,7 +275,10 @@ c
       REAL    dbar
       REAL    U_wall_coef 
       REAL    h_wall_coef
-      
+
+c     Suppress compiler warnings
+      U_wall_coef = zero
+      h_wall_coef = zero
       if (patch_touches_bdry .eq. 1) then  
         if ((i0 .eq. dlower0) .and. 
      &     touches_wall_loc_idx(0) .eq. 1) then
@@ -631,16 +634,20 @@ c
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
           sgn = zero
         endif
       endif
@@ -1040,16 +1047,20 @@ c
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1)*V(i0+1,i1) .lt. zero) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0-1,i1) .lt. zero) then
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1+1) .lt. zero) then
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
           sgn = zero
         endif
-        if (V(i0,i1)*V(i0,i1-1) .lt. zero) then
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
           sgn = zero
         endif
       endif

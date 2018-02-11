@@ -939,22 +939,28 @@ c
 
 c     Sign fix
       if (use_sign_fix .ne. 0) then
-        if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0+1,i1,i2))) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0-1,i1,i2))) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1+1,i2))) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1-1,i2))) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2+1))) then
           sgn = zero
         endif
-        if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero) then
+        if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2-1))) then
           sgn = zero
         endif
       endif
