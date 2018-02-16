@@ -1722,6 +1722,57 @@ c           as this can cause the level set variable to blow up
       enddo
       return
       end
+c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Volume shift on level set to ensure that it does not lose volume
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine applylsvolumeshift2d(
+     &     U,U_gcw,
+     &     C,C_gcw,
+     &     dV,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,C_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL C(CELL2d(ilower,iupper,C_gcw))
+      REAL dV
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    hx,hy,hmin
+      REAL    dt
+
+      hx = dx(0)
+      hy = dx(1)
+      hmin = dmin1(hx,hy)
+      dt = one
+
+      do i1 = ilower1,iupper1
+        do i0 = ilower0,iupper0
+              U(i0,i1) = C(i0,i1) + dt * dV
+        enddo
+      enddo
+      return
+      end
 
 
 

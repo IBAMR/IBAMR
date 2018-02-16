@@ -133,6 +133,11 @@ public:
      */
     void setLSGhostCellWidth(int D_gcw);
 
+    /*!
+     * \brief Indicate that the class should apply the volume shift.
+     */
+    void setApplyVolumeShift(bool apply_volume_shift);
+
 protected:
     // Flag for applying the mass constraint
     bool d_apply_mass_constraint;
@@ -145,6 +150,12 @@ protected:
 
     // Ghost cell width for level set variable
     int d_D_gcw;
+
+    // Flag for applying the volume shift
+    bool d_apply_volume_shift;
+
+    // Initial volume of the level set domain
+    double d_init_ls_vol;
 
 private:
     /*!
@@ -194,6 +205,28 @@ private:
                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Compute the volume of a region demarcated by a level set variable
+     */
+    double
+    computeRegionVolume(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int hs_phi_idx, int phi_idx) const;
+
+    /*!
+     * \brief Apply the volume shift over the hierarchy
+     */
+    void applyVolumeShift(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                          int dist_idx,
+                          int dist_copy_idx,
+                          double dV) const;
+
+    /*!
+     * \brief Apply the volume shift over a patch
+     */
+    void applyVolumeShift(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                          const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
+                          const double dV,
+                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * Read input values from a given database.

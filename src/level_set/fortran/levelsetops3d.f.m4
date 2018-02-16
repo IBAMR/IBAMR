@@ -1505,4 +1505,61 @@ c           as this can cause the level set variable to blow up
       enddo
       return
       end
+c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Volume constraint on level set to ensure that it does not lose volume
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine applylsvolumeshift3d(
+     &     U,U_gcw,
+     &     C,C_gcw,
+     &     dV,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,C_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL C(CELL3d(ilower,iupper,C_gcw))
+      REAL dV
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    hx,hy,hz,hmin
+      REAL    dt
+
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+      hmin = dmin1(hx,hy,hz)
+      dt = one
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+                U(i0,i1,i2) = C(i0,i1,i2) + dt * dV
+          enddo
+        enddo
+      enddo
+      return
+      end
+
  

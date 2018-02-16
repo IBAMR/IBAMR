@@ -53,6 +53,7 @@
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
     IBAMR_FC_FUNC(godunovhamiltonian5thorderweno2d, GODUNOVHAMILTONIAN5THORDERWENO2D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint2d, PROJECTLSMASSCONSTRAINT2D)
+#define APPLY_LS_VOLUME_SHIFT_FC IBAMR_FC_FUNC(applylsvolumeshift2d, APPLYLSVOLUMESHIFT2D)
 #endif
 
 #if (NDIM == 3)
@@ -65,6 +66,7 @@
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
     IBAMR_FC_FUNC(godunovhamiltonian5thorderweno3d, GODUNOVHAMILTONIAN5THORDERWENO3D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint3d, PROJECTLSMASSCONSTRAINT3D)
+#define APPLY_LS_VOLUME_SHIFT_FC IBAMR_FC_FUNC(applylsvolumeshift3d, APPLYLSVOLUMESHIFT3D)
 #endif
 
 extern "C" {
@@ -193,6 +195,21 @@ void PROJECT_LS_MASS_CONSTRAINT_FC(double* U,
                                    const int& iupper2,
 #endif
                                    const double* dx);
+
+void APPLY_LS_VOLUME_SHIFT_FC(double* U,
+                              const int& U_gcw,
+                              const double* C,
+                              const int& C_gcw,
+                              const double& dV,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
+#if (NDIM == 3)
+                              const int& ilower2,
+                              const int& iupper2,
+#endif
+                              const double* dx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -215,6 +232,7 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_apply_subcell_fix = false;
     d_apply_sign_fix = false;
     d_D_gcw = -1;
+    d_apply_volume_shift = false;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -263,6 +281,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
     // since it is not guaranteed that D_idx will have proper ghost cell width.
     IntVector<NDIM> cell_ghosts;
+    IntVector<NDIM> no_ghosts = 0;
     if (d_ls_order == FIRST_ORDER_LS)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
@@ -293,6 +312,13 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::COPY"), cell_ghosts);
     const int H_init_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_INIT"), cell_ghosts);
+
+    // Heaviside variables
+    const int HS_init_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::HS_INIT"), no_ghosts);
+    const int HS_copy_idx =
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::HS_COPY"), no_ghosts);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_scratch_idx, time);
@@ -300,6 +326,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_init_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_copy_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_init_idx, time);
+        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
+        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
     }
 
     // First, fill cells with some positive/negative values
@@ -332,6 +360,17 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     D_fill_op->fillData(time);
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
+    // Compute the volume of the initial level set variable
+    if (d_apply_volume_shift)
+    {
+        d_init_ls_vol = computeRegionVolume(hier_math_ops, HS_init_idx, D_init_idx);
+        if (d_enable_logging)
+        {
+            plog << d_object_name << "::initializeLSData(): Volume of the initial level set = " << d_init_ls_vol
+                 << std::endl;
+        }
+    }
+
     // Compute and store |grad phi_0| to apply the mass constraint
     if (constrain_ls_mass)
     {
@@ -345,6 +384,19 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
         D_fill_op->fillData(time);
         relax(hier_math_ops, D_scratch_idx, D_init_idx, outer_iter);
+
+        if (d_apply_volume_shift)
+        {
+            hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx);
+            const double phi_vol = computeRegionVolume(hier_math_ops, HS_copy_idx, D_copy_idx);
+            const double dV = phi_vol - d_init_ls_vol;
+            applyVolumeShift(hier_math_ops, D_scratch_idx, D_copy_idx, dV);
+            if (d_enable_logging)
+            {
+                plog << d_object_name << "::initializeLSData(): Volume of the updated level set = " << phi_vol
+                     << std::endl;
+            }
+        }
 
         if (constrain_ls_mass)
         {
@@ -393,12 +445,18 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_init_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_copy_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_init_idx);
+
+        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
+        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
     }
     var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
     var_db->removePatchDataIndex(D_init_idx);
     var_db->removePatchDataIndex(D_copy_idx);
     var_db->removePatchDataIndex(H_init_idx);
+
+    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_init_idx);
+    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_copy_idx);
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
@@ -433,6 +491,13 @@ RelaxationLSMethod::setLSGhostCellWidth(int D_gcw)
     d_D_gcw = D_gcw;
     return;
 } // setLSGhostCellWidth
+
+void
+RelaxationLSMethod::setApplyVolumeShift(bool apply_volume_shift)
+{
+    d_apply_volume_shift = apply_volume_shift;
+    return;
+} // setApplyVolumeShift
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -717,7 +782,7 @@ RelaxationLSMethod::applyMassConstraint(Pointer<HierarchyMathOps> hier_math_ops,
     }
     return;
 
-} // apply_mass_constraint
+} // applyMassConstraint
 
 void
 RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_data,
@@ -785,7 +850,124 @@ RelaxationLSMethod::applyMassConstraint(Pointer<CellData<NDIM, double> > dist_da
     }
 
     return;
-} // apply_mass_constraint
+} // applyMassConstraint
+
+double
+RelaxationLSMethod::computeRegionVolume(Pointer<HierarchyMathOps> hier_math_ops, int hs_phi_idx, int phi_idx) const
+{
+    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    // First compute a Heaviside field from the level set field
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > hs_data = patch->getPatchData(hs_phi_idx);
+            const Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+
+            // Get grid spacing information
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            double alpha = 1.0;
+            for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
+            alpha = std::pow(alpha, 1.0 / ((double)NDIM));
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+                double h_phi;
+                double phi = (*phi_data)(ci);
+
+                if (phi < -alpha)
+                {
+                    h_phi = 0.0;
+                }
+                else if (std::abs(phi) <= alpha)
+                {
+                    h_phi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+                }
+                else
+                {
+                    h_phi = 1.0;
+                }
+                (*hs_data)(ci) = 1.0 - h_phi;
+            }
+        }
+    }
+
+    // Next, compute the volume
+    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    return hier_cc_data_ops.integral(hs_phi_idx, wgt_cc_idx);
+
+} // computeRegionVolume
+
+void
+RelaxationLSMethod::applyVolumeShift(Pointer<HierarchyMathOps> hier_math_ops,
+                                     int dist_idx,
+                                     int dist_copy_idx,
+                                     const double dV) const
+{
+    Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+            const Pointer<CellData<NDIM, double> > dist_copy_data = patch->getPatchData(dist_copy_idx);
+            applyVolumeShift(dist_data, dist_copy_data, dV, patch);
+        }
+    }
+    return;
+
+} // applyVolumeShift
+
+void
+RelaxationLSMethod::applyVolumeShift(Pointer<CellData<NDIM, double> > dist_data,
+                                     const Pointer<CellData<NDIM, double> > dist_copy_data,
+                                     const double dV,
+                                     const Pointer<Patch<NDIM> > patch) const
+{
+    double* const U = dist_data->getPointer(0);
+    const double* const C = dist_copy_data->getPointer(0);
+    const int U_ghosts = (dist_data->getGhostCellWidth()).max();
+    const int C_ghosts = (dist_copy_data->getGhostCellWidth()).max();
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(dist_data->getDepth() == 1);
+    TBOX_ASSERT(dist_copy_data->getDepth() == 1);
+#endif
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    APPLY_LS_VOLUME_SHIFT_FC(U,
+                             U_ghosts,
+                             C,
+                             C_ghosts,
+                             dV,
+                             patch_box.lower(0),
+                             patch_box.upper(0),
+                             patch_box.lower(1),
+                             patch_box.upper(1),
+#if (NDIM == 3)
+                             patch_box.lower(2),
+                             patch_box.upper(2),
+#endif
+                             dx);
+    return;
+} // applyVolumeShift
 
 void
 RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
@@ -810,6 +992,8 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
     d_apply_sign_fix = input_db->getBoolWithDefault("apply_sgn_fix", d_apply_sign_fix);
 
     d_D_gcw = input_db->getIntegerWithDefault("ghost_cell_width", d_D_gcw);
+
+    d_apply_volume_shift = input_db->getBoolWithDefault("apply_volume_shift", d_apply_volume_shift);
 
     return;
 } // getFromInput
