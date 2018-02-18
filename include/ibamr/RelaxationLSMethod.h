@@ -157,6 +157,9 @@ protected:
     // Initial volume of the level set domain
     double d_init_ls_vol;
 
+    // Relaxation weight parameter
+    double d_alpha;
+
 private:
     /*!
      * \brief Do one relaxation step over the hierarchy.

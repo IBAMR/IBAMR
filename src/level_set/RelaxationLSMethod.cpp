@@ -233,6 +233,7 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_apply_sign_fix = false;
     d_D_gcw = -1;
     d_apply_volume_shift = false;
+    d_alpha = 1.0;
 
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
@@ -349,6 +350,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     // Carry out relaxation
     double diff_L2_norm = 1.0e12;
+    double diff_L2_norm_old;
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
@@ -361,7 +363,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
     // Compute the volume of the initial level set variable
-    if (d_apply_volume_shift)
+    if (d_apply_volume_shift && initial_time)
     {
         d_init_ls_vol = computeRegionVolume(hier_math_ops, HS_init_idx, D_init_idx);
         if (d_enable_logging)
@@ -380,10 +382,14 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
+        // Store the previous L2 norm difference
+        diff_L2_norm_old = diff_L2_norm;
+
         // Refill ghost data and relax
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
         D_fill_op->fillData(time);
         relax(hier_math_ops, D_scratch_idx, D_init_idx, outer_iter);
+        hier_cc_data_ops.linearSum(D_scratch_idx, d_alpha, D_scratch_idx, 1.0 - d_alpha, D_iter_idx);
 
         if (d_apply_volume_shift)
         {
@@ -405,7 +411,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
             applyMassConstraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
         }
 
-        // Compute error
+        // Compute error, but copy previous iteration beforehand
+        hier_cc_data_ops.copyData(D_copy_idx, D_iter_idx);
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_scratch_idx);
         diff_L2_norm = hier_cc_data_ops.L2Norm(D_iter_idx, cc_wgt_idx);
 
@@ -416,6 +423,18 @@ RelaxationLSMethod::initializeLSData(int D_idx,
             plog << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
             plog << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
                  << std::endl;
+        }
+
+        if (d_apply_volume_shift && diff_L2_norm_old < diff_L2_norm)
+        {
+            if (d_enable_logging)
+            {
+                plog << d_object_name << "::initialzeLSData(): Iteration # " << outer_iter << " increased L2 norm"
+                     << std::endl;
+                plog << d_object_name << "::initializeLSData(): Exiting reinitialization procedure" << std::endl;
+            }
+            hier_cc_data_ops.copyData(D_scratch_idx, D_copy_idx);
+            break;
         }
 
         if (diff_L2_norm <= d_abs_tol && d_enable_logging)
