@@ -129,6 +129,33 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
       endif
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the WENO5 approximation based on Jiang and Peng 2000
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      REAL function WENO5(Q)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL Q(-2:1)
+      REAL a,b,c,d
+      REAL w0,w2
+      REAL eps,a0,a1,a2
+      REAL IS0,IS1,IS2
+      a = Q(-2); b = Q(-1); c = Q(0); d = Q(1)
+
+      eps = 1.d-6
+      IS0 = 13.d0*(a-b)**2+three*(a-three*b)**2
+      IS1 = 13.d0*(b-c)**2+three*(b+c)**2
+      IS2 = 13.d0*(c-d)**2+three*(three*c-d)**2
+      a0 = one/(eps+IS0)**2
+      a1 = 6.d0/(eps+IS1)**2
+      a2 = three/(eps+IS2)**2
+      w0 = a0/(a0+a1+a2); w2 = a2/(a0+a1+a2)
+      WENO5 = third*w0*(a-two*b+c)+sixth*(w2-half)*(b-two*c+d)
+      return
+      end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1415,7 +1442,8 @@ c
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx,
-     &     dir)
+     &     dir,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -1426,7 +1454,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER U_gcw,V_gcw
-      INTEGER dir
+      INTEGER dir,use_sign_fix
 
 c
 c     Input/Output.
@@ -1445,7 +1473,7 @@ c
               call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx)
+     &                                     i0,i1,dx,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 1) then
@@ -1454,7 +1482,7 @@ c
               call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx)
+     &                                     i0,i1,dx,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 2) then
@@ -1463,7 +1491,7 @@ c
               call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx)
+     &                                     i0,i1,dx,use_sign_fix)
           enddo
         enddo
       elseif (dir .eq. 3 )then
@@ -1472,7 +1500,7 @@ c
               call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
-     &                                     i0,i1,dx)
+     &                                     i0,i1,dx,use_sign_fix)
           enddo
         enddo
       endif
@@ -1491,7 +1519,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     i0,i1,
-     &     dx)
+     &     dx,
+     &     use_sign_fix)
 c
       implicit none
 include(TOP_SRCDIR/src/fortran/const.i)dnl
@@ -1499,7 +1528,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL HG, WENO5_interp, S_eps
+      REAL HG, WENO5, S_eps
 
 c
 c     Input.
@@ -1517,11 +1546,15 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,k
+      INTEGER i0,i1,k,np,nm
       REAL    hx,hy,hmin
       REAL    Dxm,Dxp,Dym,Dyp
       REAL    H,dt,sgn,cfl
-      REAL    Qxp(-2:2),Qxm(-2:2),Qyp(-2:2),Qym(-2:2)
+      REAL    Qx(-2:1),Qy(-2:1)
+      REAL    Qxxp(-2:1),Qxxm(-2:1)
+      REAL    Qyyp(-2:1),Qyym(-2:1)
+      REAL    Ex,Ey
+      INTEGER use_sign_fix
 
       hx = dx(0)
       hy = dx(1)
@@ -1529,22 +1562,47 @@ c
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
 
-c     Compute all the required finite differences and their WENO5 interpolation
-      do k = -2,2
-        Qxm(k) = (U(i0+k,i1) - U(i0+k-1,i1))/hx
-        Qym(k) = (U(i0,i1+k) - U(i0,i1+k-1))/hy
-      enddo
-      do k = 2,-2,-1
-        Qxp(-k) = (U(i0+k+1,i1) - U(i0+k,i1))/hx
-        Qyp(-k) = (U(i0,i1+k+1) - U(i0,i1+k))/hy
-      enddo
-      Dxm = WENO5_interp(Qxm)
-      Dxp = WENO5_interp(Qxp)
-      Dym = WENO5_interp(Qym)
-      Dyp = WENO5_interp(Qyp)
+c     Sign fix
+      if (use_sign_fix .ne. 0) then
+        if (V(i0,i1)*V(i0+1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0+1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0-1,i1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0-1,i1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1+1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1+1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1)*V(i0,i1-1) .lt. zero .and.
+     &      abs(V(i0,i1)) .le. abs(V(i0,i1-1))) then
+          sgn = zero
+        endif
+      endif
 
+c     Compute all the required finite differences and their WENO5 interpolation
+      do k = -2,1
+        np = 1-k
+        nm = k+1
+        Qx(k) = (U(i0+k+1,i1) - U(i0+k,i1))/hx
+        Qy(k) = (U(i0,i1+k+1) - U(i0,i1+k))/hy
+        Qxxp(k) = (U(i0+np,i1)-two*U(i0+np-1,i1)+U(i0+np-2,i1))/hx
+        Qyyp(k) = (U(i0,i1+np)-two*U(i0,i1+np-1)+U(i0,i1+np-2))/hy
+        Qxxm(k) = (U(i0+nm,i1)-two*U(i0+nm-1,i1)+U(i0+nm-2,i1))/hx
+        Qyym(k) = (U(i0,i1+nm)-two*U(i0,i1+nm-1)+U(i0,i1+nm-2))/hy
+      enddo
+
+      Ex = (-Qx(-2)+7.d0*(Qx(-1)+Qx(0))-Qx(1))/12.d0
+      Ey = (-Qy(-2)+7.d0*(Qy(-1)+Qy(0))-Qy(1))/12.d0
+      Dxp = Ex+WENO5(Qxxp)
+      Dxm = Ex-WENO5(Qxxm)
+      Dyp = Ey+WENO5(Qyyp)
+      Dym = Ey-WENO5(Qyym)
+    
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
-      dt = cfl*dmin1(hx,hy)
+      dt = cfl*hmin
 
       U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
 
@@ -1552,7 +1610,9 @@ c     Compute all the required finite differences and their WENO5 interpolation
       end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Carry out single fifth order sweep using a WENO stencil
+c     Compute the Godunov Hamiltonian of the indicator field |grad phi_0|
+c     
+c     Uses fifth order WENO for spatial discretization
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine godunovhamiltonian5thorderweno2d(
@@ -1568,7 +1628,7 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
-      REAL HG, WENO5_interp, S_eps
+      REAL HG, WENO5, S_eps
 
 c
 c     Input.
@@ -1586,10 +1646,13 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,k
+      INTEGER i0,i1,k,np,nm
       REAL    hx,hy,hmin
       REAL    Dxm,Dxp,Dym,Dyp
-      REAL    Qxp(-2:2),Qxm(-2:2),Qyp(-2:2),Qym(-2:2)
+      REAL    Qx(-2:1),Qy(-2:1)
+      REAL    Qxxp(-2:1),Qxxm(-2:1)
+      REAL    Qyyp(-2:1),Qyym(-2:1)
+      REAL    Ex,Ey
       REAL    sgn
 
       hx = dx(0)
@@ -1601,19 +1664,24 @@ c
             sgn = S_eps(V(i0,i1),hmin)
 
 c           Compute all the required finite differences and their WENO5 interpolation
-            do k = -2,2
-              Qxm(k) = (V(i0+k,i1) - V(i0+k-1,i1))/hx
-              Qym(k) = (V(i0,i1+k) - V(i0,i1+k-1))/hy
+            do k = -2,1
+              np = 1-k
+              nm = k+1
+              Qx(k) = (V(i0+k+1,i1) - V(i0+k,i1))/hx
+              Qy(k) = (V(i0,i1+k+1) - V(i0,i1+k))/hy
+              Qxxp(k) = (V(i0+np,i1)-two*V(i0+np-1,i1)+V(i0+np-2,i1))/hx
+              Qyyp(k) = (V(i0,i1+np)-two*V(i0,i1+np-1)+V(i0,i1+np-2))/hy
+              Qxxm(k) = (V(i0+nm,i1)-two*V(i0+nm-1,i1)+V(i0+nm-2,i1))/hx
+              Qyym(k) = (V(i0,i1+nm)-two*V(i0,i1+nm-1)+V(i0,i1+nm-2))/hy
             enddo
-            do k = 2,-2,-1
-              Qxp(-k) = (V(i0+k+1,i1) - V(i0+k,i1))/hx
-              Qyp(-k) = (V(i0,i1+k+1) - V(i0,i1+k))/hy
-            enddo
-            Dxm = WENO5_interp(Qxm)
-            Dxp = WENO5_interp(Qxp)
-            Dym = WENO5_interp(Qym)
-            Dyp = WENO5_interp(Qyp)
 
+            Ex = (-Qx(-2)+7.d0*(Qx(-1)+Qx(0))-Qx(1))/12.d0
+            Ey = (-Qy(-2)+7.d0*(Qy(-1)+Qy(0))-Qy(1))/12.d0
+            Dxp = Ex+WENO5(Qxxp)
+            Dxm = Ex-WENO5(Qxxm)
+            Dyp = Ey+WENO5(Qyyp)
+            Dym = Ey-WENO5(Qyym)
+    
             H(i0,i1) = HG(Dxp,Dxm,Dyp,Dym,sgn)
           enddo
       enddo
@@ -1773,6 +1841,7 @@ c
       enddo
       return
       end
+c
 
 
 

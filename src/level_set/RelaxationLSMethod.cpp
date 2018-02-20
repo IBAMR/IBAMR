@@ -162,7 +162,8 @@ void RELAXATION_LS_5TH_ORDER_WENO_FC(double* U,
                                      const int& iupper2,
 #endif
                                      const double* dx,
-                                     const int& dir);
+                                     const int& dir,
+                                     const int& use_sign_fix);
 
 void GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC(double* U,
                                            const int& U_gcw,
@@ -350,7 +351,6 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     // Carry out relaxation
     double diff_L2_norm = 1.0e12;
-    double diff_L2_norm_old;
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
@@ -382,9 +382,6 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
-        // Store the previous L2 norm difference
-        diff_L2_norm_old = diff_L2_norm;
-
         // Refill ghost data and relax
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
         D_fill_op->fillData(time);
@@ -423,18 +420,6 @@ RelaxationLSMethod::initializeLSData(int D_idx,
             plog << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
             plog << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
                  << std::endl;
-        }
-
-        if (d_apply_volume_shift && diff_L2_norm_old < diff_L2_norm)
-        {
-            if (d_enable_logging)
-            {
-                plog << d_object_name << "::initialzeLSData(): Iteration # " << outer_iter << " increased L2 norm"
-                     << std::endl;
-                plog << d_object_name << "::initializeLSData(): Exiting reinitialization procedure" << std::endl;
-            }
-            hier_cc_data_ops.copyData(D_scratch_idx, D_copy_idx);
-            break;
         }
 
         if (diff_L2_norm <= d_abs_tol && d_enable_logging)
@@ -653,7 +638,8 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
                                         patch_box.upper(2),
 #endif
                                         dx,
-                                        dir);
+                                        dir,
+                                        static_cast<int>(d_apply_sign_fix));
     }
     else
     {

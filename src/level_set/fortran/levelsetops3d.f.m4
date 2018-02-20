@@ -138,6 +138,33 @@ include(TOP_SRCDIR/src/fortran/const.i)dnl
       endif
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the WENO5 approximation based on Jiang and Peng 2000
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      REAL function WENO5(Q)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL Q(-2:1)
+      REAL a,b,c,d
+      REAL w0,w2
+      REAL eps,a0,a1,a2
+      REAL IS0,IS1,IS2
+      a = Q(-2); b = Q(-1); c = Q(0); d = Q(1)
+
+      eps = 1.d-6
+      IS0 = 13.d0*(a-b)**2+three*(a-three*b)**2
+      IS1 = 13.d0*(b-c)**2+three*(b+c)**2
+      IS2 = 13.d0*(c-d)**2+three*(three*c-d)**2
+      a0 = one/(eps+IS0)**2
+      a1 = 6.d0/(eps+IS1)**2
+      a2 = three/(eps+IS2)**2
+      w0 = a0/(a0+a1+a2); w2 = a2/(a0+a1+a2)
+      WENO5 = third*w0*(a-two*b+c)+sixth*(w2-half)*(b-two*c+d)
+      return
+      end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1366,15 +1393,269 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     dir)
-      print *, "Presently not implemented"
-      call abort
+     &     dir,
+     &     use_sign_fix)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+      INTEGER dir
+      INTEGER use_sign_fix
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+      if (dir .eq. 0) then
+        do i2 = ilower2,iupper2
+          do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 1) then
+        do i2 = ilower2,iupper2
+          do i1 = ilower1,iupper1
+            do i0 = iupper0,ilower0,-1
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 2) then
+        do i2 = ilower2,iupper2
+          do i1 = iupper1,ilower1,-1
+            do i0 = ilower0,iupper0
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 3) then
+        do i2 = iupper2,ilower2,-1
+          do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 4) then
+        do i2 = ilower2,iupper2
+          do i1 = iupper1,ilower1,-1
+            do i0 = iupper0,ilower0,-1
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 5) then
+        do i2 = iupper2,ilower2,-1
+          do i1 = ilower1,iupper1
+            do i0 = iupper0,ilower0,-1
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 6) then
+        do i2 = iupper2,ilower2,-1
+          do i1 = iupper1,ilower1,-1
+            do i0 = ilower0,iupper0
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      elseif (dir .eq. 7) then
+        do i2 = iupper2,ilower2,-1
+          do i1 = iupper1,ilower1,-1
+            do i0 = iupper0,ilower0,-1
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_sign_fix)
+            enddo
+          enddo
+        enddo
+      endif
+      
       return
       end
-c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out single fifth order sweep using a WENO stencil
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      subroutine evalrelax5thorderweno3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     i0,i1,i2,
+     &     dx,
+     &     use_sign_fix)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Functions.
+c
+      REAL HG, WENO5, S_eps
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2,k,np,nm
+      REAL    hx,hy,hz,hmin
+      REAL    Dxm,Dxp,Dym,Dyp,Dzm,Dzp
+      REAL    H,dt,sgn,cfl
+      REAL    Qx(-2:1),Qy(-2:1),Qz(-2:1)
+      REAL    Qxxp(-2:1),Qxxm(-2:1)
+      REAL    Qyyp(-2:1),Qyym(-2:1)
+      REAL    Qzzp(-2:1),Qzzm(-2:1)
+      REAL    Ex,Ey,Ez
+      INTEGER use_sign_fix
+
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+      cfl = 0.3d0
+      hmin = dmin1(hx,hy,hz)
+      sgn = S_eps(V(i0,i1,i2),hmin)
+
+c     Sign fix
+      if (use_sign_fix .ne. 0) then
+        if (V(i0,i1,i2)*V(i0+1,i1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0+1,i1,i2))) then
+          sgn = zero
+        endif
+        if (V(i0,i1,i2)*V(i0-1,i1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0-1,i1,i2))) then
+          sgn = zero
+        endif
+        if (V(i0,i1,i2)*V(i0,i1+1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1+1,i2))) then
+          sgn = zero
+        endif
+        if (V(i0,i1,i2)*V(i0,i1-1,i2) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1-1,i2))) then
+          sgn = zero
+        endif
+        if (V(i0,i1,i2)*V(i0,i1,i2+1) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2+1))) then
+          sgn = zero
+        endif
+        if (V(i0,i1,i2)*V(i0,i1,i2-1) .lt. zero .and.
+     &      abs(V(i0,i1,i2)) .le. abs(V(i0,i1,i2-1))) then
+          sgn = zero
+        endif
+      endif
+
+c     Compute all the required finite differences and their WENO5 interpolation
+      do k = -2,1
+        np = 1-k
+        nm = k+1
+        Qx(k) = (U(i0+k+1,i1,i2) - U(i0+k,i1,i2))/hx
+        Qy(k) = (U(i0,i1+k+1,i2) - U(i0,i1+k,i2))/hy
+        Qz(k) = (U(i0,i1,i2+k+1) - U(i0,i1,i2+k))/hy
+        Qxxp(k) = (U(i0+np,i1,i2)-two*U(i0+np-1,i1,i2)+U(i0+np-2,i1,i2))
+     &             /hx
+        Qyyp(k) = (U(i0,i1+np,i2)-two*U(i0,i1+np-1,i2)+U(i0,i1+np-2,i2))
+     &             /hy
+        Qzzp(k) = (U(i0,i1,i2+np)-two*U(i0,i1,i2+np-1)+U(i0,i1,i2+np-2))
+     &             /hz
+        Qxxm(k) = (U(i0+nm,i1,i2)-two*U(i0+nm-1,i1,i2)+U(i0+nm-2,i1,i2))
+     &             /hx
+        Qyym(k) = (U(i0,i1+nm,i2)-two*U(i0,i1+nm-1,i2)+U(i0,i1+nm-2,i2))
+     &             /hy
+        Qzzm(k) = (U(i0,i1,i2+nm)-two*U(i0,i1,i2+nm-1)+U(i0,i1,i2+nm-2))
+     &             /hz
+      enddo
+
+      Ex = (-Qx(-2)+7.d0*(Qx(-1)+Qx(0))-Qx(1))/12.d0
+      Ey = (-Qy(-2)+7.d0*(Qy(-1)+Qy(0))-Qy(1))/12.d0
+      Ez = (-Qz(-2)+7.d0*(Qz(-1)+Qz(0))-Qz(1))/12.d0
+      Dxp = Ex+WENO5(Qxxp)
+      Dxm = Ex-WENO5(Qxxm)
+      Dyp = Ey+WENO5(Qyyp)
+      Dym = Ey-WENO5(Qyym)
+      Dzp = Ez+WENO5(Qzzp)
+      Dzm = Ez-WENO5(Qzzm)
+    
+      H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
+      dt = cfl*hmin
+
+      U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the Godunov Hamiltonian of the indicator field |grad phi_0|
+c     
+c     Uses fifth order WENO for spatial discretization
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine godunovhamiltonian5thorderweno3d(
@@ -1384,12 +1665,90 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx)
-      print *, "Presently not implemented"
-      call abort
-      return
-      end
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
 
 c
+c     Functions.
+c
+      REAL HG, WENO5, S_eps
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER H_gcw,V_gcw
+
+c
+c     Input/Output.
+c
+      REAL H(CELL3d(ilower,iupper,H_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2,k,np,nm
+      REAL    hx,hy,hz,hmin
+      REAL    Dxm,Dxp,Dym,Dyp,Dzm,Dzp
+      REAL    Qx(-2:1),Qy(-2:1),Qz(-2:1)
+      REAL    Qxxp(-2:1),Qxxm(-2:1)
+      REAL    Qyyp(-2:1),Qyym(-2:1)
+      REAL    Qzzp(-2:1),Qzzm(-2:1)
+      REAL    Ex,Ey,Ez
+      REAL    sgn
+
+      hx = dx(0)
+      hy = dx(1)
+      hz = dx(2)
+      hmin = dmin1(hx,hy,hz)
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+            sgn = S_eps(V(i0,i1,i2),hmin)
+
+c           Compute all the required finite differences and their WENO5 interpolation
+            do k = -2,1
+              np = 1-k
+              nm = k+1
+              Qx(k) = (V(i0+k+1,i1,i2) - V(i0+k,i1,i2))/hx
+              Qy(k) = (V(i0,i1+k+1,i2) - V(i0,i1+k,i2))/hy
+              Qz(k) = (V(i0,i1,i2+k+1) - V(i0,i1,i2+k))/hz
+              Qxxp(k) = (V(i0+np,i1,i2)-two*V(i0+np-1,i1,i2)
+     &                  +V(i0+np-2,i1,i2))/hx
+              Qyyp(k) = (V(i0,i1+np,i2)-two*V(i0,i1+np-1,i2)
+     &                  +V(i0,i1+np-2,i2))/hy
+              Qzzp(k) = (V(i0,i1,i2+np)-two*V(i0,i1,i2+np-1)
+     &                  +V(i0,i1,i2+np-2))/hz
+              Qxxm(k) = (V(i0+nm,i1,i2)-two*V(i0+nm-1,i1,i2)
+     &                  +V(i0+nm-2,i1,i2))/hx
+              Qyym(k) = (V(i0,i1+nm,i2)-two*V(i0,i1+nm-1,i2)
+     &                  +V(i0,i1+nm-2,i2))/hy
+              Qzzm(k) = (V(i0,i1,i2+nm)-two*V(i0,i1,i2+nm-1))
+     &                  +V(i0,i1,i2+nm-2)/hz
+            enddo
+
+            Ex = (-Qx(-2)+7.d0*(Qx(-1)+Qx(0))-Qx(1))/12.d0
+            Ey = (-Qy(-2)+7.d0*(Qy(-1)+Qy(0))-Qy(1))/12.d0
+            Ez = (-Qz(-2)+7.d0*(Qz(-1)+Qz(0))-Qz(1))/12.d0
+            Dxp = Ex+WENO5(Qxxp)
+            Dxm = Ex-WENO5(Qxxm)
+            Dyp = Ey+WENO5(Qyyp)
+            Dym = Ey-WENO5(Qyym)
+            Dzp = Ez+WENO5(Qzzp)
+            Dzm = Ez-WENO5(Qzzm)
+    
+            H(i0,i1,i2) = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
+          enddo
+        enddo
+      enddo
+
+      return
+      end
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Mass constraint on level set to ensure that it does not lose volume
