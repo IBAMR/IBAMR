@@ -391,6 +391,21 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
 } // registerStressNormalizationPart
 
 void
+IBFEMethod::registerVMSStabilizationPart(unsigned int part)
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    if (d_VMS_stabilization_part[part]) return;
+    d_has_VMS_stabilization_parts = true;
+    d_VMS_stabilization_part[part] = true;
+    System& VMS_P_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(VMS_P_SYSTEM_NAME);
+    System& VMS_RHS_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(VMS_RHS_SYSTEM_NAME);
+    VMS_P_system.add_variable("VMS pressure", d_fe_order[part], d_fe_family[part]);
+    VMS_RHS_system.add_variable("VMS rhs", d_fe_order[part], d_fe_family[part]);
+    return;
+} // registerVMSStabilizationPart
+
+void
 IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
@@ -879,7 +894,7 @@ IBFEMethod::initializeFEData()
         System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
         System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-
+        
         X_system.assemble_before_solve = false;
         X_system.assemble();
 
@@ -897,6 +912,11 @@ IBFEMethod::initializeFEData()
             LinearImplicitSystem& Phi_system = equation_systems->get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
+        }
+        
+        if(d_VMS_stabilization_part[part])
+        {
+            
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -1127,6 +1147,14 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
 }
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void 
+IBFEMethod::computeVMSStabilization()
+{
+    
+    // here we compute the L2 projection of the rhs 
+    
+}
 
 void
 IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
@@ -2521,6 +2549,10 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_epsilon = 0.0;
     d_has_stress_normalization_parts = false;
     d_stress_normalization_part.resize(d_num_parts, false);
+    
+    // initialize data for VMS stabilization
+    d_has_VMS_stabilization_parts = false;
+    d_VMS_stabilization_part.resize(d_num_parts, false);
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
@@ -2701,6 +2733,7 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
 
+    // for stress normalization
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
     return;
 } // getFromInput

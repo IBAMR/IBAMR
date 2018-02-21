@@ -109,6 +109,9 @@ public:
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string PHI_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string VMS_PRESSURE_SYSTEM_NAME;
+    static const std::string VMS_RHS_SYSTEM_NAME;
+        
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
@@ -150,6 +153,11 @@ public:
      * Indicate that a part should use stress normalization.
      */
     void registerStressNormalizationPart(unsigned int part = 0);
+    
+     /*!
+     * Indicate that a part should have VMS stabilization.
+     */
+    void registerVMSStabilizationPart(unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -593,6 +601,8 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_VMS_P_current_vecs, d_VMS_P_new_vecs, d_VMS_P_half_vecs;
+    std::vector<libMesh::PetscVector<double> *> d_VMS_RHS_current_vecs, d_VMS_RHS_new_vecs, d_VMS_RHS_half_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
@@ -618,6 +628,12 @@ protected:
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_stress_normalization_part;
 
+    /*
+     * Data for VMS stabilization (variational multiscale stabilization)
+     */
+    bool d_has_VMS_stabilization_parts;
+    std::vector<bool> d_VMS_stabilization_part;
+    
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
