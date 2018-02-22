@@ -43,6 +43,7 @@
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
+#include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -70,6 +71,7 @@ namespace IBAMR
 const std::string AdvDiffConvectiveOperatorManager::DEFAULT = "DEFAULT";
 const std::string AdvDiffConvectiveOperatorManager::CENTERED = "CENTERED";
 const std::string AdvDiffConvectiveOperatorManager::PPM = "PPM";
+const std::string AdvDiffConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 
 AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool AdvDiffConvectiveOperatorManager::s_registered_callback = false;
@@ -139,6 +141,7 @@ AdvDiffConvectiveOperatorManager::AdvDiffConvectiveOperatorManager() : d_operato
     registerOperatorFactoryFunction(DEFAULT, AdvDiffPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(CENTERED, AdvDiffCenteredConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, AdvDiffPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(WAVE_PROP, AdvDiffWavePropConvectiveOperator::allocate_operator);
     return;
 } // AdvDiffConvectiveOperatorManager
 

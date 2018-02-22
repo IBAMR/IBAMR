@@ -102,6 +102,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 ../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
+../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
@@ -111,6 +112,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 ../src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+../src/navier_stokes/INSCollocatedWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 ../src/navier_stokes/INSHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
@@ -123,6 +125,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredStabilizedPPMConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredStochasticForcing.cpp \
 ../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
+../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
@@ -267,6 +270,7 @@ libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
@@ -284,6 +288,7 @@ libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
