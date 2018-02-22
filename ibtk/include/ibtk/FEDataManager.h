@@ -488,7 +488,7 @@ public:
     /*!
      * \return Pointer to a stabilization matrix related to P0 projection.
      */
-    libMesh::NumericVector<double>* buildProjectionStabilizationMatrix(const std::string& system_name);
+    libMesh::SparseMatrix<double>* buildProjectionStabilizationMatrix(const std::string& system_name);
 
     /*!
      * \brief Set U to be the L2 projection of F.

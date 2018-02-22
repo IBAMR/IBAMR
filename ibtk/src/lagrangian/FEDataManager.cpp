@@ -1723,6 +1723,7 @@ FEDataManager::buildProjectionStabilizationMatrix(const std::string& system_name
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
 
     // Build solver components.
     SparseMatrix<double>* C_mat = SparseMatrix<double>::build(comm).release();
@@ -1751,10 +1752,9 @@ FEDataManager::buildProjectionStabilizationMatrix(const std::string& system_name
                 {
                     for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        C_e(i, j) += ((phi[i][qp] * phi[j][qp]) * JxW[qp] -
-                                      (elem_vol / static_cast<double>(n_basis * n_basis))) /
-                                     elem_vol;
+                        C_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
                     }
+                    C_e(i, j) -= elem_vol / static_cast<double>(n_basis * n_basis);
                 }
             }
             dof_map.constrain_element_matrix(C_e, dof_indices);

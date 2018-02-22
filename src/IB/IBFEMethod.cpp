@@ -646,6 +646,50 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     return;
 } // interpolateVelocity
 
+// Stabilization approach:
+//
+// The saddle point formulation of the IB equations with rigidity constraints
+// is:
+//
+//    Du/Dt  = -Grad p + mu Lap u + S F + f
+//    -Div u = 0
+//    -S^* u = -U = -dX/dt
+//
+// Linearizing the fluid equations, and putting the full system in block form,
+// we have:
+//
+//    [A    B -S] [u]   [ f ]
+//    [B^*  0  0] [p] = [ 0 ]
+//    [-S^* 0  0] [F]   [-U ]
+//
+// which, slightly abusing notation, we simplify as
+//
+//    [L    -S] [u]   [ f ]
+//    [       ] [ ] = [   ]
+//    [-S^*  0] [F] = [-U ]
+//
+// with L the Stokes operator.  We stabilize via
+//
+//    [L    -S      ] [u]   [ f ]
+//    [             ] [ ] = [   ]
+//    [-S^*  -beta C] [F] = [-U ]
+//
+// which has the Schur complement
+//
+//    -(beta C + S^* inv(L) S)
+//
+// We want (beta C + S^* inv(L) S) to be an SPD operator, so C should also be
+// SPD.  (Notice that, in general, S^* is different from S^T.)
+//
+// In the stabilized method (not necessarily in saddle point form!), we therefore
+// use
+//
+//    dX/dt = S^* u + beta C F
+//
+// to determine the motion of the structure.
+
+static const double beta = 0.0; // 1.0;
+
 void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
@@ -655,6 +699,14 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
     {
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+
+        SparseMatrix<double>* C_mat = d_fe_data_managers[part]->buildProjectionStabilizationMatrix(FORCE_SYSTEM_NAME);
+        PetscVector<double>* CF_vec = dynamic_cast<PetscVector<double>*>(d_F_half_vecs[part]->clone().release());
+        C_mat->vector_mult(*CF_vec, *d_F_half_vecs[part]);
+        ierr = VecAXPY(d_X_new_vecs[part]->vec(), dt * beta, CF_vec->vec());
+        delete C_mat;
+        delete CF_vec;
+
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
@@ -676,6 +728,14 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+
+        SparseMatrix<double>* C_mat = d_fe_data_managers[part]->buildProjectionStabilizationMatrix(FORCE_SYSTEM_NAME);
+        PetscVector<double>* CF_vec = dynamic_cast<PetscVector<double>*>(d_F_half_vecs[part]->clone().release());
+        C_mat->vector_mult(*CF_vec, *d_F_half_vecs[part]);
+        ierr = VecAXPY(d_X_new_vecs[part]->vec(), dt * beta, CF_vec->vec());
+        delete C_mat;
+        delete CF_vec;
+
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
@@ -694,6 +754,14 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
+
+        SparseMatrix<double>* C_mat = d_fe_data_managers[part]->buildProjectionStabilizationMatrix(FORCE_SYSTEM_NAME);
+        PetscVector<double>* CF_vec = dynamic_cast<PetscVector<double>*>(d_F_half_vecs[part]->clone().release());
+        C_mat->vector_mult(*CF_vec, *d_F_half_vecs[part]);
+        ierr = VecAXPY(d_X_new_vecs[part]->vec(), dt * beta, CF_vec->vec());
+        delete C_mat;
+        delete CF_vec;
+
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
