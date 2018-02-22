@@ -516,6 +516,14 @@ public:
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
 protected:
+     /*
+     * \brief Compute L2 projection of the RHS for the VMS stabilization scheme.
+     */
+    void computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
+                                 libMesh::PetscVector<double>& X_vec,
+                                 double data_time,
+                                 unsigned int part);    
+    
     /*
      * \brief Compute the stress normalization field Phi.
      */
