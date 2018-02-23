@@ -311,6 +311,7 @@ const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFEMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::PHI_SYSTEM_NAME = "IB stress normalization system";
+const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
 const std::string IBFEMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -438,6 +439,19 @@ IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, 
     return;
 } // registerLagSurfaceForceFunction
 
+void
+IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    if (d_lag_body_source_part[part]) return;
+    d_has_lag_body_source_parts = true;
+    d_lag_body_source_part[part] = true;
+    d_lag_body_source_fcn_data[part] = data;
+    System& Q_system = d_equation_systems[part]->add_system<System>(SOURCE_SYSTEM_NAME);
+    Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
+    return;
+} // registerLagBodySourceFunction
+
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -491,6 +505,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
     d_F_half_vecs.resize(d_num_parts);
     d_F_IB_ghost_vecs.resize(d_num_parts);
 
+    d_Q_systems.resize(d_num_parts);
+    d_Q_half_vecs.resize(d_num_parts);
+    d_Q_IB_ghost_vecs.resize(d_num_parts);
+
     d_Phi_systems.resize(d_num_parts);
     d_Phi_half_vecs.resize(d_num_parts);
 
@@ -517,6 +535,14 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
+        if (d_lag_body_source_part[part])
+        {
+            d_Q_systems[part] = &d_equation_systems[part]->get_system(SOURCE_SYSTEM_NAME);
+            d_Q_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Q_systems[part]->current_local_solution.get());
+            d_Q_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(SOURCE_SYSTEM_NAME, /*localize_data*/ false));
+        }
+
         if (d_stress_normalization_part[part])
         {
             d_Phi_systems[part] = &d_equation_systems[part]->get_system(PHI_SYSTEM_NAME);
@@ -538,6 +564,12 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
 
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
+
+        if (d_lag_body_source_part[part])
+        {
+            d_Q_systems[part]->solution->close();
+            d_Q_systems[part]->solution->localize(*d_Q_half_vecs[part]);
+        }
 
         if (d_stress_normalization_part[part])
         {
@@ -576,6 +608,14 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
 
+        if (d_lag_body_source_part[part])
+        {
+            d_Q_half_vecs[part]->close();
+            *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
+            d_Q_systems[part]->solution->close();
+            d_Q_systems[part]->solution->localize(*d_Q_systems[part]->current_local_solution);
+        }
+
         if (d_stress_normalization_part[part])
         {
             d_Phi_half_vecs[part]->close();
@@ -602,6 +642,10 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
     d_F_systems.clear();
     d_F_half_vecs.clear();
     d_F_IB_ghost_vecs.clear();
+
+    d_Q_systems.clear();
+    d_Q_half_vecs.clear();
+    d_Q_IB_ghost_vecs.clear();
 
     d_Phi_systems.clear();
     d_Phi_half_vecs.clear();
@@ -2528,6 +2572,9 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_lag_body_force_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
     d_lag_surface_force_fcn_data.resize(d_num_parts);
+    d_has_lag_body_source_parts = false;
+    d_lag_body_source_part.resize(d_num_parts, false);
+    d_lag_body_source_fcn_data.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
