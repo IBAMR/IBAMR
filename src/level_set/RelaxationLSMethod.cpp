@@ -37,6 +37,7 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
 #include "VariableDatabase.h"
+#include "ibamr/RelaxationLSBcCoefs.h"
 #include "ibamr/namespaces.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -236,6 +237,9 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
     d_apply_volume_shift = false;
     d_alpha = 1.0;
 
+    // Create boundary condition object for relaxation procedure.
+    d_bc_coef = new RelaxationLSBcCoefs(object_name + "::iteration_bcs");
+
     // Get any additional or overwrite base class options.
     if (d_registered_for_restart) getFromRestart();
     if (!db.isNull()) getFromInput(db);
@@ -245,9 +249,18 @@ RelaxationLSMethod::RelaxationLSMethod(const std::string& object_name, Pointer<D
 
 RelaxationLSMethod::~RelaxationLSMethod()
 {
-    // intentionally-left blank.
+    delete d_bc_coef;
+    d_bc_coef = NULL;
     return;
 } // ~RelaxationLSMethod
+
+void
+RelaxationLSMethod::registerPhysicalBoundaryCondition(RobinBcCoefStrategy<NDIM>* robin_bc_coef)
+{
+    delete d_bc_coef;
+    LSInitStrategy::registerPhysicalBoundaryCondition(robin_bc_coef);
+    return;
+} // registerPhysicalBoundaryCondition
 
 void
 RelaxationLSMethod::initializeLSData(int D_idx,
@@ -340,6 +353,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     }
 
     // Set hierarchy objects.
+    RelaxationLSBcCoefs* relax_bc_obj = dynamic_cast<RelaxationLSBcCoefs*>(d_bc_coef);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
@@ -359,6 +373,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     H_fill_op->initializeOperatorState(H_transcation, hierarchy);
 
     // Copy initial condition, including ghost cells
+    if (relax_bc_obj != NULL)
+    {
+        relax_bc_obj->setLSPatchDataIndex(D_scratch_idx);
+    }
     D_fill_op->fillData(time);
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
@@ -380,6 +398,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         H_fill_op->fillData(time);
     }
 
+    if (relax_bc_obj != NULL)
+    {
+        relax_bc_obj->setLSPatchDataIndex(D_init_idx);
+    }
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         // Refill ghost data and relax
@@ -464,6 +486,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
+    if (relax_bc_obj != NULL)
+    {
+        relax_bc_obj->resetLSPatchDataIndex();
+    }
 
     return;
 } // initializeLSData

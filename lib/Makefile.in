@@ -248,6 +248,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
 	../src/level_set/LSInitStrategy.cpp \
+	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
@@ -383,6 +384,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT) \
+	../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-RelaxationLSMethod.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
@@ -504,6 +506,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/CIBMethod.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
 	../src/level_set/LSInitStrategy.cpp \
+	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
@@ -639,6 +642,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT) \
+	../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-RelaxationLSMethod.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
@@ -808,7 +812,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
-	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -858,6 +861,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/RelaxationLSBcCoefs.h \
+	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1242,7 +1247,6 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
-	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1292,6 +1296,8 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/RelaxationLSBcCoefs.h \
+	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1377,6 +1383,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/CIBMethod.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
 	../src/level_set/LSInitStrategy.cpp \
+	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
 	../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	../src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
@@ -1715,6 +1722,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR2d_a-RelaxationLSMethod.$(OBJEXT):  \
@@ -2068,6 +2078,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR3d_a-RelaxationLSMethod.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
@@ -2419,9 +2432,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@
@@ -3429,6 +3444,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR2d_a-LSInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
+
+../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.o: ../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Tpo -c -o ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.o `test -f '../src/level_set/RelaxationLSBcCoefs.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/RelaxationLSBcCoefs.cpp' object='../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.o `test -f '../src/level_set/RelaxationLSBcCoefs.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSBcCoefs.cpp
+
+../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.obj: ../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Tpo -c -o ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.obj `if test -f '../src/level_set/RelaxationLSBcCoefs.cpp'; then $(CYGPATH_W) '../src/level_set/RelaxationLSBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/RelaxationLSBcCoefs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/RelaxationLSBcCoefs.cpp' object='../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.obj `if test -f '../src/level_set/RelaxationLSBcCoefs.cpp'; then $(CYGPATH_W) '../src/level_set/RelaxationLSBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/RelaxationLSBcCoefs.cpp'; fi`
 
 ../src/level_set/libIBAMR2d_a-RelaxationLSMethod.o: ../src/level_set/RelaxationLSMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-RelaxationLSMethod.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Tpo -c -o ../src/level_set/libIBAMR2d_a-RelaxationLSMethod.o `test -f '../src/level_set/RelaxationLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSMethod.cpp
@@ -5039,6 +5068,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LSInitStrategy.cpp' object='../src/level_set/libIBAMR3d_a-LSInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.obj `if test -f '../src/level_set/LSInitStrategy.cpp'; then $(CYGPATH_W) '../src/level_set/LSInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LSInitStrategy.cpp'; fi`
+
+../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.o: ../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Tpo -c -o ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.o `test -f '../src/level_set/RelaxationLSBcCoefs.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/RelaxationLSBcCoefs.cpp' object='../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.o `test -f '../src/level_set/RelaxationLSBcCoefs.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSBcCoefs.cpp
+
+../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.obj: ../src/level_set/RelaxationLSBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Tpo -c -o ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.obj `if test -f '../src/level_set/RelaxationLSBcCoefs.cpp'; then $(CYGPATH_W) '../src/level_set/RelaxationLSBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/RelaxationLSBcCoefs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/RelaxationLSBcCoefs.cpp' object='../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.obj `if test -f '../src/level_set/RelaxationLSBcCoefs.cpp'; then $(CYGPATH_W) '../src/level_set/RelaxationLSBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/RelaxationLSBcCoefs.cpp'; fi`
 
 ../src/level_set/libIBAMR3d_a-RelaxationLSMethod.o: ../src/level_set/RelaxationLSMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-RelaxationLSMethod.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Tpo -c -o ../src/level_set/libIBAMR3d_a-RelaxationLSMethod.o `test -f '../src/level_set/RelaxationLSMethod.cpp' || echo '$(srcdir)/'`../src/level_set/RelaxationLSMethod.cpp
