@@ -641,6 +641,7 @@ protected:
      */
     bool d_has_VMS_stabilization_parts;
     std::vector<bool> d_VMS_stabilization_part;
+    std::vector<double> d_VMS_beta_s; 
     
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
