@@ -337,7 +337,6 @@ const std::string IBFEMethod::FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::PHI_SYSTEM_NAME = "IB stress normalization system";
 const std::string IBFEMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
 const std::string IBFEMethod::VMS_PRESSURE_SYSTEM_NAME = "VMS pressure system";
-const std::string IBFEMethod::VMS_RHS_SYSTEM_NAME = "VMS rhs system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -425,9 +424,7 @@ IBFEMethod::registerVMSStabilizationPart(unsigned int part)
     d_has_VMS_stabilization_parts = true;
     d_VMS_stabilization_part[part] = true;
     System& VMS_P_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(VMS_PRESSURE_SYSTEM_NAME);
-    System& VMS_RHS_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(VMS_RHS_SYSTEM_NAME);
     VMS_P_system.add_variable("VMS pressure", d_fe_order[part], d_fe_family[part]);
-    VMS_RHS_system.add_variable("VMS rhs", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerVMSStabilizationPart
 
@@ -567,14 +564,13 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         
         if(d_VMS_stabilization_part[part])
         {
-            d_VMS_RHS_systems[part] = &d_equation_systems[part]->get_system(VMS_RHS_SYSTEM_NAME);
-            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_RHS_systems[part]->current_local_solution.get());
+            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_P_systems[part]->rhs.get());
             d_VMS_RHS_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             d_VMS_RHS_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             
-            d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_P_SYSTEM_NAME);
+            d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_PRESSURE_SYSTEM_NAME);
             d_VMS_P_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_P_systems[part]->current_local_solution.get());
             d_VMS_P_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_P_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
@@ -594,10 +590,11 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
         d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
 
-        d_VMS_RHS_systems[part]->solution->close();
-        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_current_vecs[part]);
-        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_new_vecs[part]);
-        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_half_vecs[part]);
+        // copy rhs member of system into the d_VMS_RHS members
+        d_VMS_P_systems[part]->rhs->close();
+        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_current_vecs[part]);
+        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_new_vecs[part]);
+        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_half_vecs[part]);
         
         d_VMS_P_systems[part]->solution->close();
         d_VMS_P_systems[part]->solution->localize(*d_VMS_P_current_vecs[part]);
@@ -660,13 +657,6 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             d_VMS_P_systems[part]->solution->localize(*d_VMS_P_systems[part]->current_local_solution);
             delete d_VMS_P_new_vecs[part];
             delete d_VMS_P_half_vecs[part];
-            
-            d_VMS_RHS_new_vecs[part]->close();
-            *d_VMS_RHS_systems[part]->solution = *d_VMS_RHS_new_vecs[part];
-            d_VMS_RHS_systems[part]->solution->close();
-            d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_systems[part]->current_local_solution);
-            delete d_VMS_RHS_new_vecs[part];
-            delete d_VMS_RHS_half_vecs[part];
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -1016,9 +1006,6 @@ IBFEMethod::initializeFEData()
             LinearImplicitSystem& VMS_P_system = equation_systems->get_system<LinearImplicitSystem>(VMS_PRESSURE_SYSTEM_NAME);
             VMS_P_system.assemble_before_solve = false;
             VMS_P_system.assemble();
-            LinearImplicitSystem& VMS_RHS_system = equation_systems->get_system<LinearImplicitSystem>(VMS_RHS_SYSTEM_NAME);
-            VMS_RHS_system.assemble_before_solve = false;
-            VMS_RHS_system.assemble();
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -1267,12 +1254,13 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     const unsigned int dim = mesh.mesh_dimension();
     
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    LinearImplicitSystem& VMS_RHS_system = equation_systems->get_system<LinearImplicitSystem>(VMS_RHS_SYSTEM_NAME);
-    const DofMap& VMS_RHS_dof_map = VMS_RHS_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& VMS_RHS_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(VMS_RHS_SYSTEM_NAME);
-    std::vector<unsigned int> VMS_RHS_dof_indices;
-    FEType VMS_RHS_fe_type = VMS_RHS_dof_map.variable_type(0);
-    std::vector<int> VMS_RHS_vars(1, 0);  // VMS_RHS is scalar valued.
+    LinearImplicitSystem& VMS_P_system = equation_systems->get_system<LinearImplicitSystem>(VMS_P_SYSTEM_NAME);
+    const DofMap& VMS_P_dof_map = VMS_P_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& VMS_P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(VMS_P_SYSTEM_NAME);
+    std::vector<unsigned int> VMS_P_dof_indices;
+    FEType VMS_P_fe_type = VMS_P_dof_map.variable_type(0);
+    std::vector<int> VMS_P_vars(1, 0);  // VMS_P is scalar valued.
+    std::vector<int> no_vars;
     
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> vars(NDIM);
@@ -1290,14 +1278,13 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
-    fe.registerSystem(VMS_RHS_system, VMS_RHS_vars, VMS_RHS_vars); // compute phi and dphi for this system
+    fe.registerSystem(VMS_P_system, VMS_P_vars, no_vars); // compute phi and dphi for this system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t U_sys_idx = fe.registerInterpolatedSystem(U_system, vars, vars, &U_vec);
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(VMS_RHS_fe_type);
-    const std::vector<std::vector<VectorValue<double> > >& dphi = fe.getDphi(VMS_RHS_fe_type);
+    const std::vector<std::vector<double> >& phi = fe.getPhi(VMS_P_fe_type);
   
     const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
@@ -1313,8 +1300,8 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
-        VMS_RHS_dof_map_cache.dof_indices(elem, VMS_RHS_dof_indices);
-        rhs_e.resize(static_cast<int>(VMS_RHS_dof_indices.size()));
+        VMS_P_dof_map_cache.dof_indices(elem, VMS_P_dof_indices);
+        rhs_e.resize(static_cast<int>(VMS_P_dof_indices.size()));
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
         fe.interpolate(elem);
@@ -1322,14 +1309,12 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
         const size_t n_basis = phi.size();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const libMesh::Point& X = q_point[qp];
             const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
             const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             const std::vector<double>& U_data = fe_interp_var_data[qp][U_sys_idx];
             const std::vector<VectorValue<double> >& grad_U_data = fe_interp_grad_var_data[qp][U_sys_idx];
             get_x_and_FF(x, FF, x_data, grad_x_data);
             get_U_and_gradU(U, gradU, U_data, grad_U_data);
-            const double J = std::abs(FF.det());
             tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
          
             // compute the rhs for the pressure rate equation.  this is
@@ -1345,12 +1330,12 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     
         // Apply constraints (e.g., enforce periodic boundary conditions)
         // and add the elemental contributions to the global vector.
-        VMS_RHS_dof_map.constrain_element_vector(rhs_e, VMS_RHS_dof_indices);
+        VMS_RHS_dof_map.constrain_element_vector(rhs_e, VMS_P_dof_indices);
         rhs_vec->add_vector(rhs_e, VMS_RHS_dof_indices);
     }
 
     // compute L2 projection.
-    d_fe_data_managers[part]->computeL2Projection(VMS_RHS_vec, *rhs_vec, VMS_RHS_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    d_fe_data_managers[part]->computeL2Projection(VMS_RHS_vec, *rhs_vec, VMS_P_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
     
     return;
@@ -1784,7 +1769,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     System* Phi_system = Phi_vec ? &equation_systems->get_system(PHI_SYSTEM_NAME) : NULL;
-    System* VMS_P_system = VMS_P_vec ? &equation_systems->get_system(VMS_P_SYSTEM_NAME) : NULL;
+    System* VMS_P_system = VMS_P_vec ? &equation_systems->get_system(VMS_PRESSURE_SYSTEM_NAME) : NULL;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> Phi_vars(1, 0);
