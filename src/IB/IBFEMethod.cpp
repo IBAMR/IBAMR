@@ -564,6 +564,23 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
             d_Phi_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->current_local_solution.get());
         }
+        
+        if(d_VMS_stabilization_part[part])
+        {
+            d_VMS_RHS_systems[part] = &d_equation_systems[part]->get_system(VMS_RHS_SYSTEM_NAME);
+            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_RHS_systems[part]->current_local_solution.get());
+            d_VMS_RHS_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+            d_VMS_RHS_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+            
+            d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_P_SYSTEM_NAME);
+            d_VMS_P_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_P_systems[part]->current_local_solution.get());
+            d_VMS_P_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_VMS_P_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+            d_VMS_P_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_VMS_P_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
@@ -577,6 +594,16 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
         d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
 
+        d_VMS_RHS_systems[part]->solution->close();
+        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_current_vecs[part]);
+        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_new_vecs[part]);
+        d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_half_vecs[part]);
+        
+        d_VMS_P_systems[part]->solution->close();
+        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_current_vecs[part]);
+        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_new_vecs[part]);
+        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_half_vecs[part]);
+        
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
 
@@ -623,6 +650,23 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             *d_Phi_systems[part]->solution = *d_Phi_half_vecs[part];
             d_Phi_systems[part]->solution->close();
             d_Phi_systems[part]->solution->localize(*d_Phi_systems[part]->current_local_solution);
+        }
+        
+        if(d_VMS_stabilization_part[part])
+        {
+            d_VMS_P_new_vecs[part]->close();
+            *d_VMS_P_systems[part]->solution = *d_VMS_P_new_vecs[part];
+            d_VMS_P_systems[part]->solution->close();
+            d_VMS_P_systems[part]->solution->localize(*d_VMS_P_systems[part]->current_local_solution);
+            delete d_VMS_P_new_vecs[part];
+            delete d_VMS_P_half_vecs[part];
+            
+            d_VMS_RHS_new_vecs[part]->close();
+            *d_VMS_RHS_systems[part]->solution = *d_VMS_RHS_new_vecs[part];
+            d_VMS_RHS_systems[part]->solution->close();
+            d_VMS_RHS_systems[part]->solution->localize(*d_VMS_RHS_systems[part]->current_local_solution);
+            delete d_VMS_RHS_new_vecs[part];
+            delete d_VMS_RHS_half_vecs[part];
         }
 
         // Update the coordinate mapping dX = X - s.
@@ -701,6 +745,14 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        
+        ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        d_VMS_P_new_vecs[part]->close();
+        d_VMS_P_half_vecs[part]->close();        
     }
     return;
 } // eulerStep
@@ -719,6 +771,14 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        
+        ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_half_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        d_VMS_P_new_vecs[part]->close();
+        d_VMS_P_half_vecs[part]->close();
     }
     return;
 } // midpointStep
@@ -740,6 +800,17 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+        
+        ierr =
+            VecWAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(
+            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        d_VMS_P_new_vecs[part]->close();
+        d_VMS_P_half_vecs[part]->close();
     }
     return;
 } // trapezoidalStep
