@@ -253,6 +253,11 @@ bool run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<
         {
             ib_method_ops->registerStressNormalizationPart();
         }
+        
+        if (input_db->getBoolWithDefault("USE_VMS_STABILIZATION", false))
+        {
+            ib_method_ops->registerVMSStabilizationPart();
+        }
 
         // Set up post processor to recover computed stresses.
         Pointer<IBFEPostProcessor> ib_post_processor =

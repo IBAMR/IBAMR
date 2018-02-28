@@ -564,7 +564,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         
         if(d_VMS_stabilization_part[part])
         {
-            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_RHS_current_local[part]->get());
+            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_RHS_current_local[part].get());
             d_VMS_RHS_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             d_VMS_RHS_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
@@ -591,10 +591,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
 
         // copy rhs member of system into the d_VMS_RHS members
-        d_VMS_P_systems[part]->rhs->close();
-        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_current_vecs[part]);
-        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_new_vecs[part]);
-        d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_half_vecs[part]);
+        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
+        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_current_vecs[part]);
+        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_new_vecs[part]);
+        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_half_vecs[part]);
         
         d_VMS_P_systems[part]->solution->close();
         d_VMS_P_systems[part]->solution->localize(*d_VMS_P_current_vecs[part]);
@@ -659,9 +659,9 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             delete d_VMS_P_half_vecs[part];
             
             d_VMS_RHS_new_vecs[part]->close();
-            *d_VMS_P_systems[part]->rhs = *d_VMS_RHS_new_vecs[part];
-            d_VMS_P_systems[part]->rhs->close();
-            d_VMS_P_systems[part]->rhs->localize(*d_VMS_RHS_current_local[part]);
+            *dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs = *d_VMS_RHS_new_vecs[part];
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_current_local[part]);
             delete d_VMS_RHS_new_vecs[part];
             delete d_VMS_RHS_half_vecs[part];
         }
@@ -1244,7 +1244,7 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void 
+void
 IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
                                     libMesh::PetscVector<double>& X_vec,
                                     libMesh::PetscVector<double>& U_vec,
@@ -1261,9 +1261,9 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     const unsigned int dim = mesh.mesh_dimension();
     
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    LinearImplicitSystem& VMS_P_system = equation_systems->get_system<LinearImplicitSystem>(VMS_P_SYSTEM_NAME);
+    LinearImplicitSystem& VMS_P_system = equation_systems->get_system<LinearImplicitSystem>(VMS_PRESSURE_SYSTEM_NAME);
     const DofMap& VMS_P_dof_map = VMS_P_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& VMS_P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(VMS_P_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& VMS_P_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(VMS_PRESSURE_SYSTEM_NAME);
     std::vector<unsigned int> VMS_P_dof_indices;
     FEType VMS_P_fe_type = VMS_P_dof_map.variable_type(0);
     std::vector<int> VMS_P_vars(1, 0);  // VMS_P is scalar valued.
@@ -1337,12 +1337,12 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     
         // Apply constraints (e.g., enforce periodic boundary conditions)
         // and add the elemental contributions to the global vector.
-        VMS_RHS_dof_map.constrain_element_vector(rhs_e, VMS_P_dof_indices);
-        rhs_vec->add_vector(rhs_e, VMS_RHS_dof_indices);
+        VMS_P_dof_map.constrain_element_vector(rhs_e, VMS_P_dof_indices);
+        rhs_vec->add_vector(rhs_e, VMS_P_dof_indices);
     }
 
     // compute L2 projection.
-    d_fe_data_managers[part]->computeL2Projection(VMS_RHS_vec, *rhs_vec, VMS_P_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    d_fe_data_managers[part]->computeL2Projection(VMS_RHS_vec, *rhs_vec, VMS_PRESSURE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
     
     return;
@@ -1641,7 +1641,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         //
         // This right-hand side vector is used to solve for the nodal values of
         // the interior elastic force density.
-        TensorValue<double> PP, VV, FF, FF_inv_trans;
+        TensorValue<double> PP, FF, FF_inv_trans;
         VectorValue<double> F, F_qp, n, x;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -1829,7 +1829,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         surface_pressure_grad_var_data;
 
     // Loop over the elements to compute the right-hand side vector.
-    TensorValue<double> PP, FF, FF_inv_trans;
+    TensorValue<double> PP, FF, VV, FF_inv_trans;
     VectorValue<double> F, F_b, F_s, F_qp, n, x;
     boost::multi_array<double, 2> X_node;
     boost::multi_array<double, 1> Phi_node;

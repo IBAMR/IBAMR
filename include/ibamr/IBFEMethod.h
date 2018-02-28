@@ -51,6 +51,7 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/linear_implicit_system.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
@@ -521,6 +522,7 @@ protected:
      */
     void computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
                                  libMesh::PetscVector<double>& X_vec,
+                                 libMesh::PetscVector<double>& U_vec,
                                  double data_time,
                                  unsigned int part);    
     
@@ -605,14 +607,14 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems, d_VMS_pressure_systems;
+    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems, d_VMS_P_systems; 
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_Phi_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_VMS_P_current_vecs, d_VMS_P_new_vecs, d_VMS_P_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_VMS_RHS_current_vecs, d_VMS_RHS_new_vecs, d_VMS_RHS_half_vecs;
-    std::vector<libMesh::NumericVector<double> *> d_VMS_RHS_current_local;
+    std::vector<libMesh::UniquePtr<libMesh::NumericVector<double> > > d_VMS_RHS_current_local;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
