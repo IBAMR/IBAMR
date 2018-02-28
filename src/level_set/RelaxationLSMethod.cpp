@@ -435,6 +435,12 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hier_cc_data_ops.axmy(D_iter_idx, 1.0, D_iter_idx, D_scratch_idx);
         diff_L2_norm = hier_cc_data_ops.L2Norm(D_iter_idx, cc_wgt_idx);
 
+        // Compute difference between |grad phi| and 1
+        D_fill_op->fillData(time);
+        computeInitialHamiltonian(hier_math_ops, H_init_idx, D_scratch_idx);
+        hier_cc_data_ops.addScalar(H_init_idx, H_init_idx, -1.0);
+        const double grad_norm = hier_cc_data_ops.L2Norm(H_init_idx, cc_wgt_idx);
+
         outer_iter += 1;
 
         if (d_enable_logging)
@@ -442,6 +448,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
             plog << d_object_name << "::initializeLSData(): After iteration # " << outer_iter << std::endl;
             plog << d_object_name << "::initializeLSData(): L2-norm between successive iterations = " << diff_L2_norm
                  << std::endl;
+            plog << d_object_name << "::initializeLSData(): L2-Norm || |grad phi| - 1|| = " << grad_norm << std::endl;
         }
 
         if (diff_L2_norm <= d_abs_tol && d_enable_logging)
@@ -714,12 +721,10 @@ RelaxationLSMethod::computeInitialHamiltonian(Pointer<CellData<NDIM, double> > h
     TBOX_ASSERT(dist_init_data->getDepth() == 1);
     if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
     {
-        TBOX_ASSERT(H_ghosts >= 2);
         TBOX_ASSERT(P_ghosts >= 2);
     }
     else if (d_ls_order == FIFTH_ORDER_WENO_LS)
     {
-        TBOX_ASSERT(H_ghosts >= 3);
         TBOX_ASSERT(P_ghosts >= 3);
     }
 #endif
