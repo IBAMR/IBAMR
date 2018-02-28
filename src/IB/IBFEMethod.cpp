@@ -825,7 +825,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
+        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], d_VMS_P_half_vecs[part], data_time, part);
     }
     return;
 } // computeLagrangianForce
@@ -1571,6 +1571,7 @@ void
 IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                                         PetscVector<double>& X_vec,
                                         PetscVector<double>* Phi_vec,
+                                        PetscVector<double>* VMS_P_vec,
                                         const double data_time,
                                         const unsigned int part)
 {
@@ -1648,7 +1649,7 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         //
         // This right-hand side vector is used to solve for the nodal values of
         // the interior elastic force density.
-        TensorValue<double> PP, FF, FF_inv_trans;
+        TensorValue<double> PP, VV, FF, FF_inv_trans;
         VectorValue<double> F, F_qp, n, x;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -1783,9 +1784,11 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     System* Phi_system = Phi_vec ? &equation_systems->get_system(PHI_SYSTEM_NAME) : NULL;
+    System* VMS_P_system = VMS_P_vec ? &equation_systems->get_system(VMS_P_SYSTEM_NAME) : NULL;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> Phi_vars(1, 0);
+    std::vector<int> VMS_P_vars(1, 0);
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
@@ -1801,6 +1804,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     fe.registerSystem(G_system, vars, vars); // compute phi and dphi for the force system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t Phi_sys_idx = Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) :
+                                         std::numeric_limits<size_t>::max();
+    const size_t VMS_P_sys_idx = VMS_P_vec ? fe.registerInterpolatedSystem(*VMS_P_system, VMS_P_vars, no_vars, VMS_P_vec) :
                                          std::numeric_limits<size_t>::max();
     std::vector<size_t> body_force_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(
@@ -1871,6 +1876,24 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -PP * dphi[k][qp] * JxW[qp];
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        G_rhs_e[i](k) += F_qp(i);
+                    }
+                }
+            }
+            
+            // Here we add in the VMS stabilized volumetric energy
+            // contribution to the PK1 stress.
+            const double VMS_P =
+                VMS_P_vec ? fe_interp_var_data[qp][VMS_P_sys_idx][0] : std::numeric_limits<double>::quiet_NaN();
+
+            if (VMS_P_vec)
+            {
+                VV = J * VMS_P * FF_inv_trans;
+                for (unsigned int k = 0; k < n_basis; ++k)
+                {
+                    F_qp = -VV * dphi[k][qp] * JxW[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         G_rhs_e[i](k) += F_qp(i);

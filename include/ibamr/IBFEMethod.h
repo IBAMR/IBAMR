@@ -540,6 +540,7 @@ protected:
     void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
                                      libMesh::PetscVector<double>& X_vec,
                                      libMesh::PetscVector<double>* Phi_vec,
+                                     libMesh::PetscVector<double>* VMS_P_vec,
                                      double data_time,
                                      unsigned int part);
 
