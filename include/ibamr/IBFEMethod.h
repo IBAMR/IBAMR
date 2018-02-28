@@ -612,6 +612,7 @@ protected:
     std::vector<libMesh::PetscVector<double> *> d_Phi_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_VMS_P_current_vecs, d_VMS_P_new_vecs, d_VMS_P_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_VMS_RHS_current_vecs, d_VMS_RHS_new_vecs, d_VMS_RHS_half_vecs;
+    std::vector<libMesh::NumericVector<double> *> d_VMS_RHS_current_local;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
 
