@@ -539,7 +539,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
     d_VMS_RHS_current_vecs.resize(d_num_parts);
     d_VMS_RHS_new_vecs.resize(d_num_parts);
     d_VMS_RHS_half_vecs.resize(d_num_parts);
-    d_VMS_RHS_current_local.resize(d_num_parts);
     
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -573,13 +572,15 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         
         if(d_VMS_stabilization_part[part])
         {
-            d_VMS_RHS_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_RHS_current_local[part].get());
+            d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_PRESSURE_SYSTEM_NAME);
+
+            d_VMS_RHS_current_vecs[part] 
+                    = dynamic_cast<PetscVector<double>*>(dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->clone().release());
             d_VMS_RHS_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             d_VMS_RHS_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             
-            d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_PRESSURE_SYSTEM_NAME);
             d_VMS_P_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_VMS_P_systems[part]->current_local_solution.get());
             d_VMS_P_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_P_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
@@ -599,16 +600,19 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
         d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
 
-        // copy rhs member of system into the d_VMS_RHS members
-        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
-        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_current_vecs[part]);
-        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_new_vecs[part]);
-        dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_half_vecs[part]);
-        
-        d_VMS_P_systems[part]->solution->close();
-        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_current_vecs[part]);
-        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_new_vecs[part]);
-        d_VMS_P_systems[part]->solution->localize(*d_VMS_P_half_vecs[part]);
+        if (d_VMS_stabilization_part[part])
+        {
+            // copy rhs member of system into the d_VMS_RHS members
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_current_vecs[part]);
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_new_vecs[part]);
+            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_half_vecs[part]);
+                     
+            d_VMS_P_systems[part]->solution->close();
+            d_VMS_P_systems[part]->solution->localize(*d_VMS_P_current_vecs[part]);
+            d_VMS_P_systems[part]->solution->localize(*d_VMS_P_new_vecs[part]);
+            d_VMS_P_systems[part]->solution->localize(*d_VMS_P_half_vecs[part]);
+        }
         
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
@@ -670,7 +674,7 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             d_VMS_RHS_new_vecs[part]->close();
             *dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs = *d_VMS_RHS_new_vecs[part];
             dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
-            dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->localize(*d_VMS_RHS_current_local[part]);
+            delete d_VMS_RHS_current_vecs[part];
             delete d_VMS_RHS_new_vecs[part];
             delete d_VMS_RHS_half_vecs[part];
         }
