@@ -531,7 +531,16 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
 
     d_Phi_systems.resize(d_num_parts);
     d_Phi_half_vecs.resize(d_num_parts);
-
+    
+    d_VMS_P_systems.resize(d_num_parts);
+    d_VMS_P_current_vecs.resize(d_num_parts);
+    d_VMS_P_new_vecs.resize(d_num_parts);
+    d_VMS_P_half_vecs.resize(d_num_parts);
+    d_VMS_RHS_current_vecs.resize(d_num_parts);
+    d_VMS_RHS_new_vecs.resize(d_num_parts);
+    d_VMS_RHS_half_vecs.resize(d_num_parts);
+    d_VMS_RHS_current_local.resize(d_num_parts);
+    
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
@@ -687,6 +696,14 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
 
     d_Phi_systems.clear();
     d_Phi_half_vecs.clear();
+    
+    d_VMS_P_systems.clear();
+    d_VMS_P_current_vecs.clear();
+    d_VMS_P_new_vecs.clear();
+    d_VMS_P_half_vecs.clear();
+    d_VMS_RHS_current_vecs.clear();
+    d_VMS_RHS_new_vecs.clear();
+    d_VMS_RHS_half_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
