@@ -327,6 +327,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::COPY"), cell_ghosts);
     const int H_init_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_INIT"), cell_ghosts);
+    const int H_scratch_idx = 
+        var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::H_SCRATCH"), no_ghosts);
 
     // Heaviside variables
     const int HS_init_idx =
@@ -341,6 +343,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_init_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_copy_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_init_idx, time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(H_scratch_idx, time);
         if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
         if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
     }
@@ -437,9 +440,9 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
         // Compute difference between |grad phi| and 1
         D_fill_op->fillData(time);
-        computeInitialHamiltonian(hier_math_ops, H_init_idx, D_scratch_idx);
-        hier_cc_data_ops.addScalar(H_init_idx, H_init_idx, -1.0);
-        const double grad_norm = hier_cc_data_ops.L2Norm(H_init_idx, cc_wgt_idx);
+        computeInitialHamiltonian(hier_math_ops, H_scratch_idx, D_scratch_idx);
+        hier_cc_data_ops.addScalar(H_scratch_idx, H_scratch_idx, -1.0);
+        const double grad_norm = hier_cc_data_ops.L2Norm(H_scratch_idx, cc_wgt_idx);
 
         outer_iter += 1;
 
@@ -478,6 +481,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_init_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_copy_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_init_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(H_scratch_idx);
 
         if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
         if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
@@ -487,6 +491,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     var_db->removePatchDataIndex(D_init_idx);
     var_db->removePatchDataIndex(D_copy_idx);
     var_db->removePatchDataIndex(H_init_idx);
+    var_db->removePatchDataIndex(H_scratch_idx);
 
     if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_init_idx);
     if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_copy_idx);
