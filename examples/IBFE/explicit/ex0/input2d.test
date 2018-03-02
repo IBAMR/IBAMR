@@ -11,7 +11,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
 MFAC = 4.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
+ELEM_TYPE = "QUAD4"                            // type of element to use for structure discretization
 CONVERGENCE_STUDY = FALSE                      // indicate whether we are performing a convergence study or not;
                                                // if so, attempt to make "nested" structural meshes
 
@@ -66,7 +66,7 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
-USE_VMS_STABILIZATION      = TRUE        
+USE_VMS_STABILIZATION      = FALSE        
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -123,7 +123,7 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-   VMS_beta_s                 = 1.0e5                                  
+   VMS_beta_s                 = 1.0e1                                  
 }
 
 INSCollocatedHierarchyIntegrator {

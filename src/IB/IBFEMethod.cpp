@@ -763,13 +763,16 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
         
-        ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        d_VMS_P_new_vecs[part]->close();
-        d_VMS_P_half_vecs[part]->close();        
+        if(d_VMS_stabilization_part[part])
+        {
+            ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBYPCZ(
+                    d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            d_VMS_P_new_vecs[part]->close();
+            d_VMS_P_half_vecs[part]->close();        
+        }
     }
     return;
 } // eulerStep
@@ -789,13 +792,16 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
         
-        ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_half_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        d_VMS_P_new_vecs[part]->close();
-        d_VMS_P_half_vecs[part]->close();
+        if(d_VMS_stabilization_part[part])
+        {
+            ierr = VecWAXPY(d_VMS_P_new_vecs[part]->vec(), dt, d_VMS_RHS_half_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBYPCZ(
+                    d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            d_VMS_P_new_vecs[part]->close();
+            d_VMS_P_half_vecs[part]->close();
+        }
     }
     return;
 } // midpointStep
@@ -818,19 +824,22 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
         
-        ierr =
-            VecWAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
-        IBTK_CHKERRQ(ierr);
-        d_VMS_P_new_vecs[part]->close();
-        d_VMS_P_half_vecs[part]->close();
+        if(d_VMS_stabilization_part[part])
+        {
+            ierr =
+                    VecWAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_current_vecs[part]->vec(), d_VMS_P_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(d_VMS_P_new_vecs[part]->vec(), 0.5 * dt, d_VMS_RHS_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBYPCZ(
+                    d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            d_VMS_P_new_vecs[part]->close();
+            d_VMS_P_half_vecs[part]->close();
+        }
     }
-    return;
-} // trapezoidalStep
+        return;
+    } // trapezoidalStep
 
 void
 IBFEMethod::computeLagrangianForce(const double data_time)
