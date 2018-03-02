@@ -123,7 +123,7 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-   VMS_beta_s                 = 1.0e7                                  
+   VMS_beta_s                 = 1.0e5                                  
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -183,7 +183,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(END_TIME/(3*DT))
+   viz_dump_interval           = 1  // int(END_TIME/(3*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
