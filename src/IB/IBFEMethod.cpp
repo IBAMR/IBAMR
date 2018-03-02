@@ -573,9 +573,9 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*
         if(d_VMS_stabilization_part[part])
         {
             d_VMS_P_systems[part] = &d_equation_systems[part]->get_system(VMS_PRESSURE_SYSTEM_NAME);
-
+            
             d_VMS_RHS_current_vecs[part] 
-                    = dynamic_cast<PetscVector<double>*>(dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->clone().release());
+                    = dynamic_cast<PetscVector<double>*>(dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs);
             d_VMS_RHS_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_VMS_RHS_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             d_VMS_RHS_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
@@ -674,7 +674,6 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
             d_VMS_RHS_new_vecs[part]->close();
             *dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs = *d_VMS_RHS_new_vecs[part];
             dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
-            delete d_VMS_RHS_current_vecs[part];
             delete d_VMS_RHS_new_vecs[part];
             delete d_VMS_RHS_half_vecs[part];
         }
@@ -842,6 +841,10 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         if (d_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
+        }
+        if(d_VMS_stabilization_part[part])
+        {
+            computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], d_VMS_P_half_vecs[part], data_time, part);
     }
@@ -1306,9 +1309,10 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
-    fe.registerSystem(VMS_P_system, VMS_P_vars, no_vars); // compute phi and dphi for this system
+    fe.registerSystem(VMS_P_system, VMS_P_vars, VMS_P_vars); // compute phi and dphi for this system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t U_sys_idx = fe.registerInterpolatedSystem(U_system, vars, vars, &U_vec);
+    fe.init(/*use_IB_ghosted_vecs*/ false);
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -1365,9 +1369,6 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     // compute L2 projection.
     d_fe_data_managers[part]->computeL2Projection(VMS_RHS_vec, *rhs_vec, VMS_PRESSURE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
-    
-    return;
-    
 }
 
 void
