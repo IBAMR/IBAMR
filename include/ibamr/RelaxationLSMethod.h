@@ -110,11 +110,6 @@ public:
     //\{
 
     /*!
-     * \brief Register physical boundary condition for the level set.
-     */
-    void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef);
-
-    /*!
      * \brief Initialize level set data using the relaxation method.
      */
     void initializeLSData(int D_idx,
