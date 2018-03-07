@@ -664,15 +664,15 @@ IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*
         
         if(d_VMS_stabilization_part[part])
         {
-            d_VMS_P_new_vecs[part]->close();
-            *d_VMS_P_systems[part]->solution = *d_VMS_P_new_vecs[part];
+            d_VMS_P_half_vecs[part]->close();
+            *d_VMS_P_systems[part]->solution = *d_VMS_P_half_vecs[part];
             d_VMS_P_systems[part]->solution->close();
             d_VMS_P_systems[part]->solution->localize(*d_VMS_P_systems[part]->current_local_solution);
             delete d_VMS_P_new_vecs[part];
             delete d_VMS_P_half_vecs[part];
             
-            d_VMS_RHS_new_vecs[part]->close();
-            *dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs = *d_VMS_RHS_new_vecs[part];
+            d_VMS_RHS_half_vecs[part]->close();
+            *dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs = *d_VMS_RHS_half_vecs[part];
             dynamic_cast<libMesh::LinearImplicitSystem*>(d_VMS_P_systems[part])->rhs->close();
             delete d_VMS_RHS_new_vecs[part];
             delete d_VMS_RHS_half_vecs[part];
@@ -1290,7 +1290,6 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
      // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
     
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1300,7 +1299,6 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     std::vector<unsigned int> VMS_P_dof_indices;
     FEType VMS_P_fe_type = VMS_P_dof_map.variable_type(0);
     std::vector<int> VMS_P_vars(1, 0);  // VMS_P is scalar valued.
-    std::vector<int> no_vars;
     
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> vars(NDIM);
@@ -1323,7 +1321,6 @@ IBFEMethod::computeVMSStabilization(libMesh::PetscVector<double>& VMS_RHS_vec,
     const size_t U_sys_idx = fe.registerInterpolatedSystem(U_system, vars, vars, &U_vec);
     fe.init(/*use_IB_ghosted_vecs*/ false);
 
-    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
     const std::vector<std::vector<double> >& phi = fe.getPhi(VMS_P_fe_type);
   

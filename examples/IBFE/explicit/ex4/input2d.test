@@ -11,7 +11,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid 
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
 MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI6"                                  // type of element to use for structure discretization
+ELEM_TYPE = "TRI3" //"TRI6"                                  // type of element to use for structure discretization
 PK1_DEV_QUAD_ORDER = "FIFTH"
 PK1_DIL_QUAD_ORDER = "THIRD"
 
@@ -31,7 +31,7 @@ SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (
 CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 10*DT                   // final simulation time
+END_TIME                   = 10                   // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
@@ -48,7 +48,8 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
-
+USE_VMS_STABILIZATION      = TRUE 
+        
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
@@ -104,6 +105,7 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
+   VMS_beta_s                 = 1.0e3                                  
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -163,7 +165,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(END_TIME/(4*DT))
+   viz_dump_interval           = 250 // int(END_TIME/(4*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

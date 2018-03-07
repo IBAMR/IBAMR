@@ -109,7 +109,12 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    PP = 2.0 * -p0_s * tensor_inverse_transpose(FF, NDIM);
+    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    {
+        PP = 2.0 * (-beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    }
+  
     return;
 } // PK1_dil_stress_function
 }
@@ -291,11 +296,19 @@ bool run_example(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+        
+        ib_method_ops->initializeFEEquationSystems();
+
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();
         }
-        ib_method_ops->initializeFEEquationSystems();
+        
+        if (input_db->getBoolWithDefault("USE_VMS_STABILIZATION", false))
+        {
+            ib_method_ops->registerVMSStabilizationPart();
+            beta_s = 0.0;
+        }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up post processor to recover computed stresses.

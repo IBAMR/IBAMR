@@ -49,7 +49,7 @@ SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGG
 CFL_MAX                    = 0.3               // maximum CFL number
 DT                         = 0.25*DX           // maximum timestep size
 START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 10*DT               // final simulation time
+END_TIME                   = 500*DT               // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
 NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
@@ -66,7 +66,7 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
-USE_VMS_STABILIZATION      = FALSE        
+USE_VMS_STABILIZATION      = TRUE        
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -183,7 +183,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = 1  // int(END_TIME/(3*DT))
+   viz_dump_interval           = 50  // int(END_TIME/(3*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
