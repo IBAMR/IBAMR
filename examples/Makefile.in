@@ -840,7 +840,6 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIBFE            && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest) || exit 1;
 
@@ -852,7 +851,6 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-long) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIBFE            && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-long) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-long) || exit 1;
 
@@ -864,9 +862,9 @@ examples:
 @GTEST_ENABLED_TRUE@	@(cd navier_stokes    && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd ConstraintIB     && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd CIB              && make gtest-all) || exit 1;
-@GTEST_ENABLED_TRUE@	@(cd CIBFE            && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd level_set        && make gtest-all) || exit 1;
 @GTEST_ENABLED_TRUE@	@(cd multiphase_flow  && make gtest-all) || exit 1;
+
 @GTEST_ENABLED_FALSE@gtest:
 @GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 @GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "

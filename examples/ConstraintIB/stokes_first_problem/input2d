@@ -254,7 +254,7 @@ Main {
    log_all_nodes    = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt" 
+   viz_writer            = "VisIt","Silo"
    viz_dump_interval       = 70    //zero to turn off
    viz_dump_dirname      = "viz_stokes2d"
    visit_number_procs_per_file = 1

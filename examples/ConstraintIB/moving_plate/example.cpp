@@ -265,7 +265,7 @@ run_example(int argc, char* argv[])
 
         // Get the center of mass of the plate
         IBTK::Vector3d Plate_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Register optional plot data
         hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
@@ -305,6 +305,7 @@ run_example(int argc, char* argv[])
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
         double current_time, new_time;
+
         double box_disp = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
@@ -337,6 +338,7 @@ run_example(int argc, char* argv[])
             // If the body's COM has moved 0.9 coarse mesh widths in the x-direction, set the CV velocity such that
             // the CV will translate by 1 coarse mesh width in the direction of translation (positive x-direction).
             // Otherwise, keep the CV in place by setting its velocity to zero.
+
             box_disp += box_vel[0] * dt;
             if (box_disp >= 0.9 * DX[0])
             {
@@ -397,7 +399,7 @@ run_example(int argc, char* argv[])
             hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
+            structure_COM = ib_method_ops->getCurrentStructureCOM();
             for (int d = 0; d < 3; ++d) Plate_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM

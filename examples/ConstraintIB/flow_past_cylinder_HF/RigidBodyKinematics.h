@@ -185,5 +185,5 @@ private:
 
 }; // RigidBodyKinematics
 
-} // namespace IBAMR
+} // IBAMR
 #endif //#ifndef included_RigidBodyKinematics

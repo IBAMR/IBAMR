@@ -94,6 +94,10 @@ ConstraintIBMethod {
    calculate_structure_linear_mom       = TRUE            // default false
    calculate_structure_rotational_mom   = TRUE            // default false
    
+   // Options to calculate the structure's momenta
+   calculate_structure_linear_mom       = TRUE            // default false
+   calculate_structure_rotational_mom   = TRUE            // default false
+   
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
@@ -237,7 +241,7 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "VisIt"
+   viz_writer                  = "VisIt","Silo"
    viz_dump_interval           = 40                     // zero to turn off
    viz_dump_dirname            = "viz_eel2d_Str"
    visit_number_procs_per_file = 1

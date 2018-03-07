@@ -31,7 +31,7 @@ gtest:
 	@(cd navier_stokes    && make gtest) || exit 1;
 	@(cd ConstraintIB     && make gtest) || exit 1;
 	@(cd CIB              && make gtest) || exit 1;
-	@(cd CIBFE            && make gtest) || exit 1;
+##		@(cd CIBFE            && make gtest) || exit 1;
 	@(cd level_set        && make gtest) || exit 1;
 	@(cd multiphase_flow  && make gtest) || exit 1;
 
@@ -44,7 +44,7 @@ gtest-long:
 	@(cd navier_stokes    && make gtest-long) || exit 1;
 	@(cd ConstraintIB     && make gtest-long) || exit 1;
 	@(cd CIB              && make gtest-long) || exit 1;
-	@(cd CIBFE            && make gtest-long) || exit 1;
+##		@(cd CIBFE            && make gtest-long) || exit 1;
 	@(cd level_set        && make gtest-long) || exit 1;
 	@(cd multiphase_flow  && make gtest-long) || exit 1;
 
@@ -57,9 +57,10 @@ gtest-all:
 	@(cd navier_stokes    && make gtest-all) || exit 1;
 	@(cd ConstraintIB     && make gtest-all) || exit 1;
 	@(cd CIB              && make gtest-all) || exit 1;
-	@(cd CIBFE            && make gtest-all) || exit 1;
+##		@(cd CIBFE            && make gtest-all) || exit 1;
 	@(cd level_set        && make gtest-all) || exit 1;
 	@(cd multiphase_flow  && make gtest-all) || exit 1;
+
 else
 gtest:
 	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

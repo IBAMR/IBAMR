@@ -39,19 +39,19 @@
 #include <string>
 #include <vector>
 
-#include "tbox/Pointer.h"
-#include "VariableContext.h"
+#include "Eigen/Dense"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
-#include "ibamr/IBMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
+#include "VariableContext.h"
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBMethod.h"
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
-#include "Eigen/Dense"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -216,6 +216,40 @@ public:
 #endif
         d_vol_element = vol_element;
         d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
+    }
+
+    /*
+     * \brief Get the total volume for all the Lagrangian structures
+     */
+    inline const std::vector<double>& getStructureVolume()
+    {
+        return d_structure_vol;
+    }
+
+    /*!
+     * \brief Get the total linear momentum for all the Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getStructureMomentum()
+    {
+        if (!d_calculate_structure_linear_mom)
+        {
+            TBOX_ERROR("ConstraintIBMethod::getStructureMomentum() called with calculate_structure_linear_mom = FALSE");
+        }
+        return d_structure_mom;
+    }
+
+    /*!
+     * \brief Get the total rotational momentum for all the Lagrangian structures with respect to their COM
+     */
+    inline const std::vector<std::vector<double> >& getStructureRotationalMomentum()
+    {
+        if (!d_calculate_structure_rotational_mom)
+        {
+            TBOX_ERROR(
+                "ConstraintIBMethod::getStructureRotationalMomentum() called with calculate_structure_rotational_mom = "
+                "FALSE");
+        }
+        return d_structure_rotational_mom;
     }
 
 private:
@@ -385,6 +419,16 @@ private:
     void calculateEulerianMomentum();
 
     /*!
+     * \brief Calculate total translational momentum of all Lagrangian structures
+     */
+    void calculateStructureMomentum();
+
+    /*!
+     * \brief Calculate the total rotational momentum of all Lagrangian structures with respect to their COM
+     */
+    void calculateStructureRotationalMomentum();
+
+    /*!
      * No of immersed structures.
      */
     const int d_no_structures;
@@ -408,6 +452,21 @@ private:
      * Whether or not the volume has been set for the material structure
      */
     std::vector<bool> d_vol_element_is_set;
+
+    /*!
+     * Volume associated with each immersed structure
+     */
+    std::vector<double> d_structure_vol;
+
+    /*!
+     * Linear momentum associated with each immersed structure
+     */
+    std::vector<std::vector<double> > d_structure_mom;
+
+    /*!
+     * Rotational momentum associated with each immersed structure with respect to their COM
+     */
+    std::vector<std::vector<double> > d_structure_rotational_mom;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
@@ -479,6 +538,11 @@ private:
      * Whether or not the density from the integrator is constant
      */
     bool d_rho_is_const;
+
+    /*!
+     * Bools for computing linear and rotational momentums of the body
+     */
+    bool d_calculate_structure_linear_mom, d_calculate_structure_rotational_mom;
 
     /*!
      * Iteration_counter for printing stuff.

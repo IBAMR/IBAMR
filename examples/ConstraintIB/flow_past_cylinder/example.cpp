@@ -259,7 +259,7 @@ run_example(int argc, char* argv[])
 
         // Get the center of mass of the cylinder
         IBTK::Vector3d Cylinder_COM;
-        std::vector<std::vector<double> > structure_COM = ib_method_ops->getStructureCOM();
+        std::vector<std::vector<double> > structure_COM = ib_method_ops->getCurrentStructureCOM();
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -359,7 +359,7 @@ run_example(int argc, char* argv[])
             hydro_force->updateStructurePlotData(patch_hierarchy, 0);
 
             // Set the torque origin for the next time step
-            structure_COM = ib_method_ops->getStructureCOM();
+            structure_COM = ib_method_ops->getCurrentStructureCOM();
             for (int d = 0; d < 3; ++d) Cylinder_COM[d] = structure_COM[0][d];
 
             // Set the torque evaluation axis to point from newest COM
