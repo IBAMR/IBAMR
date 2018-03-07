@@ -173,7 +173,7 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "VisIt"
+   viz_writer                  = "VisIt","Silo"
    viz_dump_interval           = VISIT_DUMP_INTERVAL
    viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1

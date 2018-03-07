@@ -1,3 +1,5 @@
 This is an example of mixture of prescribed and free DOFs for two bodies. The outer shell (structure 0) moves
 relative to the inner sphere (structure 1). The mobility matrices (both fluid and body mobility) of two
-structures are formed independently and are distributed to different processors (for parallel runs).
+structures are formed independently and are distributed to different processors (for parallel runs). The hydrodynamic
+forces and torques on the bodies are computed by integrating the Lagrange multipliers. Forces and torques on both spheres
+(strct_id_0) and the inner sphere (strct_id_1) are computed via control volume analysis.

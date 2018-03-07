@@ -39,19 +39,19 @@
 #include <string>
 #include <vector>
 
-#include "tbox/Pointer.h"
-#include "VariableContext.h"
+#include "Eigen/Dense"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
-#include "ibamr/IBMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
+#include "VariableContext.h"
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBMethod.h"
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
-#include "Eigen/Dense"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -177,6 +177,49 @@ public:
     inline const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& getLagrangeMultiplier()
     {
         return d_l_data_U_correction;
+    }
+
+    /*!
+     * \brief Get the total volume for all the Lagrangian structures
+     */
+    inline const std::vector<double>& getStructureVolume()
+    {
+        return d_structure_vol;
+    }
+
+    /*!
+     * \brief Get the total linear momentum for all the Lagrangian structures
+     */
+    inline const std::vector<std::vector<double> >& getStructureMomentum()
+    {
+        if (!d_calculate_structure_linear_mom)
+        {
+            TBOX_ERROR("ConstraintIBMethod::getStructureMomentum() called with calculate_structure_linear_mom = FALSE");
+        }
+        return d_structure_mom;
+    }
+
+    /*!
+     * \brief Get the total rotational momentum for all the Lagrangian structures with respect to their COM
+     */
+    inline const std::vector<std::vector<double> >& getStructureRotationalMomentum()
+    {
+        if (!d_calculate_structure_rotational_mom)
+        {
+            TBOX_ERROR(
+                "ConstraintIBMethod::getStructureRotationalMomentum() called with calculate_structure_rotational_mom = "
+                "FALSE");
+        }
+        return d_structure_rotational_mom;
+    }
+
+    /*!
+     * \brief Get the center of mass for all Lagrangian structures
+     */
+
+    inline const std::vector<std::vector<double> >& getStructureCOM()
+    {
+        return d_center_of_mass_current;
     }
 
 private:
@@ -335,6 +378,16 @@ private:
     void calculateEulerianMomentum();
 
     /*!
+     * \brief Calculate total translational momentum of all Lagrangian structures
+     */
+    void calculateStructureMomentum();
+
+    /*!
+     * \brief Calculate the total rotational momentum of all Lagrangian structures with respect to their COM
+     */
+    void calculateStructureRotationalMomentum();
+
+    /*!
      * No of immersed structures.
      */
     const int d_no_structures;
@@ -353,6 +406,21 @@ private:
      * Volume element associated with material points.
      */
     std::vector<double> d_vol_element;
+
+    /*!
+     * Volume associated with each immersed structure
+     */
+    std::vector<double> d_structure_vol;
+
+    /*!
+     * Linear momentum associated with each immersed structure
+     */
+    std::vector<std::vector<double> > d_structure_mom;
+
+    /*!
+     * Rotational momentum associated with each immersed structure with respect to their COM
+     */
+    std::vector<std::vector<double> > d_structure_rotational_mom;
 
     /*!
      * If divergence free projection is needed after FuRMoRP algorithm?
@@ -408,6 +476,11 @@ private:
      * Density and viscosity of the fluid.
      */
     double d_rho_fluid, d_mu_fluid;
+
+    /*!
+     * Bools for computing linear and rotational momentums of the body
+     */
+    bool d_calculate_structure_linear_mom, d_calculate_structure_rotational_mom;
 
     /*!
      * Iteration_counter for printing stuff.
@@ -467,7 +540,7 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
+    std::vector<std::ofstream*> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
         d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
@@ -478,9 +551,9 @@ private:
     /*!
      * Pre and post fluid solve call back functions and contexts.
      */
-    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 };
 } // namespace IBAMR
 
