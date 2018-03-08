@@ -470,7 +470,11 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                              new CellVariable<NDIM, double>(object_name + "::P"),
                              new SideVariable<NDIM, double>(object_name + "::F"),
                              new CellVariable<NDIM, double>(object_name + "::Q"),
-                             register_for_restart)
+                             register_for_restart),
+      d_rho_init_fcn(NULL),
+      d_mu_init_fcn(NULL),
+      d_rho_bc_coef(NULL),
+      d_mu_bc_coef(NULL)
 {
     // Register solver factory functions for variable coefficient Stokes and viscous solvers
     StaggeredStokesSolverManager::getManager()->registerSolverFactoryFunction(DEFAULT_VC_STAGGERED_STOKES_SOLVER,
@@ -707,6 +711,10 @@ VCINSStaggeredHierarchyIntegrator::~VCINSStaggeredHierarchyIntegrator()
     {
         if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
     }
+    delete d_rho_bc_coef;
+    d_rho_bc_coef = NULL;
+    delete d_mu_bc_coef;
+    d_mu_bc_coef = NULL;
     return;
 } // ~VCINSStaggeredHierarchyIntegrator
 
@@ -989,8 +997,12 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             d_rho_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
             // AdvDiffHierarchyIntegrator should initialize the density variable.
-            TBOX_ASSERT(!d_rho_fcn);
+            TBOX_ASSERT(!d_rho_init_fcn);
 #endif
+            // Ensure that boundary conditions are provided by the advection-diffusion integrator
+            d_rho_bc_coef =
+                (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_adv_diff_hier_integrator->getFluidDensityVariable()))
+                    .front();
         }
         else if (INSHierarchyIntegrator::d_rho_var)
         {
@@ -1005,6 +1017,10 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_rho_var)
     {
+#if !defined(NDEBUG)
+        // VCINSStaggeredHierarchyIntegrator should initialize the density variable.
+        TBOX_ASSERT(d_rho_init_fcn);
+#endif
         registerVariable(d_rho_current_idx,
                          d_rho_new_idx,
                          d_rho_scratch_idx,
@@ -1012,13 +1028,13 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                          cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE",
-                         d_rho_fcn);
+                         d_rho_init_fcn);
     }
     else
     {
         d_rho_current_idx = -1;
         d_rho_new_idx = -1;
-        d_rho_fcn = NULL;
+        d_rho_init_fcn = NULL;
 
         Pointer<CellVariable<NDIM, double> > rho_cc_scratch_var =
             new CellVariable<NDIM, double>(d_object_name + "_rho_cc_scratch_var", /*depth*/ 1);
@@ -1035,8 +1051,12 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             d_mu_var = Pointer<CellVariable<NDIM, double> >(NULL);
 #if !defined(NDEBUG)
             // AdvDiffHierarchyIntegrator should initialize the viscosity variable.
-            TBOX_ASSERT(!d_mu_fcn);
+            TBOX_ASSERT(!d_mu_init_fcn);
 #endif
+            // Ensure that boundary conditions are provided by the advection-diffusion integrator
+            d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(
+                                d_adv_diff_hier_integrator->getFluidViscosityVariable()))
+                               .front();
         }
         else if (INSHierarchyIntegrator::d_mu_var)
         {
@@ -1051,6 +1071,10 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_mu_var)
     {
+#if !defined(NDEBUG)
+        // VCINSStaggeredHierarchyIntegrator should initialize the density variable.
+        TBOX_ASSERT(d_rho_init_fcn);
+#endif
         registerVariable(d_mu_current_idx,
                          d_mu_new_idx,
                          d_mu_scratch_idx,
@@ -1058,13 +1082,13 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                          mu_cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE",
-                         d_mu_fcn);
+                         d_mu_init_fcn);
     }
     else
     {
         d_mu_current_idx = -1;
         d_mu_new_idx = -1;
-        d_mu_fcn = NULL;
+        d_mu_init_fcn = NULL;
 
         Pointer<CellVariable<NDIM, double> > mu_cc_scratch_var =
             new CellVariable<NDIM, double>(d_object_name + "_mu_cc_scratch_var", /*depth*/ 1);
@@ -2306,6 +2330,46 @@ VCINSStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
     return;
 } // registerResetFluidViscosityFcn
 
+void
+VCINSStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(Pointer<CartGridFunction> rho_init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_init_fcn = rho_init_fcn;
+    return;
+} // registerMassDensityInitialConditions
+
+void
+VCINSStaggeredHierarchyIntegrator::registerViscosityInitialConditions(Pointer<CartGridFunction> mu_init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_init_fcn = mu_init_fcn;
+    return;
+} // registerViscosityInitialConditions
+
+void
+VCINSStaggeredHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>* rho_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_bc_coef = rho_bc_coef;
+    return;
+} // registerMassDensityBoundaryConditions
+
+void
+VCINSStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCoefStrategy<NDIM>* mu_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_bc_coef = mu_bc_coef;
+    return;
+} // registerViscosityBoundaryConditions
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -2552,8 +2616,13 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
-        InterpolationTransactionComponent rho_bc_component(
-            d_rho_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "CONSTANT", false);
+        InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
+                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                           false,
+                                                           "CONSERVATIVE_COARSEN",
+                                                           "CONSTANT",
+                                                           false,
+                                                           d_rho_bc_coef);
         d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
@@ -2561,8 +2630,13 @@ VCINSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     if (!d_mu_is_const)
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
-        InterpolationTransactionComponent mu_bc_component(
-            d_mu_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "CONSTANT", false);
+        InterpolationTransactionComponent mu_bc_component(d_mu_scratch_idx,
+                                                          "CONSERVATIVE_LINEAR_REFINE",
+                                                          false,
+                                                          "CONSERVATIVE_COARSEN",
+                                                          "CONSTANT",
+                                                          false,
+                                                          d_mu_bc_coef);
         d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
     }

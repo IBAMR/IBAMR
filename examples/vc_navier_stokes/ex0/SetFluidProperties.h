@@ -108,8 +108,7 @@ private:
     /*!
      * Pointer to density and viscosity functions
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_mu_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn, d_mu_fcn;
 
 }; // SetFluidProperties
 

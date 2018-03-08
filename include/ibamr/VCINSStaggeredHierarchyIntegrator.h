@@ -85,6 +85,11 @@ namespace mesh
 template <int DIM>
 class GriddingAlgorithm;
 } // namespace mesh
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -97,12 +102,17 @@ namespace IBAMR
  * coefficients.
  *
  * This class always uses a non-conservative discretization of the form of the momentum equation
- * \f$\rho(\frac{\partial u}{\partial t} + N(u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$ 
+ * \f$\rho(\frac{\partial u}{\partial t} + N(u)) = -\nabla p + \nabla \cdot \mu (\nabla u) + (\nabla u)^T )\f$
  * where \f$ N(u) = u \cdot \nabla u \f$ for convective_difference_form = ADVECTIVE and
  * \f$ N(u) = \nabla \cdot (u u) \f$ for convective_difference_form = CONSERVATIVE.
- * 
+ *
  * In other words, this class will NEVER treat the left-hand side of the momentum equation in conservative form
  * i.e. \frac{\partial \rho u}{\partial t} + \nabla \cdot (\rho u u)
+ *
+ * An optional re-scaling factor c can be specified to minimize the loss of floating point precision for poorly
+ * scaling linear systems. The scaling acts on the momentum part of the saddle-point system, yielding
+ * \f$c A + G(c x_p) = c b_u\f$
+ * in which the viscous block, the pressure degrees of freedom, and the velocity RHS have been scaled.
  */
 class VCINSStaggeredHierarchyIntegrator : public INSHierarchyIntegrator
 {
@@ -270,6 +280,30 @@ public:
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
+     * \brief Supply initial conditions for the density field, if maintained by the fluid integrator.
+     */
+    void registerMassDensityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init_fcn);
+
+    /*!
+     * \brief Supply initial conditions for the viscosity field, if maintained by the fluid integrator.
+     */
+    void registerViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_init_fcn);
+
+    /*
+     * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
+     *
+     * \note The boundary conditions set here will be overwritten if density if being advected.
+     */
+    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
+
+    /*
+     * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
+     *
+     * \note The boundary conditions set here will be overwritten if viscosity if being advected.
+     */
+    void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
+
+    /*!
      * \brief Get whether or not density is constant
      */
     inline bool rhoIsConstant() const
@@ -315,6 +349,22 @@ public:
     inline double getPressureScalingFactor() const
     {
         return d_A_scale;
+    }
+
+    /*!
+     * \brief Get the density boundary conditions
+     */
+    inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getMassDensityBoundaryConditions() const
+    {
+        return d_rho_bc_coef;
+    }
+
+    /*!
+     * \brief Get the viscosity boundary conditions
+     */
+    inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getViscosityBoundaryConditions() const
+    {
+        return d_mu_bc_coef;
     }
 
 protected:
@@ -549,24 +599,37 @@ private:
     int d_N_full_idx;
 
     /*
-     * Variables to indicate if either rho or mu is constant
+     * Variables to indicate if either rho or mu is constant.
      */
     bool d_rho_is_const, d_mu_is_const;
 
     /*
-     * Variable to indicate the type of interpolation to be done for rho and mu
+     * Variable to indicate the type of interpolation to be done for rho and mu.
      */
     IBTK::VCInterpType d_vc_interp_type;
 
     /*
-     * Variable to indicate the scaling factor used for A, p and u_rhs
+     * Variable to indicate the scaling factor used for A, p and u_rhs.
      */
     double d_A_scale;
 
     /*
-     * Variable to set how often the preconditioner is reinitialized
+     * Variable to set how often the preconditioner is reinitialized.
      */
     int d_precond_reinit_interval;
+
+    /*
+     * Objects to set initial condition for density and viscosity when they are maintained by the fluid integrator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn;
+
+    /*
+     * Boundary condition objects for density and viscosity, which are provided by an appropriate advection-diffusion
+     * integrator
+     * or set by the fluid integrator.
+     */
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
 };
 } // namespace IBAMR
 

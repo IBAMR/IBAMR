@@ -40,10 +40,19 @@ RHO_IS_CONST       = FALSE
 MU_IS_CONST        = FALSE
 
 // Application
+// How often the preconditioner is reinitialized
 PRECOND_REINIT_INTERVAL = 1
+
+// How to interpolate from cell centers to sides (rho) and nodes (mu)
+// Harmonic averaging is better in cases where there is a large density of viscosity ratio
 VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
+
+// Scaling c is chosen such that c(rho/dt - mu/dx^2) ~ 1/dx
+// Assuming dt ~ dx and 1/dx = N, we have
+// c ~ 1/(rho - mu*N)
 CONDITION_NO_SCALE = abs(1.0/(RHO1/2.0 - MU1/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
 //CONDITION_NO_SCALE = 1.0
+
 EXPLICITLY_REMOVE_NULLSPACE = FALSE
 ENABLE_LOGGING     = TRUE
 
@@ -66,7 +75,6 @@ ViscosityFunction {
 U = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)"
 V = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t) + sin(2*PI*X_0-2*PI*t)"
 P = "2*PI*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))"
-//P = "1.0"
 
 F_U = "4*PI^2*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) - 2*(-8*PI^3*mu1*cos(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0) -   8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) -   2*PI^2*mu1*cos(2*PI*t - 2*PI*X_0)*sin(2*PI*X_0)*sin(2*PI*X_1)) + (-8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)^2*sin(2*PI*X_0) -   4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) + 4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*(-sin(2*PI*t - 2*PI*X_0) - 2*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)))*(rho0 + (rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)))/2)"
 
@@ -109,19 +117,20 @@ VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = V
    gcoef_function_1 = V
-   gcoef_function_2 = V
-   gcoef_function_3 = V
+   gcoef_function_2 = T_n  
+   gcoef_function_3 = T_n
 }
+
 
 PressureInitialConditions {
    function = P

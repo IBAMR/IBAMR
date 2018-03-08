@@ -184,9 +184,9 @@ run_example(int argc, char* argv[])
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties", rho_fcn, mu_fcn);
 
-        // Initialize viscosity and density
-        time_integrator->setViscosityFunction(mu_fcn);
-        time_integrator->setMassDensityFunction(rho_fcn);
+        // Set the density and viscosity initial condition
+        time_integrator->registerViscosityInitialConditions(mu_fcn);
+        time_integrator->registerMassDensityInitialConditions(rho_fcn);
 
         // Reset fluid properties if they are time-dependent.
         time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
