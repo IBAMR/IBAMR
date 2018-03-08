@@ -752,6 +752,7 @@ void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
+    const double data_time = 0.5 * (new_time + current_time);
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -771,7 +772,8 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
                     d_VMS_P_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_VMS_P_current_vecs[part]->vec(), d_VMS_P_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
             d_VMS_P_new_vecs[part]->close();
-            d_VMS_P_half_vecs[part]->close();        
+            d_VMS_P_half_vecs[part]->close();    
+            computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
     }
     return;
@@ -781,6 +783,7 @@ void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
+    const double data_time = 0.5 * (new_time + current_time);
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -801,6 +804,7 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
             IBTK_CHKERRQ(ierr);
             d_VMS_P_new_vecs[part]->close();
             d_VMS_P_half_vecs[part]->close();
+            computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
     }
     return;
@@ -810,6 +814,7 @@ void
 IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
+    const double data_time = 0.5 * (new_time + current_time);
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -836,6 +841,7 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
             IBTK_CHKERRQ(ierr);
             d_VMS_P_new_vecs[part]->close();
             d_VMS_P_half_vecs[part]->close();
+            computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
     }
         return;
@@ -850,10 +856,6 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         if (d_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], *d_X_half_vecs[part], data_time, part);
-        }
-        if(d_VMS_stabilization_part[part])
-        {
-            computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], d_VMS_P_half_vecs[part], data_time, part);
     }

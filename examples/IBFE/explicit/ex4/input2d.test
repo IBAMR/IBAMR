@@ -10,7 +10,7 @@ N = 64                                              // actual    number of grid 
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
-MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "TRI3" //"TRI6"                                  // type of element to use for structure discretization
 PK1_DEV_QUAD_ORDER = "FIFTH"
 PK1_DIL_QUAD_ORDER = "THIRD"
@@ -18,8 +18,8 @@ PK1_DIL_QUAD_ORDER = "THIRD"
 // model parameters
 U_MAX = 2.0
 C1_S = 0.2
-P0_S = C1_S
-BETA_S = 1.0*(NFINEST/64.0)
+P0_S = 0.0 //C1_S
+BETA_S = 0.0 // 1.0*(NFINEST/64.0)
 
 // solver parameters
 IB_DELTA_FUNCTION          = "IB_4"                 // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
@@ -105,7 +105,7 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-   VMS_beta_s                 = 1.0e1                                  
+   VMS_beta_s                 = 1.0e2                                  
 }
 
 INSCollocatedHierarchyIntegrator {

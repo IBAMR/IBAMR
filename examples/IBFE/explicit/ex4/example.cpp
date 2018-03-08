@@ -94,7 +94,8 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * c1_s * FF;
+    // PP = 2.0 * c1_s * FF;
+    PP = ( c1_s / pow(FF.det(),2.0/3.0) ) * ( FF - (FF.tr()/3.0) *  tensor_inverse_transpose(FF, NDIM) );
     return;
 } // PK1_dev_stress_function
 
@@ -109,7 +110,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * -p0_s * tensor_inverse_transpose(FF, NDIM);
+    //PP = 2.0 * -p0_s * tensor_inverse_transpose(FF, NDIM);
     if (!MathUtilities<double>::equalEps(beta_s, 0.0))
     {
         PP = 2.0 * (-beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
