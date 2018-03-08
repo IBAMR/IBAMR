@@ -173,7 +173,7 @@ run_example(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        // create a density and viscosity field for testing purposes
+        // Create a density and viscosity field for testing purposes
         Pointer<CellVariable<NDIM, double> > rho_var = new CellVariable<NDIM, double>("rho_var");
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu_var");
         time_integrator->registerMassDensityVariable(rho_var);
@@ -183,6 +183,12 @@ run_example(int argc, char* argv[])
         Pointer<CartGridFunction> mu_fcn = new muParserCartGridFunction(
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties", rho_fcn, mu_fcn);
+
+        // Initialize viscosity and density
+        time_integrator->setViscosityFunction(mu_fcn);
+        time_integrator->setMassDensityFunction(rho_fcn);
+
+        // Reset fluid properties if they are time-dependent.
         time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
                                                       static_cast<void*>(ptr_SetFluidProperties));
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
@@ -315,7 +321,7 @@ run_example(int argc, char* argv[])
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
 
-            pout << "Error in u at time " << loop_time << ":\n"
+            pout << "Error in u_cc at time " << loop_time << ":\n"
                  << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
@@ -330,7 +336,7 @@ run_example(int argc, char* argv[])
         {
             HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-            pout << "Error in u at time " << loop_time << ":\n"
+            pout << "Error in u_sc at time " << loop_time << ":\n"
                  << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n";
