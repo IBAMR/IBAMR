@@ -794,6 +794,34 @@ IBFEMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
+bool
+IBFEMethod::hasFluidSources() const
+{
+    return d_has_lag_body_source_parts;
+}
+
+void
+IBFEMethod::spreadFluidSource(const int q_data_idx,
+                              RobinPhysBdryPatchStrategy* q_phys_bdry_op,
+                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                              const double data_time)
+{
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_lag_body_source_part[part]) continue;
+        PetscVector<double>* X_vec = d_X_half_vecs[part];
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* Q_vec = d_Q_half_vecs[part];
+        PetscVector<double>* Q_ghost_vec = d_Q_IB_ghost_vecs[part];
+        X_vec->localize(*X_ghost_vec);
+        Q_vec->localize(*Q_ghost_vec);
+        d_fe_data_managers[part]->spread(
+            q_data_idx, *Q_ghost_vec, *X_ghost_vec, SOURCE_SYSTEM_NAME, q_phys_bdry_op, data_time);
+    }
+    return;
+}
+
 FEDataManager::InterpSpec
 IBFEMethod::getDefaultInterpSpec() const
 {
