@@ -447,7 +447,7 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     d_has_lag_body_source_parts = true;
     d_lag_body_source_part[part] = true;
     d_lag_body_source_fcn_data[part] = data;
-    System& Q_system = d_equation_systems[part]->add_system<System>(SOURCE_SYSTEM_NAME);
+    System& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
@@ -798,6 +798,103 @@ bool
 IBFEMethod::hasFluidSources() const
 {
     return d_has_lag_body_source_parts;
+}
+
+void
+IBFEMethod::computeLagrangianFluidSource(double data_time)
+{
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_lag_body_source_part[part]) continue;
+
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        const MeshBase& mesh = equation_systems->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
+
+        // Extract the FE systems and DOF maps, and setup the FE object.
+        ExplicitSystem& Q_system = equation_systems->get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+        const DofMap& Q_dof_map = Q_system.get_dof_map();
+        FEDataManager::SystemDofMapCache& Q_dof_map_cache =
+            *d_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
+        FEType Q_fe_type = Q_dof_map.variable_type(0);
+        std::vector<unsigned int> Q_dof_indices;
+        System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+        std::vector<int> vars(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
+
+        FEDataInterpolation fe(dim, d_fe_data_managers[part]);
+        UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
+        fe.attachQuadratureRule(qrule.get());
+        fe.evalQuadraturePoints();
+        fe.evalQuadratureWeights();
+        fe.registerSystem(Q_system);
+        NumericVector<double>& X_vec = *d_X_half_vecs[part];
+        const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
+        std::vector<size_t> Q_fcn_system_idxs;
+        fe.setupInterpolatedSystemDataIndexes(
+            Q_fcn_system_idxs, d_lag_body_source_fcn_data[part].system_data, equation_systems);
+        fe.init(/*use_IB_ghosted_vecs*/ false);
+
+        const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
+        const std::vector<double>& JxW = fe.getQuadratureWeights();
+        const std::vector<std::vector<double> >& phi = fe.getPhi(Q_fe_type);
+
+        const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+        const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+            fe.getGradVarInterpolation();
+
+        std::vector<const std::vector<double>*> Q_var_data;
+        std::vector<const std::vector<VectorValue<double> >*> Q_grad_var_data;
+
+        // Setup global and elemental right-hand-side vectors.
+        NumericVector<double>* Q_rhs_vec = Q_system.rhs;
+        Q_rhs_vec->zero();
+        Q_rhs_vec->close();
+        DenseVector<double> Q_rhs_e;
+
+        TensorValue<double> FF, FF_inv_trans;
+        VectorValue<double> x;
+        double Q;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            Q_dof_map_cache.dof_indices(elem, Q_dof_indices, 0);
+            Q_rhs_e.resize(static_cast<int>(Q_dof_indices.size()));
+            fe.reinit(elem);
+            fe.collectDataForInterpolation(elem);
+            fe.interpolate(elem);
+            const unsigned int n_qp = qrule->n_points();
+            const size_t n_basis = phi.size();
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                const libMesh::Point& X = q_point[qp];
+                const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
+                const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                get_x_and_FF(x, FF, x_data, grad_x_data);
+
+                fe.setInterpolatedDataPointers(Q_var_data, Q_grad_var_data, Q_fcn_system_idxs, elem, qp);
+                d_lag_body_source_fcn_data[part].fcn(
+                    Q, FF, x, X, elem, Q_var_data, Q_grad_var_data, data_time, d_lag_body_source_fcn_data[part].ctx);
+                for (unsigned int k = 0; k < n_basis; ++k)
+                {
+                    Q_rhs_e(k) += Q * phi[k][qp] * JxW[qp];
+                }
+
+                // Apply constraints (e.g., enforce periodic boundary conditions)
+                // and add the elemental contributions to the global vector.
+                Q_dof_map.constrain_element_vector(Q_rhs_e, Q_dof_indices);
+                Q_rhs_vec->add_vector(Q_rhs_e, Q_dof_indices);
+            }
+        }
+
+        // Solve for Q.
+        NumericVector<double>& Q_vec = *d_Q_half_vecs[part];
+        d_fe_data_managers[part]->computeL2Projection(
+            Q_vec, *Q_rhs_vec, SOURCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    }
 }
 
 void
