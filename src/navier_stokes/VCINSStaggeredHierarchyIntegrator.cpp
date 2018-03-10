@@ -711,10 +711,7 @@ VCINSStaggeredHierarchyIntegrator::~VCINSStaggeredHierarchyIntegrator()
     {
         if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
     }
-    delete d_rho_bc_coef;
-    d_rho_bc_coef = NULL;
-    delete d_mu_bc_coef;
-    d_mu_bc_coef = NULL;
+
     return;
 } // ~VCINSStaggeredHierarchyIntegrator
 
