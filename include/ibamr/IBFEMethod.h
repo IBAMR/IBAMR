@@ -108,6 +108,7 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string PHI_SYSTEM_NAME;
+    static const std::string SOURCE_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
@@ -313,6 +314,35 @@ public:
     void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
+     * Typedef specifying interface for Lagrangian mass source/sink distribution
+     * function.
+     */
+    typedef IBTK::ScalarMeshFcnPtr LagBodySourceFcnPtr;
+
+    /*!
+     * Struct encapsulating Lagrangian mass source/sink distribution data.
+     */
+    struct LagBodySourceFcnData
+    {
+        LagBodySourceFcnData(LagBodySourceFcnPtr fcn = NULL,
+                             const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                             void* const ctx = NULL)
+            : fcn(fcn), system_data(system_data), ctx(ctx)
+        {
+        }
+
+        LagBodySourceFcnPtr fcn;
+        std::vector<IBTK::SystemData> system_data;
+        void* ctx;
+    };
+
+    /*!
+     * Register the (optional) function to compute a mass source/sink
+     * distribution on the Lagrangian finite element mesh.
+     */
+    void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
@@ -377,6 +407,27 @@ public:
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
                 double data_time);
+
+    /*!
+     * Indicate whether there are any internal fluid sources/sinks.
+     */
+    bool hasFluidSources() const;
+
+    /*!
+     * Compute the Lagrangian source/sink density at the specified time within
+     * the current time interval.
+     */
+    void computeLagrangianFluidSource(double data_time);
+
+    /*!
+     * Spread the Lagrangian source/sink density to the Cartesian grid at the
+     * specified time within the current time interval.
+     */
+    void spreadFluidSource(
+        int q_data_idx,
+        IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
+        double data_time);
 
     /*!
      * Get the default interpolation spec object used by the class.
@@ -588,10 +639,11 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System *> d_X_systems, d_U_systems, d_F_systems, d_Phi_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
     std::vector<libMesh::PetscVector<double> *> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double> *> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double> *> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs;
 
     bool d_fe_equation_systems_initialized, d_fe_data_initialized;
@@ -635,6 +687,13 @@ protected:
     std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
+
+    /*
+     * Functions used to compute source/sink strength on the Lagrangian mesh.
+     */
+    bool d_has_lag_body_source_parts;
+    std::vector<bool> d_lag_body_source_part;
+    std::vector<LagBodySourceFcnData> d_lag_body_source_fcn_data;
 
     /*
      * Nonuniform load balancing data structures.

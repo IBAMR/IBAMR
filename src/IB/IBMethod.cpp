@@ -1091,6 +1091,7 @@ IBMethod::computeLagrangianFluidSource(const double data_time)
 
 void
 IBMethod::spreadFluidSource(const int q_data_idx,
+                            RobinPhysBdryPatchStrategy* /*q_phys_bdry_op*/,
                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
                             const double data_time)
 {
