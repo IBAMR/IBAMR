@@ -255,14 +255,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    if (d_viz_writers.size() == 1 && d_viz_writers[0] == "VisIt")
-    {
-        IBTK_DEPRECATED_FUNCTIONALITY("Automatically using both VisIt and Silo data writers.\n"
-                                      << "In the future, it will be necessary to include \"Silo\" in the list of data "
-                                         "writer in order to output Silo data.\n");
-        d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
-    }
-
     // Configure restart options.
     std::string restart_dump_interval_key_name;
     if (main_db->keyExists("restart_interval"))

@@ -414,6 +414,7 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
 {
     const double r = rr / Dx;
 #if (NDIM == 3)
+    (void)L_domain;
     const double factor = 1.0 / (8.0 * M_PI);
     if (r < 0.8)
         return factor / (3.0 / 4.0 * HRad + F_s[6] * r * r);
@@ -457,6 +458,7 @@ _F_R_BETA(const double rr, const double Dx, const double beta, const double L_do
     const double r = rr / Dx;
 
 #if (NDIM == 3)
+    (void)L_domain;
     double f_0 = (1.0 + Z_b[1] * sqrt(beta) + Z_b[2] * beta) /
                  (Z_b[0] + Z_b[3] * beta + Z_b[2] * 6.0 * M_PI * HRad * beta * beta);
 
