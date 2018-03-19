@@ -183,7 +183,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-ex_main.Po \
-	./$(DEPDIR)/test2d-test_main.Po
+	./$(DEPDIR)/main3d-ex_main.Po ./$(DEPDIR)/test2d-test_main.Po \
+	./$(DEPDIR)/test3d-test_main.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -612,7 +613,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -832,7 +835,9 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
+	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -879,7 +884,9 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
 	-rm -f ./$(DEPDIR)/test2d-test_main.Po
+	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

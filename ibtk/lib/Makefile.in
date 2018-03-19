@@ -881,6 +881,9 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po \
@@ -908,6 +911,9 @@ am__depfiles_remade = ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellIn
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOperator.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousPETScLevelSolver.Po \
 	../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po \
 	../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po \
 	../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralSolver.Po \
@@ -2883,6 +2889,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po@am__quote@ # am--include-marker
@@ -2910,6 +2919,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralSolver.Po@am__quote@ # am--include-marker
@@ -6769,6 +6781,9 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po
@@ -6796,6 +6811,9 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousPETScLevelSolver.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralSolver.Po
@@ -7052,6 +7070,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOpPointRelaxationFACOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-VCSCViscousPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po
@@ -7079,6 +7100,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOpPointRelaxationFACOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousOperator.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-VCSCViscousPETScLevelSolver.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/libIBTK2d_a-GeneralSolver.Po

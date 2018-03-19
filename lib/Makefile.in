@@ -860,9 +860,11 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po \
 	../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po \
@@ -900,6 +902,12 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolver.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolverManager.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredHierarchyIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredPressureBcCoef.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredVelocityBcCoef.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po \
@@ -935,6 +943,12 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBFEMethod.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolver.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolverManager.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredHierarchyIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredPressureBcCoef.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredVelocityBcCoef.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
 	../src/utilities/$(DEPDIR)/RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
@@ -2652,9 +2666,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -2692,6 +2708,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolverManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@ # am--include-marker
@@ -2727,6 +2749,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolverManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -6336,9 +6364,11 @@ distclean: distclean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po
@@ -6376,6 +6406,12 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolverManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredPressureBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredVelocityBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po
@@ -6411,6 +6447,12 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolverManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredPressureBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredVelocityBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
@@ -6601,9 +6643,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po
@@ -6641,6 +6685,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolverManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesBcCoefStrategy.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredPressureBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCINSStaggeredVelocityBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po
@@ -6676,6 +6726,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolverManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesBcCoefStrategy.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredHierarchyIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredPressureBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCINSStaggeredVelocityBcCoef.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
