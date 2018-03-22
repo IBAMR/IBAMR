@@ -1069,8 +1069,8 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     if (d_mu_var)
     {
 #if !defined(NDEBUG)
-        // VCINSStaggeredHierarchyIntegrator should initialize the density variable.
-        TBOX_ASSERT(d_rho_init_fcn);
+        // VCINSStaggeredHierarchyIntegrator should initialize the viscosity variable.
+        TBOX_ASSERT(d_mu_init_fcn);
 #endif
         registerVariable(d_mu_current_idx,
                          d_mu_new_idx,
