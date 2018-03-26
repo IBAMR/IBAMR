@@ -157,7 +157,8 @@ namespace
 static Timer* t_reinit_element_mappings;
 static Timer* t_build_ghosted_solution_vector;
 static Timer* t_spread;
-static Timer* t_prolong_data;
+static Timer* t_prolong_data_side;
+static Timer* t_prolong_data_cell;
 static Timer* t_interp;
 static Timer* t_interp_weighted;
 static Timer* t_restrict_data;
@@ -741,7 +742,38 @@ FEDataManager::prolongData(const int f_data_idx,
                            const bool is_density,
                            const bool accumulate_on_grid)
 {
-    IBTK_TIMER_START(t_prolong_data);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering. Either side or cell centered.
+    Pointer<hier::Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+
+    // call the correct helper function
+    if (cc_data)
+    {
+        FEDataManager::prolongData_cell(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid);
+    }
+    if (sc_data)
+    {
+        FEDataManager::prolongData_side(f_data_idx, F_vec, X_vec, system_name, is_density, accumulate_on_grid);
+    }
+
+} // prolongData
+
+void
+FEDataManager::prolongData_side(const int f_data_idx,
+                                NumericVector<double>& F_vec,
+                                NumericVector<double>& X_vec,
+                                const std::string& system_name,
+                                const bool is_density,
+                                const bool accumulate_on_grid)
+{
+    IBTK_TIMER_START(t_prolong_data_side);
 
     // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
@@ -949,9 +981,207 @@ FEDataManager::prolongData(const int f_data_idx,
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
-    IBTK_TIMER_STOP(t_prolong_data);
+    IBTK_TIMER_STOP(t_prolong_data_side);
     return;
-} // prolongData
+} // prolongData_side
+
+void
+FEDataManager::prolongData_cell(const int f_data_idx,
+                                NumericVector<double>& F_vec,
+                                NumericVector<double>& X_vec,
+                                const std::string& system_name,
+                                const bool is_density,
+                                const bool accumulate_on_grid)
+{
+    IBTK_TIMER_START(t_prolong_data_cell);
+
+    std::cout << "prolonging cell-centered data from system " << system_name << std::endl;
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
+
+    // Extract the FE systems and DOF maps, and setup the FE object.
+    System& F_system = d_es->get_system(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+    TBOX_ASSERT(n_vars == 1); // specialized to cell-centered scalar valued data
+    const DofMap& F_dof_map = F_system.get_dof_map();
+    SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
+    System& X_system = d_es->get_system(system_name);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    FEType F_fe_type = F_dof_map.variable_type(0);
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_fe_type);
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < n_vars; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
+    AutoPtr<FEBase> F_fe_autoptr(FEBase::build(dim, F_fe_type)), X_fe_autoptr(NULL);
+    if (F_fe_type != X_fe_type)
+    {
+        X_fe_autoptr = AutoPtr<FEBase>(FEBase::build(dim, X_fe_type));
+    }
+    FEBase* F_fe = F_fe_autoptr.get();
+    FEBase* X_fe = X_fe_autoptr.get() ? X_fe_autoptr.get() : F_fe_autoptr.get();
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+
+    // Communicate any unsynchronized ghost data and extract the underlying
+    // solution data.
+    /*if (!F_vec.closed())*/ F_vec.close();
+    PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
+    Vec F_global_vec = F_petsc_vec->vec();
+    Vec F_local_vec;
+    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    double* F_local_soln;
+    VecGetArray(F_local_vec, &F_local_soln);
+
+    /*if (!X_vec.closed())*/ X_vec.close();
+    PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
+    // Loop over the patches to interpolate nodal values on the FE mesh to the
+    // points of the Eulerian grid.
+    TensorValue<double> dX_ds;
+    boost::multi_array<double, 2> F_node, X_node;
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
+    Point X_min, X_max;
+    std::vector<libMesh::Point> intersection_ref_coords;
+    std::vector<CellIndex<NDIM> > intersection_indices;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+        const size_t num_active_patch_elems = patch_elems.size();
+        if (!num_active_patch_elems) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<CellData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        if (!accumulate_on_grid) f_data->fillAll(0.0);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+        const double* const patch_dx = patch_geom->getDx();
+
+        CellData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(0));
+        num_intersections.fillAll(0);
+
+        // Loop over the elements and compute the values to be prolonged.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems[e_idx];
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+            s_node_cache.resize(n_node);
+            X_node_cache.resize(n_node);
+            X_min = Point::Constant(std::numeric_limits<double>::max());
+            X_max = Point::Constant(-std::numeric_limits<double>::max());
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                libMesh::Point& X = X_node_cache[k];
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X(d) = X_vec(X_dof_indices[d][k]);
+                    X_min[d] = std::min(X_min[d], X(d));
+                    X_max[d] = std::max(X_max[d], X(d));
+                }
+                elem->point(k) = X;
+            }
+            Box<NDIM> box(IndexUtilities::getCellIndex(&X_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&X_max[0], grid_geom, ratio));
+            box.grow(IntVector<NDIM>(1));
+            box = box * patch_box;
+
+            // Loop over coordinate directions and look for Eulerian grid points
+            // that are covered by the element.
+            intersection_ref_coords.clear();
+            intersection_indices.clear();
+
+            // Loop over the relevant range of indices.
+            for (CellIterator<NDIM> b(box); b; b++)
+            {
+                const CellIndex<NDIM>& i_c = b();
+                if (num_intersections(i_c) == 0 && patch_box.contains(i_c))
+                {
+                    libMesh::Point p;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        p(d) = patch_x_lower[d] + patch_dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5);
+                    }
+                    static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                    const libMesh::Point ref_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
+                    if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+                    {
+                        intersection_ref_coords.push_back(ref_coords);
+                        intersection_indices.push_back(i_c);
+                        num_intersections(i_c) += 1;
+                    }
+                }
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // If there are no intersection points, then continue on to the next
+            // element.
+            if (intersection_ref_coords.empty()) continue;
+
+            // Evaluate the Lagrangian quantity at the Eulerian grid point and
+            // update the data on the grid.
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map_cache.dof_indices(elem, F_dof_indices[i], i);
+            }
+            get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
+            if (is_density) get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+            F_fe->reinit(elem, &intersection_ref_coords);
+            if (X_fe != F_fe) X_fe->reinit(elem, &intersection_ref_coords);
+            for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
+            {
+                const CellIndex<NDIM>& i_c = intersection_indices[qp];
+                typedef boost::multi_array_types::index_range range;
+                double F_qp = interpolate(qp, F_node[boost::indices[range(0, F_dof_indices[0].size())][0]], phi_F);
+                if (is_density)
+                {
+                    jacobian(dX_ds, qp, X_node, dphi_X);
+                    F_qp /= std::abs(dX_ds.det());
+                }
+                (*f_data)(i_c) += F_qp / static_cast<double>(num_intersections(i_c));
+            }
+        }
+    }
+
+    VecRestoreArray(F_local_vec, &F_local_soln);
+    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
+    IBTK_TIMER_STOP(t_prolong_data_cell);
+    return;
+} // prolongData_cell
 
 void
 FEDataManager::interpWeighted(const int f_data_idx,
@@ -2104,7 +2334,8 @@ FEDataManager::FEDataManager(const std::string& object_name,
         t_build_ghosted_solution_vector =
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
         t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
-        t_prolong_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData()");
+        t_prolong_data_side = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData_side()");
+        t_prolong_data_cell = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData_cell()");
         t_interp_weighted = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interpWeighted()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
         t_restrict_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictData()");

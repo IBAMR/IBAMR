@@ -114,6 +114,11 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
+    // information for representing (interpolating) the stress normalization
+    // variable phi on the cell-centered Cartesian grid
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > phi_var;
+    int phi_current_idx, phi_new_idx, phi_scratch_idx;
+
     /*!
      * \brief Constructor.
      */
@@ -375,6 +380,11 @@ public:
         double data_time);
 
     /*!
+     * Evolve the Stress normalization function phi if it solves the heat equation.
+     */
+    void evolveStressNormalization(double current_time, double new_time);
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -560,6 +570,12 @@ public:
 
 protected:
     /*
+     * \brief Function to initialize the stress normalization field Phi
+     * when it satisfies the heat equation.
+     */
+    void init_cg_heat(libMesh::PetscVector<double>& X_vec, unsigned int part);
+
+    /*
      * \brief Compute the stress normalization field Phi.
      */
     void computeStressNormalization(libMesh::PetscVector<double>& Phi_vec,
@@ -583,6 +599,7 @@ protected:
      * of the Lagrangian structure.
      */
     void spreadTransmissionForceDensity(int f_data_idx,
+                                        libMesh::PetscVector<double>* Phi_vec,
                                         libMesh::PetscVector<double>& X_ghost_vec,
                                         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                                         double data_time,
@@ -667,6 +684,16 @@ protected:
      * Data related to handling stress normalization.
      */
     double d_epsilon;
+    double ipdg_jump0_penalty;
+    double ipdg_jump1_penalty;
+    double ipdg_beta0;
+    double ipdg_beta1;
+    libMesh::Order Phi_fe_order;
+    double cg_penalty;
+    double Phi_dt;
+    double Phi_diffusion;
+    std::string Phi_solver;
+    bool scale_Phi_by_J;
     bool d_has_stress_normalization_parts;
     std::vector<bool> d_stress_normalization_part;
 

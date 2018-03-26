@@ -45,6 +45,8 @@ OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
+ELIMINATE_PRESSURE_JUMPS   = TRUE
+
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -101,6 +103,9 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
+   poisson_solver             = "CG"
+   ipdg_poisson_penalty       = 2.0
+   cg_poisson_penalty         = 1.0e10
 }
 
 INSCollocatedHierarchyIntegrator {
