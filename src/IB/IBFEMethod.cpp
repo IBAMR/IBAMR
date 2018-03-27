@@ -882,12 +882,12 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
                 {
                     Q_rhs_e(k) += Q * phi[k][qp] * JxW[qp];
                 }
-
-                // Apply constraints (e.g., enforce periodic boundary conditions)
-                // and add the elemental contributions to the global vector.
-                Q_dof_map.constrain_element_vector(Q_rhs_e, Q_dof_indices);
-                Q_rhs_vec->add_vector(Q_rhs_e, Q_dof_indices);
             }
+
+            // Apply constraints (e.g., enforce periodic boundary conditions)
+            // and add the elemental contributions to the global vector.
+            Q_dof_map.constrain_element_vector(Q_rhs_e, Q_dof_indices);
+            Q_rhs_vec->add_vector(Q_rhs_e, Q_dof_indices);
         }
 
         // Solve for Q.
