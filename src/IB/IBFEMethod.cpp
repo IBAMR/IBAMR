@@ -400,6 +400,14 @@ IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnD
 } // registerInitialCoordinateMappingFunction
 
 void
+IBFEMethod::registerInitialVelocityFunction(const InitialVelocityFcnData& data, const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_initial_velocity_fcn_data[part] = data;
+    return;
+} // registerInitialVelocityFunction
+
+void
 IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
@@ -1040,6 +1048,7 @@ IBFEMethod::initializeFEData()
         {
             equation_systems->init();
             initializeCoordinates(part);
+            initializeVelocity(part);
         }
         updateCoordinateMapping(part);
 
@@ -2605,6 +2614,7 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     }
     X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+    X_coords.localize(*X_system.current_local_solution);
     return;
 } // initializeCoordinates
 
@@ -2636,8 +2646,46 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
         }
     }
     dX_coords.close();
+    dX_coords.localize(*dX_system.current_local_solution);
     return;
 } // updateCoordinateMapping
+
+void
+IBFEMethod::initializeVelocity(const unsigned int part)
+{
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+    MeshBase& mesh = equation_systems->get_mesh();
+    System& U_system = equation_systems->get_system(VELOCITY_SYSTEM_NAME);
+    const unsigned int U_sys_num = U_system.number();
+    NumericVector<double>& U_vec = *U_system.solution;
+    VectorValue<double> U;
+    if (!d_coordinate_mapping_fcn_data[part].fcn)
+    {
+        U.zero();
+    }
+    else
+    {
+        for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+        {
+            Node* n = *it;
+            if (n->n_vars(U_sys_num))
+            {
+                TBOX_ASSERT(n->n_vars(U_sys_num) == NDIM);
+                const libMesh::Point& X = *n;
+                d_initial_velocity_fcn_data[part].fcn(U, X, d_coordinate_mapping_fcn_data[part].ctx);
+            }
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const int dof_index = n->dof_number(U_sys_num, d, 0);
+                U_vec.set(dof_index, U(d));
+            }
+        }
+    }
+    U_vec.close();
+    U_system.get_dof_map().enforce_constraints_exactly(U_system, &U_vec);
+    U_vec.localize(*U_system.current_local_solution);
+    return;
+} // initializeVelocity
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2693,6 +2741,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
+    d_initial_velocity_fcn_data.resize(d_num_parts);
     d_PK1_stress_fcn_data.resize(d_num_parts);
     d_lag_body_force_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
