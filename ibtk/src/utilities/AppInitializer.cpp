@@ -121,6 +121,13 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     d_input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
+    // Set custom PETSc options file when one is specified.
+    if (d_input_db->keyExists("petsc_options_file"))
+    {
+        std::string petsc_options_file = d_input_db->getString("petsc_options_file");
+        PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+    }
+
     // Process "Main" section of the input database.
     Pointer<Database> main_db = new NullDatabase();
     if (d_input_db->isDatabase("Main"))
