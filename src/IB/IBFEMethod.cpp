@@ -2234,8 +2234,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
                 // Here we build up the boundary value for Phi.
                 double Phi = 0.0;
-                // for (unsigned int k = 0; k < num_PK1_fcns; ++k)
-                for (unsigned int k = 0; k < 1; ++k)
+                for (unsigned int k = 0; k < num_PK1_fcns; ++k)
                 {
                     if (d_PK1_stress_fcn_data[part][k].fcn)
                     {
