@@ -272,13 +272,14 @@ IBStrategySet::computeLagrangianFluidSource(double data_time)
 
 void
 IBStrategySet::spreadFluidSource(int q_data_idx,
+                                 RobinPhysBdryPatchStrategy* q_phys_bdry_op,
                                  const std::vector<Pointer<RefineSchedule<NDIM> > >& q_prolongation_scheds,
                                  double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->spreadFluidSource(q_data_idx, q_prolongation_scheds, data_time);
+        (*cit)->spreadFluidSource(q_data_idx, q_phys_bdry_op, q_prolongation_scheds, data_time);
     }
     return;
 } // spreadFluidSource

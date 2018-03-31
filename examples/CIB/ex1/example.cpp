@@ -50,9 +50,11 @@
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/DirectMobilitySolver.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBHydrodynamicForceEvaluator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -65,7 +67,7 @@
 
 // Center of mass velocity
 void
-ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
+ConstrainedCOMOuterVel(double /*data_time*/, IBTK::Vector3d& U_com, IBTK::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -78,7 +80,7 @@ ConstrainedCOMOuterVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
 
 // Center of mass velocity
 void
-ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
+ConstrainedCOMInnerVel(double /*data_time*/, IBTK::Vector3d& U_com, IBTK::Vector3d& W_com, void* /*ctx*/)
 {
     U_com.setZero();
     W_com.setZero();
@@ -86,7 +88,7 @@ ConstrainedCOMInnerVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vect
 } // ConstrainedCOMInnerVel
 
 void
-ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vector3d& /*X_com*/, void* /*ctx*/)
+ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const IBTK::Vector3d& /*X_com*/, void* /*ctx*/)
 {
     // intentionally left blank.
     return;
@@ -94,7 +96,7 @@ ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vecto
 
 // These forces on the structure are computed when the "above" velocities are prescribed on them.
 void
-NetExternalForceTorqueOuter(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
+NetExternalForceTorqueOuter(double /*data_time*/, IBTK::Vector3d& F_ext, IBTK::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << 100.916, 1351.74, 0.000916801;
     T_ext << -2.23858e-09, 58206.1, -1.12567e-09;
@@ -103,7 +105,7 @@ NetExternalForceTorqueOuter(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen:
 } // NetExternalForceTorqueOuter
 
 void
-NetExternalForceTorqueInner(double /*data_time*/, Eigen::Vector3d& F_ext, Eigen::Vector3d& T_ext, void* /*ctx*/)
+NetExternalForceTorqueInner(double /*data_time*/, IBTK::Vector3d& F_ext, IBTK::Vector3d& T_ext, void* /*ctx*/)
 {
     F_ext << -116.762, -201.82, -0.00128781;
     T_ext << 1.46423e-09, -1393.33, 9.03505e-10;
@@ -326,12 +328,60 @@ run_example(int argc, char* argv[])
         }
         navier_stokes_integrator->setStokesSolverNeedsInit();
 
+        // Set up the hydro force objects
+        double rho_fluid = input_db->getDouble("RHO");
+        double mu_fluid = input_db->getDouble("MU");
+        Pointer<IBHydrodynamicForceEvaluator> hydro_force =
+            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, true);
+
+        // Get the initial box position and velocity from input
+        const string init_hydro_force_box_out_db_name = "InitHydroForceBox_0";
+        IBTK::Vector3d box_X_lower_out, box_X_upper_out, box_init_vel_out;
+	
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("lower_left_corner",&box_X_lower_out[0], 3);
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("upper_right_corner",&box_X_upper_out[0], 3);
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("init_velocity",&box_init_vel_out[0], 3);
+
+        const string init_hydro_force_box_in_db_name = "InitHydroForceBox_1";
+        IBTK::Vector3d box_X_lower_in, box_X_upper_in, box_init_vel_in;
+	
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("lower_left_corner",&box_X_lower_in[0], 3);
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("upper_right_corner",&box_X_upper_in[0], 3);
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("init_velocity",&box_init_vel_in[0], 3);
+	
+	// Register the control volumes
+        hydro_force->registerStructure(box_X_lower_out, box_X_upper_out, patch_hierarchy, box_init_vel_out, 0);
+        hydro_force->registerStructure(box_X_lower_in, box_X_upper_in, patch_hierarchy, box_init_vel_in, 1);
+
+        // Set up optional visualization of select boxes
+        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 0);
+        hydro_force->registerStructurePlotData(visit_data_writer, patch_hierarchy, 1);
+
+        // Set the origin of the torque evaluation
+        IBTK::Vector3d torque_origin_out, torque_origin_in;
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("torque_origin",&torque_origin_out[0], 3);
+	input_db->getDatabase(init_hydro_force_box_out_db_name)->getDoubleArray("torque_origin",&torque_origin_in[0], 3);
+
+        hydro_force->setTorqueOrigin(torque_origin_out, 0);
+        hydro_force->setTorqueOrigin(torque_origin_in, 1);
+
         // Deallocate initialization objects.
         app_initializer.setNull();
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
+
+        // Get velocity and pressure variables from integrator
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+
+        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -355,12 +405,14 @@ run_example(int argc, char* argv[])
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
+        double current_time, new_time;
         double dt = 0.0;
 
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time;
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -368,6 +420,8 @@ run_example(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+            loop_time += dt;
+            new_time = loop_time;
 
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
 
@@ -378,8 +432,16 @@ run_example(int argc, char* argv[])
                 navier_stokes_integrator->setStokesSolverNeedsInit();
             }
 
+            // Update the location of the box for time n + 1
+            hydro_force->updateStructureDomain(IBTK::Vector3d::Zero(), dt, patch_hierarchy, 0);
+            hydro_force->updateStructureDomain(IBTK::Vector3d::Zero(), dt, patch_hierarchy, 1);
+
+            // Compute the momentum of u^n in box n+1 on the newest hierarchy
+            hydro_force->computeLaggedMomentumIntegral(
+                u_idx, patch_hierarchy, navier_stokes_integrator->getVelocityBoundaryConditions());
+
+            // Advance the hierarchy
             time_integrator->advanceHierarchy(dt);
-            loop_time += dt;
 
             pout << "\n\nNet rigid force and torque on structure 0 is : \n"
                  << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n";
@@ -397,6 +459,31 @@ run_example(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            // Set the linear and angular momentum of the spheres (zero in Stokes flow)
+            IBTK::Vector3d Sphere_mom;
+            IBTK::Vector3d Sphere_ang_mom;
+            Sphere_mom.setZero();
+            Sphere_ang_mom.setZero();
+
+            // Store the new momenta of the sphere
+            hydro_force->updateStructureMomentum(Sphere_mom, Sphere_ang_mom, 0);
+            hydro_force->updateStructureMomentum(Sphere_mom, Sphere_ang_mom, 1);
+
+            // Evaluate hydrodynamic force on the sphere.
+            hydro_force->computeHydrodynamicForce(u_idx,
+                                                  p_idx,
+                                                  /*f_idx*/ -1,
+                                                  patch_hierarchy,
+                                                  dt,
+                                                  navier_stokes_integrator->getVelocityBoundaryConditions(),
+                                                  navier_stokes_integrator->getPressureBoundaryConditions());
+            // Post processing call for writing data
+            hydro_force->postprocessIntegrateData(current_time, new_time);
+
+            // Update optional visualization of select boxes
+            hydro_force->updateStructurePlotData(patch_hierarchy, 0);
+            hydro_force->updateStructurePlotData(patch_hierarchy, 1);
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post

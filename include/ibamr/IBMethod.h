@@ -316,27 +316,22 @@ public:
     /*!
      * Compute the Lagrangian source/sink density at the specified time within
      * the current time interval.
-     *
-     * An empty default implementation is provided.
      */
     void computeLagrangianFluidSource(double data_time);
 
     /*!
      * Spread the Lagrangian source/sink density to the Cartesian grid at the
      * specified time within the current time interval.
-     *
-     * An empty default implementation is provided.
      */
     void spreadFluidSource(
         int q_data_idx,
+        IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
         double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
      * sources or sinks.
-     *
-     * An empty default implementation is provided.
      */
     void interpolatePressure(
         int p_data_idx,

@@ -286,7 +286,10 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source "
                                      "strength to the Eulerian grid\n";
         d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
-        d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name + "::q"), half_time);
+        // NOTE: This does not correctly treat the case in which the structure
+        // is close to the physical boundary.
+        d_ib_method_ops->spreadFluidSource(
+            d_q_idx, NULL, getProlongRefineSchedules(d_object_name + "::q"), half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.

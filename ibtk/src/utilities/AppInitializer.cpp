@@ -121,6 +121,13 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     d_input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
+    // Set custom PETSc options file when one is specified.
+    if (d_input_db->keyExists("petsc_options_file"))
+    {
+        std::string petsc_options_file = d_input_db->getString("petsc_options_file");
+        PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+    }
+
     // Process "Main" section of the input database.
     Pointer<Database> main_db = new NullDatabase();
     if (d_input_db->isDatabase("Main"))
@@ -253,14 +260,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         {
             if (main_db->keyExists("gmv_filename")) d_gmv_filename = main_db->getString("gmv_filename");
         }
-    }
-
-    if (d_viz_writers.size() == 1 && d_viz_writers[0] == "VisIt")
-    {
-        IBTK_DEPRECATED_FUNCTIONALITY("Automatically using both VisIt and Silo data writers.\n"
-                                      << "In the future, it will be necessary to include \"Silo\" in the list of data "
-                                         "writer in order to output Silo data.\n");
-        d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
     }
 
     // Configure restart options.

@@ -501,7 +501,7 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
 
     // Initialize the fine level solvers when needed.
     d_level_solvers.resize(d_finest_ln + 1);
-    for (int ln = std::max(1, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    for (int ln = std::max(0, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
