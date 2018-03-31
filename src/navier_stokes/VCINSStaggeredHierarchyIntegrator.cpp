@@ -530,20 +530,42 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     }
 
     // Get the interpolation type for the material properties
-    d_vc_interp_type = VC_HARMONIC_INTERP;
+    d_rho_vc_interp_type = VC_HARMONIC_INTERP;
+    d_mu_vc_interp_type = VC_HARMONIC_INTERP;
     if (input_db->keyExists("vc_interpolation_type"))
     {
-        d_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("vc_interpolation_type"));
+        d_rho_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("vc_interpolation_type"));
+        d_mu_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("vc_interpolation_type"));
     }
-    switch (d_vc_interp_type)
+    if (input_db->keyExists("rho_vc_interpolation_type"))
+    {
+        d_rho_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("rho_vc_interpolation_type"));
+    }
+    if (input_db->keyExists("mu_vc_interpolation_type"))
+    {
+        d_mu_vc_interp_type = IBTK::string_to_enum<VCInterpType>(input_db->getString("mu_vc_interpolation_type"));
+    }
+    switch (d_rho_vc_interp_type)
     {
     case VC_HARMONIC_INTERP:
     case VC_AVERAGE_INTERP:
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
-                                 << "  unsupported variable coefficient interpolation type: "
-                                 << IBTK::enum_to_string<VCInterpType>(d_vc_interp_type)
+                                 << "  unsupported density interpolation type: "
+                                 << IBTK::enum_to_string<VCInterpType>(d_rho_vc_interp_type)
+                                 << " \n"
+                                 << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
+    }
+    switch (d_mu_vc_interp_type)
+    {
+    case VC_HARMONIC_INTERP:
+    case VC_AVERAGE_INTERP:
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << "  unsupported viscosity interpolation type: "
+                                 << IBTK::enum_to_string<VCInterpType>(d_mu_vc_interp_type)
                                  << " \n"
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
@@ -1266,7 +1288,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             {
                 p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
                 Pointer<VCStaggeredStokesOperator> p_vc_stokes_op = p_stokes_krylov_solver->getOperator();
-                if (p_vc_stokes_op) p_vc_stokes_op->setDPatchDataInterpolationType(d_vc_interp_type);
+                if (p_vc_stokes_op) p_vc_stokes_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
             }
         }
         if (p_stokes_block_pc)
@@ -1290,15 +1312,15 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
             p_poisson_fac_pc->getFACPreconditionerStrategy();
-        if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_vc_interp_type);
+        if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
 
         Pointer<VCSCViscousOperator> p_velocity_op = p_velocity_solver->getOperator();
-        if (p_velocity_op) p_velocity_op->setDPatchDataInterpolationType(d_vc_interp_type);
+        if (p_velocity_op) p_velocity_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
 
         if (p_vc_point_fac_op)
         {
             Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_vc_point_fac_op->getCoarseSolver();
-            if (p_poisson_fac_pc) p_vc_level_solver->setViscosityInterpolationType(d_vc_interp_type);
+            if (p_poisson_fac_pc) p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
         }
     }
 
@@ -1409,12 +1431,12 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
         // Interpolate onto node or edge centers
-        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
         {
             d_hier_math_ops->interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
                                     d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
         }
-        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
         {
             d_hier_math_ops->harmonic_interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
                                              d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
@@ -1510,7 +1532,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_U_var,
                                 d_no_fill_op,
                                 current_time,
-                                d_vc_interp_type);
+                                d_mu_vc_interp_type);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -1664,12 +1686,12 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             }
         }
         // Interpolate onto side centers
-        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
         {
             d_hier_math_ops->interp(
                     d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
         }
-        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
         {
             d_hier_math_ops->harmonic_interp(
                     d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
@@ -1703,12 +1725,12 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         d_mu_bdry_bc_fill_op->fillData(new_time);
 
         // Interpolate onto node or edge centers
-        if (d_vc_interp_type == VC_AVERAGE_INTERP)
+        if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
         {
             d_hier_math_ops->interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
                                     d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
         }
-        else if (d_vc_interp_type == VC_HARMONIC_INTERP)
+        else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
         {
             d_hier_math_ops->harmonic_interp(d_mu_interp_idx, d_mu_interp_var, /*dst_ghost_interp*/ true,
                                              d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
@@ -2305,11 +2327,19 @@ VCINSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorRea
     return;
 } // removeNullSpace
 
-void VCINSStaggeredHierarchyIntegrator::setVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+void
+VCINSStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
 {
-    d_vc_interp_type = vc_interp_type;
+    d_rho_vc_interp_type = vc_interp_type;
     return;
-} // setVCInterpolationType
+} // setDensityVCInterpolationType
+
+void
+VCINSStaggeredHierarchyIntegrator::setViscosityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+{
+    d_mu_vc_interp_type = vc_interp_type;
+    return;
+} // setViscosityVCInterpolationType
 
 void
 VCINSStaggeredHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
@@ -3079,7 +3109,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
     P_bc_coef->setTimeInterval(current_time, new_time);
-    P_bc_coef->setViscosityInterpolationType(d_vc_interp_type);
+    P_bc_coef->setViscosityInterpolationType(d_mu_vc_interp_type);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef =

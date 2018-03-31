@@ -254,9 +254,14 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
     /*!
-     * Set the interpolation type used for material properties rho and mu
+     * Set the interpolation type used for material properties rho
      */
-    void setVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
+    void setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
+
+    /*!
+     * Set the interpolation type used for material properties mu
+     */
+    void setViscosityVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
 
     /*!
      * \brief Function to reset fluid density or viscosity if they are
@@ -606,7 +611,7 @@ private:
     /*
      * Variable to indicate the type of interpolation to be done for rho and mu.
      */
-    IBTK::VCInterpType d_vc_interp_type;
+    IBTK::VCInterpType d_rho_vc_interp_type, d_mu_vc_interp_type;
 
     /*
      * Variable to indicate the scaling factor used for A, p and u_rhs.
