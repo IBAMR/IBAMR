@@ -1207,6 +1207,16 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
+
+        if (Phi_solver.compare("CG_HEAT") == 0)
+        {
+            EquationSystems* equation_systems = d_equation_systems[part];
+            d_equation_systems[part]->parameters.set<Real>("dt") = dt;
+            TransientLinearImplicitSystem& Phi_system =
+                equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
+            Phi_system.time = new_time;
+            *Phi_system.old_local_solution = *Phi_system.current_local_solution;
+        }
     }
     return;
 } // eulerStep
