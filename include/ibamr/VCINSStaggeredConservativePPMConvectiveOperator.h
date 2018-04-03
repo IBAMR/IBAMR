@@ -168,6 +168,11 @@ public:
      */
      void setInterpolatedDensityPatchDataIndex(int rho_interp_idx);
 
+     /*
+      * \brief Set the current time step size.
+      */
+     void setTimeStepSize(double dt);
+
      /*!
       * \brief Get the newly constructed side-centered density patch data index.
       *
@@ -217,14 +222,20 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
-    // Whether or not the current density field has been set
+    // Whether or not the current density field has been set.
     bool d_rho_is_set;
+
+    // Whether or not the time step size is set.
+    bool d_dt_is_set;
+
+    // Current time step size.
+    double d_dt;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
-    int d_rho_interp_current_idx, d_rho_interp_scratch_idx ,d_rho_interp_new_idx;
+    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx;
 };
 } // namespace IBAMR
 

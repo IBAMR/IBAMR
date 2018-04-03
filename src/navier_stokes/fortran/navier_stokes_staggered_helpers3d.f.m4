@@ -798,6 +798,51 @@ C       enddo
 c
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes the updated density N = rho^n - dt*div[rho^n * U].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_update_density3d(
+     &     dx,dt,
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     npgc0,npgc1,npgc2,
+     &     p0,p1,p2,
+     &     nRgc0,nRgc1,nRgc2,
+     &     R,
+     &     nNgc0,nNgc1,nNgc2,
+     &     N)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER npgc0,npgc1,npgc2
+      INTEGER nRgc0,nRgc1,nRgc2
+      INTEGER nNgc0,nNgc1,nNgc2
+
+      REAL dx(0:NDIM-1),dt
+
+      REAL p0(FACE3d0VECG(ifirst,ilast,npgc))
+      REAL p1(FACE3d1VECG(ifirst,ilast,npgc))
+      REAL p2(FACE3d2VECG(ifirst,ilast,npgc))
+      REAL R(CELL3dVECG(ifirst,ilast,nRgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL3dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL Px0,Px1,Px2
+c
+      return
+      end
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

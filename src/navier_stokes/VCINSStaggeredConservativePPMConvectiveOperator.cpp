@@ -79,8 +79,8 @@ class RobinBcCoefStrategy;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
+#define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density2d, VC_UPDATE_DENSITY2D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density2d, VC_NAVIER_STOKES_UPWIND_DENSITY2D)
@@ -90,8 +90,8 @@ class RobinBcCoefStrategy;
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
+#define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density3d, VC_UPDATE_DENSITY3D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
 #define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density2d, VC_NAVIER_STOKES_UPWIND_DENSITY2D)
@@ -142,6 +142,45 @@ void CONVECT_DERIVATIVE_FC(const double*,
                            const int&,
 #endif
                            double*);
+void VC_UPDATE_DENSITY_FC(const double*,
+                          const double&,
+#if (NDIM == 2)
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const int&,
+                          const int&,
+#endif
+#if (NDIM == 3)
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+#endif
+                          double*);
 
 void GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
@@ -570,6 +609,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::VCINSStaggeredConservativePPMCo
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_rho_is_set(false),
+      d_dt_is_set(false),
+      d_dt(-1.0),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
       d_rho_interp_var(NULL),
@@ -660,10 +701,18 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
     if (!d_rho_is_set)
     {
         TBOX_ERROR("VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  a side-centered density field must be set via setInterpolatedDensityPatchDataIndex\n"
+                   << "  a side-centered density field must be set via setInterpolatedDensityPatchDataIndex()\n"
                    << "  prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(d_rho_interp_current_idx >= 0);
+
+    if (!d_dt_is_set)
+    {
+        TBOX_ERROR("VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  the current time step size must be set via  setTimeStepSize()\n"
+                   << "  prior to call to applyConvectiveOperator\n");
+    }
+    TBOX_ASSERT(d_dt >= 0.0);
 #endif
 
     // Allocate scratch data.
@@ -720,6 +769,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
             Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
             Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_current_idx);
+            Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_interp_new_idx);
 
             // Define variables that live on the "faces" of control volumes centered about side-centered staggered velocity components
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
@@ -1143,6 +1193,53 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                << "  valid choices are: CONSERVATIVE\n");
                 }
             }
+
+            // Finally, compute an updated side-centered rho quantity rho^{n+1} = rho^n - dt*div(rho_adv*u_adv)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+#if (NDIM == 2)
+                VC_UPDATE_DENSITY_FC(dx,
+                                     d_dt,
+                                     side_boxes[axis].lower(0),
+                                     side_boxes[axis].upper(0),
+                                     side_boxes[axis].lower(1),
+                                     side_boxes[axis].upper(1),
+                                     P_adv_data[axis]->getGhostCellWidth()(0),
+                                     P_adv_data[axis]->getGhostCellWidth()(1),
+                                     P_adv_data[axis]->getPointer(0),
+                                     P_adv_data[axis]->getPointer(1),
+                                     R_data->getGhostCellWidth()(0),
+                                     R_data->getGhostCellWidth()(1),
+                                     R_data->getPointer(axis),
+                                     R_new_data->getGhostCellWidth()(0),
+                                     R_new_data->getGhostCellWidth()(1),
+                                     R_new_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+                VC_UPDATE_DENSITY_FC(dx,
+                                     d_dt,
+                                     side_boxes[axis].lower(0),
+                                     side_boxes[axis].upper(0),
+                                     side_boxes[axis].lower(1),
+                                     side_boxes[axis].upper(1),
+                                     side_boxes[axis].lower(2),
+                                     side_boxes[axis].upper(2),
+                                     P_adv_data[axis]->getGhostCellWidth()(0),
+                                     P_adv_data[axis]->getGhostCellWidth()(1),
+                                     P_adv_data[axis]->getGhostCellWidth()(2),
+                                     P_adv_data[axis]->getPointer(0),
+                                     P_adv_data[axis]->getPointer(1),
+                                     P_adv_data[axis]->getPointer(2),
+                                     R_data->getGhostCellWidth()(0),
+                                     R_data->getGhostCellWidth()(1),
+                                     R_data->getGhostCellWidth()(2),
+                                     R_data->getPointer(axis),
+                                     R_new_data->getGhostCellWidth()(0),
+                                     R_new_data->getGhostCellWidth()(1),
+                                     R_new_data->getGhostCellWidth()(2),
+                                     R_new_data->getPointer(axis));
+#endif
+            }
         }
     }
 
@@ -1231,6 +1328,16 @@ VCINSStaggeredConservativePPMConvectiveOperator::setInterpolatedDensityPatchData
     d_rho_interp_current_idx = rho_interp_idx;
 } // setInterpolatedDensityPatchDataIndex
 
+void
+VCINSStaggeredConservativePPMConvectiveOperator::setTimeStepSize(double dt)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(dt >= 0.0);
+#endif
+    d_dt_is_set = true;
+    d_dt = dt;
+} // setTimeStepSize
+
 int
 VCINSStaggeredConservativePPMConvectiveOperator::getUpdatedInterpolatedDensityPatchDataIndex()
 {
@@ -1238,7 +1345,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::getUpdatedInterpolatedDensityPa
     TBOX_ASSERT(d_rho_interp_new_idx >= 0);
 #endif
     return d_rho_interp_new_idx;
-}
+} // getUpdatedInterpolatedDensityPatchDataIndex
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

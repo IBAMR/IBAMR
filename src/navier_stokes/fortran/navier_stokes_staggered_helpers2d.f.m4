@@ -505,6 +505,67 @@ c
 c
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes the updated density N = rho^n - dt*div[rho^n * U].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_update_density2d(
+     &     dx,dt,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     npgc0,npgc1,
+     &     p0,p1,
+     &     nRgc0,nRgc1,
+     &     R,
+     &     nNgc0,nNgc1,
+     &     N)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+
+      INTEGER npgc0,npgc1
+      INTEGER nRgc0,nRgc1
+      INTEGER nNgc0,nNgc1
+
+      REAL dx(0:NDIM-1),dt
+
+      REAL p0(FACE2d0VECG(ifirst,ilast,npgc))
+      REAL p1(FACE2d1VECG(ifirst,ilast,npgc))
+      REAL R(CELL2dVECG(ifirst,ilast,nRgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL2dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      REAL Px0,Px1
+c
+c     Compute div[q*(U,V)].
+c
+      do ic1 = ifirst1,ilast1
+         do ic0 = ifirst0,ilast0
+            Px0 = (p0(ic0+1,ic1)-p0(ic0,ic1))/dx(0)
+            N(ic0,ic1) = R(ic0,ic1) - dt * Px0
+         enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+         do ic1 = ifirst1,ilast1
+            Px1 = (p1(ic1+1,ic0)-p1(ic1,ic0))/dx(1)
+            N(ic0,ic1) = N(ic0,ic1) - dt * Px1
+         enddo
+      enddo
+c
+      return
+      end
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
