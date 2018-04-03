@@ -1590,6 +1590,7 @@ IBFEMethod::initializeFEData()
                 // steady state heat equation
                 PetscVector<double>* X_initial =
                     dynamic_cast<PetscVector<double>*>(X_system.current_local_solution.get());
+                X_system.solution->close();
                 X_system.solution->localize(*X_initial);
                 Phi_system.assemble_before_solve = false;
                 Phi_system.assemble();
@@ -1869,10 +1870,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
-    // for IPDG penalty parameter
-    UniquePtr<FEBase> libmesh_fe_face(FEBase::build(dim, Phi_fe_type));
-    const unsigned int elem_b_order = static_cast<unsigned int>(libmesh_fe_face->get_order());
-
     // things for building RHS of Phi linear system based on poisson solver.
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
 
@@ -2067,7 +2064,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
             Phi_dof_map.constrain_element_vector(Phi_rhs_e, Phi_dof_indices);
-
             Phi_rhs_vec->add_vector(Phi_rhs_e, Phi_dof_indices);
         }
     }
@@ -2075,9 +2071,9 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     // Solve for Phi.
     Phi_rhs_vec->close();
     Phi_system.solve();
-    Phi_dof_map.enforce_constraints_exactly(Phi_system);
     Phi_system.solution->close();
-    // Phi_system.solution->localize(*Phi_system.current_local_solution);
+    Phi_system.solution->localize(*Phi_system.current_local_solution);
+    Phi_dof_map.enforce_constraints_exactly(Phi_system);
     *Phi_system.old_local_solution = *Phi_system.current_local_solution;
 
     return;
