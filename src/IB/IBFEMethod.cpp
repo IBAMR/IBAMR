@@ -1842,11 +1842,12 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
 
     const Real data_time = 0.0;
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
-    
+
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    TransientLinearImplicitSystem& Phi_system = equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
+    TransientLinearImplicitSystem& Phi_system =
+        equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     std::vector<unsigned int> Phi_dof_indices;
