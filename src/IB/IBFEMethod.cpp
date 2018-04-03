@@ -254,10 +254,6 @@ init_cg_heat_project(EquationSystems& es, const std::string& system_name)
 void
 assemble_cg_heat(EquationSystems& es, const std::string& system_name)
 {
-    std::cout << "------------------------------" << std::endl;
-    std::cout << "in CG HEAT assemble" << std::endl;
-    std::cout << "------------------------------" << std::endl;
-
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -335,18 +331,11 @@ assemble_cg_heat(EquationSystems& es, const std::string& system_name)
 void
 assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 {
-    std::cout << "------------------------------" << std::endl;
-    std::cout << "in IPDG assemble" << std::endl;
-    std::cout << "------------------------------" << std::endl;
-
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const PointLocatorTree& point_locator(mesh);
     point_locator.build(TREE_ELEMENTS, mesh);
-    if (point_locator.initialized())
-    {
-        std::cout << "point locator initialized" << std::endl;
-    }
+
     const unsigned int dim = mesh.mesh_dimension();
     LinearImplicitSystem& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PHI_SYSTEM_NAME);
     const Real jump0_penalty = es.parameters.get<Real>("ipdg_jump0_penalty");
@@ -667,10 +656,6 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 void
 assemble_cg_poisson(EquationSystems& es, const std::string& /*system_name*/)
 {
-    std::cout << "------------------------------" << std::endl;
-    std::cout << "in CG assemble" << std::endl;
-    std::cout << "------------------------------" << std::endl;
-
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -1830,10 +1815,6 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
 void
 IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
 {
-    std::cout << "------------------------------" << std::endl;
-    std::cout << "in INIT CG HEAT" << std::endl;
-    std::cout << "------------------------------" << std::endl;
-
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
@@ -1844,7 +1825,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
 
     // Setup extra data needed to compute stresses/forces.
-
     // Extract the FE systems and DOF maps, and setup the FE objects.
     TransientLinearImplicitSystem& Phi_system =
         equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
@@ -1903,7 +1883,7 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
 
     // Set up boundary conditions for Phi.
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
-    VectorValue<double> F, F_s, F_qp, n, x;
+    VectorValue<double> F_s, n, x;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1971,7 +1951,14 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
                                                            PK1_grad_var_data[k],
                                                            data_time,
                                                            d_PK1_stress_fcn_data[part][k].ctx);
-                        Phi += n * ((PP * FF_trans) * n) / J;
+                        if (scale_Phi_by_J)
+                        {
+                            Phi += n * ((PP * FF_trans) * n) / J;
+                        }
+                        else
+                        {
+                            Phi += n * ((PP * FF_trans) * n);
+                        }
                     }
                 }
 
@@ -1992,7 +1979,14 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
                                                            surface_force_grad_var_data,
                                                            data_time,
                                                            d_lag_surface_force_fcn_data[part].ctx);
-                    Phi -= n * F_s * dA_da;
+                    if (scale_Phi_by_J)
+                    {
+                        Phi -= n * F_s * dA_da;
+                    }
+                    else
+                    {
+                        Phi -= J * n * F_s * dA_da;
+                    }
                 }
 
                 if (d_lag_surface_pressure_fcn_data[part].fcn)
@@ -2016,9 +2010,15 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
                                                               surface_pressure_grad_var_data,
                                                               data_time,
                                                               d_lag_surface_pressure_fcn_data[part].ctx);
-                    Phi += P;
+                    if (scale_Phi_by_J)
+                    {
+                        Phi += P;
+                    }
+                    else
+                    {
+                        Phi += J * P;
+                    }
                 }
-
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -2066,10 +2066,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<unsigned int> Phi_dof_indices;
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
-
-    // for IPDG penalty parameter
-    UniquePtr<FEBase> libmesh_fe_face(FEBase::build(dim, Phi_fe_type));
-    const unsigned int elem_b_order = static_cast<unsigned int>(libmesh_fe_face->get_order());
 
     // things for building RHS of Phi linear system based on poisson solver.
     const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
@@ -2139,7 +2135,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     // Set up boundary conditions for Phi.
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
-    VectorValue<double> F, F_s, F_qp, n, x;
+    VectorValue<double> F_s, n, x;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -2257,8 +2253,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     }
                     else
                     {
-                        // Phi -= J * n * F_s * dA_da;
-                        Phi -= n * F_s * dA_da;
+                        Phi -= J * n * F_s * dA_da;
                     }
                 }
 
@@ -2289,8 +2284,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     }
                     else
                     {
-                        // Phi += J * P;
-                        Phi += P;
+                        Phi += J * P;
                     }
                 }
 
