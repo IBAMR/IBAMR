@@ -105,11 +105,6 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-   Phi_epsilon                = 0.0 // MFAC*DX        
-   Phi_solver                 = "CG"
-   Phi_fe_order               = 2        
-   ipdg_poisson_penalty       = 2.0
-   cg_poisson_penalty         = 1.0e10
 }
 
 INSCollocatedHierarchyIntegrator {
