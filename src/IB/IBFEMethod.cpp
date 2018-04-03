@@ -1177,23 +1177,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IBFEMethod::evolveStressNormalization(const double current_time, const double new_time)
-{
-    TBOX_ASSERT(Phi_solver.compare("CG_HEAT") == 0);
-    const double dt = new_time - current_time;
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        EquationSystems* equation_systems = d_equation_systems[part];
-        d_equation_systems[part]->parameters.set<Real>("dt") = dt;
-        TransientLinearImplicitSystem& Phi_system =
-            equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
-        Phi_system.time = new_time;
-        *Phi_system.old_local_solution = *Phi_system.current_local_solution;
-    }
-    return;
-} // evolveStressNormalization
-
-void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
@@ -1857,35 +1840,28 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
-    Real data_time = 0.0;
+    const Real data_time = 0.0;
+    const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
+    
+    // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    TransientLinearImplicitSystem& Phi_system =
-        equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
-
-    // Setup extra data needed to compute stresses/forces.
+    TransientLinearImplicitSystem& Phi_system = equation_systems->get_system<TransientLinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     std::vector<unsigned int> Phi_dof_indices;
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
-    // things for building RHS of Phi linear system based on poisson solver.
-    const Real cg_penalty = equation_systems->parameters.get<Real>("cg_penalty");
-
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
     FEDataInterpolation fe(dim, d_fe_data_managers[part]);
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
     UniquePtr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
-    fe.attachQuadratureRule(qrule.get());
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
-    fe.evalQuadraturePoints();
     fe.evalQuadraturePointsFace();
-    fe.evalQuadratureWeights();
     fe.evalQuadratureWeightsFace();
     fe.registerSystem(Phi_system, Phi_vars, Phi_vars); // compute phi and dphi for the Phi system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, X_vars, X_vars, &X_vec);
@@ -1908,13 +1884,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();
     const std::vector<std::vector<double> >& phi_face = fe.getPhiFace(Phi_fe_type);
-    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi_face = fe.getDphiFace(Phi_fe_type);
-
-    // things for RHS vector in case we are timestepping for Phi i.e. solving the heat equation.
-    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
-    const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(Phi_fe_type);
-    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi = fe.getDphi(Phi_fe_type);
 
     const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
@@ -1927,11 +1896,11 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
 
     // Setup global and elemental right-hand-side vectors.
     NumericVector<double>* Phi_rhs_vec = Phi_system.rhs;
-    Phi_rhs_vec->close();
     Phi_rhs_vec->zero();
+    Phi_rhs_vec->close();
     DenseVector<double> Phi_rhs_e;
 
-    // Set up boundary conditions for Phi.+
+    // Set up boundary conditions for Phi.
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n, x;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -1940,7 +1909,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     {
         Elem* const elem = *el_it;
         bool reinit_all_data = true;
-
         for (unsigned short int side = 0; side < elem->n_sides(); ++side)
         {
             // Skip non-physical boundaries.
@@ -1962,10 +1930,6 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
             fe.interpolate(elem, side);
             const unsigned int n_qp = qrule_face->n_points();
             const size_t n_basis = phi_face.size();
-
-            // for the IPDG penalty parameter
-            UniquePtr<Elem> elem_side(elem->build_side(side));
-
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 // X:     reference coordinate

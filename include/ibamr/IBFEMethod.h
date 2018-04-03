@@ -380,11 +380,6 @@ public:
         double data_time);
 
     /*!
-     * Evolve the Stress normalization function phi if it solves the heat equation.
-     */
-    void evolveStressNormalization(double current_time, double new_time);
-
-    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
