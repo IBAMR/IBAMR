@@ -101,7 +101,7 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/point_locator_base.h"
-#include "libmesh/point_locator_list.h"
+#include "libmesh/point_locator_tree.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
@@ -341,7 +341,7 @@ assemble_ipdg_poisson(EquationSystems& es, const std::string& system_name)
 
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
-    const PointLocatorList& point_locator(mesh);
+    const PointLocatorTree& point_locator(mesh);
     point_locator.build(TREE_ELEMENTS, mesh);
     if (point_locator.initialized())
     {
