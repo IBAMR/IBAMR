@@ -104,6 +104,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCINSStaggeredConservativePPMConvectiveOperator.h"
 #include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
 #include "ibamr/VCINSStaggeredPressureBcCoef.h"
 #include "ibamr/VCINSStaggeredVelocityBcCoef.h"
@@ -570,6 +571,31 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                                  << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
 
+    // Get the discretization form of the INS momentum equations
+    d_vc_discretization_form = VC_ADVECTIVE;
+    if (input_db->keyExists("vc_discretization_form"))
+    {
+        d_vc_discretization_form = IBAMR::string_to_enum<VCDiscretizationForm>(input_db->getString("vc_discretization_form"));
+    }
+    switch (d_vc_discretization_form)
+    {
+    case VC_ADVECTIVE:
+    case VC_CONSERVATIVE:
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << "  unsupported variable coefficient discretization form: "
+                                 << IBAMR::enum_to_string<VCDiscretizationForm>(d_vc_discretization_form)
+                                 << " \n"
+                                 << "  valid choices are: VC_ADVECTIVE, VC_CONSERVATIVE\n");
+    }
+    if (d_vc_discretization_form == VC_CONSERVATIVE && !(d_convective_difference_form == CONSERVATIVE))
+    {
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << " variable coefficient discretization form VC_CONSERVATIVE\n"
+                                 << " requires CONSERVATIVE convective difference form\n");
+    }
+
     // Get the scaling coefficient
     d_A_scale = 1.0;
     if (input_db->keyExists("condition_no_scaling")) d_A_scale = input_db->getDouble("condition_no_scaling");
@@ -647,6 +673,13 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
         d_convective_op_type = input_db->getString("default_convective_op_type");
     else if (input_db->keyExists("default_convective_operator_type"))
         d_convective_op_type = input_db->getString("default_convective_operator_type");
+
+    if (d_vc_discretization_form == VC_CONSERVATIVE && d_convective_op_type != "VC_CONSERVATIVE_PPM")
+    {
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << " variable coefficient discretization form VC_CONSERVATIVE\n"
+                                 << " presently requires VC_CONSERVATIVE_PPM convective operator\n");
+    }
 
     // Setup Stokes solver options.
     if (input_db->keyExists("stokes_solver_type"))
@@ -1373,6 +1406,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
@@ -1411,6 +1445,58 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
+
+    // Get the current value of density, which is required only for conservative discretization
+    if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        int rho_current_idx;
+        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
+        {
+            rho_current_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidDensityVariable(),
+                                                                   d_adv_diff_hier_integrator->getCurrentContext());
+        }
+        else
+        {
+            rho_current_idx = d_rho_current_idx;
+        }
+        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_current_idx, /*interior_only*/ true);
+        d_rho_bdry_bc_fill_op->fillData(current_time);
+
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+            level->allocatePatchData(d_temp_cc_idx, current_time);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double> > temp_data = patch->getPatchData(d_temp_cc_idx);
+                Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                for (int d = 0; d < NDIM; ++d) temp_data->copyDepth(d, (*rho_data), 0);
+            }
+        }
+        // Interpolate onto side centers
+        if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
+        {
+            d_hier_math_ops->interp(
+                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+        }
+        else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
+        {
+            d_hier_math_ops->harmonic_interp(
+                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached");
+        }
+        // Deallocate temporary patch data
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+            level->deallocatePatchData(d_temp_cc_idx);
+        }
+    }
 
     // Get the current value of viscosity
     if (!d_mu_is_const)
@@ -1482,7 +1568,6 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         TBOX_ERROR("this statement should not be reached");
     }
 
-    // The rho/dt * u^n term will be taken care of later since it must be multiplied by the newest value of rho
     PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
     U_rhs_problem_coefs.setCConstant(-K_rhs * lambda);
 
@@ -1533,6 +1618,15 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_no_fill_op,
                                 current_time,
                                 d_mu_vc_interp_type);
+    // Add the momentum portion of the RHS in the case of conservative discretization form
+    // RHS^n = RHS^n + 1/dt*(rho*U)^n
+    if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
+    {
+        d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_interp_idx, d_U_scratch_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0/dt, d_temp_sc_idx);
+        d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx);
+    }
+
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -1600,6 +1694,26 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
+        if (d_vc_discretization_form == VC_CONSERVATIVE && !d_rho_is_const);
+        {
+            // For conservative momentum discretization, an approximation to rho^{n+1} will be computed from rho^{n}, which
+            // requires additional options to be set.
+            VCINSStaggeredConservativePPMConvectiveOperator* p_vc_ppm_convective_op =
+                dynamic_cast<VCINSStaggeredConservativePPMConvectiveOperator*>(d_convective_op.getPointer());
+            if (p_vc_ppm_convective_op)
+            {
+                p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_idx);
+                p_vc_ppm_convective_op->setTimeStepSize(dt);
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                         << " variable coefficient discretization form VC_CONSERVATIVE\n"
+                                         << " presently requires VC_CONSERVATIVE_PPM convective operator\n"
+                                         << " this statement should not have been reached");
+            }
+
+        }
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
@@ -1659,53 +1773,77 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Get the newest values of rho and mu if necessary
     if (!d_rho_is_const)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int rho_new_idx;
-        if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
+        if (d_vc_discretization_form == VC_ADVECTIVE)
         {
-            rho_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidDensityVariable(),
-                                                               d_adv_diff_hier_integrator->getNewContext());
-        }
-        else
-        {
-            rho_new_idx = d_rho_new_idx;
-        }
-        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_new_idx, /*interior_only*/ true);
-        d_rho_bdry_bc_fill_op->fillData(new_time);
-
-        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-            level->allocatePatchData(d_temp_cc_idx, new_time);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            int rho_new_idx;
+            if (d_adv_diff_hier_integrator && d_adv_diff_hier_integrator->getFluidDensityVariable())
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > temp_data = patch->getPatchData(d_temp_cc_idx);
-                Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
-                for (int d = 0; d < NDIM; ++d) temp_data->copyDepth(d, (*rho_data), 0);
+                rho_new_idx = var_db->mapVariableAndContextToIndex(d_adv_diff_hier_integrator->getFluidDensityVariable(),
+                                                                   d_adv_diff_hier_integrator->getNewContext());
+            }
+            else
+            {
+                rho_new_idx = d_rho_new_idx;
+            }
+            d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_new_idx, /*interior_only*/ true);
+            d_rho_bdry_bc_fill_op->fillData(new_time);
+
+            for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+                level->allocatePatchData(d_temp_cc_idx, new_time);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double> > temp_data = patch->getPatchData(d_temp_cc_idx);
+                    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                    for (int d = 0; d < NDIM; ++d) temp_data->copyDepth(d, (*rho_data), 0);
+                }
+            }
+            // Interpolate onto side centers
+            if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
+            {
+                d_hier_math_ops->interp(
+                        d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+            }
+            else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
+            {
+                d_hier_math_ops->harmonic_interp(
+                        d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+            }
+            else
+            {
+                TBOX_ERROR("this statement should not be reached");
+            }
+
+            // Deallocate temporary patch data
+            for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+                level->deallocatePatchData(d_temp_cc_idx);
             }
         }
-        // Interpolate onto side centers
-        if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
+        else if (d_vc_discretization_form == VC_CONSERVATIVE)
         {
-            d_hier_math_ops->interp(
-                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
-        }
-        else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
-        {
-            d_hier_math_ops->harmonic_interp(
-                    d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+            // In the special case of a conservative discretization form, the updated density is previously calculated by the convective operator
+            VCINSStaggeredConservativePPMConvectiveOperator* p_vc_ppm_convective_op =
+                dynamic_cast<VCINSStaggeredConservativePPMConvectiveOperator*>(d_convective_op.getPointer());
+            if (p_vc_ppm_convective_op)
+            {
+               d_rho_interp_idx = p_vc_ppm_convective_op->getUpdatedInterpolatedDensityPatchDataIndex();
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                         << " variable coefficient discretization form VC_CONSERVATIVE\n"
+                                         << " presently requires VC_CONSERVATIVE_PPM convective operator\n"
+                                         << " this statement should not have been reached");
+            }
         }
         else
         {
             TBOX_ERROR("this statement should not be reached");
-        }
-
-        // Deallocate temporary patch data
-        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-            level->deallocatePatchData(d_temp_cc_idx);
         }
     }
     if (!d_mu_is_const)
@@ -2041,6 +2179,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         // Update N_idx if necessary
         if (cycle_num > 0)
         {
+            TBOX_ERROR("not sure what to do here yet");
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
             double apply_time = std::numeric_limits<double>::quiet_NaN();
             if (convective_time_stepping_type == MIDPOINT_RULE)
@@ -2101,12 +2240,13 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
             TBOX_ERROR("this statement should not be reached");
         }
 
-        // Scale by newest rho and tack on the convective term to the RHS
+        // Scale by newest rho (in constant rho and VC_ADVECTIVE case) and tack on the convective term to the RHS
+        // Note, do not need to scale for VC_CONSERVATIVE because it is taken care of in the operator
         if (d_rho_is_const)
         {
             d_hier_sc_data_ops->scale(d_N_full_idx, rho, d_N_full_idx, /*interior_only*/ true);
         }
-        else
+        if (!d_rho_is_const && d_vc_discretization_form == VC_ADVECTIVE)
         {
             d_hier_sc_data_ops->multiply(d_N_full_idx, d_rho_interp_idx, d_N_full_idx, /*interior_only*/ true);
         }
@@ -2114,26 +2254,29 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
             rhs_vec->getComponentDescriptorIndex(0), -1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
     }
 
-    // Account for rho*u^n term
-    if (d_rho_is_const)
+    // Account for rho*u^n term for VC_ADVECTIVE case
+    if (d_vc_discretization_form == VC_ADVECTIVE || d_rho_is_const)
     {
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0),
-                                 1.0 * rho / dt,
-                                 d_U_current_idx,
-                                 rhs_vec->getComponentDescriptorIndex(0));
-    }
-    else
-    {
-        d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
-        d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0),
-                                           d_temp_sc_idx,
-                                           d_temp_sc_var,
-                                           d_U_current_idx,
-                                           d_U_var,
-                                           1.0,
-                                           rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0));
+        if (d_rho_is_const)
+        {
+            d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0),
+                                     1.0 * rho / dt,
+                                     d_U_current_idx,
+                                     rhs_vec->getComponentDescriptorIndex(0));
+        }
+        else
+        {
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+            d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                               rhs_vec->getComponentVariable(0),
+                                               d_temp_sc_idx,
+                                               d_temp_sc_var,
+                                               d_U_current_idx,
+                                               d_U_var,
+                                               1.0,
+                                               rhs_vec->getComponentDescriptorIndex(0),
+                                               rhs_vec->getComponentVariable(0));
+        }
     }
 
     // Account for body forcing terms.
@@ -2260,25 +2403,28 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
             rhs_vec->getComponentDescriptorIndex(0), +1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
     }
 
-    if (d_rho_is_const)
+    if (d_vc_discretization_form == VC_ADVECTIVE || d_rho_is_const)
     {
-        d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0),
-                                 -1.0 * rho / dt,
-                                 d_U_current_idx,
-                                 rhs_vec->getComponentDescriptorIndex(0));
-    }
-    else
-    {
-        d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
-        d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0),
-                                           d_temp_sc_idx,
-                                           d_temp_sc_var,
-                                           d_U_current_idx,
-                                           d_U_var,
-                                           1.0,
-                                           rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0));
+        if (d_rho_is_const)
+        {
+            d_hier_sc_data_ops->axpy(rhs_vec->getComponentDescriptorIndex(0),
+                                     -1.0 * rho / dt,
+                                     d_U_current_idx,
+                                     rhs_vec->getComponentDescriptorIndex(0));
+        }
+        else
+        {
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+            d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
+                                               rhs_vec->getComponentVariable(0),
+                                               d_temp_sc_idx,
+                                               d_temp_sc_var,
+                                               d_U_current_idx,
+                                               d_U_var,
+                                               1.0,
+                                               rhs_vec->getComponentDescriptorIndex(0),
+                                               rhs_vec->getComponentVariable(0));
+        }
     }
 
     if (d_F_fcn)

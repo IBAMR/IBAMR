@@ -614,6 +614,11 @@ private:
     IBTK::VCInterpType d_rho_vc_interp_type, d_mu_vc_interp_type;
 
     /*
+     * Variable to indicate the discretization form of the INS momentum equations.
+     */
+    VCDiscretizationForm d_vc_discretization_form;
+
+    /*
      * Variable to indicate the scaling factor used for A, p and u_rhs.
      */
     double d_A_scale;

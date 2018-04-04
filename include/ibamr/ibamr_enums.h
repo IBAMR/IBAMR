@@ -99,6 +99,37 @@ enum_to_string<ConvectiveDifferencingType>(ConvectiveDifferencingType val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for different momentum discretization form for variable-coefficeint solver.
+ */
+enum VCDiscretizationForm
+{
+    VC_ADVECTIVE,
+    VC_CONSERVATIVE,
+    UNKNOWN_MOMENTUM_DIFFERENCING_FORM = -1
+};
+
+template <>
+inline VCDiscretizationForm
+string_to_enum<VCDiscretizationForm>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "VC_ADVECTION") == 0) return VC_ADVECTIVE;
+    if (strcasecmp(val.c_str(), "VC_ADVECTIVE") == 0) return VC_ADVECTIVE;
+    if (strcasecmp(val.c_str(), "VC_CONSERVATION") == 0) return VC_CONSERVATIVE;
+    if (strcasecmp(val.c_str(), "VC_CONSERVATIVE") == 0) return VC_CONSERVATIVE;
+    if (strcasecmp(val.c_str(), "VC_DIVERGENCE") == 0) return VC_CONSERVATIVE;
+    return UNKNOWN_MOMENTUM_DIFFERENCING_FORM;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<VCDiscretizationForm>(VCDiscretizationForm val)
+{
+    if (val == VC_ADVECTIVE) return "VC_ADVECTIVE";
+    if (val == VC_CONSERVATIVE) return "VC_CONSERVATIVE";
+    return "UNKNOWN_MOMENTUM_DIFFERENCING_FORM";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different limiter types
  */
 enum LimiterType

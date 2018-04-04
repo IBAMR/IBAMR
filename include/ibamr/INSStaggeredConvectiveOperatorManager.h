@@ -74,6 +74,7 @@ public:
     static const std::string PPM;
     static const std::string UPWIND;
     static const std::string STABILIZED_PPM;
+    static const std::string VC_CONSERVATIVE_PPM;
 
     /*!
      * Return a pointer to the instance of the operator manager.  Access to
