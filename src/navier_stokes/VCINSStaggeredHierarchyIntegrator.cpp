@@ -1694,7 +1694,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
-        if (d_vc_discretization_form == VC_CONSERVATIVE && !d_rho_is_const);
+        if (d_vc_discretization_form == VC_CONSERVATIVE && !d_rho_is_const)
         {
             // For conservative momentum discretization, an approximation to rho^{n+1} will be computed from rho^{n}, which
             // requires additional options to be set.

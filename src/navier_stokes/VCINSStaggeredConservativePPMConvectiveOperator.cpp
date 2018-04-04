@@ -40,6 +40,8 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "FaceData.h"
+#include "HierarchyDataOpsManager.h"
+#include "HierarchySideDataOpsReal.h"
 #include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -94,7 +96,7 @@ class RobinBcCoefStrategy;
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density3d, VC_UPDATE_DENSITY3D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
-#define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density2d, VC_NAVIER_STOKES_UPWIND_DENSITY2D)
+#define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density3d, VC_NAVIER_STOKES_UPWIND_DENSITY3D)
 #define VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_reset_adv_momentum3d, VC_NAVIER_STOKES_RESET_ADV_MOMENTUM3D)
 #define SKEW_SYM_DERIVATIVE_FC IBAMR_FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
@@ -586,7 +588,8 @@ namespace
 // with xsPPM7 (the modified piecewise parabolic method of Rider, Greenough, and
 // Kamm).
 static const int GADVECTG = 4;
-static const int GRHOINTERPG = 1;
+static const int GRHOINTERPG = 2;
+static const int NOGHOSTS = 0;
 
 // Timers.
 static Timer* t_apply_convective_operator;
@@ -662,7 +665,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::VCINSStaggeredConservativePPMCo
     {
         d_rho_interp_var = new SideVariable<NDIM, double>(rho_interp_name);
         d_rho_interp_scratch_idx = var_db->registerVariableAndContext(d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(GRHOINTERPG));
-        d_rho_interp_new_idx = var_db->registerVariableAndContext(d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"), IntVector<NDIM>(GRHOINTERPG));
+        d_rho_interp_new_idx = var_db->registerVariableAndContext(d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_interp_scratch_idx >= 0);
@@ -689,6 +692,11 @@ VCINSStaggeredConservativePPMConvectiveOperator::~VCINSStaggeredConservativePPMC
 void
 VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
+    // Debugging
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(new SideVariable<NDIM, double>("sc_var"), d_hierarchy, true);
+
+
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
     if (!d_is_initialized)
@@ -724,10 +732,10 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
         if (!level->checkAllocated(d_rho_interp_new_idx)) level->allocatePatchData(d_rho_interp_new_idx);
     }
 
-    // Fill ghost cell values for all components.
+    // Fill ghost cell values for velocity
     static const bool homogeneous_bc = false;
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> transaction_comps(2);
+    std::vector<InterpolationTransactionComponent> transaction_comps(1);
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
                                                              "CONSERVATIVE_LINEAR_REFINE",
@@ -736,20 +744,27 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                                              d_bdry_extrap_type,
                                                              false,
                                                              d_bc_coefs);
-    transaction_comps[1] = InterpolationTransactionComponent(d_rho_interp_scratch_idx,
-                                                             d_rho_interp_current_idx,
-                                                             "CONSERVATIVE_LINEAR_REFINE",
-                                                             false,
-                                                             "CONSERVATIVE_COARSEN",
-                                                             d_bdry_extrap_type,
-                                                             false,
-                                                             NULL);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, NULL, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+
+    // Fill ghost cells for density
+    InterpolationTransactionComponent rho_transaction(d_rho_interp_scratch_idx,
+                                                      d_rho_interp_current_idx,
+                                                      "CONSERVATIVE_LINEAR_REFINE",
+                                                      false,
+                                                      "CONSERVATIVE_COARSEN",
+                                                      d_bdry_extrap_type,
+                                                      false,
+                                                      NULL);
+    Pointer<HierarchyGhostCellInterpolation> hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_rho_bdry_fill->initializeOperatorState(rho_transaction, d_hierarchy);
+    hier_rho_bdry_fill->fillData(d_solution_time);
+
+    // d_hier_sc_data_ops->printData(d_rho_interp_scratch_idx, pout, false);
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -768,7 +783,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
 
             Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_current_idx);
+            Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_scratch_idx);
             Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_interp_new_idx);
 
             // Define variables that live on the "faces" of control volumes centered about side-centered staggered velocity components
@@ -1250,6 +1265,12 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
         if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
         if (level->checkAllocated(d_rho_interp_scratch_idx)) level->deallocatePatchData(d_rho_interp_scratch_idx);
     }
+
+    // Reset select options
+    d_dt = -1.0;
+    d_dt_is_set = false;
+    d_rho_interp_current_idx = -1;
+    d_rho_is_set = false;
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
