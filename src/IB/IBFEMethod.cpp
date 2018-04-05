@@ -1558,7 +1558,7 @@ IBFEMethod::initializeFEData()
                 // steady state heat equation
                 PetscVector<double>* X_initial =
                     dynamic_cast<PetscVector<double>*>(X_system.current_local_solution.get());
-                PetscVector<double>* Phi_initial = 
+                PetscVector<double>* Phi_initial =
                     dynamic_cast<PetscVector<double>*>(Phi_system.current_local_solution.get());
                 X_system.solution->close();
                 X_system.solution->localize(*X_initial);
@@ -1570,12 +1570,10 @@ IBFEMethod::initializeFEData()
                 // now we attach heat equation assemble function
                 Phi_system.attach_assemble_function(assemble_cg_heat);
             }
-           Phi_system.assemble_before_solve = false;
-           Phi_system.assemble();
+            Phi_system.assemble_before_solve = false;
+            Phi_system.assemble();
         }
 
-        
-        
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
@@ -1818,8 +1816,7 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, 
-                         const unsigned int part)
+IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -2047,7 +2044,7 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec,
     Phi_system.solution->localize(*Phi_system.current_local_solution);
     Phi_dof_map.enforce_constraints_exactly(Phi_system);
     *Phi_system.old_local_solution = *Phi_system.current_local_solution;
- 
+
     return;
 }
 
@@ -2062,7 +2059,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const MeshBase& mesh = equation_systems->get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
-    
+
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -2091,7 +2088,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     {
         solver_flag = Phi_solver;
     }
-    
+
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
@@ -2368,8 +2365,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     {
         Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
     }
-    
-    
 
     return;
 }
