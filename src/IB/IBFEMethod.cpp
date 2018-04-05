@@ -1558,19 +1558,24 @@ IBFEMethod::initializeFEData()
                 // steady state heat equation
                 PetscVector<double>* X_initial =
                     dynamic_cast<PetscVector<double>*>(X_system.current_local_solution.get());
+                PetscVector<double>* Phi_initial = 
+                    dynamic_cast<PetscVector<double>*>(Phi_system.current_local_solution.get());
                 X_system.solution->close();
                 X_system.solution->localize(*X_initial);
                 Phi_system.assemble_before_solve = false;
                 Phi_system.assemble();
-                init_cg_heat(*X_initial, part);
+                computeStressNormalization(*Phi_initial, *X_initial, 0.0, part);
+                Phi_system.solution->localize(*Phi_system.current_local_solution);
+                *Phi_system.old_local_solution = *Phi_system.current_local_solution;
                 // now we attach heat equation assemble function
                 Phi_system.attach_assemble_function(assemble_cg_heat);
             }
-
-            Phi_system.assemble_before_solve = false;
-            Phi_system.assemble();
+           Phi_system.assemble_before_solve = false;
+           Phi_system.assemble();
         }
 
+        
+        
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
@@ -1813,7 +1818,8 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
+IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, 
+                         const unsigned int part)
 {
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -2020,6 +2026,7 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
                     }
                 }
                 // Add the boundary forces to the right-hand-side vector.
+                std::cout << "penalty = " << cg_penalty << "\n";
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
                     Phi_rhs_e(i) += cg_penalty * Phi * phi_face[i][qp] * JxW_face[qp];
@@ -2040,7 +2047,7 @@ IBFEMethod::init_cg_heat(PetscVector<double>& X_vec, unsigned int part)
     Phi_system.solution->localize(*Phi_system.current_local_solution);
     Phi_dof_map.enforce_constraints_exactly(Phi_system);
     *Phi_system.old_local_solution = *Phi_system.current_local_solution;
-
+ 
     return;
 }
 
@@ -2055,7 +2062,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const MeshBase& mesh = equation_systems->get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
-
+    
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -2075,6 +2082,16 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const Real diffusion = equation_systems->parameters.get<Real>("Phi_diffusion");
     const Real dt = equation_systems->parameters.get<Real>("dt");
 
+    std::string solver_flag;
+    if (data_time == 0.0)
+    {
+        solver_flag = "CG";
+    }
+    else
+    {
+        solver_flag = Phi_solver;
+    }
+    
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
@@ -2291,11 +2308,11 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    if ((Phi_solver.compare("CG") == 0) || (Phi_solver.compare("CG_HEAT") == 0))
+                    if ((solver_flag.compare("CG") == 0) || (solver_flag.compare("CG_HEAT") == 0))
                     {
                         Phi_rhs_e(i) += cg_penalty * Phi * phi_face[i][qp] * JxW_face[qp];
                     }
-                    else if (Phi_solver.compare("IPDG") == 0)
+                    else if (solver_flag.compare("IPDG") == 0)
                     {
                         Phi_rhs_e(i) += diffusion * JxW_face[qp] * Phi * ipdg_jump0_penalty / h0_elem * phi_face[i][qp];
                         Phi_rhs_e(i) -= diffusion * JxW_face[qp] * dphi_face[i][qp] * (Phi * normal_face[qp]);
@@ -2308,7 +2325,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             }
         }
 
-        if (Phi_solver.compare("CG_HEAT") == 0)
+        if (solver_flag.compare("CG_HEAT") == 0)
         {
             for (unsigned int qp = 0; qp < qrule->n_points(); qp++)
             {
@@ -2331,7 +2348,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             }
         }
 
-        if ((Phi_solver.compare("CG") == 0) || (Phi_solver.compare("CG_HEAT") == 0))
+        if ((solver_flag.compare("CG") == 0) || (solver_flag.compare("CG_HEAT") == 0))
         {
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
@@ -2347,10 +2364,12 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     Phi_system.solution->close();
     Phi_system.solution->localize(Phi_vec);
 
-    if ((Phi_solver.compare("CG") == 0) || (Phi_solver.compare("CG_HEAT") == 0))
+    if ((solver_flag.compare("CG") == 0) || (solver_flag.compare("CG_HEAT") == 0))
     {
         Phi_dof_map.enforce_constraints_exactly(Phi_system, &Phi_vec);
     }
+    
+    
 
     return;
 }
