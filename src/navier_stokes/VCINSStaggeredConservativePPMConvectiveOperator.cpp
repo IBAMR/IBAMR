@@ -614,6 +614,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::VCINSStaggeredConservativePPMCo
       d_rho_is_set(false),
       d_dt_is_set(false),
       d_dt(-1.0),
+      d_rho_interp_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
       d_rho_interp_var(NULL),
@@ -759,12 +760,10 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                                       "CONSERVATIVE_COARSEN",
                                                       d_bdry_extrap_type,
                                                       false,
-                                                      NULL);
+                                                      d_rho_interp_bc_coefs);
     Pointer<HierarchyGhostCellInterpolation> hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_rho_bdry_fill->initializeOperatorState(rho_transaction, d_hierarchy);
     hier_rho_bdry_fill->fillData(d_solution_time);
-
-    // d_hier_sc_data_ops->printData(d_rho_interp_scratch_idx, pout, false);
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1358,6 +1357,16 @@ VCINSStaggeredConservativePPMConvectiveOperator::setTimeStepSize(double dt)
     d_dt_is_set = true;
     d_dt = dt;
 } // setTimeStepSize
+
+void
+VCINSStaggeredConservativePPMConvectiveOperator::setInterpolatedDensityBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(rho_interp_bc_coefs.size() == NDIM);
+#endif
+    d_rho_interp_bc_coefs = rho_interp_bc_coefs;
+    return;
+} // setInterpolatedDensityBoundaryConditions
 
 int
 VCINSStaggeredConservativePPMConvectiveOperator::getUpdatedInterpolatedDensityPatchDataIndex()

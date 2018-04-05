@@ -174,6 +174,11 @@ public:
       */
      void setTimeStepSize(double dt);
 
+     /*
+      * \brief Set the boundary condition object for the interpolated side-centered density.
+      */
+     void setInterpolatedDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs);
+
      /*!
       * \brief Get the newly constructed side-centered density patch data index.
       *
@@ -231,6 +236,9 @@ private:
 
     // Current time step size.
     double d_dt;
+
+    // Boundary condition object for interpolated density field.
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_rho_interp_bc_coefs;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;

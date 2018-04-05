@@ -309,6 +309,11 @@ public:
     void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
 
     /*!
+     * Supply a physical boundary conditions specificaion interpolated density
+     */
+    void registerInterpolatedDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
      * \brief Get whether or not density is constant
      */
     inline bool rhoIsConstant() const
@@ -640,6 +645,8 @@ private:
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef;
+
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_rho_interp_bc_coef;
 };
 } // namespace IBAMR
 

@@ -274,7 +274,7 @@ c
             if (V01(i1,i0) .ge. 0.d0) then
               R01(i1,i0) = R0(i0,i1-1)
             else
-              R01(i1,i0) = R0(i0,i1-1)
+              R01(i1,i0) = R0(i0,i1)
             endif
 
          enddo
@@ -547,7 +547,7 @@ c
       INTEGER ic0,ic1
       REAL Px0,Px1
 c
-c     Compute div[q*(U,V)].
+c     Compute R^n - dt * div[R^{n+1/2} U].
 c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0,ilast0

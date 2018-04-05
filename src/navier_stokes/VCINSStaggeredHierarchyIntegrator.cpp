@@ -1703,6 +1703,9 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
             if (p_vc_ppm_convective_op)
             {
                 p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_idx);
+                std::vector<RobinBcCoefStrategy<NDIM>*> rho_interp_bc_coefs(NDIM);
+                for (unsigned int d = 0; d < NDIM; ++d) rho_interp_bc_coefs[d] = d_rho_bc_coef;
+                p_vc_ppm_convective_op->setInterpolatedDensityBoundaryConditions(rho_interp_bc_coefs);
                 p_vc_ppm_convective_op->setTimeStepSize(dt);
             }
             else
@@ -2241,7 +2244,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         }
 
         // Scale by newest rho (in constant rho and VC_ADVECTIVE case) and tack on the convective term to the RHS
-        // Note, do not need to scale for VC_CONSERVATIVE because it is taken care of in the operator
+        // Note, do not need to scale for VC_CONSERVATIVE because it is taken care of in the convective operator
         if (d_rho_is_const)
         {
             d_hier_sc_data_ops->scale(d_N_full_idx, rho, d_N_full_idx, /*interior_only*/ true);
