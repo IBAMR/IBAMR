@@ -2078,16 +2078,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     const std::string Phi_solver = equation_systems->parameters.get<std::string>("Phi_solver");
     const Real diffusion = equation_systems->parameters.get<Real>("Phi_diffusion");
     const Real dt = equation_systems->parameters.get<Real>("dt");
-
-    std::string solver_flag;
-    if (data_time == 0.0)
-    {
-        solver_flag = "CG";
-    }
-    else
-    {
-        solver_flag = Phi_solver;
-    }
+    const std::string solver_flag = (data_time == 0.0) ? "CG" : Phi_solver;
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
