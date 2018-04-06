@@ -181,6 +181,33 @@ public:
     void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
+     * Typedef specifying interface for initial velocity specification function.
+     */
+    typedef void (*InitialVelocityFcnPtr)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
+
+    /*!
+     * Struct encapsulating initial velocity specification function data.
+     */
+    struct InitialVelocityFcnData
+    {
+        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+        {
+        }
+
+        InitialVelocityFcnPtr fcn;
+        void* ctx;
+    };
+
+    /*!
+     * Register the (optional) function used to initialize the velocity of the
+     * solid mesh.
+     *
+     * \note If no function is provided, the initial velocity is taken to be
+     * zero.
+     */
+    void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
+
+    /*!
      * Typedef specifying interface for PK1 stress tensor function.
      */
     typedef IBTK::TensorMeshFcnPtr PK1StressFcnPtr;
@@ -611,6 +638,13 @@ protected:
      */
     void updateCoordinateMapping(unsigned int part);
 
+    /*!
+     * \brief Initialize the velocity field using the supplied initial velocity
+     * specification function.  If no function is provided, the initial
+     * velocity is taken to be zero.
+     */
+    void initializeVelocity(unsigned int part);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -674,6 +708,11 @@ protected:
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
     std::vector<CoordinateMappingFcnData> d_coordinate_mapping_fcn_data;
+
+    /*
+     * Functions used to compute the initial coordinates of the Lagrangian mesh.
+     */
+    std::vector<InitialVelocityFcnData> d_initial_velocity_fcn_data;
 
     /*
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
