@@ -588,7 +588,7 @@ namespace
 // with xsPPM7 (the modified piecewise parabolic method of Rider, Greenough, and
 // Kamm).
 static const int GADVECTG = 4;
-static const int GRHOINTERPG = 2;
+static const int GRHOINTERPG = 4;
 static const int NOGHOSTS = 0;
 
 // Timers.
@@ -990,6 +990,18 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                 Pointer<SideData<NDIM, double> > U_scratch2_data =
                     new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
+                Pointer<SideData<NDIM, double> > dR_data =
+                    new SideData<NDIM, double>(R_data->getBox(), R_data->getDepth(), R_data->getGhostCellWidth());
+                Pointer<SideData<NDIM, double> > R_L_data =
+                    new SideData<NDIM, double>(R_data->getBox(), R_data->getDepth(), R_data->getGhostCellWidth());
+                Pointer<SideData<NDIM, double> > R_R_data =
+                    new SideData<NDIM, double>(R_data->getBox(), R_data->getDepth(), R_data->getGhostCellWidth());
+                Pointer<SideData<NDIM, double> > R_scratch1_data =
+                    new SideData<NDIM, double>(R_data->getBox(), R_data->getDepth(), R_data->getGhostCellWidth());
+#if (NDIM == 3)
+                Pointer<SideData<NDIM, double> > R_scratch2_data =
+                    new SideData<NDIM, double>(R_data->getBox(), R_data->getDepth(), R_data->getGhostCellWidth());
+#endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
                                        side_boxes[axis].upper(0),
@@ -1010,6 +1022,26 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                        U_adv_data[axis]->getPointer(1),
                                        U_half_data[axis]->getPointer(0),
                                        U_half_data[axis]->getPointer(1));
+
+                GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
+                                       side_boxes[axis].upper(0),
+                                       side_boxes[axis].lower(1),
+                                       side_boxes[axis].upper(1),
+                                       R_data->getGhostCellWidth()(0),
+                                       R_data->getGhostCellWidth()(1),
+                                       R_data->getPointer(axis),
+                                       R_scratch1_data->getPointer(axis),
+                                       dR_data->getPointer(axis),
+                                       R_L_data->getPointer(axis),
+                                       R_R_data->getPointer(axis),
+                                       U_adv_data[axis]->getGhostCellWidth()(0),
+                                       U_adv_data[axis]->getGhostCellWidth()(1),
+                                       R_adv_data[axis]->getGhostCellWidth()(0),
+                                       R_adv_data[axis]->getGhostCellWidth()(1),
+                                       U_adv_data[axis]->getPointer(0),
+                                       U_adv_data[axis]->getPointer(1),
+                                       R_adv_data[axis]->getPointer(0),
+                                       R_adv_data[axis]->getPointer(1));
 #endif
 #if (NDIM == 3)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),

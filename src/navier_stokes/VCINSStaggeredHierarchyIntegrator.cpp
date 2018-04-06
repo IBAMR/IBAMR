@@ -681,6 +681,13 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
                                  << " presently requires VC_CONSERVATIVE_PPM convective operator\n");
     }
 
+    if (d_vc_discretization_form == VC_ADVECTIVE && d_convective_op_type == "VC_CONSERVATIVE_PPM")
+    {
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
+                                 << " variable coefficient discretization form VC_ADVECTIVE\n"
+                                 << " does not support VC_CONSERVATIVE_PPM convective operator\n");
+    }
+
     // Setup Stokes solver options.
     if (input_db->keyExists("stokes_solver_type"))
     {
