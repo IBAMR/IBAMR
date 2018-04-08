@@ -64,6 +64,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
@@ -779,7 +780,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
             const Box<NDIM>& patch_box = patch->getBox();
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
-
+            
             Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
             Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_scratch_idx);
@@ -1239,7 +1240,120 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                << "  valid choices are: CONSERVATIVE\n");
                 }
             }
-
+            
+            // Correct density for inflow conditions.
+            if (patch_geom->getTouchesRegularBoundary())
+            {
+                // Compute the co-dimension one boundary boxes.
+                const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+                
+                // There is nothing to do if the patch does not have any co-dimension one
+                // boundary boxes.
+                if (physical_codim1_boxes.size() == 0) break;
+                
+                // Created shifted patch geometry.
+                const double* const patch_x_lower = patch_geom->getXLower();
+                const double* const patch_x_upper = patch_geom->getXUpper();
+                const IntVector<NDIM>& ratio_to_level_zero = patch_geom->getRatio();
+                Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    touches_regular_bdry[axis].resizeArray(2);
+                    touches_periodic_bdry[axis].resizeArray(2);
+                    for (int upperlower = 0; upperlower < 2; ++upperlower)
+                    {
+                        touches_regular_bdry[axis][upperlower] = patch_geom->getTouchesRegularBoundary(axis, upperlower);
+                        touches_periodic_bdry[axis][upperlower] = patch_geom->getTouchesPeriodicBoundary(axis, upperlower);
+                    }
+                }
+                
+                // Set the mass influx at inflow boundaries.
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+                    {
+                        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                        const unsigned int location_index = bdry_box.getLocationIndex();
+                        const unsigned int bdry_normal_axis = location_index / 2;
+                        const bool is_lower = location_index % 2 == 0;
+                        
+                        static const IntVector<NDIM> gcw_to_fill = 1;
+                        const Box<NDIM> bc_fill_box = patch_geom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+                        const BoundaryBox<NDIM> trimmed_bdry_box(
+                                                                 bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+                        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                        
+                        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        
+                        
+                        if (axis != bdry_normal_axis)
+                        {
+                            // Temporarily reset the patch geometry object associated with the
+                            // patch so that boundary conditions are set at the correct spatial
+                            // locations.
+                            boost::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                shifted_patch_x_lower[d] = patch_x_lower[d];
+                                shifted_patch_x_upper[d] = patch_x_upper[d];
+                            }
+                            shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
+                            shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
+                            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                                     touches_regular_bdry,
+                                                                                     touches_periodic_bdry,
+                                                                                     dx,
+                                                                                     shifted_patch_x_lower.data(),
+                                                                                     shifted_patch_x_upper.data()));
+                        }
+    
+                        d_rho_interp_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,Pointer<Variable<NDIM> >(NULL), *patch, trimmed_bdry_box, d_current_time);
+                        
+                        // Restore the original patch geometry object.
+                        patch->setPatchGeometry(patch_geom);
+                        
+                        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                        {
+                            const Index<NDIM>& i = b();
+                            const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
+                            const double inflow_vel = (*U_half_data[axis])(i_f);
+                            
+                            bool is_inflow_bdry = (is_lower && inflow_vel > 0.0) || (!is_lower && inflow_vel < 0.0);
+                            if (is_inflow_bdry)
+                            {
+                                const double& a = (*acoef_data)(i, 0);
+                                const double& b = (*bcoef_data)(i, 0);
+                                const double& g = (*gcoef_data)(i, 0);
+                                const double& h = dx[bdry_normal_axis];
+                                
+                                Index<NDIM> i_intr(i);
+                                if (is_lower)
+                                {
+                                    // intentionally left blank
+                                }
+                                else
+                                {
+                                    i_intr(bdry_normal_axis) -= 1;
+                                }
+                                
+                                
+                                const FaceIndex<NDIM> i_f_intr(
+                                                               i_intr, bdry_normal_axis, (is_lower ? FaceIndex<NDIM>::Upper : FaceIndex<NDIM>::Lower));
+                                const FaceIndex<NDIM> i_f_bdry(
+                                                               i_intr, bdry_normal_axis, (is_lower ? FaceIndex<NDIM>::Lower : FaceIndex<NDIM>::Upper));
+                                
+                                const double& P_adv_i = (*P_adv_data[axis])(i_f_intr, /*depth*/0);
+                                const double P_adv_b = (b * P_adv_i + g * inflow_vel * h) / (a * h + b);
+                                (*P_adv_data[axis])(i_f_bdry, /*depth*/0) = P_adv_b;
+                            }
+                        }
+                    }
+                }
+            }
+            
             // Finally, compute an updated side-centered rho quantity rho^{n+1} = rho^n - dt*div(rho_adv*u_adv)
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -1285,6 +1399,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                      R_new_data->getGhostCellWidth()(2),
                                      R_new_data->getPointer(axis));
 #endif
+            
             }
         }
     }
