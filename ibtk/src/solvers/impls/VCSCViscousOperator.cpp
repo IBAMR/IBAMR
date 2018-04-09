@@ -1,7 +1,7 @@
 // Filename: VCSCViscousOperator.cpp
 // Created on 17 Aug 2017 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

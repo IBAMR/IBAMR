@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredHierarchyIntegrator.h
-// Created on 25 Sep 2017 by Nishant Nangia
+// Created on 25 Sep 2017 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -268,9 +268,11 @@ public:
      * maintained by this integrator.
      */
     typedef void (*ResetFluidPropertiesFcnPtr)(int property_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                int cycle_num,
                                                double time,
+                                               double current_time,
                                                double new_time,
                                                void* ctx);
 

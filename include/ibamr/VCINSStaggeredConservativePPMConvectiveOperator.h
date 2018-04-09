@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredConservativePPMConvectiveOperator.h
-// Created on 01 April 2018 by Nishant Nangia
+// Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2018, Nishant Nangia
+// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

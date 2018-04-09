@@ -1,7 +1,7 @@
 // Filename: VCINSStaggeredConservativePPMConvectiveOperator.cpp
-// Created on 01 April 2018 by Nishant Nangia
+// Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
-// Copyright (c) 2002-2017, Nishant Nangia
+// Copyright (c) 2002-2017, Nishant Nangia and Amneet Bhalla
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -725,14 +725,6 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
     TBOX_ASSERT(d_dt >= 0.0);
 #endif
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
-        if (!level->checkAllocated(d_rho_interp_scratch_idx)) level->allocatePatchData(d_rho_interp_scratch_idx);
-        if (!level->checkAllocated(d_rho_interp_new_idx)) level->allocatePatchData(d_rho_interp_new_idx);
-    }
 
     // Fill ghost cell values for velocity
     static const bool homogeneous_bc = false;
@@ -1240,7 +1232,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                << "  valid choices are: CONSERVATIVE\n");
                 }
             }
-            
+
+#if 0
             // Correct density for inflow conditions.
             if (patch_geom->getTouchesRegularBoundary())
             {
@@ -1320,6 +1313,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                             const Index<NDIM>& i = b();
                             const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
                             const double inflow_vel = (*U_half_data[axis])(i_f);
+                            //const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                            //const double inflow_vel = (*U_data)(i_s);
                             
                             bool is_inflow_bdry = (is_lower && inflow_vel > 0.0) || (!is_lower && inflow_vel < 0.0);
                             if (is_inflow_bdry)
@@ -1328,6 +1323,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                 const double& b = (*bcoef_data)(i, 0);
                                 const double& g = (*gcoef_data)(i, 0);
                                 const double& h = dx[bdry_normal_axis];
+                                TBOX_ASSERT(MathUtilities<double>::equalEps(b, 0));
+                                TBOX_ASSERT(MathUtilities<double>::equalEps(a, 1.0));
                                 
                                 Index<NDIM> i_intr(i);
                                 if (is_lower)
@@ -1353,7 +1350,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                     }
                 }
             }
-            
+#endif
+
             // Finally, compute an updated side-centered rho quantity rho^{n+1} = rho^n - dt*div(rho_adv*u_adv)
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -1402,14 +1400,6 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
             
             }
         }
-    }
-
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
-        if (level->checkAllocated(d_rho_interp_scratch_idx)) level->deallocatePatchData(d_rho_interp_scratch_idx);
     }
 
     // Reset select options
@@ -1462,6 +1452,15 @@ VCINSStaggeredConservativePPMConvectiveOperator::initializeOperatorState(const S
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
+    // Allocate data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
+        if (!level->checkAllocated(d_rho_interp_scratch_idx)) level->allocatePatchData(d_rho_interp_scratch_idx);
+        if (!level->checkAllocated(d_rho_interp_new_idx)) level->allocatePatchData(d_rho_interp_new_idx);
+    }
+
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
@@ -1478,6 +1477,15 @@ VCINSStaggeredConservativePPMConvectiveOperator::deallocateOperatorState()
     // Deallocate the communications operators and BC helpers.
     d_hier_bdry_fill.setNull();
     d_bc_helper.setNull();
+
+    // Deallocate data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
+        if (level->checkAllocated(d_rho_interp_scratch_idx)) level->deallocatePatchData(d_rho_interp_scratch_idx);
+        if (level->checkAllocated(d_rho_interp_new_idx)) level->deallocatePatchData(d_rho_interp_new_idx);
+    }
 
     d_is_initialized = false;
 
