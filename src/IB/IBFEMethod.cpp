@@ -2659,7 +2659,7 @@ IBFEMethod::initializeVelocity(const unsigned int part)
     const unsigned int U_sys_num = U_system.number();
     NumericVector<double>& U_vec = *U_system.solution;
     VectorValue<double> U;
-    if (!d_coordinate_mapping_fcn_data[part].fcn)
+    if (!d_initial_velocity_fcn_data[part].fcn)
     {
         U.zero();
     }
@@ -2672,7 +2672,7 @@ IBFEMethod::initializeVelocity(const unsigned int part)
             {
                 TBOX_ASSERT(n->n_vars(U_sys_num) == NDIM);
                 const libMesh::Point& X = *n;
-                d_initial_velocity_fcn_data[part].fcn(U, X, d_coordinate_mapping_fcn_data[part].ctx);
+                d_initial_velocity_fcn_data[part].fcn(U, X, d_initial_velocity_fcn_data[part].ctx);
             }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
