@@ -725,6 +725,7 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
     d_N_old_var = new SideVariable<NDIM, double>(d_object_name + "::N_old");
+    d_rho_interp_var = new SideVariable<NDIM, double>(d_object_name + "::rho_interp");
 
     d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
@@ -1100,6 +1101,18 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_rho_scratch_idx = var_db->registerVariableAndContext(rho_cc_scratch_var, getScratchContext(), cell_ghosts);
     }
 
+    // Interpolated density state variable
+    if (!d_rho_is_const) 
+    {
+        registerVariable(d_rho_interp_current_idx,
+                         d_rho_interp_new_idx,
+                         d_rho_interp_scratch_idx,
+                         d_rho_interp_var,
+                         side_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+    }
+
     // Get the density variable, which can either be an advected field maintained by
     // an appropriate advection-diffusion integrator, or a set field with some functional
     // form maintained by the INS integrator 
@@ -1290,9 +1303,6 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_temp_cc_var = new CellVariable<NDIM, double>(d_object_name + ":temp_cc", /*depth*/ NDIM);
     d_temp_cc_idx = var_db->registerVariableAndContext(d_temp_cc_var, getCurrentContext(), cell_ghosts);
 
-    d_rho_interp_var = new SideVariable<NDIM, double>(d_object_name + "rho_interp");
-    d_rho_interp_idx = var_db->registerVariableAndContext(d_rho_interp_var, getCurrentContext(), no_ghosts);
-
 #if (NDIM == 2)
     d_mu_interp_var = new NodeVariable<NDIM, double>(d_object_name + "mu_interp");
 #elif (NDIM == 3)
@@ -1443,7 +1453,6 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_pressure_D_idx, current_time);
         level->allocatePatchData(d_pressure_rhs_D_idx, current_time);
         level->allocatePatchData(d_temp_sc_idx, current_time);
-        level->allocatePatchData(d_rho_interp_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
         level->allocatePatchData(d_N_full_idx, current_time);
         if (d_rho_var.isNull()) level->allocatePatchData(d_rho_scratch_idx, current_time);
@@ -1488,12 +1497,12 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
         {
             d_hier_math_ops->interp(
-                d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, current_time);
+                d_rho_interp_current_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, current_time);
         }
         else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
         {
             d_hier_math_ops->harmonic_interp(
-                d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, current_time);
+                d_rho_interp_current_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, current_time);
         }
         else
         {
@@ -1543,28 +1552,43 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         }
     }
 
-    // Override rho_interp and mu_interp by registered functions (if any).
-    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+#if 0
+    if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
     {
-        d_reset_rho_fcns[k](d_rho_interp_idx,
-                            d_rho_interp_var,
-                            d_hier_math_ops,
-                            /*cycle*/ 0,
-                            apply_time,
-                            current_time,
-                            new_time,
-                            d_reset_rho_fcns_ctx[k]);
+        // Override rho_interp and mu_interp by registered functions (if any).
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_interp_current_idx,
+                                d_rho_interp_var,
+                                d_hier_math_ops,
+                                /*cycle*/ 0,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
     }
-    for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+    if (!d_mu_is_const)
     {
-        d_reset_mu_fcns[k](d_mu_interp_idx,
-                           d_mu_interp_var,
-                           d_hier_math_ops,
-                           /*cycle*/ 0,
-                           apply_time,
-                           current_time,
-                           new_time,
-                           d_reset_mu_fcns_ctx[k]);
+        // Note: this can have unintended consequences if d_reset_mu_fcns does not fill in ghost cells of mu_interp
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            // d_reset_mu_fcns[k](d_mu_interp_idx,
+            //                    d_mu_interp_var,
+            //                    d_hier_math_ops,
+            //                    /*cycle*/ 0,
+            //                    apply_time,
+            //                    current_time,
+            //                    new_time,
+            //                    d_reset_mu_fcns_ctx[k]);
+        }
+    }
+#endif
+
+    // Copy current into scratch
+    if (!d_rho_is_const)
+    {
+        d_hier_sc_data_ops->copyData(d_rho_interp_scratch_idx, d_rho_interp_current_idx);
     }
 
     // Allocate solver vectors.
@@ -1654,13 +1678,14 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_mu_vc_interp_type);
     // Add the momentum portion of the RHS in the case of conservative discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
+#if 1
     if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
     {
-        d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_interp_idx, d_U_scratch_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_interp_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
         d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0/dt, d_temp_sc_idx);
         d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx);
     }
-
+#endif
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -1736,7 +1761,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                 dynamic_cast<VCINSStaggeredConservativePPMConvectiveOperator*>(d_convective_op.getPointer());
             if (p_vc_ppm_convective_op)
             {
-                p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_idx);
+                p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_scratch_idx);
                 std::vector<RobinBcCoefStrategy<NDIM>*> rho_interp_bc_coefs(NDIM);
                 for (unsigned int d = 0; d < NDIM; ++d) rho_interp_bc_coefs[d] = d_rho_bc_coef;
                 p_vc_ppm_convective_op->setInterpolatedDensityBoundaryConditions(rho_interp_bc_coefs);
@@ -1823,7 +1848,7 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Get the newest values of rho and mu if necessary
     if (!d_rho_is_const)
     {
-        if (d_vc_discretization_form == VC_ADVECTIVE)
+        if (d_vc_discretization_form == VC_ADVECTIVE || true)
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             int rho_new_idx;
@@ -1855,12 +1880,12 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             if (d_rho_vc_interp_type == VC_AVERAGE_INTERP)
             {
                 d_hier_math_ops->interp(
-                        d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+                        d_rho_interp_new_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
             }
             else if (d_rho_vc_interp_type == VC_HARMONIC_INTERP)
             {
                 d_hier_math_ops->harmonic_interp(
-                        d_rho_interp_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
+                        d_rho_interp_new_idx, d_rho_interp_var, false, d_temp_cc_idx, d_temp_cc_var, d_no_fill_op, new_time);
             }
             else
             {
@@ -1882,7 +1907,7 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             if (p_vc_ppm_convective_op)
             {
                 const int rho_interp_new = p_vc_ppm_convective_op->getUpdatedInterpolatedDensityPatchDataIndex();
-                d_hier_sc_data_ops->copyData(d_rho_interp_idx, rho_interp_new);
+                d_hier_sc_data_ops->copyData(d_rho_interp_new_idx, rho_interp_new);
             }
             else
             {
@@ -1932,15 +1957,28 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
 
 #if 0
     // Override interpolated rho and mu by registered functions (if any).
-    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+    if (!d_rho_is_const)
     {
-        d_reset_rho_fcns[k](d_rho_interp_idx, d_rho_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_rho_fcns_ctx[k]);
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_interp_new_idx, d_rho_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_rho_fcns_ctx[k]);
+        }
     }
-    for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+    // Note: this can have unintended consequences if d_reset_mu_fcns does not fill in ghost cells of mu_interp
+    if (!d_mu_is_const)
     {
-        d_reset_mu_fcns[k](d_mu_interp_idx, d_mu_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_mu_fcns_ctx[k]);
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            // d_reset_mu_fcns[k](d_mu_interp_idx, d_mu_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_mu_fcns_ctx[k]);
+        }
     }
 #endif
+
+    // Copy new into scratch
+    if (!d_rho_is_const)
+    {
+        d_hier_sc_data_ops->copyData(d_rho_interp_scratch_idx, d_rho_interp_new_idx);
+    }
 
     // Update the solvers and operators to take into account new state variables
     updateOperatorsAndSolvers(current_time, new_time);
@@ -2118,7 +2156,6 @@ VCINSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         level->deallocatePatchData(d_velocity_rhs_D_idx);
         level->deallocatePatchData(d_pressure_rhs_D_idx);
         level->deallocatePatchData(d_temp_sc_idx);
-        level->deallocatePatchData(d_rho_interp_idx);
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_N_full_idx);
         if (d_rho_var.isNull()) level->deallocatePatchData(d_rho_scratch_idx);
@@ -2242,7 +2279,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         // Update N_idx if necessary
         if (cycle_num > 0)
         {
-            TBOX_ERROR("not sure what to do here yet");
+            // TBOX_ERROR("not sure what to do here yet");
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
             double apply_time = std::numeric_limits<double>::quiet_NaN();
             if (convective_time_stepping_type == MIDPOINT_RULE)
@@ -2311,7 +2348,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         }
         if (!d_rho_is_const && d_vc_discretization_form == VC_ADVECTIVE)
         {
-            d_hier_sc_data_ops->multiply(d_N_full_idx, d_rho_interp_idx, d_N_full_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->multiply(d_N_full_idx, d_rho_interp_scratch_idx, d_N_full_idx, /*interior_only*/ true);
         }
         d_hier_sc_data_ops->axpy(
             rhs_vec->getComponentDescriptorIndex(0), -1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
@@ -2329,7 +2366,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
         }
         else
         {
-            d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_rho_interp_scratch_idx, /*interior_only*/ true);
             d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
                                                rhs_vec->getComponentVariable(0),
                                                d_temp_sc_idx,
@@ -2370,7 +2407,7 @@ VCINSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVector
             }
             else
             {
-                d_hier_sc_data_ops->multiply(d_F_div_idx, d_rho_interp_idx, d_F_div_idx);
+                d_hier_sc_data_ops->multiply(d_F_div_idx, d_rho_interp_scratch_idx, d_F_div_idx);
             }
         }
         else
@@ -2477,7 +2514,7 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
         }
         else
         {
-            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0 / dt, d_rho_interp_scratch_idx, /*interior_only*/ true);
             d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
                                                rhs_vec->getComponentVariable(0),
                                                d_temp_sc_idx,
@@ -2506,7 +2543,7 @@ VCINSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVector
         }
         else
         {
-            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0, d_rho_interp_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0, d_rho_interp_scratch_idx, /*interior_only*/ true);
             d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
                                                rhs_vec->getComponentVariable(0),
                                                d_temp_sc_idx,
@@ -3584,7 +3621,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
     }
     else
     {
-        d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_interp_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->scale(d_velocity_C_idx, d_A_scale / dt, d_rho_interp_scratch_idx, /*interior_only*/ true);
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(
@@ -3622,7 +3659,7 @@ VCINSStaggeredHierarchyIntegrator::updateOperatorsAndSolvers(const double curren
     }
     else
     {
-        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_interp_idx, /*interior_only*/ false);
+        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_interp_scratch_idx, /*interior_only*/ false);
         d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0 / d_A_scale, d_pressure_D_idx, /*interior_only*/ false);
         P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
     }

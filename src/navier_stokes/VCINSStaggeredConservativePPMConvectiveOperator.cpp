@@ -1015,7 +1015,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                        U_adv_data[axis]->getPointer(1),
                                        U_half_data[axis]->getPointer(0),
                                        U_half_data[axis]->getPointer(1));
-
+#if 0
+                // Set face centered density via Godunov extrapolation
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
                                        side_boxes[axis].upper(0),
                                        side_boxes[axis].lower(1),
@@ -1035,6 +1036,7 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                        U_adv_data[axis]->getPointer(1),
                                        R_adv_data[axis]->getPointer(0),
                                        R_adv_data[axis]->getPointer(1));
+#endif
 #endif
 #if (NDIM == 3)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),

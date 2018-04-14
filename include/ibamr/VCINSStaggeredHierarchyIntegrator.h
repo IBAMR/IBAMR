@@ -352,7 +352,7 @@ public:
      */
     inline int getInterpolatedRhoPatchDataIndex() const
     {
-        return d_rho_interp_idx;
+        return d_rho_interp_scratch_idx;
     }
 
     /*!
@@ -588,6 +588,7 @@ private:
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
     int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
+    int d_rho_interp_current_idx, d_rho_interp_new_idx, d_rho_interp_scratch_idx;
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
 
     /*
@@ -607,7 +608,7 @@ private:
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
     int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
-    int d_rho_interp_idx, d_mu_interp_idx;
+    int d_mu_interp_idx;
     int d_N_full_idx;
 
     /*
