@@ -728,6 +728,7 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     d_rho_interp_var = new SideVariable<NDIM, double>(d_object_name + "::rho_interp");
 
     d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
+    d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
 #if (NDIM == 2)
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega");
@@ -1170,6 +1171,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
+    registerVariable(d_rho_interp_cc_idx, d_rho_interp_cc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
         registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
@@ -1209,6 +1211,17 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                 if (d == 0) d_visit_writer->registerPlotQuantity("U_x", "SCALAR", d_U_cc_idx, d, d_U_scale);
                 if (d == 1) d_visit_writer->registerPlotQuantity("U_y", "SCALAR", d_U_cc_idx, d, d_U_scale);
                 if (d == 2) d_visit_writer->registerPlotQuantity("U_z", "SCALAR", d_U_cc_idx, d, d_U_scale);
+            }
+        }
+
+        if (d_output_rho && !d_rho_is_const)
+        {
+            d_visit_writer->registerPlotQuantity("RHO_INTERP", "VECTOR", d_rho_interp_cc_idx, 0, d_rho_scale);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == 0) d_visit_writer->registerPlotQuantity("RHO_INTERP_x", "SCALAR", d_rho_interp_cc_idx, d, d_rho_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("RHO_INTERP_y", "SCALAR", d_rho_interp_cc_idx, d, d_rho_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("RHO_INTERP_z", "SCALAR", d_rho_interp_cc_idx, d, d_rho_scale);
             }
         }
 
@@ -1552,7 +1565,8 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         }
     }
 
-#if 0
+    // Directly set rho and mu on the desired DoFs.
+#if 1
     if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
     {
         // Override rho_interp and mu_interp by registered functions (if any).
@@ -1568,21 +1582,24 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
                                 d_reset_rho_fcns_ctx[k]);
         }
     }
+#if 0
     if (!d_mu_is_const)
     {
         // Note: this can have unintended consequences if d_reset_mu_fcns does not fill in ghost cells of mu_interp
         for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
         {
-            // d_reset_mu_fcns[k](d_mu_interp_idx,
-            //                    d_mu_interp_var,
-            //                    d_hier_math_ops,
-            //                    /*cycle*/ 0,
-            //                    apply_time,
-            //                    current_time,
-            //                    new_time,
-            //                    d_reset_mu_fcns_ctx[k]);
+            d_reset_mu_fcns[k](d_mu_interp_idx,
+                               d_mu_interp_var,
+                               d_hier_math_ops,
+                               /*cycle*/ 0,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_mu_fcns_ctx[k]);
         }
     }
+#endif
+
 #endif
 
     // Copy current into scratch
@@ -1848,7 +1865,7 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Get the newest values of rho and mu if necessary
     if (!d_rho_is_const)
     {
-        if (d_vc_discretization_form == VC_ADVECTIVE || true)
+        if (d_vc_discretization_form == VC_ADVECTIVE)
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             int rho_new_idx;
@@ -1955,6 +1972,7 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         }
     }
 
+    // Directly set rho and mu on the desired DoFs.
 #if 0
     // Override interpolated rho and mu by registered functions (if any).
     if (!d_rho_is_const)
@@ -1964,14 +1982,17 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             d_reset_rho_fcns[k](d_rho_interp_new_idx, d_rho_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_rho_fcns_ctx[k]);
         }
     }
+#if 0
     // Note: this can have unintended consequences if d_reset_mu_fcns does not fill in ghost cells of mu_interp
     if (!d_mu_is_const)
     {
         for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
         {
-            // d_reset_mu_fcns[k](d_mu_interp_idx, d_mu_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_mu_fcns_ctx[k]);
+            d_reset_mu_fcns[k](d_mu_interp_idx, d_mu_interp_var, d_hier_math_ops, cycle_num, apply_time, current_time, new_time, d_reset_mu_fcns_ctx[k]);
         }
     }
+#endif
+
 #endif
 
     // Copy new into scratch
@@ -3019,6 +3040,15 @@ VCINSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         const int U_cc_idx = var_db->mapVariableAndContextToIndex(d_U_cc_var, ctx);
         d_hier_math_ops->interp(
             U_cc_idx, d_U_cc_var, U_sc_idx, d_U_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+    }
+
+    // Put interpolated rho onto cell centers for plotting purposes.
+    if (!d_rho_is_const && d_output_rho)
+    {
+        const int rho_sc_idx = var_db->mapVariableAndContextToIndex(d_rho_interp_var, ctx);
+        const int rho_cc_idx = var_db->mapVariableAndContextToIndex(d_rho_interp_cc_var, ctx);
+        d_hier_math_ops->interp(
+            rho_cc_idx, d_rho_interp_cc_var, rho_sc_idx, d_rho_interp_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
 
     // Interpolate f to cell centers.
