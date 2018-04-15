@@ -1232,7 +1232,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (d_output_rho && !d_rho_is_const && d_rho_var)
         {
-            d_visit_writer->registerPlotQuantity("rho_ins", "SCALAR", d_rho_current_idx, 0., d_rho_scale);
+            //d_visit_writer->registerPlotQuantity("rho_ins", "SCALAR", d_rho_current_idx, 0., d_rho_scale);
         }
 
         if (d_output_mu && !d_mu_is_const && d_mu_var)
