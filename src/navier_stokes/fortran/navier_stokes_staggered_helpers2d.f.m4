@@ -400,6 +400,8 @@ c
 c     Reset the face-centered advection momentum about the control
 c     volumes for each component of the velocity.
 c
+c     Note: this routine will use the Godunov extrapolated velocity to compute momentum
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine vc_navier_stokes_reset_adv_momentum2d(
@@ -500,6 +502,119 @@ c
          do i0 = side1_ifirst0-gc0,side1_ilast0+gc0
             P_adv10(i0,i1) = R_adv10(i0,i1)*U_half01(i1,i0)
             P_adv11(i1,i0) = R_adv11(i1,i0)*U_half11(i1,i0)
+         enddo
+      enddo
+c
+      return
+      end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Reset the face-centered advection momentum about the control
+c     volumes for each component of the velocity.
+c
+c     Note: this routine will use the simple averaged advection velocity to compute momentum
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_navier_stokes_compute_adv_momentum2d(
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
+     &     n_P_adv0_gc0,n_P_adv0_gc1,
+     &     P_adv00,P_adv01,
+     &     n_R_adv0_gc0,n_R_adv0_gc1,
+     &     R_adv00,R_adv01,
+     &     n_U_adv0_gc0,n_U_adv0_gc1,
+     &     U_adv00,U_adv01,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
+     &     n_P_adv1_gc0,n_P_adv1_gc1,
+     &     P_adv10,P_adv11,
+     &     n_R_adv1_gc0,n_R_adv1_gc1,
+     &     R_adv10,R_adv11,
+     &     n_U_adv1_gc0,n_U_adv1_gc1,
+     &     U_adv10,U_adv11)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER side0_ifirst0,side0_ilast0
+      INTEGER side0_ifirst1,side0_ilast1
+
+      INTEGER n_P_adv0_gc0,n_P_adv0_gc1
+      INTEGER n_R_adv0_gc0,n_R_adv0_gc1
+      INTEGER n_U_adv0_gc0,n_U_adv0_gc1
+
+      INTEGER side1_ifirst0,side1_ilast0
+      INTEGER side1_ifirst1,side1_ilast1
+
+      INTEGER n_P_adv1_gc0,n_P_adv1_gc1
+      INTEGER n_R_adv1_gc0,n_R_adv1_gc1
+      INTEGER n_U_adv1_gc0,n_U_adv1_gc1
+
+      REAL U_adv00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_U_adv0_gc)
+     &     )
+      REAL U_adv01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_U_adv0_gc)
+     &     )
+      REAL U_adv10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_U_adv1_gc)
+     &     )
+      REAL U_adv11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_U_adv1_gc)
+     &     )
+
+      REAL R_adv00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R_adv0_gc)
+     &     )
+      REAL R_adv01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R_adv0_gc)
+     &     )
+      REAL R_adv10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R_adv1_gc)
+     &     )
+      REAL R_adv11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R_adv1_gc)
+     &     )
+c
+c     Input/Output.
+c
+      REAL P_adv00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_P_adv0_gc)
+     &     )
+      REAL P_adv01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_P_adv0_gc)
+     &     )
+      REAL P_adv10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_P_adv1_gc)
+     &     )
+      REAL P_adv11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_P_adv1_gc)
+     &     )
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gc0,gc1
+c
+c     Reset the advection momentum.
+c
+      gc0 = min(n_P_adv0_gc0,n_P_adv1_gc0,n_U_adv0_gc0,n_U_adv1_gc0)
+      gc1 = min(n_P_adv0_gc1,n_P_adv1_gc1,n_U_adv0_gc1,n_U_adv1_gc1)
+
+      do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
+         do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
+            P_adv00(i0,i1) = R_adv00(i0,i1)*U_adv00(i0,i1)
+            P_adv01(i1,i0) = R_adv01(i1,i0)*U_adv01(i1,i0)
+         enddo
+      enddo
+
+      do    i1 = side1_ifirst1-gc1,side1_ilast1+gc1
+         do i0 = side1_ifirst0-gc0,side1_ilast0+gc0
+            P_adv10(i0,i1) = R_adv10(i0,i1)*U_adv10(i0,i1)
+            P_adv11(i1,i0) = R_adv11(i1,i0)*U_adv11(i1,i0)
          enddo
       enddo
 c

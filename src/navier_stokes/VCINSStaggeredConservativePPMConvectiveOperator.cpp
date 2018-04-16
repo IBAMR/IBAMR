@@ -89,6 +89,8 @@ class RobinBcCoefStrategy;
 #define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density2d, VC_NAVIER_STOKES_UPWIND_DENSITY2D)
 #define VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_reset_adv_momentum2d, VC_NAVIER_STOKES_RESET_ADV_MOMENTUM2D)
+#define VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM_FC                                                                            \
+    IBAMR_FC_FUNC_(vc_navier_stokes_compute_adv_momentum2d, VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM2D)
 #define SKEW_SYM_DERIVATIVE_FC IBAMR_FC_FUNC_(skew_sym_derivative2d, SKEW_SYM_DERIVATIVE2D)
 #endif
 
@@ -100,6 +102,8 @@ class RobinBcCoefStrategy;
 #define VC_NAVIER_STOKES_UPWIND_DENSITY_FC IBAMR_FC_FUNC_(vc_navier_stokes_upwind_density3d, VC_NAVIER_STOKES_UPWIND_DENSITY3D)
 #define VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_reset_adv_momentum3d, VC_NAVIER_STOKES_RESET_ADV_MOMENTUM3D)
+#define VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM_FC                                                                            \
+    IBAMR_FC_FUNC_(vc_navier_stokes_compute_adv_momentum3d, VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM3D)
 #define SKEW_SYM_DERIVATIVE_FC IBAMR_FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
 #endif
 
@@ -423,6 +427,117 @@ void VC_NAVIER_STOKES_UPWIND_DENSITY_FC(
     );
 
 void VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC(
+#if (NDIM == 2)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const double*,
+    const double*
+#endif
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*
+#endif
+    );
+
+void VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM_FC(
 #if (NDIM == 2)
     const int&,
     const int&,
@@ -1069,6 +1184,8 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
 #endif
             }
 #if (NDIM == 2)
+
+#if 0
             VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC(side_boxes[0].lower(0),
                                                    side_boxes[0].upper(0),
                                                    side_boxes[0].lower(1),
@@ -1101,6 +1218,43 @@ VCINSStaggeredConservativePPMConvectiveOperator::applyConvectiveOperator(const i
                                                    U_half_data[1]->getGhostCellWidth()(1),
                                                    U_half_data[1]->getPointer(0),
                                                    U_half_data[1]->getPointer(1));
+#endif
+
+#if 1
+            VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM_FC(side_boxes[0].lower(0),
+                                                     side_boxes[0].upper(0),
+                                                     side_boxes[0].lower(1),
+                                                     side_boxes[0].upper(1),
+                                                     P_adv_data[0]->getGhostCellWidth()(0),
+                                                     P_adv_data[0]->getGhostCellWidth()(1),
+                                                     P_adv_data[0]->getPointer(0),
+                                                     P_adv_data[0]->getPointer(1),
+                                                     R_adv_data[0]->getGhostCellWidth()(0),
+                                                     R_adv_data[0]->getGhostCellWidth()(1),
+                                                     R_adv_data[0]->getPointer(0),
+                                                     R_adv_data[0]->getPointer(1),
+                                                     U_adv_data[0]->getGhostCellWidth()(0),
+                                                     U_adv_data[0]->getGhostCellWidth()(1),
+                                                     U_adv_data[0]->getPointer(0),
+                                                     U_adv_data[0]->getPointer(1),
+                                                     side_boxes[1].lower(0),
+                                                     side_boxes[1].upper(0),
+                                                     side_boxes[1].lower(1),
+                                                     side_boxes[1].upper(1),
+                                                     P_adv_data[1]->getGhostCellWidth()(0),
+                                                     P_adv_data[1]->getGhostCellWidth()(1),
+                                                     P_adv_data[1]->getPointer(0),
+                                                     P_adv_data[1]->getPointer(1),
+                                                     R_adv_data[1]->getGhostCellWidth()(0),
+                                                     R_adv_data[1]->getGhostCellWidth()(1),
+                                                     R_adv_data[1]->getPointer(0),
+                                                     R_adv_data[1]->getPointer(1),
+                                                     U_adv_data[1]->getGhostCellWidth()(0),
+                                                     U_adv_data[1]->getGhostCellWidth()(1),
+                                                     U_adv_data[1]->getPointer(0),
+                                                     U_adv_data[1]->getPointer(1));
+#endif
+
 #endif
 #if (NDIM == 3)
             VC_NAVIER_STOKES_RESET_ADV_MOMENTUM_FC(side_boxes[0].lower(0),
