@@ -215,14 +215,14 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate the components of a staggered velocity field onto the
+c     Interpolate the components of a staggered quantity onto the
 c     faces of zones centered about the components of the velocity
 c     field.
 c
 c     NOTES:
 c
 c     R0, R1, and R2 are standard side-centered staggered grid
-c     densities for the patch
+c     quantities for the patch
 c     [(ifirst0,ilast0),(ifirst1,ilast1),(ifirst2,ilast2)].
 c
 c     V00, V01, and V02 are face-centered staggered grid velocities
@@ -243,19 +243,19 @@ c     components of the side-centered velocity, i.e., face-centered
 c     staggered grid velocities for the patch
 c     [(ifirst0,ilast0),(ifirst1,ilast1),(ifirst2,ilast2+1)].
 c
-c     R00, R01, and R02 are face-centered staggered grid densities
+c     R00, R01, and R02 are face-centered staggered grid quantities
 c     defined at the faces of the control volumes centered about the x
 c     components of the side-centered velocity, i.e., face-centered
 c     staggered grid velocities for the patch
 c     [(ifirst0,ilast0+1),(ifirst1,ilast1),(ifirst2,ilast2)].
 c
-c     R10, R11, and R12 are face-centered staggered grid densities
+c     R10, R11, and R12 are face-centered staggered grid quantities
 c     defined at the faces of the control volumes centered about the y
 c     components of the side-centered velocity, i.e., face-centered
 c     staggered grid velocities for the patch
 c     [(ifirst0,ilast0),(ifirst1,ilast1+1),(ifirst2,ilast2)].
 c
-c     R20, R21, and R22 are face-centered staggered grid densities
+c     R20, R21, and R22 are face-centered staggered grid quantities
 c     defined at the faces of the control volumes centered about the z
 c     components of the side-centered velocity, i.e., face-centered
 c     staggered grid velocities for the patch
@@ -263,7 +263,7 @@ c     [(ifirst0,ilast0),(ifirst1,ilast1),(ifirst2,ilast2+1)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vc_navier_stokes_upwind_density3d(
+      subroutine vc_navier_stokes_upwind_quantity3d(
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     patch_ifirst2,patch_ilast2,

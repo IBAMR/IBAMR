@@ -104,7 +104,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCINSStaggeredConservativePPMConvectiveOperator.h"
+#include "ibamr/VCINSStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/VCINSStaggeredHierarchyIntegrator.h"
 #include "ibamr/VCINSStaggeredPressureBcCoef.h"
 #include "ibamr/VCINSStaggeredVelocityBcCoef.h"
@@ -674,18 +674,18 @@ VCINSStaggeredHierarchyIntegrator::VCINSStaggeredHierarchyIntegrator(const std::
     else if (input_db->keyExists("default_convective_operator_type"))
         d_convective_op_type = input_db->getString("default_convective_operator_type");
 
-    if (d_vc_discretization_form == VC_CONSERVATIVE && d_convective_op_type != "VC_CONSERVATIVE_PPM")
+    if (d_vc_discretization_form == VC_CONSERVATIVE && d_convective_op_type != "VC_CONSERVATIVE_OP")
     {
         TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
                                  << " variable coefficient discretization form VC_CONSERVATIVE\n"
-                                 << " presently requires VC_CONSERVATIVE_PPM convective operator\n");
+                                 << " presently requires VC_CONSERVATIVE_OP convective operator\n");
     }
 
-    if (d_vc_discretization_form == VC_ADVECTIVE && d_convective_op_type == "VC_CONSERVATIVE_PPM")
+    if (d_vc_discretization_form == VC_ADVECTIVE && d_convective_op_type == "VC_CONSERVATIVE_OP")
     {
         TBOX_ERROR(d_object_name << "::VCINSStaggeredHierarchyIntegrator():\n"
                                  << " variable coefficient discretization form VC_ADVECTIVE\n"
-                                 << " does not support VC_CONSERVATIVE_PPM convective operator\n");
+                                 << " does not support VC_CONSERVATIVE_OP convective operator\n");
     }
 
     // Setup Stokes solver options.
@@ -1774,8 +1774,8 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         {
             // For conservative momentum discretization, an approximation to rho^{n+1}
             // will be computed from rho^{n}, which requires additional options to be set.
-            VCINSStaggeredConservativePPMConvectiveOperator* p_vc_ppm_convective_op =
-                dynamic_cast<VCINSStaggeredConservativePPMConvectiveOperator*>(d_convective_op.getPointer());
+            VCINSStaggeredConservativeConvectiveOperator* p_vc_ppm_convective_op =
+                dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
             if (p_vc_ppm_convective_op)
             {
                 p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_scratch_idx);
@@ -1788,7 +1788,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
             {
                 TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                          << " variable coefficient discretization form VC_CONSERVATIVE\n"
-                                         << " presently requires VC_CONSERVATIVE_PPM convective operator\n"
+                                         << " presently requires VC_CONSERVATIVE_OP convective operator\n"
                                          << " this statement should not have been reached");
             }
 
@@ -1919,8 +1919,8 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         else if (d_vc_discretization_form == VC_CONSERVATIVE)
         {
             // In the special case of a conservative discretization form, the updated density is previously calculated by the convective operator
-            VCINSStaggeredConservativePPMConvectiveOperator* p_vc_ppm_convective_op =
-                dynamic_cast<VCINSStaggeredConservativePPMConvectiveOperator*>(d_convective_op.getPointer());
+            VCINSStaggeredConservativeConvectiveOperator* p_vc_ppm_convective_op =
+                dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
             if (p_vc_ppm_convective_op)
             {
                 const int rho_interp_new = p_vc_ppm_convective_op->getUpdatedInterpolatedDensityPatchDataIndex();
@@ -1930,7 +1930,7 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             {
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                          << " variable coefficient discretization form VC_CONSERVATIVE\n"
-                                         << " presently requires VC_CONSERVATIVE_PPM convective operator\n"
+                                         << " presently requires VC_CONSERVATIVE_OP convective operator\n"
                                          << " this statement should not have been reached");
             }
         }

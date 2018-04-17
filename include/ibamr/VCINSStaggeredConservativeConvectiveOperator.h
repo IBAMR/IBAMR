@@ -1,4 +1,4 @@
-// Filename: VCINSStaggeredConservativePPMConvectiveOperator.h
+// Filename: VCINSStaggeredConservativeConvectiveOperator.h
 // Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
@@ -30,17 +30,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAMR_VCINSStaggeredConservativePPMConvectiveOperator
-#define included_IBAMR_VCINSStaggeredConservativePPMConvectiveOperator
+#ifndef included_IBAMR_VCINSStaggeredConservativeConvectiveOperator
+#define included_IBAMR_VCINSStaggeredConservativeConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
 #include <vector>
 
+#include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "HierarchySideDataOpsReal.h"
 #include "SideVariable.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -65,11 +65,11 @@ class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class VCINSStaggeredConservativePPMConvectiveOperator is a concrete
+ * \brief Class VCINSStaggeredConservativeConvectiveOperator is a concrete
  * ConvectiveOperator that implements a upwind convective differencing operator
  * based on the piecewise parabolic method (PPM).
  *
- * Class VCINSStaggeredConservativePPMConvectiveOperator computes the convective derivative of
+ * Class VCINSStaggeredConservativeConvectiveOperator computes the convective derivative of
  * a side-centered velocity field using the xsPPM7 method of Rider, Greenough,
  * and Kamm.
  *
@@ -80,24 +80,24 @@ namespace IBAMR
  *
  * \see VCINSStaggeredHierarchyIntegrator
  */
-class VCINSStaggeredConservativePPMConvectiveOperator : public ConvectiveOperator
+class VCINSStaggeredConservativeConvectiveOperator : public ConvectiveOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    VCINSStaggeredConservativePPMConvectiveOperator(const std::string& object_name,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                    ConvectiveDifferencingType difference_form,
-                                                    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    VCINSStaggeredConservativeConvectiveOperator(const std::string& object_name,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                 ConvectiveDifferencingType difference_form,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
      */
-    ~VCINSStaggeredConservativePPMConvectiveOperator();
+    ~VCINSStaggeredConservativeConvectiveOperator();
 
     /*!
-     * \brief Static function to construct an VCINSStaggeredConservativePPMConvectiveOperator.
+     * \brief Static function to construct an VCINSStaggeredConservativeConvectiveOperator.
      */
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
@@ -105,7 +105,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new VCINSStaggeredConservativePPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        return new VCINSStaggeredConservativeConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -167,25 +167,26 @@ public:
     /*!
      * \brief Set the current interpolated side-centered density patch data index.
      */
-     void setInterpolatedDensityPatchDataIndex(int rho_interp_idx);
+    void setInterpolatedDensityPatchDataIndex(int rho_interp_idx);
 
-     /*
-      * \brief Set the current time step size.
-      */
-     void setTimeStepSize(double dt);
+    /*
+     * \brief Set the current time step size.
+     */
+    void setTimeStepSize(double dt);
 
-     /*
-      * \brief Set the boundary condition object for the interpolated side-centered density.
-      */
-     void setInterpolatedDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs);
+    /*
+     * \brief Set the boundary condition object for the interpolated side-centered density.
+     */
+    void setInterpolatedDensityBoundaryConditions(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_interp_bc_coefs);
 
-     /*!
-      * \brief Get the newly constructed side-centered density patch data index.
-      *
-      * \note This data is produced as a part of the apply() routine and should be used
-      * in the linear operator for the VCINS solver.
-      */
-     int getUpdatedInterpolatedDensityPatchDataIndex();
+    /*!
+     * \brief Get the newly constructed side-centered density patch data index.
+     *
+     * \note This data is produced as a part of the apply() routine and should be used
+     * in the linear operator for the VCINS solver.
+     */
+    int getUpdatedInterpolatedDensityPatchDataIndex();
 
 private:
     /*!
@@ -193,7 +194,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCINSStaggeredConservativePPMConvectiveOperator();
+    VCINSStaggeredConservativeConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -202,7 +203,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCINSStaggeredConservativePPMConvectiveOperator(const VCINSStaggeredConservativePPMConvectiveOperator& from);
+    VCINSStaggeredConservativeConvectiveOperator(const VCINSStaggeredConservativeConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -213,7 +214,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCINSStaggeredConservativePPMConvectiveOperator& operator=(const VCINSStaggeredConservativePPMConvectiveOperator& that);
+    VCINSStaggeredConservativeConvectiveOperator& operator=(const VCINSStaggeredConservativeConvectiveOperator& that);
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
@@ -238,7 +239,7 @@ private:
     double d_dt;
 
     // Boundary condition object for interpolated density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_rho_interp_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_interp_bc_coefs;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
@@ -253,4 +254,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_VCINSStaggeredConservativePPMConvectiveOperator
+#endif //#ifndef included_IBAMR_VCINSStaggeredConservativeConvectiveOperator

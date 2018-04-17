@@ -45,7 +45,7 @@
 #include "ibamr/INSStaggeredPPMConvectiveOperator.h"
 #include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
-#include "ibamr/VCINSStaggeredConservativePPMConvectiveOperator.h"
+#include "ibamr/VCINSStaggeredConservativeConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
@@ -74,7 +74,7 @@ const std::string INSStaggeredConvectiveOperatorManager::CENTERED = "CENTERED";
 const std::string INSStaggeredConvectiveOperatorManager::PPM = "PPM";
 const std::string INSStaggeredConvectiveOperatorManager::UPWIND = "UPWIND";
 const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABILIZED_PPM";
-const std::string INSStaggeredConvectiveOperatorManager::VC_CONSERVATIVE_PPM = "VC_CONSERVATIVE_PPM";
+const std::string INSStaggeredConvectiveOperatorManager::VC_CONSERVATIVE_OP = "VC_CONSERVATIVE_OP";
 
 INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
@@ -145,7 +145,8 @@ INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() :
     registerOperatorFactoryFunction(PPM, INSStaggeredPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(UPWIND, INSStaggeredUpwindConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(VC_CONSERVATIVE_PPM, VCINSStaggeredConservativePPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(VC_CONSERVATIVE_OP,
+                                    VCINSStaggeredConservativeConvectiveOperator::allocate_operator);
     return;
 } // INSStaggeredConvectiveOperatorManager
 

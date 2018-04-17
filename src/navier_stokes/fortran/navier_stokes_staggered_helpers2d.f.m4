@@ -149,13 +149,13 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Upwind the components of side-centered density field onto the
+c     Upwind the components of side-centered quantity onto the
 c     faces of zones centered about the components of the velocity
 c     field.
 c
 c     NOTES:
 c
-c     R0 and R1 are standard side-centered staggered grid densities for
+c     R0 and R1 are standard side-centered staggered grid quantities for
 c     the patch [(ifirst0,ilast0),(ifirst1,ilast1)].
 c
 c     V00 and V01 are face-centered staggered grid velocities defined at
@@ -168,19 +168,19 @@ c     the faces of the control volumes centered about the y components
 c     of the side-centered velocity, i.e., face-centered staggered grid
 c     velocities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
 c
-c     R00 and R01 are face-centered staggered grid densities defined at
+c     R00 and R01 are face-centered staggered grid quantities defined at
 c     the faces of the control volumes centered about the x components
 c     of the side-centered velocity, i.e., face-centered staggered grid
 c     densities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
 c
-c     R10 and R11 are face-centered staggered grid densities defined at
+c     R10 and R11 are face-centered staggered grid quantities defined at
 c     the faces of the control volumes centered about the y components
 c     of the side-centered velocity, i.e., face-centered staggered grid
 c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vc_navier_stokes_upwind_density2d(
+      subroutine vc_navier_stokes_upwind_quantity2d(
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     n_R_gc0,n_R_gc1,
@@ -399,8 +399,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Reset the face-centered advection momentum about the control
 c     volumes for each component of the velocity.
-c
-c     Note: this routine will use the Godunov extrapolated velocity to compute momentum
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
