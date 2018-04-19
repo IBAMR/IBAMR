@@ -1079,8 +1079,8 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     if (d_rho_var)
     {
 #if !defined(NDEBUG)
-        // VCINSStaggeredHierarchyIntegrator should initialize the density variable.
-        TBOX_ASSERT(d_rho_init_fcn);
+        // VCINSStaggeredHierarchyIntegrator should initialize the density variable via some function
+        TBOX_ASSERT(d_rho_init_fcn || d_reset_rho_fcns.size() >= 1);
 #endif
         registerVariable(d_rho_current_idx,
                          d_rho_new_idx,
@@ -1146,7 +1146,7 @@ VCINSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
 #if !defined(NDEBUG)
         // VCINSStaggeredHierarchyIntegrator should initialize the viscosity variable.
-        TBOX_ASSERT(d_mu_init_fcn);
+        TBOX_ASSERT(d_mu_init_fcn || d_reset_mu_fcns.size() >= 1);
 #endif
         registerVariable(d_mu_current_idx,
                          d_mu_new_idx,
@@ -1475,8 +1475,41 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
 
-    // Get the current value of density, which is required only for conservative discretization
+#if 1
+    // Reset density and viscosity data via callback, if necessary
+    // Note: this should really happen in some initializeCompositeData routine, but need to ensure it happens after level set is initialized
     const double apply_time = current_time;
+    if (!d_rho_is_const && d_rho_var && !d_rho_init_fcn)
+    {
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_current_idx,
+                                d_rho_var,
+                                d_hier_math_ops,
+                                /*cycle_num*/ 0,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+    }
+    if (!d_mu_is_const && d_mu_var && !d_mu_init_fcn)
+    {
+        for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
+        {
+            d_reset_mu_fcns[k](d_mu_current_idx,
+                               d_mu_var,
+                               d_hier_math_ops,
+                               /*cycle_num*/ 0,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_mu_fcns_ctx[k]);
+        }
+    }
+#endif
+
+    // Get the current value of density, which is required only for conservative discretization
     if (!d_rho_is_const && d_vc_discretization_form == VC_CONSERVATIVE)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

@@ -348,13 +348,13 @@ public:
     }
 
     /*!
-     * \brief Get the interpolated side centered density patch data index
+     * \brief Get the interpolated side centered density variable
      */
-    inline int getInterpolatedRhoPatchDataIndex() const
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getInterpolatedRhoVariable() const
     {
-        return d_rho_interp_scratch_idx;
+        return d_rho_interp_var;
     }
-
+    
     /*!
      * \brief Get the scaling factor used for A, p and u_rhs
      */
