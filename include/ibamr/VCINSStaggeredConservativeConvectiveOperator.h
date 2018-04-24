@@ -245,10 +245,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
-    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx;
+    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx, d_P_scratch_idx;
 
     // Hierarchy operation obect.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+
+    // The limiter type for interpolation onto faces.
+    VCConvectiveLimiter d_vc_convective_limiter;
+
+    // The required number of ghost cells for the chosen interpolation
+    int d_limiter_gcw;
 };
 } // namespace IBAMR
 

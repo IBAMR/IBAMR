@@ -130,6 +130,34 @@ enum_to_string<VCDiscretizationForm>(VCDiscretizationForm val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for different conservative limiter types for tje variable-coefficeint convective operator.
+ */
+enum VCConvectiveLimiter
+{
+    VC_UPWIND,
+    VC_CUBIS,
+    UNKNOWN_CONVECTIVE_LIMITER = -1
+};
+
+template <>
+inline VCConvectiveLimiter
+string_to_enum<VCConvectiveLimiter>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "VC_UPWIND") == 0) return VC_UPWIND;
+    if (strcasecmp(val.c_str(), "VC_CUBIS") == 0) return VC_CUBIS;
+    return UNKNOWN_CONVECTIVE_LIMITER;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<VCConvectiveLimiter>(VCConvectiveLimiter val)
+{
+    if (val == VC_UPWIND) return "VC_UPWIND";
+    if (val == VC_CUBIS) return "VC_CUBIS";
+    return "UNKNOWN_CONVECTIVE_LIMITER";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different limiter types
  */
 enum LimiterType

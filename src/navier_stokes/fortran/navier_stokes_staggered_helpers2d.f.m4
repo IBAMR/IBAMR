@@ -260,8 +260,8 @@ c
 c
 c     Compute the upwinded quantity at each zone face.
 c
-      gc0 = min(n_R_gc0-1,n_R0_gc0)
-      gc1 = min(n_R_gc1  ,n_R0_gc1)
+      gc0 = n_R0_gc0
+      gc1 = n_R0_gc1
 
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
@@ -280,8 +280,8 @@ c
          enddo
       enddo
 
-      gc0 = min(n_R_gc0  ,n_R1_gc0)
-      gc1 = min(n_R_gc1-1,n_R1_gc1)
+      gc0 = n_R1_gc0
+      gc1 = n_R1_gc1
 
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
@@ -418,8 +418,8 @@ c
 c
 c     Compute the cubic upwind interpolation of quantity at each zone face.
 c
-      gc0 = min(n_R_gc0-1,n_R0_gc0)
-      gc1 = min(n_R_gc1  ,n_R0_gc1)
+      gc0 = n_R0_gc0
+      gc1 = n_R0_gc1
 
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
@@ -451,8 +451,8 @@ c
          enddo
       enddo
 
-      gc0 = min(n_R_gc0  ,n_R1_gc0)
-      gc1 = min(n_R_gc1-1,n_R1_gc1)
+      gc0 = n_R1_gc0
+      gc1 = n_R1_gc1
 
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1

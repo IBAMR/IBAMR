@@ -820,12 +820,10 @@ namespace IBAMR
 
 namespace
 {
-// NOTE: The number of ghost cells required by the Godunov advection scheme
-// depends on the order of the reconstruction.  These values were chosen to work
-// with xsPPM7 (the modified piecewise parabolic method of Rider, Greenough, and
-// Kamm).
-static const int GADVECTG = 4;
-static const int GRHOINTERPG = 4;
+// NOTE: The number of ghost cells required by the convection scheme depends on the chosen
+// convective limiter, which will be set via input file
+static const int GUPWINDG = 2;
+static const int GCUBISG = 2;
 static const int NOGHOSTS = 0;
 
 // Timers.
@@ -857,7 +855,9 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_rho_interp_var(NULL),
       d_rho_interp_current_idx(-1),
       d_rho_interp_scratch_idx(-1),
-      d_rho_interp_new_idx(-1)
+      d_rho_interp_new_idx(-1),
+      d_vc_convective_limiter(VC_UPWIND),
+      d_limiter_gcw(1)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -871,6 +871,26 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->keyExists("vc_convective_limiter"))
+        { 
+            d_vc_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
+        }
+    }
+
+    switch (d_vc_convective_limiter)
+    {
+    case VC_UPWIND:
+        d_limiter_gcw = GUPWINDG;
+        break;
+    case VC_CUBIS:
+        d_limiter_gcw = GCUBISG;
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
+                                 << "  unsupported convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_convective_limiter)
+                                 << " \n"
+                                 << "  valid choices are: VC_UPWIND, VC_CUBIS\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -885,7 +905,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     else
     {
         d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(d_limiter_gcw));
     }
 
 #if !defined(NDEBUG)
@@ -905,7 +925,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     {
         d_rho_interp_var = new SideVariable<NDIM, double>(rho_interp_name);
         d_rho_interp_scratch_idx = var_db->registerVariableAndContext(
-            d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(GRHOINTERPG));
+            d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(d_limiter_gcw));
         d_rho_interp_new_idx = var_db->registerVariableAndContext(
             d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
@@ -1064,144 +1084,153 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                           U_adv_data[1]->getPointer(0),
                                           U_adv_data[1]->getPointer(1));
 
-#if 0
-            // Upwind side-centered densities onto faces.
-            VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
-                                                patch_upper(0),
-                                                patch_lower(1),
-                                                patch_upper(1),
-                                                R_data->getGhostCellWidth()(0),
-                                                R_data->getGhostCellWidth()(1),
-                                                R_data->getPointer(0),
-                                                R_data->getPointer(1),
-                                                side_boxes[0].lower(0),
-                                                side_boxes[0].upper(0),
-                                                side_boxes[0].lower(1),
-                                                side_boxes[0].upper(1),
-                                                U_adv_data[0]->getGhostCellWidth()(0),
-                                                U_adv_data[0]->getGhostCellWidth()(1),
-                                                U_adv_data[0]->getPointer(0),
-                                                U_adv_data[0]->getPointer(1),
-                                                R_half_data[0]->getGhostCellWidth()(0),
-                                                R_half_data[0]->getGhostCellWidth()(1),
-                                                R_half_data[0]->getPointer(0),
-                                                R_half_data[0]->getPointer(1),
-                                                side_boxes[1].lower(0),
-                                                side_boxes[1].upper(0),
-                                                side_boxes[1].lower(1),
-                                                side_boxes[1].upper(1),
-                                                U_adv_data[1]->getGhostCellWidth()(0),
-                                                U_adv_data[1]->getGhostCellWidth()(1),
-                                                U_adv_data[1]->getPointer(0),
-                                                U_adv_data[1]->getPointer(1),
-                                                R_half_data[1]->getGhostCellWidth()(0),
-                                                R_half_data[1]->getGhostCellWidth()(1),
-                                                R_half_data[1]->getPointer(0),
-                                                R_half_data[1]->getPointer(1));
+            switch (d_vc_convective_limiter)
+            {
+            case VC_UPWIND:
+                // Upwind side-centered densities onto faces.
+                VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
+                                                    patch_upper(0),
+                                                    patch_lower(1),
+                                                    patch_upper(1),
+                                                    R_data->getGhostCellWidth()(0),
+                                                    R_data->getGhostCellWidth()(1),
+                                                    R_data->getPointer(0),
+                                                    R_data->getPointer(1),
+                                                    side_boxes[0].lower(0),
+                                                    side_boxes[0].upper(0),
+                                                    side_boxes[0].lower(1),
+                                                    side_boxes[0].upper(1),
+                                                    U_adv_data[0]->getGhostCellWidth()(0),
+                                                    U_adv_data[0]->getGhostCellWidth()(1),
+                                                    U_adv_data[0]->getPointer(0),
+                                                    U_adv_data[0]->getPointer(1),
+                                                    R_half_data[0]->getGhostCellWidth()(0),
+                                                    R_half_data[0]->getGhostCellWidth()(1),
+                                                    R_half_data[0]->getPointer(0),
+                                                    R_half_data[0]->getPointer(1),
+                                                    side_boxes[1].lower(0),
+                                                    side_boxes[1].upper(0),
+                                                    side_boxes[1].lower(1),
+                                                    side_boxes[1].upper(1),
+                                                    U_adv_data[1]->getGhostCellWidth()(0),
+                                                    U_adv_data[1]->getGhostCellWidth()(1),
+                                                    U_adv_data[1]->getPointer(0),
+                                                    U_adv_data[1]->getPointer(1),
+                                                    R_half_data[1]->getGhostCellWidth()(0),
+                                                    R_half_data[1]->getGhostCellWidth()(1),
+                                                    R_half_data[1]->getPointer(0),
+                                                    R_half_data[1]->getPointer(1));
 
-            // Upwind side-centered velocities onto faces.
-            VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
-                                                patch_upper(0),
-                                                patch_lower(1),
-                                                patch_upper(1),
-                                                U_data->getGhostCellWidth()(0),
-                                                U_data->getGhostCellWidth()(1),
-                                                U_data->getPointer(0),
-                                                U_data->getPointer(1),
-                                                side_boxes[0].lower(0),
-                                                side_boxes[0].upper(0),
-                                                side_boxes[0].lower(1),
-                                                side_boxes[0].upper(1),
-                                                U_adv_data[0]->getGhostCellWidth()(0),
-                                                U_adv_data[0]->getGhostCellWidth()(1),
-                                                U_adv_data[0]->getPointer(0),
-                                                U_adv_data[0]->getPointer(1),
-                                                U_half_data[0]->getGhostCellWidth()(0),
-                                                U_half_data[0]->getGhostCellWidth()(1),
-                                                U_half_data[0]->getPointer(0),
-                                                U_half_data[0]->getPointer(1),
-                                                side_boxes[1].lower(0),
-                                                side_boxes[1].upper(0),
-                                                side_boxes[1].lower(1),
-                                                side_boxes[1].upper(1),
-                                                U_adv_data[1]->getGhostCellWidth()(0),
-                                                U_adv_data[1]->getGhostCellWidth()(1),
-                                                U_adv_data[1]->getPointer(0),
-                                                U_adv_data[1]->getPointer(1),
-                                                U_half_data[1]->getGhostCellWidth()(0),
-                                                U_half_data[1]->getGhostCellWidth()(1),
-                                                U_half_data[1]->getPointer(0),
-                                                U_half_data[1]->getPointer(1));
-#endif
-#if 1
-            // Upwind side-centered densities onto faces.
-            VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
-                                             patch_upper(0),
-                                             patch_lower(1),
-                                             patch_upper(1),
-                                             R_data->getGhostCellWidth()(0),
-                                             R_data->getGhostCellWidth()(1),
-                                             R_data->getPointer(0),
-                                             R_data->getPointer(1),
-                                             side_boxes[0].lower(0),
-                                             side_boxes[0].upper(0),
-                                             side_boxes[0].lower(1),
-                                             side_boxes[0].upper(1),
-                                             U_adv_data[0]->getGhostCellWidth()(0),
-                                             U_adv_data[0]->getGhostCellWidth()(1),
-                                             U_adv_data[0]->getPointer(0),
-                                             U_adv_data[0]->getPointer(1),
-                                             R_half_data[0]->getGhostCellWidth()(0),
-                                             R_half_data[0]->getGhostCellWidth()(1),
-                                             R_half_data[0]->getPointer(0),
-                                             R_half_data[0]->getPointer(1),
-                                             side_boxes[1].lower(0),
-                                             side_boxes[1].upper(0),
-                                             side_boxes[1].lower(1),
-                                             side_boxes[1].upper(1),
-                                             U_adv_data[1]->getGhostCellWidth()(0),
-                                             U_adv_data[1]->getGhostCellWidth()(1),
-                                             U_adv_data[1]->getPointer(0),
-                                             U_adv_data[1]->getPointer(1),
-                                             R_half_data[1]->getGhostCellWidth()(0),
-                                             R_half_data[1]->getGhostCellWidth()(1),
-                                             R_half_data[1]->getPointer(0),
-                                             R_half_data[1]->getPointer(1));
+                // Upwind side-centered velocities onto faces.
+                VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
+                                                    patch_upper(0),
+                                                    patch_lower(1),
+                                                    patch_upper(1),
+                                                    U_data->getGhostCellWidth()(0),
+                                                    U_data->getGhostCellWidth()(1),
+                                                    U_data->getPointer(0),
+                                                    U_data->getPointer(1),
+                                                    side_boxes[0].lower(0),
+                                                    side_boxes[0].upper(0),
+                                                    side_boxes[0].lower(1),
+                                                    side_boxes[0].upper(1),
+                                                    U_adv_data[0]->getGhostCellWidth()(0),
+                                                    U_adv_data[0]->getGhostCellWidth()(1),
+                                                    U_adv_data[0]->getPointer(0),
+                                                    U_adv_data[0]->getPointer(1),
+                                                    U_half_data[0]->getGhostCellWidth()(0),
+                                                    U_half_data[0]->getGhostCellWidth()(1),
+                                                    U_half_data[0]->getPointer(0),
+                                                    U_half_data[0]->getPointer(1),
+                                                    side_boxes[1].lower(0),
+                                                    side_boxes[1].upper(0),
+                                                    side_boxes[1].lower(1),
+                                                    side_boxes[1].upper(1),
+                                                    U_adv_data[1]->getGhostCellWidth()(0),
+                                                    U_adv_data[1]->getGhostCellWidth()(1),
+                                                    U_adv_data[1]->getPointer(0),
+                                                    U_adv_data[1]->getPointer(1),
+                                                    U_half_data[1]->getGhostCellWidth()(0),
+                                                    U_half_data[1]->getGhostCellWidth()(1),
+                                                    U_half_data[1]->getPointer(0),
+                                                    U_half_data[1]->getPointer(1));
+                break;
+            case VC_CUBIS:
+                // Upwind side-centered densities onto faces.
+                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
+                                                 patch_upper(0),
+                                                 patch_lower(1),
+                                                 patch_upper(1),
+                                                 R_data->getGhostCellWidth()(0),
+                                                 R_data->getGhostCellWidth()(1),
+                                                 R_data->getPointer(0),
+                                                 R_data->getPointer(1),
+                                                 side_boxes[0].lower(0),
+                                                 side_boxes[0].upper(0),
+                                                 side_boxes[0].lower(1),
+                                                 side_boxes[0].upper(1),
+                                                 U_adv_data[0]->getGhostCellWidth()(0),
+                                                 U_adv_data[0]->getGhostCellWidth()(1),
+                                                 U_adv_data[0]->getPointer(0),
+                                                 U_adv_data[0]->getPointer(1),
+                                                 R_half_data[0]->getGhostCellWidth()(0),
+                                                 R_half_data[0]->getGhostCellWidth()(1),
+                                                 R_half_data[0]->getPointer(0),
+                                                 R_half_data[0]->getPointer(1),
+                                                 side_boxes[1].lower(0),
+                                                 side_boxes[1].upper(0),
+                                                 side_boxes[1].lower(1),
+                                                 side_boxes[1].upper(1),
+                                                 U_adv_data[1]->getGhostCellWidth()(0),
+                                                 U_adv_data[1]->getGhostCellWidth()(1),
+                                                 U_adv_data[1]->getPointer(0),
+                                                 U_adv_data[1]->getPointer(1),
+                                                 R_half_data[1]->getGhostCellWidth()(0),
+                                                 R_half_data[1]->getGhostCellWidth()(1),
+                                                 R_half_data[1]->getPointer(0),
+                                                 R_half_data[1]->getPointer(1));
 
-            // Upwind side-centered velocities onto faces.
-            VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
-                                             patch_upper(0),
-                                             patch_lower(1),
-                                             patch_upper(1),
-                                             U_data->getGhostCellWidth()(0),
-                                             U_data->getGhostCellWidth()(1),
-                                             U_data->getPointer(0),
-                                             U_data->getPointer(1),
-                                             side_boxes[0].lower(0),
-                                             side_boxes[0].upper(0),
-                                             side_boxes[0].lower(1),
-                                             side_boxes[0].upper(1),
-                                             U_adv_data[0]->getGhostCellWidth()(0),
-                                             U_adv_data[0]->getGhostCellWidth()(1),
-                                             U_adv_data[0]->getPointer(0),
-                                             U_adv_data[0]->getPointer(1),
-                                             U_half_data[0]->getGhostCellWidth()(0),
-                                             U_half_data[0]->getGhostCellWidth()(1),
-                                             U_half_data[0]->getPointer(0),
-                                             U_half_data[0]->getPointer(1),
-                                             side_boxes[1].lower(0),
-                                             side_boxes[1].upper(0),
-                                             side_boxes[1].lower(1),
-                                             side_boxes[1].upper(1),
-                                             U_adv_data[1]->getGhostCellWidth()(0),
-                                             U_adv_data[1]->getGhostCellWidth()(1),
-                                             U_adv_data[1]->getPointer(0),
-                                             U_adv_data[1]->getPointer(1),
-                                             U_half_data[1]->getGhostCellWidth()(0),
-                                             U_half_data[1]->getGhostCellWidth()(1),
-                                             U_half_data[1]->getPointer(0),
-                                             U_half_data[1]->getPointer(1));
-#endif
+                // Upwind side-centered velocities onto faces.
+                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
+                                                 patch_upper(0),
+                                                 patch_lower(1),
+                                                 patch_upper(1),
+                                                 U_data->getGhostCellWidth()(0),
+                                                 U_data->getGhostCellWidth()(1),
+                                                 U_data->getPointer(0),
+                                                 U_data->getPointer(1),
+                                                 side_boxes[0].lower(0),
+                                                 side_boxes[0].upper(0),
+                                                 side_boxes[0].lower(1),
+                                                 side_boxes[0].upper(1),
+                                                 U_adv_data[0]->getGhostCellWidth()(0),
+                                                 U_adv_data[0]->getGhostCellWidth()(1),
+                                                 U_adv_data[0]->getPointer(0),
+                                                 U_adv_data[0]->getPointer(1),
+                                                 U_half_data[0]->getGhostCellWidth()(0),
+                                                 U_half_data[0]->getGhostCellWidth()(1),
+                                                 U_half_data[0]->getPointer(0),
+                                                 U_half_data[0]->getPointer(1),
+                                                 side_boxes[1].lower(0),
+                                                 side_boxes[1].upper(0),
+                                                 side_boxes[1].lower(1),
+                                                 side_boxes[1].upper(1),
+                                                 U_adv_data[1]->getGhostCellWidth()(0),
+                                                 U_adv_data[1]->getGhostCellWidth()(1),
+                                                 U_adv_data[1]->getPointer(0),
+                                                 U_adv_data[1]->getPointer(1),
+                                                 U_half_data[1]->getGhostCellWidth()(0),
+                                                 U_half_data[1]->getGhostCellWidth()(1),
+                                                 U_half_data[1]->getPointer(0),
+                                                 U_half_data[1]->getPointer(1));
+                break;
+             default:
+                    TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                                 << "  unsupported convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_convective_limiter)
+                                 << " \n"
+                                 << "  valid choices are: VC_UPWIND, VC_CUBIS\n");
+                }
 
             // Compute the upwinded "advection momentum" P_half = R_half * U_half
             VC_NAVIER_STOKES_COMPUTE_ADV_MOMENTUM_FC(side_boxes[0].lower(0),
