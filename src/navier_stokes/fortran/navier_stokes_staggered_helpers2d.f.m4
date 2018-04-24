@@ -258,7 +258,7 @@ c
       INTEGER i0,i1
       INTEGER gc0,gc1
 c
-c     Compute the upwinded density at each zone face.
+c     Compute the upwinded quantity at each zone face.
 c
       gc0 = min(n_R_gc0-1,n_R0_gc0)
       gc1 = min(n_R_gc1  ,n_R0_gc1)
@@ -302,6 +302,191 @@ c
 c
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Apply cubic interpolation upwinding to place the components of 
+c     side-centered quantity onto the faces of zones centered about the 
+c     components of the velocity field.
+c
+c     NOTES:
+c
+c     R0 and R1 are standard side-centered staggered grid quantities for
+c     the patch [(ifirst0,ilast0),(ifirst1,ilast1)].
+c
+c     V00 and V01 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     V10 and V11 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+c     R00 and R01 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     R10 and R11 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_navier_stokes_cui_quantity2d(
+     &     patch_ifirst0,patch_ilast0,
+     &     patch_ifirst1,patch_ilast1,
+     &     n_R_gc0,n_R_gc1,
+     &     R0,R1,
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
+     &     n_V0_gc0,n_V0_gc1,
+     &     V00,V01,
+     &     n_R0_gc0,n_R0_gc1,
+     &     R00,R01,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
+     &     n_V1_gc0,n_V1_gc1,
+     &     V10,V11,
+     &     n_R1_gc0,n_R1_gc1,
+     &     R10,R11)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER patch_ifirst0,patch_ilast0
+      INTEGER patch_ifirst1,patch_ilast1
+
+      INTEGER n_R_gc0,n_R_gc1
+
+      INTEGER side0_ifirst0,side0_ilast0
+      INTEGER side0_ifirst1,side0_ilast1
+
+      INTEGER n_V0_gc0,n_V0_gc1
+      INTEGER n_R0_gc0,n_R0_gc1
+
+      INTEGER side1_ifirst0,side1_ilast0
+      INTEGER side1_ifirst1,side1_ilast1
+
+      INTEGER n_V1_gc0,n_V1_gc1
+      INTEGER n_R1_gc0,n_R1_gc1
+
+      REAL R0(
+     &     SIDE2d0VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL R1(
+     &     SIDE2d1VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL V00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
+      REAL V11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
+c
+c     Input/Output.
+c
+      REAL R00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+      REAL R11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gc0,gc1
+      REAL RU,RUU,RD,r,gamma
+c
+c     Compute the cubic upwind interpolation of quantity at each zone face.
+c
+      gc0 = min(n_R_gc0-1,n_R0_gc0)
+      gc1 = min(n_R_gc1  ,n_R0_gc1)
+
+      do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
+         do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
+            if (V00(i0,i1) .ge. 0.d0) then
+              RU  = R0(i0-1,i1)
+              RUU = R0(i0-2,i1)
+              RD  = R0(i0,i1)
+            else
+              RU  = R0(i0,i1)
+              RUU = R0(i0+1,i1)
+              RD  = R0(i0-1,i1)
+            endif
+            r = (RD - RU)/(RU - RUU)
+            gamma = max(zero, min(two*r, twothird*r+third, four))
+            R00(i0,i1) = RU + gamma * (RU - RUU)/two
+
+            if (V01(i1,i0) .ge. 0.d0) then
+              RU  = R0(i0,i1-1)
+              RUU = R0(i0,i1-2)
+              RD  = R0(i0,i1)
+            else
+              RU  = R0(i0,i1)
+              RUU = R0(i0,i1+1)
+              RD  = R0(i0,i1-1)
+            endif
+            r = (RD - RU)/(RU - RUU)
+            gamma = max(zero, min(two*r, twothird*r+third, four))
+            R01(i1,i0) = RU + gamma * (RU - RUU)/two
+         enddo
+      enddo
+
+      gc0 = min(n_R_gc0  ,n_R1_gc0)
+      gc1 = min(n_R_gc1-1,n_R1_gc1)
+
+      do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
+         do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
+            if (V10(i0,i1) .ge. 0.d0) then
+              RU  = R1(i0-1,i1)
+              RUU = R1(i0-2,i1)
+              RD  = R1(i0,i1)
+            else
+              RU  = R1(i0,i1)
+              RUU = R1(i0+1,i1)
+              RD  = R1(i0-1,i1)
+            endif
+            r = (RD - RU)/(RU - RUU)
+            gamma = max(zero, min(two*r, twothird*r+third, four))
+            R10(i0,i1) = RU + gamma * (RU - RUU)/two
+
+            if (V11(i1,i0) .ge. 0.d0) then
+              RU  = R1(i0,i1-1)
+              RUU = R1(i0,i1-2)
+              RD  = R1(i0,i1)
+            else
+              RU  = R1(i0,i1)
+              RUU = R1(i0,i1+1)
+              RD  = R1(i0,i1-1)
+            endif
+            r = (RD - RU)/(RU - RUU)
+            gamma = max(zero, min(two*r, twothird*r+third, four))
+            R11(i1,i0) = RU + gamma * (RU - RUU)/two
+         enddo
+      enddo
+c
+      return
+      end
+c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -628,6 +813,8 @@ c
       subroutine vc_update_density2d(
      &     dx,dt,
      &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nugc0,nugc1,
+     &     u0,u1,
      &     npgc0,npgc1,
      &     p0,p1,
      &     nRgc0,nRgc1,
@@ -641,12 +828,15 @@ c     Input.
 c
       INTEGER ifirst0,ilast0,ifirst1,ilast1
 
+      INTEGER nugc0,nugc1
       INTEGER npgc0,npgc1
       INTEGER nRgc0,nRgc1
       INTEGER nNgc0,nNgc1
 
       REAL dx(0:NDIM-1),dt
 
+      REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
       REAL p0(FACE2d0VECG(ifirst,ilast,npgc))
       REAL p1(FACE2d1VECG(ifirst,ilast,npgc))
       REAL R(CELL2dVECG(ifirst,ilast,nRgc))
@@ -664,21 +854,22 @@ c     Compute R^n - dt * div[R^{n+1/2} U].
 c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0,ilast0
-            Px0 = (p0(ic0+1,ic1)-p0(ic0,ic1))/dx(0)
+            Px0 = (p0(ic0+1,ic1)*u0(ic0+1,ic1) -
+     &             p0(ic0,ic1)*u0(ic0,ic1))/dx(0)
             N(ic0,ic1) = R(ic0,ic1) - dt * Px0
          enddo
       enddo
 
       do ic0 = ifirst0,ilast0
          do ic1 = ifirst1,ilast1
-            Px1 = (p1(ic1+1,ic0)-p1(ic1,ic0))/dx(1)
+            Px1 = (p1(ic1+1,ic0)*u1(ic1+1,ic0) -
+     &             p1(ic1,ic0)*u1(ic1,ic0))/dx(1)
             N(ic0,ic1) = N(ic0,ic1) - dt * Px1
          enddo
       enddo
 c
       return
       end
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
