@@ -414,7 +414,7 @@ c     Local variables.
 c
       INTEGER i0,i1
       INTEGER gc0,gc1
-      REAL RC,RU,RD,r,gamma
+      REAL RC,RU,RD
       REAL af,ac
 c
 c     Compute the cubic upwind interpolation of quantity at each zone face.
@@ -433,12 +433,12 @@ c
               RU  = R0(i0+1,i1)
               RD  = R0(i0-1,i1)
             endif
-            if (RC - RU .eq. zero) then
-              ac = zero
-            else
-              ac = (RC - RU)/(RD - RU)
-            endif
-            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+
+            ac = (RC - RU)/(RD - RU)
+            if (RD - RU .eq. zero) then
+c              ac will be NaN, but Rf = RU, so af can be any number
+               af = zero
+            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
               af = three*ac
             else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
               af = ac*5.d0/6.d0 + third
@@ -447,6 +447,7 @@ c
             else
               af = ac
             endif
+
             R00(i0,i1) = af*(RD - RU) + RU
 
             if (V01(i1,i0) .ge. 0.d0) then
@@ -458,12 +459,12 @@ c
               RU  = R0(i0,i1+1)
               RD  = R0(i0,i1-1)
             endif
-            if (RC - RU .eq. zero) then
-              ac = zero
-            else
-              ac = (RC - RU)/(RD - RU)
-            endif
-            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+
+            ac = (RC - RU)/(RD - RU)
+            if (RD - RU .eq. zero) then
+c              ac will be NaN, but Rf = RU, so af can be any number
+               af = zero
+            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
               af = three*ac
             else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
               af = ac*5.d0/6.d0 + third
@@ -472,6 +473,7 @@ c
             else
               af = ac
             endif
+
             R01(i1,i0) = af*(RD - RU) + RU
          enddo
       enddo
@@ -490,12 +492,12 @@ c
               RU  = R1(i0+1,i1)
               RD  = R1(i0-1,i1)
             endif
-            if (RC - RU .eq. zero) then
-              ac = zero
-            else
-              ac = (RC - RU)/(RD - RU)
-            endif
-            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+
+            ac = (RC - RU)/(RD - RU)
+            if (RD - RU .eq. zero) then
+c              ac will be NaN, but Rf = RU, so af can be any number
+               af = zero
+            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
               af = three*ac
             else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
               af = ac*5.d0/6.d0 + third
@@ -504,6 +506,7 @@ c
             else
               af = ac
             endif
+
             R10(i0,i1) = af*(RD - RU) + RU
 
             if (V11(i1,i0) .ge. 0.d0) then
@@ -515,12 +518,12 @@ c
               RU  = R1(i0,i1+1)
               RD  = R1(i0,i1-1)
             endif
-            if (RC - RU .eq. zero) then
-              ac = zero
-            else
-              ac = (RC - RU)/(RD - RU)
-            endif
-            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+
+            ac = (RC - RU)/(RD - RU)
+            if (RD - RU .eq. zero) then
+c              ac will be NaN, but Rf = RU, so af can be any number
+               af = zero
+            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
               af = three*ac
             else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
               af = ac*5.d0/6.d0 + third
@@ -529,6 +532,7 @@ c
             else
               af = ac
             endif
+
             R11(i1,i0) = af*(RD - RU) + RU
          enddo
       enddo
