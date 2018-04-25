@@ -336,7 +336,7 @@ c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vc_navier_stokes_cui_quantity2d(
+       subroutine vc_navier_stokes_cui_quantity2d(
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     n_R_gc0,n_R_gc1,
@@ -414,7 +414,8 @@ c     Local variables.
 c
       INTEGER i0,i1
       INTEGER gc0,gc1
-      REAL RU,RUU,RD,r,gamma
+      REAL RC,RU,RD,r,gamma
+      REAL af,ac
 c
 c     Compute the cubic upwind interpolation of quantity at each zone face.
 c
@@ -424,30 +425,54 @@ c
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
             if (V00(i0,i1) .ge. 0.d0) then
-              RU  = R0(i0-1,i1)
-              RUU = R0(i0-2,i1)
+              RC  = R0(i0-1,i1)
+              RU  = R0(i0-2,i1)
               RD  = R0(i0,i1)
             else
-              RU  = R0(i0,i1)
-              RUU = R0(i0+1,i1)
+              RC  = R0(i0,i1)
+              RU  = R0(i0+1,i1)
               RD  = R0(i0-1,i1)
             endif
-            r = (RD - RU)/(RU - RUU)
-            gamma = max(zero, min(two*r, twothird*r+third, four))
-            R00(i0,i1) = RU + gamma * (RU - RUU)/two
+            if (RC - RU .eq. zero) then
+              ac = zero
+            else
+              ac = (RC - RU)/(RD - RU)
+            endif
+            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+              af = three*ac
+            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+              af = ac*5.d0/6.d0 + third
+            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+              af = one
+            else
+              af = ac
+            endif
+            R00(i0,i1) = af*(RD - RU) + RU
 
             if (V01(i1,i0) .ge. 0.d0) then
-              RU  = R0(i0,i1-1)
-              RUU = R0(i0,i1-2)
+              RC  = R0(i0,i1-1)
+              RU  = R0(i0,i1-2)
               RD  = R0(i0,i1)
             else
-              RU  = R0(i0,i1)
-              RUU = R0(i0,i1+1)
+              RC  = R0(i0,i1)
+              RU  = R0(i0,i1+1)
               RD  = R0(i0,i1-1)
             endif
-            r = (RD - RU)/(RU - RUU)
-            gamma = max(zero, min(two*r, twothird*r+third, four))
-            R01(i1,i0) = RU + gamma * (RU - RUU)/two
+            if (RC - RU .eq. zero) then
+              ac = zero
+            else
+              ac = (RC - RU)/(RD - RU)
+            endif
+            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+              af = three*ac
+            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+              af = ac*5.d0/6.d0 + third
+            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+              af = one
+            else
+              af = ac
+            endif
+            R01(i1,i0) = af*(RD - RU) + RU
          enddo
       enddo
 
@@ -457,30 +482,54 @@ c
       do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
             if (V10(i0,i1) .ge. 0.d0) then
-              RU  = R1(i0-1,i1)
-              RUU = R1(i0-2,i1)
+              RC  = R1(i0-1,i1)
+              RU  = R1(i0-2,i1)
               RD  = R1(i0,i1)
             else
-              RU  = R1(i0,i1)
-              RUU = R1(i0+1,i1)
+              RC  = R1(i0,i1)
+              RU  = R1(i0+1,i1)
               RD  = R1(i0-1,i1)
             endif
-            r = (RD - RU)/(RU - RUU)
-            gamma = max(zero, min(two*r, twothird*r+third, four))
-            R10(i0,i1) = RU + gamma * (RU - RUU)/two
+            if (RC - RU .eq. zero) then
+              ac = zero
+            else
+              ac = (RC - RU)/(RD - RU)
+            endif
+            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+              af = three*ac
+            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+              af = ac*5.d0/6.d0 + third
+            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+              af = one
+            else
+              af = ac
+            endif
+            R10(i0,i1) = af*(RD - RU) + RU
 
             if (V11(i1,i0) .ge. 0.d0) then
-              RU  = R1(i0,i1-1)
-              RUU = R1(i0,i1-2)
+              RC  = R1(i0,i1-1)
+              RU  = R1(i0,i1-2)
               RD  = R1(i0,i1)
             else
-              RU  = R1(i0,i1)
-              RUU = R1(i0,i1+1)
+              RC  = R1(i0,i1)
+              RU  = R1(i0,i1+1)
               RD  = R1(i0,i1-1)
             endif
-            r = (RD - RU)/(RU - RUU)
-            gamma = max(zero, min(two*r, twothird*r+third, four))
-            R11(i1,i0) = RU + gamma * (RU - RUU)/two
+            if (RC - RU .eq. zero) then
+              ac = zero
+            else
+              ac = (RC - RU)/(RD - RU)
+            endif
+            if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+              af = three*ac
+            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+              af = ac*5.d0/6.d0 + third
+            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+              af = one
+            else
+              af = ac
+            endif
+            R11(i1,i0) = af*(RD - RU) + RU
          enddo
       enddo
 c
