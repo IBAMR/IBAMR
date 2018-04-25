@@ -336,7 +336,7 @@ c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-       subroutine vc_navier_stokes_cui_quantity2d(
+       subroutine vc_navier_stokes_cuibs_quantity2d(
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     n_R_gc0,n_R_gc1,

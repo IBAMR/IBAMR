@@ -135,7 +135,7 @@ enum_to_string<VCDiscretizationForm>(VCDiscretizationForm val)
 enum VCConvectiveLimiter
 {
     VC_UPWIND,
-    VC_CUBIS,
+    VC_CUIBS,
     UNKNOWN_CONVECTIVE_LIMITER = -1
 };
 
@@ -144,7 +144,7 @@ inline VCConvectiveLimiter
 string_to_enum<VCConvectiveLimiter>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "VC_UPWIND") == 0) return VC_UPWIND;
-    if (strcasecmp(val.c_str(), "VC_CUBIS") == 0) return VC_CUBIS;
+    if (strcasecmp(val.c_str(), "VC_CUIBS") == 0) return VC_CUIBS;
     return UNKNOWN_CONVECTIVE_LIMITER;
 } // string_to_enum
 
@@ -153,7 +153,7 @@ inline std::string
 enum_to_string<VCConvectiveLimiter>(VCConvectiveLimiter val)
 {
     if (val == VC_UPWIND) return "VC_UPWIND";
-    if (val == VC_CUBIS) return "VC_CUBIS";
+    if (val == VC_CUIBS) return "VC_CUIBS";
     return "UNKNOWN_CONVECTIVE_LIMITER";
 } // enum_to_string
 
