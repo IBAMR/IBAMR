@@ -337,6 +337,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
        subroutine vc_navier_stokes_cuibs_quantity2d(
+     &     dx,
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     n_R_gc0,n_R_gc1,
@@ -394,6 +395,8 @@ c
       REAL V11(
      &     FACE2d1VECG(side1_ifirst,side1_ilast,n_V1_gc)
      &     )
+
+      REAL dx(0:NDIM-1)
 c
 c     Input/Output.
 c
@@ -415,10 +418,14 @@ c
       INTEGER i0,i1
       INTEGER gc0,gc1
       REAL RC,RU,RD
-      REAL af,ac
+      REAL Rf_HR,Rf_BD
+      REAL theta,gamma,Rx,Ry,nx,ny
+      REAL hx,hy
 c
 c     Compute the cubic upwind interpolation of quantity at each zone face.
 c
+      hx = dx(0)
+      hy = dx(1)
       gc0 = n_R0_gc0
       gc1 = n_R0_gc1
 
@@ -428,53 +435,63 @@ c
               RC  = R0(i0-1,i1)
               RU  = R0(i0-2,i1)
               RD  = R0(i0,i1)
+              nx  = one; ny = zero
             else
               RC  = R0(i0,i1)
               RU  = R0(i0+1,i1)
               RD  = R0(i0-1,i1)
+              nx  = -one; ny = zero
             endif
 
-            ac = (RC - RU)/(RD - RU)
-            if (RD - RU .eq. zero) then
-c              ac will be NaN, but Rf = RU, so af can be any number
-               af = zero
-            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-              af = three*ac
-            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-              af = ac*5.d0/6.d0 + third
-            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-              af = one
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
+
+c           Compressive scheme (BD)
+            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
+
+c           Compute the blending factor and the final interpolation
+            Rx = (R0(i0,i1) - R0(i0-1,i1))/hx
+            Ry = fourth*(R0(i0-1,i1+1)+R0(i0,i1+1)
+     &                   -R0(i0-1,i1-1)-R0(i0,i1-1))/hy
+            if (Rx .eq. zero .and. Ry .eq. zero) then
+              theta = zero
             else
-              af = ac
+              theta = acos( (Rx*nx+Ry*ny)/
+     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
             endif
-
-            R00(i0,i1) = af*(RD - RU) + RU
+            gamma = cos(theta)**4
+            R00(i0,i1) = Rf_BD * gamma + Rf_HR * (one - gamma)
 
             if (V01(i1,i0) .ge. 0.d0) then
               RC  = R0(i0,i1-1)
               RU  = R0(i0,i1-2)
               RD  = R0(i0,i1)
+              nx  = zero; ny = one
             else
               RC  = R0(i0,i1)
               RU  = R0(i0,i1+1)
               RD  = R0(i0,i1-1)
+              nx  = zero; ny = -one
             endif
 
-            ac = (RC - RU)/(RD - RU)
-            if (RD - RU .eq. zero) then
-c              ac will be NaN, but Rf = RU, so af can be any number
-               af = zero
-            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-              af = three*ac
-            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-              af = ac*5.d0/6.d0 + third
-            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-              af = one
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
+
+c           Compressive scheme (BD)
+            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
+            
+c           Compute the blending factor and the final interpolation
+            Rx = fourth*(R0(i0+1,i1)+R0(i0+1,i1-1)
+     &                   -R0(i0-1,i1)-R0(i0-1,i1-1))/hx
+            Ry = (R0(i0,i1) - R0(i0,i1-1))/hy
+            if (Rx .eq. zero .and. Ry .eq. zero) then
+              theta = zero
             else
-              af = ac
+              theta = acos( (Rx*nx+Ry*ny)/
+     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
             endif
-
-            R01(i1,i0) = af*(RD - RU) + RU
+            gamma = cos(theta)**4
+            R01(i1,i0) = Rf_BD * gamma + Rf_HR * (one - gamma)
          enddo
       enddo
 
@@ -487,56 +504,151 @@ c              ac will be NaN, but Rf = RU, so af can be any number
               RC  = R1(i0-1,i1)
               RU  = R1(i0-2,i1)
               RD  = R1(i0,i1)
+              nx  = one; ny = zero
             else
               RC  = R1(i0,i1)
               RU  = R1(i0+1,i1)
               RD  = R1(i0-1,i1)
+              nx  = -one; ny = zero
             endif
 
-            ac = (RC - RU)/(RD - RU)
-            if (RD - RU .eq. zero) then
-c              ac will be NaN, but Rf = RU, so af can be any number
-               af = zero
-            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-              af = three*ac
-            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-              af = ac*5.d0/6.d0 + third
-            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-              af = one
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
+
+c           Compressive scheme (BD)
+            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
+            
+c           Compute the blending factor and the final interpolation
+            Rx = (R1(i0,i1) - R1(i0-1,i1))/hx
+            Ry = fourth*(R1(i0-1,i1+1)+R1(i0,i1+1)
+     &                   -R1(i0-1,i1-1)-R1(i0,i1-1))/hy
+            if (Rx .eq. zero .and. Ry .eq. zero) then
+              theta = zero
             else
-              af = ac
+              theta = acos( (Rx*nx+Ry*ny)/
+     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
             endif
+            gamma = cos(theta)**4
 
-            R10(i0,i1) = af*(RD - RU) + RU
+            R10(i0,i1) = Rf_BD * gamma + Rf_HR * (one - gamma)
 
             if (V11(i1,i0) .ge. 0.d0) then
               RC  = R1(i0,i1-1)
               RU  = R1(i0,i1-2)
               RD  = R1(i0,i1)
+              nx  = zero; ny = one
             else
               RC  = R1(i0,i1)
               RU  = R1(i0,i1+1)
               RD  = R1(i0,i1-1)
+              nx  = zero; ny = -one
             endif
 
-            ac = (RC - RU)/(RD - RU)
-            if (RD - RU .eq. zero) then
-c              ac will be NaN, but Rf = RU, so af can be any number
-               af = zero
-            else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-              af = three*ac
-            else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-              af = ac*5.d0/6.d0 + third
-            else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-              af = one
+c           High-resolution scheme (HR)
+            call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
+
+c           Compressive scheme (BD)
+            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
+            
+c           Compute the blending factor and the final interpolation
+            Rx = fourth*(R1(i0+1,i1)+R1(i0+1,i1-1)
+     &                   -R1(i0-1,i1)-R1(i0-1,i1-1))/hx
+            Ry = (R1(i0,i1) - R1(i0,i1-1))/hy
+            if (Rx .eq. zero .and. Ry .eq. zero) then
+              theta = zero
             else
-              af = ac
+              theta = acos( (Rx*nx+Ry*ny)/
+     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
             endif
+            gamma = cos(theta)**4
 
-            R11(i1,i0) = af*(RD - RU) + RU
+            R11(i1,i0) = Rf_BD * gamma + Rf_HR * (one - gamma)
          enddo
       enddo
 c
+      return
+      end
+
+c
+c     Interpolate face values based on the CUI high resolution scheme
+c     qf will be set as some function of qU, dC, and qD
+c
+      subroutine interpolate_cui_hr_quantity2d(qU,qC,qD,qf)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      REAL qU,qC,qD
+c
+c     Input/Output.
+c
+      REAL qf
+
+c
+c     Local variables.
+c
+      REAL ac,af
+
+c     High-resolution scheme (HR)
+      ac = (qC - qU)/(qD - qU)
+
+      if (qD - qU .eq. zero) then
+c       ac will be NaN, but qf = qU, so af can be any number
+        af = zero
+      else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+        af = three*ac
+      else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+        af = ac*5.d0/6.d0 + third
+      else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+        af = one
+      else
+        af = ac
+      endif
+      qf = af*(qD - qU) + qU
+
+      return
+      end
+c
+c     Interpolate face values based on the CUI compressive scheme
+c     qf will be set as some function of qU, dC, and qD
+c
+      subroutine interpolate_cui_bd_quantity2d(qU,qC,qD,qf)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      REAL qU,qC,qD
+c
+c     Input/Output.
+c
+      REAL qf
+
+c
+c     Local variables.
+c
+      REAL ac,af
+
+c     High-resolution scheme (HR)
+      ac = (qC - qU)/(qD - qU)
+
+      if (qD - qU .eq. zero) then
+c       ac will be NaN, but qf = qU, so af can be any number
+        af = zero
+      else if (zero .lt. ac .and. ac .le. third) then
+        af = three*ac
+      else if (third .lt. ac .and. ac .le. one) then
+        af = one
+      else
+        af = ac
+      endif
+      qf = af*(qD - qU) + qU
+
       return
       end
 c

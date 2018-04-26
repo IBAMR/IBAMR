@@ -443,6 +443,7 @@ void VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(
     );
 
 void VC_NAVIER_STOKES_CUIBS_QUANTITY_FC(
+    const double*,
 #if (NDIM == 2)
     const int&,
     const int&,
@@ -823,7 +824,7 @@ namespace
 // NOTE: The number of ghost cells required by the convection scheme depends on the chosen
 // convective limiter, which will be set via input file
 static const int GUPWINDG = 2;
-static const int GCUIBSG = 2;
+static const int GCUIBSG = 3;
 static const int NOGHOSTS = 0;
 
 // Timers.
@@ -1157,7 +1158,8 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 break;
             case VC_CUIBS:
                 // Upwind side-centered densities onto faces.
-                VC_NAVIER_STOKES_CUIBS_QUANTITY_FC(patch_lower(0),
+                VC_NAVIER_STOKES_CUIBS_QUANTITY_FC(dx,
+                                                   patch_lower(0),
                                                    patch_upper(0),
                                                    patch_lower(1),
                                                    patch_upper(1),
@@ -1191,7 +1193,8 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                    R_half_data[1]->getPointer(1));
 
                 // Upwind side-centered velocities onto faces.
-                VC_NAVIER_STOKES_CUIBS_QUANTITY_FC(patch_lower(0),
+                VC_NAVIER_STOKES_CUIBS_QUANTITY_FC(dx,
+                                                   patch_lower(0),
                                                    patch_upper(0),
                                                    patch_lower(1),
                                                    patch_upper(1),
