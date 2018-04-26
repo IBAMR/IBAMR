@@ -337,7 +337,6 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
        subroutine vc_navier_stokes_cuibs_quantity2d(
-     &     dx,
      &     patch_ifirst0,patch_ilast0,
      &     patch_ifirst1,patch_ilast1,
      &     n_R_gc0,n_R_gc1,
@@ -396,7 +395,6 @@ c
      &     FACE2d1VECG(side1_ifirst,side1_ilast,n_V1_gc)
      &     )
 
-      REAL dx(0:NDIM-1)
 c
 c     Input/Output.
 c
@@ -418,14 +416,10 @@ c
       INTEGER i0,i1
       INTEGER gc0,gc1
       REAL RC,RU,RD
-      REAL Rf_HR,Rf_BD
-      REAL theta,gamma,Rx,Ry,nx,ny
-      REAL hx,hy
+      REAL Rf_HR
 c
 c     Compute the cubic upwind interpolation of quantity at each zone face.
 c
-      hx = dx(0)
-      hy = dx(1)
       gc0 = n_R0_gc0
       gc1 = n_R0_gc1
 
@@ -435,63 +429,29 @@ c
               RC  = R0(i0-1,i1)
               RU  = R0(i0-2,i1)
               RD  = R0(i0,i1)
-              nx  = one; ny = zero
             else
               RC  = R0(i0,i1)
               RU  = R0(i0+1,i1)
               RD  = R0(i0-1,i1)
-              nx  = -one; ny = zero
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-
-c           Compressive scheme (BD)
-            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
-
-c           Compute the blending factor and the final interpolation
-            Rx = (R0(i0,i1) - R0(i0-1,i1))/hx
-            Ry = fourth*(R0(i0-1,i1+1)+R0(i0,i1+1)
-     &                   -R0(i0-1,i1-1)-R0(i0,i1-1))/hy
-            if (Rx .eq. zero .and. Ry .eq. zero) then
-              theta = zero
-            else
-              theta = acos( (Rx*nx+Ry*ny)/
-     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
-            endif
-            gamma = cos(theta)**4
-            R00(i0,i1) = Rf_BD * gamma + Rf_HR * (one - gamma)
+            R00(i0,i1) = Rf_HR 
 
             if (V01(i1,i0) .ge. 0.d0) then
               RC  = R0(i0,i1-1)
               RU  = R0(i0,i1-2)
               RD  = R0(i0,i1)
-              nx  = zero; ny = one
             else
               RC  = R0(i0,i1)
               RU  = R0(i0,i1+1)
               RD  = R0(i0,i1-1)
-              nx  = zero; ny = -one
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-
-c           Compressive scheme (BD)
-            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
-            
-c           Compute the blending factor and the final interpolation
-            Rx = fourth*(R0(i0+1,i1)+R0(i0+1,i1-1)
-     &                   -R0(i0-1,i1)-R0(i0-1,i1-1))/hx
-            Ry = (R0(i0,i1) - R0(i0,i1-1))/hy
-            if (Rx .eq. zero .and. Ry .eq. zero) then
-              theta = zero
-            else
-              theta = acos( (Rx*nx+Ry*ny)/
-     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
-            endif
-            gamma = cos(theta)**4
-            R01(i1,i0) = Rf_BD * gamma + Rf_HR * (one - gamma)
+            R01(i1,i0) = Rf_HR
          enddo
       enddo
 
@@ -504,65 +464,29 @@ c           Compute the blending factor and the final interpolation
               RC  = R1(i0-1,i1)
               RU  = R1(i0-2,i1)
               RD  = R1(i0,i1)
-              nx  = one; ny = zero
             else
               RC  = R1(i0,i1)
               RU  = R1(i0+1,i1)
               RD  = R1(i0-1,i1)
-              nx  = -one; ny = zero
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-
-c           Compressive scheme (BD)
-            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
-            
-c           Compute the blending factor and the final interpolation
-            Rx = (R1(i0,i1) - R1(i0-1,i1))/hx
-            Ry = fourth*(R1(i0-1,i1+1)+R1(i0,i1+1)
-     &                   -R1(i0-1,i1-1)-R1(i0,i1-1))/hy
-            if (Rx .eq. zero .and. Ry .eq. zero) then
-              theta = zero
-            else
-              theta = acos( (Rx*nx+Ry*ny)/
-     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
-            endif
-            gamma = cos(theta)**4
-
-            R10(i0,i1) = Rf_BD * gamma + Rf_HR * (one - gamma)
+            R10(i0,i1) = Rf_HR 
 
             if (V11(i1,i0) .ge. 0.d0) then
               RC  = R1(i0,i1-1)
               RU  = R1(i0,i1-2)
               RD  = R1(i0,i1)
-              nx  = zero; ny = one
             else
               RC  = R1(i0,i1)
               RU  = R1(i0,i1+1)
               RD  = R1(i0,i1-1)
-              nx  = zero; ny = -one
             endif
 
 c           High-resolution scheme (HR)
             call interpolate_cui_hr_quantity2d(RU,RC,RD,Rf_HR)
-
-c           Compressive scheme (BD)
-            call interpolate_cui_bd_quantity2d(RU,RC,RD,Rf_BD)
-            
-c           Compute the blending factor and the final interpolation
-            Rx = fourth*(R1(i0+1,i1)+R1(i0+1,i1-1)
-     &                   -R1(i0-1,i1)-R1(i0-1,i1-1))/hx
-            Ry = (R1(i0,i1) - R1(i0,i1-1))/hy
-            if (Rx .eq. zero .and. Ry .eq. zero) then
-              theta = zero
-            else
-              theta = acos( (Rx*nx+Ry*ny)/
-     &                      (sqrt(Rx**2+Ry**2) * sqrt(nx**2+ny**2)) )
-            endif
-            gamma = cos(theta)**4
-
-            R11(i1,i0) = Rf_BD * gamma + Rf_HR * (one - gamma)
+            R11(i1,i0) = Rf_HR 
          enddo
       enddo
 c
@@ -858,30 +782,28 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Reset the face-centered advection momentum about the control
+c     Reset the face-centered momentum about the control
 c     volumes for each component of the velocity.
-c
-c     Note: this routine will use the simple averaged advection velocity to compute momentum
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine vc_navier_stokes_compute_adv_momentum2d(
      &     side0_ifirst0,side0_ilast0,
      &     side0_ifirst1,side0_ilast1,
-     &     n_P_adv0_gc0,n_P_adv0_gc1,
-     &     P_adv00,P_adv01,
-     &     n_R_adv0_gc0,n_R_adv0_gc1,
-     &     R_adv00,R_adv01,
-     &     n_U_adv0_gc0,n_U_adv0_gc1,
-     &     U_adv00,U_adv01,
+     &     n_P_half0_gc0,n_P_half0_gc1,
+     &     P_half00,P_half01,
+     &     n_R_half0_gc0,n_R_half0_gc1,
+     &     R_half00,R_half01,
+     &     n_U_half0_gc0,n_U_half0_gc1,
+     &     U_half00,U_half01,
      &     side1_ifirst0,side1_ilast0,
      &     side1_ifirst1,side1_ilast1,
-     &     n_P_adv1_gc0,n_P_adv1_gc1,
-     &     P_adv10,P_adv11,
-     &     n_R_adv1_gc0,n_R_adv1_gc1,
-     &     R_adv10,R_adv11,
-     &     n_U_adv1_gc0,n_U_adv1_gc1,
-     &     U_adv10,U_adv11)
+     &     n_P_half1_gc0,n_P_half1_gc1,
+     &     P_half10,P_half11,
+     &     n_R_half1_gc0,n_R_half1_gc1,
+     &     R_half10,R_half11,
+     &     n_U_half1_gc0,n_U_half1_gc1,
+     &     U_half10,U_half11)
 c
       implicit none
 c
@@ -890,56 +812,56 @@ c
       INTEGER side0_ifirst0,side0_ilast0
       INTEGER side0_ifirst1,side0_ilast1
 
-      INTEGER n_P_adv0_gc0,n_P_adv0_gc1
-      INTEGER n_R_adv0_gc0,n_R_adv0_gc1
-      INTEGER n_U_adv0_gc0,n_U_adv0_gc1
+      INTEGER n_P_half0_gc0,n_P_half0_gc1
+      INTEGER n_R_half0_gc0,n_R_half0_gc1
+      INTEGER n_U_half0_gc0,n_U_half0_gc1
 
       INTEGER side1_ifirst0,side1_ilast0
       INTEGER side1_ifirst1,side1_ilast1
 
-      INTEGER n_P_adv1_gc0,n_P_adv1_gc1
-      INTEGER n_R_adv1_gc0,n_R_adv1_gc1
-      INTEGER n_U_adv1_gc0,n_U_adv1_gc1
+      INTEGER n_P_half1_gc0,n_P_half1_gc1
+      INTEGER n_R_half1_gc0,n_R_half1_gc1
+      INTEGER n_U_half1_gc0,n_U_half1_gc1
 
-      REAL U_adv00(
-     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_U_adv0_gc)
+      REAL U_half00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_U_half0_gc)
      &     )
-      REAL U_adv01(
-     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_U_adv0_gc)
+      REAL U_half01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_U_half0_gc)
      &     )
-      REAL U_adv10(
-     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_U_adv1_gc)
+      REAL U_half10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_U_half1_gc)
      &     )
-      REAL U_adv11(
-     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_U_adv1_gc)
+      REAL U_half11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_U_half1_gc)
      &     )
 
-      REAL R_adv00(
-     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R_adv0_gc)
+      REAL R_half00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R_half0_gc)
      &     )
-      REAL R_adv01(
-     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R_adv0_gc)
+      REAL R_half01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R_half0_gc)
      &     )
-      REAL R_adv10(
-     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R_adv1_gc)
+      REAL R_half10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R_half1_gc)
      &     )
-      REAL R_adv11(
-     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R_adv1_gc)
+      REAL R_half11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R_half1_gc)
      &     )
 c
 c     Input/Output.
 c
-      REAL P_adv00(
-     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_P_adv0_gc)
+      REAL P_half00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_P_half0_gc)
      &     )
-      REAL P_adv01(
-     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_P_adv0_gc)
+      REAL P_half01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_P_half0_gc)
      &     )
-      REAL P_adv10(
-     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_P_adv1_gc)
+      REAL P_half10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_P_half1_gc)
      &     )
-      REAL P_adv11(
-     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_P_adv1_gc)
+      REAL P_half11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_P_half1_gc)
      &     )
 c
 c     Local variables.
@@ -947,22 +869,22 @@ c
       INTEGER i0,i1
       INTEGER gc0,gc1
 c
-c     Reset the advection momentum.
+c     Compute the momentum on the faces.
 c
-      gc0 = min(n_P_adv0_gc0,n_P_adv1_gc0,n_U_adv0_gc0,n_U_adv1_gc0)
-      gc1 = min(n_P_adv0_gc1,n_P_adv1_gc1,n_U_adv0_gc1,n_U_adv1_gc1)
+      gc0 = min(n_P_half0_gc0,n_P_half1_gc0,n_U_half0_gc0,n_U_half1_gc0)
+      gc1 = min(n_P_half0_gc1,n_P_half1_gc1,n_U_half0_gc1,n_U_half1_gc1)
 
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
-            P_adv00(i0,i1) = R_adv00(i0,i1)*U_adv00(i0,i1)
-            P_adv01(i1,i0) = R_adv01(i1,i0)*U_adv01(i1,i0)
+            P_half00(i0,i1) = R_half00(i0,i1)*U_half00(i0,i1)
+            P_half01(i1,i0) = R_half01(i1,i0)*U_half01(i1,i0)
          enddo
       enddo
 
       do    i1 = side1_ifirst1-gc1,side1_ilast1+gc1
          do i0 = side1_ifirst0-gc0,side1_ilast0+gc0
-            P_adv10(i0,i1) = R_adv10(i0,i1)*U_adv10(i0,i1)
-            P_adv11(i1,i0) = R_adv11(i1,i0)*U_adv11(i1,i0)
+            P_half10(i0,i1) = R_half10(i0,i1)*U_half10(i0,i1)
+            P_half11(i1,i0) = R_half11(i1,i0)*U_half11(i1,i0)
          enddo
       enddo
 c
