@@ -297,9 +297,8 @@ bool run_example(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
-        
-        ib_method_ops->initializeFEEquationSystems();
 
+        ib_method_ops->initializeFEEquationSystems();
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();

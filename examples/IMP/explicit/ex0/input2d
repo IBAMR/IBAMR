@@ -121,7 +121,7 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "VisIt","silo"
+   viz_writer                  = "VisIt",,"Silo"
    viz_dump_interval           = int(0.125/DT)
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
