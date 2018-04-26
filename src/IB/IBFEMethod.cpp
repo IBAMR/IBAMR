@@ -1279,7 +1279,7 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
             d_VMS_P_half_vecs[part]->close();    
             computeVMSStabilization(*d_VMS_RHS_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
-        
+
         if (Phi_solver.compare("CG_HEAT") == 0)
         {
             EquationSystems* equation_systems = d_equation_systems[part];
