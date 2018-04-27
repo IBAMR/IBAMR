@@ -14,7 +14,7 @@ Core %IBAMR functionality relies upon several high-quality open-source libraries
  * [libMesh](http://libmesh.sourceforge.net), a C++ finite element library
  * [*hypre*](http://computation.llnl.gov/casc/linear_solvers/sls_hypre.html), a library of high performance preconditioners that features parallel multigrid methods for both structured and unstructured grid problems.
 
-IBAMR also uses functionality provided by a number of additional third-party libraries, including: [Boost](http://www.boost.org); [Eigen](http://eigen.tuxfamily.org/index.php); [HDF5](http://www.hdfgroup.org/HDF5); [muParser](http://muparser.beltoforion.de); and [Silo](https://wci.llnl.gov/codes/silo).
+%IBAMR also uses functionality provided by a number of additional third-party libraries, including: [Boost](http://www.boost.org); [Eigen](http://eigen.tuxfamily.org/index.php); [HDF5](http://www.hdfgroup.org/HDF5); [muParser](http://muparser.beltoforion.de); and [Silo](https://wci.llnl.gov/codes/silo).
 
 %IBAMR outputs visualization files that can be read by the [VisIt Visualization Tool](https://wci.llnl.gov/codes/visit).
 
