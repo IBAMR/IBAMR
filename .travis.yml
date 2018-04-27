@@ -1,0 +1,31 @@
+# This will run on Travis' 'new' container-based infrastructure
+sudo: false
+
+# Blacklist
+branches:
+  only:
+    - raveenak96/test-travis
+
+# Environment variables
+env:
+  global:
+    - GH_REPO_NAME: IBAMR
+    - DOXYFILE: $TRAVIS_BUILD_DIR/doc/Doxyfile
+    - GH_REPO_REF: github.com/IBAMR/IBAMR.git
+    - DOCS_REPO_REF: github.com/IBAMR/IBAMR-Docs
+
+
+# Install dependencies
+addons:
+  apt:
+    packages:
+      - doxygen
+      - doxygen-doc
+      - doxygen-latex
+      - doxygen-gui
+      - graphviz
+      - zlib1g-dev
+
+# Build your code e.g. by calling make
+script:
+  - make -f $TRAVIS_BUILD_DIR/doc/Docs-Makefile docs-deploy
