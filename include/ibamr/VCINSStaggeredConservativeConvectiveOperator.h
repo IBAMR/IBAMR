@@ -245,7 +245,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_interp_var;
-    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx, d_P_scratch_idx;
+    int d_rho_interp_current_idx, d_rho_interp_scratch_idx, d_rho_interp_new_idx;
 
     // Hierarchy operation obect.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
