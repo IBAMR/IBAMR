@@ -1317,7 +1317,7 @@ c
 c
 c     Compute R^n - dt * div[R^{n+1/2} U].
 c
-      do ic2 = ifirst2,ifirst2
+      do ic2 = ifirst2,ilast2
         do ic1 = ifirst1,ilast1
           do ic0 = ifirst0,ilast0
               Px0 = (p0(ic0+1,ic1,ic2)*u0(ic0+1,ic1,ic2) -
