@@ -425,7 +425,7 @@ c
 
       gc0 = n_R1_gc0
       gc1 = n_R1_gc1
-      gc2 = n_R1_gc1
+      gc2 = n_R1_gc2
 
       do       i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do    i2 = side1_ifirst2-gc2,side1_ilast2+gc2
@@ -451,7 +451,7 @@ c
 
       gc0 = n_R2_gc0
       gc1 = n_R2_gc1
-      gc2 = n_R2_gc1
+      gc2 = n_R2_gc2
 
       do       i1 = side2_ifirst1-gc1,side2_ilast1+gc1
          do    i0 = side2_ifirst0-gc0,side2_ilast0+gc0
@@ -722,7 +722,7 @@ c              High-resolution scheme (HR)
 
       gc0 = n_R1_gc0
       gc1 = n_R1_gc1
-      gc2 = n_R1_gc1
+      gc2 = n_R1_gc2
 
       do       i0 = side1_ifirst0-gc0,side1_ilast0+gc0
          do    i2 = side1_ifirst2-gc2,side1_ilast2+gc2
@@ -774,7 +774,7 @@ c              High-resolution scheme (HR)
 
       gc0 = n_R2_gc0
       gc1 = n_R2_gc1
-      gc2 = n_R2_gc1
+      gc2 = n_R2_gc2
 
       do       i1 = side2_ifirst1-gc1,side2_ilast1+gc1
          do    i0 = side2_ifirst0-gc0,side2_ilast0+gc0
