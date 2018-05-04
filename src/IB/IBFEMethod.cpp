@@ -1423,7 +1423,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                 const libMesh::VectorValue<double>& N = normal_face[qp];
                 n = (FF_inv_trans * N).unit();
-                const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
+                const double dA_da = 1.0 / (J * (FF_inv_trans * N) * n);
 
                 // Here we build up the boundary value for Phi.
                 double Phi = 0.0;
@@ -1457,6 +1457,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                     fe.setInterpolatedDataPointers(
                         surface_force_var_data, surface_force_grad_var_data, surface_force_fcn_system_idxs, elem, qp);
                     d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                           n,
+                                                           N,
                                                            FF,
                                                            x,
                                                            X,
@@ -1481,6 +1483,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                                    elem,
                                                    qp);
                     d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                              n,
+                                                              N,
                                                               FF,
                                                               x,
                                                               X,
@@ -1879,7 +1883,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                 get_x_and_FF(x, FF, x_data, grad_x_data);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                n = (FF_inv_trans * normal_face[qp]).unit();
+                const libMesh::VectorValue<double>& N = normal_face[qp];
+                n = (FF_inv_trans * N).unit();
 
                 F.zero();
 
@@ -1895,6 +1900,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                                                    elem,
                                                    qp);
                     d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                              n,
+                                                              N,
                                                               FF,
                                                               x,
                                                               X,
@@ -1915,6 +1922,8 @@ IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                     fe.setInterpolatedDataPointers(
                         surface_force_var_data, surface_force_grad_var_data, surface_force_fcn_system_idxs, elem, qp);
                     d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                           n,
+                                                           N,
                                                            FF,
                                                            x,
                                                            X,
@@ -2116,7 +2125,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                    n = (FF_inv_trans * normal_face[qp]).unit();
+                    const libMesh::VectorValue<double>& N = normal_face[qp];
+                    n = (FF_inv_trans * N).unit();
 
                     F.zero();
 
@@ -2152,6 +2162,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                                        elem,
                                                        qp);
                         d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                                  n,
+                                                                  N,
                                                                   FF,
                                                                   x,
                                                                   X,
@@ -2174,6 +2186,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                                        elem,
                                                        qp);
                         d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                               n,
+                                                               N,
                                                                FF,
                                                                x,
                                                                X,
@@ -2457,8 +2471,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                    n = (FF_inv_trans * normal_face[qp]).unit();
-                    const double dA_da = 1.0 / (J * (FF_inv_trans * normal_face[qp]) * n);
+                    const libMesh::VectorValue<double>& N = normal_face[qp];
+                    n = (FF_inv_trans * N).unit();
+                    const double dA_da = 1.0 / (J * (FF_inv_trans * N) * n);
                     const std::vector<double>& G_data = fe_interp_var_data[qp][G_sys_idx];
                     std::copy(G_data.begin(), G_data.end(), &G(0));
 #if !defined(NDEBUG)
@@ -2521,6 +2536,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                        elem,
                                                        qp);
                         d_lag_surface_pressure_fcn_data[part].fcn(P,
+                                                                  n,
+                                                                  N,
                                                                   FF,
                                                                   x,
                                                                   X,
@@ -2543,6 +2560,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                                        elem,
                                                        qp);
                         d_lag_surface_force_fcn_data[part].fcn(F_s,
+                                                               n,
+                                                               N,
                                                                FF,
                                                                x,
                                                                X,

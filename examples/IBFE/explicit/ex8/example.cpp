@@ -86,6 +86,8 @@ block_tether_force_function(VectorValue<double>& F,
 static double beam_kappa_s = 1.0e6;
 void
 beam_tether_force_function(VectorValue<double>& F,
+                           const VectorValue<double>& /*n*/,
+                           const VectorValue<double>& /*N*/,
                            const TensorValue<double>& /*FF*/,
                            const libMesh::Point& X,
                            const libMesh::Point& s,
