@@ -89,6 +89,10 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity2d, VC_NAVIER_STOKES_UPWIND_QUANTITY2D)
 #define VC_NAVIER_STOKES_CUI_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_cui_quantity2d, VC_NAVIER_STOKES_CUI_QUANTITY2D)
+#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                               \
+    IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity2d, VC_NAVIER_STOKES_FBICS_QUANTITY2D)
+#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
+    IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity2d, VC_NAVIER_STOKES_MGAMMA_QUANTITY2D)
 #define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum2d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM2D)
 #endif
@@ -101,6 +105,10 @@ class RobinBcCoefStrategy;
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity3d, VC_NAVIER_STOKES_UPWIND_QUANTITY3D)
 #define VC_NAVIER_STOKES_CUI_QUANTITY_FC                                                                               \
     IBAMR_FC_FUNC_(vc_navier_stokes_cui_quantity3d, VC_NAVIER_STOKES_CUI_QUANTITY3D)
+#define VC_NAVIER_STOKES_FBICS_QUANTITY_FC                                                                               \
+    IBAMR_FC_FUNC_(vc_navier_stokes_fbics_quantity3d, VC_NAVIER_STOKES_FBICS_QUANTITY3D)
+#define VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC                                                                               \
+    IBAMR_FC_FUNC_(vc_navier_stokes_mgamma_quantity3d, VC_NAVIER_STOKES_MGAMMA_QUANTITY3D)
 #define VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC                                                                       \
     IBAMR_FC_FUNC_(vc_navier_stokes_compute_momentum3d, VC_NAVIER_STOKES_COMPUTE_MOMENTUM3D)
 #endif
@@ -486,6 +494,321 @@ void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
 #endif
     );
 
+void VC_NAVIER_STOKES_CUI_QUANTITY_FC(
+#if (NDIM == 2)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*
+#endif
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*
+#endif
+    );
+
+void VC_NAVIER_STOKES_FBICS_QUANTITY_FC(
+#if (NDIM == 2)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*
+#endif
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*
+#endif
+    );
+
+void VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(
+#if (NDIM == 2)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    double*,
+    double*
+#endif
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    double*,
+    double*,
+    double*
+#endif
+    );
+
 void VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(
 #if (NDIM == 2)
     const int&,
@@ -610,6 +933,8 @@ namespace
 // convective limiter, which will be set via input file
 static const int GUPWINDG = 2;
 static const int GCUIG = 3;
+static const int GFBICSG = 3;
+static const int GMGAMMAG = 3;
 static const int NOGHOSTS = 0;
 
 // Timers.
@@ -642,8 +967,10 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_rho_interp_current_idx(-1),
       d_rho_interp_scratch_idx(-1),
       d_rho_interp_new_idx(-1),
-      d_vc_convective_limiter(VC_UPWIND),
-      d_limiter_gcw(1)
+      d_vc_velocity_convective_limiter(VC_UPWIND),
+      d_vc_density_convective_limiter(VC_UPWIND),
+      d_velocity_limiter_gcw(1),
+      d_density_limiter_gcw(1)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -659,24 +986,61 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         if (input_db->keyExists("vc_convective_limiter"))
         { 
-            d_vc_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
+            d_vc_velocity_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
+            d_vc_density_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
+        }
+        if (input_db->keyExists("vc_velocity_convective_limiter"))
+        {
+            d_vc_velocity_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_velocity_convective_limiter"));
+        }
+        if (input_db->keyExists("vc_density_convective_limiter"))
+        {
+            d_vc_density_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_density_convective_limiter"));
         }
     }
 
-    switch (d_vc_convective_limiter)
+    switch (d_vc_velocity_convective_limiter)
     {
     case VC_UPWIND:
-        d_limiter_gcw = GUPWINDG;
+        d_velocity_limiter_gcw = GUPWINDG;
         break;
     case VC_CUI:
-        d_limiter_gcw = GCUIG;
+        d_velocity_limiter_gcw = GCUIG;
+        break;
+    case VC_FBICS:
+        d_velocity_limiter_gcw = GFBICSG;
+        break;
+    case VC_MGAMMA:
+        d_velocity_limiter_gcw = GMGAMMAG;
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
-                                 << "  unsupported convective limiter: "
-                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_convective_limiter)
+                                 << "  unsupported velocity convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_velocity_convective_limiter)
                                  << " \n"
-                                 << "  valid choices are: VC_UPWIND, VC_CUI\n");
+                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
+    }
+
+    switch (d_vc_density_convective_limiter)
+    {
+    case VC_UPWIND:
+        d_density_limiter_gcw = GUPWINDG;
+        break;
+    case VC_CUI:
+        d_density_limiter_gcw = GCUIG;
+        break;
+    case VC_FBICS:
+        d_density_limiter_gcw = GFBICSG;
+        break;
+    case VC_MGAMMA:
+        d_density_limiter_gcw = GMGAMMAG;
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
+                                 << "  unsupported density convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_density_convective_limiter)
+                                 << " \n"
+                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -691,7 +1055,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     else
     {
         d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(d_limiter_gcw));
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(d_velocity_limiter_gcw));
     }
 
 #if !defined(NDEBUG)
@@ -711,7 +1075,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     {
         d_rho_interp_var = new SideVariable<NDIM, double>(rho_interp_name);
         d_rho_interp_scratch_idx = var_db->registerVariableAndContext(
-            d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(d_limiter_gcw));
+            d_rho_interp_var, var_db->getContext(rho_interp_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
         d_rho_interp_new_idx = var_db->registerVariableAndContext(
             d_rho_interp_var, var_db->getContext(rho_interp_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
@@ -918,128 +1282,83 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                           U_adv_data[2]->getPointer(2));
 #endif
 
-            switch (d_vc_convective_limiter)
+            switch (d_vc_density_convective_limiter)
             {
             case VC_UPWIND:
-#if (NDIM == 2)
                 // Upwind side-centered densities onto faces.
                 VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
                                                     patch_upper(0),
                                                     patch_lower(1),
                                                     patch_upper(1),
-                                                    R_data->getGhostCellWidth()(0),
-                                                    R_data->getGhostCellWidth()(1),
-                                                    R_data->getPointer(0),
-                                                    R_data->getPointer(1),
-                                                    side_boxes[0].lower(0),
-                                                    side_boxes[0].upper(0),
-                                                    side_boxes[0].lower(1),
-                                                    side_boxes[0].upper(1),
-                                                    U_adv_data[0]->getGhostCellWidth()(0),
-                                                    U_adv_data[0]->getGhostCellWidth()(1),
-                                                    U_adv_data[0]->getPointer(0),
-                                                    U_adv_data[0]->getPointer(1),
-                                                    R_half_data[0]->getGhostCellWidth()(0),
-                                                    R_half_data[0]->getGhostCellWidth()(1),
-                                                    R_half_data[0]->getPointer(0),
-                                                    R_half_data[0]->getPointer(1),
-                                                    side_boxes[1].lower(0),
-                                                    side_boxes[1].upper(0),
-                                                    side_boxes[1].lower(1),
-                                                    side_boxes[1].upper(1),
-                                                    U_adv_data[1]->getGhostCellWidth()(0),
-                                                    U_adv_data[1]->getGhostCellWidth()(1),
-                                                    U_adv_data[1]->getPointer(0),
-                                                    U_adv_data[1]->getPointer(1),
-                                                    R_half_data[1]->getGhostCellWidth()(0),
-                                                    R_half_data[1]->getGhostCellWidth()(1),
-                                                    R_half_data[1]->getPointer(0),
-                                                    R_half_data[1]->getPointer(1));
-
-                // Upwind side-centered velocities onto faces.
-                VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
-                                                    patch_upper(0),
-                                                    patch_lower(1),
-                                                    patch_upper(1),
-                                                    U_data->getGhostCellWidth()(0),
-                                                    U_data->getGhostCellWidth()(1),
-                                                    U_data->getPointer(0),
-                                                    U_data->getPointer(1),
-                                                    side_boxes[0].lower(0),
-                                                    side_boxes[0].upper(0),
-                                                    side_boxes[0].lower(1),
-                                                    side_boxes[0].upper(1),
-                                                    U_adv_data[0]->getGhostCellWidth()(0),
-                                                    U_adv_data[0]->getGhostCellWidth()(1),
-                                                    U_adv_data[0]->getPointer(0),
-                                                    U_adv_data[0]->getPointer(1),
-                                                    U_half_data[0]->getGhostCellWidth()(0),
-                                                    U_half_data[0]->getGhostCellWidth()(1),
-                                                    U_half_data[0]->getPointer(0),
-                                                    U_half_data[0]->getPointer(1),
-                                                    side_boxes[1].lower(0),
-                                                    side_boxes[1].upper(0),
-                                                    side_boxes[1].lower(1),
-                                                    side_boxes[1].upper(1),
-                                                    U_adv_data[1]->getGhostCellWidth()(0),
-                                                    U_adv_data[1]->getGhostCellWidth()(1),
-                                                    U_adv_data[1]->getPointer(0),
-                                                    U_adv_data[1]->getPointer(1),
-                                                    U_half_data[1]->getGhostCellWidth()(0),
-                                                    U_half_data[1]->getGhostCellWidth()(1),
-                                                    U_half_data[1]->getPointer(0),
-                                                    U_half_data[1]->getPointer(1));
-#endif
 #if (NDIM == 3)
-                // Upwind side-centered densities onto faces.
-                VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
-                                                    patch_upper(0),
-                                                    patch_lower(1),
-                                                    patch_upper(1),
                                                     patch_lower(2),
                                                     patch_upper(2),
+#endif
                                                     R_data->getGhostCellWidth()(0),
                                                     R_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     R_data->getGhostCellWidth()(2),
+#endif
                                                     R_data->getPointer(0),
                                                     R_data->getPointer(1),
+#if (NDIM == 3)
                                                     R_data->getPointer(2),
+#endif
                                                     side_boxes[0].lower(0),
                                                     side_boxes[0].upper(0),
                                                     side_boxes[0].lower(1),
                                                     side_boxes[0].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[0].lower(2),
                                                     side_boxes[0].upper(2),
+#endif
                                                     U_adv_data[0]->getGhostCellWidth()(0),
                                                     U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[0]->getPointer(0),
                                                     U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getPointer(2),
+#endif
                                                     R_half_data[0]->getGhostCellWidth()(0),
                                                     R_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     R_half_data[0]->getGhostCellWidth()(2),
+#endif
                                                     R_half_data[0]->getPointer(0),
                                                     R_half_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     R_half_data[0]->getPointer(2),
+#endif
                                                     side_boxes[1].lower(0),
                                                     side_boxes[1].upper(0),
                                                     side_boxes[1].lower(1),
                                                     side_boxes[1].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[1].lower(2),
                                                     side_boxes[1].upper(2),
+#endif
                                                     U_adv_data[1]->getGhostCellWidth()(0),
                                                     U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[1]->getPointer(0),
                                                     U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getPointer(2),
+#endif
                                                     R_half_data[1]->getGhostCellWidth()(0),
                                                     R_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     R_half_data[1]->getGhostCellWidth()(2),
+#endif
                                                     R_half_data[1]->getPointer(0),
-                                                    R_half_data[1]->getPointer(1),
-                                                    R_half_data[1]->getPointer(2),
+                                                    R_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                    ,R_half_data[1]->getPointer(2),
                                                     side_boxes[2].lower(0),
                                                     side_boxes[2].upper(0),
                                                     side_boxes[2].lower(1),
@@ -1057,57 +1376,385 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                     R_half_data[2]->getGhostCellWidth()(2),
                                                     R_half_data[2]->getPointer(0),
                                                     R_half_data[2]->getPointer(1),
-                                                    R_half_data[2]->getPointer(2));
+                                                    R_half_data[2]->getPointer(2)
+#endif
+                                                    );
 
+                break;
+            case VC_CUI:
+                    // Upwind side-centered densities onto faces.
+                    VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
+                                                     patch_upper(0),
+                                                     patch_lower(1),
+                                                     patch_upper(1),
+#if (NDIM == 3)
+                                                     patch_lower(2),
+                                                     patch_upper(2),
+#endif
+                                                     R_data->getGhostCellWidth()(0),
+                                                     R_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     R_data->getGhostCellWidth()(2),
+#endif
+                                                     R_data->getPointer(0),
+                                                     R_data->getPointer(1),
+#if (NDIM == 3)
+                                                     R_data->getPointer(2),
+#endif
+                                                     side_boxes[0].lower(0),
+                                                     side_boxes[0].upper(0),
+                                                     side_boxes[0].lower(1),
+                                                     side_boxes[0].upper(1),
+#if (NDIM == 3)
+                                                     side_boxes[0].lower(2),
+                                                     side_boxes[0].upper(2),
+#endif
+                                                     U_adv_data[0]->getGhostCellWidth()(0),
+                                                     U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_adv_data[0]->getGhostCellWidth()(2),
+#endif
+                                                     U_adv_data[0]->getPointer(0),
+                                                     U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                     U_adv_data[0]->getPointer(2),
+#endif
+                                                     R_half_data[0]->getGhostCellWidth()(0),
+                                                     R_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     R_half_data[0]->getGhostCellWidth()(2),
+#endif
+                                                     R_half_data[0]->getPointer(0),
+                                                     R_half_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                     R_half_data[0]->getPointer(2),
+#endif
+                                                     side_boxes[1].lower(0),
+                                                     side_boxes[1].upper(0),
+                                                     side_boxes[1].lower(1),
+                                                     side_boxes[1].upper(1),
+#if (NDIM == 3)
+                                                     side_boxes[1].lower(2),
+                                                     side_boxes[1].upper(2),
+#endif
+                                                     U_adv_data[1]->getGhostCellWidth()(0),
+                                                     U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_adv_data[1]->getGhostCellWidth()(2),
+#endif
+                                                     U_adv_data[1]->getPointer(0),
+                                                     U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
+                                                     U_adv_data[1]->getPointer(2),
+#endif
+                                                     R_half_data[1]->getGhostCellWidth()(0),
+                                                     R_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     R_half_data[1]->getGhostCellWidth()(2),
+#endif
+                                                     R_half_data[1]->getPointer(0),
+                                                     R_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                     ,R_half_data[1]->getPointer(2),
+                                                     side_boxes[2].lower(0),
+                                                     side_boxes[2].upper(0),
+                                                     side_boxes[2].lower(1),
+                                                     side_boxes[2].upper(1),
+                                                     side_boxes[2].lower(2),
+                                                     side_boxes[2].upper(2),
+                                                     U_adv_data[2]->getGhostCellWidth()(0),
+                                                     U_adv_data[2]->getGhostCellWidth()(1),
+                                                     U_adv_data[2]->getGhostCellWidth()(2),
+                                                     U_adv_data[2]->getPointer(0),
+                                                     U_adv_data[2]->getPointer(1),
+                                                     U_adv_data[2]->getPointer(2),
+                                                     R_half_data[2]->getGhostCellWidth()(0),
+                                                     R_half_data[2]->getGhostCellWidth()(1),
+                                                     R_half_data[2]->getGhostCellWidth()(2),
+                                                     R_half_data[2]->getPointer(0),
+                                                     R_half_data[2]->getPointer(1),
+                                                     R_half_data[2]->getPointer(2)
+#endif
+                                                     );
+
+                break;
+            case VC_FBICS:
+                VC_NAVIER_STOKES_FBICS_QUANTITY_FC(patch_lower(0),
+                                                   patch_upper(0),
+                                                   patch_lower(1),
+                                                   patch_upper(1),
+#if (NDIM == 3)
+                                                   patch_lower(2),
+                                                   patch_upper(2),
+#endif
+                                                   R_data->getGhostCellWidth()(0),
+                                                   R_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   R_data->getGhostCellWidth()(2),
+#endif
+                                                   R_data->getPointer(0),
+                                                   R_data->getPointer(1),
+#if (NDIM == 3)
+                                                   R_data->getPointer(2),
+#endif
+                                                   side_boxes[0].lower(0),
+                                                   side_boxes[0].upper(0),
+                                                   side_boxes[0].lower(1),
+                                                   side_boxes[0].upper(1),
+#if (NDIM == 3)
+                                                   side_boxes[0].lower(2),
+                                                   side_boxes[0].upper(2),
+#endif
+                                                   U_adv_data[0]->getGhostCellWidth()(0),
+                                                   U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_adv_data[0]->getGhostCellWidth()(2),
+#endif
+                                                   U_adv_data[0]->getPointer(0),
+                                                   U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                   U_adv_data[0]->getPointer(2),
+#endif
+                                                   R_half_data[0]->getGhostCellWidth()(0),
+                                                   R_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   R_half_data[0]->getGhostCellWidth()(2),
+#endif
+                                                   R_half_data[0]->getPointer(0),
+                                                   R_half_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                   R_half_data[0]->getPointer(2),
+#endif
+                                                   side_boxes[1].lower(0),
+                                                   side_boxes[1].upper(0),
+                                                   side_boxes[1].lower(1),
+                                                   side_boxes[1].upper(1),
+#if (NDIM == 3)
+                                                   side_boxes[1].lower(2),
+                                                   side_boxes[1].upper(2),
+#endif
+                                                   U_adv_data[1]->getGhostCellWidth()(0),
+                                                   U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_adv_data[1]->getGhostCellWidth()(2),
+#endif
+                                                   U_adv_data[1]->getPointer(0),
+                                                   U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
+                                                   U_adv_data[1]->getPointer(2),
+#endif
+                                                   R_half_data[1]->getGhostCellWidth()(0),
+                                                   R_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   R_half_data[1]->getGhostCellWidth()(2),
+#endif
+                                                   R_half_data[1]->getPointer(0),
+                                                   R_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                   ,R_half_data[1]->getPointer(2),
+                                                   side_boxes[2].lower(0),
+                                                   side_boxes[2].upper(0),
+                                                   side_boxes[2].lower(1),
+                                                   side_boxes[2].upper(1),
+                                                   side_boxes[2].lower(2),
+                                                   side_boxes[2].upper(2),
+                                                   U_adv_data[2]->getGhostCellWidth()(0),
+                                                   U_adv_data[2]->getGhostCellWidth()(1),
+                                                   U_adv_data[2]->getGhostCellWidth()(2),
+                                                   U_adv_data[2]->getPointer(0),
+                                                   U_adv_data[2]->getPointer(1),
+                                                   U_adv_data[2]->getPointer(2),
+                                                   R_half_data[2]->getGhostCellWidth()(0),
+                                                   R_half_data[2]->getGhostCellWidth()(1),
+                                                   R_half_data[2]->getGhostCellWidth()(2),
+                                                   R_half_data[2]->getPointer(0),
+                                                   R_half_data[2]->getPointer(1),
+                                                   R_half_data[2]->getPointer(2)
+#endif
+                                                   );
+                break;
+            case VC_MGAMMA:
+                // Upwind side-centered densities onto faces.
+                VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(patch_lower(0),
+                                                    patch_upper(0),
+                                                    patch_lower(1),
+                                                    patch_upper(1),
+#if (NDIM == 3)
+                                                    patch_lower(2),
+                                                    patch_upper(2),
+#endif
+                                                    R_data->getGhostCellWidth()(0),
+                                                    R_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                    R_data->getGhostCellWidth()(2),
+#endif
+                                                    R_data->getPointer(0),
+                                                    R_data->getPointer(1),
+#if (NDIM == 3)
+                                                    R_data->getPointer(2),
+#endif
+                                                    side_boxes[0].lower(0),
+                                                    side_boxes[0].upper(0),
+                                                    side_boxes[0].lower(1),
+                                                    side_boxes[0].upper(1),
+#if (NDIM == 3)
+                                                    side_boxes[0].lower(2),
+                                                    side_boxes[0].upper(2),
+#endif
+                                                    U_adv_data[0]->getGhostCellWidth()(0),
+                                                    U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                    U_adv_data[0]->getGhostCellWidth()(2),
+#endif
+                                                    U_adv_data[0]->getPointer(0),
+                                                    U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                    U_adv_data[0]->getPointer(2),
+#endif
+                                                    R_half_data[0]->getGhostCellWidth()(0),
+                                                    R_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                    R_half_data[0]->getGhostCellWidth()(2),
+#endif
+                                                    R_half_data[0]->getPointer(0),
+                                                    R_half_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                    R_half_data[0]->getPointer(2),
+#endif
+                                                    side_boxes[1].lower(0),
+                                                    side_boxes[1].upper(0),
+                                                    side_boxes[1].lower(1),
+                                                    side_boxes[1].upper(1),
+#if (NDIM == 3)
+                                                    side_boxes[1].lower(2),
+                                                    side_boxes[1].upper(2),
+#endif
+                                                    U_adv_data[1]->getGhostCellWidth()(0),
+                                                    U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                    U_adv_data[1]->getGhostCellWidth()(2),
+#endif
+                                                    U_adv_data[1]->getPointer(0),
+                                                    U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
+                                                    U_adv_data[1]->getPointer(2),
+#endif
+                                                    R_half_data[1]->getGhostCellWidth()(0),
+                                                    R_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                    R_half_data[1]->getGhostCellWidth()(2),
+#endif
+                                                    R_half_data[1]->getPointer(0),
+                                                    R_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                    ,R_half_data[1]->getPointer(2),
+                                                    side_boxes[2].lower(0),
+                                                    side_boxes[2].upper(0),
+                                                    side_boxes[2].lower(1),
+                                                    side_boxes[2].upper(1),
+                                                    side_boxes[2].lower(2),
+                                                    side_boxes[2].upper(2),
+                                                    U_adv_data[2]->getGhostCellWidth()(0),
+                                                    U_adv_data[2]->getGhostCellWidth()(1),
+                                                    U_adv_data[2]->getGhostCellWidth()(2),
+                                                    U_adv_data[2]->getPointer(0),
+                                                    U_adv_data[2]->getPointer(1),
+                                                    U_adv_data[2]->getPointer(2),
+                                                    R_half_data[2]->getGhostCellWidth()(0),
+                                                    R_half_data[2]->getGhostCellWidth()(1),
+                                                    R_half_data[2]->getGhostCellWidth()(2),
+                                                    R_half_data[2]->getPointer(0),
+                                                    R_half_data[2]->getPointer(1),
+                                                    R_half_data[2]->getPointer(2)
+#endif
+                                                    );
+                break;
+    
+            default:
+                    TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                                 << "  unsupported density convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_density_convective_limiter)
+                                 << " \n"
+                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
+                }
+
+            switch (d_vc_velocity_convective_limiter)
+            {
+            case VC_UPWIND:
                 // Upwind side-centered velocities onto faces.
                 VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
                                                     patch_upper(0),
                                                     patch_lower(1),
                                                     patch_upper(1),
+#if (NDIM == 3)
                                                     patch_lower(2),
                                                     patch_upper(2),
+#endif
                                                     U_data->getGhostCellWidth()(0),
                                                     U_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_data->getGhostCellWidth()(2),
+#endif
                                                     U_data->getPointer(0),
                                                     U_data->getPointer(1),
+#if (NDIM == 3)
                                                     U_data->getPointer(2),
+#endif
                                                     side_boxes[0].lower(0),
                                                     side_boxes[0].upper(0),
                                                     side_boxes[0].lower(1),
                                                     side_boxes[0].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[0].lower(2),
                                                     side_boxes[0].upper(2),
+#endif
                                                     U_adv_data[0]->getGhostCellWidth()(0),
                                                     U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[0]->getPointer(0),
                                                     U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getPointer(2),
+#endif
                                                     U_half_data[0]->getGhostCellWidth()(0),
                                                     U_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_half_data[0]->getGhostCellWidth()(2),
+#endif
                                                     U_half_data[0]->getPointer(0),
                                                     U_half_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     U_half_data[0]->getPointer(2),
+#endif
                                                     side_boxes[1].lower(0),
                                                     side_boxes[1].upper(0),
                                                     side_boxes[1].lower(1),
                                                     side_boxes[1].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[1].lower(2),
                                                     side_boxes[1].upper(2),
+#endif
                                                     U_adv_data[1]->getGhostCellWidth()(0),
                                                     U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[1]->getPointer(0),
                                                     U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getPointer(2),
+#endif
                                                     U_half_data[1]->getGhostCellWidth()(0),
                                                     U_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_half_data[1]->getGhostCellWidth()(2),
+#endif
                                                     U_half_data[1]->getPointer(0),
-                                                    U_half_data[1]->getPointer(1),
-                                                    U_half_data[1]->getPointer(2),
+                                                    U_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                    ,U_half_data[1]->getPointer(2),
                                                     side_boxes[2].lower(0),
                                                     side_boxes[2].upper(0),
                                                     side_boxes[2].lower(1),
@@ -1125,197 +1772,278 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                     U_half_data[2]->getGhostCellWidth()(2),
                                                     U_half_data[2]->getPointer(0),
                                                     U_half_data[2]->getPointer(1),
-                                                    U_half_data[2]->getPointer(2));
+                                                    U_half_data[2]->getPointer(2)
 #endif
+                                                    );
+
                 break;
             case VC_CUI:
-#if (NDIM == 2)
-                // Upwind side-centered densities onto faces.
-                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
-                                                 patch_upper(0),
-                                                 patch_lower(1),
-                                                 patch_upper(1),
-                                                 R_data->getGhostCellWidth()(0),
-                                                 R_data->getGhostCellWidth()(1),
-                                                 R_data->getPointer(0),
-                                                 R_data->getPointer(1),
-                                                 side_boxes[0].lower(0),
-                                                 side_boxes[0].upper(0),
-                                                 side_boxes[0].lower(1),
-                                                 side_boxes[0].upper(1),
-                                                 U_adv_data[0]->getGhostCellWidth()(0),
-                                                 U_adv_data[0]->getGhostCellWidth()(1),
-                                                 U_adv_data[0]->getPointer(0),
-                                                 U_adv_data[0]->getPointer(1),
-                                                 R_half_data[0]->getGhostCellWidth()(0),
-                                                 R_half_data[0]->getGhostCellWidth()(1),
-                                                 R_half_data[0]->getPointer(0),
-                                                 R_half_data[0]->getPointer(1),
-                                                 side_boxes[1].lower(0),
-                                                 side_boxes[1].upper(0),
-                                                 side_boxes[1].lower(1),
-                                                 side_boxes[1].upper(1),
-                                                 U_adv_data[1]->getGhostCellWidth()(0),
-                                                 U_adv_data[1]->getGhostCellWidth()(1),
-                                                 U_adv_data[1]->getPointer(0),
-                                                 U_adv_data[1]->getPointer(1),
-                                                 R_half_data[1]->getGhostCellWidth()(0),
-                                                 R_half_data[1]->getGhostCellWidth()(1),
-                                                 R_half_data[1]->getPointer(0),
-                                                 R_half_data[1]->getPointer(1));
-
-                // Upwind side-centered velocities onto faces.
-                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
-                                                 patch_upper(0),
-                                                 patch_lower(1),
-                                                 patch_upper(1),
-                                                 U_data->getGhostCellWidth()(0),
-                                                 U_data->getGhostCellWidth()(1),
-                                                 U_data->getPointer(0),
-                                                 U_data->getPointer(1),
-                                                 side_boxes[0].lower(0),
-                                                 side_boxes[0].upper(0),
-                                                 side_boxes[0].lower(1),
-                                                 side_boxes[0].upper(1),
-                                                 U_adv_data[0]->getGhostCellWidth()(0),
-                                                 U_adv_data[0]->getGhostCellWidth()(1),
-                                                 U_adv_data[0]->getPointer(0),
-                                                 U_adv_data[0]->getPointer(1),
-                                                 U_half_data[0]->getGhostCellWidth()(0),
-                                                 U_half_data[0]->getGhostCellWidth()(1),
-                                                 U_half_data[0]->getPointer(0),
-                                                 U_half_data[0]->getPointer(1),
-                                                 side_boxes[1].lower(0),
-                                                 side_boxes[1].upper(0),
-                                                 side_boxes[1].lower(1),
-                                                 side_boxes[1].upper(1),
-                                                 U_adv_data[1]->getGhostCellWidth()(0),
-                                                 U_adv_data[1]->getGhostCellWidth()(1),
-                                                 U_adv_data[1]->getPointer(0),
-                                                 U_adv_data[1]->getPointer(1),
-                                                 U_half_data[1]->getGhostCellWidth()(0),
-                                                 U_half_data[1]->getGhostCellWidth()(1),
-                                                 U_half_data[1]->getPointer(0),
-                                                 U_half_data[1]->getPointer(1));
-#endif
+                    // Upwind side-centered densities onto faces.
+                    VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
+                                                     patch_upper(0),
+                                                     patch_lower(1),
+                                                     patch_upper(1),
 #if (NDIM == 3)
-                // Upwind side-centered densities onto faces.
-                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
-                                                 patch_upper(0),
-                                                 patch_lower(1),
-                                                 patch_upper(1),
-                                                 patch_lower(2),
-                                                 patch_upper(2),
-                                                 R_data->getGhostCellWidth()(0),
-                                                 R_data->getGhostCellWidth()(1),
-                                                 R_data->getGhostCellWidth()(2),
-                                                 R_data->getPointer(0),
-                                                 R_data->getPointer(1),
-                                                 R_data->getPointer(2),
-                                                 side_boxes[0].lower(0),
-                                                 side_boxes[0].upper(0),
-                                                 side_boxes[0].lower(1),
-                                                 side_boxes[0].upper(1),
-                                                 side_boxes[0].lower(2),
-                                                 side_boxes[0].upper(2),
-                                                 U_adv_data[0]->getGhostCellWidth()(0),
-                                                 U_adv_data[0]->getGhostCellWidth()(1),
-                                                 U_adv_data[0]->getGhostCellWidth()(2),
-                                                 U_adv_data[0]->getPointer(0),
-                                                 U_adv_data[0]->getPointer(1),
-                                                 U_adv_data[0]->getPointer(2),
-                                                 R_half_data[0]->getGhostCellWidth()(0),
-                                                 R_half_data[0]->getGhostCellWidth()(1),
-                                                 R_half_data[0]->getGhostCellWidth()(2),
-                                                 R_half_data[0]->getPointer(0),
-                                                 R_half_data[0]->getPointer(1),
-                                                 R_half_data[0]->getPointer(2),
-                                                 side_boxes[1].lower(0),
-                                                 side_boxes[1].upper(0),
-                                                 side_boxes[1].lower(1),
-                                                 side_boxes[1].upper(1),
-                                                 side_boxes[1].lower(2),
-                                                 side_boxes[1].upper(2),
-                                                 U_adv_data[1]->getGhostCellWidth()(0),
-                                                 U_adv_data[1]->getGhostCellWidth()(1),
-                                                 U_adv_data[1]->getGhostCellWidth()(2),
-                                                 U_adv_data[1]->getPointer(0),
-                                                 U_adv_data[1]->getPointer(1),
-                                                 U_adv_data[1]->getPointer(2),
-                                                 R_half_data[1]->getGhostCellWidth()(0),
-                                                 R_half_data[1]->getGhostCellWidth()(1),
-                                                 R_half_data[1]->getGhostCellWidth()(2),
-                                                 R_half_data[1]->getPointer(0),
-                                                 R_half_data[1]->getPointer(1),
-                                                 R_half_data[1]->getPointer(2),
-                                                 side_boxes[2].lower(0),
-                                                 side_boxes[2].upper(0),
-                                                 side_boxes[2].lower(1),
-                                                 side_boxes[2].upper(1),
-                                                 side_boxes[2].lower(2),
-                                                 side_boxes[2].upper(2),
-                                                 U_adv_data[2]->getGhostCellWidth()(0),
-                                                 U_adv_data[2]->getGhostCellWidth()(1),
-                                                 U_adv_data[2]->getGhostCellWidth()(2),
-                                                 U_adv_data[2]->getPointer(0),
-                                                 U_adv_data[2]->getPointer(1),
-                                                 U_adv_data[2]->getPointer(2),
-                                                 R_half_data[2]->getGhostCellWidth()(0),
-                                                 R_half_data[2]->getGhostCellWidth()(1),
-                                                 R_half_data[2]->getGhostCellWidth()(2),
-                                                 R_half_data[2]->getPointer(0),
-                                                 R_half_data[2]->getPointer(1),
-                                                 R_half_data[2]->getPointer(2));
+                                                     patch_lower(2),
+                                                     patch_upper(2),
+#endif
+                                                     U_data->getGhostCellWidth()(0),
+                                                     U_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_data->getGhostCellWidth()(2),
+#endif
+                                                     U_data->getPointer(0),
+                                                     U_data->getPointer(1),
+#if (NDIM == 3)
+                                                     U_data->getPointer(2),
+#endif
+                                                     side_boxes[0].lower(0),
+                                                     side_boxes[0].upper(0),
+                                                     side_boxes[0].lower(1),
+                                                     side_boxes[0].upper(1),
+#if (NDIM == 3)
+                                                     side_boxes[0].lower(2),
+                                                     side_boxes[0].upper(2),
+#endif
+                                                     U_adv_data[0]->getGhostCellWidth()(0),
+                                                     U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_adv_data[0]->getGhostCellWidth()(2),
+#endif
+                                                     U_adv_data[0]->getPointer(0),
+                                                     U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                     U_adv_data[0]->getPointer(2),
+#endif
+                                                     U_half_data[0]->getGhostCellWidth()(0),
+                                                     U_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_half_data[0]->getGhostCellWidth()(2),
+#endif
+                                                     U_half_data[0]->getPointer(0),
+                                                     U_half_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                     U_half_data[0]->getPointer(2),
+#endif
+                                                     side_boxes[1].lower(0),
+                                                     side_boxes[1].upper(0),
+                                                     side_boxes[1].lower(1),
+                                                     side_boxes[1].upper(1),
+#if (NDIM == 3)
+                                                     side_boxes[1].lower(2),
+                                                     side_boxes[1].upper(2),
+#endif
+                                                     U_adv_data[1]->getGhostCellWidth()(0),
+                                                     U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_adv_data[1]->getGhostCellWidth()(2),
+#endif
+                                                     U_adv_data[1]->getPointer(0),
+                                                     U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
+                                                     U_adv_data[1]->getPointer(2),
+#endif
+                                                     U_half_data[1]->getGhostCellWidth()(0),
+                                                     U_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                     U_half_data[1]->getGhostCellWidth()(2),
+#endif
+                                                     U_half_data[1]->getPointer(0),
+                                                     U_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                     ,U_half_data[1]->getPointer(2),
+                                                     side_boxes[2].lower(0),
+                                                     side_boxes[2].upper(0),
+                                                     side_boxes[2].lower(1),
+                                                     side_boxes[2].upper(1),
+                                                     side_boxes[2].lower(2),
+                                                     side_boxes[2].upper(2),
+                                                     U_adv_data[2]->getGhostCellWidth()(0),
+                                                     U_adv_data[2]->getGhostCellWidth()(1),
+                                                     U_adv_data[2]->getGhostCellWidth()(2),
+                                                     U_adv_data[2]->getPointer(0),
+                                                     U_adv_data[2]->getPointer(1),
+                                                     U_adv_data[2]->getPointer(2),
+                                                     U_half_data[2]->getGhostCellWidth()(0),
+                                                     U_half_data[2]->getGhostCellWidth()(1),
+                                                     U_half_data[2]->getGhostCellWidth()(2),
+                                                     U_half_data[2]->getPointer(0),
+                                                     U_half_data[2]->getPointer(1),
+                                                     U_half_data[2]->getPointer(2)
+#endif
+                                                     );
 
-                // Upwind side-centered velocities onto faces.
-                VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
+                break;
+            case VC_FBICS:
+                VC_NAVIER_STOKES_FBICS_QUANTITY_FC(patch_lower(0),
+                                                   patch_upper(0),
+                                                   patch_lower(1),
+                                                   patch_upper(1),
+#if (NDIM == 3)
+                                                   patch_lower(2),
+                                                   patch_upper(2),
+#endif
+                                                   U_data->getGhostCellWidth()(0),
+                                                   U_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_data->getGhostCellWidth()(2),
+#endif
+                                                   U_data->getPointer(0),
+                                                   U_data->getPointer(1),
+#if (NDIM == 3)
+                                                   U_data->getPointer(2),
+#endif
+                                                   side_boxes[0].lower(0),
+                                                   side_boxes[0].upper(0),
+                                                   side_boxes[0].lower(1),
+                                                   side_boxes[0].upper(1),
+#if (NDIM == 3)
+                                                   side_boxes[0].lower(2),
+                                                   side_boxes[0].upper(2),
+#endif
+                                                   U_adv_data[0]->getGhostCellWidth()(0),
+                                                   U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_adv_data[0]->getGhostCellWidth()(2),
+#endif
+                                                   U_adv_data[0]->getPointer(0),
+                                                   U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                   U_adv_data[0]->getPointer(2),
+#endif
+                                                   U_half_data[0]->getGhostCellWidth()(0),
+                                                   U_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_half_data[0]->getGhostCellWidth()(2),
+#endif
+                                                   U_half_data[0]->getPointer(0),
+                                                   U_half_data[0]->getPointer(1),
+#if (NDIM == 3)
+                                                   U_half_data[0]->getPointer(2),
+#endif
+                                                   side_boxes[1].lower(0),
+                                                   side_boxes[1].upper(0),
+                                                   side_boxes[1].lower(1),
+                                                   side_boxes[1].upper(1),
+#if (NDIM == 3)
+                                                   side_boxes[1].lower(2),
+                                                   side_boxes[1].upper(2),
+#endif
+                                                   U_adv_data[1]->getGhostCellWidth()(0),
+                                                   U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_adv_data[1]->getGhostCellWidth()(2),
+#endif
+                                                   U_adv_data[1]->getPointer(0),
+                                                   U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
+                                                   U_adv_data[1]->getPointer(2),
+#endif
+                                                   U_half_data[1]->getGhostCellWidth()(0),
+                                                   U_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
+                                                   U_half_data[1]->getGhostCellWidth()(2),
+#endif
+                                                   U_half_data[1]->getPointer(0),
+                                                   U_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                   ,U_half_data[1]->getPointer(2),
+                                                   side_boxes[2].lower(0),
+                                                   side_boxes[2].upper(0),
+                                                   side_boxes[2].lower(1),
+                                                   side_boxes[2].upper(1),
+                                                   side_boxes[2].lower(2),
+                                                   side_boxes[2].upper(2),
+                                                   U_adv_data[2]->getGhostCellWidth()(0),
+                                                   U_adv_data[2]->getGhostCellWidth()(1),
+                                                   U_adv_data[2]->getGhostCellWidth()(2),
+                                                   U_adv_data[2]->getPointer(0),
+                                                   U_adv_data[2]->getPointer(1),
+                                                   U_adv_data[2]->getPointer(2),
+                                                   U_half_data[2]->getGhostCellWidth()(0),
+                                                   U_half_data[2]->getGhostCellWidth()(1),
+                                                   U_half_data[2]->getGhostCellWidth()(2),
+                                                   U_half_data[2]->getPointer(0),
+                                                   U_half_data[2]->getPointer(1),
+                                                   U_half_data[2]->getPointer(2)
+#endif
+                                                   );
+                break;
+            case VC_MGAMMA:
+                // Upwind side-centered densities onto faces.
+                VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(patch_lower(0),
                                                     patch_upper(0),
                                                     patch_lower(1),
                                                     patch_upper(1),
+#if (NDIM == 3)
                                                     patch_lower(2),
                                                     patch_upper(2),
+#endif
                                                     U_data->getGhostCellWidth()(0),
                                                     U_data->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_data->getGhostCellWidth()(2),
+#endif
                                                     U_data->getPointer(0),
                                                     U_data->getPointer(1),
+#if (NDIM == 3)
                                                     U_data->getPointer(2),
+#endif
                                                     side_boxes[0].lower(0),
                                                     side_boxes[0].upper(0),
                                                     side_boxes[0].lower(1),
                                                     side_boxes[0].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[0].lower(2),
                                                     side_boxes[0].upper(2),
+#endif
                                                     U_adv_data[0]->getGhostCellWidth()(0),
                                                     U_adv_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[0]->getPointer(0),
                                                     U_adv_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[0]->getPointer(2),
+#endif
                                                     U_half_data[0]->getGhostCellWidth()(0),
                                                     U_half_data[0]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_half_data[0]->getGhostCellWidth()(2),
+#endif
                                                     U_half_data[0]->getPointer(0),
                                                     U_half_data[0]->getPointer(1),
+#if (NDIM == 3)
                                                     U_half_data[0]->getPointer(2),
+#endif
                                                     side_boxes[1].lower(0),
                                                     side_boxes[1].upper(0),
                                                     side_boxes[1].lower(1),
                                                     side_boxes[1].upper(1),
+#if (NDIM == 3)
                                                     side_boxes[1].lower(2),
                                                     side_boxes[1].upper(2),
+#endif
                                                     U_adv_data[1]->getGhostCellWidth()(0),
                                                     U_adv_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getGhostCellWidth()(2),
+#endif
                                                     U_adv_data[1]->getPointer(0),
                                                     U_adv_data[1]->getPointer(1),
+#if (NDIM == 3)
                                                     U_adv_data[1]->getPointer(2),
+#endif
                                                     U_half_data[1]->getGhostCellWidth()(0),
                                                     U_half_data[1]->getGhostCellWidth()(1),
+#if (NDIM == 3)
                                                     U_half_data[1]->getGhostCellWidth()(2),
+#endif
                                                     U_half_data[1]->getPointer(0),
-                                                    U_half_data[1]->getPointer(1),
-                                                    U_half_data[1]->getPointer(2),
+                                                    U_half_data[1]->getPointer(1)
+#if (NDIM == 3)
+                                                    ,U_half_data[1]->getPointer(2),
                                                     side_boxes[2].lower(0),
                                                     side_boxes[2].upper(0),
                                                     side_boxes[2].lower(1),
@@ -1333,15 +2061,17 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                     U_half_data[2]->getGhostCellWidth()(2),
                                                     U_half_data[2]->getPointer(0),
                                                     U_half_data[2]->getPointer(1),
-                                                    U_half_data[2]->getPointer(2));
+                                                    U_half_data[2]->getPointer(2)
 #endif
+                                                    );
                 break;
-             default:
+    
+            default:
                     TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                                 << "  unsupported convective limiter: "
-                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_convective_limiter)
+                                 << "  unsupported velocity convective limiter: "
+                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_velocity_convective_limiter)
                                  << " \n"
-                                 << "  valid choices are: VC_UPWIND, VC_CUI\n");
+                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
                 }
 
             // Compute the upwinded momentum P_half = R_half * U_half

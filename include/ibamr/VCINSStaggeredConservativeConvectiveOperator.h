@@ -251,10 +251,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // The limiter type for interpolation onto faces.
-    VCConvectiveLimiter d_vc_convective_limiter;
+    VCConvectiveLimiter d_vc_velocity_convective_limiter;
+    VCConvectiveLimiter d_vc_density_convective_limiter;
 
     // The required number of ghost cells for the chosen interpolation
-    int d_limiter_gcw;
+    int d_velocity_limiter_gcw, d_density_limiter_gcw;
 };
 } // namespace IBAMR
 

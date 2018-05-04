@@ -309,7 +309,7 @@ c     Apply cubic interpolation upwinding to place the components of
 c     side-centered quantity onto the faces of zones centered about the 
 c     components of the velocity field.
 c
-c     Note that this scheme is nonlinear.
+c     Note that this scheme carries out nonlinear upwinding.
 c
 c     NOTES:
 c
@@ -494,10 +494,397 @@ c           High-resolution scheme (HR)
 c
       return
       end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Apply FBICS upwinding to place the components of 
+c     side-centered quantity onto the faces of zones centered about the 
+c     components of the velocity field.
+c
+c     Note that this scheme carries out nonlinear upwinding.
+c
+c     NOTES:
+c
+c     R0 and R1 are standard side-centered staggered grid quantities for
+c     the patch [(ifirst0,ilast0),(ifirst1,ilast1)].
+c
+c     V00 and V01 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     V10 and V11 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+c     R00 and R01 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     R10 and R11 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+       subroutine vc_navier_stokes_fbics_quantity2d(
+     &     patch_ifirst0,patch_ilast0,
+     &     patch_ifirst1,patch_ilast1,
+     &     n_R_gc0,n_R_gc1,
+     &     R0,R1,
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
+     &     n_V0_gc0,n_V0_gc1,
+     &     V00,V01,
+     &     n_R0_gc0,n_R0_gc1,
+     &     R00,R01,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
+     &     n_V1_gc0,n_V1_gc1,
+     &     V10,V11,
+     &     n_R1_gc0,n_R1_gc1,
+     &     R10,R11)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER patch_ifirst0,patch_ilast0
+      INTEGER patch_ifirst1,patch_ilast1
+
+      INTEGER n_R_gc0,n_R_gc1
+
+      INTEGER side0_ifirst0,side0_ilast0
+      INTEGER side0_ifirst1,side0_ilast1
+
+      INTEGER n_V0_gc0,n_V0_gc1
+      INTEGER n_R0_gc0,n_R0_gc1
+
+      INTEGER side1_ifirst0,side1_ilast0
+      INTEGER side1_ifirst1,side1_ilast1
+
+      INTEGER n_V1_gc0,n_V1_gc1
+      INTEGER n_R1_gc0,n_R1_gc1
+
+      REAL R0(
+     &     SIDE2d0VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL R1(
+     &     SIDE2d1VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL V00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
+      REAL V11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
 
 c
+c     Input/Output.
+c
+      REAL R00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+      REAL R11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gc0,gc1
+      REAL RC,RU,RD
+      REAL Rf_HR
+c
+c     Compute the cubic upwind interpolation of quantity at each zone face.
+c
+      gc0 = n_R0_gc0
+      gc1 = n_R0_gc1
+
+      do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
+         do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
+            if (V00(i0,i1) .ge. 0.d0) then
+              RC  = R0(i0-1,i1)
+              RU  = R0(i0-2,i1)
+              RD  = R0(i0,i1)
+            else
+              RC  = R0(i0,i1)
+              RU  = R0(i0+1,i1)
+              RD  = R0(i0-1,i1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R00(i0,i1) = Rf_HR 
+
+            if (V01(i1,i0) .ge. 0.d0) then
+              RC  = R0(i0,i1-1)
+              RU  = R0(i0,i1-2)
+              RD  = R0(i0,i1)
+            else
+              RC  = R0(i0,i1)
+              RU  = R0(i0,i1+1)
+              RD  = R0(i0,i1-1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R01(i1,i0) = Rf_HR
+         enddo
+      enddo
+
+      gc0 = n_R1_gc0
+      gc1 = n_R1_gc1
+
+      do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
+         do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
+            if (V10(i0,i1) .ge. 0.d0) then
+              RC  = R1(i0-1,i1)
+              RU  = R1(i0-2,i1)
+              RD  = R1(i0,i1)
+            else
+              RC  = R1(i0,i1)
+              RU  = R1(i0+1,i1)
+              RD  = R1(i0-1,i1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R10(i0,i1) = Rf_HR 
+
+            if (V11(i1,i0) .ge. 0.d0) then
+              RC  = R1(i0,i1-1)
+              RU  = R1(i0,i1-2)
+              RD  = R1(i0,i1)
+            else
+              RC  = R1(i0,i1)
+              RU  = R1(i0,i1+1)
+              RD  = R1(i0,i1-1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_fbics_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R11(i1,i0) = Rf_HR 
+         enddo
+      enddo
+c
+      return
+      end
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Apply modified gamma upwinding to place the components of 
+c     side-centered quantity onto the faces of zones centered about the 
+c     components of the velocity field.
+c
+c     Note that this scheme carries out nonlinear upwinding.
+c
+c     NOTES:
+c
+c     R0 and R1 are standard side-centered staggered grid quantities for
+c     the patch [(ifirst0,ilast0),(ifirst1,ilast1)].
+c
+c     V00 and V01 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     V10 and V11 are face-centered staggered grid velocities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     velocities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+c     R00 and R01 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the x components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0+1),(ifirst1,ilast1)].
+c
+c     R10 and R11 are face-centered staggered grid quantities defined at
+c     the faces of the control volumes centered about the y components
+c     of the side-centered velocity, i.e., face-centered staggered grid
+c     densities for the patch [(ifirst0,ilast0),(ifirst1,ilast1+1)].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+       subroutine vc_navier_stokes_mgamma_quantity2d(
+     &     patch_ifirst0,patch_ilast0,
+     &     patch_ifirst1,patch_ilast1,
+     &     n_R_gc0,n_R_gc1,
+     &     R0,R1,
+     &     side0_ifirst0,side0_ilast0,
+     &     side0_ifirst1,side0_ilast1,
+     &     n_V0_gc0,n_V0_gc1,
+     &     V00,V01,
+     &     n_R0_gc0,n_R0_gc1,
+     &     R00,R01,
+     &     side1_ifirst0,side1_ilast0,
+     &     side1_ifirst1,side1_ilast1,
+     &     n_V1_gc0,n_V1_gc1,
+     &     V10,V11,
+     &     n_R1_gc0,n_R1_gc1,
+     &     R10,R11)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER patch_ifirst0,patch_ilast0
+      INTEGER patch_ifirst1,patch_ilast1
+
+      INTEGER n_R_gc0,n_R_gc1
+
+      INTEGER side0_ifirst0,side0_ilast0
+      INTEGER side0_ifirst1,side0_ilast1
+
+      INTEGER n_V0_gc0,n_V0_gc1
+      INTEGER n_R0_gc0,n_R0_gc1
+
+      INTEGER side1_ifirst0,side1_ilast0
+      INTEGER side1_ifirst1,side1_ilast1
+
+      INTEGER n_V1_gc0,n_V1_gc1
+      INTEGER n_R1_gc0,n_R1_gc1
+
+      REAL R0(
+     &     SIDE2d0VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL R1(
+     &     SIDE2d1VECG(patch_ifirst,patch_ilast,n_R_gc)
+     &     )
+      REAL V00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_V0_gc)
+     &     )
+      REAL V10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
+      REAL V11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_V1_gc)
+     &     )
+
+c
+c     Input/Output.
+c
+      REAL R00(
+     &     FACE2d0VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R01(
+     &     FACE2d1VECG(side0_ifirst,side0_ilast,n_R0_gc)
+     &     )
+      REAL R10(
+     &     FACE2d0VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+      REAL R11(
+     &     FACE2d1VECG(side1_ifirst,side1_ilast,n_R1_gc)
+     &     )
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER gc0,gc1
+      REAL RC,RU,RD
+      REAL Rf_HR
+c
+c     Compute the cubic upwind interpolation of quantity at each zone face.
+c
+      gc0 = n_R0_gc0
+      gc1 = n_R0_gc1
+
+      do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
+         do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
+            if (V00(i0,i1) .ge. 0.d0) then
+              RC  = R0(i0-1,i1)
+              RU  = R0(i0-2,i1)
+              RD  = R0(i0,i1)
+            else
+              RC  = R0(i0,i1)
+              RU  = R0(i0+1,i1)
+              RD  = R0(i0-1,i1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R00(i0,i1) = Rf_HR 
+
+            if (V01(i1,i0) .ge. 0.d0) then
+              RC  = R0(i0,i1-1)
+              RU  = R0(i0,i1-2)
+              RD  = R0(i0,i1)
+            else
+              RC  = R0(i0,i1)
+              RU  = R0(i0,i1+1)
+              RD  = R0(i0,i1-1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R01(i1,i0) = Rf_HR
+         enddo
+      enddo
+
+      gc0 = n_R1_gc0
+      gc1 = n_R1_gc1
+
+      do    i0 = side1_ifirst0-gc0,side1_ilast0+gc0
+         do i1 = side1_ifirst1-gc1,side1_ilast1+gc1
+            if (V10(i0,i1) .ge. 0.d0) then
+              RC  = R1(i0-1,i1)
+              RU  = R1(i0-2,i1)
+              RD  = R1(i0,i1)
+            else
+              RC  = R1(i0,i1)
+              RU  = R1(i0+1,i1)
+              RD  = R1(i0-1,i1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R10(i0,i1) = Rf_HR 
+
+            if (V11(i1,i0) .ge. 0.d0) then
+              RC  = R1(i0,i1-1)
+              RU  = R1(i0,i1-2)
+              RD  = R1(i0,i1)
+            else
+              RC  = R1(i0,i1)
+              RU  = R1(i0,i1+1)
+              RD  = R1(i0,i1-1)
+            endif
+
+c           High-resolution scheme (HR)
+            call interpolate_mgamma_hr_quantity2d(RU,RC,RD,Rf_HR)
+            R11(i1,i0) = Rf_HR 
+         enddo
+      enddo
+c
+      return
+      end
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Interpolate face values based on the CUI high resolution scheme
-c     qf will be set as some function of qU, dC, and qD
+c     qf will be set as some function of qU, qC, and qD
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine interpolate_cui_hr_quantity2d(qU,qC,qD,qf)
 c
@@ -538,8 +925,10 @@ c       ac will be NaN, but qf = qU, so af can be any number
       return
       end
 c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     Interpolate face values based on the CUI compressive scheme
-c     qf will be set as some function of qU, dC, and qD
+c     qf will be set as some function of qU, qC, and qD
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine interpolate_cui_bd_quantity2d(qU,qC,qD,qf)
 c
@@ -570,6 +959,92 @@ c       ac will be NaN, but qf = qU, so af can be any number
         af = three*ac
       else if (third .lt. ac .and. ac .le. one) then
         af = one
+      else
+        af = ac
+      endif
+      qf = af*(qD - qU) + qU
+
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c     Interpolate face values based on the FBICS high resolution scheme
+c     qf will be set as some function of qU, qC, and qD
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine interpolate_fbics_hr_quantity2d(qU,qC,qD,qf)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      REAL qU,qC,qD
+c
+c     Input/Output.
+c
+      REAL qf
+
+c
+c     Local variables.
+c
+      REAL ac,af
+
+c     High-resolution scheme (HR)
+      ac = (qC - qU)/(qD - qU)
+
+      if (qD - qU .eq. zero) then
+c       ac will be NaN, but qf = qU, so af can be any number
+        af = zero
+      else if (zero .lt. ac .and. ac .le. eighth) then
+        af = three*ac
+      else if (eighth .lt. ac .and. ac .le. threefourth) then
+        af = ac + fourth
+      else if (threefourth .lt. ac .and. ac .le. one) then
+        af = one
+      else
+        af = ac
+      endif
+      qf = af*(qD - qU) + qU
+
+      return
+      end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c     Interpolate face values based on the M-Gamma high resolution scheme
+c     qf will be set as some function of qU, qC, and qD
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine interpolate_mgamma_hr_quantity2d(qU,qC,qD,qf)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      REAL qU,qC,qD
+c
+c     Input/Output.
+c
+      REAL qf
+
+c
+c     Local variables.
+c
+      REAL ac,af
+
+c     High-resolution scheme (HR)
+      ac = (qC - qU)/(qD - qU)
+
+      if (qD - qU .eq. zero) then
+c       ac will be NaN, but qf = qU, so af can be any number
+        af = zero
+      else if (zero .lt. ac .and. ac .le. fourth) then
+        af = 5.d0/2.d0*ac
+      else if (fourth .lt. ac .and. ac .le. one) then
+        af = half*ac + half
       else
         af = ac
       endif
@@ -762,8 +1237,8 @@ c
 c
 c     Compute the momentum on the faces.
 c
-      gc0 = min(n_P_half0_gc0,n_P_half1_gc0,n_U_half0_gc0,n_U_half1_gc0)
-      gc1 = min(n_P_half0_gc1,n_P_half1_gc1,n_U_half0_gc1,n_U_half1_gc1)
+      gc0 = min(n_P_half0_gc0,n_P_half1_gc0)
+      gc1 = min(n_P_half0_gc1,n_P_half1_gc1)
 
       do    i1 = side0_ifirst1-gc1,side0_ilast1+gc1
          do i0 = side0_ifirst0-gc0,side0_ilast0+gc0
