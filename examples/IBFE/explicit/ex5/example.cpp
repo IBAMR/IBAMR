@@ -151,6 +151,8 @@ static double kappa_s_surface = 1.0e6;
 static double eta_s_surface = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
+                      const VectorValue<double>& /*n*/,
+                      const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
                       const libMesh::Point& X,
@@ -607,6 +609,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     fe_face->attach_quadrature_rule(qrule_face.get());
     const vector<double>& JxW_face = fe_face->get_JxW();
     const vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
+    const vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const vector<vector<double> >& phi_face = fe_face->get_phi();
     const vector<vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
@@ -616,9 +619,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
     void* force_fcn_ctx = NULL;
 
-    TensorValue<double> FF_qp;
+    TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, U_node;
-    VectorValue<double> F_qp, U_qp, x_qp;
+    VectorValue<double> F, N, U, n, x;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -636,18 +639,17 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            interpolate(x_qp, qp, x_node, phi);
-            jacobian(FF_qp, qp, x_node, dphi);
-            interpolate(U_qp, qp, U_node, phi);
+            interpolate(x, qp, x_node, phi);
+            jacobian(FF, qp, x_node, dphi);
+            interpolate(U, qp, U_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_qp_vec[d] = U_qp(d);
+                U_vec[d] = U(d);
             }
-            tether_force_function(
-                F_qp, FF_qp, x_qp, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
             {
-                F_integral[d] += F_qp(d) * JxW[qp];
+                F_integral[d] += F(d) * JxW[qp];
             }
         }
         for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -657,18 +659,22 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             const unsigned int n_qp_face = qrule_face->n_points();
             for (unsigned int qp = 0; qp < n_qp_face; ++qp)
             {
-                interpolate(x_qp, qp, x_node, phi_face);
-                jacobian(FF_qp, qp, x_node, dphi_face);
-                interpolate(U_qp, qp, U_node, phi_face);
+                interpolate(x, qp, x_node, phi_face);
+                jacobian(FF, qp, x_node, dphi_face);
+                interpolate(U, qp, U_node, phi_face);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    U_qp_vec[d] = U_qp(d);
+                    U_vec[d] = U(d);
                 }
+                N = normal_face[qp];
+                tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+                n = (FF_inv_trans * N).unit();
+
                 tether_force_function(
-                    F_qp, FF_qp, x_qp, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, force_fcn_ctx);
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    F_integral[d] += F_qp(d) * JxW_face[qp];
+                    F_integral[d] += F(d) * JxW_face[qp];
                 }
             }
         }
