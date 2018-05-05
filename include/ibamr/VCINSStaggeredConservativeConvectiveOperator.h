@@ -42,6 +42,7 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
+#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -215,6 +216,18 @@ private:
      * \return A reference to this object.
      */
     VCINSStaggeredConservativeConvectiveOperator& operator=(const VCINSStaggeredConservativeConvectiveOperator& that);
+
+    /*!
+     * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes
+     */
+    void interpolateSideQuantity(
+        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> Q_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Q_data,
+        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
+        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
+        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM> side_boxes,
+        const VCConvectiveLimiter& convective_limiter);
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
