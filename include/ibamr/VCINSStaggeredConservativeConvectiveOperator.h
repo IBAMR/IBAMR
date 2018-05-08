@@ -218,6 +218,16 @@ private:
     VCINSStaggeredConservativeConvectiveOperator& operator=(const VCINSStaggeredConservativeConvectiveOperator& that);
 
     /*!
+     * \brief Compute the advection velocity using simple averages
+     */
+    void computeAdvectionVelocity(
+        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
+        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
+        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
+        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
+
+    /*!
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes
      */
     void interpolateSideQuantity(
@@ -226,8 +236,20 @@ private:
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Q_data,
         const SAMRAI::hier::IntVector<NDIM>& patch_lower,
         const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM> side_boxes,
+        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const VCConvectiveLimiter& convective_limiter);
+
+    /*!
+     * \brief Compute div[rho_half*u_half*u_adv]
+     */
+    void computeConvectiveDerivative(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > N_data,
+        boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> P_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_half_data,
+        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
+        const double* const dx);
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
@@ -269,6 +291,9 @@ private:
 
     // The required number of ghost cells for the chosen interpolation
     int d_velocity_limiter_gcw, d_density_limiter_gcw;
+
+    // Variable to indicate the density update time-stepping type.
+    VCDensityTimeSteppingType d_vc_density_time_stepping_type;
 };
 } // namespace IBAMR
 

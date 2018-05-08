@@ -1326,6 +1326,73 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Computes the updated density N = 0.5*rho^n + 0.5*rho(1) - 0.5*dt*div[rho(1) * U].
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_ssp_rk2_update_density2d(
+     &     dx,dt,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nugc0,nugc1,
+     &     u0,u1,
+     &     npgc0,npgc1,
+     &     p0,p1,
+     &     nRgc0,nRgc1,
+     &     R,
+     &     nNgc0,nNgc1,
+     &     N)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+
+      INTEGER nugc0,nugc1
+      INTEGER npgc0,npgc1
+      INTEGER nRgc0,nRgc1
+      INTEGER nNgc0,nNgc1
+
+      REAL dx(0:NDIM-1),dt
+
+      REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
+      REAL p0(FACE2d0VECG(ifirst,ilast,npgc))
+      REAL p1(FACE2d1VECG(ifirst,ilast,npgc))
+      REAL R(CELL2dVECG(ifirst,ilast,nRgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL2dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      REAL Px0,Px1
+c
+c     Compute 0.5*(R^n + R(1) - dt * div[R(1) U]).
+c
+      do ic1 = ifirst1,ilast1
+         do ic0 = ifirst0,ilast0
+            Px0 = (p0(ic0+1,ic1)*u0(ic0+1,ic1) -
+     &             p0(ic0,ic1)*u0(ic0,ic1))/dx(0)
+            N(ic0,ic1) = 0.5d0*(R(ic0,ic1) + N(ic0,ic1) - dt * Px0)
+         enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+         do ic1 = ifirst1,ilast1
+            Px1 = (p1(ic1+1,ic0)*u1(ic1+1,ic0) -
+     &             p1(ic1,ic0)*u1(ic1,ic0))/dx(1)
+            N(ic0,ic1) = N(ic0,ic1) - 0.5d0 * dt * Px1
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Convert a side-centered vector field into a face-centered vector
 c     field.
 c
