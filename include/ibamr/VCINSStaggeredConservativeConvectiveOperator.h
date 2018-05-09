@@ -251,6 +251,21 @@ private:
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const double* const dx);
 
+    /*!
+     * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half])
+     */
+    void computeDensityUpdate(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
+        const double& a0,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R0_data,
+        const double& a1,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R1_data,
+        const double& a2,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
+        const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
+        const double* const dx);
+
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
@@ -272,6 +287,9 @@ private:
 
     // Current time step size.
     double d_dt;
+
+    // Number of RK steps to take.
+    int d_num_steps;
 
     // Boundary condition object for interpolated density field.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_interp_bc_coefs;

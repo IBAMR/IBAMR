@@ -170,6 +170,7 @@ enum VCDensityTimeSteppingType
 {
     VC_FORWARD_EULER,
     VC_SSPRK2,
+    VC_SSPRK3,
     UNKNOWN_DENSITY_TIME_STEPPING_TYPE = -1
 };
 
@@ -179,6 +180,7 @@ string_to_enum<VCDensityTimeSteppingType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "VC_FORWARD_EULER") == 0) return VC_FORWARD_EULER;
     if (strcasecmp(val.c_str(), "VC_SSPRK2") == 0) return VC_SSPRK2;
+    if (strcasecmp(val.c_str(), "VC_SSPRK3") == 0) return VC_SSPRK3;
     return UNKNOWN_DENSITY_TIME_STEPPING_TYPE;
 } // string_to_enum
 
@@ -188,6 +190,7 @@ enum_to_string<VCDensityTimeSteppingType>(VCDensityTimeSteppingType val)
 {
     if (val == VC_FORWARD_EULER) return "VC_FORWARD_EULER";
     if (val == VC_SSPRK2) return "VC_SSPRK2";
+    if (val == VC_SSPRK3) return "VC_SSPRK3";
     return "UNKNOWN_DENSITY_TIME_STEPPING_TYPE";
 } // enum_to_string
 

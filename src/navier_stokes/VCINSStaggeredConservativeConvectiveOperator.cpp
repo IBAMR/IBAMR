@@ -84,7 +84,6 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density2d, VC_UPDATE_DENSITY2D)
-#define VC_SSP_RK2_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_ssp_rk2_update_density2d, VC_SSP_RK2_UPDATE_DENSITY2D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define VC_NAVIER_STOKES_UPWIND_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity2d, VC_NAVIER_STOKES_UPWIND_QUANTITY2D)
@@ -101,7 +100,6 @@ class RobinBcCoefStrategy;
 #if (NDIM == 3)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density3d, VC_UPDATE_DENSITY3D)
-#define VC_SSP_RK2_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_ssp_rk2_update_density3d, VC_SSP_RK2_UPDATE_DENSITY3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
 #define VC_NAVIER_STOKES_UPWIND_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity3d, VC_NAVIER_STOKES_UPWIND_QUANTITY3D)
@@ -157,13 +155,22 @@ void CONVECT_DERIVATIVE_FC(const double*,
                            const int&,
 #endif
                            double*);
+#if (NDIM == 2)
 void VC_UPDATE_DENSITY_FC(const double*,
                           const double&,
-#if (NDIM == 2)
+                          const double&,
+                          const double&,
+                          const double&,
                           const int&,
                           const int&,
                           const int&,
                           const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const double*,
                           const int&,
                           const int&,
                           const double*,
@@ -174,38 +181,8 @@ void VC_UPDATE_DENSITY_FC(const double*,
                           const double*,
                           const int&,
                           const int&,
-                          const double*,
-                          const int&,
-                          const int&,
+                          const double*);
 #endif
-#if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-#endif
-                          double*);
 
 void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
                                   const double&,
@@ -1012,6 +989,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_rho_is_set(false),
       d_dt_is_set(false),
       d_dt(-1.0),
+      d_num_steps(1),
       d_rho_interp_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
@@ -1105,15 +1083,20 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     switch (d_vc_density_time_stepping_type)
     {
     case VC_FORWARD_EULER:
+        d_num_steps = 1;
         break;
     case VC_SSPRK2:
+        d_num_steps = 2;
+        break;
+    case VC_SSPRK3:
+        d_num_steps = 3;
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported density time stepping type: "
                                  << IBAMR::enum_to_string<VCDensityTimeSteppingType>(d_vc_density_time_stepping_type)
                                  << " \n"
-                                 << "  valid choices are: VC_FORWARD_EULER, VC_SSPRK2\n");
+                                 << "  valid choices are: VC_FORWARD_EULER, VC_SSPRK2, VC_SSPRK3\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1228,7 +1211,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, NULL);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
-    // Fill ghost cells for density
+    // Fill ghost cells for current density
     InterpolationTransactionComponent rho_transaction(d_rho_interp_scratch_idx,
                                                       d_rho_interp_current_idx,
                                                       "CONSERVATIVE_LINEAR_REFINE",
@@ -1247,137 +1230,24 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     pout << "Old mass in the domain = " << old_mass << std::endl;
 
     // Compute the convective derivative.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    bool N_computed = false;
+    for (int step = 0; step < d_num_steps; ++step)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Fill ghost cells for new density, if needed
+        if (step > 0)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const dx = patch_geom->getDx();
-
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
-
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_interp_new_idx);
-
-            // Define variables that live on the "faces" of control volumes centered about side-centered staggered
-            // velocity components
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                R_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                P_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-            }
-            // Interpolate velocity components onto "faces" using simple averages.
-            computeAdvectionVelocity(U_adv_data, U_data, patch_lower, patch_upper, side_boxes);
-
-            // Upwind side-centered densities onto faces.
-            interpolateSideQuantity(
-                R_half_data, U_adv_data, R_data, patch_lower, patch_upper, side_boxes, d_vc_density_convective_limiter);
-
-            // Compute the convective derivative with this density, if necessary
-            if (d_vc_density_time_stepping_type == VC_FORWARD_EULER)
-            {
-                interpolateSideQuantity(U_half_data,
-                                        U_adv_data,
-                                        U_data,
-                                        patch_lower,
-                                        patch_upper,
-                                        side_boxes,
-                                        d_vc_velocity_convective_limiter);
-
-                computeConvectiveDerivative(N_data, P_half_data, U_adv_data, R_half_data, U_half_data, side_boxes, dx);
-            }
-
-            // Compute forward Euler update to the side-centered rho quantity rho^{n+1} = rho^n - dt*div(rho_half*u_adv)
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-#if (NDIM == 2)
-                VC_UPDATE_DENSITY_FC(dx,
-                                     d_dt,
-                                     side_boxes[axis].lower(0),
-                                     side_boxes[axis].upper(0),
-                                     side_boxes[axis].lower(1),
-                                     side_boxes[axis].upper(1),
-                                     U_adv_data[axis]->getGhostCellWidth()(0),
-                                     U_adv_data[axis]->getGhostCellWidth()(1),
-                                     U_adv_data[axis]->getPointer(0),
-                                     U_adv_data[axis]->getPointer(1),
-                                     R_half_data[axis]->getGhostCellWidth()(0),
-                                     R_half_data[axis]->getGhostCellWidth()(1),
-                                     R_half_data[axis]->getPointer(0),
-                                     R_half_data[axis]->getPointer(1),
-                                     R_data->getGhostCellWidth()(0),
-                                     R_data->getGhostCellWidth()(1),
-                                     R_data->getPointer(axis),
-                                     R_new_data->getGhostCellWidth()(0),
-                                     R_new_data->getGhostCellWidth()(1),
-                                     R_new_data->getPointer(axis));
-#endif
-#if (NDIM == 3)
-                VC_UPDATE_DENSITY_FC(dx,
-                                     d_dt,
-                                     side_boxes[axis].lower(0),
-                                     side_boxes[axis].upper(0),
-                                     side_boxes[axis].lower(1),
-                                     side_boxes[axis].upper(1),
-                                     side_boxes[axis].lower(2),
-                                     side_boxes[axis].upper(2),
-                                     U_adv_data[axis]->getGhostCellWidth()(0),
-                                     U_adv_data[axis]->getGhostCellWidth()(1),
-                                     U_adv_data[axis]->getGhostCellWidth()(2),
-                                     U_adv_data[axis]->getPointer(0),
-                                     U_adv_data[axis]->getPointer(1),
-                                     U_adv_data[axis]->getPointer(2),
-                                     R_half_data[axis]->getGhostCellWidth()(0),
-                                     R_half_data[axis]->getGhostCellWidth()(1),
-                                     R_half_data[axis]->getGhostCellWidth()(2),
-                                     R_half_data[axis]->getPointer(0),
-                                     R_half_data[axis]->getPointer(1),
-                                     R_half_data[axis]->getPointer(2),
-                                     R_data->getGhostCellWidth()(0),
-                                     R_data->getGhostCellWidth()(1),
-                                     R_data->getGhostCellWidth()(2),
-                                     R_data->getPointer(axis),
-                                     R_new_data->getGhostCellWidth()(0),
-                                     R_new_data->getGhostCellWidth()(1),
-                                     R_new_data->getGhostCellWidth()(2),
-                                     R_new_data->getPointer(axis));
-#endif
-            }
+            InterpolationTransactionComponent update_transaction(d_rho_interp_scratch_idx,
+                                                                 d_rho_interp_new_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 d_bdry_extrap_type,
+                                                                 false,
+                                                                 d_rho_interp_bc_coefs);
+            Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
+            hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
+            hier_update_bdry_fill->fillData(d_solution_time + d_dt);
         }
-    }
-
-    // Compute an additional density update if necessary
-    if (d_vc_density_time_stepping_type == VC_SSPRK2)
-    {
-        // Fill ghost cells of the first update
-        InterpolationTransactionComponent update_transaction(d_rho_interp_scratch_idx,
-                                                             d_rho_interp_new_idx,
-                                                             "CONSERVATIVE_LINEAR_REFINE",
-                                                             false,
-                                                             "CONSERVATIVE_COARSEN",
-                                                             d_bdry_extrap_type,
-                                                             false,
-                                                             d_rho_interp_bc_coefs);
-        Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
-        hier_update_bdry_fill->fillData(d_solution_time + d_dt);
-
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1394,8 +1264,8 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
 
                 Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
                 Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_data = patch->getPatchData(d_rho_interp_scratch_idx);
-                Pointer<SideData<NDIM, double> > R_old_data = patch->getPatchData(d_rho_interp_current_idx);
+                Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_interp_current_idx);
+                Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_interp_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_interp_new_idx);
 
                 // Define variables that live on the "faces" of control volumes centered about side-centered staggered
@@ -1420,83 +1290,72 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                 // Upwind side-centered densities onto faces.
                 interpolateSideQuantity(R_half_data,
                                         U_adv_data,
-                                        R_data,
+                                        R_pre_data,
                                         patch_lower,
                                         patch_upper,
                                         side_boxes,
                                         d_vc_density_convective_limiter);
 
-                // Upwind side-centered velocity onto faces.
-                interpolateSideQuantity(U_half_data,
-                                        U_adv_data,
-                                        U_data,
-                                        patch_lower,
-                                        patch_upper,
-                                        side_boxes,
-                                        d_vc_velocity_convective_limiter);
-
-                // Compute the convective derivative
-                computeConvectiveDerivative(N_data, P_half_data, U_adv_data, R_half_data, U_half_data, side_boxes, dx);
-
-                // Update rho^{n+1} = 0.5 * rho^n + 0.5 * rho(1) - 0.5*dt*div(rho_half*u_adv)
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                // Compute the convective derivative with this density, if necessary
+                if ((d_vc_density_time_stepping_type == VC_FORWARD_EULER && step == 0) ||
+                    (d_vc_density_time_stepping_type == VC_SSPRK2 && step == 1) ||
+                    (d_vc_density_time_stepping_type == VC_SSPRK3 && step == 2))
                 {
-#if (NDIM == 2)
-                    VC_SSP_RK2_UPDATE_DENSITY_FC(dx,
-                                                 d_dt,
-                                                 side_boxes[axis].lower(0),
-                                                 side_boxes[axis].upper(0),
-                                                 side_boxes[axis].lower(1),
-                                                 side_boxes[axis].upper(1),
-                                                 U_adv_data[axis]->getGhostCellWidth()(0),
-                                                 U_adv_data[axis]->getGhostCellWidth()(1),
-                                                 U_adv_data[axis]->getPointer(0),
-                                                 U_adv_data[axis]->getPointer(1),
-                                                 R_half_data[axis]->getGhostCellWidth()(0),
-                                                 R_half_data[axis]->getGhostCellWidth()(1),
-                                                 R_half_data[axis]->getPointer(0),
-                                                 R_half_data[axis]->getPointer(1),
-                                                 R_old_data->getGhostCellWidth()(0),
-                                                 R_old_data->getGhostCellWidth()(1),
-                                                 R_old_data->getPointer(axis),
-                                                 R_new_data->getGhostCellWidth()(0),
-                                                 R_new_data->getGhostCellWidth()(1),
-                                                 R_new_data->getPointer(axis));
-#endif
-#if (NDIM == 3)
-                    VC_SSP_RK2_UPDATE_DENSITY_FC(dx,
-                                                 d_dt,
-                                                 side_boxes[axis].lower(0),
-                                                 side_boxes[axis].upper(0),
-                                                 side_boxes[axis].lower(1),
-                                                 side_boxes[axis].upper(1),
-                                                 side_boxes[axis].lower(2),
-                                                 side_boxes[axis].upper(2),
-                                                 U_adv_data[axis]->getGhostCellWidth()(0),
-                                                 U_adv_data[axis]->getGhostCellWidth()(1),
-                                                 U_adv_data[axis]->getGhostCellWidth()(2),
-                                                 U_adv_data[axis]->getPointer(0),
-                                                 U_adv_data[axis]->getPointer(1),
-                                                 U_adv_data[axis]->getPointer(2),
-                                                 R_half_data[axis]->getGhostCellWidth()(0),
-                                                 R_half_data[axis]->getGhostCellWidth()(1),
-                                                 R_half_data[axis]->getGhostCellWidth()(2),
-                                                 R_half_data[axis]->getPointer(0),
-                                                 R_half_data[axis]->getPointer(1),
-                                                 R_half_data[axis]->getPointer(2),
-                                                 R_old_data->getGhostCellWidth()(0),
-                                                 R_old_data->getGhostCellWidth()(1),
-                                                 R_old_data->getGhostCellWidth()(2),
-                                                 R_old_data->getPointer(axis),
-                                                 R_new_data->getGhostCellWidth()(0),
-                                                 R_new_data->getGhostCellWidth()(1),
-                                                 R_new_data->getGhostCellWidth()(2),
-                                                 R_new_data->getPointer(axis));
-#endif
+                    interpolateSideQuantity(U_half_data,
+                                            U_adv_data,
+                                            U_data,
+                                            patch_lower,
+                                            patch_upper,
+                                            side_boxes,
+                                            d_vc_velocity_convective_limiter);
+
+                    computeConvectiveDerivative(
+                        N_data, P_half_data, U_adv_data, R_half_data, U_half_data, side_boxes, dx);
+                    N_computed = true;
                 }
+
+                // Compute the updated density
+                double a0, a1, a2;
+                switch (step)
+                {
+                case 0:
+                    a0 = 0.5;
+                    a1 = 0.5;
+                    a2 = 1.0;
+                    break;
+                case 1:
+                    if (d_vc_density_time_stepping_type == VC_SSPRK2)
+                    {
+                        a0 = 0.5;
+                        a1 = 0.5;
+                        a2 = 0.5;
+                        break;
+                    }
+                    if (d_vc_density_time_stepping_type == VC_SSPRK3)
+                    {
+                        a0 = 0.75;
+                        a1 = 0.25;
+                        a2 = 0.25;
+                        break;
+                    }
+                case 2:
+                    a0 = 1.0 / 3.0;
+                    a1 = 2.0 / 3.0;
+                    a2 = 2.0 / 3.0;
+                    break;
+                default:
+                    TBOX_ERROR("This statement should not be reached");
+                }
+                computeDensityUpdate(
+                    R_new_data, a0, R_cur_data, a1, R_pre_data, a2, U_adv_data, R_half_data, side_boxes, dx);
             }
         }
     }
+    // Ensure that the density has been updated
+    if (!N_computed)
+        TBOX_ERROR(
+            "Convective derivative has not been computed by VCINSStaggeredConservativeConvectiveOperator. Something "
+            "went wrong");
 
     // Compute the new mass
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_interp_new_idx, wgt_sc_idx);
@@ -2328,6 +2187,55 @@ VCINSStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
         }
     }
 } // computeConvectiveDerivative
+
+void
+VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
+    Pointer<SideData<NDIM, double> > R_data,
+    const double& a0,
+    const Pointer<SideData<NDIM, double> > R0_data,
+    const double& a1,
+    const Pointer<SideData<NDIM, double> > R1_data,
+    const double& a2,
+    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const double* const dx)
+{
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 2)
+        VC_UPDATE_DENSITY_FC(dx,
+                             d_dt,
+                             a0,
+                             a1,
+                             a2,
+                             side_boxes[axis].lower(0),
+                             side_boxes[axis].upper(0),
+                             side_boxes[axis].lower(1),
+                             side_boxes[axis].upper(1),
+                             R0_data->getGhostCellWidth()(0),
+                             R0_data->getGhostCellWidth()(1),
+                             R0_data->getPointer(axis),
+                             R1_data->getGhostCellWidth()(0),
+                             R1_data->getGhostCellWidth()(1),
+                             R1_data->getPointer(axis),
+                             U_adv_data[axis]->getGhostCellWidth()(0),
+                             U_adv_data[axis]->getGhostCellWidth()(1),
+                             U_adv_data[axis]->getPointer(0),
+                             U_adv_data[axis]->getPointer(1),
+                             R_half_data[axis]->getGhostCellWidth()(0),
+                             R_half_data[axis]->getGhostCellWidth()(1),
+                             R_half_data[axis]->getPointer(0),
+                             R_half_data[axis]->getPointer(1),
+                             R_data->getGhostCellWidth()(0),
+                             R_data->getGhostCellWidth()(1),
+                             R_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+        TBOX_ERROR("TODO");
+#endif
+    }
+} // computeDensityUpdate
 
 #if 0
             // Correct density for inflow conditions.

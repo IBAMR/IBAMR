@@ -1259,21 +1259,31 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes the updated density N = rho^n - dt*div[rho^n * U].
+c     Computes an updated density field using the three stage formula
+c     R = a0*R0 + a1*R1 - a2*dt*div[rhalf*u]
+c
+c     a0,a1,a2 are coefficients for steps of a SSP Runge-Kutta update
+c     R is a side-centered updated density field
+c     R0,R1 are side-centered density fields from different RK stages
+c     rhalf is the face-centered interpolation of R1
+c     u is the face-centered advection velocity   
+c     
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine vc_update_density2d(
-     &     dx,dt,
+     &     dx,dt,a0,a1,a2,
      &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nR0gc0,nR0gc1,
+     &     R0,
+     &     nR1gc0,nR1gc1,
+     &     R1,
      &     nugc0,nugc1,
      &     u0,u1,
-     &     npgc0,npgc1,
-     &     p0,p1,
+     &     nrhalfgc0,nrhalfgc1,
+     &     rhalf0,rhalf1,
      &     nRgc0,nRgc1,
-     &     R,
-     &     nNgc0,nNgc1,
-     &     N)
+     &     R)
 c
       implicit none
 c
@@ -1281,110 +1291,46 @@ c     Input.
 c
       INTEGER ifirst0,ilast0,ifirst1,ilast1
 
+      INTEGER nR0gc0,nR0gc1
+      INTEGER nR1gc0,nR1gc1
       INTEGER nugc0,nugc1
-      INTEGER npgc0,npgc1
+      INTEGER nrhalfgc0,nrhalfgc1
       INTEGER nRgc0,nRgc1
-      INTEGER nNgc0,nNgc1
 
-      REAL dx(0:NDIM-1),dt
+      REAL dx(0:NDIM-1),dt,a0,a1,a2
 
+      REAL R0(CELL2dVECG(ifirst,ilast,nR0gc))
+      REAL R1(CELL2dVECG(ifirst,ilast,nR1gc))
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
-      REAL p0(FACE2d0VECG(ifirst,ilast,npgc))
-      REAL p1(FACE2d1VECG(ifirst,ilast,npgc))
-      REAL R(CELL2dVECG(ifirst,ilast,nRgc))
+      REAL rhalf0(FACE2d0VECG(ifirst,ilast,nrhalfgc))
+      REAL rhalf1(FACE2d1VECG(ifirst,ilast,nrhalfgc))
 c
 c     Input/Output.
 c
-      REAL N(CELL2dVECG(ifirst,ilast,nNgc))
+      REAL R(CELL2dVECG(ifirst,ilast,nRgc))
 c
 c     Local variables.
 c
       INTEGER ic0,ic1
       REAL Px0,Px1
 c
-c     Compute R^n - dt * div[R^{n+1/2} U].
+c     Compute R = a0*R0 + a1*R1 - a2*dt*div[r_fc*u].
 c
       do ic1 = ifirst1,ilast1
          do ic0 = ifirst0,ilast0
-            Px0 = (p0(ic0+1,ic1)*u0(ic0+1,ic1) -
-     &             p0(ic0,ic1)*u0(ic0,ic1))/dx(0)
-            N(ic0,ic1) = R(ic0,ic1) - dt * Px0
+            Px0 = (rhalf0(ic0+1,ic1)*u0(ic0+1,ic1) -
+     &             rhalf0(ic0,ic1)*u0(ic0,ic1))/dx(0)
+            R(ic0,ic1) = a0*R0(ic0,ic1) + a1*R1(ic0,ic1)
+     &                   - a2 * dt * Px0
          enddo
       enddo
 
       do ic0 = ifirst0,ilast0
          do ic1 = ifirst1,ilast1
-            Px1 = (p1(ic1+1,ic0)*u1(ic1+1,ic0) -
-     &             p1(ic1,ic0)*u1(ic1,ic0))/dx(1)
-            N(ic0,ic1) = N(ic0,ic1) - dt * Px1
-         enddo
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Computes the updated density N = 0.5*rho^n + 0.5*rho(1) - 0.5*dt*div[rho(1) * U].
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine vc_ssp_rk2_update_density2d(
-     &     dx,dt,
-     &     ifirst0,ilast0,ifirst1,ilast1,
-     &     nugc0,nugc1,
-     &     u0,u1,
-     &     npgc0,npgc1,
-     &     p0,p1,
-     &     nRgc0,nRgc1,
-     &     R,
-     &     nNgc0,nNgc1,
-     &     N)
-c
-      implicit none
-c
-c     Input.
-c
-      INTEGER ifirst0,ilast0,ifirst1,ilast1
-
-      INTEGER nugc0,nugc1
-      INTEGER npgc0,npgc1
-      INTEGER nRgc0,nRgc1
-      INTEGER nNgc0,nNgc1
-
-      REAL dx(0:NDIM-1),dt
-
-      REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
-      REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
-      REAL p0(FACE2d0VECG(ifirst,ilast,npgc))
-      REAL p1(FACE2d1VECG(ifirst,ilast,npgc))
-      REAL R(CELL2dVECG(ifirst,ilast,nRgc))
-c
-c     Input/Output.
-c
-      REAL N(CELL2dVECG(ifirst,ilast,nNgc))
-c
-c     Local variables.
-c
-      INTEGER ic0,ic1
-      REAL Px0,Px1
-c
-c     Compute 0.5*(R^n + R(1) - dt * div[R(1) U]).
-c
-      do ic1 = ifirst1,ilast1
-         do ic0 = ifirst0,ilast0
-            Px0 = (p0(ic0+1,ic1)*u0(ic0+1,ic1) -
-     &             p0(ic0,ic1)*u0(ic0,ic1))/dx(0)
-            N(ic0,ic1) = 0.5d0*(R(ic0,ic1) + N(ic0,ic1) - dt * Px0)
-         enddo
-      enddo
-
-      do ic0 = ifirst0,ilast0
-         do ic1 = ifirst1,ilast1
-            Px1 = (p1(ic1+1,ic0)*u1(ic1+1,ic0) -
-     &             p1(ic1,ic0)*u1(ic1,ic0))/dx(1)
-            N(ic0,ic1) = N(ic0,ic1) - 0.5d0 * dt * Px1
+            Px1 = (rhalf1(ic1+1,ic0)*u1(ic1+1,ic0) -
+     &             rhalf1(ic1,ic0)*u1(ic1,ic0))/dx(1)
+            R(ic0,ic1) = R(ic0,ic1) - a2* dt * Px1
          enddo
       enddo
 c
