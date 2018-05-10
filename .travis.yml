@@ -4,7 +4,7 @@ sudo: false
 # Blacklist
 branches:
   only:
-    - raveenak96/test-travis
+    - master
 
 # Environment variables
 env:
