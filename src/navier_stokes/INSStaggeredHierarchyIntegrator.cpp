@@ -1322,6 +1322,45 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Setup the solution and right-hand-side vectors.
     setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
+    Pointer<PatchHierarchy<NDIM> > hierarchy = d_sol_vec->getPatchHierarchy();
+    for (int ln = d_sol_vec->getCoarsestLevelNumber(); ln <= d_sol_vec->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_U_current_idx);
+            Pointer<CellData<NDIM, double> > P_data = patch->getPatchData(d_rhs_vec->getComponentDescriptorIndex(1));
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const x_lower = pgeom->getXLower();
+            const double* const dx = pgeom->getDx();
+            Box<NDIM> patch_box = patch->getBox();
+            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            {
+                Index<NDIM> i = b();
+                double X[NDIM];
+                double u_squared = 0.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    u_squared +=
+                        pow(0.5 * ((*u_data)(SideIndex<NDIM>(i, d, 0)) + (*u_data)(SideIndex<NDIM>(i, d, 1))), 2.0);
+                }
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X[d] = x_lower[d] + (i(d) - patch_box.lower(d) + 0.5) * dx[d];
+                }
+                if (X[0] < 0.125)
+                {
+                    (*P_data)(i) = -1.0 + 0.5 * u_squared;
+                }
+                if (X[0] > (4.0 - 0.125))
+                {
+                    (*P_data)(i) = 1.0 - 0.5 * u_squared;
+                }
+            }
+        }
+    }
+
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
     if (d_enable_logging)
