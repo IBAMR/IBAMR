@@ -75,6 +75,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBMethodPostProcessStrategy.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
+../src/IB/IBHydrodynamicSurfaceForceEvaluator.cpp \
 ../src/IB/IBSourceSpec.cpp \
 ../src/IB/IBSourceSpecFactory.cpp \
 ../src/IB/IBSpringForceSpec.cpp \
@@ -205,6 +206,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
 ../include/ibamr/IBRodForceSpec.h \
+../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
 ../include/ibamr/IBSourceSpec.h \
 ../include/ibamr/IBSpringForceFunctions.h \
 ../include/ibamr/IBSpringForceSpec.h \

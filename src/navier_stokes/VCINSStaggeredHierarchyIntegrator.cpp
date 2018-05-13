@@ -3419,6 +3419,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     P_bc_coef->setSolutionTime(new_time);
     P_bc_coef->setTimeInterval(current_time, new_time);
     P_bc_coef->setViscosityInterpolationType(d_mu_vc_interp_type);
+    P_bc_coef->setViscosityPatchDataIndex(d_mu_scratch_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef =

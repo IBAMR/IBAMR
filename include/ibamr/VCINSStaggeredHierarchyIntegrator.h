@@ -332,14 +332,6 @@ public:
     }
 
     /*!
-     * \brief Get cell centered viscosity patch data index
-     */
-    inline int getMuPatchDataIndex() const
-    {
-        return d_mu_scratch_idx;
-    }
-
-    /*!
      * \brief Get interpolated node (2D) or edge (3D) centered viscosity patch data index
      */
     inline int getInterpolatedMuPatchDataIndex() const

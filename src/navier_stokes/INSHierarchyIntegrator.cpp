@@ -299,6 +299,12 @@ INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho
     return;
 } // registerMassDensityVariable
 
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getMassDensityVariable() const
+{
+    return d_rho_var;
+} // getMassDensityVariable
+
 void
 INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
 {
@@ -325,6 +331,12 @@ INSHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<NDIM> > mu_va
     d_mu_var = mu_var;
     return;
 } // registerViscosityVariable
+
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getViscosityVariable() const
+{
+    return d_mu_var;
+} // getViscosityVariable
 
 void
 INSHierarchyIntegrator::setViscosityFunction(Pointer<CartGridFunction> mu_fcn)

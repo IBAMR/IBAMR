@@ -246,6 +246,14 @@ public:
     //\}
 
     /*!
+     * \brief Set the cell centered viscosity patch data index to be used for
+     * traction boundary conditions.
+     *
+     * \note This patch data must contain filled ghost cells
+     */
+    void setViscosityPatchDataIndex(const int mu_idx);
+
+    /*!
      * \brief Set the interpolation type to bring cell centered viscosity
      * to side centers
      */
@@ -289,6 +297,11 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * Patch data index for cell-centered viscosity with ghost cells.
+     */
+    int d_mu_idx;
 
     /*
      * The type of interpolation to bring cell centered viscosity to side centers.
