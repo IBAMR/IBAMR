@@ -51,6 +51,7 @@
 #include "MultiblockDataTranslator.h"
 #include "NodeVariable.h"
 #include "OuterfaceVariable.h"
+#include "OuternodeVariable.h"
 #include "OutersideVariable.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
@@ -1238,6 +1239,12 @@ private:
     void xeqScheduleOuterfaceRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
+     * \brief Execute schedule for restricting Outernode data to the specified
+     * level from the next finer level.
+     */
+    void xeqScheduleOuternodeRestriction(int dst_idx, int src_idx, int dst_ln);
+
+    /*!
      * \brief Execute schedule for restricting Outerside data to the specified
      * level from the next finer level.
      */
@@ -1268,18 +1275,23 @@ private:
 
     // Scratch Variables.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx, d_sc_idx, d_of_idx, d_os_idx;
+    int d_fc_idx, d_nc_idx, d_sc_idx, d_of_idx, d_on_idx, d_os_idx;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_of_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
 
     // Hierarchy data operations.
