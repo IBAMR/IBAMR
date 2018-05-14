@@ -72,6 +72,7 @@
 #include "OuterfaceVariable.h"
 #include "OuternodeData.h"
 #include "OuternodeDataFactory.h"
+#include "OuternodeSumTransactionFactory.h"
 #include "OuternodeVariable.h"
 #include "OutersideData.h"
 #include "OutersideDataFactory.h"
@@ -3212,6 +3213,20 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int s
     }
     return;
 } // xeqScheduleOutersideRestriction
+
+void
+HierarchyMathOps::xeqScheduleOuternodeSum(const int data_idx, const int ln)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ln >= d_coarsest_ln);
+    TBOX_ASSERT(ln <= d_finest_ln);
+#endif
+    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+    refine_alg->registerRefine(data_idx, data_idx, data_idx, NULL);
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+    refine_alg->createSchedule(level, NULL, new OuternodeSumTransactionFactory<NDIM>())->fillData(/* fill_time */ 0.0);
+    return;
+} // xeqScheduleOuternodeSum
 
 void
 HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)

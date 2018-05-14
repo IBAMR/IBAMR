@@ -1251,6 +1251,12 @@ private:
     void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
+     * \brief Execute schedule for summing Outernode data on the specified
+     * level.
+     */
+    void xeqScheduleOuternodeSum(int data_idx, int ln);
+
+    /*!
      * \brief Reset cell-centered weights, allocating patch data if needed.
      */
     void resetCellWeights(int coarsest_ln, int finest_ln);
