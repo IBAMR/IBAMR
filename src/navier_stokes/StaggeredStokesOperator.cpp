@@ -281,6 +281,33 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                          d_no_fill,
                          d_new_time,
                          /*cf_bdry_synch*/ true);
+
+    HierarchyGhostCellInterpolation div_bdry_fill;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    const int P_scratch_idx = d_x->getComponentDescriptorIndex(1);
+    InterpolationTransactionComponent transaction_comp(P_scratch_idx,
+                                                       A_P_idx,
+                                                       DATA_REFINE_TYPE,
+                                                       USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE,
+                                                       BDRY_EXTRAP_TYPE,
+                                                       CONSISTENT_TYPE_2_BDRY,
+                                                       NULL,
+                                                       NULL);
+    div_bdry_fill.initializeOperatorState(transaction_comp, x.getPatchHierarchy());
+    div_bdry_fill.fillData(d_solution_time);
+    d_hier_math_ops->grad(A_U_idx,
+                          A_U_sc_var,
+                          /* dst_cf_bdry_synch */ true,
+                          (1.0 / 3.0) * d_U_problem_coefs.getDConstant(),
+                          P_scratch_idx,
+                          A_P_cc_var,
+                          d_no_fill,
+                          d_solution_time,
+                          1.0,
+                          A_U_idx,
+                          A_U_sc_var);
+
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
@@ -304,13 +331,9 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                 {
                     X[d] = x_lower[d] + (i(d) - patch_box.lower(d) + 0.5) * dx[d];
                 }
-                if (X[0] < 0.125)
+                if (1.75 < X[0] && X[0] < 2.25)
                 {
-                    (*A_P_data)(i) = -(*P_data)(i);
-                }
-                if (X[0] > (4.0 - 0.125))
-                {
-                    (*A_P_data)(i) = -(*P_data)(i);
+                    (*A_P_data)(i) = (*P_data)(i);
                 }
             }
         }

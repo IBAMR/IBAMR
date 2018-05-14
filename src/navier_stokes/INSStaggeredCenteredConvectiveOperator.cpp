@@ -478,6 +478,25 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
                            << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
+#if 1
+            const double* const x_lower = patch_geom->getXLower();
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (SideIterator<NDIM> b(patch_box, axis); b; b++)
+                {
+                    SideIndex<NDIM> i = b();
+                    double X[NDIM];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        X[d] = x_lower[d] + (i(d) - patch_box.lower(d) + (d == axis ? 0.0 : 0.5)) * dx[d];
+                    }
+                    if (1.75 <= X[0] && X[0] <= 2.25)
+                    {
+                        (*N_data)(i) = 0.0;
+                    }
+                }
+            }
+#endif
         }
     }
 

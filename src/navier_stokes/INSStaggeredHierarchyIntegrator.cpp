@@ -1339,23 +1339,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
             {
                 Index<NDIM> i = b();
                 double X[NDIM];
-                double u_squared = 0.0;
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    u_squared +=
-                        pow(0.5 * ((*u_data)(SideIndex<NDIM>(i, d, 0)) + (*u_data)(SideIndex<NDIM>(i, d, 1))), 2.0);
-                }
                 for (int d = 0; d < NDIM; ++d)
                 {
                     X[d] = x_lower[d] + (i(d) - patch_box.lower(d) + 0.5) * dx[d];
                 }
-                if (X[0] < 0.125)
+                if (1.75 < X[0] && X[0] < 2.25)
                 {
-                    (*P_data)(i) = -1.0 + 0.5 * u_squared;
-                }
-                if (X[0] > (4.0 - 0.125))
-                {
-                    (*P_data)(i) = 1.0 - 0.5 * u_squared;
+                    (*P_data)(i) = (1.0);
                 }
             }
         }
