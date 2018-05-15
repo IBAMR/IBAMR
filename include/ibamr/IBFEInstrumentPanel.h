@@ -152,7 +152,7 @@ private:
     /*!
      * \brief number of nodes in the perimeter of the meter mesh.
      */
-    std::vector<int> d_num_nodes;
+    std::vector<unsigned int> d_num_nodes;
 
     /*!
      * \brief vectors to store the dof indices for the velocity and displacement

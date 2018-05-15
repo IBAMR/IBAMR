@@ -293,25 +293,27 @@ linear_interp(const Vector& X,
 
 IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const int part)
     : d_num_meters(0),
-      d_part(part),
-      d_nodes(),
-      d_node_dof_IDs(),
       d_quad_order(),
       d_num_quad_points(),
+      d_part(part),
+      d_initialized(false),
       d_num_nodes(),
       d_U_dof_idx(),
       d_dX_dof_idx(),
-      d_nodeset_IDs_for_meters(),
-      d_meter_meshes(),
+      d_nodes(),
+      d_node_dof_IDs(),
       d_meter_systems(),
+      d_exodus_io(),
+      d_meter_meshes(),
       d_meter_mesh_names(),
-      d_quad_point_map(),
+      d_nodeset_IDs_for_meters(),
       d_instrument_dump_interval(),
       d_flow_values(),
       d_mean_pressure_values(),
-      d_flux_stream(),
+      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
       d_mean_pressure_stream(),
-      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d")
+      d_flux_stream(),
+      d_quad_point_map()
 {
     // get input data
     IBFEInstrumentPanel::getFromInput(input_db);
@@ -346,7 +348,7 @@ IBFEInstrumentPanel::~IBFEInstrumentPanel()
         d_flux_stream.close();
     }
     // delete vectors of pointers
-    for (int ii = 0; ii < d_num_meters; ++ii)
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         delete d_exodus_io[ii];
         delete d_meter_meshes[ii];
@@ -401,7 +403,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     meter_centroids.resize(d_num_meters);
 
     // populate temp vectors
-    for (int ii = 0; ii < nodes.size(); ++ii)
+    for (unsigned int ii = 0; ii < nodes.size(); ++ii)
     {
         for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
         {
@@ -416,7 +418,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // loop over meters and sort the nodes
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // finish computing centroid
         meter_centroids[jj] /= static_cast<double>(temp_nodes[jj].size());
@@ -427,9 +429,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
         d_nodes[jj].push_back(temp_nodes[jj][0]);
         d_node_dof_IDs[jj].push_back(temp_node_dof_IDs[jj][0]);
         max_dist = std::numeric_limits<double>::max();
-        for (int kk = 1; kk < temp_nodes[jj].size(); ++kk)
+        for (unsigned int kk = 1; kk < temp_nodes[jj].size(); ++kk)
         {
-            for (int ll = 0; ll < temp_nodes[jj].size(); ++ll)
+            for (unsigned int ll = 0; ll < temp_nodes[jj].size(); ++ll)
             {
                 // here we find the closest node to the previous one
                 // with some orientation
@@ -439,7 +441,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
                 {
                     // make sure we haven't already added this node
                     bool added = false;
-                    for (int ii = 1; ii < kk + 1; ++ii)
+                    for (unsigned int ii = 1; ii < kk + 1; ++ii)
                     {
                         if (temp_nodes[jj][ll] == d_nodes[jj][ii - 1]) added = true;
                     }
@@ -458,7 +460,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     } // loop over meters
 
     // initialize meshes and number of nodes
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_meter_meshes.push_back(new SerialMesh(comm_in, NDIM));
         std::ostringstream id;
@@ -468,19 +470,19 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // build the meshes
-    for (int ii = 0; ii < d_num_meters; ++ii)
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         d_meter_meshes[ii]->set_spatial_dimension(NDIM);
         d_meter_meshes[ii]->set_mesh_dimension(NDIM - 1);
         d_meter_meshes[ii]->reserve_nodes(d_num_nodes[ii]);
         d_meter_meshes[ii]->reserve_elem(d_num_nodes[ii] - 2);
 
-        for (int jj = 0; jj < d_num_nodes[ii]; ++jj)
+        for (unsigned int jj = 0; jj < d_num_nodes[ii]; ++jj)
         {
             d_meter_meshes[ii]->add_point(d_nodes[ii][jj], jj);
         }
 
-        for (int jj = 0; jj < d_num_nodes[ii] - 2; ++jj)
+        for (unsigned int jj = 0; jj < d_num_nodes[ii] - 2; ++jj)
         {
             Elem* elem = new Tri3;
             elem->set_id(jj);
@@ -494,7 +496,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     } // loop over meters
 
     // initialize meter mesh equation systems, for both velocity and displacement
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         d_meter_systems.push_back(new EquationSystems(*d_meter_meshes[jj]));
         LinearImplicitSystem& velocity_sys =
@@ -516,7 +518,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // store the number of quadrature points for each meter mesh
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         const LinearImplicitSystem& displacement_sys =
             d_meter_systems[jj]->get_system<LinearImplicitSystem>(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
@@ -536,14 +538,14 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_me
     }
 
     // store dof indices for the velocity and displacement systems that we will use later
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
-        for (int ii = 0; ii < d_num_nodes[jj]; ++ii)
+        for (unsigned int ii = 0; ii < d_num_nodes[jj]; ++ii)
         {
             const Node* node = &mesh->node_ref(d_node_dof_IDs[jj][ii]);
             std::vector<dof_id_type> dX_dof_index;
             std::vector<dof_id_type> U_dof_index;
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dX_dof_index.push_back(node->dof_number(dX_sys_num, d, 0));
                 U_dof_index.push_back(node->dof_number(U_sys_num, d, 0));
@@ -566,7 +568,7 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
     if (d_num_meters == 0) return;
 
     // loop over meters and update system data
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // update FE system data for meter_mesh
         updateSystemData(ib_method_ops, jj);
@@ -644,10 +646,10 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
 
                 // get dofs for displacement system and store in dense matrix
                 disp_coords.resize(NDIM, phi.size());
-                for (int d = 0; d < NDIM; ++d) // here d is the "variable number"
+                for (unsigned int d = 0; d < NDIM; ++d) // here d is the "variable number"
                 {
                     dof_map.dof_indices(elem, dof_indices, d);
-                    for (int nn = 0; nn < dof_indices.size(); ++nn)
+                    for (unsigned int nn = 0; nn < dof_indices.size(); ++nn)
                     {
                         disp_coords(d, nn) = displacement_coords(dof_indices[nn]);
                     }
@@ -658,18 +660,18 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_meth
                 const libMesh::Point foo2 = *elem->node_ptr(2) - *elem->node_ptr(1);
                 libMesh::Point foo3 = foo1.cross(foo2).unit();
                 Vector normal;
-                for (int d = 0; d < NDIM; ++d) normal[d] = foo3(d);
+                for (unsigned int d = 0; d < NDIM; ++d) normal[d] = foo3(d);
 
                 // loop over quadrature points, compute their physical locations
                 // after displacement, and stores their indices.
-                for (int qp = 0; qp < qp_points.size(); ++qp)
+                for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
                     double disp_comp = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         disp_comp = 0.0;
-                        for (int nn = 0; nn < phi.size(); ++nn)
+                        for (unsigned int nn = 0; nn < phi.size(); ++nn)
                         {
                             disp_comp += disp_coords(d, nn) * phi[nn][qp];
                         }
@@ -829,7 +831,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // we need to compute the flow correction by calculating the contribution
     // from the velocity of each meter mesh.
-    for (int jj = 0; jj < d_num_meters; ++jj)
+    for (unsigned int jj = 0; jj < d_num_meters; ++jj)
     {
         // get displacement and velocity systems for meter mesh
         const LinearImplicitSystem& velocity_sys =
@@ -862,10 +864,10 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             // get dofs for displacement system and store in dense matrix
             vel_coords.resize(NDIM, phi.size());
-            for (int d = 0; d < NDIM; ++d) // here d is the "variable number"
+            for (unsigned int d = 0; d < NDIM; ++d) // here d is the "variable number"
             {
                 dof_map.dof_indices(elem, dof_indices, d);
-                for (int nn = 0; nn < dof_indices.size(); ++nn)
+                for (unsigned int nn = 0; nn < dof_indices.size(); ++nn)
                 {
                     vel_coords(d, nn) = velocity_coords(dof_indices[nn]);
                 }
@@ -880,12 +882,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             // loop over quadrature points
             double vel_comp;
-            for (int qp = 0; qp < qp_points.size(); ++qp)
+            for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     vel_comp = 0.0;
-                    for (int nn = 0; nn < phi.size(); ++nn)
+                    for (unsigned int nn = 0; nn < phi.size(); ++nn)
                     {
                         vel_comp += vel_coords(d, nn) * phi[nn][qp];
                     }
@@ -906,7 +908,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 void
 IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
 {
-    for (int ii = 0; ii < d_num_meters; ++ii)
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         std::ostringstream mesh_output;
         mesh_output << d_plot_directory_name << "/"
@@ -918,7 +920,7 @@ IBFEInstrumentPanel::outputExodus(const int timestep, const double loop_time)
 void
 IBFEInstrumentPanel::outputNodes()
 {
-    for (int ii = 0; ii < d_num_meters; ++ii)
+    for (unsigned int ii = 0; ii < d_num_meters; ++ii)
     {
         std::ofstream stuff_stream;
         std::ostringstream node_output;
@@ -927,7 +929,7 @@ IBFEInstrumentPanel::outputNodes()
         if (SAMRAI_MPI::getRank() == 0)
         {
             stuff_stream.open(node_output.str().c_str());
-            for (int dd = 0; dd < d_nodes[ii].size(); ++dd)
+            for (unsigned int dd = 0; dd < d_nodes[ii].size(); ++dd)
             {
                 stuff_stream << d_nodes[ii][dd](0) << " " << d_nodes[ii][dd](1) << " " << d_nodes[ii][dd](2) << "\n";
             }
@@ -980,7 +982,7 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
     NumericVector<double>& displacement_coords = displacement_sys.get_vector("serial solution");
 
     // loop over all nodes in meter mesh
-    for (int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
+    for (unsigned int ii = 0; ii < d_num_nodes[meter_mesh_number]; ++ii)
     {
         // get node on meter mesh
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
@@ -991,7 +993,7 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
         std::vector<double> dX_dofs;
         dX_dofs.resize(NDIM);
 
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             U_dofs[d] = U_coords_parent[d_U_dof_idx[meter_mesh_number][ii][d]];
             dX_dofs[d] = dX_coords_parent[d_dX_dof_idx[meter_mesh_number][ii][d]];
@@ -999,7 +1001,7 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
 
         // set dofs in meter mesh to correspond to the same values
         // as in the parent mesh
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             const int vel_dof_idx = node->dof_number(velocity_sys_num, d, 0);
             velocity_coords.set(vel_dof_idx, U_dofs[d]);
@@ -1014,7 +1016,7 @@ IBFEInstrumentPanel::updateSystemData(IBAMR::IBFEMethod* ib_method_ops, const in
     for (; node_it != end_node_it; ++node_it)
     {
         const Node* node = *node_it;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             const int vel_dof_idx = node->dof_number(velocity_sys_num, d, 0);
             velocity_solution.set(vel_dof_idx, velocity_coords(vel_dof_idx));
@@ -1041,7 +1043,7 @@ IBFEInstrumentPanel::outputData(const double data_time)
     {
         d_mean_pressure_stream << data_time;
         d_flux_stream << data_time;
-        for (int jj = 0; jj < d_num_meters; ++jj)
+        for (unsigned int jj = 0; jj < d_num_meters; ++jj)
         {
             d_mean_pressure_stream << " " << d_mean_pressure_values[jj];
             d_flux_stream << " " << d_flow_values[jj];
