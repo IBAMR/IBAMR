@@ -2053,21 +2053,31 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes the updated density N = rho^n - dt*div[rho^n * U].
+c     Computes an updated density field using the three stage formula
+c     R = a0*R0 + a1*R1 - a2*dt*div[rhalf*u]
+c
+c     a0,a1,a2 are coefficients for steps of a SSP Runge-Kutta update
+c     R is a side-centered updated density field
+c     R0,R1 are side-centered density fields from different RK stages
+c     rhalf is the face-centered interpolation of R1
+c     u is the face-centered advection velocity   
+c     
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine vc_update_density3d(
-     &     dx,dt,
+     &     dx,dt,a0,a1,a2,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nR0gc0,nR0gc1,nR0gc2,
+     &     R0,
+     &     nR1gc0,nR1gc1,nR1gc2,
+     &     R1,
      &     nugc0,nugc1,nugc2,
      &     u0,u1,u2,
-     &     npgc0,npgc1,npgc2,
-     &     p0,p1,p2,
+     &     nrhalfgc0,nrhalfgc1,nrhalfgc2,
+     &     rhalf0,rhalf1,rhalf2,
      &     nRgc0,nRgc1,nRgc2,
-     &     R,
-     &     nNgc0,nNgc1,nNgc2,
-     &     N)
+     &     R)
 c
       implicit none
 c
@@ -2075,38 +2085,41 @@ c     Input.
 c
       INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
 
+      INTEGER nR0gc0,nR0gc1,nR0gc2
+      INTEGER nR1gc0,nR1gc1,nR1gc2
       INTEGER nugc0,nugc1,nugc2
-      INTEGER npgc0,npgc1,npgc2
+      INTEGER nrhalfgc0,nrhalfgc1,nrhalfgc2
       INTEGER nRgc0,nRgc1,nRgc2
-      INTEGER nNgc0,nNgc1,nNgc2
 
-      REAL dx(0:NDIM-1),dt
+      REAL dx(0:NDIM-1),dt,a0,a1,a2
 
+      REAL R0(CELL3dVECG(ifirst,ilast,nR0gc))
+      REAL R1(CELL3dVECG(ifirst,ilast,nR1gc))
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
       REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
-      REAL p0(FACE3d0VECG(ifirst,ilast,npgc))
-      REAL p1(FACE3d1VECG(ifirst,ilast,npgc))
-      REAL p2(FACE3d2VECG(ifirst,ilast,npgc))
-      REAL R(CELL3dVECG(ifirst,ilast,nRgc))
+      REAL rhalf0(FACE3d0VECG(ifirst,ilast,nrhalfgc))
+      REAL rhalf1(FACE3d1VECG(ifirst,ilast,nrhalfgc))
+      REAL rhalf2(FACE3d2VECG(ifirst,ilast,nrhalfgc))
 c
 c     Input/Output.
 c
-      REAL N(CELL3dVECG(ifirst,ilast,nNgc))
+      REAL R(CELL3dVECG(ifirst,ilast,nRgc))
 c
 c     Local variables.
 c
       INTEGER ic0,ic1,ic2
       REAL Px0,Px1,Px2
 c
-c     Compute R^n - dt * div[R^{n+1/2} U].
+c     Compute R = a0*R0 + a1*R1 - a2*dt*div[r_fc*u].
 c
       do ic2 = ifirst2,ilast2
         do ic1 = ifirst1,ilast1
           do ic0 = ifirst0,ilast0
-              Px0 = (p0(ic0+1,ic1,ic2)*u0(ic0+1,ic1,ic2) -
-     &               p0(ic0,ic1,ic2)*u0(ic0,ic1,ic2))/dx(0)
-              N(ic0,ic1,ic2) = R(ic0,ic1,ic2) - dt * Px0
+              Px0 = (rhalf0(ic0+1,ic1,ic2)*u0(ic0+1,ic1,ic2) -
+     &               rhalf0(ic0,ic1,ic2)*u0(ic0,ic1,ic2))/dx(0)
+              R(ic0,ic1,ic2) = a0*R0(ic0,ic1,ic2) + a1*R1(ic0,ic1,ic2)
+     &                         - a2 * dt * Px0
           enddo
         enddo
       enddo
@@ -2114,9 +2127,9 @@ c
       do ic0 = ifirst0,ilast0
         do ic2 = ifirst2,ilast2
           do ic1 = ifirst1,ilast1
-             Px1 = (p1(ic1+1,ic2,ic0)*u1(ic1+1,ic2,ic0) -
-     &              p1(ic1,ic2,ic0)*u1(ic1,ic2,ic0))/dx(1)
-             N(ic0,ic1,ic2) = N(ic0,ic1,ic2) - dt * Px1
+              Px1 = (rhalf1(ic1+1,ic2,ic0)*u1(ic1+1,ic2,ic0) -
+     &               rhalf1(ic1,ic2,ic0)*u1(ic1,ic2,ic0))/dx(1)
+              R(ic0,ic1,ic2) = R(ic0,ic1,ic2) - a2* dt * Px1
           enddo
         enddo
       enddo
@@ -2124,12 +2137,13 @@ c
       do ic1 = ifirst1,ilast1
         do ic0 = ifirst0,ilast0
           do ic2 = ifirst2,ilast2
-             Px2 = (p2(ic2+1,ic0,ic1)*u2(ic2+1,ic0,ic1) -
-     &              p2(ic2,ic0,ic1)*u2(ic2,ic0,ic1))/dx(2)
-             N(ic0,ic1,ic2) = N(ic0,ic1,ic2) - dt * Px2
+              Px2 = (rhalf2(ic2+1,ic0,ic1)*u2(ic2+1,ic0,ic1) -
+     &               rhalf2(ic2,ic0,ic1)*u2(ic2,ic0,ic1))/dx(2)
+              R(ic0,ic1,ic2) = R(ic0,ic1,ic2) - a2* dt * Px2
           enddo
         enddo
       enddo
+
 c
       return
       end

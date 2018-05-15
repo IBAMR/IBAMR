@@ -1807,15 +1807,14 @@ VCINSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         {
             // For conservative momentum discretization, an approximation to rho^{n+1}
             // will be computed from rho^{n}, which requires additional options to be set.
-            VCINSStaggeredConservativeConvectiveOperator* p_vc_ppm_convective_op =
+            VCINSStaggeredConservativeConvectiveOperator* p_vc_convective_op =
                 dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-            if (p_vc_ppm_convective_op)
+            if (p_vc_convective_op)
             {
-                p_vc_ppm_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_scratch_idx);
+                p_vc_convective_op->setInterpolatedDensityPatchDataIndex(d_rho_interp_scratch_idx);
                 std::vector<RobinBcCoefStrategy<NDIM>*> rho_interp_bc_coefs(NDIM);
                 for (unsigned int d = 0; d < NDIM; ++d) rho_interp_bc_coefs[d] = d_rho_bc_coef;
-                p_vc_ppm_convective_op->setInterpolatedDensityBoundaryConditions(rho_interp_bc_coefs);
-                p_vc_ppm_convective_op->setTimeStepSize(dt);
+                p_vc_convective_op->setInterpolatedDensityBoundaryConditions(rho_interp_bc_coefs);
             }
             else
             {
@@ -1952,11 +1951,11 @@ VCINSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         else if (d_vc_discretization_form == VC_CONSERVATIVE)
         {
             // In the special case of a conservative discretization form, the updated density is previously calculated by the convective operator
-            VCINSStaggeredConservativeConvectiveOperator* p_vc_ppm_convective_op =
+            VCINSStaggeredConservativeConvectiveOperator* p_vc_convective_op =
                 dynamic_cast<VCINSStaggeredConservativeConvectiveOperator*>(d_convective_op.getPointer());
-            if (p_vc_ppm_convective_op)
+            if (p_vc_convective_op)
             {
-                const int rho_interp_new = p_vc_ppm_convective_op->getUpdatedInterpolatedDensityPatchDataIndex();
+                const int rho_interp_new = p_vc_convective_op->getUpdatedInterpolatedDensityPatchDataIndex();
                 d_hier_sc_data_ops->copyData(d_rho_interp_new_idx, rho_interp_new);
             }
             else
@@ -3440,6 +3439,7 @@ VCINSStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
             plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->setSolutionTime(d_integrator_time);
+        d_convective_op->setTimeInterval(current_time, new_time);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec, *d_U_rhs_vec);
         d_convective_op_needs_init = false;
     }

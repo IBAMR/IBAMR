@@ -155,12 +155,12 @@ void CONVECT_DERIVATIVE_FC(const double*,
                            const int&,
 #endif
                            double*);
-#if (NDIM == 2)
 void VC_UPDATE_DENSITY_FC(const double*,
                           const double&,
                           const double&,
                           const double&,
                           const double&,
+#if (NDIM == 2)
                           const int&,
                           const int&,
                           const int&,
@@ -181,8 +181,41 @@ void VC_UPDATE_DENSITY_FC(const double*,
                           const double*,
                           const int&,
                           const int&,
-                          const double*);
+                          
 #endif
+#if (NDIM == 3)
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
+                          
+#endif
+                          double*);
 
 void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
                                   const double&,
@@ -987,8 +1020,6 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_rho_is_set(false),
-      d_dt_is_set(false),
-      d_dt(-1.0),
       d_num_steps(1),
       d_rho_interp_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_U_var(NULL),
@@ -1034,6 +1065,10 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
             d_density_time_stepping_type =
                 IBAMR::string_to_enum<DensityTimeSteppingType>(input_db->getString("density_time_stepping_type"));
         }
+        if (input_db->keyExists("enable_logging"))
+        {
+            d_enable_logging = input_db->getBool("enable_logging");
+        }
     }
 
     switch (d_velocity_convective_limiter)
@@ -1051,7 +1086,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_velocity_limiter_gcw = GMGAMMAG;
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported velocity convective limiter: "
                                  << IBAMR::enum_to_string<ConvectiveLimiter>(d_velocity_convective_limiter)
                                  << " \n"
@@ -1073,7 +1108,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_density_limiter_gcw = GMGAMMAG;
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported density convective limiter: "
                                  << IBAMR::enum_to_string<ConvectiveLimiter>(d_density_convective_limiter)
                                  << " \n"
@@ -1092,7 +1127,7 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
         d_num_steps = 3;
         break;
     default:
-        TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
+        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported density time stepping type: "
                                  << IBAMR::enum_to_string<DensityTimeSteppingType>(d_density_time_stepping_type)
                                  << " \n"
@@ -1171,25 +1206,27 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     if (!d_is_initialized)
     {
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                                 << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 
     if (!d_rho_is_set)
     {
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  a side-centered density field must be set via setInterpolatedDensityPatchDataIndex()\n"
-                   << "  prior to call to applyConvectiveOperator\n");
+                                 << "  a side-centered density field must be set via setInterpolatedDensityPatchDataIndex()\n"
+                                 << "  prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(d_rho_interp_current_idx >= 0);
+#endif
 
-    if (!d_dt_is_set)
+    // Get the time step size
+    const double dt = getDt();
+#if !defined(NDEBUG)
+    if (!(dt > 0.0))
     {
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  the current time step size must be set via  setTimeStepSize()\n"
-                   << "  prior to call to applyConvectiveOperator\n");
+                                 << " invalid time step size dt = " << dt << "\n");
     }
-    TBOX_ASSERT(d_dt >= 0.0);
 #endif
 
     // Fill ghost cell values for velocity
@@ -1227,7 +1264,10 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
     // Compute the old mass
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     const double old_mass = d_hier_sc_data_ops->integral(d_rho_interp_current_idx, wgt_sc_idx);
-    pout << "Old mass in the domain = " << old_mass << std::endl;
+    if (d_enable_logging)
+    {
+        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): old mass in the domain = " << old_mass << "\n";
+    }
 
     // Compute the convective derivative.
     bool N_computed = false;
@@ -1246,7 +1286,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                                                  d_rho_interp_bc_coefs);
             Pointer<HierarchyGhostCellInterpolation> hier_update_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_update_bdry_fill->initializeOperatorState(update_transaction, d_hierarchy);
-            hier_update_bdry_fill->fillData(d_solution_time + d_dt);
+            hier_update_bdry_fill->fillData(d_solution_time + dt);
         }
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -1347,24 +1387,27 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                     TBOX_ERROR("This statement should not be reached");
                 }
                 computeDensityUpdate(
-                    R_new_data, a0, R_cur_data, a1, R_pre_data, a2, U_adv_data, R_half_data, side_boxes, dx);
+                    R_new_data, a0, R_cur_data, a1, R_pre_data, a2, U_adv_data, R_half_data, side_boxes, dt, dx);
             }
         }
     }
     // Ensure that the density has been updated
     if (!N_computed)
-        TBOX_ERROR(
-            "Convective derivative has not been computed by VCINSStaggeredConservativeConvectiveOperator. Something "
-            "went wrong");
+    {
+        TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
+                                 << "  convective derivative has not been computed by VCINSStaggeredConservativeConvectiveOperator.\n"
+                                 << " Something went wrong\n");
+    }
 
     // Compute the new mass
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_interp_new_idx, wgt_sc_idx);
-    pout << "New mass in the domain = " << new_mass << std::endl;
-    pout << "Change in mass = " << new_mass - old_mass << std::endl;
+    if (d_enable_logging)
+    {
+        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): new mass in the domain = " << new_mass << "\n";
+        plog << "VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(): change in mass         = " << new_mass - old_mass << "\n";
+    }
 
     // Reset select options
-    d_dt = -1.0;
-    d_dt_is_set = false;
     d_rho_interp_current_idx = -1;
     d_rho_is_set = false;
 
@@ -1424,7 +1467,7 @@ VCINSStaggeredConservativeConvectiveOperator::initializeOperatorState(const SAMR
     if (!d_hier_math_ops_external)
     {
         d_hier_math_ops =
-            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+            new HierarchyMathOps("VCINSStaggeredConservativeConvectiveOperator::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -1477,16 +1520,6 @@ VCINSStaggeredConservativeConvectiveOperator::setInterpolatedDensityPatchDataInd
     d_rho_is_set = true;
     d_rho_interp_current_idx = rho_interp_idx;
 } // setInterpolatedDensityPatchDataIndex
-
-void
-VCINSStaggeredConservativeConvectiveOperator::setTimeStepSize(double dt)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(dt >= 0.0);
-#endif
-    d_dt_is_set = true;
-    d_dt = dt;
-} // setTimeStepSize
 
 void
 VCINSStaggeredConservativeConvectiveOperator::setInterpolatedDensityBoundaryConditions(
@@ -2180,10 +2213,10 @@ VCINSStaggeredConservativeConvectiveOperator::computeConvectiveDerivative(
             break;
         default:
             TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
-                       << "  unsupported differencing form: "
-                       << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                       << " \n"
-                       << "  valid choices are: CONSERVATIVE\n");
+                                     << "  unsupported differencing form: "
+                                     << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+                                     << " \n"
+                                     << "  valid choices are: CONSERVATIVE\n");
         }
     }
 } // computeConvectiveDerivative
@@ -2199,13 +2232,14 @@ VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
     const boost::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
+    const double& dt,
     const double* const dx)
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
 #if (NDIM == 2)
         VC_UPDATE_DENSITY_FC(dx,
-                             d_dt,
+                             dt,
                              a0,
                              a1,
                              a2,
@@ -2232,7 +2266,41 @@ VCINSStaggeredConservativeConvectiveOperator::computeDensityUpdate(
                              R_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-        TBOX_ERROR("TODO");
+        VC_UPDATE_DENSITY_FC(dx,
+                             dt,
+                             a0,
+                             a1,
+                             a2,
+                             side_boxes[axis].lower(0),
+                             side_boxes[axis].upper(0),
+                             side_boxes[axis].lower(1),
+                             side_boxes[axis].upper(1),
+                             side_boxes[axis].lower(2),
+                             side_boxes[axis].upper(2),
+                             R0_data->getGhostCellWidth()(0),
+                             R0_data->getGhostCellWidth()(1),
+                             R0_data->getGhostCellWidth()(2),
+                             R0_data->getPointer(axis),
+                             R1_data->getGhostCellWidth()(0),
+                             R1_data->getGhostCellWidth()(1),
+                             R1_data->getGhostCellWidth()(2),
+                             R1_data->getPointer(axis),
+                             U_adv_data[axis]->getGhostCellWidth()(0),
+                             U_adv_data[axis]->getGhostCellWidth()(1),
+                             U_adv_data[axis]->getGhostCellWidth()(2),
+                             U_adv_data[axis]->getPointer(0),
+                             U_adv_data[axis]->getPointer(1),
+                             U_adv_data[axis]->getPointer(2),
+                             R_half_data[axis]->getGhostCellWidth()(0),
+                             R_half_data[axis]->getGhostCellWidth()(1),
+                             R_half_data[axis]->getGhostCellWidth()(2),
+                             R_half_data[axis]->getPointer(0),
+                             R_half_data[axis]->getPointer(1),
+                             R_half_data[axis]->getPointer(2),
+                             R_data->getGhostCellWidth()(0),
+                             R_data->getGhostCellWidth()(1),
+                             R_data->getGhostCellWidth()(2),
+                             R_data->getPointer(axis));
 #endif
     }
 } // computeDensityUpdate

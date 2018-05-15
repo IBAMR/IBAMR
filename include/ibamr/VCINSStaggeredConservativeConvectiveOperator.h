@@ -176,11 +176,6 @@ public:
     void setInterpolatedDensityPatchDataIndex(int rho_interp_idx);
 
     /*
-     * \brief Set the current time step size.
-     */
-    void setTimeStepSize(double dt);
-
-    /*
      * \brief Set the boundary condition object for the interpolated side-centered density.
      */
     void setInterpolatedDensityBoundaryConditions(
@@ -269,6 +264,7 @@ private:
         const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
         const boost::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
+        const double& dt,
         const double* const dx);
 
     // Boundary condition helper object.
@@ -286,12 +282,6 @@ private:
 
     // Whether or not the current density field has been set.
     bool d_rho_is_set;
-
-    // Whether or not the time step size is set.
-    bool d_dt_is_set;
-
-    // Current time step size.
-    double d_dt;
 
     // Number of RK steps to take.
     int d_num_steps;
