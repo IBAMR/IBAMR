@@ -242,7 +242,7 @@ private:
         const SAMRAI::hier::IntVector<NDIM>& patch_lower,
         const SAMRAI::hier::IntVector<NDIM>& patch_upper,
         const boost::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const VCConvectiveLimiter& convective_limiter);
+        const ConvectiveLimiter& convective_limiter);
 
     /*!
      * \brief Compute div[rho_half*u_half*u_adv]
@@ -309,14 +309,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // The limiter type for interpolation onto faces.
-    VCConvectiveLimiter d_vc_velocity_convective_limiter;
-    VCConvectiveLimiter d_vc_density_convective_limiter;
+    ConvectiveLimiter d_velocity_convective_limiter;
+    ConvectiveLimiter d_density_convective_limiter;
 
     // The required number of ghost cells for the chosen interpolation
     int d_velocity_limiter_gcw, d_density_limiter_gcw;
 
     // Variable to indicate the density update time-stepping type.
-    VCDensityTimeSteppingType d_vc_density_time_stepping_type;
+    DensityTimeSteppingType d_density_time_stepping_type;
 };
 } // namespace IBAMR
 

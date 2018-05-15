@@ -997,11 +997,11 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
       d_rho_interp_current_idx(-1),
       d_rho_interp_scratch_idx(-1),
       d_rho_interp_new_idx(-1),
-      d_vc_velocity_convective_limiter(VC_UPWIND),
-      d_vc_density_convective_limiter(VC_UPWIND),
+      d_velocity_convective_limiter(UPWIND),
+      d_density_convective_limiter(UPWIND),
       d_velocity_limiter_gcw(1),
       d_density_limiter_gcw(1),
-      d_vc_density_time_stepping_type(VC_FORWARD_EULER)
+      d_density_time_stepping_type(SSPRK1)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -1015,88 +1015,88 @@ VCINSStaggeredConservativeConvectiveOperator::VCINSStaggeredConservativeConvecti
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
-        if (input_db->keyExists("vc_convective_limiter"))
+        if (input_db->keyExists("convective_limiter"))
         { 
-            d_vc_velocity_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
-            d_vc_density_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_convective_limiter"));
+            d_velocity_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("convective_limiter"));
+            d_density_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("convective_limiter"));
         }
-        if (input_db->keyExists("vc_velocity_convective_limiter"))
+        if (input_db->keyExists("velocity_convective_limiter"))
         {
-            d_vc_velocity_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_velocity_convective_limiter"));
+            d_velocity_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("velocity_convective_limiter"));
         }
-        if (input_db->keyExists("vc_density_convective_limiter"))
+        if (input_db->keyExists("density_convective_limiter"))
         {
-            d_vc_density_convective_limiter = IBAMR::string_to_enum<VCConvectiveLimiter>(input_db->getString("vc_density_convective_limiter"));
+            d_density_convective_limiter = IBAMR::string_to_enum<ConvectiveLimiter>(input_db->getString("density_convective_limiter"));
         }
 
-        if (input_db->keyExists("vc_density_time_stepping_type"))
+        if (input_db->keyExists("density_time_stepping_type"))
         {
-            d_vc_density_time_stepping_type =
-                IBAMR::string_to_enum<VCDensityTimeSteppingType>(input_db->getString("vc_density_time_stepping_type"));
+            d_density_time_stepping_type =
+                IBAMR::string_to_enum<DensityTimeSteppingType>(input_db->getString("density_time_stepping_type"));
         }
     }
 
-    switch (d_vc_velocity_convective_limiter)
+    switch (d_velocity_convective_limiter)
     {
-    case VC_UPWIND:
+    case UPWIND:
         d_velocity_limiter_gcw = GUPWINDG;
         break;
-    case VC_CUI:
+    case CUI:
         d_velocity_limiter_gcw = GCUIG;
         break;
-    case VC_FBICS:
+    case FBICS:
         d_velocity_limiter_gcw = GFBICSG;
         break;
-    case VC_MGAMMA:
+    case MGAMMA:
         d_velocity_limiter_gcw = GMGAMMAG;
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported velocity convective limiter: "
-                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_velocity_convective_limiter)
+                                 << IBAMR::enum_to_string<ConvectiveLimiter>(d_velocity_convective_limiter)
                                  << " \n"
-                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
+                                 << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
 
-    switch (d_vc_density_convective_limiter)
+    switch (d_density_convective_limiter)
     {
-    case VC_UPWIND:
+    case UPWIND:
         d_density_limiter_gcw = GUPWINDG;
         break;
-    case VC_CUI:
+    case CUI:
         d_density_limiter_gcw = GCUIG;
         break;
-    case VC_FBICS:
+    case FBICS:
         d_density_limiter_gcw = GFBICSG;
         break;
-    case VC_MGAMMA:
+    case MGAMMA:
         d_density_limiter_gcw = GMGAMMAG;
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported density convective limiter: "
-                                 << IBAMR::enum_to_string<VCConvectiveLimiter>(d_vc_density_convective_limiter)
+                                 << IBAMR::enum_to_string<ConvectiveLimiter>(d_density_convective_limiter)
                                  << " \n"
-                                 << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
+                                 << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
 
-    switch (d_vc_density_time_stepping_type)
+    switch (d_density_time_stepping_type)
     {
-    case VC_FORWARD_EULER:
+    case SSPRK1:
         d_num_steps = 1;
         break;
-    case VC_SSPRK2:
+    case SSPRK2:
         d_num_steps = 2;
         break;
-    case VC_SSPRK3:
+    case SSPRK3:
         d_num_steps = 3;
         break;
     default:
         TBOX_ERROR(d_object_name << "::VCINSStaggeredConservativeConvectiveOperator():\n"
                                  << "  unsupported density time stepping type: "
-                                 << IBAMR::enum_to_string<VCDensityTimeSteppingType>(d_vc_density_time_stepping_type)
+                                 << IBAMR::enum_to_string<DensityTimeSteppingType>(d_density_time_stepping_type)
                                  << " \n"
-                                 << "  valid choices are: VC_FORWARD_EULER, VC_SSPRK2, VC_SSPRK3\n");
+                                 << "  valid choices are: SSPRK1, SSPRK2, SSPRK3\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1294,12 +1294,12 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                         patch_lower,
                                         patch_upper,
                                         side_boxes,
-                                        d_vc_density_convective_limiter);
+                                        d_density_convective_limiter);
 
                 // Compute the convective derivative with this density, if necessary
-                if ((d_vc_density_time_stepping_type == VC_FORWARD_EULER && step == 0) ||
-                    (d_vc_density_time_stepping_type == VC_SSPRK2 && step == 1) ||
-                    (d_vc_density_time_stepping_type == VC_SSPRK3 && step == 2))
+                if ((d_density_time_stepping_type == SSPRK1 && step == 0) ||
+                    (d_density_time_stepping_type == SSPRK2 && step == 1) ||
+                    (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {
                     interpolateSideQuantity(U_half_data,
                                             U_adv_data,
@@ -1307,7 +1307,7 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                                             patch_lower,
                                             patch_upper,
                                             side_boxes,
-                                            d_vc_velocity_convective_limiter);
+                                            d_velocity_convective_limiter);
 
                     computeConvectiveDerivative(
                         N_data, P_half_data, U_adv_data, R_half_data, U_half_data, side_boxes, dx);
@@ -1324,14 +1324,14 @@ VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator(const int 
                     a2 = 1.0;
                     break;
                 case 1:
-                    if (d_vc_density_time_stepping_type == VC_SSPRK2)
+                    if (d_density_time_stepping_type == SSPRK2)
                     {
                         a0 = 0.5;
                         a1 = 0.5;
                         a2 = 0.5;
                         break;
                     }
-                    if (d_vc_density_time_stepping_type == VC_SSPRK3)
+                    if (d_density_time_stepping_type == SSPRK3)
                     {
                         a0 = 0.75;
                         a1 = 0.25;
@@ -1606,11 +1606,11 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     const IntVector<NDIM>& patch_lower,
     const IntVector<NDIM>& patch_upper,
     const boost::array<Box<NDIM>, NDIM>& side_boxes,
-    const VCConvectiveLimiter& convective_limiter)
+    const ConvectiveLimiter& convective_limiter)
 {
     switch (convective_limiter)
     {
-    case VC_UPWIND:
+    case UPWIND:
         // Upwind side-centered densities onto faces.
         VC_NAVIER_STOKES_UPWIND_QUANTITY_FC(patch_lower(0),
                                             patch_upper(0),
@@ -1708,7 +1708,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                                 );
 
         break;
-    case VC_CUI:
+    case CUI:
         // Upwind side-centered densities onto faces.
         VC_NAVIER_STOKES_CUI_QUANTITY_FC(patch_lower(0),
                                          patch_upper(0),
@@ -1806,7 +1806,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
                                              );
 
         break;
-    case VC_FBICS:
+    case FBICS:
         VC_NAVIER_STOKES_FBICS_QUANTITY_FC(patch_lower(0),
                                            patch_upper(0),
                                            patch_lower(1),
@@ -1902,7 +1902,7 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
 #endif
                                                );
         break;
-    case VC_MGAMMA:
+    case MGAMMA:
         // Upwind side-centered densities onto faces.
         VC_NAVIER_STOKES_MGAMMA_QUANTITY_FC(patch_lower(0),
                                             patch_upper(0),
@@ -2003,9 +2003,9 @@ VCINSStaggeredConservativeConvectiveOperator::interpolateSideQuantity(
     default:
         TBOX_ERROR("VCINSStaggeredConservativeConvectiveOperator::applyConvectiveOperator():\n"
                    << "  unsupported convective limiter: "
-                   << IBAMR::enum_to_string<VCConvectiveLimiter>(convective_limiter)
+                   << IBAMR::enum_to_string<ConvectiveLimiter>(convective_limiter)
                    << " \n"
-                   << "  valid choices are: VC_UPWIND, VC_CUI, VC_FBICS, VC_MGAMMA\n");
+                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA\n");
     }
 } // interpolateSideQuantity
 

@@ -132,65 +132,65 @@ enum_to_string<VCDiscretizationForm>(VCDiscretizationForm val)
 /*!
  * \brief Enumerated type for different conservative limiter types for the variable-coefficeint convective operator.
  */
-enum VCConvectiveLimiter
+enum ConvectiveLimiter
 {
-    VC_UPWIND,
-    VC_CUI,
-    VC_FBICS,
-    VC_MGAMMA,
+    UPWIND,
+    CUI,
+    FBICS,
+    MGAMMA,
     UNKNOWN_CONVECTIVE_LIMITER = -1
 };
 
 template <>
-inline VCConvectiveLimiter
-string_to_enum<VCConvectiveLimiter>(const std::string& val)
+inline ConvectiveLimiter
+string_to_enum<ConvectiveLimiter>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "VC_UPWIND") == 0) return VC_UPWIND;
-    if (strcasecmp(val.c_str(), "VC_CUI") == 0) return VC_CUI;
-    if (strcasecmp(val.c_str(), "VC_FBICS") == 0) return VC_FBICS;
-    if (strcasecmp(val.c_str(), "VC_MGAMMA") == 0) return VC_MGAMMA;
+    if (strcasecmp(val.c_str(), "UPWIND") == 0) return UPWIND;
+    if (strcasecmp(val.c_str(), "CUI") == 0) return CUI;
+    if (strcasecmp(val.c_str(), "FBICS") == 0) return FBICS;
+    if (strcasecmp(val.c_str(), "MGAMMA") == 0) return MGAMMA;
     return UNKNOWN_CONVECTIVE_LIMITER;
 } // string_to_enum
 
 template <>
 inline std::string
-enum_to_string<VCConvectiveLimiter>(VCConvectiveLimiter val)
+enum_to_string<ConvectiveLimiter>(ConvectiveLimiter val)
 {
-    if (val == VC_UPWIND) return "VC_UPWIND";
-    if (val == VC_CUI) return "VC_CUI";
-    if (val == VC_FBICS) return "VC_FBICS";
-    if (val == VC_MGAMMA) return "VC_MGAMMA";
+    if (val == UPWIND) return "UPWIND";
+    if (val == CUI) return "CUI";
+    if (val == FBICS) return "FBICS";
+    if (val == MGAMMA) return "MGAMMA";
     return "UNKNOWN_CONVECTIVE_LIMITER";
 } // enum_to_string
 
 /*!
  * \brief Enumerated type for different density update schemes for the variable-coefficeint convective operator.
  */
-enum VCDensityTimeSteppingType
+enum DensityTimeSteppingType
 {
-    VC_FORWARD_EULER,
-    VC_SSPRK2,
-    VC_SSPRK3,
+    SSPRK1,
+    SSPRK2,
+    SSPRK3,
     UNKNOWN_DENSITY_TIME_STEPPING_TYPE = -1
 };
 
 template <>
-inline VCDensityTimeSteppingType
-string_to_enum<VCDensityTimeSteppingType>(const std::string& val)
+inline DensityTimeSteppingType
+string_to_enum<DensityTimeSteppingType>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "VC_FORWARD_EULER") == 0) return VC_FORWARD_EULER;
-    if (strcasecmp(val.c_str(), "VC_SSPRK2") == 0) return VC_SSPRK2;
-    if (strcasecmp(val.c_str(), "VC_SSPRK3") == 0) return VC_SSPRK3;
+    if (strcasecmp(val.c_str(), "SSPRK1") == 0) return SSPRK1;
+    if (strcasecmp(val.c_str(), "SSPRK2") == 0) return SSPRK2;
+    if (strcasecmp(val.c_str(), "SSPRK3") == 0) return SSPRK3;
     return UNKNOWN_DENSITY_TIME_STEPPING_TYPE;
 } // string_to_enum
 
 template <>
 inline std::string
-enum_to_string<VCDensityTimeSteppingType>(VCDensityTimeSteppingType val)
+enum_to_string<DensityTimeSteppingType>(DensityTimeSteppingType val)
 {
-    if (val == VC_FORWARD_EULER) return "VC_FORWARD_EULER";
-    if (val == VC_SSPRK2) return "VC_SSPRK2";
-    if (val == VC_SSPRK3) return "VC_SSPRK3";
+    if (val == SSPRK1) return "SSPRK1";
+    if (val == SSPRK2) return "SSPRK2";
+    if (val == SSPRK3) return "SSPRK3";
     return "UNKNOWN_DENSITY_TIME_STEPPING_TYPE";
 } // enum_to_string
 

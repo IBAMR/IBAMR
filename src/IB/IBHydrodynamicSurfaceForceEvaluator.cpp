@@ -283,7 +283,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
 
                     // Viscous traction force := n . mu(grad u + grad u ^ T) * dA
                     IBTK::Vector3d viscous_force = IBTK::Vector3d::Zero();
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
