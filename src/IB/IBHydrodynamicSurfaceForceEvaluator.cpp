@@ -229,8 +229,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForce()
 
     // Loop over side-centered DoFs of the computational domain to compute sum of n.(-pI + mu*(grad U + grad U)^T)
     // Note: n points outward from the solid into the fluid domain, which makes the above expression the force of the
-    // fluid
-    // on the solid.
+    // fluid on the solid.
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         // Assumes that the structure is placed on the finest level

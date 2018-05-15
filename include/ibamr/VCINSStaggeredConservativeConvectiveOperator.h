@@ -67,12 +67,17 @@ namespace IBAMR
 {
 /*!
  * \brief Class VCINSStaggeredConservativeConvectiveOperator is a concrete
- * ConvectiveOperator that implements a upwind convective differencing operator
- * based on the piecewise parabolic method (PPM).
+ * ConvectiveOperator that implements an upwind convective differencing operator.
  *
  * Class VCINSStaggeredConservativeConvectiveOperator computes the convective derivative of
- * a side-centered velocity field using the xsPPM7 method of Rider, Greenough,
- * and Kamm.
+ * a side-centered velocity field using various limiters described by Patel and Natarajan.
+ *
+ * A side-centered density update is provided by this class, which is used in the conservative discretization
+ * of the Stokes operator.
+ *
+ * References
+ * Patel, JK. and Natarajan, G., <A HREF="https://www.sciencedirect.com/science/article/pii/S0045793014004009">
+ * A generic framework for design of interface capturing schemes for multi-fluid flows</A>
  *
  * \note This class is specialized in that it computes a conservative discretization of the form
  * \f$N = \nabla \cdot (u \rho u)\f$, where the density \f$\rho\f$ can vary in space and time.
